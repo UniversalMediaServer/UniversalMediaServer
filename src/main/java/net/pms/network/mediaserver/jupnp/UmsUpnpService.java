@@ -47,8 +47,8 @@ public class UmsUpnpService extends UpnpServiceImpl {
 
 	private boolean addDevice = false;
 
-	public UmsUpnpService(boolean addDevice, boolean ownHttpServer) {
-		super(new UmsUpnpServiceConfiguration(ownHttpServer));
+	public UmsUpnpService(boolean addDevice) {
+		super(new UmsUpnpServiceConfiguration(addDevice));
 		this.addDevice = addDevice;
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
 		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
@@ -61,7 +61,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		}
 	}
 
-	protected void setOwnHttpServer(boolean ownHttpServer) {
+	public void setOwnHttpServer(boolean ownHttpServer) {
 		if (this.configuration instanceof UmsUpnpServiceConfiguration &&
 			((UmsUpnpServiceConfiguration) this.configuration).useOwnHttpServer() != ownHttpServer) {
 				((UmsUpnpServiceConfiguration) this.configuration).setOwnHttpServer(ownHttpServer);

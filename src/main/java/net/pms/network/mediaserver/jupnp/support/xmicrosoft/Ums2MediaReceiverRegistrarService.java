@@ -21,6 +21,6 @@ package net.pms.network.mediaserver.jupnp.support.xmicrosoft;
 
 import org.jupnp.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
 
-public class UMSMediaReceiverRegistrarService extends AbstractMediaReceiverRegistrarService {
+public class Ums2MediaReceiverRegistrarService extends AbstractMediaReceiverRegistrarService {
 
 }

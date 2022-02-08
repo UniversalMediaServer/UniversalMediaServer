@@ -50,8 +50,8 @@ public class MediaServer {
 			{1, "Sockets"},
 			{2, "Netty"},
 			{3, "Java"},
-			{4, "Netty + JUPnP"},
-			{5, "Java + JUPnP"},
+			{4, "JUPnP (Netty)"},
+			{5, "JUPnP (Java)"},
 		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
 	public static final int DEFAULT_VERSION = 2;
 
@@ -154,25 +154,6 @@ public class MediaServer {
 			if (engineVersion == 0 || !VERSIONS.containsKey(engineVersion)) {
 				engineVersion = DEFAULT_VERSION;
 			}
-			//clean UpnpService if not reflect the conf
-			//only true after a reset
-			if (upnpService != null) {
-				if (CONFIGURATION.isUpnpEnabled()) {
-					switch (engineVersion) {
-						case 4:
-						case 5:
-							upnpService.addMediaServerDevice();
-							break;
-						default:
-							upnpService.removeMediaServerDevice();
-							break;
-					}
-				} else {
-					LOGGER.debug("Stopping all UPnP (JUPnP) services.");
-					upnpService.shutdown();
-					upnpService = null;
-				}
-			}
 			try {
 				switch (engineVersion) {
 					case 1:
@@ -180,14 +161,16 @@ public class MediaServer {
 						isStarted = httpMediaServer.start();
 						break;
 					case 2:
-					case 4:
 						httpMediaServer = new NettyServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
 						break;
 					case 3:
-					case 5:
 						httpMediaServer = new JavaHttpServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
+						break;
+					default:
+						//we will handle requests via JUPnP
+						isStarted = true;
 						break;
 				}
 			} catch (IOException ex) {
@@ -203,20 +186,13 @@ public class MediaServer {
 					switch (engineVersion) {
 						case 4:
 						case 5:
-							upnpService = new UmsUpnpService(true, false);
+							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 							break;
 						default:
-							upnpService = new UmsUpnpService(false, false);
+							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 							break;
-					}
-				} else {
-					//come back from reset, let restart the sockets
-					try {
-						LOGGER.debug("Enabling UPnP (JUPnP) network services");
-						upnpService.getRouter().enable();
-					} catch (RouterException ex) {
 					}
 				}
 				try {
@@ -260,26 +236,6 @@ public class MediaServer {
 		MDNS.stop();
 		SocketSSDPServer.stop();
 		if (upnpService != null) {
-			//just disable the network router and keep the upnp registry
-			LOGGER.debug("Disabling UPnP (JUPnP) network services");
-			try {
-				upnpService.getRouter().disable();
-				LOGGER.debug("UPnP network services disabled");
-			} catch (RouterException ex) {
-			}
-		}
-		if (httpMediaServer != null) {
-			httpMediaServer.stop();
-			httpMediaServer = null;
-		}
-		NetworkConfiguration.forgetConfiguration();
-		isStarted = false;
-	}
-
-	public static synchronized void shutdown() {
-		MDNS.stop();
-		SocketSSDPServer.stop();
-		if (upnpService != null) {
 			LOGGER.debug("Shutting down UPnP (JUPnP) service");
 			upnpService.shutdown();
 			upnpService = null;
@@ -289,6 +245,7 @@ public class MediaServer {
 			httpMediaServer.stop();
 			httpMediaServer = null;
 		}
+		NetworkConfiguration.forgetConfiguration();
 		isStarted = false;
 	}
 

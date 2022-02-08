@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * directly (check on JUPnP update if it's corrected).
  * Set our server header.
  */
-public class UMSDatagramProcessor extends DatagramProcessorImpl {
+public class Ums2DatagramProcessor extends DatagramProcessorImpl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatagramProcessor.class);
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
@@ -62,7 +62,6 @@ public class UMSDatagramProcessor extends DatagramProcessorImpl {
 	public IncomingDatagramMessage read(InetAddress receivedOnAddress, DatagramPacket datagram) throws UnsupportedDataException {
 
 		try {
-
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Reading message data from: {}:{}\n{}\n{}\n{}",
 						datagram.getAddress(),

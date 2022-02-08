@@ -34,14 +34,20 @@ import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServe
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.UMSDatagramProcessor;
+import net.pms.network.mediaserver.jupnp.transport.impl.Ums2DatagramProcessor;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
 import org.jupnp.DefaultUpnpServiceConfiguration;
 import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.model.meta.RemoteDeviceIdentity;
+import org.jupnp.transport.impl.DatagramIOConfigurationImpl;
+import org.jupnp.transport.impl.MulticastReceiverConfigurationImpl;
+import org.jupnp.transport.spi.DatagramIO;
 import org.jupnp.transport.spi.DatagramProcessor;
+import org.jupnp.transport.spi.MulticastReceiver;
 import org.jupnp.transport.spi.NetworkAddressFactory;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
@@ -117,13 +123,13 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 				engineVersion = MediaServer.DEFAULT_VERSION;
 			}
 			switch (engineVersion) {
-				case 2:
+				case 4:
 					return new NettyStreamServer(
 							new UmsStreamServerConfiguration(
 									networkAddressFactory.getStreamListenPort()
 							)
 					);
-				case 3:
+				case 5:
 					return new JdkHttpServerStreamServer(
 							new UmsStreamServerConfiguration(
 									networkAddressFactory.getStreamListenPort()
@@ -143,10 +149,26 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	protected DatagramProcessor createDatagramProcessor() {
-		return new UMSDatagramProcessor();
+		return new Ums2DatagramProcessor();
+	}
+
+	@Override
+	public MulticastReceiver createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
+		return new UmsMulticastReceiver(
+				new MulticastReceiverConfigurationImpl(
+						networkAddressFactory.getMulticastGroup(),
+						networkAddressFactory.getMulticastPort()
+				)
+		);
+	}
+
+	@Override
+	public DatagramIO createDatagramIO(NetworkAddressFactory networkAddressFactory) {
+		return new UmsDatagramIO(new DatagramIOConfigurationImpl());
 	}
 
 	//use defaultExecutorService for registryMaintainer
+	@Override
 	protected ExecutorService createDefaultExecutorService() {
 		return new JUPnPExecutor("registry-maintainer");
 	}

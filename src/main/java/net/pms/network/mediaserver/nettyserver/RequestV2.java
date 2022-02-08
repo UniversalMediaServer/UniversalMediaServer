@@ -290,6 +290,32 @@ public class RequestV2 extends HTTPResource {
 			uri = uri.substring(1);
 		}
 
+		//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
+		//let transform JUPnP uri to old uri then handlerV2 can process
+		if (uri.startsWith("dev/" + PMS.get().udn())) {
+			if (uri.endsWith("/ContentDirectory/desc")) {
+				uri = "UPnP_AV_ContentDirectory_1.0.xml";
+			} else if (uri.endsWith("/ContentDirectory/action")) {
+				uri = "upnp/control/content_directory";
+			} else if (uri.endsWith("/ContentDirectory/event")) {
+				uri = "upnp/event/content_directory";
+			} else if (uri.endsWith("/ConnectionManager/desc")) {
+				uri = "UPnP_AV_ConnectionManager_1.0.xml";
+			} else if (uri.endsWith("/ConnectionManager/action")) {
+				uri = "upnp/control/connection_manager";
+			} else if (uri.endsWith("/ConnectionManager/event")) {
+				uri = "upnp/event/connection_manager";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
+				uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
+				uri = "upnp/control/x_ms_mediareceiverregistrar";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
+				uri = "upnp/event/x_ms_mediareceiverregistrar";
+			} else if (uri.endsWith("/desc")) {
+				uri = "description/fetch";
+			}
+		}
+
 		if (uri.startsWith("api/")) {
 			ApiHandler api = new ApiHandler();
 			api.handleApiRequest(method, content, output, uri.substring(4), event);
@@ -673,10 +699,6 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 			inputStream = imageHandler(output);
-		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
-			//from JUPnP
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			response.append(deviceDescHandler(output));
 		} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 			response.append(serverSpecHandler(output));
@@ -877,20 +899,6 @@ public class RequestV2 extends HTTPResource {
 		if (uri.equals("description/fetch")) {
 			s = prepareUmsSpec(s);
 		}
-		return s;
-	}
-
-	private String deviceDescHandler(HttpResponse output) throws IOException {
-		output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
-		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
-		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		InputStream iStream = getResourceInputStream("PMS.xml");
-
-		byte[] b = new byte[iStream.available()];
-		iStream.read(b);
-		String s = new String(b, StandardCharsets.UTF_8);
-		s = prepareUmsSpec(s);
 		return s;
 	}
 

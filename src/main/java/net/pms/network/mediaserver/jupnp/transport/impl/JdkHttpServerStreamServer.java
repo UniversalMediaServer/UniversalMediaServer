@@ -25,6 +25,9 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import net.pms.PMS;
+import net.pms.network.mediaserver.javahttpserver.RequestHandler;
+import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import org.jupnp.model.message.Connection;
 import org.jupnp.transport.Router;
 import org.jupnp.transport.impl.HttpExchangeUpnpStream;
@@ -91,14 +94,44 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	protected class RequestHttpHandler implements HttpHandler {
 
 		private final Router router;
+		private final RequestHandler requestHandler;
 
 		public RequestHttpHandler(Router router) {
 			this.router = router;
+			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration &&
+				((UmsUpnpServiceConfiguration) router.getConfiguration()).useOwnHttpServer()) {
+				requestHandler = new RequestHandler();
+			} else {
+				requestHandler = null;
+			}
 		}
 
 		// This is executed in the request receiving thread!
 		@Override
 		public void handle(final HttpExchange httpExchange) throws IOException {
+			//check inetAddress allowed
+			if (!PMS.getConfiguration().getIpFiltering().allowed(httpExchange.getRemoteAddress().getAddress())) {
+				LOGGER.trace("Ip Filtering denying address: {}", httpExchange.getRemoteAddress().getAddress().getHostAddress());
+				httpExchange.close();
+				return;
+			}
+			if (requestHandler != null) {
+				String uri = httpExchange.getRequestURI().getPath();
+				//check if we want to let JUPnP handle the uri or not.
+
+				//JUPnP use it's own uri formatter ("/dev/<udn>/", "/svc/<udn>/")
+				//if not pass it to RequestV3
+				if (!uri.startsWith("/dev") && !uri.startsWith("/svc")) {
+					requestHandler.handle(httpExchange);
+					return;
+				}
+				//lastly we want UMS to respond it's own devices desc service.
+				if (uri.startsWith("/dev/" + PMS.get().udn())) {
+					requestHandler.handle(httpExchange);
+					return;
+				}
+			}
+			// Here everything is handle by JUPnP
 			// And we pass control to the service, which will (hopefully) start a new thread immediately so we can
 			// continue the receiving thread ASAP
 			LOGGER.debug("Received HTTP exchange: {} {}", httpExchange.getRequestMethod(), httpExchange.getRequestURI());

@@ -184,13 +184,35 @@ public class RequestHandler implements HttpHandler {
 				uri = uri.substring(1);
 			}
 
+			//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
+			//let transform JUPnP uri to old uri then handlerV2 can process
+			if (uri.startsWith("dev/" + PMS.get().udn())) {
+				if (uri.endsWith("/ContentDirectory/desc")) {
+					uri = "UPnP_AV_ContentDirectory_1.0.xml";
+				} else if (uri.endsWith("/ContentDirectory/action")) {
+					uri = "upnp/control/content_directory";
+				} else if (uri.endsWith("/ContentDirectory/event")) {
+					uri = "upnp/event/content_directory";
+				} else if (uri.endsWith("/ConnectionManager/desc")) {
+					uri = "UPnP_AV_ConnectionManager_1.0.xml";
+				} else if (uri.endsWith("/ConnectionManager/action")) {
+					uri = "upnp/control/connection_manager";
+				} else if (uri.endsWith("/ConnectionManager/event")) {
+					uri = "upnp/event/connection_manager";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
+					uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
+					uri = "upnp/control/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
+					uri = "upnp/event/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/desc")) {
+					uri = "description/fetch";
+				}
+			}
 			if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
 				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
-			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.startsWith("dev") && uri.endsWith("/desc"))) {
-				//from JUPnP
-				sendResponse(exchange, renderer, 200, deviceDescHandler(exchange, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
 				sendResponse(exchange, renderer, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);
 			} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("control/x_ms_mediareceiverregistrar"))) {
@@ -802,20 +824,6 @@ public class RequestHandler implements HttpHandler {
 
 	private static String getProtocolInfoHandler() {
 		return createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE).toString();
-	}
-
-	private static String deviceDescHandler(HttpExchange exchange, RendererConfiguration renderer) throws IOException {
-		exchange.getResponseHeaders().set("Cache-Control", "no-cache");
-		exchange.getResponseHeaders().set("Expires", "0");
-		exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
-		exchange.getResponseHeaders().set("Connection", "keep-alive");
-		InputStream iStream = getResourceInputStream("PMS.xml");
-
-		byte[] b = new byte[iStream.available()];
-		iStream.read(b);
-		String s = new String(b, StandardCharsets.UTF_8);
-		s = prepareUmsSpec(s, renderer);
-		return s;
 	}
 
 	private static String serverSpecHandler(HttpExchange exchange, String uri, RendererConfiguration renderer) throws IOException {

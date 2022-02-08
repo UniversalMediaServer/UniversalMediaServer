@@ -19,18 +19,14 @@
  */
 package net.pms.network.mediaserver.jupnp.model.meta;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UMSContentDirectoryService;
-import net.pms.network.mediaserver.jupnp.support.xmicrosoft.UMSMediaReceiverRegistrarService;
-import net.pms.util.PropertiesUtil;
+import net.pms.network.mediaserver.jupnp.support.connectionmanager.UmsConnectionManagerService;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.Ums2ContentDirectoryService;
+import net.pms.network.mediaserver.jupnp.support.xmicrosoft.Ums2MediaReceiverRegistrarService;
 import org.jupnp.binding.annotations.AnnotationLocalServiceBinder;
 import org.jupnp.model.DefaultServiceManager;
 import org.jupnp.model.ValidationException;
@@ -39,91 +35,84 @@ import org.jupnp.model.meta.DeviceIdentity;
 import org.jupnp.model.meta.Icon;
 import org.jupnp.model.meta.LocalDevice;
 import org.jupnp.model.meta.LocalService;
-import org.jupnp.model.meta.ManufacturerDetails;
-import org.jupnp.model.meta.ModelDetails;
-import org.jupnp.model.types.DeviceType;
+import org.jupnp.model.profile.DeviceDetailsProvider;
+import org.jupnp.model.profile.RemoteClientInfo;
 import org.jupnp.model.types.UDADeviceType;
 import org.jupnp.model.types.UDN;
-import org.jupnp.support.connectionmanager.ConnectionManagerService;
-import org.jupnp.support.model.Protocol;
-import org.jupnp.support.model.ProtocolInfo;
-import org.jupnp.support.model.ProtocolInfos;
-import org.jupnp.support.xmicrosoft.AbstractMediaReceiverRegistrarService;
-import org.jupnp.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UmsLocalDevice {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+public class UmsLocalDevice extends LocalDevice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsLocalDevice.class);
+	final private DeviceDetailsProvider deviceDetailsProvider;
+
+	public UmsLocalDevice() throws ValidationException {
+		super(
+			new DeviceIdentity(new UDN(PMS.get().udn())),
+			new UDADeviceType("MediaServer"),
+			null,
+			createDeviceIcons(),
+			createMediaServerServices(),
+			null
+		);
+		this.deviceDetailsProvider = new UmsDeviceDetailsProvider();
+	}
+
+	@Override
+	public DeviceDetails getDetails(RemoteClientInfo info) {
+		if (deviceDetailsProvider != null) {
+			return deviceDetailsProvider.provide(info);
+		}
+		return this.getDetails();
+	}
+
 	/**
 	 * Create the local UMS device
 	 *
 	 * @return the device
 	 */
 	public static LocalDevice createMediaServerDevice() {
-		LocalDevice device;
-		URL baseURL = null;
 		try {
-			baseURL = new URL(MediaServer.getURL() + "/");
-		} catch (MalformedURLException ex) {
-		}
-		String friendlyName = CONFIGURATION.getServerDisplayName();
-		String manufacturer = "Universal Media Server";
-		String manufacturerURI = "https://www.universalmediaserver.com/";
-		ManufacturerDetails manufacturerDetails = new ManufacturerDetails(manufacturer, manufacturerURI);
-		String modelName = PMS.NAME;
-		String modelDescription = CONFIGURATION.getServerName() + " - UPnP/AV 1.0 Compliant Media Server";
-		String modelNumber = PropertiesUtil.getProjectProperties().get("project.version");
-		String modelURI = "https://www.universalmediaserver.com/";
-		ModelDetails modelDetails = new ModelDetails(modelName, modelDescription, modelNumber, modelURI);
-		URI presentationURI = null;
-		if (baseURL != null) {
-			String webInterfaceUrl = "http" + (CONFIGURATION.getWebHttps() ? "s" : "") + "://" + baseURL.getHost() + ":" + CONFIGURATION.getWebInterfaceServerPort() + "/console/index.html";
-			presentationURI = URI.create(webInterfaceUrl);
-		}
-		DeviceDetails umsDetails = new DeviceDetails(
-				baseURL,
-				friendlyName,
-				manufacturerDetails,
-				modelDetails,
-				null,
-				null,
-				presentationURI
-		);
-		DeviceIdentity identity = new DeviceIdentity(new UDN(PMS.get().udn()));
-		DeviceType type = new UDADeviceType("MediaServer");
-		try {
-			device = new LocalDevice(
-					identity,
-					type,
-					umsDetails,
-					createDeviceIcons(),
-					createMediaServerServices()
-			);
-			return device;
+			return new UmsLocalDevice();
 		} catch (ValidationException e) {
 			LOGGER.debug("Error in upnp local device creation: {}", e);
-			device = null;
+			return null;
 		}
-
-		return device;
 	}
 
 	private static Icon[] createDeviceIcons() {
 		List<Icon> icons = new ArrayList<>();
 		try {
-			icons.add(new Icon("image/png", 256, 256, 24, new URI("images/icon-256.png")));
-			icons.add(new Icon("image/png", 128, 128, 24, new URI("images/icon-128.png")));
-			icons.add(new Icon("image/png", 120, 120, 24, new URI("images/icon-120.png")));
-			icons.add(new Icon("image/png", 48, 48, 24, new URI("images/icon-48.png")));
-			icons.add(new Icon("image/jpeg", 128, 128, 24, new URI("images/icon-128.jpg")));
-			icons.add(new Icon("image/jpeg", 120, 120, 24, new URI("images/icon-120.jpg")));
-			icons.add(new Icon("image/jpeg", 48, 48, 24, new URI("images/icon-48.jpg")));
-		} catch (URISyntaxException ex) {
+			icons.add(new Icon("image/png", 256, 256, 24, "images/icon-256.png", getResourceInputStream("images/icon-256.png")));
+			icons.add(new Icon("image/png", 128, 128, 24, "images/icon-128.png", getResourceInputStream("images/icon-128.png")));
+			icons.add(new Icon("image/png", 120, 120, 24, "images/icon-120.png", getResourceInputStream("images/icon-120.png")));
+			icons.add(new Icon("image/png", 48, 48, 24, "images/icon-48.png", getResourceInputStream("images/icon-48.png")));
+			icons.add(new Icon("image/jpeg", 128, 128, 24, "images/icon-128.jpg", getResourceInputStream("images/icon-128.jpg")));
+			icons.add(new Icon("image/jpeg", 120, 120, 24, "images/icon-120.jpg", getResourceInputStream("images/icon-120.jpg")));
+			icons.add(new Icon("image/jpeg", 48, 48, 24, "images/icon-48.jpg", getResourceInputStream("images/icon-48.jpg")));
+		} catch (IOException ex) {
 			LOGGER.debug("Error in device icons creation: {}", ex);
 		}
 		return icons.toArray(new Icon[0]);
+	}
+
+	/**
+	 * Returns an InputStream associated with the fileName.
+	 * @param fileName TODO Absolute or relative file path.
+	 * @return If found, an InputStream associated with the fileName. null otherwise.
+	 */
+	private static InputStream getResourceInputStream(String fileName) {
+		fileName = "/resources/" + fileName;
+		fileName = fileName.replaceAll("//", "/");
+		ClassLoader cll = UmsLocalDevice.class.getClassLoader();
+		InputStream is = cll.getResourceAsStream(fileName.substring(1));
+
+		while (is == null && cll.getParent() != null) {
+			cll = cll.getParent();
+			is = cll.getResourceAsStream(fileName.substring(1));
+		}
+
+		return is;
 	}
 
 	/**
@@ -143,9 +132,9 @@ public class UmsLocalDevice {
 	 * Creates the upnp ContentDirectoryService.
 	 * @return The ContenDirectoryService.
 	 */
-	private static LocalService<UMSContentDirectoryService> createContentDirectoryService() {
-		LocalService<UMSContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(UMSContentDirectoryService.class);
-		contentDirectoryService.setManager(new DefaultServiceManager<UMSContentDirectoryService>(contentDirectoryService, null) {
+	private static LocalService<Ums2ContentDirectoryService> createContentDirectoryService() {
+		LocalService<Ums2ContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(Ums2ContentDirectoryService.class);
+		contentDirectoryService.setManager(new DefaultServiceManager<Ums2ContentDirectoryService>(contentDirectoryService, null) {
 
 			@Override
 			protected int getLockTimeoutMillis() {
@@ -153,8 +142,8 @@ public class UmsLocalDevice {
 			}
 
 			@Override
-			protected UMSContentDirectoryService createServiceInstance() throws Exception {
-				return new UMSContentDirectoryService();
+			protected Ums2ContentDirectoryService createServiceInstance() throws Exception {
+				return new Ums2ContentDirectoryService();
 			}
 		});
 		return contentDirectoryService;
@@ -165,11 +154,9 @@ public class UmsLocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<ConnectionManagerService> createServerConnectionManagerService() {
-		LocalService<ConnectionManagerService> connectionManagerService = new AnnotationLocalServiceBinder().read(ConnectionManagerService.class);
-		final ProtocolInfos sourceProtocols = getSourceProtocolInfos();
-
-		connectionManagerService.setManager(new DefaultServiceManager<ConnectionManagerService>(connectionManagerService, ConnectionManagerService.class) {
+	private static LocalService<UmsConnectionManagerService> createServerConnectionManagerService() {
+		LocalService<UmsConnectionManagerService> connectionManagerService = new AnnotationLocalServiceBinder().read(UmsConnectionManagerService.class);
+		connectionManagerService.setManager(new DefaultServiceManager<UmsConnectionManagerService>(connectionManagerService, UmsConnectionManagerService.class) {
 
 			@Override
 			protected int getLockTimeoutMillis() {
@@ -177,8 +164,8 @@ public class UmsLocalDevice {
 			}
 
 			@Override
-			protected ConnectionManagerService createServiceInstance() throws Exception {
-				return new ConnectionManagerService(sourceProtocols, null);
+			protected UmsConnectionManagerService createServiceInstance() throws Exception {
+				return new UmsConnectionManagerService();
 			}
 		});
 
@@ -190,69 +177,20 @@ public class UmsLocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<UMSMediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
-		LocalService<UMSMediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(AbstractMediaReceiverRegistrarService.class);
-		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<UMSMediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
+	private static LocalService<Ums2MediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
+		LocalService<Ums2MediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(Ums2MediaReceiverRegistrarService.class);
+		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<Ums2MediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
 			@Override
 			protected int getLockTimeoutMillis() {
 				return 1000;
 			}
 
 			@Override
-			protected UMSMediaReceiverRegistrarService createServiceInstance() throws Exception {
-				return new UMSMediaReceiverRegistrarService();
+			protected Ums2MediaReceiverRegistrarService createServiceInstance() throws Exception {
+				return new Ums2MediaReceiverRegistrarService();
 			}
 		});
 		return mediaReceiverRegistrarService;
 	}
 
-	private static ProtocolInfos getSourceProtocolInfos() {
-		return new ProtocolInfos(
-				//this one overlap all ???
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, MimeType.WILDCARD, ProtocolInfo.WILDCARD),
-				//this one overlap all images ???
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/" + MimeType.WILDCARD, ProtocolInfo.WILDCARD),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "audio", ProtocolInfo.WILDCARD),
-				//this one overlap all audio ???
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "audio/" + MimeType.WILDCARD, ProtocolInfo.WILDCARD),
-				//this one overlap all video ???
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/" + MimeType.WILDCARD, ProtocolInfo.WILDCARD),
-				//IMAGE
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/jpeg", "DLNA.ORG_PN=JPEG_TN"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/jpeg", "DLNA.ORG_PN=JPEG_SM"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/jpeg", "DLNA.ORG_PN=JPEG_MED"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/jpeg", "DLNA.ORG_PN=JPEG_LRG"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/jpeg", "DLNA.ORG_PN=JPEG_RES_H_V"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/png", "DLNA.ORG_PN=PNG_TN"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/png", "DLNA.ORG_PN=PNG_LRG"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/png", "DLNA.ORG_PN=PNG_LRG"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/png", "DLNA.ORG_PN=PNG_LRG"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "image/gif", "DLNA.ORG_PN=GIF_LRG"),
-				//AUDIO
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "audio/mpeg", "DLNA.ORG_PN=MP3"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "audio/L16", "DLNA.ORG_PN=LPCM"),
-				//VIDEO
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/mpeg", "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO;SONY.COM_PN=AVC_TS_HD_24_AC3_ISO"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/mpeg", "DLNA.ORG_PN=MPEG_TS_SD_EU_ISO"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/mpeg", "DLNA.ORG_PN=MPEG_TS_HD_50_L2_ISO;SONY.COM_PN=HD2_50_ISO"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/mpeg", "DLNA.ORG_PN=MPEG_TS_HD_60_L2_ISO;SONY.COM_PN=HD2_60_ISO"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_24_AC3;SONY.COM_PN=AVC_TS_HD_24_AC3"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_24_AC3_T;SONY.COM_PN=AVC_TS_HD_24_AC3_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_PS_PAL"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_PS_NTSC"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_50_L2_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_50_AC3_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_60_L2_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_60_AC3_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_EU"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_SD_EU_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_HD_50_L2_T;SONY.COM_PN=HD2_50_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=MPEG_TS_HD_60_L2_T;SONY.COM_PN=HD2_60_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_50_AC3;SONY.COM_PN=AVC_TS_HD_50_AC3"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_60_AC3;SONY.COM_PN=AVC_TS_HD_60_AC3"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_50_AC3_T;SONY.COM_PN=AVC_TS_HD_50_AC3_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/vnd.dlna.mpeg-tts", "DLNA.ORG_PN=AVC_TS_HD_60_AC3_T;SONY.COM_PN=AVC_TS_HD_60_AC3_T"),
-				new ProtocolInfo(Protocol.HTTP_GET, ProtocolInfo.WILDCARD, "video/x-mp2t-mphl-188", ProtocolInfo.WILDCARD)
-		);
-	}
 }

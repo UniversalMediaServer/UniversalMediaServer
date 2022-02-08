@@ -710,7 +710,7 @@ public class PMS {
 					saveConfiguration();
 
 					LOGGER.debug("Shutting down the media server");
-					MediaServer.shutdown();
+					MediaServer.stop();
 					Thread.sleep(500);
 
 					if (configuration.getDatabaseLogging()) {
