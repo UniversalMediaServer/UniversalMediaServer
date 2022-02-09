@@ -20,16 +20,10 @@
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
-import net.pms.util.StringUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -68,7 +62,6 @@ import org.jupnp.transport.spi.InitializationException;
 import org.jupnp.transport.spi.StreamClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 /**
  * Implementation based on org.jupnp.transport.impl.apache
@@ -190,9 +183,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		return () -> {
 			LOGGER.trace("Sending HTTP request: " + requestMessage);
 			if (LOGGER.isTraceEnabled()) {
-				logStreamRequestMessage(requestMessage);
+				StreamsLoggerHelper.logStreamClientRequestMessage(requestMessage);
 			}
-			return httpClient.execute(request, createResponseHandler());
+			return httpClient.execute(request, createResponseHandler(requestMessage));
 		};
 	}
 
@@ -221,53 +214,6 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		clientConnectionManager.shutdown();
 	}
 
-	private static final String HTTP_REQUEST_BEGIN = "==================================== HTTPCLIENT REQUEST BEGIN ====================================";
-	private static final String HTTP_REQUEST_END = "==================================== HTTPCLIENT REQUEST END ======================================";
-	private static final String HTTP_RESPONSE_BEGIN = "==================================== HTTPCLIENT RESPONSE BEGIN ===================================";
-	private static final String HTTP_RESPONSE_END = "==================================== HTTPCLIENT RESPONSE END =====================================";
-	private static void logStreamRequestMessage(StreamRequestMessage requestMessage) {
-		StringBuilder header = new StringBuilder();
-		header.append(requestMessage.getOperation().getHttpMethodName()).append(" ").append(requestMessage.getUri().getPath());
-		header.append(" HTTP/1.").append(requestMessage.getOperation().getHttpMinorVersion()).append("\n\n");
-		header.append("HEADER:\n");
-		for (Map.Entry<String, List<String>> entry : requestMessage.getHeaders().entrySet()) {
-			if (StringUtils.isNotBlank(entry.getKey())) {
-				for (String value : entry.getValue()) {
-					header.append("  ").append(entry.getKey()).append(": ").append(value).append("\n");
-				}
-			}
-		}
-		String formattedContent = getFormattedBody(requestMessage);
-		LOGGER.trace(
-				"Send a request:\n{}\n{}{}\n{}",
-				HTTP_REQUEST_BEGIN,
-				header,
-				formattedContent,
-				HTTP_REQUEST_END
-				);
-	}
-
-	private static void logStreamResponseMessage(StreamResponseMessage responseMessage) {
-		StringBuilder header = new StringBuilder();
-		for (Map.Entry<String, List<String>> entry : responseMessage.getHeaders().entrySet()) {
-			if (StringUtils.isNotBlank(entry.getKey())) {
-				for (String value : entry.getValue()) {
-					header.append("  ").append(entry.getKey()).append(": ").append(value).append("\n");
-				}
-			}
-		}
-		String formattedResponse = getFormattedBody(responseMessage);
-		LOGGER.trace(
-			"Received a response:\n{}\nHEADER:\n  HTTP/1.{} {}\n{}{}\n{}",
-			HTTP_RESPONSE_BEGIN,
-			responseMessage.getOperation().getHttpMinorVersion(),
-			responseMessage.getOperation().getResponseDetails(),
-			header,
-			formattedResponse,
-			HTTP_RESPONSE_END
-		);
-	}
-
 	protected HttpEntity createHttpRequestEntity(UpnpMessage upnpMessage) {
 		if (upnpMessage.getBodyType().equals(UpnpMessage.BodyType.BYTES)) {
 			LOGGER.trace("Preparing HTTP request entity as byte[]");
@@ -287,7 +233,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		}
 	}
 
-	protected ResponseHandler<StreamResponseMessage> createResponseHandler() {
+	protected ResponseHandler<StreamResponseMessage> createResponseHandler(StreamRequestMessage requestMessage) {
 		return (final HttpResponse httpResponse) -> {
 			StatusLine statusLine = httpResponse.getStatusLine();
 			LOGGER.trace("Received HTTP response: " + statusLine);
@@ -321,36 +267,10 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 				LOGGER.trace("HTTP response message has no entity");
 			}
 			if (LOGGER.isTraceEnabled()) {
-				logStreamResponseMessage(responseMessage);
+				StreamsLoggerHelper.logStreamClientResponseMessage(responseMessage, requestMessage);
 			}
 			return responseMessage;
 		};
-	}
-
-	private static String getFormattedBody(UpnpMessage message) {
-		String formattedBody;
-		//message.isBodyNonEmptyString throw StringIndexOutOfBoundsException if string is empty
-		try {
-			boolean bodyNonEmpty = message.getBody() != null &&
-					((message.getBody() instanceof String && ((String) message.getBody()).length() > 0) ||
-					(message.getBody() instanceof byte[] && ((byte[]) message.getBody()).length > 0));
-			if (bodyNonEmpty && message.isBodyNonEmptyString()) {
-				try {
-					formattedBody = StringUtil.prettifyXML(message.getBodyString(), StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedBody = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedBody += "    " + message.getBodyString().replace("\n", "\n    ");
-				}
-			} else {
-				formattedBody = message.getBodyString();
-			}
-		} catch (Exception e) {
-			formattedBody = "";
-		}
-		if (StringUtils.isNotEmpty(formattedBody)) {
-			formattedBody = "CONTENT:\n" + formattedBody;
-		}
-		return formattedBody;
 	}
 
 	private static void addHeaders(HttpMessage httpMessage, Headers headers) {

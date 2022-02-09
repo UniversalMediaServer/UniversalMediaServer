@@ -71,6 +71,8 @@ public class RequestHandler implements Runnable {
 		"Timeout",
 		"User-Agent"
 	};
+	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
+	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
 
 	public RequestHandler(Socket socket) throws IOException {
 		this.socket = socket;
@@ -378,11 +380,13 @@ public class RequestHandler implements Runnable {
 		}
 
 		LOGGER.trace(
-			"Received a {}request from {}:\n\n{}{}",
+			"Received a {}request from {}:\n{}\n{}{}{}",
 			requestType,
 			rendererName,
+			HTTPSERVER_REQUEST_BEGIN,
 			header,
-			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : ""
+			StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "",
+			HTTPSERVER_REQUEST_END
 		);
 	}
 

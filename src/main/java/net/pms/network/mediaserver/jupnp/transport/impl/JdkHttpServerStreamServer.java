@@ -28,9 +28,7 @@ import java.net.InetSocketAddress;
 import net.pms.PMS;
 import net.pms.network.mediaserver.javahttpserver.RequestHandler;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
-import org.jupnp.model.message.Connection;
 import org.jupnp.transport.Router;
-import org.jupnp.transport.impl.HttpExchangeUpnpStream;
 import org.jupnp.transport.spi.InitializationException;
 import org.jupnp.transport.spi.StreamServer;
 import org.slf4j.Logger;
@@ -58,7 +56,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 
 			server = HttpServer.create(socketAddress, configuration.getTcpConnectionBacklog());
 			server.createContext("/", new RequestHttpHandler(router));
-
+			server.setExecutor(router.getConfiguration().getStreamServerExecutorService());
 			LOGGER.info("Created server (for receiving TCP streams) on: {}", server.getAddress());
 
 		} catch (IOException ex) {
@@ -121,12 +119,12 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 
 				//JUPnP use it's own uri formatter ("/dev/<udn>/", "/svc/<udn>/")
 				//if not pass it to RequestV3
-				if (!uri.startsWith("/dev") && !uri.startsWith("/svc")) {
+				if (!uri.startsWith("/dev/") && !uri.startsWith("/svc/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}
-				//lastly we want UMS to respond it's own devices desc service.
-				if (uri.startsWith("/dev/" + PMS.get().udn())) {
+				//lastly we want UMS to respond it's own service ContentDirectory.
+				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}
@@ -135,39 +133,8 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 			// And we pass control to the service, which will (hopefully) start a new thread immediately so we can
 			// continue the receiving thread ASAP
 			LOGGER.debug("Received HTTP exchange: {} {}", httpExchange.getRequestMethod(), httpExchange.getRequestURI());
-			router.received(
-					new HttpExchangeUpnpStream(router.getProtocolFactory(), httpExchange) {
-				@Override
-				protected Connection createConnection() {
-					return new HttpServerConnection(httpExchange);
-				}
-			}
-			);
+			router.received(new JdkHttpServerUpnpStream(router.getProtocolFactory(), httpExchange));
 		}
 	}
 
-	protected class HttpServerConnection implements Connection {
-
-		protected HttpExchange exchange;
-
-		public HttpServerConnection(HttpExchange exchange) {
-			this.exchange = exchange;
-		}
-
-		@Override
-		public boolean isOpen() {
-			LOGGER.trace("Can't check client connection, socket access impossible on JDK webserver!");
-			return true;
-		}
-
-		@Override
-		public InetAddress getRemoteAddress() {
-			return exchange.getRemoteAddress() != null ? exchange.getRemoteAddress().getAddress() : null;
-		}
-
-		@Override
-		public InetAddress getLocalAddress() {
-			return exchange.getLocalAddress() != null ? exchange.getLocalAddress().getAddress() : null;
-		}
-	}
 }

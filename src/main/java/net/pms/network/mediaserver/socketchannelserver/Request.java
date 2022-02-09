@@ -91,6 +91,8 @@ public class Request extends HTTPResource {
 	private static final String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
 
 	private final String method;
 
@@ -1070,7 +1072,7 @@ public class Request extends HTTPResource {
 			}
 
 			if (method.equals("HEAD")) {
-				LOGGER.trace("HEAD only response sent to {}:\n\nHEADER:\n{}", rendererName, header);
+				LOGGER.trace("HEAD only response sent to {}:\n{}\nHEADER:\n{}{}", rendererName, HTTPSERVER_RESPONSE_BEGIN, header, HTTPSERVER_RESPONSE_END);
 			} else {
 				String formattedResponse = null;
 				if (isNotBlank(response)) {
@@ -1083,10 +1085,12 @@ public class Request extends HTTPResource {
 				}
 				if (isNotBlank(formattedResponse)) {
 					LOGGER.trace(
-						"Response sent to {}:\n\nHEADER:\n{}\nCONTENT:\n{}",
+						"Response sent to {}:\n{}\nHEADER:\n{}\nCONTENT:\n{}{}",
 						rendererName,
+						HTTPSERVER_RESPONSE_BEGIN,
 						header,
-						formattedResponse
+						formattedResponse,
+						HTTPSERVER_RESPONSE_END
 					);
 					Matcher matcher = DIDL_PATTERN.matcher(response);
 					if (matcher.find()) {
@@ -1102,9 +1106,9 @@ public class Request extends HTTPResource {
 						}
 					}
 				} else if (inputStream != null && !responseHeader.contains("Content-Length: 0")) {
-					LOGGER.trace("Transfer response sent to {}:\n\nHEADER:\n{}", rendererName, header);
+					LOGGER.trace("Transfer response sent to {}:\n{}\nHEADER:\n{}{}", rendererName, HTTPSERVER_RESPONSE_BEGIN, header, HTTPSERVER_RESPONSE_END);
 				} else {
-					LOGGER.trace("Empty response sent to {}:\n\nHEADER:\n{}", rendererName, header);
+					LOGGER.trace("Empty response sent to {}:\n{}\nHEADER:\n{}{}", rendererName, HTTPSERVER_RESPONSE_BEGIN, header, HTTPSERVER_RESPONSE_END);
 				}
 			}
 		}

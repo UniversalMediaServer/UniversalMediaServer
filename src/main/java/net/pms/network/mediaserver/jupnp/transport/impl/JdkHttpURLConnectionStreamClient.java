@@ -67,6 +67,9 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 	@Override
 	public StreamResponseMessage sendRequest(StreamRequestMessage requestMessage) {
 		final UpnpRequest requestOperation = requestMessage.getOperation();
+		if (LOGGER.isTraceEnabled()) {
+			StreamsLoggerHelper.logStreamClientRequestMessage(requestMessage);
+		}
 		LOGGER.debug("Preparing HTTP request message with method '{}': {}", requestOperation.getHttpMethodName(), requestMessage);
 		URL url;
 		HttpURLConnection urlConnection = null;
@@ -86,7 +89,7 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 
 			LOGGER.debug("Sending HTTP request: {}", requestMessage);
 			inputStream = urlConnection.getInputStream();
-			return createResponse(urlConnection, inputStream);
+			return createResponse(urlConnection, inputStream, requestMessage);
 
 		} catch (ProtocolException ex) {
 			LOGGER.debug("HTTP request failed: {} {}", requestMessage, Exceptions.unwrap(ex));
@@ -115,7 +118,7 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 			}
 			try {
 				inputStream = urlConnection.getErrorStream();
-				return createResponse(urlConnection, inputStream);
+				return createResponse(urlConnection, inputStream, requestMessage);
 			} catch (Exception errorEx) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Could not read error stream: " + errorEx);
@@ -186,7 +189,7 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 		urlConnection.getOutputStream().flush();
 	}
 
-	protected static StreamResponseMessage createResponse(HttpURLConnection urlConnection, InputStream inputStream) throws Exception {
+	protected static StreamResponseMessage createResponse(HttpURLConnection urlConnection, InputStream inputStream, StreamRequestMessage requestMessage) throws Exception {
 
 		if (urlConnection.getResponseCode() == -1) {
 			LOGGER.warn("Received an invalid HTTP response: {}", urlConnection.getURL());
@@ -229,6 +232,9 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 		}
 
 		LOGGER.debug("Response message complete: {}", responseMessage);
+		if (LOGGER.isTraceEnabled()) {
+			StreamsLoggerHelper.logStreamClientResponseMessage(responseMessage, requestMessage);
+		}
 		return responseMessage;
 	}
 

@@ -181,17 +181,14 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 				//JUPnP use it's own uri formatter ("/dev/<udn>/", "/svc/<udn>/")
 				//if not pass it to RequestV2
-				if (!uri.startsWith("/dev") && !uri.startsWith("/svc")) {
+				if (!uri.startsWith("/dev/") && !uri.startsWith("/svc/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}
-				//lastly we want UMS to respond it's own devices desc service.
-				if (uri.startsWith("/dev/" + PMS.get().udn())) {
-					//let handleV2 hanlde service ContentDirectory and non upnp
-					if (uri.contains("/ContentDirectory/")) {
-						requestHandlerV2.messageReceived(ctx, event);
-						return;
-					}
+				//lastly we want UMS to respond it's own service ContentDirectory.
+				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+					requestHandlerV2.messageReceived(ctx, event);
+					return;
 				}
 			}
 			// Here everything is handle by JUPnP

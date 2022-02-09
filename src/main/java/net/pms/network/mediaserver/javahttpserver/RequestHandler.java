@@ -120,6 +120,11 @@ public class RequestHandler implements HttpHandler {
 
 	private static final DbIdResourceLocator DB_ID_RESOURCE_LOCATOR = new DbIdResourceLocator();
 
+	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
+	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
+
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		RendererConfiguration renderer = null;
@@ -315,6 +320,9 @@ public class RequestHandler implements HttpHandler {
 			contentLength = inputStream.available();
 			LOGGER.trace("Available Content-Length: {}", contentLength);
 		}
+		if (contentLength > 0) {
+			exchange.getResponseHeaders().set("Content-length", Long.toString(contentLength));
+		}
 
 		// Send the response headers to the client.
 		exchange.sendResponseHeaders(code, contentLength);
@@ -347,6 +355,7 @@ public class RequestHandler implements HttpHandler {
 		// Request to retrieve a file
 		Range.Time timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		Range.Byte range = getRange(exchange.getRequestHeaders().getFirst("Range"));
+		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		StartStopListenerDelegate startStopListenerDelegate = null;
 		DLNAResource dlna = null;
 		InputStream inputStream = null;
@@ -369,7 +378,6 @@ public class RequestHandler implements HttpHandler {
 		id = id.replace("%24", "$");
 
 		// Retrieve the DLNAresource itself.
-		String fileName;
 		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
 				dlna = DB_ID_RESOURCE_LOCATOR.locateResource(id.substring(0, id.indexOf('/')));
@@ -379,7 +387,7 @@ public class RequestHandler implements HttpHandler {
 		} else {
 			dlna = PMS.get().getRootFolder(renderer).getDLNAResource(id, renderer);
 		}
-		fileName = id.substring(id.indexOf('/') + 1);
+		String fileName = id.substring(id.indexOf('/') + 1);
 
 		if (exchange.getRequestHeaders().containsKey("transfermode.dlna.org")) {
 			exchange.getResponseHeaders().set("TransferMode.DLNA.ORG", exchange.getRequestHeaders().getFirst("transfermode.dlna.org"));
@@ -712,7 +720,6 @@ public class RequestHandler implements HttpHandler {
 			exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 			exchange.getResponseHeaders().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 		}
-		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		try {
 			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
 		} finally {
@@ -1403,16 +1410,21 @@ public class RequestHandler implements HttpHandler {
 				}
 			}
 		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
 
+		String responseCode = exchange.getProtocol() + " " + exchange.getResponseCode();
 		String rendererName = getRendererName(exchange, renderer);
 
 		if (HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
-				exchange.getProtocol(),
-				exchange.getResponseCode(),
-				header
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -1426,12 +1438,13 @@ public class RequestHandler implements HttpHandler {
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
-					formattedResponse
+					formattedResponse,
+					HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1448,20 +1461,22 @@ public class RequestHandler implements HttpHandler {
 				}
 			} else if (iStream != null && !"0".equals(exchange.getResponseHeaders().getFirst("Content-Length"))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					getResponseIsChunked(exchange) ? "chunked" : "non-chunked",
-					header
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Empty response sent to {}:\n{}\n{}\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
-					header
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
@@ -1515,19 +1530,23 @@ public class RequestHandler implements HttpHandler {
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (StringUtils.isNotBlank(requestType)) {
 			LOGGER.trace(
-					"Received a {}request from {}:\n\n{}{}",
+					"Received a {}request from {}:\n{}\n{}{}{}",
 					requestType,
 					rendererName,
+					HTTPSERVER_REQUEST_BEGIN,
 					header,
-					formattedContent
+					formattedContent,
+					HTTPSERVER_REQUEST_END
 			);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-					"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
+					"Received a {}request from {}:\n{}\n{}{}{}\nRenderer UUID={}",
 					soapAction,
 					rendererName,
+					HTTPSERVER_REQUEST_BEGIN,
 					header,
 					formattedContent,
+					HTTPSERVER_REQUEST_END,
 					renderer != null ? renderer.uuid : "null"
 			);
 		}

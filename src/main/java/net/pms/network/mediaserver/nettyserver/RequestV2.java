@@ -119,8 +119,8 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
-	private static final String HTTP_RESPONSE_BEGIN = "===================================== HTTP RESPONSE BEGIN =======================================";
-	private static final String HTTP_RESPONSE_END = "===================================== HTTP RESPONSE END =========================================";
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
@@ -1027,18 +1027,21 @@ public class RequestV2 extends HTTPResource {
 				.append(": ").append(entry.getValue()).append("\n");
 			}
 		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
 
+		String responseCode = output.getProtocolVersion() + " " + output.getStatus();
 		String rendererName = getRendererName();
 
 		if (HEAD.equals(method)) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\n{}",
+				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
-				HTTP_RESPONSE_BEGIN,
-				output.getProtocolVersion(),
-				output.getStatus(),
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
 				header,
-				HTTP_RESPONSE_END
+				HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -1052,14 +1055,13 @@ public class RequestV2 extends HTTPResource {
 			}
 			if (isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}\n{}",
+					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
 					rendererName,
-					HTTP_RESPONSE_BEGIN,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
 					formattedResponse,
-					HTTP_RESPONSE_END
+					HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1076,24 +1078,22 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n{}\nHEADER:\n  {} {} ({})\n{}\n{}",
+					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
 					rendererName,
-					HTTP_RESPONSE_BEGIN,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					output.isChunked() ? "chunked" : "non-chunked",
 					header,
-					HTTP_RESPONSE_END
+					HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n{}\nHEADER:\n  {} {}\n{}\n{}",
+					"Empty response sent to {}:\n{}\n{}\n{}{}",
 					rendererName,
-					HTTP_RESPONSE_BEGIN,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
-					HTTP_RESPONSE_END
+					HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
