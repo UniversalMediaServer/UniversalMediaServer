@@ -85,7 +85,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	synchronized public void stop() {
 		LOGGER.debug("Stopping StreamServer...");
 		if (server != null) {
-			server.stop(1);
+			server.stop(0);
 		}
 	}
 

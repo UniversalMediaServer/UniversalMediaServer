@@ -65,7 +65,7 @@ public class JavaHttpServer extends HttpMediaServer {
 	public synchronized void stop() {
 		LOGGER.info("Stopping HTTP server (JDK HttpServer) on host {} and port {}...", hostname, localPort);
 		if (server != null) {
-			server.stop(1000);
+			server.stop(0);
 			server = null;
 		}
 		LOGGER.info("HTTP server stopped");
