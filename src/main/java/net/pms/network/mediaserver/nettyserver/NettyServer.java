@@ -93,7 +93,7 @@ public class NettyServer extends HttpMediaServer {
 
 	@Override
 	public synchronized void stop() {
-		LOGGER.info("Stopping HTTP server (Netty {}) on host {} and port {}", hostname, localPort);
+		LOGGER.info("Stopping HTTP server (Netty) on host {} and port {}", hostname, localPort);
 
 		/**
 		 * Netty v3 (HTTP Engine V2) shutdown approach from

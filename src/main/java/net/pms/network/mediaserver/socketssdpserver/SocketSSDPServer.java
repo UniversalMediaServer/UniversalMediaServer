@@ -239,6 +239,9 @@ public class SocketSSDPServer {
 			LOGGER.trace("Multicast socket closed when sending the ALIVE message");
 			return;
 		}
+		if (serverStatus == ServerStatus.STOPPED || serverStatus == ServerStatus.STOPPING) {
+			return;
+		}
 		LOGGER.debug("Sending ALIVE...");
 		for (String nt : NT_LIST) {
 			try {

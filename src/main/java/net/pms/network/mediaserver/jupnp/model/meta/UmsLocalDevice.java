@@ -103,7 +103,7 @@ public class UmsLocalDevice extends LocalDevice {
 	 */
 	private static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = UmsLocalDevice.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
