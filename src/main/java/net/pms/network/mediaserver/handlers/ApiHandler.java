@@ -64,6 +64,7 @@ public class ApiHandler {
 			}
 		} catch (Exception e) {
 			LOGGER.error("handling api request failed failed: ", e);
+			output.setStatus(HttpResponseStatus.EXPECTATION_FAILED);
 		}
 	}
 
