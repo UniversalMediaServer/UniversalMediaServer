@@ -1,5 +1,6 @@
 package net.pms.network.mediaserver.handlers.api;
 
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
@@ -13,7 +14,9 @@ public class FolderScanner implements ApiResponseHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderScanner.class);
 
 	@Override
-	public void handleRequest(String uri, String content, HttpResponse output) {
+	public String handleRequest(String uri, String content, HttpResponse output) {
+		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+		output.setStatus(HttpResponseStatus.NO_CONTENT);
 		switch (uri) {
 			case "rescan":
 				rescanLibrary();
@@ -26,6 +29,7 @@ public class FolderScanner implements ApiResponseHandler {
 				output.setStatus(HttpResponseStatus.NOT_FOUND);
 				break;
 		}
+		return null;
 	}
 
 	/**

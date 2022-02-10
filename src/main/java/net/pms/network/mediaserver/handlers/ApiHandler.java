@@ -5,7 +5,6 @@ import java.util.Map.Entry;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -34,16 +33,14 @@ public class ApiHandler {
 	 * @param output Response to request
 	 * @param event The request
 	 * @param uri
+	 *
+	 * @return response String
 	 */
-	public void handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
-		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-		output.setStatus(HttpResponseStatus.NO_CONTENT);
-
+	public String handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
 		String serverApiKey = PMS.getConfiguration().getApiKey();
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return;
 		}
 
 		try {
@@ -53,7 +50,7 @@ public class ApiHandler {
 				if (!StringUtils.isAllBlank(apiType)) {
 					uri = uri.substring(pathSepPosition + 1);
 					ApiResponseHandler responseHandler = apiFactory.getApiResponseHandler(apiType);
-					responseHandler.handleRequest(uri, content, output);
+					return responseHandler.handleRequest(uri, content, output);
 				} else {
 					LOGGER.warn("Invalid API call. Unknown path : " + uri);
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
@@ -66,6 +63,7 @@ public class ApiHandler {
 			LOGGER.error("handling api request failed failed: ", e);
 			output.setStatus(HttpResponseStatus.EXPECTATION_FAILED);
 		}
+		return null;
 	}
 
 	/**

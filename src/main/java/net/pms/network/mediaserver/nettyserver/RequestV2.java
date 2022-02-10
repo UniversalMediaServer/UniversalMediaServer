@@ -89,6 +89,7 @@ import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -289,10 +290,9 @@ public class RequestV2 extends HTTPResource {
 		if (uri.startsWith("api/")) {
 			try {
 				ApiHandler api = new ApiHandler();
-				api.handleApiRequest(method, content, output, uri.substring(4), event);
-				ChannelFuture future = event.getChannel().write(output);
-				if (close) {
-					future.addListener(ChannelFutureListener.CLOSE);
+				String apiResponse = api.handleApiRequest(method, content, output, uri.substring(4), event);
+				if (!StringUtils.isAllBlank(apiResponse)) {
+					response.append(apiResponse);
 				}
 			} catch (Exception e) {
 				LOGGER.warn("error while processing api call ", e);

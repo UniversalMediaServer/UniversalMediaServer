@@ -4,5 +4,5 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 
 public interface ApiResponseHandler {
 
-	public void handleRequest(String uri, String content, HttpResponse output);
+	public String handleRequest(String uri, String content, HttpResponse output);
 }
