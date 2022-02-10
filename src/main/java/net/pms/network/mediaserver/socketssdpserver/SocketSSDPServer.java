@@ -544,9 +544,12 @@ public class SocketSSDPServer {
 						lastPacketType = packetType;
 					}
 				} catch (IOException e) {
-					LOGGER.error("UPnP network exception: {}", e.getMessage());
-					LOGGER.trace("", e);
-					UMSUtils.sleep(1000);
+					//log only if not a normal behavior (as Datagram.receive is blocking it may throws on shutdown)
+					if (serverStatus != ServerStatus.STOPPED && serverStatus != ServerStatus.STOPPING) {
+						LOGGER.error("UPnP network exception: {}", e.getMessage());
+						LOGGER.trace("", e);
+						UMSUtils.sleep(1000);
+					}
 				} finally {
 					if (multicastSocket != null && !multicastSocket.isClosed()) {
 					// Clean up the multicast socket nicely
