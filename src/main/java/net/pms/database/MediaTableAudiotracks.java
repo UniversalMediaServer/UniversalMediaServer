@@ -44,6 +44,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	public static final String TABLE_NAME = "AUDIOTRACKS";
 	private static final String MBID_RECORD = "MBID_RECORD";
 	private static final String MBID_TRACK = "MBID_TRACK";
+	private static final String LIKE_SONG = "LIKESONG";
 	private static final String DISC = "DISC";
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
@@ -56,7 +57,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 5;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -108,6 +109,14 @@ public class MediaTableAudiotracks extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
 						LOGGER.trace("Creating index IDX_AUDIO_YEAR");
 						executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
+					}
+					break;
+				case 4:
+					if (!isColumnExist(connection, TABLE_NAME, LIKE_SONG)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + LIKE_SONG + " BOOLEAN");
+						LOGGER.trace("Adding " + LIKE_SONG + " to table " + TABLE_NAME);
+						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on AUDIOTRACKS (" + LIKE_SONG + ");");
+						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
 					}
 					break;
 				default:

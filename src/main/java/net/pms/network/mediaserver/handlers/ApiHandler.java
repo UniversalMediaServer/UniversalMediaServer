@@ -3,8 +3,8 @@ package net.pms.network.mediaserver.handlers;
 import java.io.UnsupportedEncodingException;
 import java.util.Map.Entry;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -12,14 +12,15 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.dlna.LibraryScanner;
-import net.pms.dlna.RootFolder;
 
 /**
  * This class handles calls to the internal API.
  */
 public class ApiHandler {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
+
+	private ApiResponseFactory apiFactory = new ApiResponseFactory();
 
 	public ApiHandler() {
 	}
@@ -32,46 +33,45 @@ public class ApiHandler {
 	 * @param output Response to request
 	 * @param event The request
 	 * @param uri
+	 *
+	 * @return response String
 	 */
-	public void handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
-		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-		output.setStatus(HttpResponseStatus.NO_CONTENT);
-
+	public String handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
 		String serverApiKey = PMS.getConfiguration().getApiKey();
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return;
 		}
 
 		try {
 			if (validApiKeyPresent(serverApiKey, extractApiKey(event))) {
-				switch (uri) {
-					case "rescan":
-						rescanLibrary();
-						break;
-					case "rescanFileOrFolder":
-						RootFolder.rescanLibraryFileOrFolder(content);
-						break;
+				int pathSepPosition = uri.indexOf('/');
+				String apiType = uri.substring(0, pathSepPosition);
+				if (!StringUtils.isAllBlank(apiType)) {
+					uri = uri.substring(pathSepPosition + 1);
+					ApiResponseHandler responseHandler = apiFactory.getApiResponseHandler(apiType);
+					return responseHandler.handleRequest(uri, content, output);
+				} else {
+					LOGGER.warn("Invalid API call. Unknown path : " + uri);
+					output.setStatus(HttpResponseStatus.NOT_FOUND);
 				}
 			} else {
 				LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
 				output.setStatus(HttpResponseStatus.UNAUTHORIZED);
 			}
-		} catch (RuntimeException e) {
-			LOGGER.error("comparing api key failed: " + e.getMessage());
+		} catch (Exception e) {
+			LOGGER.error("handling api request failed failed: ", e);
+			output.setStatus(HttpResponseStatus.EXPECTATION_FAILED);
 		}
+		return null;
 	}
 
 	/**
 	 * checks if the given api-key equals to the provided api key.
 	 *
-	 * @param serverApiKey
-	 * 		server API key
-	 * @param givenApiKey
-	 *		given API key from client
-	 * @return
-	 * 		TRUE if keys match.
+	 * @param serverApiKey server API key
+	 * @param givenApiKey given API key from client
+	 * @return TRUE if keys match.
 	 */
 	private boolean validApiKeyPresent(String serverApiKey, String givenApiKey) {
 		boolean result = true;
@@ -95,6 +95,7 @@ public class ApiHandler {
 
 	/**
 	 * Extracts API key from header.
+	 *
 	 * @param event
 	 * @return
 	 */
@@ -106,16 +107,5 @@ public class ApiHandler {
 			}
 		}
 		throw new RuntimeException("no 'api-key' provided in header.");
-	}
-
-	/**
-	 * rescan library
-	 */
-	private void rescanLibrary() {
-		if (!LibraryScanner.isScanLibraryRunning()) {
-			LibraryScanner.scanLibrary();
-		} else {
-			LOGGER.warn("library scan already in progress");
-		}
 	}
 }
