@@ -287,11 +287,15 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		if (uri.startsWith("api/")) {
-			ApiHandler api = new ApiHandler();
-			api.handleApiRequest(method, content, output, uri.substring(4), event);
-			ChannelFuture future = event.getChannel().write(output);
-			if (close) {
-				future.addListener(ChannelFutureListener.CLOSE);
+			try {
+				ApiHandler api = new ApiHandler();
+				api.handleApiRequest(method, content, output, uri.substring(4), event);
+				ChannelFuture future = event.getChannel().write(output);
+				if (close) {
+					future.addListener(ChannelFutureListener.CLOSE);
+				}
+			} catch (Exception e) {
+				LOGGER.warn("error while processing api call ", e);
 			}
 		} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
 			// Request to output a page to the HTML console.
