@@ -471,7 +471,7 @@ public class SocketSSDPServer {
 		}
 
 		Runnable r = () -> {
-			while (true) {
+			while (serverStatus != ServerStatus.STOPPED && serverStatus != ServerStatus.STOPPING) {
 				try {
 					final int mSearch = 1;
 					final int notify = 2;
