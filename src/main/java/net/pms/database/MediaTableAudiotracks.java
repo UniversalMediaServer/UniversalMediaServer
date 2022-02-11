@@ -46,7 +46,6 @@ public class MediaTableAudiotracks extends MediaTable {
 	private static final String MBID_TRACK = "MBID_TRACK";
 	private static final String LIKE_SONG = "LIKESONG";
 	private static final String DISC = "DISC";
-	private static final String RATING = "RATING";
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
@@ -118,9 +117,6 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Adding " + LIKE_SONG + " to table " + TABLE_NAME);
 						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on AUDIOTRACKS (" + LIKE_SONG + ");");
 						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
-					}
-					if (!isColumnExist(connection, TABLE_NAME, RATING)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + RATING + " INT");
 					}
 					break;
 				default:

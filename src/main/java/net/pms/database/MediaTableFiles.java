@@ -75,8 +75,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
 	 *       updating H2Database to v2)
 	 * - 26: No db changes, improved filename parsing
+	 * - 27: Added rating column
 	 */
-	private static final int TABLE_VERSION = 26;
+	private static final int TABLE_VERSION = 27;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -243,6 +244,13 @@ public class MediaTableFiles extends MediaTable {
 						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
+					case 26:
+						if (!isColumnExist(connection, TABLE_NAME, "RATING")) {
+							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD RATING INT");
+							LOGGER.trace("added column RATING on table " + TABLE_NAME);
+							executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on FILES (RATING);");
+							LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
+						}
 					default:
 						// Do the dumb way
 						force = true;
