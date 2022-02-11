@@ -830,9 +830,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isAudioUpdateTag() {
-		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, true);		
+		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, true);
 	}
-	
+
 	/**
 	 * Returns the configured {@link ProgramExecutableType} for the specified
 	 * {@link Player}. Note that this can be different from the
