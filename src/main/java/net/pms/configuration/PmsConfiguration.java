@@ -125,6 +125,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
+	protected static final String KEY_AUDIO_UPDATE_RATING_TAG = "audio_update_rating_tag";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
@@ -828,6 +829,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		return programPaths instanceof ConfigurableProgramPaths;
 	}
 
+	public boolean isAudioUpdateTag() {
+		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, true);		
+	}
+	
 	/**
 	 * Returns the configured {@link ProgramExecutableType} for the specified
 	 * {@link Player}. Note that this can be different from the

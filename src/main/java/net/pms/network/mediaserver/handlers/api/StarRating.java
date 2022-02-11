@@ -78,8 +78,10 @@ public class StarRating implements ApiResponseHandler {
 					RequestVO request = parseSetRatingRequest(content);
 					setDatabaseRating(connection, request.stars, request.trackID);
 					List<FilenameIdVO> dbSongs = getFilenameIdList(connection, request.trackID);
-					for (FilenameIdVO dbSong : dbSongs) {
-						setRatingInFile(request.stars, dbSong);
+					if (PMS.getConfiguration().isAudioUpdateTag()) {
+						for (FilenameIdVO dbSong : dbSongs) {
+							setRatingInFile(request.stars, dbSong);
+						}
 					}
 					break;
 				case "getrating":
@@ -144,7 +146,7 @@ public class StarRating implements ApiResponseHandler {
 
 	private void setDatabaseRating(Connection connection, int ratingInStars, String musicBrainzTrackId) {
 		String sql;
-		sql = "UPDATE FILES set rating = 3 where ID in (select fileid from audiotracks where MBID_TRACK = ?)";
+		sql = "UPDATE FILES set rating = ? where ID in (select fileid from audiotracks where MBID_TRACK = ?)";
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			ps.setInt(1, ratingInStars);
