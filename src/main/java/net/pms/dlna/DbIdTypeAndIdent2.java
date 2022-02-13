@@ -19,7 +19,12 @@
  */
 package net.pms.dlna;
 
-public class DbIdTypeAndIdent {
+/**
+ * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case fail.
+ * Should be renamed on the next release, then dev will have time to import DbIdTypeAndIdent2
+ * on their git, that will allow rename to DbIdTypeAndIdent.
+ */
+public class DbIdTypeAndIdent2 {
 
 	/**
 	 * Media type
@@ -31,7 +36,7 @@ public class DbIdTypeAndIdent {
 	 */
 	public final String ident;
 
-	public DbIdTypeAndIdent(DbIdMediaType type, String ident) {
+	public DbIdTypeAndIdent2(DbIdMediaType type, String ident) {
 		super();
 		this.type = type;
 		this.ident = ident;
