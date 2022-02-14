@@ -47,6 +47,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String albumartist;
 	private String mbidRecord;
 	private String mbidTrack;
+	private int rating;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -875,5 +876,21 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			throw new IllegalArgumentException("Can't set null AudioProperties.");
 		}
 		this.audioProperties = audioProperties;
+	}
+
+	/**
+	 *
+	 * @return user rating (0 - 5 stars)
+	 */
+	public int getRating() {
+		return rating;
+	}
+
+	/**
+	 * Set's user rating (0 - 5 stars)
+	 * @param rating
+	 */
+	public void setRating(int rating) {
+		this.rating = rating;
 	}
 }

@@ -12,6 +12,7 @@ import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 public class FolderScanner implements ApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderScanner.class);
+	public static final String PATH_MATCH = "folderscanner";
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {

@@ -16,6 +16,7 @@ import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 public class LikeMusic implements ApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
+	public static final String PATH_MATCH = "like";
 	private MediaDatabase db = PMS.get().getMediaDatabase();
 
 	@Override
@@ -78,10 +79,10 @@ public class LikeMusic implements ApiResponseHandler {
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
 				default:
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					break;
+					return "ERROR";
 			}
 
-			return null;
+			return "OK";
 		} catch (SQLException e) {
 			throw new RuntimeException("cannot handle request", e);
 		}
