@@ -1,4 +1,4 @@
-10.17.0 - 2022-02-
+10.17.0 - 2022-02-12
 
 	General:
 		Added a new, experimental HTTP server (disabled by default)
@@ -11,11 +11,17 @@
 		Significant refactoring
 	Renderers:
 		Improved support for Samsung 5300 Series
+	Translation updates via Crowdin:
+		Japanese (99%) (thanks, yanote!)
+		Swedish (99%) (thanks, Andy Catalui!)
+		Ukrainian (23%) (thanks, Pavlo Kuznietsov!)
 	Dependencies:
 		Bump checkstyle from 9.2.1 to 9.3
 		Bump h2 from 2.0.206 to 2.1.210
-		Bump jaudiotagger from 2.2.5 to 3.0.1 
+		Bump jaudiotagger from 2.2.5 to 3.0.1
+		Bump JRE from 8u312 to 8u322
 		Bump junrar from 7.4.0 to 7.4.1
+		Bump maven-project-info-reports-plugin from 3.1.2 to 3.2.1
 
 10.16.0 - 2022-01-15
 
