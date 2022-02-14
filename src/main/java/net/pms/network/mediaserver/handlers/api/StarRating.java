@@ -132,7 +132,7 @@ public class StarRating implements ApiResponseHandler {
 		return request;
 	}
 
-	private void setRatingInFile(int ratingInStars, FilenameIdVO dbSong) {
+	public void setRatingInFile(int ratingInStars, FilenameIdVO dbSong) {
 		AudioFile audioFile;
 		try {
 			audioFile = AudioFileIO.read(new File(dbSong.filename));
@@ -144,7 +144,7 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	private void setDatabaseRating(Connection connection, int ratingInStars, String musicBrainzTrackId) {
+	public void setDatabaseRating(Connection connection, int ratingInStars, String musicBrainzTrackId) {
 		String sql;
 		sql = "UPDATE FILES set rating = ? where ID in (select fileid from audiotracks where MBID_TRACK = ?)";
 		try {
@@ -231,7 +231,7 @@ public class StarRating implements ApiResponseHandler {
 	 * Converts TAG values read from file to 0-5 stars
 	 * @param tag
 	 */
-	public int convertTagRatingToStar(Tag tag) {
+	public static int convertTagRatingToStar(Tag tag) {
 		String value = tag.getFirst(FieldKey.RATING);
 		if (!StringUtils.isBlank(value)) {
 			int num = Integer.parseInt(value);
@@ -247,7 +247,7 @@ public class StarRating implements ApiResponseHandler {
 		return 0;
 	}
 
-	public int convertID3ToStars(int num) {
+	public static int convertID3ToStars(int num) {
 		if (num == 0) {
 			return 0;
 		} else if (num < 32) {
@@ -263,7 +263,7 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	public int convertVorbisToStars(int num) {
+	public static int convertVorbisToStars(int num) {
 		if (num == 0) {
 			return 0;
 		} else if (num < 21) {

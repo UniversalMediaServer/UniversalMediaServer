@@ -44,6 +44,7 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.handlers.api.StarRating;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
@@ -661,6 +662,8 @@ public class DLNAMediaInfo implements Cloneable {
 						Tag t = af.getTag();
 
 						if (t != null) {
+							addMusicBrainzIDs(af, file, audio);
+							addRating(af, file, audio);
 							if (t.getArtworkList().size() > 0) {
 								thumb = DLNAThumbnail.toThumbnail(
 									t.getArtworkList().get(0).getBinaryData(),
@@ -690,6 +693,7 @@ public class DLNAMediaInfo implements Cloneable {
 								audio.setSongname(t.getFirst(FieldKey.TITLE));
 								audio.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
 								audio.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+								audio.setRating(StarRating.convertTagRatingToStar(t));
 								String y = t.getFirst(FieldKey.YEAR);
 
 								try {
@@ -913,6 +917,31 @@ public class DLNAMediaInfo implements Cloneable {
 
 			postParse(type, inputFile);
 			mediaparsed = true;
+		}
+	}
+
+	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+		try {
+			Tag t = af.getTag();
+			if (t != null) {
+				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
+				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
+				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
+				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
+			}
+		} catch (Exception e) {
+			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
+		}
+	}
+
+	private static void addRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+		try {
+			Tag t = af.getTag();
+			if (t != null) {
+				currentAudioTrack.setRating(StarRating.convertTagRatingToStar(t));
+			}
+		} catch (Exception e) {
+			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
 		}
 	}
 

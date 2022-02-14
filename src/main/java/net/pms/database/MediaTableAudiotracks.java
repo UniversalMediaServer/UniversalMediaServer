@@ -28,8 +28,10 @@ import java.sql.Types;
 import java.util.UUID;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.network.mediaserver.handlers.api.StarRating;
 import static org.apache.commons.lang3.StringUtils.left;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,7 +211,11 @@ public class MediaTableAudiotracks extends MediaTable {
 				createDefaultValueForInsertStatement(columns)
 			);
 		) {
+			StarRating sr = new StarRating();
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+				if (!StringUtils.isAllBlank(audioTrack.getMbidTrack())) {
+					sr.setDatabaseRating(connection, audioTrack.getRating(), audioTrack.getMbidTrack());
+				}
 				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
