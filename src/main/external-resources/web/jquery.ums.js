@@ -218,7 +218,6 @@ function serverDataHandler(data) {
 			notify(data[1], data[2]);
 			break;
 		case 'close':
-			//warn(data[1], data[2], data[3]);
 			streamevent.close();
 			break;
 	}
@@ -278,11 +277,6 @@ function notify(icon, msg) {
 			notice.remove();
 		});
 	}, 5000);
-}
-
-function warn(icon, msg, btn) {
-	var notice = $('<div class="notice"><span class="icon ' + icon + '"></span><span class="msg">' + msg + '</span><button class="btn btn-sm" onclick="$(\'#notices\').html(\'\');">' + btn + '</button></div>');
-	notice.insertAfter($('#notices').children(':last'));
 }
 
 function chooseView(view) {
