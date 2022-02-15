@@ -231,7 +231,7 @@ public class StarRating implements ApiResponseHandler {
 	 * Converts TAG values read from file to 0-5 stars
 	 * @param tag
 	 */
-	public static int convertTagRatingToStar(Tag tag) {
+	public static Integer convertTagRatingToStar(Tag tag) {
 		String value = tag.getFirst(FieldKey.RATING);
 		if (!StringUtils.isBlank(value)) {
 			int num = Integer.parseInt(value);
@@ -244,10 +244,13 @@ public class StarRating implements ApiResponseHandler {
 				return convertVorbisToStars(num);
 			}
 		}
-		return 0;
+		return null;
 	}
 
-	public static int convertID3ToStars(int num) {
+	public static Integer convertID3ToStars(Integer num) {
+		if (num == null) {
+			return null;
+		}
 		if (num == 0) {
 			return 0;
 		} else if (num < 32) {
@@ -263,7 +266,10 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	public static int convertVorbisToStars(int num) {
+	public static Integer convertVorbisToStars(Integer num) {
+		if (num == null) {
+			return null;
+		}
 		if (num == 0) {
 			return 0;
 		} else if (num < 21) {
