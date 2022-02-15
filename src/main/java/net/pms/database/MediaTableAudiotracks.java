@@ -213,7 +213,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		) {
 			StarRating sr = new StarRating();
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
-				if (!StringUtils.isAllBlank(audioTrack.getMbidTrack())) {
+				if (audioTrack.getRating() != null && !StringUtils.isAllBlank(audioTrack.getMbidTrack())) {
 					sr.setDatabaseRating(connection, audioTrack.getRating(), audioTrack.getMbidTrack());
 				}
 				updateStatment.setLong(1, fileId);
