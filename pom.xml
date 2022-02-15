@@ -88,7 +88,7 @@
 				- fm.last:coverartarchive-api
 				- com.github.oshi:oshi-core
 
-			Check the org.slf4j:slf4j-api version of the other library before upgrading
+			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
 		<slf4j-api-version>1.7.36</slf4j-api-version>
 
@@ -104,7 +104,7 @@
 				- net.pms:ums
 				- com.github.oshi:oshi-core
 
-			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
+			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
 		<jna-version>5.10.0</jna-version>
 
@@ -185,7 +185,7 @@
 					- org.apache.httpcomponents:httpasyncclient
 					- fm.last:coverartarchive-api
 
-				Check the org.apache.httpcomponents:httpclient version of the other library before upgrading
+				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
 			-->
 			<version>4.5.13</version>
 			<exclusions>
@@ -203,7 +203,7 @@
 				commons-io:commons-io is shared with
 					- fm.last:coverartarchive-api
 
-				Check the commons-io:commons-io version of the library before upgrading
+				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
 			<version>2.11.0</version>
 		</dependency>
