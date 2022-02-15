@@ -59,7 +59,9 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 6;
+
+	private static final StarRating STARRATING = new StarRating();
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -120,6 +122,10 @@ public class MediaTableAudiotracks extends MediaTable {
 						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on AUDIOTRACKS (" + LIKE_SONG + ");");
 						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
 					}
+				case 5:
+					executeUpdate(connection, "CREATE INDEX IDX_MBID on AUDIOTRACKS (MBID_TRACK);");
+					LOGGER.trace("Indexing column MBID_TRACK on table " + TABLE_NAME);
+
 					break;
 				default:
 					throw new IllegalStateException(
@@ -211,10 +217,9 @@ public class MediaTableAudiotracks extends MediaTable {
 				createDefaultValueForInsertStatement(columns)
 			);
 		) {
-			StarRating sr = new StarRating();
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
 				if (audioTrack.getRating() != null && !StringUtils.isAllBlank(audioTrack.getMbidTrack())) {
-					sr.setDatabaseRating(connection, audioTrack.getRating(), audioTrack.getMbidTrack());
+					STARRATING.setDatabaseRating(connection, audioTrack.getRating(), audioTrack.getMbidTrack());
 				}
 				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
