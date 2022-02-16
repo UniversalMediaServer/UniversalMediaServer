@@ -41,6 +41,7 @@ public class ApiHandler {
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
+			return "Weak or no server API key configured. UMS.conf api_key should have at least 12 digests.";
 		}
 
 		try {
@@ -63,7 +64,7 @@ public class ApiHandler {
 			LOGGER.error("handling api request failed failed: ", e);
 			output.setStatus(HttpResponseStatus.EXPECTATION_FAILED);
 		}
-		return null;
+		return "ERROR";
 	}
 
 	/**

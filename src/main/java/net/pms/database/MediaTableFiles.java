@@ -542,7 +542,7 @@ public class MediaTableFiles extends MediaTable {
 								audio.setBitRate(elements.getInt("BITRATE"));
 								audio.setMbidRecord(elements.getString("MBID_RECORD"));
 								audio.setMbidTrack(elements.getString("MBID_TRACK"));
-								audio.setRating(elements.getInt("RATING"));
+								audio.setRating(rs.getInt("RATING"));
 								media.getAudioTracksList().add(audio);
 							}
 						}
@@ -679,7 +679,7 @@ public class MediaTableFiles extends MediaTable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, RATING " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -746,6 +746,9 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+							if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getRating() != null) {
+								rs.updateInt("RATING", media.getFirstAudioTrack().getRating());
+							}
 						}
 						rs.updateRow();
 					}
