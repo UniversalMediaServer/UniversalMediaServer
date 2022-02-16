@@ -2517,6 +2517,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (firstAudioTrack.getDisc() > 0) {
 					addXMLTagAndAttribute(sb, "numberOfThisDisc", "" + firstAudioTrack.getDisc());
 				}
+				if (firstAudioTrack.getRating() != null) {
+					addXMLTagAndAttribute(sb, "rating", "" + firstAudioTrack.getRating());
+				}
 				closeTag(sb, "desc");
 			}
 		}
