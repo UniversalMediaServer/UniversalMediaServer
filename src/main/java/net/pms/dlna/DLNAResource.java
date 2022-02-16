@@ -1172,6 +1172,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		String album = null;
+		String mbReleaseId = null;
 		int numberOfAudioFiles = 0;
 		int numberOfOtherFiles = 0;
 
@@ -1185,11 +1186,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
-					if (StringUtils.isAllBlank(album)) {
+					mbReleaseId = res.getMedia().getFirstAudioTrack().getMbidRecord();
+					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
 						return false;
 					}
 				} else {
-					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
+					if (!StringUtils.isAllBlank(mbReleaseId)) {
+						// First check musicbrainz ReleaseID
+						if (!mbReleaseId.equals(res.getMedia().getFirstAudioTrack().getMbidRecord())) {
+							return false;
+						}
+					} else if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
 						return false;
 					}
 				}
