@@ -19,6 +19,8 @@
  */
 package net.pms.database;
 
+import static org.apache.commons.lang3.StringUtils.left;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,14 +28,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.UUID;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.network.mediaserver.handlers.api.StarRating;
-import static org.apache.commons.lang3.StringUtils.left;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
@@ -60,8 +58,6 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 6;
-
-	private static final StarRating STARRATING = new StarRating();
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -218,9 +214,6 @@ public class MediaTableAudiotracks extends MediaTable {
 			);
 		) {
 			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
-				if (audioTrack.getRating() != null && !StringUtils.isAllBlank(audioTrack.getMbidTrack())) {
-					STARRATING.setDatabaseRating(connection, audioTrack.getRating(), audioTrack.getMbidTrack());
-				}
 				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
 				try (ResultSet rs = updateStatment.executeQuery()) {
