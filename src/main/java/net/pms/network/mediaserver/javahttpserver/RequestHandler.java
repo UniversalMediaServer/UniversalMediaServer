@@ -310,11 +310,17 @@ public class RequestHandler implements HttpHandler {
 		long contentLength = 0;
 		if (cLoverride > -2) {
 			// Content-Length override has been set, send or omit as appropriate
-			if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
+			if (cLoverride == 0) {
+				//mean no content, HttpExchange use the -1 value for it.
+				contentLength = -1;
+			} else if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
 				contentLength = cLoverride;
+			} else if (cLoverride == -1) {
+				//chunked, HttpExchange use the 0 value for it.
+				contentLength = 0;
 			}
 		} else {
 			contentLength = inputStream.available();
@@ -334,13 +340,23 @@ public class RequestHandler implements HttpHandler {
 			// Send the response body to the client in chunks.
 			byte[] buf = new byte[BUFFER_SIZE];
 			int length;
-			//don't use FixedLengthOutputStream as dlna does not know the real size
-			try (OutputStream outputStream = new FilterOutputStream(exchange.getResponseBody())) {
-				exchange.setStreams(null, new FilterOutputStream(exchange.getResponseBody()));
-				while ((length = inputStream.read(buf)) > 0) {
-					outputStream.write(buf, 0, length);
-					outputStream.flush();
+			try (OutputStream outputStream = exchange.getResponseBody()) {
+				int lengthSent = 0;
+				try {
+					while ((length = inputStream.read(buf)) > 0) {
+						outputStream.write(buf, 0, length);
+						outputStream.flush();
+						lengthSent += length;
+					}
+				} catch (IOException ioe) {
+					//client close the connection
 				}
+				try {
+					outputStream.close();
+				} catch (IOException ioe) {
+					//client close the connection and insufficient bytes written to stream
+				}
+				LOGGER.trace("OutputStream({}) - bytes sent: {}/{}", outputStream.getClass().getName(), lengthSent, contentLength);
 			}
 		}
 		try {
