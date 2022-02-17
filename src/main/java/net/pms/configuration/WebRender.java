@@ -54,6 +54,7 @@ import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -326,7 +327,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							break;
 						case HTTPResource.HLS_TYPEMIME:
 							try {
-								ffHlsH264VorbisCmd(cmdList, media, resource.getId());
+								addFFmpegHLSCommands(cmdList, resource, resource.getId());
 							} catch (IOException e) {
 								LOGGER.debug("Could not read temp folder:" + e.getMessage());
 							}
@@ -440,9 +441,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
-	private static void ffHlsH264VorbisCmd(List<String> cmdList, DLNAMediaInfo media, String globalId) throws IOException {
+	private static void addFFmpegHLSCommands(List<String> cmdList, DLNAResource resource, String globalId) throws IOException {
+		DLNAMediaInfo media = resource.getMedia();
+		String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
+
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
+
+		// Video
 		cmdList.add("-c:v");
 		if (canCopy && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
 			cmdList.add("copy");
@@ -453,10 +459,26 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			cmdList.add("-pix_fmt");
 			cmdList.add("yuv420p");
 		}
+
+		// Audio
 		cmdList.add("-c:a");
-		cmdList.add("libvorbis");
-		cmdList.add("-ac");
-		cmdList.add("2");
+		if (
+			canCopy &&
+			media != null &&
+			media.getFirstAudioTrack() != null &&
+			media.getFirstAudioTrack().getCodecA() != null &&
+			(
+				media.getFirstAudioTrack().getCodecA().equals("vorbis") ||
+				media.getFirstAudioTrack().isAAC()
+			)
+		) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("aac");
+			cmdList.add("-ab");
+			cmdList.add("320k");
+		}
+
 		cmdList.add("-copyts");
 		// cmdList.add("-c:s");
 		// cmdList.add("mov_text");
@@ -489,11 +511,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-hls_time");
 		cmdList.add("10");
 
-		cmdList.add("-hls_allow_cache");
-		cmdList.add("1");
-
 		cmdList.add("-y");
-		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + globalId + "-playlist.m3u8");
+		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + globalId + "-" + filenameMD5 + "-playlist.m3u8");
 	}
 
 	/**

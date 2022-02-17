@@ -41,6 +41,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +182,8 @@ public class MediaHandler implements HttpHandler {
 			if (!render.getVideoMimeType().equals(HTTPResource.HLS_TYPEMIME)) {
 				WebInterfaceServerUtil.dump(in, os);
 			} else {
-				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-playlist.m3u8";
+				String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
+				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-" + filenameMD5 + "-playlist.m3u8";
 				File playlist = new File(playlistPath);
 
 				StringBuilder resultStringBuilder = new StringBuilder();
