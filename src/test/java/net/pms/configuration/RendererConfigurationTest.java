@@ -223,6 +223,8 @@ public class RendererConfigurationTest {
 			"User-Agent: Roku/8000X-7"
 		);
 
+		testUPNPDetails("Samsung 5300 Series", "modelName=UN32M5300");
+
 		testHeaders(
 			"Samsung C/D Series",
 			"User-Agent: SEC_HHP_[HT]D5500/1.0",
@@ -239,6 +241,8 @@ public class RendererConfigurationTest {
 			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50",
 			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
 		);
+
+		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 		
