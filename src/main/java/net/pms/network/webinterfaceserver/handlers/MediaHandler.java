@@ -151,7 +151,8 @@ public class MediaHandler implements HttpHandler {
 			media.setMimeType(mimeType);
 			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
-			if (render == null || !HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
+			if (!HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
 				if (range.getEnd() == 0) {
 					// For web resources actual length may be unknown until we open the stream
 					range.setEnd(resource.length());
@@ -169,20 +170,17 @@ public class MediaHandler implements HttpHandler {
 				headers.add("Server", PMS.get().getServerName());
 				headers.add("Connection", "keep-alive");
 				httpExchange.sendResponseHeaders(code, 0);
-				if (render != null) {
-					render.start(resource);
-				}
-				if (sid != null) {
-					resource.setMediaSubtitle(sid);
-				}
-				InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
-				OutputStream os = httpExchange.getResponseBody();
+			}
+			OutputStream os = httpExchange.getResponseBody();
+			if (render != null) {
+				render.start(resource);
+			}
+			if (sid != null) {
+				resource.setMediaSubtitle(sid);
+			}
+			if (!render.getVideoMimeType().equals(HTTPResource.HLS_TYPEMIME)) {
 				WebInterfaceServerUtil.dump(in, os);
 			} else {
-				render.start(resource);
-				if (sid != null) {
-					resource.setMediaSubtitle(sid);
-				}
 				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-playlist.m3u8";
 				File playlist = new File(playlistPath);
 
