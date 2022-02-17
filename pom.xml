@@ -79,20 +79,32 @@
 
 		<!--
 			org.slf4j:slf4j-api is shared with
+				- net.pms:ums
+				- com.rometools:rome
+				- ch.qos.logback:logback-classic
+				- com.github.junrar:junrar
+				- org.digitalmediaserver:cuelib-core
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 				- com.github.oshi:oshi-core
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
+		<slf4j-api-version>1.7.36</slf4j-api-version>
+
+		<!--
+			ch.qos.logback:logback-classic and logback-core is shared with
+				- net.pms:ums
+		-->
 		<logback-version>1.2.10</logback-version>
 		<surefire-version>3.0.0-M5</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
+				- net.pms:ums
 				- com.github.oshi:oshi-core
 
-			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
+			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
 		<jna-version>5.10.0</jna-version>
 
@@ -118,6 +130,12 @@
 	<repositories>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>${slf4j-api-version}</version>
+		</dependency>
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
@@ -154,9 +172,18 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
+			<!--
+				org.apache.httpcomponents:httpclient is shared with
+					- net.pms:ums
+					- org.apache.httpcomponents:httpasyncclient
+					- fm.last:coverartarchive-api
+
+				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
+			-->
 			<version>4.5.13</version>
 			<exclusions>
 				<exclusion>
+					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpcore</artifactId>
 				</exclusion>
@@ -169,7 +196,7 @@
 				commons-io:commons-io is shared with
 					- fm.last:coverartarchive-api
 
-				Check the commons-io:commons-io version of the library before upgrading
+				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
 			<version>2.11.0</version>
 		</dependency>
@@ -197,7 +224,14 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>${logback-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -225,15 +259,7 @@
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- fm.last:coverartarchive-api
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-			-->
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>1.18.0</version>
 			<exclusions>
 				<exclusion>
@@ -350,6 +376,7 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>7.4.1</version>
 			<exclusions>
 				<exclusion>
@@ -361,6 +388,7 @@
 		<dependency>
 			<groupId>org.digitalmediaserver</groupId>
 			<artifactId>cuelib-core</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>2.0.0</version>
 			<exclusions>
 				<exclusion>
@@ -442,14 +470,7 @@
 		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
 			<artifactId>api-v2</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- fm.last:coverartarchive-api
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-			-->
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>0.11.3</version>
 			<exclusions>
 				<exclusion>
@@ -471,14 +492,8 @@
 		<dependency>
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
 
@@ -525,24 +540,22 @@
 		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- fm.last:coverartarchive-api
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-
-				net.java.dev.jna:jna-platform is shared with
-					- net.pms:ums
-
-				Check the net.java.dev.jna:jna-platform version before upgrading
-			-->
-			<version>5.8.6</version>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
+			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
+			<version>6.1.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna-platform</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -852,7 +865,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.10.0</version>
+				<version>3.11.0</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -956,7 +969,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.15.0</version>
+				<version>3.16.0</version>
 				<configuration>
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
