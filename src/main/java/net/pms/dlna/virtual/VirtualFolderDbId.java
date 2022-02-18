@@ -37,4 +37,19 @@ public class VirtualFolderDbId extends VirtualFolder {
 	public String getMediaTypeUclass() {
 		return mediaType.uclass;
 	}
+
+	@Override
+	protected void setId(String id) {
+		if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			super.setId(id);
+		} else {
+			System.out.println("id");
+		}
+	}
+
+	@Override
+	public String getId() {
+		String id = super.getId();
+		return id;
+	}
 }

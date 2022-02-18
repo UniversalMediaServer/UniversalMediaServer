@@ -46,10 +46,12 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.SharedContentTab;
 import net.pms.platform.macos.NSFoundation;
@@ -225,6 +227,16 @@ public class RootFolder extends DLNAResource {
 			}
 
 			setDiscovered(true);
+		}
+
+		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			myMusicFolder.setFakeParentId("0");
+			addChild(myMusicFolder, true, false);
+		} else {
+			myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+			PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
 		}
 	}
 
