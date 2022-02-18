@@ -120,6 +120,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	protected static final String KEY_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
 	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
 	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
@@ -4388,6 +4389,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setShowLiveSubtitlesFolder(boolean value) {
 		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
+	}
+
+	public boolean displayAudioLikesInRootFolder() {
+		return getBoolean(KEY_AUDIO_LIKES_IN_ROOT_FOLDER, false);
 	}
 
 	/**
