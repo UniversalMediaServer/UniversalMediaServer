@@ -1,5 +1,7 @@
 package net.pms.dlna.virtual;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
@@ -10,6 +12,8 @@ import net.pms.network.DbIdResourceLocator.DbidMediaType;
  * This VirtualFolder implements support for RealFileDbId's database backed IDs.
  */
 public class VirtualFolderDbId extends VirtualFolder {
+
+	private static final Logger LOG = LoggerFactory.getLogger(VirtualFolderDbId.class.getName());
 
 	private DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
@@ -43,7 +47,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 		if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
 			super.setId(id);
 		} else {
-			System.out.println("id");
+			LOG.trace("Attention. ID doesn't match DBID general prefix : " + id != null ? id : "NULL");
 		}
 	}
 
