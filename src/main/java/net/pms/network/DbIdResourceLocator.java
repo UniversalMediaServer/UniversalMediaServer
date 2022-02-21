@@ -183,6 +183,7 @@ public class DbIdResourceLocator {
 												new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
 												new File(resultSet.getString("FILENAME")));
 											item.resolve();
+											res.addChild(item);
 										}
 									} while (resultSet.next());
 								}

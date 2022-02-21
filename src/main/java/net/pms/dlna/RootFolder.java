@@ -84,6 +84,15 @@ public class RootFolder extends DLNAResource {
 	public RootFolder() {
 		setIndexId(0);
 		webFolders = new ArrayList<>();
+		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			myMusicFolder.setFakeParentId("0");
+			addChild(myMusicFolder, true, false);
+		} else {
+			myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+			PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
+		}
 	}
 
 	@Override
@@ -227,16 +236,6 @@ public class RootFolder extends DLNAResource {
 			}
 
 			setDiscovered(true);
-		}
-
-		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
-		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			myMusicFolder.setFakeParentId("0");
-			addChild(myMusicFolder, true, false);
-		} else {
-			myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
-			PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
 		}
 	}
 
