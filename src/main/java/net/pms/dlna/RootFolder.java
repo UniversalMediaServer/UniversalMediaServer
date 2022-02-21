@@ -80,7 +80,6 @@ public class RootFolder extends DLNAResource {
 	private FolderLimit lim;
 	private MediaMonitor mon;
 	private ArrayList<DLNAResource> webFolders;
-	private static VirtualFolderDbId myMusicFolder = null;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -89,14 +88,16 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private void addVirtualMyMusicFolder() {
-		if (myMusicFolder == null) {
-			DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
-			myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
-			if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			if (!getChildren().contains(myMusicFolder)) {
 				myMusicFolder.setFakeParentId("0");
 				addChild(myMusicFolder, true, false);
 				LOGGER.debug("adding My Music folder to root");
-			} else {
+			}
+		} else {
+			if (!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)) {
 				myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
 				PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
 				LOGGER.debug("adding My Music folder to 'Audio' folder");
