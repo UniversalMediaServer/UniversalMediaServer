@@ -39,6 +39,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
 					}
 					break;
 				case "likealbum":
@@ -49,6 +50,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
 					}
 					break;
 				case "dislikesong":
@@ -59,6 +61,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
 					}
 					break;
 				case "dislikealbum":
@@ -69,6 +72,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
 					}
 					break;
 				case "isalbumliked":

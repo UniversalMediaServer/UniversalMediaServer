@@ -14,6 +14,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -170,7 +171,7 @@ public class DbIdResourceLocator {
 								if (resultSet.next()) {
 									res = new VirtualFolderDbId(resultSet.getString("ALBUM"),
 										new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
-									res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, typeAndIdent.ident)));
+									res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum"))));
 									// Find "best track" logic should be optimized !!
 									String lastUuidTrack = "";
 									do {
@@ -196,10 +197,14 @@ public class DbIdResourceLocator {
 							}
 							DoubleRecordFilter filter = new DoubleRecordFilter();
 							res = new VirtualFolderDbId(
-								typeAndIdent.ident,
-								new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, ""),
+								Messages.getString("Audio.Like.MyAlbum"),
+								new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum")),
 								"");
-							res.setFakeParentId("0"); // Depends on where it is linked into the system, discover from RootFolder !
+							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+								res.setFakeParentId("0");
+							} else {
+								res.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									filter.addAlbum(new MusicBrainzAlbum(

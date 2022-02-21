@@ -2265,6 +2265,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, this);
 		}
+		if (this instanceof VirtualFolderDbId) {
+			title = getName();
+		}
 
 		title = resumeStr(title);
 		addXMLTagAndAttribute(sb, "dc:title",
