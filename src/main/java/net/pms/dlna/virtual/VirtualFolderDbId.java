@@ -1,5 +1,6 @@
 package net.pms.dlna.virtual;
 
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
@@ -16,6 +17,8 @@ public class VirtualFolderDbId extends VirtualFolder {
 	private static final Logger LOG = LoggerFactory.getLogger(VirtualFolderDbId.class.getName());
 
 	private DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+
+	private String id2;
 
 	private DbidMediaType mediaType;
 
@@ -52,8 +55,22 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	@Override
-	public String getId() {
-		String id = super.getId();
-		return id;
+	public int hashCode() {
+		return Objects.hash(getId());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		VirtualFolderDbId other = (VirtualFolderDbId) obj;
+		return Objects.equals(getId(), other.getId());
 	}
 }
