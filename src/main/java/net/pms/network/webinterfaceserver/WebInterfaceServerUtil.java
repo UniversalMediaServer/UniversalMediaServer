@@ -599,6 +599,32 @@ public class WebInterfaceServerUtil {
 		String plot = "";
 		String poster = "";
 		Double totalSeasons = null;
+
+		// TMDB metadata added in V11
+		String createdBy = "";
+		String credits = "";
+		String externalIDs = "";
+		String firstAirDate = "";
+		String homepage = "";
+		String images = "";
+		String inProduction = "";
+		String languages = "";
+		String lastAirDate = "";
+		String networks = "";
+		String numberOfEpisodes = "";
+		String numberOfSeasons = "";
+		String originCountry = "";
+		String originalLanguage = "";
+		String originalTitle = "";
+		String productionCompanies = "";
+		String productionCountries = "";
+		String seasons = "";
+		String seriesType = "";
+		String spokenLanguages = "";
+		String status = "";
+		String tagline = "";
+
+
 		Boolean hasAPIMetadata = false;
 
 		DLNAResource actorsFolder = null;
@@ -739,6 +765,74 @@ public class WebInterfaceServerUtil {
 				totalSeasons = (Double) row.get("TOTALSEASONS");
 			}
 
+			// TMDB metadata added in V11
+			if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
+				createdBy = (String) row.get("CREATEDBY");
+			}
+			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
+				credits = (String) row.get("CREDITS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
+				externalIDs = (String) row.get("EXTERNALIDS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
+				firstAirDate = (String) row.get("FIRSTAIRDATE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
+				homepage = (String) row.get("HOMEPAGE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
+				images = (String) row.get("IMAGES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("INPRODUCTION"))) {
+				inProduction = (String) row.get("INPRODUCTION");
+			}
+			if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
+				languages = (String) row.get("LANGUAGES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
+				lastAirDate = (String) row.get("LASTAIRDATE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
+				networks = (String) row.get("NETWORKS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("NUMBEROFEPISODES"))) {
+				numberOfEpisodes = (String) row.get("NUMBEROFEPISODES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
+				numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
+				originCountry = (String) row.get("ORIGINCOUNTRY");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
+				originalLanguage = (String) row.get("ORIGINALLANGUAGE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
+				originalTitle = (String) row.get("ORIGINALTITLE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
+				productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
+				productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
+				seasons = (String) row.get("SEASONS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
+				seriesType = (String) row.get("SERIESTYPE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
+				spokenLanguages = (String) row.get("SPOKENLANGUAGES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
+				status = (String) row.get("STATUS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
+				tagline = (String) row.get("TAGLINE");
+			}
+
 			// These are for records that can have multiple results
 			if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
 				String actor = (String) row.get("ACTOR");
@@ -805,6 +899,30 @@ public class WebInterfaceServerUtil {
 		javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
 		javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
 		javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
+
+		// TMDB metadata added in V11
+		javascriptVarsScript += "var createdBy = \"" + StringEscapeUtils.escapeEcmaScript(createdBy) + "\";";
+		javascriptVarsScript += "var credits = \"" + StringEscapeUtils.escapeEcmaScript(credits) + "\";";
+		javascriptVarsScript += "var externalIDs = \"" + StringEscapeUtils.escapeEcmaScript(externalIDs) + "\";";
+		javascriptVarsScript += "var firstAirDate = \"" + StringEscapeUtils.escapeEcmaScript(firstAirDate) + "\";";
+		javascriptVarsScript += "var homepage = \"" + StringEscapeUtils.escapeEcmaScript(homepage) + "\";";
+		javascriptVarsScript += "var images = \"" + StringEscapeUtils.escapeEcmaScript(images) + "\";";
+		javascriptVarsScript += "var inProduction = \"" + StringEscapeUtils.escapeEcmaScript(inProduction) + "\";";
+		javascriptVarsScript += "var languages = \"" + StringEscapeUtils.escapeEcmaScript(languages) + "\";";
+		javascriptVarsScript += "var lastAirDate = \"" + StringEscapeUtils.escapeEcmaScript(lastAirDate) + "\";";
+		javascriptVarsScript += "var networks = \"" + StringEscapeUtils.escapeEcmaScript(networks) + "\";";
+		javascriptVarsScript += "var numberOfEpisodes = \"" + StringEscapeUtils.escapeEcmaScript(numberOfEpisodes) + "\";";
+		javascriptVarsScript += "var numberOfSeasons = \"" + StringEscapeUtils.escapeEcmaScript(numberOfSeasons) + "\";";
+		javascriptVarsScript += "var originCountry = \"" + StringEscapeUtils.escapeEcmaScript(originCountry) + "\";";
+		javascriptVarsScript += "var originalLanguage = \"" + StringEscapeUtils.escapeEcmaScript(originalLanguage) + "\";";
+		javascriptVarsScript += "var originalTitle = \"" + StringEscapeUtils.escapeEcmaScript(originalTitle) + "\";";
+		javascriptVarsScript += "var productionCompanies = \"" + StringEscapeUtils.escapeEcmaScript(productionCompanies) + "\";";
+		javascriptVarsScript += "var productionCountries = \"" + StringEscapeUtils.escapeEcmaScript(productionCountries) + "\";";
+		javascriptVarsScript += "var seasons = \"" + StringEscapeUtils.escapeEcmaScript(seasons) + "\";";
+		javascriptVarsScript += "var seriesType = \"" + StringEscapeUtils.escapeEcmaScript(seriesType) + "\";";
+		javascriptVarsScript += "var spokenLanguages = \"" + StringEscapeUtils.escapeEcmaScript(spokenLanguages) + "\";";
+		javascriptVarsScript += "var status = \"" + StringEscapeUtils.escapeEcmaScript(status) + "\";";
+		javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 
 		javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
 		String actorsArrayJavaScript = "var actors = [";

@@ -44,7 +44,13 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 4;
+
+	/**
+	 * The columns we added from TMDB in V11
+	 */
+	private static final String TMDB_COLUMNS = "CREATEDBY, CREDITS, EXTERNALIDS, FIRSTAIRDATE, HOMEPAGE, IMAGES, INPRODUCTION, LANGUAGES, LASTAIRDATE, NETWORKS, NUMBEROFEPISODES, NUMBEROFSEASONS, ORIGINCOUNTRY, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, SEASONS, SERIESTYPE, SPOKENLANGUAGES, STATUS, TAGLINE";
+	private static final String TMDB_COLUMNS_PLACEHOLDERS = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -108,6 +114,31 @@ public final class MediaTableTVSeries extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
 					}
 					break;
+				case 3:
+					LOGGER.trace("Adding TMDB columns");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREATEDBY VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD FIRSTAIRDATE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD INPRODUCTION VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LANGUAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LASTAIRDATE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NETWORKS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFEPISODES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFSEASONS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINCOUNTRY VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SEASONS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SERIESTYPE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SPOKENLANGUAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD STATUS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD TAGLINE VARCHAR2");
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -139,6 +170,28 @@ public final class MediaTableTVSeries extends MediaTable {
 				"VERSION			VARCHAR2(1024)					, " +
 				"VOTES				VARCHAR2(1024)					, " +
 				"MEDIA_YEAR			VARCHAR2(1024)					  " +
+				"CREATEDBY VARCHAR2, " +
+				"CREDITS VARCHAR2, " +
+				"EXTERNALIDS VARCHAR2, " +
+				"FIRSTAIRDATE VARCHAR2, " +
+				"HOMEPAGE VARCHAR2, " +
+				"IMAGES VARCHAR2, " +
+				"INPRODUCTION VARCHAR2, " +
+				"LANGUAGES VARCHAR2, " +
+				"LASTAIRDATE VARCHAR2, " +
+				"NETWORKS VARCHAR2, " +
+				"NUMBEROFEPISODES VARCHAR2, " +
+				"NUMBEROFSEASONS VARCHAR2, " +
+				"ORIGINCOUNTRY VARCHAR2, " +
+				"ORIGINALLANGUAGE VARCHAR2, " +
+				"ORIGINALTITLE VARCHAR2, " +
+				"PRODUCTIONCOMPANIES VARCHAR2, " +
+				"PRODUCTIONCOUNTRIES VARCHAR2, " +
+				"SEASONS VARCHAR2, " +
+				"SERIESTYPE VARCHAR2, " +
+				"SPOKENLANGUAGES VARCHAR2, " +
+				"STATUS VARCHAR2, " +
+				"TAGLINE VARCHAR2" +
 			")",
 			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
 			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",
@@ -196,9 +249,9 @@ public final class MediaTableTVSeries extends MediaTable {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 						} else {
 							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION" +
+								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION, " + TMDB_COLUMNS +
 							") VALUES (" +
-								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?" +
+								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + TMDB_COLUMNS_PLACEHOLDERS +
 							")";
 						}
 						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -222,6 +275,30 @@ public final class MediaTableTVSeries extends MediaTable {
 								insertStatement.setString(8, (String) tvSeries.get("votes"));
 								insertStatement.setString(9, (String) tvSeries.get("year"));
 								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
+
+								// TMDB data, since v11
+								insertStatement.setString(11, (String) tvSeries.get("createdBy"));
+								insertStatement.setString(12, (String) tvSeries.get("credits"));
+								insertStatement.setString(13, (String) tvSeries.get("externalIDs"));
+								insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
+								insertStatement.setString(15, (String) tvSeries.get("homepage"));
+								insertStatement.setString(16, (String) tvSeries.get("images"));
+								insertStatement.setString(17, (String) tvSeries.get("inProduction"));
+								insertStatement.setString(18, (String) tvSeries.get("languages"));
+								insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
+								insertStatement.setString(20, (String) tvSeries.get("networks"));
+								insertStatement.setString(21, (String) tvSeries.get("numberOfEpisodes"));
+								insertStatement.setString(22, (String) tvSeries.get("numberOfSeasons"));
+								insertStatement.setString(23, (String) tvSeries.get("originCountry"));
+								insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
+								insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
+								insertStatement.setString(27, (String) tvSeries.get("productionCompanies"));
+								insertStatement.setString(28, (String) tvSeries.get("productionCountries"));
+								insertStatement.setString(29, (String) tvSeries.get("seasons"));
+								insertStatement.setString(30, (String) tvSeries.get("seriesType"));
+								insertStatement.setString(31, (String) tvSeries.get("spokenLanguages"));
+								insertStatement.setString(32, (String) tvSeries.get("status"));
+								insertStatement.setString(33, (String) tvSeries.get("tagline"));
 							}
 							insertStatement.executeUpdate();
 
@@ -278,7 +355,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from imdbID", imdbID, TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series from imdbID", imdbID, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -313,7 +390,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie from title", title, TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -349,7 +426,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv serie thumbnail from title", title, TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series thumbnail from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -476,6 +553,28 @@ public final class MediaTableTVSeries extends MediaTable {
 						rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
 						rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
+						rs.updateString("CREATEDBY", (String) tvSeries.get("createdBy"));
+						rs.updateString("CREDITS", (String) tvSeries.get("credits"));
+						rs.updateString("EXTERNALIDS", (String) tvSeries.get("externalIDs"));
+						rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
+						rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
+						rs.updateString("IMAGES", (String) tvSeries.get("images"));
+						rs.updateString("INPRODUCTION", (String) tvSeries.get("inProduction"));
+						rs.updateString("LANGUAGES", (String) tvSeries.get("languages"));
+						rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
+						rs.updateString("NETWORKS", (String) tvSeries.get("networks"));
+						rs.updateString("NUMBEROFEPISODES", (String) tvSeries.get("numberOfEpisodes"));
+						rs.updateString("NUMBEROFSEASONS", (String) tvSeries.get("numberOfSeasons"));
+						rs.updateString("ORIGINCOUNTRY", (String) tvSeries.get("originCountry"));
+						rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
+						rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
+						rs.updateString("PRODUCTIONCOMPANIES", (String) tvSeries.get("productionCompanies"));
+						rs.updateString("PRODUCTIONCOUNTRIES", (String) tvSeries.get("productionCountries"));
+						rs.updateString("SEASONS", (String) tvSeries.get("seasons"));
+						rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
+						rs.updateString("SPOKENLANGUAGES", (String) tvSeries.get("spokenLanguages"));
+						rs.updateString("STATUS", (String) tvSeries.get("status"));
+						rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
 						rs.updateRow();
 					} else {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
