@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnail;
@@ -169,14 +170,14 @@ public final class MediaTableTVSeries extends MediaTable {
 				"TOTALSEASONS		DOUBLE							, " +
 				"VERSION			VARCHAR2(1024)					, " +
 				"VOTES				VARCHAR2(1024)					, " +
-				"MEDIA_YEAR			VARCHAR2(1024)					  " +
+				"MEDIA_YEAR			VARCHAR2(1024)					, " +
 				"CREATEDBY VARCHAR2, " +
 				"CREDITS VARCHAR2, " +
 				"EXTERNALIDS VARCHAR2, " +
 				"FIRSTAIRDATE VARCHAR2, " +
 				"HOMEPAGE VARCHAR2, " +
 				"IMAGES VARCHAR2, " +
-				"INPRODUCTION VARCHAR2, " +
+				"INPRODUCTION BOOLEAN, " +
 				"LANGUAGES VARCHAR2, " +
 				"LASTAIRDATE VARCHAR2, " +
 				"NETWORKS VARCHAR2, " +
@@ -283,7 +284,7 @@ public final class MediaTableTVSeries extends MediaTable {
 								insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
 								insertStatement.setString(15, (String) tvSeries.get("homepage"));
 								insertStatement.setString(16, (String) tvSeries.get("images"));
-								insertStatement.setString(17, (String) tvSeries.get("inProduction"));
+								insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
 								insertStatement.setString(18, (String) tvSeries.get("languages"));
 								insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
 								insertStatement.setString(20, (String) tvSeries.get("networks"));
@@ -553,26 +554,55 @@ public final class MediaTableTVSeries extends MediaTable {
 						rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
 						rs.updateString("VOTES", (String) tvSeries.get("votes"));
 						rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
-						rs.updateString("CREATEDBY", (String) tvSeries.get("createdBy"));
-						rs.updateString("CREDITS", (String) tvSeries.get("credits"));
-						rs.updateString("EXTERNALIDS", (String) tvSeries.get("externalIDs"));
+
+						if (tvSeries.get("createdBy") != null) {
+							rs.updateString("CREATEDBY", StringUtils.join(tvSeries.get("createdBy"), ","));
+						}
+						if (tvSeries.get("credits") != null) {
+							rs.updateString("CREDITS", StringUtils.join(tvSeries.get("credits"), ","));
+						}
+						if (tvSeries.get("externalIDs") != null) {
+							rs.updateString("EXTERNALIDS", StringUtils.join(tvSeries.get("externalIDs"), ","));
+						}
 						rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
 						rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
-						rs.updateString("IMAGES", (String) tvSeries.get("images"));
-						rs.updateString("INPRODUCTION", (String) tvSeries.get("inProduction"));
-						rs.updateString("LANGUAGES", (String) tvSeries.get("languages"));
+						if (tvSeries.get("images") != null) {
+							rs.updateString("IMAGES", StringUtils.join(tvSeries.get("images"), ","));
+						}
+						if (tvSeries.get("inProduction") != null) {
+							rs.updateBoolean("INPRODUCTION", (Boolean) tvSeries.get("inProduction"));
+						}
+						if (tvSeries.get("languages") != null) {
+							rs.updateString("LANGUAGES", StringUtils.join(tvSeries.get("languages"), ","));
+						}
 						rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
-						rs.updateString("NETWORKS", (String) tvSeries.get("networks"));
-						rs.updateString("NUMBEROFEPISODES", (String) tvSeries.get("numberOfEpisodes"));
-						rs.updateString("NUMBEROFSEASONS", (String) tvSeries.get("numberOfSeasons"));
-						rs.updateString("ORIGINCOUNTRY", (String) tvSeries.get("originCountry"));
+						if (tvSeries.get("networks") != null) {
+							rs.updateString("NETWORKS", StringUtils.join(tvSeries.get("networks"), ","));
+						}
+						if (tvSeries.get("numberOfEpisodes") != null) {
+							rs.updateString("NUMBEROFEPISODES", StringUtils.join(tvSeries.get("numberOfEpisodes"), ","));
+						}
+						if (tvSeries.get("numberOfSeasons") != null) {
+							rs.updateString("NUMBEROFSEASONS", StringUtils.join(tvSeries.get("numberOfSeasons"), ","));
+						}
+						if (tvSeries.get("originCountry") != null) {
+							rs.updateString("ORIGINCOUNTRY", StringUtils.join(tvSeries.get("originCountry"), ","));
+						}
 						rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
 						rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
-						rs.updateString("PRODUCTIONCOMPANIES", (String) tvSeries.get("productionCompanies"));
-						rs.updateString("PRODUCTIONCOUNTRIES", (String) tvSeries.get("productionCountries"));
-						rs.updateString("SEASONS", (String) tvSeries.get("seasons"));
+						if (tvSeries.get("productionCompanies") != null) {
+							rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(tvSeries.get("productionCompanies"), ","));
+						}
+						if (tvSeries.get("productionCountries") != null) {
+							rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(tvSeries.get("productionCountries"), ","));
+						}
+						if (tvSeries.get("seasons") != null) {
+							rs.updateString("SEASONS", StringUtils.join(tvSeries.get("seasons"), ","));
+						}
 						rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
-						rs.updateString("SPOKENLANGUAGES", (String) tvSeries.get("spokenLanguages"));
+						if (tvSeries.get("spokenLanguages") != null) {
+							rs.updateString("SPOKENLANGUAGES", StringUtils.join(tvSeries.get("spokenLanguages"), ","));
+						}
 						rs.updateString("STATUS", (String) tvSeries.get("status"));
 						rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
 						rs.updateRow();
