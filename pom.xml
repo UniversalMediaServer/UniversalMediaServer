@@ -583,7 +583,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.1.2</version>
+			<version>6.1.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
