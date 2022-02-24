@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.17.1-SNAPSHOT</version>
+	<version>11.0.0-ALPHA</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,8 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.17.1</project.version.short>
+		<project.version.short>11.0.0</project.version.short>
+		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
@@ -97,6 +98,14 @@
 				- net.pms:ums
 		-->
 		<logback-version>1.2.10</logback-version>
+
+		<!--
+			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
+				- net.pms:ums
+				- su.litvak.chromecast:api-v2
+				- fm.last:coverartarchive-api
+		-->
+		<jackson.version>2.13.1</jackson.version>
 		<surefire-version>3.0.0-M5</surefire-version>
 
 		<!--
@@ -116,8 +125,8 @@
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.8.2</junit5.version>
 		<com.sun.xml.bind-version>3.0.2</com.sun.xml.bind-version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
+		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -431,11 +440,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.easytesting</groupId>
-			<artifactId>fest-util</artifactId>
-			<version>1.2.5</version>
-		</dependency>
-		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<!-- Use 3.x for Java 8 -->
@@ -468,14 +472,33 @@
 			<version>1.15</version>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<!-- will include jackson-core and jackson-annotations -->
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
 			<artifactId>api-v2</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
 			<version>0.11.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -493,6 +516,7 @@
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
 			<!--
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
@@ -827,10 +851,10 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.10.0</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<testSource>1.8</testSource>
-					<testTarget>1.8</testTarget>
+					<source>${project.jre-version}</source>
+					<target>${project.jre-version}</target>
+					<testSource>${project.jre-version}</testSource>
+					<testTarget>${project.jre-version}</testTarget>
 					<compilerArgument>${compilerArgument}</compilerArgument>
 				</configuration>
 			</plugin>
@@ -974,7 +998,7 @@
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
 					<minimumTokens>100</minimumTokens>
-					<targetJdk>1.8</targetJdk>
+					<targetJdk>${project.jre-version}</targetJdk>
 				</configuration>
 			</plugin>
 
@@ -1073,15 +1097,19 @@
 										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
 										<mkdir dir="${project.binaries}/win32/interframe" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86" />
+										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x64" />
+										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x86" />
 										<mkdir dir="${project.binaries}/win32/mplayer" />
 										<mkdir dir="${project.binaries}/win32/service" />
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<!--
+											MediaInfo64.dll and other related files should sit under ${project.binaries-base}/win32
+											Correct here when done
+										-->
+										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo.dll"  usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
@@ -1126,20 +1154,38 @@
 										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
 
-										<get src="${project.binaries-base}/win32/jre8-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre8-x64.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/jre8-x64.zip" dest="${project.binaries}/win32/jre8-x64"/>
+										<!--
+											<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+											<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x64"/>
 
-										<get src="${project.binaries-base}/win32/jre8-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre8-x86.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/jre8-x86.zip" dest="${project.binaries}/win32/jre8-x86"/>
+											until binaries are on the https://www.universalmediaserver.com/svn/binaries
+											download directly from internet and adapt (subfolder).
+										 -->
+										<get src="https://download.bell-sw.com/java/17.0.2+9/bellsoft-jre17.0.2+9-windows-amd64.zip" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/win32"/>
+										<move file="${project.binaries}/win32/jre-17.0.2" tofile="${project.binaries}/win32/jre${project.jre-version}-x64"/>
+
+										<!--
+											<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+											<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x86"/>
+
+											until binaries are on the https://www.universalmediaserver.com/svn/binaries
+											download directly from internet and adapt (subfolder).
+										-->
+										<get src="https://download.bell-sw.com/java/17.0.2+9/bellsoft-jre17.0.2+9-windows-i586.zip" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/win32"/>
+										<move file="${project.binaries}/win32/jre-17.0.2" tofile="${project.binaries}/win32/jre${project.jre-version}-x86"/>
 
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<!-- let this on the win32 folder
 										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+										 -->
 									</target>
 								</configuration>
 							</execution>
@@ -1612,24 +1658,7 @@
 										<mkdir dir="${project.binaries}/linux" />
 										<mkdir dir="${project.binaries}/linux/x86" />
 										<mkdir dir="${project.binaries}/linux/x86/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/bin" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/applet" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/cmm" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/ext" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/jli" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/client" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/server" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/jfr" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/management" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
@@ -1637,9 +1666,16 @@
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<!--
+											<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.zip?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.zip" usetimestamp="true" />
+											<unzip src="${project.binaries}/linux/x86/jre${project.jre-version}.zip" dest="${project.binaries}/linux/x86/jre${project.jre-version}"/>
 
-										<get src="${project.binaries-base}/linux/x86/jre8.zip?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8.zip" usetimestamp="true" />
-										<unzip src="${project.binaries}/linux/x86/jre8.zip" dest="${project.binaries}/linux/x86/jre8"/>
+											until binaries are on the https://www.universalmediaserver.com/svn/binaries
+											download directly from internet and adapt (tar.gz + subfolder).
+										 -->
+										<get src="https://download.bell-sw.com/java/17.0.2+9/bellsoft-jre17.0.2+9-linux-i586.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" compression="gzip" dest="${project.binaries}/linux/x86"/>
+										<move file="${project.binaries}/linux/x86/jre-17.0.2" tofile="${project.binaries}/linux/x86/jre${project.jre-version}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1742,7 +1778,7 @@
 										<mkdir dir="${project.binaries}/linux" />
 										<mkdir dir="${project.binaries}/linux/x86_64" />
 										<mkdir dir="${project.binaries}/linux/x86_64/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8" />
+										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
@@ -1750,9 +1786,16 @@
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<!--
+											<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.zip?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.zip" usetimestamp="true" />
+											<unzip src="${project.binaries}/linux/x86_64/jre${project.jre-version}.zip" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}"/>
 
-										<get src="${project.binaries-base}/linux/x86_64/jre8.zip?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8.zip" usetimestamp="true" />
-										<unzip src="${project.binaries}/linux/x86_64/jre8.zip" dest="${project.binaries}/linux/x86_64/jre8"/>
+											until binaries are on the https://www.universalmediaserver.com/svn/binaries
+											download directly from internet and adapt (tar.gz + subfolder).
+										 -->
+										<get src="https://download.bell-sw.com/java/17.0.2+9/bellsoft-jre17.0.2+9-linux-amd64.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" compression="gzip" dest="${project.binaries}/linux/x86_64"/>
+										<move file="${project.binaries}/linux/x86_64/jre-17.0.2" tofile="${project.binaries}/linux/x86_64/jre${project.jre-version}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1888,7 +1931,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-999]</version>
+											<version>[1.8.0-51,${project.jre-version}.0-999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -1978,7 +2021,7 @@
 													failonerror="true"
 													outputproperty="runtime">
 											<arg value="-v"/>
-											<arg value="8"/>
+											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
@@ -2000,7 +2043,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-${project.jre-version}.jdk/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -2088,7 +2131,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-999]</version>
+											<version>[1.8.0-51,${project.jre-version}.0-999]</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2177,7 +2220,7 @@
 													failonerror="true"
 													outputproperty="runtime">
 											<arg value="-v"/>
-											<arg value="8"/>
+											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
@@ -2199,7 +2242,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-${project.jre-version}.jdk/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -2608,8 +2651,12 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.basedir}/win32" />
+										<!--
+											MediaInfo64.dll and other related files should sit under ${project.binaries-base}/win32
+											Correct here when done
+										-->
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2680,8 +2727,12 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.basedir}/win32" />
+										<!--
+											MediaInfo64.dll and other related files should sit under ${project.binaries-base}/win32
+											Correct here when done
+										-->
+										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
