@@ -323,6 +323,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
+	protected static final String KEY_UPNP_DEBUG = "upnp_debug";
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
@@ -4909,6 +4910,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isUpnpEnabled() {
 		return getBoolean(KEY_UPNP_ENABLED, true);
+	}
+
+	public boolean isUpnpDebug() {
+		return getBoolean(KEY_UPNP_DEBUG, false);
 	}
 
 	public String getRootLogLevel() {

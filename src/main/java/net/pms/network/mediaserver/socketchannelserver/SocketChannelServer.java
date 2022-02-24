@@ -32,33 +32,33 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;
-	private boolean stop;
+	private boolean shouldStop;
 	private Thread runnable;
 
-	public SocketChannelServer(int port) {
-		super(port);
+	public SocketChannelServer(InetAddress inetAddress, int port) {
+		super(inetAddress, port);
 	}
 
 	@Override
 	public boolean start() throws IOException {
-		InetSocketAddress address = getSocketAddress();
+		shouldStop = false;
+		LOGGER.info("Starting HTTP server (SocketChannel) on host {} and port {}...", hostname, port);
+		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 
 		serverSocketChannel = ServerSocketChannel.open();
 
 		serverSocket = serverSocketChannel.socket();
 		serverSocket.setReuseAddress(true);
 		serverSocket.bind(address);
-
-		if (hostname == null && iafinal != null) {
-			hostname = iafinal.getHostAddress();
-		} else if (hostname == null) {
-			hostname = InetAddress.getLocalHost().getHostAddress();
-		}
+		//if port == 0, it's ephemeral port, so let's MediaServer know the port.
+		hostname = serverSocket.getInetAddress().getHostAddress();
+		localPort = serverSocket.getLocalPort();
+		MediaServer.setPort(localPort);
 
 		runnable = new Thread(this, "HTTPv1 Request Handler");
 		runnable.setDaemon(false);
 		runnable.start();
-
+		LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);
 		return true;
 	}
 
@@ -70,7 +70,8 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 	// server and creates a new one
 	@Override
 	public synchronized void stop() {
-		LOGGER.info("Stopping server on host {} and port {}...", hostname, port);
+		LOGGER.info("Stopping HTTP server (SocketChannel) on host {} and port {}", hostname, localPort);
+		shouldStop = true;
 
 		if (runnable != null) { // HTTP Engine V1
 			runnable.interrupt();
@@ -84,17 +85,15 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 				LOGGER.debug("Caught exception", e);
 			}
 		}
-
-		NetworkConfiguration.forgetConfiguration();
+		LOGGER.info("HTTP server stopped");
 	}
 
 	// XXX only used by HTTP Engine V1
 	@Override
 	public void run() {
-		LOGGER.info("Starting DLNA Server on host {} and port {}...", hostname, port);
-
+		LOGGER.trace("Starting Runnable for HTTP server (SocketChannel) on host {} and port {}", hostname, localPort);
 		int count = 0;
-		while (!stop) {
+		while (!shouldStop) {
 			try {
 				Socket socket = serverSocket.accept();
 				InetAddress inetAddress = socket.getInetAddress();
@@ -119,16 +118,16 @@ public class SocketChannelServer extends HttpMediaServer implements Runnable {
 					thread.start();
 				}
 			} catch (ClosedByInterruptException e) {
-				stop = true;
+				shouldStop = true;
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			} finally {
 				try {
-					if (stop && serverSocket != null) {
+					if (shouldStop && serverSocket != null) {
 						serverSocket.close();
 					}
 
-					if (stop && serverSocketChannel != null) {
+					if (shouldStop && serverSocketChannel != null) {
 						serverSocketChannel.close();
 					}
 				} catch (IOException e) {

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.transport.impl;
+package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,36 +25,37 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.Proxy;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.fourthline.cling.model.message.StreamRequestMessage;
-import org.fourthline.cling.model.message.StreamResponseMessage;
-import org.fourthline.cling.model.message.UpnpHeaders;
-import org.fourthline.cling.model.message.UpnpMessage;
-import org.fourthline.cling.model.message.UpnpRequest;
-import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.model.message.header.UpnpHeader;
-import org.fourthline.cling.transport.spi.InitializationException;
-import org.fourthline.cling.transport.spi.StreamClient;
-import org.seamless.http.Headers;
-import org.seamless.util.Exceptions;
-import org.seamless.util.io.IO;
+import org.jupnp.http.Headers;
+import org.jupnp.model.message.StreamRequestMessage;
+import org.jupnp.model.message.StreamResponseMessage;
+import org.jupnp.model.message.UpnpHeaders;
+import org.jupnp.model.message.UpnpMessage;
+import org.jupnp.model.message.UpnpRequest;
+import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.UpnpHeader;
+import org.jupnp.transport.spi.InitializationException;
+import org.jupnp.transport.spi.StreamClient;
+import org.jupnp.util.Exceptions;
+import org.jupnp.util.io.IO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JdkHttpURLConnectionStreamClient implements StreamClient {
 
-	private static final Logger LOGGER = Logger.getLogger(StreamClient.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(StreamClient.class);
 
 	protected final JdkHttpURLConnectionStreamClientConfiguration configuration;
 
 	public JdkHttpURLConnectionStreamClient(JdkHttpURLConnectionStreamClientConfiguration configuration) throws InitializationException {
 		this.configuration = configuration;
 
-		LOGGER.log(Level.FINE, "Using persistent HTTP stream client connections: {0}", configuration.isUsePersistentConnections());
+		LOGGER.debug("Using persistent HTTP stream client connections: " + configuration.isUsePersistentConnections());
 		System.setProperty("http.keepAlive", Boolean.toString(configuration.isUsePersistentConnections()));
 	}
 
@@ -66,7 +67,10 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 	@Override
 	public StreamResponseMessage sendRequest(StreamRequestMessage requestMessage) {
 		final UpnpRequest requestOperation = requestMessage.getOperation();
-		LOGGER.log(Level.FINE, "Preparing HTTP request message with method '{0}': {1}", new Object[]{requestOperation.getHttpMethodName(), requestMessage});
+		if (LOGGER.isTraceEnabled()) {
+			StreamsLoggerHelper.logStreamClientRequestMessage(requestMessage);
+		}
+		LOGGER.debug("Preparing HTTP request message with method '{}': {}", requestOperation.getHttpMethodName(), requestMessage);
 		URL url;
 		HttpURLConnection urlConnection = null;
 		InputStream inputStream;
@@ -83,40 +87,46 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 			applyRequestProperties(urlConnection, requestMessage);
 			applyRequestBody(urlConnection, requestMessage);
 
-			LOGGER.log(Level.FINE, "Sending HTTP request: {0}", requestMessage);
+			LOGGER.debug("Sending HTTP request: {}", requestMessage);
 			inputStream = urlConnection.getInputStream();
-			return createResponse(urlConnection, inputStream);
+			return createResponse(urlConnection, inputStream, requestMessage);
 
 		} catch (ProtocolException ex) {
-			LOGGER.log(Level.FINE, "HTTP request failed: {0} {1}", new Object[]{requestMessage, Exceptions.unwrap(ex)});
+			LOGGER.debug("HTTP request failed: {} {}", requestMessage, Exceptions.unwrap(ex));
 			return null;
 		} catch (IOException ex) {
 
 			if (urlConnection == null) {
-				LOGGER.log(Level.FINE, "HTTP request failed: {0} {1}", new Object[]{requestMessage, Exceptions.unwrap(ex)});
+				LOGGER.debug("HTTP request failed: {} {}", requestMessage, Exceptions.unwrap(ex));
 				return null;
 			}
 
 			if (ex instanceof SocketTimeoutException) {
-				LOGGER.log(Level.INFO,
-						"Timeout of {0} seconds while waiting for HTTP request to complete, aborting: {1}", new Object[]{getConfiguration().getTimeoutSeconds(), requestMessage});
+				LOGGER.debug(
+						"Timeout of {} seconds while waiting for HTTP request to complete, aborting: {}", getConfiguration().getTimeoutSeconds(), requestMessage);
 				return null;
 			}
 
-			if (LOGGER.isLoggable(Level.FINEST)) {
-				LOGGER.log(Level.FINEST, "Exception occurred, trying to read the error stream: {0}", Exceptions.unwrap(ex));
+			if (ex instanceof SocketException) {
+				LOGGER.debug(
+						"SocketException while HTTP request {} was not complete: {}", requestMessage, ex.getMessage());
+				return null;
+			}
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Exception occurred, trying to read the error stream: {}", Exceptions.unwrap(ex));
 			}
 			try {
 				inputStream = urlConnection.getErrorStream();
-				return createResponse(urlConnection, inputStream);
+				return createResponse(urlConnection, inputStream, requestMessage);
 			} catch (Exception errorEx) {
-				if (LOGGER.isLoggable(Level.FINEST)) {
-					LOGGER.log(Level.FINEST, "Could not read error stream: {0}", errorEx);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Could not read error stream: " + errorEx);
 				}
 				return null;
 			}
 		} catch (Exception ex) {
-			LOGGER.log(Level.FINE, "HTTP request failed: {0} {1}" + requestMessage, Exceptions.unwrap(ex));
+			LOGGER.debug("HTTP request failed: {} {}" + requestMessage, Exceptions.unwrap(ex));
 			return null;
 
 		} finally {
@@ -152,11 +162,11 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 	}
 
 	protected static void applyHeaders(HttpURLConnection urlConnection, Headers headers) {
-		LOGGER.log(Level.FINE, "Writing headers on HttpURLConnection: {0}", headers.size());
+		LOGGER.debug("Writing headers on HttpURLConnection: {}", headers.size());
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			for (String v : entry.getValue()) {
 				String headerName = entry.getKey();
-				LOGGER.log(Level.FINE, "Setting header '{0}': {1}", new Object[]{headerName, v});
+				LOGGER.debug("Setting header '{}': {}", headerName, v);
 				urlConnection.setRequestProperty(headerName, v);
 			}
 		}
@@ -179,11 +189,11 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 		urlConnection.getOutputStream().flush();
 	}
 
-	protected static StreamResponseMessage createResponse(HttpURLConnection urlConnection, InputStream inputStream) throws Exception {
+	protected static StreamResponseMessage createResponse(HttpURLConnection urlConnection, InputStream inputStream, StreamRequestMessage requestMessage) throws Exception {
 
 		if (urlConnection.getResponseCode() == -1) {
-			LOGGER.log(Level.WARNING, "Received an invalid HTTP response: {0}", urlConnection.getURL());
-			LOGGER.log(Level.WARNING, "Is your JuPnP-based server sending connection heartbeats with RemoteClientInfo#isRequestCancelled?" +
+			LOGGER.warn("Received an invalid HTTP response: {}", urlConnection.getURL());
+			LOGGER.warn("Is your JuPnP-based server sending connection heartbeats with RemoteClientInfo#isRequestCancelled?" +
 					" This client can't handle heartbeats, read the manual.");
 			return null;
 		}
@@ -191,7 +201,7 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 		// Status
 		UpnpResponse responseOperation = new UpnpResponse(urlConnection.getResponseCode(), urlConnection.getResponseMessage());
 
-		LOGGER.log(Level.FINE, "Received response: {}", responseOperation);
+		LOGGER.debug("Received response: {}", responseOperation);
 
 		// Message
 		StreamResponseMessage responseMessage = new StreamResponseMessage(responseOperation);
@@ -209,24 +219,26 @@ public class JdkHttpURLConnectionStreamClient implements StreamClient {
 
 		if (bodyBytes != null && bodyBytes.length > 0 && responseMessage.isContentTypeMissingOrText()) {
 
-			LOGGER.log(Level.FINE, "Response contains textual entity body, converting then setting string on message");
+			LOGGER.debug("Response contains textual entity body, converting then setting string on message");
 			responseMessage.setBodyCharacters(bodyBytes);
 
 		} else if (bodyBytes != null && bodyBytes.length > 0) {
 
-			LOGGER.log(Level.FINE, "Response contains binary entity body, setting bytes on message");
+			LOGGER.debug("Response contains binary entity body, setting bytes on message");
 			responseMessage.setBody(UpnpMessage.BodyType.BYTES, bodyBytes);
 
 		} else {
-			LOGGER.log(Level.FINE, "Response did not contain entity body");
+			LOGGER.debug("Response did not contain entity body");
 		}
 
-		LOGGER.log(Level.FINE, "Response message complete: {}", responseMessage);
+		LOGGER.debug("Response message complete: {}", responseMessage);
+		if (LOGGER.isTraceEnabled()) {
+			StreamsLoggerHelper.logStreamClientResponseMessage(responseMessage, requestMessage);
+		}
 		return responseMessage;
 	}
 
 	private static class UpnpHttpHandler extends sun.net.www.protocol.http.Handler {
-
 		@Override
 		protected URLConnection openConnection(URL u, Proxy p) throws IOException {
 			return new UpnpHttpURLConnection(u, p, this);

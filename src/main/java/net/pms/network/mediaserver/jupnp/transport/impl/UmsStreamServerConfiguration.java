@@ -17,42 +17,45 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.cling.transport.impl;
+package net.pms.network.mediaserver.jupnp.transport.impl;
 
-import java.net.InetAddress;
-import org.fourthline.cling.transport.Router;
-import org.fourthline.cling.transport.spi.InitializationException;
-import org.fourthline.cling.transport.spi.StreamServer;
-import org.fourthline.cling.transport.spi.StreamServerConfiguration;
+import org.jupnp.transport.spi.StreamServerConfiguration;
 
-public class EmptyStreamServer implements StreamServer {
+public class UmsStreamServerConfiguration implements StreamServerConfiguration {
 
-	private final StreamServerConfiguration configuration;
+	private int listenPort;
+	private int tcpConnectionBacklog;
 
-	public EmptyStreamServer(StreamServerConfiguration configuration) {
-		this.configuration = configuration;
+	/**
+	 * Defaults to port '0', ephemeral.
+	 */
+	public UmsStreamServerConfiguration() {
+		this(0);
+	}
+
+	public UmsStreamServerConfiguration(int listenPort) {
+		this.listenPort = listenPort;
 	}
 
 	@Override
-	public void init(InetAddress bindAddress, Router router) throws InitializationException {
+	public int getListenPort() {
+		return listenPort;
 	}
 
-	@Override
-	public int getPort() {
-		return configuration.getListenPort();
+	public void setListenPort(int listenPort) {
+		this.listenPort = listenPort;
 	}
 
-	@Override
-	public void stop() {
+	/**
+	 * @return Maximum number of queued incoming connections to allow on the
+	 * listening socket, default is system default.
+	 */
+	public int getTcpConnectionBacklog() {
+		return tcpConnectionBacklog;
 	}
 
-	@Override
-	public StreamServerConfiguration getConfiguration() {
-		return configuration;
-	}
-
-	@Override
-	public void run() {
+	public void setTcpConnectionBacklog(int tcpConnectionBacklog) {
+		this.tcpConnectionBacklog = tcpConnectionBacklog;
 	}
 
 }

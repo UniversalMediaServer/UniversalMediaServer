@@ -128,13 +128,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<repository>
-			<id>4thline-repo</id>
-			<url>http://4thline.org/m2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -460,47 +453,14 @@
 			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.fourthline.cling</groupId>
-			<artifactId>cling-core</artifactId>
-			<version>2.1.2</version>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp</artifactId>
+			<version>2.6.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.fourthline.cling</groupId>
-			<artifactId>cling-support</artifactId>
-			<version>2.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-http</artifactId>
-			<version>1.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-util</artifactId>
-			<version>1.1.2</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-collections</groupId>
-					<artifactId>commons-collections</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-lang</groupId>
-					<artifactId>commons-lang</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-xml</artifactId>
-			<version>1.1.2</version>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp.support</artifactId>
+			<version>2.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>

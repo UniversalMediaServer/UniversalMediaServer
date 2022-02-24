@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver;
+package net.pms.network;
 
 import java.net.*;
 import java.util.*;
@@ -142,25 +142,25 @@ public class NetworkConfiguration {
 	/**
 	 * The list of discovered network interfaces.
 	 */
-	private List<InterfaceAssociation> interfaces = new ArrayList<>();
+	private final List<InterfaceAssociation> interfaces = new ArrayList<>();
 
 	/**
 	 * The insertion-ordered map of discovered default IP addresses belonging to a network interface.
 	 * This assumes that interfaces order in the OS is made upon their importance.
 	 */
-	private Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new LinkedHashMap<>();
+	private final Map<String, InterfaceAssociation> interfacesWithAssociatedAddress = new LinkedHashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
 	 */
-	private Map<String, Set<InetAddress>> addressMap = new HashMap<>();
+	private final Map<String, Set<InetAddress>> addressMap = new HashMap<>();
 
 	/**
 	 * The list of configured network interface names that should be skipped.
 	 *
 	 * @see PmsConfiguration#getSkipNetworkInterfaces()
 	 */
-	private List<String> skipNetworkInterfaces = PMS.getConfiguration().getSkipNetworkInterfaces();
+	private final List<String> skipNetworkInterfaces = PMS.getConfiguration().getSkipNetworkInterfaces();
 
 	/**
 	 * Default constructor. However, this is a singleton class: use
@@ -214,7 +214,7 @@ public class NetworkConfiguration {
 	 * @return True when the address is relevant, false otherwise.
 	 */
 	private boolean isRelevantAddress(InetAddress address) {
-		return !(address instanceof Inet6Address || address.isLoopbackAddress());
+		return !(address == null || address instanceof Inet6Address || address.isLoopbackAddress());
 	}
 
 	/**
@@ -519,6 +519,7 @@ public class NetworkConfiguration {
 	/**
 	 * for backwards-compatibility check if the short network interface name is used
 	 *
+	 * @param interfaceName
 	 * @return the standard display name
 	 */
 	public String replaceShortInterfaceNameByDisplayName(String interfaceName) {

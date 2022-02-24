@@ -93,7 +93,7 @@ public class PlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
+				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(json);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity
