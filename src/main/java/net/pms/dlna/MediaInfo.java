@@ -57,7 +57,9 @@ public class MediaInfo {
 
 		//windows
 		if (Platform.isWindows() && System.getProperty("jna.library.path") == null && PlatformProgramPaths.get() instanceof WindowsProgramPaths && ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo() != null) {
-			System.setProperty("jna.library.path", ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo().toString());
+			String jnaPath = ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo().toString();
+			LOGGER.info("JNA Library folder set to: \"{}\"", jnaPath);
+			System.setProperty("jna.library.path", jnaPath);
 		}
 
 		// libmediainfo for Linux depends on libzen
