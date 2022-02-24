@@ -1,4 +1,4 @@
-package net.pms.util.tree;
+package net.pms.newgui.components;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -10,7 +10,7 @@ import javax.swing.tree.TreeSelectionModel;
 // @author Santhosh Kumar T - santhosh@in.fiorano.com
 public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	private static final long serialVersionUID = 6785975582865715495L;
-	private TreeModel model;
+	private final TreeModel model;
 
 	public CheckTreeSelectionModel(TreeModel model) {
 		this.model = model;
@@ -19,6 +19,8 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 
 	/**
 	 * Whether there is any unselected node in the subtree of given path.
+	 * @param path
+	 * @return
 	 */
 	public boolean isPartiallySelected(TreePath path) {
 		if (isPathSelected(path, true)) {
@@ -34,9 +36,11 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 	}
 
 	/**
-	 * Whether given path is selected.
-	 * If dig is true, then a path is assumed to be selected, if one of its
-	 * ancestors is selected.
+	 * Whether given path is selected.If dig is true, then a path is assumed to
+	 * be selected, if one of its ancestors is selected.
+	 * @param path
+	 * @param dig
+	 * @return
 	 */
 	public boolean isPathSelected(TreePath path, boolean dig) {
 		if (!dig) {
@@ -84,7 +88,7 @@ public class CheckTreeSelectionModel extends DefaultTreeSelectionModel {
 					toBeRemoved.add(selectionPath);
 				}
 			}
-			super.removeSelectionPaths(toBeRemoved.toArray(new TreePath[0]));
+			super.removeSelectionPaths(toBeRemoved.toArray(TreePath[]::new));
 		}
 
 		/**

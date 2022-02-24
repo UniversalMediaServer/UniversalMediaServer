@@ -1,4 +1,4 @@
-package net.pms.util.tree;
+package net.pms.newgui.components;
 
 import java.awt.event.*;
 import javax.swing.*;
@@ -87,7 +87,8 @@ public class TristateCheckBox extends JCheckBox {
 
 	/**
 	 * Set the new state to either SELECTED, NOT_SELECTED or
-	 * DONT_CARE. If state == null, it is treated as DONT_CARE.
+	 * DONT_CARE.If state == null, it is treated as DONT_CARE.
+	 * @param state
 	 */
 	public void setState(State state) {
 		model.setState(state);
@@ -96,6 +97,7 @@ public class TristateCheckBox extends JCheckBox {
 	/**
 	 * Return the current state, which is determined by the
 	 * selection status of the model.
+	 * @return
 	 */
 	public State getState() {
 		return model.getState();

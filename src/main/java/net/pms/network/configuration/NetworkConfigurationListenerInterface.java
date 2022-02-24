@@ -17,29 +17,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.jupnp.transport.impl;
+package net.pms.network.configuration;
 
-import java.util.concurrent.ExecutorService;
-import org.jupnp.transport.spi.AbstractStreamClientConfiguration;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 
-public class JdkHttpURLConnectionStreamClientConfiguration extends AbstractStreamClientConfiguration {
-
-	private boolean usePersistentConnections = false;
-
-	public JdkHttpURLConnectionStreamClientConfiguration(ExecutorService timeoutExecutorService) {
-		super(timeoutExecutorService);
-	}
-
-	public JdkHttpURLConnectionStreamClientConfiguration(ExecutorService timeoutExecutorService, int timeoutSeconds) {
-		super(timeoutExecutorService, timeoutSeconds);
-	}
-
-	public boolean isUsePersistentConnections() {
-		return usePersistentConnections;
-	}
-
-	public void setUsePersistentConnections(boolean usePersistentConnections) {
-		this.usePersistentConnections = usePersistentConnections;
-	}
-
+public interface NetworkConfigurationListenerInterface {
+	public void networkInterfaceAdded(NetworkInterface networkInterface, InetAddress address);
+	public void networkInterfaceRemoved(NetworkInterface networkInterface, InetAddress address);
+	public void networkInterfaceUp(NetworkInterfaceAssociation networkInterfaceAssociation);
+	public void networkInterfaceDown(NetworkInterfaceAssociation networkInterfaceAssociation);
+	public void networkInterfaceAddressAdded(NetworkInterface networkInterface, InetAddress address);
+	public void networkInterfaceDefaultAddressChanged(NetworkInterface networkInterface, InetAddress address);
+	public void networkInterfaceAddressRemoved(NetworkInterface networkInterface, InetAddress address);
 }

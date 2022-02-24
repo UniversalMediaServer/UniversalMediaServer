@@ -29,6 +29,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -110,8 +111,8 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 	@Override
 	synchronized public int getPort() {
-		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress) {
-			return ((InetSocketAddress) channel.getLocalAddress()).getPort();
+		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress channelSocketAddress) {
+			return channelSocketAddress.getPort();
 		}
 		return socketAddress.getPort();
 	}
@@ -128,6 +129,14 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		try {
 			channel = bootstrap.bind(socketAddress);
 			allChannels.add(channel);
+			if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress channelSocketAddress) {
+				LOGGER.info("Started StreamServer on: {}", channelSocketAddress);
+			} else {
+				LOGGER.info("Started StreamServer on: {}", socketAddress);
+			}
+			if (configuration.getUpdateMediaServerPort()) {
+				MediaServer.setPort(getPort());
+			}
 		} catch (Exception ex) {
 			throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex.toString(), ex);
 		}
@@ -251,7 +260,6 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 		NettyWorkerThreadFactory() {
 			group = new ThreadGroup("JUPnP Netty worker group");
-			group.setDaemon(false);
 		}
 
 		@Override
@@ -276,7 +284,6 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 		NettyBossThreadFactory() {
 			group = new ThreadGroup("JUPnP Netty boss group");
-			group.setDaemon(false);
 		}
 
 		@Override

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import net.pms.PMS;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.javahttpserver.RequestHandler;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import org.jupnp.transport.Router;
@@ -79,6 +80,10 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 		LOGGER.debug("Starting StreamServer...");
 		// Starts a new thread but inherits the properties of the calling thread
 		server.start();
+		LOGGER.info("Started StreamServer on: {}", server.getAddress());
+		if (configuration.getUpdateMediaServerPort()) {
+			MediaServer.setPort(getPort());
+		}
 	}
 
 	@Override

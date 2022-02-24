@@ -25,16 +25,22 @@ public class UmsStreamServerConfiguration implements StreamServerConfiguration {
 
 	private int listenPort;
 	private int tcpConnectionBacklog;
+	private boolean updateMediaServerPort;
 
 	/**
 	 * Defaults to port '0', ephemeral.
 	 */
 	public UmsStreamServerConfiguration() {
-		this(0);
+		this(0, false);
 	}
 
 	public UmsStreamServerConfiguration(int listenPort) {
+		this(listenPort, false);
+	}
+
+	public UmsStreamServerConfiguration(int listenPort, boolean updateMediaServerPort) {
 		this.listenPort = listenPort;
+		this.updateMediaServerPort = updateMediaServerPort;
 	}
 
 	@Override
@@ -44,6 +50,14 @@ public class UmsStreamServerConfiguration implements StreamServerConfiguration {
 
 	public void setListenPort(int listenPort) {
 		this.listenPort = listenPort;
+	}
+
+	public boolean getUpdateMediaServerPort() {
+		return updateMediaServerPort;
+	}
+
+	public void setUpdateMediaServerPort(boolean updateMediaServerPort) {
+		this.updateMediaServerPort = updateMediaServerPort;
 	}
 
 	/**

@@ -6,3 +6,4 @@
 
 !define PROJECT_VERSION_SHORT "${project.version.short}"
 !define PROJECT_BINARIES "${project.binaries}"
+!define PROJECT_JRE_VERSION "${project.jre-version}"

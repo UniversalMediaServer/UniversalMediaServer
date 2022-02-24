@@ -52,6 +52,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo interFrameInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
+	private final Path mediaInfo;
 	private final Path ctrlSender;
 	private final Path taskKill;
 
@@ -246,6 +247,28 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
 		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
 
+		// mediaInfo
+		Path tmpMediaInfo = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			if (Platform.is64Bit()) {
+				tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo64.dll");
+			} else {
+				tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo.dll");
+			}
+		}
+		if (tmpMediaInfo == null || !Files.exists(tmpMediaInfo)) {
+			if (Platform.is64Bit()) {
+				tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo64.dll");
+			} else {
+				tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo.dll");
+			}
+		}
+		if (Files.exists(tmpMediaInfo)) {
+			mediaInfo = tmpMediaInfo.getParent();
+		} else {
+			mediaInfo = null;
+		}
+
 		taskKill = FileUtil.findExecutableInOSPath(Paths.get("taskkill.exe"));
 	}
 
@@ -297,6 +320,13 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getYoutubeDl() {
 		return youtubeDlInfo;
+	}
+
+	/**
+	 * @return The {@link Path} for {@code MediaInfo dll}.
+	 */
+	public Path getMediaInfo() {
+		return mediaInfo;
 	}
 
 	/**

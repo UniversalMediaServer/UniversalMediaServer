@@ -33,8 +33,6 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClient;
-import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpURLConnectionStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
@@ -102,22 +100,11 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamClient createStreamClient() {
-		if (ownHttpServer) {
-			//this will allow us to test the ApacheStreamClient that should been fixed
-			//then we can remove the JdkHttpURLConnectionStreamClient that use
-			//internal proprietary API
-			return new ApacheStreamClient(
-					new ApacheStreamClientConfiguration(
-							getSyncProtocolExecutorService()
-					)
-			);
-		} else {
-			return new JdkHttpURLConnectionStreamClient(
-					new JdkHttpURLConnectionStreamClientConfiguration(
-							getSyncProtocolExecutorService()
-					)
-			);
-		}
+		return new ApacheStreamClient(
+				new ApacheStreamClientConfiguration(
+						getSyncProtocolExecutorService()
+				)
+		);
 	}
 
 	public boolean useOwnHttpServer() {
@@ -139,13 +126,15 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 				case 4:
 					return new NettyStreamServer(
 							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort()
+									networkAddressFactory.getStreamListenPort(),
+									true
 							)
 					);
 				case 5:
 					return new JdkHttpServerStreamServer(
 							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort()
+									networkAddressFactory.getStreamListenPort(),
+									true
 							)
 					);
 			}
@@ -310,8 +299,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 		public JUPnPThreadFactory(String name) {
 			namePrefix = "jupnp-" + name + "-";
-			SecurityManager s = System.getSecurityManager();
-			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+			group = Thread.currentThread().getThreadGroup();
 		}
 
 		@Override

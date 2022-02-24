@@ -1,4 +1,4 @@
-package net.pms.util.tree;
+package net.pms.newgui.components;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -9,7 +9,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
 public class CheckTreeManager extends MouseAdapter implements TreeSelectionListener {
-	private CheckTreeSelectionModel selectionModel;
+	private final CheckTreeSelectionModel selectionModel;
 	private JTree tree = new JTree();
 	int hotspot = new JCheckBox().getPreferredSize().width;
 

@@ -2224,7 +2224,7 @@ public class FileUtil {
 	}
 
 	private static Boolean isAdmin = null;
-	private static Object isAdminLock = new Object();
+	private static final Object IS_ADMIN_LOCK = new Object();
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
@@ -2232,7 +2232,7 @@ public class FileUtil {
 	 * @return true if the program has admin/root permissions
 	 */
 	public static boolean isAdmin() {
-		synchronized (isAdminLock) {
+		synchronized (IS_ADMIN_LOCK) {
 			if (isAdmin != null) {
 				return isAdmin;
 			}
@@ -2390,7 +2390,7 @@ public class FileUtil {
 	}
 
 	private static int unixUID = Integer.MIN_VALUE;
-	private static Object unixUIDLock = new Object();
+	private static final Object UNIX_UID_LOCK = new Object();
 
 	/**
 	 * Gets the user ID on Unix based systems. This should not change during a
@@ -2405,7 +2405,7 @@ public class FileUtil {
 			Platform.isLinux() || Platform.isMac() || Platform.isNetBSD() || Platform.isOpenBSD() ||
 			Platform.isSolaris()
 		) {
-			synchronized (unixUIDLock) {
+			synchronized (UNIX_UID_LOCK) {
 				if (unixUID < 0) {
 					String response;
 					Process id;

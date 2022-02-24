@@ -1,4 +1,4 @@
-package net.pms.util.tree;
+package net.pms.newgui.components;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -9,9 +9,9 @@ import javax.swing.tree.TreePath;
 
 public class CheckTreeCellRenderer extends JPanel implements TreeCellRenderer {
 	private static final long serialVersionUID = 5762499761493341720L;
-	private CheckTreeSelectionModel selectionModel;
-	private TreeCellRenderer delegate;
-	private TristateCheckBox checkBox = new TristateCheckBox();
+	private final CheckTreeSelectionModel selectionModel;
+	private final TreeCellRenderer delegate;
+	private final TristateCheckBox checkBox = new TristateCheckBox();
 
 	public CheckTreeCellRenderer(TreeCellRenderer delegate, CheckTreeSelectionModel selectionModel) {
 		this.delegate = delegate;
