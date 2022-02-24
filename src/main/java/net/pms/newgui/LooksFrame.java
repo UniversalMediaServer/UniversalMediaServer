@@ -63,15 +63,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LooksFrame extends JFrame implements IFrame, Observer {
+	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
+	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
+	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
+	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
+	public static final String START_SERVICE = "start.service";
 
 	private final AutoUpdater autoUpdater;
 	private final PmsConfiguration configuration;
-	public static final String START_SERVICE = "start.service";
 	private final WindowProperties windowProperties;
-	private static final long serialVersionUID = 8723727186288427690L;
-	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
-	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -104,7 +105,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private AnimatedIcon restartIcon;
 	private AbstractButton webinterface;
 	private JLabel status;
-	private static Object lookAndFeelInitializedLock = new Object();
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
@@ -156,6 +156,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return generalSettingsTab;
 	}
 
+	@Override
 	public void enableWebUiButton() {
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface.setEnabled(true);
@@ -163,7 +164,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public static void initializeLookAndFeel() {
-		synchronized (lookAndFeelInitializedLock) {
+		synchronized (LOOK_AND_FEEL_INITIALIZED_LOCK) {
 			if (lookAndFeelInitialized) {
 				return;
 			}

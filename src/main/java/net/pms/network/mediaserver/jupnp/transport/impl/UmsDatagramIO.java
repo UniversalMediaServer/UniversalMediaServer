@@ -19,6 +19,7 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketException;
 import net.pms.PMS;
@@ -67,7 +68,7 @@ public class UmsDatagramIO extends DatagramIOImpl {
 				break;
 			} catch (UnsupportedDataException ex) {
 				LOGGER.info("Could not read datagram: " + ex.getMessage());
-			} catch (Exception ex) {
+			} catch (IOException ex) {
 				throw new RuntimeException(ex);
 			}
 		}

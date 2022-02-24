@@ -138,17 +138,16 @@ public final class Languages {
 
 	/**
 	 * This map is also used as a synchronization object for
-	 * {@link #translationsStatistics}, {@link #lastpreferredLocale} and
-	 * {@link #sortedLanguages}
+	 * {@link #TRANSLATIONS_STATISTICS}, {@link #lastpreferredLocale} and
+	 * {@link #SORTED_LANGUAGES}
 	 */
-	private static HashMap<String, TranslationStatistics> translationsStatistics = new HashMap<>(
+	private static final HashMap<String, TranslationStatistics> TRANSLATIONS_STATISTICS = new HashMap<>(
 		(int) Math.round(UMS_BCP47_CODES.length * 1.34)
 	);
+	private static final List<LanguageEntry> SORTED_LANGUAGES = new ArrayList<>();
 	private static Locale lastpreferredLocale = null;
-	private static List<LanguageEntry> sortedLanguages = new ArrayList<>();
 
-	@SuppressWarnings("unused")
-	private static class TranslationStatistics {
+	public static class TranslationStatistics {
 		public String name;
 		public int phrases;
 		public int phrasesApproved;
@@ -336,7 +335,7 @@ public final class Languages {
 
 	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	private static void populateTranslationsStatistics() {
-		if (translationsStatistics.size() < 1) {
+		if (TRANSLATIONS_STATISTICS.size() < 1) {
 			try (
 				BufferedReader reader = new BufferedReader(new InputStreamReader(
 					Languages.class.getResourceAsStream("/resources/languages.properties"),
@@ -351,11 +350,11 @@ public final class Languages {
 						try {
 							String[] path = matcher.group(1).split("\\.");
 							TranslationStatistics translationStatistics;
-							if (translationsStatistics.containsKey(path[0])) {
-								translationStatistics = translationsStatistics.get(path[0]);
+							if (TRANSLATIONS_STATISTICS.containsKey(path[0])) {
+								translationStatistics = TRANSLATIONS_STATISTICS.get(path[0]);
 							} else {
 								translationStatistics = new TranslationStatistics();
-								translationsStatistics.put(path[0], translationStatistics);
+								TRANSLATIONS_STATISTICS.put(path[0], translationStatistics);
 							}
 							if (path.length < 2) {
 								LOGGER.debug("Failed to parse translation statistics line \"{}\": Illegal qualifier", line);
@@ -417,17 +416,17 @@ public final class Languages {
 			} catch (IOException e) {
 				LOGGER.error("Error reading translations statistics: {}", e.getMessage());
 				LOGGER.trace("", e);
-				translationsStatistics.clear();
+				TRANSLATIONS_STATISTICS.clear();
 			}
 		}
 	}
 
 	/**
 	 * This method must be called in a context synchronized on
-	 * {@link #translationsStatistics}.
+	 * {@link #TRANSLATIONS_STATISTICS}.
 	 */
 	private static LanguageEntry getSortedLanguageByTag(String tag) {
-		for (LanguageEntry entry : sortedLanguages) {
+		for (LanguageEntry entry : SORTED_LANGUAGES) {
 			if (entry.tag.equalsIgnoreCase(tag)) {
 				return entry;
 			}
@@ -437,24 +436,24 @@ public final class Languages {
 
 	/**
 	 * This method must be called in a context synchronized on
-	 * {@link #translationsStatistics}.
+	 * {@link #TRANSLATIONS_STATISTICS}.
 	 */
 	private static LanguageEntry getSortedLanguageByLocale(Locale locale) {
-		for (LanguageEntry entry : sortedLanguages) {
+		for (LanguageEntry entry : SORTED_LANGUAGES) {
 			if (entry.locale.equals(locale)) {
 				return entry;
 			}
 		}
 
 		// No exact match found, try to match only by language and country
-		for (LanguageEntry entry : sortedLanguages) {
+		for (LanguageEntry entry : SORTED_LANGUAGES) {
 			if (entry.locale.getCountry().equals(locale.getCountry()) && entry.locale.getLanguage().equals(locale.getLanguage())) {
 				return entry;
 			}
 		}
 
 		// No match found on language and country, try to match only by language
-		for (LanguageEntry entry : sortedLanguages) {
+		for (LanguageEntry entry : SORTED_LANGUAGES) {
 			if (entry.locale.getLanguage().equals(locale.getLanguage())) {
 				return entry;
 			}
@@ -463,7 +462,7 @@ public final class Languages {
 		// No match found on language, try a last desperate match only by
 		// country
 		if (!locale.getCountry().isEmpty()) {
-			for (LanguageEntry entry : sortedLanguages) {
+			for (LanguageEntry entry : SORTED_LANGUAGES) {
 				if (entry.locale.getCountry().equals(locale.getCountry())) {
 					return entry;
 				}
@@ -504,7 +503,7 @@ public final class Languages {
 
 	/**
 	 * This method must be called in a context synchronized on
-	 * {@link #translationsStatistics}.
+	 * {@link #TRANSLATIONS_STATISTICS}.
 	 * <p>
 	 * The sorting places the default/recommended choice on top of the list, and
 	 * then tried to place other relevant choices close to the top in descending
@@ -540,7 +539,7 @@ public final class Languages {
 		if (lastpreferredLocale == null || !lastpreferredLocale.equals(preferredLocale)) {
 			// Populate
 			lastpreferredLocale = preferredLocale;
-			sortedLanguages.clear();
+			SORTED_LANGUAGES.clear();
 			populateTranslationsStatistics();
 			for (String tag : UMS_BCP47_CODES) {
 				LanguageEntry entry = new LanguageEntry();
@@ -554,7 +553,7 @@ public final class Languages {
 					entry.coveragePercent = 100;
 					entry.approvedPercent = 100;
 				} else {
-					TranslationStatistics stats = translationsStatistics.get(tag);
+					TranslationStatistics stats = TRANSLATIONS_STATISTICS.get(tag);
 					if (stats != null) {
 						if (entry.locale.getLanguage().equals("en") && stats.wordsTranslated > 0) {
 							/*
@@ -576,40 +575,40 @@ public final class Languages {
 				}
 
 				if (entry.coveragePercent >= MINIMUM_TRANSLATE_PCT) {
-					sortedLanguages.add(entry);
+					SORTED_LANGUAGES.add(entry);
 				}
 			}
 
 			// Sort
-			Collections.sort(sortedLanguages);
+			Collections.sort(SORTED_LANGUAGES);
 
 			// Put US English first
 			LanguageEntry baseLanguage = getSortedLanguageByTag("en-US");
 			if (baseLanguage == null) {
 				throw new IllegalStateException("Languages.createSortedList encountered an impossible situation");
 			}
-			if (sortedLanguages.remove(baseLanguage)) {
-				sortedLanguages.add(0, baseLanguage);
+			if (SORTED_LANGUAGES.remove(baseLanguage)) {
+				SORTED_LANGUAGES.add(0, baseLanguage);
 			}
 
 			// Put matched language first or second depending on coverage
 			LanguageEntry preferredLanguage = getSortedLanguageByLocale(preferredLocale);
 			if (preferredLanguage != null && !preferredLanguage.tag.equals("en-US")) {
-				if (sortedLanguages.remove(preferredLanguage) && isRecommended(preferredLanguage)) {
-					sortedLanguages.add(0, preferredLanguage);
+				if (SORTED_LANGUAGES.remove(preferredLanguage) && isRecommended(preferredLanguage)) {
+					SORTED_LANGUAGES.add(0, preferredLanguage);
 				} else {
 					/*
 					 * This could constitute a bug if
-					 * sortedLanguages.remove(entry) returned false, but that
+					 * SORTED_LANGUAGES.remove(entry) returned false, but that
 					 * should be impossible
 					 */
-					sortedLanguages.add(1, preferredLanguage);
+					SORTED_LANGUAGES.add(1, preferredLanguage);
 				}
 			}
 
 			// Put related language(s) close to top
 			List<LanguageEntry> relatedLanguages = new ArrayList<>();
-			for (LanguageEntry entry : sortedLanguages) {
+			for (LanguageEntry entry : SORTED_LANGUAGES) {
 				if (
 					entry != baseLanguage &&
 					entry != preferredLanguage &&
@@ -621,10 +620,10 @@ public final class Languages {
 					relatedLanguages.add(entry);
 				}
 			}
-			if (relatedLanguages.size() > 0) {
-				sortedLanguages.removeAll(relatedLanguages);
+			if (!relatedLanguages.isEmpty()) {
+				SORTED_LANGUAGES.removeAll(relatedLanguages);
 				Collections.sort(relatedLanguages, new LanguageEntryCoverageComparator());
-				sortedLanguages.addAll(preferredLanguage == null || preferredLanguage.equals(baseLanguage) ? 1 : 2, relatedLanguages);
+				SORTED_LANGUAGES.addAll(preferredLanguage == null || preferredLanguage.equals(baseLanguage) ? 1 : 2, relatedLanguages);
 			}
 		}
 	}
@@ -640,9 +639,9 @@ public final class Languages {
 	 * @return The resulting {@link HashMap}
 	 */
 	public static HashMap<String, TranslationStatistics> getTranslationsStatistics() {
-		synchronized (translationsStatistics) {
+		synchronized (TRANSLATIONS_STATISTICS) {
 			populateTranslationsStatistics();
-			return translationsStatistics;
+			return TRANSLATIONS_STATISTICS;
 		}
 	}
 
@@ -659,9 +658,9 @@ public final class Languages {
 		if (languageTag.startsWith("en")) {
 			return false;
 		}
-		synchronized (translationsStatistics) {
+		synchronized (TRANSLATIONS_STATISTICS) {
 			populateTranslationsStatistics();
-			TranslationStatistics stats = translationsStatistics.get(languageTag);
+			TranslationStatistics stats = TRANSLATIONS_STATISTICS.get(languageTag);
 			if (stats == null) {
 				return true;
 			}
@@ -682,9 +681,9 @@ public final class Languages {
 		if (languageTag.startsWith("en")) {
 			return 100;
 		}
-		synchronized (translationsStatistics) {
+		synchronized (TRANSLATIONS_STATISTICS) {
 			populateTranslationsStatistics();
-			TranslationStatistics stats = translationsStatistics.get(languageTag);
+			TranslationStatistics stats = TRANSLATIONS_STATISTICS.get(languageTag);
 			if (stats == null) {
 				return 0;
 			}
@@ -818,11 +817,11 @@ public final class Languages {
 	 * @return The sorted string array of language tags.
 	 */
 	public static String[] getLanguageTags(Locale preferredLocale) {
-		synchronized (translationsStatistics) {
+		synchronized (TRANSLATIONS_STATISTICS) {
 			createSortedList(preferredLocale);
-			String[] tags = new String[sortedLanguages.size()];
-			for (int i = 0; i < sortedLanguages.size(); i++) {
-				tags[i] = sortedLanguages.get(i).tag;
+			String[] tags = new String[SORTED_LANGUAGES.size()];
+			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
+				tags[i] = SORTED_LANGUAGES.get(i).tag;
 			}
 
 			return tags;
@@ -841,11 +840,11 @@ public final class Languages {
 	 * @return The sorted string array of localized language names.
 	 */
 	public static String[] getLanguageNames(Locale preferredLocale) {
-		synchronized (translationsStatistics) {
+		synchronized (TRANSLATIONS_STATISTICS) {
 			createSortedList(preferredLocale);
-			String[] languages = new String[sortedLanguages.size()];
-			for (int i = 0; i < sortedLanguages.size(); i++) {
-				LanguageEntry entry = sortedLanguages.get(i);
+			String[] languages = new String[SORTED_LANGUAGES.size()];
+			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
+				LanguageEntry entry = SORTED_LANGUAGES.get(i);
 				if (entry.locale.getLanguage().equals("en")) {
 					languages[i] = entry.name;
 				} else {

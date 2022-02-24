@@ -19,24 +19,22 @@
  */
 package net.pms.network.mediaserver;
 
-import net.pms.network.NetworkConfiguration;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.network.mediaserver.nettyserver.NettyServer;
 import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
 import net.pms.network.mediaserver.socketssdpserver.SocketSSDPServer;
-import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.types.DeviceType;
 import org.jupnp.transport.RouterException;
@@ -58,95 +56,44 @@ public class MediaServer {
 	public static UmsUpnpService upnpService;
 	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
+	private static ServerStatus status = ServerStatus.STOPPED;
 	protected static int port = CONFIGURATION.getServerPort();
 	protected static String hostname;
 	protected static InetAddress inetAddress;
 	protected static NetworkInterface networkInterface;
 
+
 	private static boolean init() {
 		//get config ip port
 		port = CONFIGURATION.getServerPort();
-		//get config network interface
-		NetworkConfiguration.forgetConfiguration();
-		inetAddress = null;
-		hostname = null;
-		networkInterface = null;
-		InetAddress tmpInetAddress = null;
-		if (StringUtils.isNotEmpty(CONFIGURATION.getNetworkInterface())) {
-			LOGGER.info("Using forced network interface: {}" + CONFIGURATION.getNetworkInterface());
-			NetworkConfiguration.InterfaceAssociation ia = NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(CONFIGURATION.getNetworkInterface());
-			if (ia != null) {
-				networkInterface = ia.getIface();
-				tmpInetAddress = ia.getAddr();
-			} else {
-				LOGGER.error("Forced network interface {} not found on this system", CONFIGURATION.getNetworkInterface().trim().replace('\n', ' '));
-				LOGGER.info("Ignoring to network interface config value");
-			}
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia != null) {
+			inetAddress = ia.getAddr();
+			hostname = inetAddress.getHostAddress();
+			networkInterface = ia.getIface();
+			return true;
 		}
-		hostname = CONFIGURATION.getServerHostname();
-		//look for ip on forced address
-		if (StringUtils.isNotBlank(hostname)) {
-			LOGGER.info("Using forced address: {}", hostname);
-			try {
-				inetAddress = InetAddress.getByName(hostname);
-			} catch (UnknownHostException ex) {
-				hostname = null;
-				LOGGER.error("Forced address {} is unknowned on this system", hostname);
-				LOGGER.info("Falling back to default config values");
-			}
-			if (inetAddress != null) {
-				hostname = inetAddress.getHostAddress();
-				try {
-					NetworkInterface tmpNetworkInterface = NetworkInterface.getByInetAddress(inetAddress);
-					if (!networkInterface.equals(tmpNetworkInterface)) {
-						LOGGER.error("Forced address {} not found on network interface {}", hostname, networkInterface.toString().trim().replace('\n', ' '));
-						LOGGER.info("Ignoring to forced network interface");
-						networkInterface = tmpNetworkInterface;
-					}
-				} catch (SocketException ex) {
-				}
-			}
-		}
-		//look for ip on forced network interface
-		if (inetAddress == null && networkInterface != null) {
-			if (tmpInetAddress != null) {
-				inetAddress = tmpInetAddress;
-				hostname = inetAddress.getHostAddress();
-			} else {
-				LOGGER.error("Forced network interface {} don't have any IP address assigned", networkInterface.toString().trim().replace('\n', ' '));
-			}
-		}
-		//look for ip on default network interface
-		if (inetAddress == null) {
-			NetworkConfiguration.InterfaceAssociation ia = NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
-			if (ia != null) {
-				networkInterface = ia.getIface();
-				inetAddress = ia.getAddr();
-				hostname = inetAddress.getHostAddress();
-			} else {
-				LOGGER.info("No default network interface found on this system");
-			}
-		}
-		//look for localhost
-		if (inetAddress == null) {
-			try {
-				networkInterface = null;
-				inetAddress = InetAddress.getLocalHost();
-				hostname = inetAddress.getHostAddress();
-				LOGGER.info("Using localhost address");
-			} catch (UnknownHostException ex) {
-				LOGGER.error("FATAL ERROR: no IP address found on this system");
-				return false;
-			}
-		}
-		return true;
+		return false;
 	}
 
 	public static synchronized boolean start() {
-		if (!isStarted) {
-			//always refresh the network as it can been changed on configuration
+		while (status == ServerStatus.STOPPING) {
+			//wait while stopping
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException ex) {
+				LOGGER.info("Starting media server interrupted.");
+				return false;
+			}
+		}
+		if (!isStarted && status == ServerStatus.STOPPED) {
+			status = ServerStatus.STARTING;
 			if (!init()) {
+				//network not available
+				LOGGER.info("Network not available with the config values.");
+				LOGGER.info("Waiting network scanner discovering.");
 				isStarted = false;
+				setWaiting();
 				return isStarted;
 			}
 			//start the http service (for upnp and others)
@@ -226,6 +173,7 @@ public class MediaServer {
 					stop();
 				}
 			}
+			status = isStarted ? ServerStatus.STARTED : ServerStatus.STOPPED;
 		} else {
 			LOGGER.debug("try to start the media server, but it's already started");
 		}
@@ -233,6 +181,7 @@ public class MediaServer {
 	}
 
 	public static synchronized void stop() {
+		status = ServerStatus.STOPPING;
 		MDNS.stop();
 		SocketSSDPServer.stop();
 		if (upnpService != null) {
@@ -245,12 +194,12 @@ public class MediaServer {
 			httpMediaServer.stop();
 			httpMediaServer = null;
 		}
-		NetworkConfiguration.forgetConfiguration();
+		status = ServerStatus.STOPPED;
 		isStarted = false;
 	}
 
 	public static boolean isStarted() {
-		return isStarted;
+		return status == ServerStatus.STARTED;
 	}
 
 	public static void setPort(int localPort) {
@@ -277,4 +226,42 @@ public class MediaServer {
 		return networkInterface;
 	}
 
+	public static InetAddress getInetAddress() {
+		return inetAddress;
+	}
+
+	private static void setWaiting() {
+		status = ServerStatus.WAITING;
+		//check a last time if network scanner has not fire before this set.
+		startIfPossible();
+	}
+
+	public static void checkNetworkConfiguration() {
+		if (status == ServerStatus.WAITING) {
+			startIfPossible();
+		} else if (status == ServerStatus.STARTED) {
+			resetIfNeeded();
+		}
+	}
+
+	private static void startIfPossible() {
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia != null) {
+			LOGGER.info("Starting the media server as network interface association was founded");
+			start();
+		}
+	}
+
+	public static void resetIfNeeded() {
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia == null || ia.getAddr() != inetAddress || ia.getIface() != networkInterface) {
+			//reset the server, network have changed
+			//ia is null will fail into WAITING
+			LOGGER.info("Restarting the media server as network configuration has changed");
+			stop();
+			start();
+		}
+	}
+
+	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
 }

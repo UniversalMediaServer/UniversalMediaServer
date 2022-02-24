@@ -29,7 +29,6 @@ import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -65,6 +64,7 @@ import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
+import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.*;
@@ -77,7 +77,7 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.fest.util.Files;
+import org.apache.commons.io.FileUtils;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -410,6 +410,8 @@ public class PMS {
 			profiler.startCollecting();
 		}
 
+		// Start network scanner
+		NetworkConfiguration.start();
 		// Initialize mediaDatabase
 		MediaDatabase.init();
 
@@ -706,6 +708,8 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					//Stop network scanner
+					NetworkConfiguration.stop();
 					// force to save the configuration to file before stopping the UMS
 					saveConfiguration();
 
@@ -1174,7 +1178,7 @@ public class PMS {
 		try {
 			File logFile = new File(newLogFileName);
 			if (logFile.exists()) {
-				Files.delete(logFile);
+				FileUtils.deleteQuietly(logFile);
 			}
 			logFile = new File(fullLogFileName);
 			if (logFile.exists()) {
@@ -1196,7 +1200,7 @@ public class PMS {
 		// only that we lack the required permission for these specific items.
 		try {
 			killProc();
-		} catch (AccessControlException e) {
+		} catch (SecurityException e) {
 			LOGGER.error(
 				"Failed to check for already running instance: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
@@ -1267,12 +1271,12 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException {
+	private static void killProc() throws SecurityException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
 		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
-			throw new AccessControlException("Cannot read " + pidFile);
+			throw new SecurityException("Cannot read " + pidFile);
 		}
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {

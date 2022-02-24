@@ -27,15 +27,14 @@ import net.pms.util.FileUtil;
 import net.pms.util.FreedesktopTrash;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
-import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
 	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
-	private File[] dirs;
-	private PmsConfiguration config;
+	private final File[] dirs;
+	private final PmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
@@ -287,7 +286,7 @@ public class MediaMonitor extends VirtualFolder {
 						if (Platform.isLinux()) {
 							FreedesktopTrash.moveToTrash(playedFile);
 						} else {
-							FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
+							FileUtils.getInstance().moveToTrash(new File[]{playedFile});
 						}
 					} catch (IOException | FileUtil.InvalidFileSystemException e) {
 						LOGGER.warn(

@@ -37,7 +37,6 @@ import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.NetworkConfiguration;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -187,16 +186,7 @@ public class SocketSSDPServer {
 			ssdpSocket.setNetworkInterface(networkInterface);
 		} catch (SocketException ex) {
 			LOGGER.warn("Setting SSDP network interface failed: {}", ex);
-			NetworkInterface confIntf = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-			if (confIntf != null) {
-				LOGGER.trace("Setting SSDP network interface from configuration: {}", confIntf);
-				try {
-					ssdpSocket.setNetworkInterface(confIntf);
-				} catch (SocketException ex2) {
-					LOGGER.warn("Setting SSDP network interface from configuration failed: {}", ex2);
-					throw new IOException(ex2);
-				}
-			}
+			throw new IOException(ex);
 		}
 
 		LOGGER.trace("Created multicast socket on network interface: {}", ssdpSocket.getNetworkInterface());
@@ -585,5 +575,6 @@ public class SocketSSDPServer {
 			aliveThread = null;
 		}
 	}
+
 	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED };
 }

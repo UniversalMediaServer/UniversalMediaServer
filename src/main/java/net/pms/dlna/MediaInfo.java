@@ -32,6 +32,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import net.pms.configuration.PlatformProgramPaths;
+import net.pms.configuration.WindowsProgramPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +46,18 @@ import org.slf4j.LoggerFactory;
 })
 public class MediaInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
-	static String libraryName;
+	static final String LIBRARY_NAME;
 
 	static {
 		if (Platform.isWindows() && Platform.is64Bit()) {
-			libraryName = "mediainfo64";
+			LIBRARY_NAME = "mediainfo64";
 		} else {
-			libraryName = "mediainfo";
+			LIBRARY_NAME = "mediainfo";
+		}
+
+		//windows
+		if (Platform.isWindows() && System.getProperty("jna.library.path") == null && PlatformProgramPaths.get() instanceof WindowsProgramPaths && ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo() != null) {
+			System.setProperty("jna.library.path", ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo().toString());
 		}
 
 		// libmediainfo for Linux depends on libzen
@@ -89,8 +96,7 @@ public class MediaInfo {
 			}
 		});
 
-		MediaInfoDLL_Internal INSTANCE = Native.load(
-			libraryName,
+		MediaInfoDLL_Internal INSTANCE = Native.load(LIBRARY_NAME,
 			MediaInfoDLL_Internal.class,
 			options
 		);
@@ -283,8 +289,8 @@ public class MediaInfo {
 			Handle = MediaInfoDLL_Internal.INSTANCE.New();
 			LOGGER.info("Loaded {}", Option_Static("Info_Version"));
 
-			LOGGER.debug("Setting MediaInfo library characterset to UTF-8");
 			if (!Platform.isWindows()) {
+				LOGGER.debug("Setting MediaInfo library characterset to UTF-8");
 				setUTF8();
 			}
 		} catch (Throwable e) {
@@ -482,7 +488,7 @@ public class MediaInfo {
 	 * Sets the MediaInfo library to expect UTF-8 input. This is necessary on
 	 * non-Windows platforms for Unicode support.
 	 */
-	public void setUTF8() {
+	public final void setUTF8() {
 		MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString("setlocale_LC_CTYPE"), new WString("UTF-8"));
 	}
 

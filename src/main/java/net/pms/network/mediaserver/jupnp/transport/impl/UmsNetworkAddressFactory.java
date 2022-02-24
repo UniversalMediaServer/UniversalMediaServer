@@ -22,31 +22,32 @@ package net.pms.network.mediaserver.jupnp.transport.impl;
 import net.pms.network.mediaserver.MediaServer;
 import org.jupnp.transport.impl.NetworkAddressFactoryImpl;
 import org.jupnp.transport.spi.InitializationException;
-import org.jupnp.transport.spi.NoNetworkException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * NetworkAddressFactory that use MediaServer config to find the upnp interface, ip and port.
  */
 public class UmsNetworkAddressFactory extends NetworkAddressFactoryImpl {
-	private static final Logger LOGGER = LoggerFactory.getLogger(UmsNetworkAddressFactory.class);
 
 	public UmsNetworkAddressFactory() throws InitializationException {
-		networkInterfaces.clear();
-		bindAddresses.clear();
-		useAddresses.add(MediaServer.getHost());
-		useInterfaces.add(MediaServer.getNetworkInterface().getName());
-		super.discoverNetworkInterfaces();
-		super.discoverBindAddresses();
+		this(MediaServer.getPort(), DEFAULT_MULTICAST_RESPONSE_LISTEN_PORT);
+	}
 
-		if ((networkInterfaces.isEmpty() || bindAddresses.isEmpty())) {
-			LOGGER.warn("No usable network interface or addresses found");
-			if (super.requiresNetworkInterface()) {
-				throw new NoNetworkException("Could not discover any usable network interfaces and/or addresses");
-			}
+	public UmsNetworkAddressFactory(int streamListenPort, int multicastResponsePort) throws InitializationException {
+		this.streamListenPort = streamListenPort;
+		this.multicastResponsePort = multicastResponsePort;
+	}
+
+	@Override
+	protected void discoverNetworkInterfaces() throws InitializationException {
+		synchronized (networkInterfaces) {
+			networkInterfaces.add(MediaServer.getNetworkInterface());
 		}
+	}
 
-		this.streamListenPort = MediaServer.getPort();
+	@Override
+	protected void discoverBindAddresses() throws InitializationException {
+		synchronized (bindAddresses) {
+			bindAddresses.add(MediaServer.getInetAddress());
+		}
 	}
 }
