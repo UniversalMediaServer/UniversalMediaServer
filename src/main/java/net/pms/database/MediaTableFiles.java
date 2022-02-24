@@ -325,6 +325,7 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", ISTVEPISODE             BOOLEAN");
 			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", RATING                  INT");
 			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(")");
 			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
@@ -362,6 +363,9 @@ public class MediaTableFiles extends MediaTable {
 
 			LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
 			statement.execute("CREATE INDEX FORMAT_TYPE_MODIFIED on FILES (FORMAT_TYPE, MODIFIED)");
+
+			LOGGER.trace("Creating index IDX_LIKE_SONG");
+			statement.execute("CREATE INDEX IDX_LIKE_SONG on FILES (RATING)");
 		}
 	}
 
