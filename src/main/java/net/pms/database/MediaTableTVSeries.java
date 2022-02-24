@@ -407,9 +407,9 @@ public final class MediaTableTVSeries extends MediaTable {
 			) {
 				return convertResultSetToList(resultSet);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 
 		return null;
