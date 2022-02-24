@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -145,10 +146,10 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @param mBID the MBID to store
 	 * @param cover the cover as a {@link Blob}
 	 */
-	public static void writeMBID(final Connection connection, final String mBID, final byte[] cover) {
+	public static void writeMBID(final String mBID, InputStream cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try {
+		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
 			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
@@ -164,7 +165,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 							}
 							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 							if (cover != null) {
-								result.updateBytes("COVER", cover);
+								result.updateBinaryStream("COVER", cover);
 							} else {
 								result.updateNull("COVER");
 							}
@@ -181,7 +182,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						result.updateString("MBID", mBID);
 						if (cover != null) {
-							result.updateBytes("COVER", cover);
+							result.updateBinaryStream("COVER", cover);
 						}
 						result.insertRow();
 					}
@@ -211,11 +212,11 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
-	public static CoverArtArchiveResult findMBID(final Connection connection, final String mBID) {
+	public static CoverArtArchiveResult findMBID(final String mBID) {
 		boolean trace = LOGGER.isTraceEnabled();
 		CoverArtArchiveResult result;
 
-		try {
+		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
 			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
@@ -246,5 +247,32 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Checks if cover exists for given musicBrainz releseId.
+	 *
+	 * @param mbReleaseId
+	 * @return
+	 */
+	public static boolean hasCover(String mbReleaseId) {
+		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
+			String query = "SELECT count(*) FROM " + TABLE_NAME + contructMBIDWhere(mbReleaseId);
+
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					int selected = resultSet.getInt(1);
+					return selected > 0;
+				} else {
+					return false;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.trace("", e);
+			return false;
+		}
 	}
 }

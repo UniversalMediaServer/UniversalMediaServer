@@ -493,7 +493,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				// Check if it's cached first
 				if (connection != null) {
-					CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(connection, mBID);
+					CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(mBID);
 					if (result.found) {
 						if (result.cover != null) {
 							return result.cover;
@@ -524,7 +524,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				if (coverArt == null || coverArt.getImages().isEmpty()) {
 					LOGGER.debug("MBID \"{}\" has no cover at CoverArtArchive", mBID);
 					if (connection != null) {
-						MediaTableCoverArtArchive.writeMBID(connection, mBID, null);
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
 					}
 					return null;
 				}
@@ -543,14 +543,14 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						}
 					}
 					if (connection != null) {
-						MediaTableCoverArtArchive.writeMBID(connection, mBID, null);
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
 					}
 					return cover;
 				} catch (HttpResponseException e) {
 					if (e.getStatusCode() == 404) {
 						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
 						if (connection != null) {
-							MediaTableCoverArtArchive.writeMBID(connection, mBID, null);
+							MediaTableCoverArtArchive.writeMBID(mBID, null);
 						}
 						return null;
 					}

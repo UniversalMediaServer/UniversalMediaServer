@@ -19,21 +19,33 @@
 package net.pms.dlna;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.sun.jna.Platform;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
+import org.apache.commons.lang3.StringUtils;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.BasicSystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
@@ -417,5 +429,47 @@ public class RealFile extends MapFile {
 		}
 
 		return super.getDisplayNameBase();
+	}
+
+	@Override
+	public synchronized void syncResolve() {
+		super.syncResolve();
+		checkCoverThumb();
+	}
+
+	/**
+	 * Updates cover art archive table during scan process in case the file has already stored cover art.
+	 *
+	 * @param inputFile
+	 */
+	protected void checkCoverThumb() {
+		if (getMedia() != null && getMedia().isAudio() && getMedia().getAudioTrackCount() > 0) {
+			String mbReleaseId = getMedia().getAudioTracksList().get(0).getMbidRecord();
+			if (!StringUtils.isAllBlank(mbReleaseId)) {
+				try {
+					AudioFile af;
+					if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
+						af = AudioFileIO.readAs(getFile(), "mp3");
+					} else {
+						af = AudioFileIO.read(getFile());
+					}
+					Tag t = af.getTag();
+					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
+						LOGGER.trace("no artwork in MediaTableCoverArtArchive table");
+						if (t.getFirstArtwork() != null) {
+							byte[] artBytes = t.getFirstArtwork().getBinaryData();
+							MediaTableCoverArtArchive.writeMBID(mbReleaseId, new ByteArrayInputStream(artBytes));
+							LOGGER.trace("added cover to MediaTableCoverArtArchive");
+						} else {
+							LOGGER.trace("no artwork in TAG");
+						}
+					} else {
+						LOGGER.trace("cover already exists in MediaTableCoverArtArchive");
+					}
+				} catch (Exception e) {
+					LOGGER.trace("checkCoverThumb failed.", e);
+				}
+			}
+		}
 	}
 }
