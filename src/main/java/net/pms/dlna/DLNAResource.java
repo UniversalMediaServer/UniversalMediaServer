@@ -1838,7 +1838,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
 	 */
-	private static String encode(String s) {
+	protected static String encode(String s) {
 		try {
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {

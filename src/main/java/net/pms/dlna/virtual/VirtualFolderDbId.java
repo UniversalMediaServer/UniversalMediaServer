@@ -1,10 +1,14 @@
 package net.pms.dlna.virtual;
 
+import java.io.IOException;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaTableCoverArtArchive;
+import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
@@ -18,16 +22,49 @@ public class VirtualFolderDbId extends VirtualFolder {
 
 	private DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
-	private String id2;
-
-	private DbidMediaType mediaType;
+	private final DbidTypeAndIdent typeIdent;
 
 	public VirtualFolderDbId(String folderName, DbidTypeAndIdent typeIdent, String thumbnailIcon) {
 		super(folderName, thumbnailIcon);
-		this.mediaType = typeIdent.type;
+		this.typeIdent = typeIdent;
 		String id = dbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
+	}
+
+	/**
+	@Override
+	protected String getThumbnailURL(DLNAImageProfile profile) {
+		StringBuilder sb = new StringBuilder(MediaServer.getURL());
+		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
+		if (profile != null) {
+			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
+				sb.append("JPEG_RES").append(profile.getH()).append("x");
+				sb.append(profile.getV()).append("_");
+			} else {
+				sb.append(profile).append("_");
+			}
+		}
+		sb.append(encode(typeIdent.ident)).append(".");
+		if (profile != null) {
+			sb.append(profile.getDefaultExtension());
+		} else {
+			LOG.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
+		}
+		return sb.toString();
+	}
+*/
+	@Override
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(typeIdent.ident);
+		if (!res.found) {
+			try {
+				return super.getThumbnailInputStream();
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		return DLNAThumbnailInputStream.toThumbnailInputStream(res.cover);
 	}
 
 	@Override
@@ -38,11 +75,11 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	public DbidMediaType getMediaType() {
-		return mediaType;
+		return typeIdent.type;
 	}
 
 	public String getMediaTypeUclass() {
-		return mediaType.uclass;
+		return typeIdent.type.uclass;
 	}
 
 	@Override

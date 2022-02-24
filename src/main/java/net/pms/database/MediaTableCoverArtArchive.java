@@ -143,7 +143,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
 	 * @param connection the db connection
-	 * @param mBID the MBID to store
+	 * @param mBID the MBID (releaseId) to store
 	 * @param cover the cover as a {@link Blob}
 	 */
 	public static void writeMBID(final String mBID, InputStream cover) {
