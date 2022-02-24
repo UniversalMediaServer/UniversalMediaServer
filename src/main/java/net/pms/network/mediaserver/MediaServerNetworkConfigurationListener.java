@@ -53,6 +53,11 @@ public class MediaServerNetworkConfigurationListener implements NetworkConfigura
 
 	@Override
 	public void networkInterfaceDefaultAddressChanged(NetworkInterface networkInterface, InetAddress address) {
+		//nothing for now
+	}
+
+	@Override
+	public void networkInterfaceWithAddressAdded() {
 		MediaServer.checkNetworkConfiguration();
 	}
 

@@ -217,11 +217,11 @@ Section "Program Files"
 
 	${If} ${RunningX64}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x64"
-		File /r /x "ffmpeg.exe" /x "MediaInfo.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r /x "ffmpeg.exe" /x "MediaInfo.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp" "${PROJECT_BASEDIR}\target\bin\win32"
 		Rename jre${PROJECT_JRE_VERSION}-x64 jre${PROJECT_JRE_VERSION}
 	${Else}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x86"
-		File /r /x "ffmpeg64.exe" /x "MediaInfo64.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r /x "ffmpeg64.exe" /x "MediaInfo64.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp"  "${PROJECT_BASEDIR}\target\bin\win32"
 		Rename jre${PROJECT_JRE_VERSION}-x86 jre${PROJECT_JRE_VERSION}
 	${EndIf}
 
@@ -239,14 +239,19 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
-	SetOutPath "$INSTDIR\win32\service"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
-
 	SetOutPath "$INSTDIR\win32"
+	${If} ${RunningX64}
+		File /r /x "wrapper.exe" /x "wrapper.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+		Rename "service\wrapper-x64.exe" "service\wrapper.exe"
+		Rename "service\wrapper-x64.dll" "service\wrapper.dll"
+	${Else}
+		File /r /x "wrapper-x64.exe" /x "wrapper-x64.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+	${EndIf}
+
 	File "${PROJECT_BASEDIR}\src\main\external-resources\lib\ctrlsender\ctrlsender.exe"
 	${GetWindowsVersion} $R0
 	${If} $R0 == "XP"
-		File /r "${PROJECT_BASEDIR}\src\main\external-resources\lib\winxp"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\winxp"
 	${EndIf}
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
@@ -707,6 +712,13 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'

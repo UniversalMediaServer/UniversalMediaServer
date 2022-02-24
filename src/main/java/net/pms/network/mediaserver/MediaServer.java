@@ -86,7 +86,7 @@ public class MediaServer {
 				return false;
 			}
 		}
-		if (!isStarted && status == ServerStatus.STOPPED) {
+		if (!isStarted && (status == ServerStatus.STOPPED || status == ServerStatus.WAITING)) {
 			status = ServerStatus.STARTING;
 			if (!init()) {
 				//network not available

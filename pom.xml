@@ -1202,14 +1202,14 @@
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
-										<mkdir dir="${project.basedir}/win32/service" />
-										<copy todir="${project.basedir}/win32/service" overwrite="true">
+										<mkdir dir="${project.binaries}/win32/service" />
+										<copy todir="${project.binaries}/win32/service" overwrite="true">
 											<fileset dir="${project.external-resources}/third-party/wrapper" />
 										</copy>
 
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
-										<mkdir dir="${project.basedir}/win32/winxp" />
-										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.basedir}/win32/winxp" />
+										<mkdir dir="${project.binaries}/win32/winxp" />
+										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.binaries}/win32/winxp" />
 									</target>
 								</configuration>
 							</execution>

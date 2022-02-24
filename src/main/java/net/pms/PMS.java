@@ -658,7 +658,7 @@ public class PMS {
 		frame.addEngines();
 
 		// Now that renderer confs are all loaded, we can start searching for renderers
-		boolean binding = MediaServer.start();
+		MediaServer.start();
 
 		new Thread("Connection Checker") {
 			@Override
@@ -676,10 +676,6 @@ public class PMS {
 			}
 		}.start();
 
-		if (!binding) {
-			return false;
-		}
-
 		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
 			frame.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
@@ -688,7 +684,6 @@ public class PMS {
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: " + MediaServer.getURL() + "/console/home");
 		}
 
 		// XXX: this must be called:
