@@ -61,7 +61,7 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.8.1</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.8.2</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
