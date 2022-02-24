@@ -29,5 +29,6 @@ public interface NetworkConfigurationListenerInterface {
 	public void networkInterfaceDown(NetworkInterfaceAssociation networkInterfaceAssociation);
 	public void networkInterfaceAddressAdded(NetworkInterface networkInterface, InetAddress address);
 	public void networkInterfaceDefaultAddressChanged(NetworkInterface networkInterface, InetAddress address);
+	public void networkInterfaceWithAddressAdded();
 	public void networkInterfaceAddressRemoved(NetworkInterface networkInterface, InetAddress address);
 }

@@ -250,10 +250,19 @@ public class NetworkConfiguration {
 
 	//Store the INTERFACES_WITH_ASSOCIATED_ADDRESS
 	private static void interfacesWithAssociatedAddressStore(int interfaceIndex) {
+		boolean changed = false;
 		synchronized (INTERFACES_WITH_ASSOCIATED_ADDRESS) {
 			if (!INTERFACES_WITH_ASSOCIATED_ADDRESS.contains(interfaceIndex)) {
 				//newly multicast interface founded
+				LOGGER.trace("available multicast interface with address #{}", interfaceIndex);
 				INTERFACES_WITH_ASSOCIATED_ADDRESS.add(interfaceIndex);
+				changed = true;
+			}
+		}
+		if (changed) {
+			//now advise the listeners
+			for (NetworkConfigurationListenerInterface listener : LISTENERS) {
+				listener.networkInterfaceWithAddressAdded();
 			}
 		}
 	}
