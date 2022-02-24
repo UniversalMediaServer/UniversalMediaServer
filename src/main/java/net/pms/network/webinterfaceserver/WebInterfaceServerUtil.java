@@ -579,6 +579,9 @@ public class WebInterfaceServerUtil {
 					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
 				}
 			}
+		} catch (Exception e) {
+			LOGGER.error("Error while getting metadata for web interface");
+			LOGGER.debug("", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}
