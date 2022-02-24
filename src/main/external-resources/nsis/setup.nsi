@@ -240,7 +240,12 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
 	SetOutPath "$INSTDIR\win32\service"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
+	${If} ${RunningX64}
+		File /r "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\x64"
+	${Else}
+		File /r "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\x86"
+	${EndIf}
+	File /r /x "x64" /x "x86" "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper"
 
 	SetOutPath "$INSTDIR\win32"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\lib\ctrlsender\ctrlsender.exe"
