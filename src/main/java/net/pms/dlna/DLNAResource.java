@@ -220,8 +220,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
 
-	private String tempTranscodingFolder;
-
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
 	 * queries, the UPNP server needs to give out the parent container where the

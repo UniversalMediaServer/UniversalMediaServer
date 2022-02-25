@@ -20,8 +20,6 @@
 package net.pms.network.webinterfaceserver;
 
 import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;

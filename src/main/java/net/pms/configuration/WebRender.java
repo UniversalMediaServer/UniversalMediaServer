@@ -92,8 +92,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	private final String user;
 	private final Gson gson;
-	private final Object start_lock = new Object();
-	private final Object stop_lock = new Object();
+	private final Object startLock = new Object();
+	private final Object stopLock = new Object();
 	private final Map<DLNAResource, String> transcodingFolders = new ConcurrentHashMap<>();
 
 	private String ip;
@@ -712,7 +712,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void start(DLNAResource dlna) {
-		synchronized (start_lock) {
+		synchronized (startLock) {
 			// Stop playing any previous media on the renderer
 			if (getPlayingRes() != null && getPlayingRes() != dlna) {
 				stop();
@@ -727,7 +727,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void stop() {
-		synchronized (stop_lock) {
+		synchronized (stopLock) {
 			if (getPlayingRes() != null) {
 				//as we run in non stream mode, we need to close it by ourself
 				getPlayingRes().destroyExternalProcess();
