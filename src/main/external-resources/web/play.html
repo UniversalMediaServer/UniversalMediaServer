@@ -188,9 +188,11 @@
 
 				function status(k, v, wait) {
 					//console.log('status '+JSON.stringify(arguments));
-					state[k] = v;
-					if (! wait) {
-						$.post('/playerstatus/', JSON.stringify(state));
+					if (state[k] != v) {
+						state[k] = v;
+						if (! wait) {
+							$.post('/playerstatus/', JSON.stringify(state));
+						}
 					}
 				}
 
