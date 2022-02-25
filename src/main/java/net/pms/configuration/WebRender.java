@@ -28,6 +28,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,6 +58,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
@@ -89,6 +92,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	private final String user;
 	private final Gson gson;
+	private final Object start_lock = new Object();
+	private final Object stop_lock = new Object();
+	private final Map<DLNAResource, String> transcodingFolders = new ConcurrentHashMap<>();
 
 	private String ip;
 	private String ua;
@@ -131,6 +137,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
+		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 m:video/mp2t");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		return true;
 	}
@@ -327,7 +334,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							break;
 						case HTTPResource.HLS_TYPEMIME:
 							try {
-								addFFmpegHLSCommands(cmdList, resource, resource.getId());
+								transcodingFolders.put(resource, addFFmpegHLSCommands(cmdList, resource, resource.getId()));
 							} catch (IOException e) {
 								LOGGER.debug("Could not read temp folder:" + e.getMessage());
 							}
@@ -441,7 +448,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
-	private static void addFFmpegHLSCommands(List<String> cmdList, DLNAResource resource, String globalId) throws IOException {
+	private static String addFFmpegHLSCommands(List<String> cmdList, DLNAResource resource, String globalId) throws IOException {
 		DLNAMediaInfo media = resource.getMedia();
 		String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
 
@@ -456,8 +463,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			cmdList.add("libx264");
 			cmdList.add("-preset");
 			cmdList.add("ultrafast");
-			cmdList.add("-pix_fmt");
-			cmdList.add("yuv420p");
+			//cmdList.add("-pix_fmt");
+			//cmdList.add("yuv420p");
+			cmdList.add("-keyint_min");
+			cmdList.add("48");
 		}
 
 		// Audio
@@ -491,17 +500,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("hls");
 		// cmdList.add("-hls_playlist_type");
 		// cmdList.add("vod");
-		// cmdList.add("-hls_playlist_type");
-		// cmdList.add("event");
+		cmdList.add("-hls_playlist_type");
+		cmdList.add("event");
 
 		cmdList.add("-hls_flags");
 		// cmdList.add("append_list");
-		// cmdList.add("independent_segments");
-		cmdList.add("omit_endlist");
+		cmdList.add("independent_segments");
+		//cmdList.add("omit_endlist");
 		// cmdList.add("single_file"); //todo try this
 
-		cmdList.add("-hls_base_url");
-		cmdList.add("/ts/");
+		cmdList.add("-hls_segment_type");
+		cmdList.add("mpegts"); //mpegts or fmp4
 
 		// Include all video segments in the playlist
 		cmdList.add("-hls_list_size");
@@ -511,8 +520,16 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-hls_time");
 		cmdList.add("10");
 
+		String transcodingUniqueFolder = "webhls-" + globalId + "-" + filenameMD5;
+		String currentTranscodingFolder = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + FileUtil.appendPathSeparator(transcodingUniqueFolder);
+		FileUtils.createParentDirectories(new File(currentTranscodingFolder + "playlist.m3u8"));
+
+		cmdList.add("-hls_base_url");
+		cmdList.add("/ts/" + transcodingUniqueFolder + "/");
+
 		cmdList.add("-y");
-		cmdList.add(FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + globalId + "-" + filenameMD5 + "-playlist.m3u8");
+		cmdList.add(currentTranscodingFolder + "playlist.m3u8");
+		return currentTranscodingFolder;
 	}
 
 	/**
@@ -695,25 +712,45 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void start(DLNAResource dlna) {
-		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != dlna) {
-			stop();
+		synchronized (start_lock) {
+			// Stop playing any previous media on the renderer
+			if (getPlayingRes() != null && getPlayingRes() != dlna) {
+				stop();
+			}
+			setPlayingRes(dlna);
+			if (startStop == null) {
+				startStop = new StartStopListenerDelegate(ip);
+				startStop.setRenderer(this);
+			}
+			startStop.start(getPlayingRes());
 		}
-
-		setPlayingRes(dlna);
-		if (startStop == null) {
-			startStop = new StartStopListenerDelegate(ip);
-		}
-		startStop.setRenderer(this);
-		startStop.start(getPlayingRes());
 	}
 
 	public void stop() {
-		if (startStop == null) {
-			return;
+		synchronized (stop_lock) {
+			if (getPlayingRes() != null) {
+				//as we run in non stream mode, we need to close it by ourself
+				getPlayingRes().destroyExternalProcess();
+				//as we run in non stream mode, we need to delete temp files
+				cleanCurrentTranscodingFolder();
+			}
+			setPlayingRes(null);
+			if (startStop != null) {
+				startStop.stop();
+			}
 		}
-		startStop.stop();
-		startStop = null;
+	}
+
+	private void cleanCurrentTranscodingFolder() {
+		String deleteFolders = transcodingFolders.remove(getPlayingRes());
+		if (deleteFolders != null) {
+			Runnable defer = () -> {
+				//delete files from temp folder
+				LOGGER.trace("Delete previous transcoding folder: " + deleteFolders);
+				FileUtils.deleteQuietly(new File(deleteFolders));
+			};
+			new Thread(defer, "Deleting transcoding").start();
+		}
 	}
 
 	public static class WebPlayer extends BasicPlayer.Logical {

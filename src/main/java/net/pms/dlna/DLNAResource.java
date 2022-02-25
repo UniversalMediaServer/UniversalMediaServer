@@ -220,6 +220,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
 
+	private String tempTranscodingFolder;
+
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
 	 * queries, the UPNP server needs to give out the parent container where the
@@ -3307,6 +3309,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return is;
+	}
+
+	public void destroyExternalProcess() {
+		if (!externalProcess.isDestroyed()) {
+			Runnable r = () -> {
+				LOGGER.error("External process destroying... stopping process");
+				externalProcess.stopProcess();
+			};
+			new Thread(r, "Hanging External Process Stopper").start();
+		}
 	}
 
 	/**
