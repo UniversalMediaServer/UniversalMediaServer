@@ -183,7 +183,7 @@ public class MediaHandler implements HttpHandler {
 				WebInterfaceServerUtil.dump(in, os);
 			} else {
 				String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
-				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + "webhls-" + id + "-" + filenameMD5 + "-playlist.m3u8";
+				String playlistPath = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + FileUtil.appendPathSeparator("webhls-" + id + "-" + filenameMD5) + "playlist.m3u8";
 				File playlist = new File(playlistPath);
 
 				StringBuilder resultStringBuilder = new StringBuilder();
