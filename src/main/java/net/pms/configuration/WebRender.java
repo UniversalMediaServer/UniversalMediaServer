@@ -453,11 +453,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
 
 		// Can't streamcopy if filters are present
-		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
+		boolean canCopyVideo = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
+		boolean canCopyAudio = !(cmdList.contains("-af") || cmdList.contains("-filter_complex"));
 
 		// Video
 		cmdList.add("-c:v");
-		if (canCopy && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+		if (canCopyVideo && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
 			cmdList.add("copy");
 		} else {
 			cmdList.add("libx264");
@@ -472,14 +473,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// Audio
 		cmdList.add("-c:a");
 		if (
-			canCopy &&
+			canCopyAudio &&
 			media != null &&
 			media.getFirstAudioTrack() != null &&
 			media.getFirstAudioTrack().getCodecA() != null &&
-			(
-				media.getFirstAudioTrack().getCodecA().equals("vorbis") ||
-				media.getFirstAudioTrack().isAAC()
-			)
+			media.getFirstAudioTrack().getCodecA().equals("vorbis")
 		) {
 			cmdList.add("copy");
 		} else {
