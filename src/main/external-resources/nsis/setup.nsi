@@ -708,6 +708,13 @@ Section "Uninstall"
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
+
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
