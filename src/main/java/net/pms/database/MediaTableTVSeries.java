@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -567,7 +568,8 @@ public final class MediaTableTVSeries extends MediaTable {
 						rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
 						rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
 						if (tvSeries.get("images") != null) {
-							rs.updateString("IMAGES", StringUtils.join(tvSeries.get("images"), ","));
+							String json = new Gson().toJson(tvSeries.get("images"));
+							rs.updateString("IMAGES", json);
 						}
 						if (tvSeries.get("inProduction") != null) {
 							rs.updateBoolean("INPRODUCTION", (Boolean) tvSeries.get("inProduction"));

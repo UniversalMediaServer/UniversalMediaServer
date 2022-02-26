@@ -135,10 +135,10 @@ public class PlayHandler implements HttpHandler {
 			}
 		} catch (IOException e) {
 			throw e;
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in PlayHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 	}
 
