@@ -483,9 +483,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		) {
 			cmdList.add("copy");
 		} else {
-			cmdList.add("aac");
-			cmdList.add("-ab");
-			cmdList.add("320k");
+			cmdList.add("libvorbis");
 		}
 
 		cmdList.add("-copyts");
