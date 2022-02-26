@@ -43,6 +43,7 @@ import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.v2.SubtitleType;
@@ -400,10 +401,20 @@ public class SubtitleUtils {
 		cmdList.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
+		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
 		if (LOGGER.isTraceEnabled()) {
-			cmdList.add("info");
+			// Set -loglevel in accordance with LOGGER setting
+			if (FFmpegLogLevels.INFO.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("info");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		} else {
-			cmdList.add("fatal");
+			if (FFmpegLogLevels.FATAL.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("fatal");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
