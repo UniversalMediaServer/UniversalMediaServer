@@ -540,7 +540,7 @@ function populateMetadataDisplayFromGlobalVars() {
 		}
 		img.crossOrigin = '';
 		img.id = 'poster';
-		img.maxHeight = '500px';
+		img.style.maxHeight = '500px';
 		img.src = poster;
 		$('.posterContainer').html(img);
 	}
