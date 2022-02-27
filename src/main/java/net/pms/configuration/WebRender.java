@@ -22,10 +22,15 @@ package net.pms.configuration;
 
 import com.google.gson.Gson;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -49,27 +54,17 @@ import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
+import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
-	private String user;
-	private String ip;
-	@SuppressWarnings("unused")
-	private int port;
-	private String ua;
-	private String defaultMime;
-	private int browser = 0;
-	private String platform = null;
-	private int screenWidth = 0;
-	private int screenHeight = 0;
-	private boolean isTouchDevice = false;
-	private String subLang;
-	private Gson gson;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] SUPPORTED_FORMATS = {
@@ -95,7 +90,23 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int CHROMIUM = 9;
 	protected static final int VIVALDI = 10;
 
+	private final String user;
+	private final Gson gson;
+	private final Object startLock = new Object();
+	private final Object stopLock = new Object();
+	private final Map<DLNAResource, String> transcodingFolders = new ConcurrentHashMap<>();
+
+	private String ip;
+	private String ua;
+	private int browser = 0;
+	private String platform = null;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
+	private boolean isTouchDevice = false;
+	private String subLang;
 	private StartStopListenerDelegate startStop;
+	@SuppressWarnings("unused")
+	private int port;
 
 	public WebRender(String user) throws ConfigurationException, InterruptedException {
 		super(NOFILE, null);
@@ -104,8 +115,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
-		String userFmt = CONFIGURATION.getWebTranscode();
-		defaultMime = userFmt != null ? ("video/" + userFmt) : WebInterfaceServerUtil.transMime();
 		startStop = null;
 		subLang = "";
 		if (CONFIGURATION.useWebControl()) {
@@ -128,6 +137,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
+		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 m:video/mp2t");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		return true;
 	}
@@ -142,7 +152,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public InetAddress getAddress() {
 		try {
 			return InetAddress.getByName(ip);
-		} catch (Exception e) {
+		} catch (UnknownHostException e) {
 			return null;
 		}
 	}
@@ -271,12 +281,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
-		if (browser == CHROME) {
-			return HTTPResource.WEBM_TYPEMIME;
-		} else if (browser == FIREFOX) {
-			return HTTPResource.MP4_TYPEMIME;
-		}
-		return defaultMime;
+		return HTTPResource.HLS_TYPEMIME;
 	}
 
 	@Override
@@ -296,11 +301,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
 			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
-		} catch (Exception e) {
+		} catch (InterruptedException | ExecutionException e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
 
+	/**
+	 * Adds commands to the incoming cmdList based on which browser was detected.
+	 *
+	 * If HLS was used, it also launches the process that creates the playlist file
+	 * and video files.
+	 */
 	@Override
 	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
@@ -319,8 +330,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 							ffMp4Cmd(cmdList);
 							break;
 						case HTTPResource.WEBM_TYPEMIME:
-							ffWebmCmd(cmdList);
+							ffWebmH264MP3Cmd(cmdList);
 							break;
+						case HTTPResource.HLS_TYPEMIME:
+							try {
+								transcodingFolders.put(resource, addFFmpegHLSCommands(cmdList, resource, resource.getId()));
+							} catch (IOException e) {
+								LOGGER.debug("Could not read temp folder:" + e.getMessage());
+							}
 					default:
 						break;
 					}
@@ -411,8 +428,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("mp4");
 	}
 
-	private static void ffWebmCmd(List<String> cmdList) {
-		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
+	private static void ffWebmH264MP3Cmd(List<String> cmdList) {
+		//-c:v libx264 -profile:v high -level:v 3.1 -c:a libmp3lame -ac 2 -pix_fmt yuv420p -preset ultrafast -f matroska
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
 		cmdList.add("-profile:v");
@@ -431,7 +448,112 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("matroska");
 	}
 
-	@SuppressWarnings("unused")
+	private static String addFFmpegHLSCommands(List<String> cmdList, DLNAResource resource, String globalId) throws IOException {
+		DLNAMediaInfo media = resource.getMedia();
+		String filenameMD5 = DigestUtils.md5Hex(resource.getSystemName());
+
+		// Can't streamcopy if filters are present
+		boolean canCopyVideo = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
+		boolean canCopyAudio = !(cmdList.contains("-af") || cmdList.contains("-filter_complex"));
+
+		// Video
+		cmdList.add("-c:v");
+		if (canCopyVideo && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("libx264");
+			cmdList.add("-preset");
+			cmdList.add("ultrafast");
+			//cmdList.add("-pix_fmt");
+			//cmdList.add("yuv420p");
+			cmdList.add("-keyint_min");
+			cmdList.add("48");
+		}
+
+		// Audio
+		cmdList.add("-c:a");
+		if (
+			canCopyAudio &&
+			media != null &&
+			media.getFirstAudioTrack() != null &&
+			media.getFirstAudioTrack().getCodecA() != null &&
+			media.getFirstAudioTrack().getCodecA().equals("vorbis")
+		) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("libvorbis");
+		}
+
+		cmdList.add("-copyts");
+		// cmdList.add("-c:s");
+		// cmdList.add("mov_text");
+		cmdList.add("-flags");
+		cmdList.add("cgop");
+		// cmdList.add("-global_header");
+		// cmdList.add("-map");
+		// cmdList.add("0");
+		cmdList.add("-f");
+		cmdList.add("hls");
+		// cmdList.add("-hls_playlist_type");
+		// cmdList.add("vod");
+		cmdList.add("-hls_playlist_type");
+		cmdList.add("event");
+
+		cmdList.add("-hls_flags");
+		// cmdList.add("append_list");
+		cmdList.add("independent_segments");
+		//cmdList.add("omit_endlist");
+		// cmdList.add("single_file"); //todo try this
+
+		cmdList.add("-hls_segment_type");
+		cmdList.add("mpegts"); //mpegts or fmp4
+
+		// Include all video segments in the playlist
+		cmdList.add("-hls_list_size");
+		cmdList.add("0");
+
+		// Include all video segments in the playlist
+		cmdList.add("-hls_time");
+		cmdList.add("10");
+
+		String transcodingUniqueFolder = "webhls-" + globalId + "-" + filenameMD5;
+		String currentTranscodingFolder = FileUtil.appendPathSeparator(CONFIGURATION.getTempFolder().getAbsolutePath()) + FileUtil.appendPathSeparator(transcodingUniqueFolder);
+		FileUtils.createParentDirectories(new File(currentTranscodingFolder + "playlist.m3u8"));
+
+		cmdList.add("-hls_base_url");
+		cmdList.add("/ts/" + transcodingUniqueFolder + "/");
+
+		cmdList.add("-y");
+		cmdList.add(currentTranscodingFolder + "playlist.m3u8");
+		return currentTranscodingFolder;
+	}
+
+	/**
+	 * This is unused but may be useful for testing.
+	 */
+	private static void ffWebmVP9VorbisCmd(List<String> cmdList) {
+		//-c:v vp9 -c:a libvorbis -ac 2 -pix_fmt yuv420p -crf 30 -b:v 0 -deadline realtime -f matroska
+		cmdList.add("-c:v");
+		cmdList.add("vp9");
+		cmdList.add("-c:a");
+		cmdList.add("libvorbis");
+		cmdList.add("-ac");
+		cmdList.add("2");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-crf");
+		cmdList.add("30");
+		cmdList.add("-b:v");
+		cmdList.add("0");
+		cmdList.add("-deadline");
+		cmdList.add("realtime");
+		cmdList.add("-f");
+		cmdList.add("matroska");
+	}
+
+	/**
+	 * This is unused but may be useful as a reference.
+	 */
 	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
@@ -499,7 +621,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return getVideoMimeType() == HTTPResource.OGG_TYPEMIME ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
+		return getVideoMimeType().equals(HTTPResource.OGG_TYPEMIME) ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
 	}
 
 	@Override
@@ -586,30 +708,50 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public void start(DLNAResource dlna) {
-		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != dlna) {
-			stop();
+		synchronized (startLock) {
+			// Stop playing any previous media on the renderer
+			if (getPlayingRes() != null && getPlayingRes() != dlna) {
+				stop();
+			}
+			setPlayingRes(dlna);
+			if (startStop == null) {
+				startStop = new StartStopListenerDelegate(ip);
+				startStop.setRenderer(this);
+			}
+			startStop.start(getPlayingRes());
 		}
-
-		setPlayingRes(dlna);
-		if (startStop == null) {
-			startStop = new StartStopListenerDelegate(ip);
-		}
-		startStop.setRenderer(this);
-		startStop.start(getPlayingRes());
 	}
 
 	public void stop() {
-		if (startStop == null) {
-			return;
+		synchronized (stopLock) {
+			if (getPlayingRes() != null) {
+				//as we run in non stream mode, we need to close it by ourself
+				getPlayingRes().destroyExternalProcess();
+				//as we run in non stream mode, we need to delete temp files
+				cleanCurrentTranscodingFolder();
+			}
+			setPlayingRes(null);
+			if (startStop != null) {
+				startStop.stop();
+			}
 		}
-		startStop.stop();
-		startStop = null;
+	}
+
+	private void cleanCurrentTranscodingFolder() {
+		String deleteFolders = transcodingFolders.remove(getPlayingRes());
+		if (deleteFolders != null) {
+			Runnable defer = () -> {
+				//delete files from temp folder
+				LOGGER.trace("Delete previous transcoding folder: " + deleteFolders);
+				FileUtils.deleteQuietly(new File(deleteFolders));
+			};
+			new Thread(defer, "Deleting transcoding").start();
+		}
 	}
 
 	public static class WebPlayer extends BasicPlayer.Logical {
+		private final Gson gson;
 		private HashMap<String, String> data;
-		private Gson gson;
 
 		public WebPlayer(WebRender renderer) {
 			super(renderer);

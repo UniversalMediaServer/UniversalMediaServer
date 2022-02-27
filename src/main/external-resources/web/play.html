@@ -77,7 +77,7 @@
 							{{auto}}
 							fullscreen
 							{{^isNativeAudio}}width="{{width}}" height="{{height}}" {{/isNativeAudio}}
-							data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+							data-setup='{ "liveui" : true }'
 							poster="/thumb/{{id1}}"
 						>
 							<source src="/media/{{id1}}" type="{{mime}}">
@@ -126,7 +126,7 @@
 							<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 							{{/isVideo}}
 							<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
-								data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+								data-setup='{ "liveui" : true }'
 								poster="/thumb/{{id1}}"
 							>
 								<source src="/media/{{id1}}" type="{{mime}}">
@@ -192,9 +192,11 @@
 
 				function status(k, v, wait) {
 					//console.log('status '+JSON.stringify(arguments));
-					state[k] = v;
-					if (! wait) {
-						$.post('/playerstatus/', JSON.stringify(state));
+					if (state[k] != v) {
+						state[k] = v;
+						if (! wait) {
+							$.post('/playerstatus/', JSON.stringify(state));
+						}
 					}
 				}
 
@@ -205,16 +207,21 @@
 
 				player.addEventListener('playing', function(){status('playback', 'PLAYING');});
 				player.addEventListener('play', function(){status('playback', 'PLAYING');});
+
 				player.addEventListener('pause', function(){status('playback', 'PAUSED');});
-				player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+
+				player.addEventListener('dispose', function(){status('playback', 'STOPPED');});
+				player.addEventListener('abort', function(){status('playback', 'STOPPED');});
 				player.addEventListener('ended', function(){status('playback', 'STOPPED');});
 				player.addEventListener('error', function(){status('playback', 'STOPPED');});
+
 				player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
 				player.addEventListener('volumechange', volumeStatus);
 				{{#autoContinue}}
 					player.addEventListener('ended', next, false);
 				{{/autoContinue}}
-				window.onbeforeunload = function(){status('playback','STOPPED');}
+				window.addEventListener("beforeunload", function(){status('playback', 'STOPPED');});
+				//window.onbeforeunload = function(){status('playback','STOPPED');}
 				// Send initial status
 				volumeStatus();
 
