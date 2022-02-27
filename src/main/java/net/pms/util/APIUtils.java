@@ -108,6 +108,11 @@ public class APIUtils {
 	private static String apiDataVideoVersion = null;
 	private static String apiDataSeriesVersion = null;
 
+	/**
+	 * The base URL for all images from TMDB
+	 */
+	private static String apiImageBaseURL = null;
+
 	public static String getApiDataVideoVersion() {
 		if (apiDataVideoVersion == null) {
 			setApiMetadataVersions();
@@ -133,11 +138,11 @@ public class APIUtils {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
-			URL domain = new URL("https://api.universalmediaserver.com");
-			URL url = new URL(domain, "/api/subversions");
 			HashMap<String, String> jsonData = new HashMap<>();
 
 			if (CONFIGURATION.getExternalNetwork()) {
+				URL domain = new URL("https://api.universalmediaserver.com");
+				URL url = new URL(domain, "/api/subversions");
 				String apiResult = getJson(url);
 
 				try {
@@ -174,6 +179,65 @@ public class APIUtils {
 			}
 		} catch (IOException e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	public static String getApiImageBaseURL() {
+		if (apiImageBaseURL == null) {
+			setApiImageBaseURL();
+		}
+
+		return apiImageBaseURL;
+	}
+
+	/**
+	 * Populates the apiImageBaseURL variable, preferably from the API,
+	 * but falling back to the local database.
+	 */
+	public static void setApiImageBaseURL() {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			HashMap<String, String> jsonData = new HashMap<>();
+
+			if (CONFIGURATION.getExternalNetwork()) {
+				URL domain = new URL("https://api.universalmediaserver.com");
+				URL url = new URL(domain, "/api/configuration");
+				String apiResult = getJson(url);
+
+				try {
+					jsonData = gson.fromJson(apiResult, jsonData.getClass());
+				} catch (JsonSyntaxException e) {
+					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+				}
+			}
+
+			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
+				if (jsonData != null && jsonData.containsKey("statusCode") && "500".equals(jsonData.get("statusCode"))) {
+					LOGGER.debug("Got a 500 error while looking for imageBaseURL");
+				}
+				LOGGER.trace("Did not get imageBaseURL, will attempt to use the database version");
+				if (connection != null) {
+					apiImageBaseURL = MediaTableMetadata.getMetadataValue(connection, "IMAGE_BASE_URL");
+				}
+				if (apiImageBaseURL == null) {
+					LOGGER.trace("imageBaseURL could not be fetched from the API or the local database");
+				}
+				return;
+			}
+
+			apiImageBaseURL = jsonData.get("imageBaseURL");
+
+			// Persist the values to the database to be used as fallbacks
+			if (connection != null) {
+				if (apiImageBaseURL != null) {
+					MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Error while setting imageBaseURL", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}

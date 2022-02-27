@@ -49,6 +49,7 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
@@ -612,7 +613,7 @@ public class WebInterfaceServerUtil {
 			String externalIDs = "";
 			String firstAirDate = "";
 			String homepage = "";
-			String images = "";
+			String images = "[]";
 			Boolean inProduction = null;
 			String languages = "";
 			String lastAirDate = "";
@@ -790,7 +791,7 @@ public class WebInterfaceServerUtil {
 				if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
 					images = (String) row.get("IMAGES");
 				}
-				if ((Boolean) row.get("INPRODUCTION")) {
+				if (row.get("INPRODUCTION") != null) {
 					inProduction = (Boolean) row.get("INPRODUCTION");
 				}
 				if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
@@ -912,6 +913,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var externalIDs = \"" + StringEscapeUtils.escapeEcmaScript(externalIDs) + "\";";
 			javascriptVarsScript += "var firstAirDate = \"" + StringEscapeUtils.escapeEcmaScript(firstAirDate) + "\";";
 			javascriptVarsScript += "var homepage = \"" + StringEscapeUtils.escapeEcmaScript(homepage) + "\";";
+			javascriptVarsScript += "var imageBaseURL = \"" + APIUtils.getApiImageBaseURL() + "\";";
 			javascriptVarsScript += "var images = " + images + ";";
 			javascriptVarsScript += "var inProduction = " + inProduction + ";";
 			javascriptVarsScript += "var languages = \"" + StringEscapeUtils.escapeEcmaScript(languages) + "\";";
@@ -928,6 +930,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var seriesType = \"" + StringEscapeUtils.escapeEcmaScript(seriesType) + "\";";
 			javascriptVarsScript += "var spokenLanguages = \"" + StringEscapeUtils.escapeEcmaScript(spokenLanguages) + "\";";
 			javascriptVarsScript += "var status = \"" + StringEscapeUtils.escapeEcmaScript(status) + "\";";
+			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 
 			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
