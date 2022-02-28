@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
 
-	private LinkedHashMap<File, JCheckBox> items;
+	private final LinkedHashMap<File, JCheckBox> items;
 	private String defaultLogFile, zippedLogFile;
 	private CustomJButton openZip;
 
@@ -135,7 +135,8 @@ public class DbgPacker implements ActionListener {
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
 		if (defaultLogFile != null && !defaultLogFile.isEmpty()) {
-			add(new File(defaultLogFile + ".prev"));
+			add(new File(defaultLogFile + ".prev.zip"));
+			add(new File(defaultLogFile + ".zip"));
 			add(new File(defaultLogFile));
 		}
 	}

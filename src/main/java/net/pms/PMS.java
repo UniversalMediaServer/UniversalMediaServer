@@ -77,7 +77,6 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -1017,7 +1016,6 @@ public class PMS {
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
-			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new PmsConfiguration'
@@ -1161,30 +1159,6 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
-	}
-
-	/**
-	 * Try to rename old logfile to <filename>.prev
-	 */
-	private static void renameOldLogFile() {
-		String fullLogFileName = configuration.getDefaultLogFilePath();
-		String newLogFileName = fullLogFileName + ".prev";
-
-		try {
-			File logFile = new File(newLogFileName);
-			if (logFile.exists()) {
-				FileUtils.deleteQuietly(logFile);
-			}
-			logFile = new File(fullLogFileName);
-			if (logFile.exists()) {
-				File newFile = new File(newLogFileName);
-				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
-		}
 	}
 
 	/**
