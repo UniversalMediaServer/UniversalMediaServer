@@ -43,11 +43,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class FreedesktopTrash {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
-	private static Path homeFolder = null;
-	private static Object homeFolderLock = new Object();
+	private static final Object HOME_FOLDER_LOCK = new Object();
 	private static final String INFO = "info";
 	private static final String FILES = "files";
 	private static final SecureRandom RANDOM = new SecureRandom();
+	private static Path homeFolder = null;
 
 	private static String generateRandomFileName(String fileName) {
 		if (fileName.contains("/") || fileName.contains("\\")) {
@@ -82,7 +82,7 @@ public class FreedesktopTrash {
 	}
 
 	private static Path getHomeFolder() {
-		synchronized (homeFolderLock) {
+		synchronized (HOME_FOLDER_LOCK) {
 			if (homeFolder == null) {
 				homeFolder = getVerifiedPath(System.getenv("XDG_DATA_HOME"));
 				if (homeFolder == null) {

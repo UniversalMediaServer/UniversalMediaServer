@@ -231,11 +231,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
+		if (LOGGER.isTraceEnabled()) {
+			// Set -loglevel in accordance with LOGGER setting
+			if (FFmpegLogLevels.INFO.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("info");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		} else {
-			cmdList.add("warning");
+			if (FFmpegLogLevels.WARNING.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("warning");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		}
 
 		/*

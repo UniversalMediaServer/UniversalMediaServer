@@ -21,8 +21,10 @@ package net.pms.network.mediaserver.nettyserver;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -72,8 +74,8 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
+import net.pms.dlna.DbIdResourceLocator;
+import net.pms.dlna.DbIdMediaType;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -117,6 +119,8 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
@@ -286,6 +290,32 @@ public class RequestV2 extends HTTPResource {
 			uri = uri.substring(1);
 		}
 
+		//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
+		//let transform JUPnP uri to old uri then handlerV2 can process
+		if (uri.startsWith("dev/" + PMS.get().udn())) {
+			if (uri.endsWith("/ContentDirectory/desc")) {
+				uri = "UPnP_AV_ContentDirectory_1.0.xml";
+			} else if (uri.endsWith("/ContentDirectory/action")) {
+				uri = "upnp/control/content_directory";
+			} else if (uri.endsWith("/ContentDirectory/event")) {
+				uri = "upnp/event/content_directory";
+			} else if (uri.endsWith("/ConnectionManager/desc")) {
+				uri = "UPnP_AV_ConnectionManager_1.0.xml";
+			} else if (uri.endsWith("/ConnectionManager/action")) {
+				uri = "upnp/control/connection_manager";
+			} else if (uri.endsWith("/ConnectionManager/event")) {
+				uri = "upnp/event/connection_manager";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
+				uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
+				uri = "upnp/control/x_ms_mediareceiverregistrar";
+			} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
+				uri = "upnp/event/x_ms_mediareceiverregistrar";
+			} else if (uri.endsWith("/desc")) {
+				uri = "description/fetch";
+			}
+		}
+
 		if (uri.startsWith("api/")) {
 			ApiHandler api = new ApiHandler();
 			api.handleApiRequest(method, content, output, uri.substring(4), event);
@@ -317,8 +347,7 @@ public class RequestV2 extends HTTPResource {
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			String fileName = null;
-			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 				} catch (Exception e) {
@@ -327,7 +356,7 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 			}
-			fileName = id.substring(id.indexOf('/') + 1);
+			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -998,16 +1027,21 @@ public class RequestV2 extends HTTPResource {
 				.append(": ").append(entry.getValue()).append("\n");
 			}
 		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
 
+		String responseCode = output.getProtocolVersion() + " " + output.getStatus();
 		String rendererName = getRendererName();
 
 		if (HEAD.equals(method)) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
-				output.getProtocolVersion(),
-				output.getStatus(),
-				header
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -1021,12 +1055,13 @@ public class RequestV2 extends HTTPResource {
 			}
 			if (isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
-					formattedResponse
+					formattedResponse,
+					HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1043,20 +1078,22 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					output.isChunked() ? "chunked" : "non-chunked",
-					header
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Empty response sent to {}:\n{}\n{}\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
-					header
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
@@ -1198,7 +1235,7 @@ public class RequestV2 extends HTTPResource {
 
 		if (searchCriteria != null && files != null) {
 			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && files.size() > 0) {
+			if (xbox360 && !files.isEmpty()) {
 				files = files.get(0).getChildren();
 			}
 		}
@@ -1214,16 +1251,17 @@ public class RequestV2 extends HTTPResource {
 					}
 				}
 
-				if (xbox360 && containerID != null) {
+				if (xbox360 && containerID != null && uf != null) {
 					uf.setFakeParentId(containerID);
 				}
 
 				if (
-					uf.isCompatible(mediaRenderer) &&
+					uf != null &&
+					(uf.isCompatible(mediaRenderer) &&
 					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder()
+					files.get(0).isInsideTranscodeFolder())
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
@@ -1368,7 +1406,7 @@ public class RequestV2 extends HTTPResource {
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 			Document body = message.getSOAPBody().extractContentAsDocument();
 			return unmarshaller.unmarshal(body, clazz).getValue();
-		} catch (Exception e) {
+		} catch (JAXBException | SOAPException | IOException e) {
 			LOGGER.error("Unmarshalling error", e);
 			return null;
 		}

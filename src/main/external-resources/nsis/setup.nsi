@@ -83,8 +83,10 @@ Function LockedListShow
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
 		LockedList::AddModule "$INSTDIR\MediaInfo64.dll"
+		LockedList::AddModule "$INSTDIR\win32\MediaInfo64.dll"
 	${Else}
 		LockedList::AddModule "$INSTDIR\MediaInfo.dll"
+		LockedList::AddModule "$INSTDIR\win32\MediaInfo64.dll"
 	${EndIf}
 
 	LockedList::Dialog /autonext /autoclosesilent
@@ -211,16 +213,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x64"
-		File /r /x "ffmpeg.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre8-x64 jre8
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x64"
+		File /r /x "ffmpeg.exe" /x "MediaInfo.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre${PROJECT_JRE_VERSION}-x64 jre${PROJECT_JRE_VERSION}
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x86"
-		File /r /x "ffmpeg64.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre8-x86 jre8
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x86"
+		File /r /x "ffmpeg64.exe" /x "MediaInfo64.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp"  "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre${PROJECT_JRE_VERSION}-x86 jre${PROJECT_JRE_VERSION}
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -228,13 +230,6 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
 
-	${If} ${RunningX64}
-		File "${PROJECT_BASEDIR}\MediaInfo64.dll"
-	${Else}
-		File "${PROJECT_BASEDIR}\MediaInfo.dll"
-	${EndIf}
-
-	File "${PROJECT_BASEDIR}\MediaInfo-License.html"
 	File "${PROJECT_BASEDIR}\CHANGELOG.txt"
 	File "${PROJECT_BASEDIR}\README.md"
 	File "${PROJECT_BASEDIR}\LICENSE.txt"
@@ -244,14 +239,19 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
-	SetOutPath "$INSTDIR\win32\service"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
-
 	SetOutPath "$INSTDIR\win32"
+	${If} ${RunningX64}
+		File /r /x "wrapper.exe" /x "wrapper.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+		Rename "service\wrapper-x64.exe" "service\wrapper.exe"
+		Rename "service\wrapper-x64.dll" "service\wrapper.dll"
+	${Else}
+		File /r /x "wrapper-x64.exe" /x "wrapper-x64.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+	${EndIf}
+
 	File "${PROJECT_BASEDIR}\src\main\external-resources\lib\ctrlsender\ctrlsender.exe"
 	${GetWindowsVersion} $R0
 	${If} $R0 == "XP"
-		File /r "${PROJECT_BASEDIR}\src\main\external-resources\lib\winxp"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\winxp"
 	${EndIf}
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
@@ -341,6 +341,8 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre17-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre17-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
@@ -380,8 +382,8 @@ Section "Program Files"
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	; Add firewall rules
-	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre8\bin\java.exe" enable=yes profile=public,private'
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre8\bin\javaw.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -414,15 +416,17 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
 	; Old folders
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\jre15"
+	RMDir /R /REBOOTOK "$INSTDIR\jre17"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
@@ -672,13 +676,14 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\UMS.bat"
 	Delete /REBOOTOK "$INSTDIR\ums.jar"
 
+	; Old MediaInfo files
 	${If} ${RunningX64}
 		Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
 	${Else}
 		Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
 	${EndIf}
-
 	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
+
 	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
 	Delete /REBOOTOK "$INSTDIR\README.md"
@@ -707,6 +712,13 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'

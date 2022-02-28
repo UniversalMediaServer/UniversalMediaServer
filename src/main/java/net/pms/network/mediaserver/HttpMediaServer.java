@@ -21,45 +21,34 @@ package net.pms.network.mediaserver;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.nettyserver.NettyServer;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class HttpMediaServer {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	protected final int port;
 
 	protected String hostname;
-	protected InetAddress iafinal;
-	protected NetworkInterface networkInterface;
+	protected InetAddress serverInetAddress;
+	protected int localPort = 0;
+	protected boolean isSecure = false;
 
-	public HttpMediaServer(int port) {
+	public HttpMediaServer(InetAddress inetAddress, int port) {
+		this.serverInetAddress = inetAddress;
 		this.port = port;
-		hostname = CONFIGURATION.getServerHostname();
-	}
-
-	public String getURL() {
-		return "http://" + hostname + ":" + port;
-	}
-
-	public String getHost() {
-		return hostname;
+		hostname = serverInetAddress.getHostAddress();
 	}
 
 	public int getPort() {
-		return port;
+		return localPort != 0 ? localPort : port;
 	}
 
-	public boolean start() throws IOException {
-		return true;
+	public boolean isHTTPS() {
+		return isSecure;
 	}
+
+	public abstract boolean start() throws IOException;
 
 	// avoid a NPE when a) switching HTTP Engine versions and b) restarting the HTTP server
 	// by cleaning up based on what's in use (not null) rather than the config state, which
@@ -67,54 +56,6 @@ public abstract class HttpMediaServer {
 	//
 	// NOTE: there's little in the way of cleanup to do here as PMS.reset() discards the old
 	// server and creates a new one
-	public void stop() {
-	}
-
-	public NetworkInterface getNetworkInterface()  {
-		return networkInterface;
-	}
-
-	protected InetSocketAddress getSocketAddress() throws IOException {
-		hostname = CONFIGURATION.getServerHostname();
-		InetSocketAddress address;
-
-		if (StringUtils.isNotBlank(hostname)) {
-			LOGGER.info("Using forced address " + hostname);
-			InetAddress tempIA = InetAddress.getByName(hostname);
-
-			if (tempIA != null && networkInterface != null && networkInterface.equals(NetworkInterface.getByInetAddress(tempIA))) {
-				address = new InetSocketAddress(tempIA, port);
-			} else {
-				address = new InetSocketAddress(hostname, port);
-			}
-		} else if (isAddressFromInterfaceFound(CONFIGURATION.getNetworkInterface())) { // XXX sets iafinal and networkInterface
-			LOGGER.info("Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
-			address = new InetSocketAddress(iafinal, port);
-		} else {
-			LOGGER.info("Using localhost address");
-			address = new InetSocketAddress(port);
-		}
-
-		LOGGER.info("Created socket: {}", address);
-		return address;
-	}
-
-	// XXX this sets iafinal and networkInterface
-	private boolean isAddressFromInterfaceFound(String networkInterfaceName) {
-		NetworkConfiguration.InterfaceAssociation ia = StringUtils.isNotEmpty(networkInterfaceName) ?
-			NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(networkInterfaceName) :
-			null;
-
-		if (ia == null) {
-			ia = NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
-		}
-
-		if (ia != null) {
-			iafinal = ia.getAddr();
-			networkInterface = ia.getIface();
-		}
-
-		return ia != null;
-	}
+	public abstract void stop();
 
 }
