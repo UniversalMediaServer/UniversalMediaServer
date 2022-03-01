@@ -32,28 +32,11 @@ public class VirtualFolderDbId extends VirtualFolder {
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 	}
 
-	/**
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = new StringBuilder(MediaServer.getURL());
-		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
-		if (profile != null) {
-			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
-				sb.append("JPEG_RES").append(profile.getH()).append("x");
-				sb.append(profile.getV()).append("_");
-			} else {
-				sb.append(profile).append("_");
-			}
-		}
-		sb.append(encode(typeIdent.ident)).append(".");
-		if (profile != null) {
-			sb.append(profile.getDefaultExtension());
-		} else {
-			LOG.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
-		}
-		return sb.toString();
+	public String getSystemName() {
+		return this.typeIdent.ident;
 	}
-*/
+
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(typeIdent.ident);
