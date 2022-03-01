@@ -2479,6 +2479,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mov";
 						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f webm")) {
 							transcodedExtension = "_transcoded_to.webm";
+						} else if (mediaRenderer.isTranscodeToHLS()) {
+							transcodedExtension = "_transcoded_to.m3u8";
 						} else if (mediaRenderer.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
@@ -4320,7 +4322,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param splitRange The time range to set.
 	 * @since 1.50
 	 */
-	protected void setSplitRange(Range.Time splitRange) {
+	public void setSplitRange(Range.Time splitRange) {
 		this.splitRange = splitRange;
 	}
 

@@ -1337,6 +1337,9 @@ public class DLNAMediaInfo implements Cloneable {
 				case FormatConfiguration.MPEGTS:
 					mimeType = HTTPResource.MPEGTS_TYPEMIME;
 					break;
+				case FormatConfiguration.MPEGTS_HLS:
+					mimeType = HTTPResource.HLS_TYPEMIME;
+					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
 					break;

@@ -1,8 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server, for streaming any media to DLNA
+ * compatible renderers based on the http://www.ps3mediaserver.org.
+ * Copyright (C) 2012 UMS developers.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -92,6 +93,7 @@ public class HTTPResource {
 	public static final String DIVX_TYPEMIME = "video/x-divx";
 	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
+	public static final String HLS_TYPEMIME = "application/x-mpegURL";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
 	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
@@ -99,6 +101,7 @@ public class HTTPResource {
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
+	public static final String MPEGTS_BYTESTREAM_TYPEMIME = "video/MP2T";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";

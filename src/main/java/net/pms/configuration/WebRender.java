@@ -122,6 +122,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
+		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
 		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
@@ -131,6 +132,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
+		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AC3);
 		return true;
 	}
 
@@ -273,12 +275,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
+		return HTTPResource.HLS_TYPEMIME;
+		/*
 		if (browser == CHROME) {
 			return HTTPResource.WEBM_TYPEMIME;
 		} else if (browser == FIREFOX) {
 			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
+		*/
 	}
 
 	@Override
@@ -323,6 +328,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						case HTTPResource.WEBM_TYPEMIME:
 							ffWebmCmd(cmdList);
 							break;
+						case HTTPResource.HLS_TYPEMIME:
+							return false;
 					default:
 						break;
 					}

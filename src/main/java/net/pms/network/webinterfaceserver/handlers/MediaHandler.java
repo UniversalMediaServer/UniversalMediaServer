@@ -27,12 +27,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.HlsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
+import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
@@ -81,6 +83,10 @@ public class MediaHandler implements HttpHandler {
 			}
 			String id = WebInterfaceServerUtil.getId(path, httpExchange);
 			id = WebInterfaceServerUtil.strip(id);
+			if (id.contains("/hls/")) {
+				//clean for hls
+				id = id.substring(0, id.indexOf("/hls/"));
+			}
 			RendererConfiguration defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
@@ -141,7 +147,51 @@ public class MediaHandler implements HttpHandler {
 				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
-
+			if (HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+				String uri = WebInterfaceServerUtil.getId(path, httpExchange);
+				if (uri.endsWith(".ts")) {
+				//we need to stream
+					String rendition = uri.substring(uri.indexOf("/hls/") + 5);
+					rendition = rendition.substring(0, rendition.indexOf("/"));
+					//here we need to set rendition to renderer
+					HlsConfiguration hlsConfiguration = HlsConfiguration.valueOf(rendition);
+					if (hlsConfiguration != null) {
+						defaultRenderer.setHlsConfiguration(hlsConfiguration);
+					}
+					String positionStr = uri.substring(uri.lastIndexOf("/") + 1);
+					positionStr = positionStr.replace(".ts", "");
+					//set range
+					int position = 0;
+					try {
+						position = Integer.parseInt(positionStr);
+					} catch (NumberFormatException es) {
+						//here, we fail
+					}
+					Double askedStart =  Double.valueOf(position) * 10;
+					Range.Time range = new Range.Time(askedStart, askedStart + 10);
+					root.setSplitRange(range);
+					InputStream in = resource.getInputStream(range, defaultRenderer);
+					Headers headers2 = httpExchange.getResponseHeaders();
+					headers2.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+					headers2.add("Server", PMS.get().getServerName());
+					headers2.add("Connection", "keep-alive");
+					httpExchange.sendResponseHeaders(200, 0);
+					OutputStream os2 = httpExchange.getResponseBody();
+					WebInterfaceServerUtil.dump(in, os2);
+					return;
+				} else {
+					if (uri.contains("/hls/")) {
+						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
+						rendition = rendition.replace(".m3u8", "");
+						String response = HlsConfiguration.getHLSm3u8ForRendition(resource, "/media/", rendition);
+						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+					} else {
+						String response = HlsConfiguration.getHLSm3u8(resource, "/media/");
+						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+					}
+					return;
+				}
+			}
 			media.setMimeType(mimeType);
 			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);

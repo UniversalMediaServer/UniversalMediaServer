@@ -144,7 +144,9 @@ public class FFMpegVideo extends Player {
 				!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
-		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+		if (renderer.getHlsConfiguration() != null) {
+			scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getHlsConfiguration().resolutionWidth, renderer.getHlsConfiguration().resolutionHeight));
+		} else if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
 			if (media.is3dFullSbsOrOu()) {
 				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
@@ -441,6 +443,25 @@ public class FFMpegVideo extends Player {
 						}
 						transcodeOptions.add("-tune");
 						transcodeOptions.add("zerolatency");
+					}
+					if (renderer.isTranscodeToHLS()) {
+						//here we can have the requested HlsConfiguration with renderer.getHlsConfiguration().
+						transcodeOptions.add("-flags");
+						transcodeOptions.add("+cgop");
+						transcodeOptions.add("-keyint_min");
+						transcodeOptions.add("48");
+						transcodeOptions.add("-sc_threshold");
+						transcodeOptions.add("-0");
+						transcodeOptions.add("-copyts");
+						transcodeOptions.add("-metadata");
+						transcodeOptions.add("service_provider=\"UMS\"");
+						transcodeOptions.add("-metadata");
+						transcodeOptions.add("service_name=\"" + dlna.getDisplayName() + "\"");
+						//transcodeOptions.add("-start_at_zero");
+						transcodeOptions.add("-muxpreload");
+						transcodeOptions.add("0");
+						transcodeOptions.add("-muxdelay");
+						transcodeOptions.add("0");
 					}
 					if (!customFFmpegOptions.contains("-preset")) {
 						transcodeOptions.add("-preset");

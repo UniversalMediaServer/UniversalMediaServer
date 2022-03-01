@@ -18,8 +18,9 @@
 		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" type="text/css">
 
 		{{^isNativeAudio}}
-			<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
-			<script src="/files/util/video-js/video.min.js"></script>
+			<!--Use not minified to debug-->
+			<link href="/files/util/video-js/video-js.css" type="text/css" rel="stylesheet">
+			<script src="/files/util/video-js/video.js"></script>
 		{{/isNativeAudio}}
 
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
@@ -188,9 +189,11 @@
 
 				function status(k, v, wait) {
 					//console.log('status '+JSON.stringify(arguments));
-					state[k] = v;
-					if (! wait) {
-						$.post('/playerstatus/', JSON.stringify(state));
+					if (state[k] != v) {
+						state[k] = v;
+						if (! wait) {
+							$.post('/playerstatus/', JSON.stringify(state));
+						}
 					}
 				}
 
@@ -202,7 +205,8 @@
 				player.addEventListener('playing', function(){status('playback', 'PLAYING');});
 				player.addEventListener('play', function(){status('playback', 'PLAYING');});
 				player.addEventListener('pause', function(){status('playback', 'PAUSED');});
-				player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+				player.addEventListener('dispose', function(){status('playback', 'STOPPED');});
+				player.addEventListener('abort', function(){status('playback', 'STOPPED');});
 				player.addEventListener('ended', function(){status('playback', 'STOPPED');});
 				player.addEventListener('error', function(){status('playback', 'STOPPED');});
 				player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
@@ -210,7 +214,7 @@
 				{{#autoContinue}}
 					player.addEventListener('ended', next, false);
 				{{/autoContinue}}
-				window.onbeforeunload = function(){status('playback','STOPPED');}
+				window.addEventListener("beforeunload", function(){status('playback', 'STOPPED');});
 				// Send initial status
 				volumeStatus();
 

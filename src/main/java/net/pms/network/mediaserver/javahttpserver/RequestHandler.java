@@ -55,6 +55,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
+import net.pms.configuration.HlsConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
@@ -82,6 +83,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
+import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -419,9 +421,46 @@ public class RequestHandler implements HttpHandler {
 			if (exchange.getRequestHeaders().containsKey("getcontentfeatures.dlna.org")) {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
-
 			// DLNAresource was found.
-			if (fileName.startsWith("thumbnail0000")) {
+			if (fileName.startsWith("hls/")) {
+				//HLS
+				if (fileName.endsWith(".m3u8")) {
+					String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+					if (HlsConfiguration.valueOf(rendition) != null) {
+						sendResponse(exchange, renderer, 200, HlsConfiguration.getHLSm3u8ForRendition(dlna, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
+						return;
+					}
+				} else if (fileName.endsWith(".ts")) {
+					//we need to stream
+					String rendition = uri.substring(uri.indexOf("/hls/") + 5);
+					rendition = rendition.substring(0, rendition.indexOf("/"));
+					//here we need to set rendition to renderer
+					HlsConfiguration hlsConfiguration = HlsConfiguration.valueOf(rendition);
+					if (hlsConfiguration != null) {
+						renderer.setHlsConfiguration(hlsConfiguration);
+					}
+					String positionStr = uri.substring(uri.lastIndexOf("/") + 1);
+					positionStr = positionStr.replace(".ts", "");
+					//set range
+					int position = 0;
+					try {
+						position = Integer.parseInt(positionStr);
+					} catch (NumberFormatException es) {
+						//here, we fail
+					}
+					Double askedStart =  Double.valueOf(position) * 10;
+					Range.Time trange = new Range.Time(askedStart, askedStart + 10);
+					dlna.setSplitRange(trange);
+					inputStream = dlna.getInputStream(trange, renderer);
+					exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+					sendResponse(exchange, renderer, 200, inputStream);
+					return;
+				}
+			} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+				//HLS
+				sendResponse(exchange, renderer, 200, HlsConfiguration.getHLSm3u8(dlna, "/get/"), HTTPResource.HLS_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("thumbnail0000")) {
 				// This is a request for a thumbnail file.
 				DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 				exchange.getResponseHeaders().set("Content-Type", imageProfile.getMimeType().toString());
