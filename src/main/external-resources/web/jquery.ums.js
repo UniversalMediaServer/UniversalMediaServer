@@ -504,17 +504,17 @@ function populateMetadataDisplayFromGlobalVars() {
 		// Set a logo as the heading
 		if (images[0].logos && images[0].logos[0]) {
 			// TODO: Support i18n for logos
-			var logos = _.pickBy(images[0].logos, (logo) => {
+			var logos = _.pickBy(images[0].logos, function(logo) {
 				return logo.iso_639_1 === null || logo.iso_639_1 === 'en';
 			});
-			var randomIndex = Math.floor(Math.random() * logos.length);
-			var randomLogo = logos[randomIndex];
+			var logo = logos[0];
 
 			var logoImagePreCreation = new Image();
 			logoImagePreCreation.crossOrigin = '';
 			logoImagePreCreation.id = 'logo';
 			logoImagePreCreation.style.maxHeight = '150px';
-			logoImagePreCreation.src = imageBaseURL + 'w500' + randomLogo.file_path;
+			logoImagePreCreation.style.maxWidth = '500px';
+			logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
 			$('h1').html(logoImagePreCreation);
 		}
 	}

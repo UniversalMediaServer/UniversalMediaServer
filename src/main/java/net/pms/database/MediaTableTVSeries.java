@@ -52,7 +52,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * The columns we added from TMDB in V11
 	 */
 	private static final String TMDB_COLUMNS = "CREATEDBY, CREDITS, EXTERNALIDS, FIRSTAIRDATE, HOMEPAGE, IMAGES, INPRODUCTION, LANGUAGES, LASTAIRDATE, NETWORKS, NUMBEROFEPISODES, NUMBEROFSEASONS, ORIGINCOUNTRY, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, SEASONS, SERIESTYPE, SPOKENLANGUAGES, STATUS, TAGLINE";
-	private static final String TMDB_COLUMNS_PLACEHOLDERS = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+	private static final String TMDB_COLUMNS_PLACEHOLDERS = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -279,7 +279,9 @@ public final class MediaTableTVSeries extends MediaTable {
 								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
 
 								// TMDB data, since v11
-								insertStatement.setString(11, (String) tvSeries.get("createdBy"));
+								if (tvSeries.get("createdBy") != null) {
+									insertStatement.setString(11, StringUtils.join(tvSeries.get("createdBy"), ","));
+								}
 								insertStatement.setString(12, (String) tvSeries.get("credits"));
 								insertStatement.setString(13, (String) tvSeries.get("externalIDs"));
 								insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
@@ -294,13 +296,13 @@ public final class MediaTableTVSeries extends MediaTable {
 								insertStatement.setString(23, (String) tvSeries.get("originCountry"));
 								insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
 								insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
-								insertStatement.setString(27, (String) tvSeries.get("productionCompanies"));
-								insertStatement.setString(28, (String) tvSeries.get("productionCountries"));
-								insertStatement.setString(29, (String) tvSeries.get("seasons"));
-								insertStatement.setString(30, (String) tvSeries.get("seriesType"));
-								insertStatement.setString(31, (String) tvSeries.get("spokenLanguages"));
-								insertStatement.setString(32, (String) tvSeries.get("status"));
-								insertStatement.setString(33, (String) tvSeries.get("tagline"));
+								insertStatement.setString(26, (String) tvSeries.get("productionCompanies"));
+								insertStatement.setString(27, (String) tvSeries.get("productionCountries"));
+								insertStatement.setString(28, (String) tvSeries.get("seasons"));
+								insertStatement.setString(29, (String) tvSeries.get("seriesType"));
+								insertStatement.setString(30, (String) tvSeries.get("spokenLanguages"));
+								insertStatement.setString(31, (String) tvSeries.get("status"));
+								insertStatement.setString(32, (String) tvSeries.get("tagline"));
 							}
 							insertStatement.executeUpdate();
 

@@ -445,7 +445,7 @@ public class APIUtils {
 
 				if (CONFIGURATION.getUseCache()) {
 					LOGGER.trace("setting metadata for " + file.getName());
-					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
+					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, metadataFromAPI);
 
 					if (media.getThumb() != null) {
 						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1);
