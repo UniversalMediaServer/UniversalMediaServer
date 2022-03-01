@@ -191,7 +191,7 @@ public class DbIdResourceLocator {
 							}
 							break;
 						case TYPE_MYMUSIC_ALBUM:
-							sql = "Select mbid_release, Album, Artist, media_year from MUSIC_BRAINZ_RELEASE_LIKE as m left join AUDIOTRACKS as a on m.mbid_release = A.mbid_record;";
+							sql = "Select mbid_release, Album, Artist, media_year from MUSIC_BRAINZ_RELEASE_LIKE as m join AUDIOTRACKS as a on m.mbid_release = A.mbid_record;";
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
 							}
