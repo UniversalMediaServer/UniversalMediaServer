@@ -3927,7 +3927,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
 						if (connection != null) {
+							connection.setAutoCommit(false);
 							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), media);
+							connection.commit();
 						}
 					} catch (SQLException e) {
 						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
@@ -5057,8 +5059,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			Connection connection = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
-				if (!MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
+				if (connection != null && !MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
+					connection.setAutoCommit(false);
 					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
+					connection.commit();
 				}
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());

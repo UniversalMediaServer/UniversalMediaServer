@@ -216,22 +216,20 @@ public final class MediaTableFailedLookups extends MediaTable {
 				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-						result.updateString("VERSION", left(latestVersion, 1024));
-						result.updateRow();
-					} else {
-						result.moveToInsertRow();
-						result.updateString("FILENAME", left(fullPathToFile, 1024));
-						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-						result.updateString("VERSION", left(latestVersion, 1024));
-						result.insertRow();
-					}
-				} finally {
-					connection.commit();
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				if (result.next()) {
+					result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+					result.updateString("VERSION", left(latestVersion, 1024));
+					result.updateRow();
+				} else {
+					result.moveToInsertRow();
+					result.updateString("FILENAME", left(fullPathToFile, 1024));
+					result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+					result.updateString("VERSION", left(latestVersion, 1024));
+					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {
