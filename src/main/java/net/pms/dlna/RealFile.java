@@ -224,6 +224,7 @@ public class RealFile extends MapFile {
 				if (configuration.getUseCache()) {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
+						connection.setAutoCommit(false);
 						DLNAMediaInfo media;
 						try {
 							media = MediaTableFiles.getData(connection, fileName, file.lastModified());
@@ -263,41 +264,43 @@ public class RealFile extends MapFile {
 						getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 					}
 
-					if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
-						if (connection != null) {
-							try {
-								/*
-								 * Even though subtitles will be resolved later in
-								 * DLNAResource.syncResolve, we must make sure that
-								 * they are resolved before insertion into the
-								 * database
-								 */
-								if (getMedia() != null && getMedia().isVideo()) {
-									registerExternalSubtitles(false);
+					if (configuration.getUseCache() && connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
+						try {
+							/*
+								* Even though subtitles will be resolved later in
+								* DLNAResource.syncResolve, we must make sure that
+								* they are resolved before insertion into the
+								* database
+								*/
+							if (getMedia() != null && getMedia().isVideo()) {
+								registerExternalSubtitles(false);
+							}
+							MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), getMedia());
+						} catch (SQLException e) {
+							LOGGER.error(
+								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+								fileName,
+								e.getMessage());
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("SQL error code: {}", e.getErrorCode());
+								if (
+									e.getCause() instanceof SQLException &&
+									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+								) {
+									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
 								}
-								MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), getMedia());
-							} catch (SQLException e) {
-								LOGGER.error(
-									"Database error while trying to add parsed information for \"{}\" to the cache: {}",
-									fileName,
-									e.getMessage());
-								if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace("SQL error code: {}", e.getErrorCode());
-									if (
-										e.getCause() instanceof SQLException &&
-										((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
-									) {
-										LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-									}
-									LOGGER.trace("", e);
-								}
+								LOGGER.trace("", e);
 							}
 						}
 					}
 				}
+				connection.commit();
 				if (getMedia() != null && getMedia().isSLS()) {
 					setFormat(getMedia().getAudioVariantFormat());
 				}
+			} catch (SQLException e) {
+				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
+				LOGGER.trace("", e);
 			} finally {
 				MediaDatabase.close(connection);
 			}
