@@ -155,39 +155,37 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						if (cover != null || result.getBlob("COVER") == null) {
-							if (trace) {
-								LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
-							}
-							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							if (cover != null) {
-								result.updateBinaryStream("COVER", cover);
-							} else {
-								result.updateNull("COVER");
-							}
-							result.updateRow();
-						} else if (trace) {
-							LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
-						}
-					} else {
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				if (result.next()) {
+					if (cover != null || result.getBlob("COVER") == null) {
 						if (trace) {
-							LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
+							LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
 						}
-
-						result.moveToInsertRow();
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateString("MBID", mBID);
 						if (cover != null) {
 							result.updateBinaryStream("COVER", cover);
+						} else {
+							result.updateNull("COVER");
 						}
-						result.insertRow();
+						result.updateRow();
+					} else if (trace) {
+						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
 					}
-				} finally {
-					connection.commit();
+				} else {
+					if (trace) {
+						LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
+					}
+
+					result.moveToInsertRow();
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateString("MBID", mBID);
+					if (cover != null) {
+						result.updateBinaryStream("COVER", cover);
+					}
+					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {
