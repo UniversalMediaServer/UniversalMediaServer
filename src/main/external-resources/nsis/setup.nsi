@@ -333,6 +333,14 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
@@ -540,6 +548,11 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-0.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-1.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-2.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-3.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
@@ -694,6 +707,13 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'

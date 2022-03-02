@@ -254,42 +254,40 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
-							if (trace) {
-								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
-							}
-						} else {
-							if (trace) {
-								LOGGER.trace(
-									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
-									fullPathToFile,
-									isFullyPlayed
-								);
-							}
-							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-							result.updateRow();
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				if (result.next()) {
+					if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
+						if (trace) {
+							LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
 						}
 					} else {
 						if (trace) {
 							LOGGER.trace(
-								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
+								"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
 								fullPathToFile,
 								isFullyPlayed
 							);
 						}
-						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-						result.insertRow();
+						result.updateRow();
 					}
-				} finally {
-					connection.commit();
+				} else {
+					if (trace) {
+						LOGGER.trace(
+							"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
+							fullPathToFile,
+							isFullyPlayed
+						);
+					}
+					result.moveToInsertRow();
+					result.updateString("FILENAME", fullPathToFile);
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
+					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {
@@ -315,35 +313,33 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					int playCount = 0;
-					boolean isCreatingNewRecord = false;
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				int playCount = 0;
+				boolean isCreatingNewRecord = false;
 
-					if (result.next()) {
-						playCount = result.getInt("PLAYCOUNT");
-					} else {
-						isCreatingNewRecord = true;
-						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
-					}
-					playCount++;
+				if (result.next()) {
+					playCount = result.getInt("PLAYCOUNT");
+				} else {
+					isCreatingNewRecord = true;
+					result.moveToInsertRow();
+					result.updateString("FILENAME", fullPathToFile);
+				}
+				playCount++;
 
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
-					result.updateInt("PLAYCOUNT", playCount);
-					if (lastPlaybackPosition != null) {
-						result.updateDouble("LASTPLAYBACKPOSITION", lastPlaybackPosition);
-					}
+				result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+				result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
+				result.updateInt("PLAYCOUNT", playCount);
+				if (lastPlaybackPosition != null) {
+					result.updateDouble("LASTPLAYBACKPOSITION", lastPlaybackPosition);
+				}
 
-					if (isCreatingNewRecord) {
-						result.insertRow();
-					} else {
-						result.updateRow();
-					}
-				} finally {
-					connection.commit();
+				if (isCreatingNewRecord) {
+					result.insertRow();
+				} else {
+					result.updateRow();
 				}
 			}
 		} catch (SQLException e) {
@@ -484,29 +480,27 @@ public final class MediaTableFilesStatus extends MediaTable {
 				LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateInt("BOOKMARK", bookmark);
-						result.updateRow();
-						if (trace) {
-							LOGGER.trace("Updating existing bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
-						}
-					} else {
-						result.moveToInsertRow();
-						result.updateString("FILENAME", fullPathToFile);
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateBoolean("ISFULLYPLAYED", false);
-						result.updateInt("BOOKMARK", bookmark);
-						result.insertRow();
-						if (trace) {
-							LOGGER.trace("Inserting bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
-						}
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				if (result.next()) {
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateInt("BOOKMARK", bookmark);
+					result.updateRow();
+					if (trace) {
+						LOGGER.trace("Updating existing bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
 					}
-				} finally {
-					connection.commit();
+				} else {
+					result.moveToInsertRow();
+					result.updateString("FILENAME", fullPathToFile);
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateBoolean("ISFULLYPLAYED", false);
+					result.updateInt("BOOKMARK", bookmark);
+					result.insertRow();
+					if (trace) {
+						LOGGER.trace("Inserting bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+					}
 				}
 			}
 		} catch (SQLException e) {

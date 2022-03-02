@@ -675,7 +675,6 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
 		try {
-			connection.setAutoCommit(false);
 			long fileId = -1;
 			try (PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
@@ -882,8 +881,6 @@ public class MediaTableFiles extends MediaTable {
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 			}
-
-			connection.commit();
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {
 				throw new SQLException(String.format(
@@ -941,17 +938,18 @@ public class MediaTableFiles extends MediaTable {
 			return;
 		}
 
-		connection.setAutoCommit(false);
-		try (PreparedStatement ps = connection.prepareStatement(
-			"SELECT " +
-				"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
-			"FROM " + TABLE_NAME + " " +
-			"WHERE " +
-				"FILENAME = ? AND MODIFIED = ? " +
-			"LIMIT 1",
-			ResultSet.TYPE_FORWARD_ONLY,
-			ResultSet.CONCUR_UPDATABLE
-		)) {
+		try (
+			PreparedStatement ps = connection.prepareStatement(
+				"SELECT " +
+					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
+				"FROM " + TABLE_NAME + " " +
+				"WHERE " +
+					"FILENAME = ? AND MODIFIED = ? " +
+				"LIMIT 1",
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_UPDATABLE
+			)
+		) {
 			ps.setString(1, path);
 			ps.setTimestamp(2, new Timestamp(modified));
 			try (ResultSet rs = ps.executeQuery()) {
@@ -972,7 +970,6 @@ public class MediaTableFiles extends MediaTable {
 					return;
 				}
 			}
-			connection.commit();
 		}
 	}
 

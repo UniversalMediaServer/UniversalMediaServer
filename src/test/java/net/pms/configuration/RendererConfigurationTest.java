@@ -348,6 +348,51 @@ public class RendererConfigurationTest {
 			"FriendlyName.DLNA.ORG: XboxOne",
 			"User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411"
 		);
+
+		testUPNPDetails(
+			"Samsung 2021 QLED TV",
+			"modelName=QE50QN90AATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 QLED TV",
+			"modelName=QE75Q80AATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE85Q60AAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=UE75AU9005KXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE50Q70AAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=UE75AU7105KXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=QN32Q60AAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=LH85BEAHLGUXEN"
+		);
+		testUPNPDetails(
+			"Samsung 2021 Q5",
+			"modelName=QN32Q50AAFXZC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 NEO QLED TV 8K",
+			"modelName=QE65QN900ATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 NEO QLED TV 8K",
+			"modelName=QE85QN800ATXXC"
+		);
 	}
 
 	/**
