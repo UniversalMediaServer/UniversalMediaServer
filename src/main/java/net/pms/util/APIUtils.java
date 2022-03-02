@@ -272,6 +272,9 @@ public class APIUtils {
 				if (connection == null) {
 					return;
 				}
+
+				connection.setAutoCommit(false);
+
 				if (MediaTableFiles.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
 					LOGGER.trace("The latest metadata already exists for {}", file.getName());
 					return;
@@ -473,6 +476,7 @@ public class APIUtils {
 					}
 					MediaTableVideoMetadataReleased.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
+				connection.commit();
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {

@@ -233,90 +233,88 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Searching in " + TABLE_NAME + " with \"{}\" before set", query);
 			}
 
-			try (PreparedStatement selectStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = selectStatement.executeQuery()) {
-					if (result.next()) {
-						if (trace) {
-							LOGGER.trace("Found entry in " + TABLE_NAME);
-						}
-						return result.getLong("ID");
+			try (
+				PreparedStatement selectStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = selectStatement.executeQuery()
+			) {
+				if (result.next()) {
+					if (trace) {
+						LOGGER.trace("Found entry in " + TABLE_NAME);
+					}
+					return result.getLong("ID");
+				} else {
+					if (trace) {
+						LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", simplifiedTitle);
+					}
+
+					String insertQuery;
+					if (seriesName != null) {
+						insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 					} else {
-						if (trace) {
-							LOGGER.trace("Entry \"{}\" not found in " + TABLE_NAME + ", inserting", simplifiedTitle);
-						}
-
-						String insertQuery;
+						insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
+							"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION, " + TMDB_COLUMNS +
+						") VALUES (" +
+							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + TMDB_COLUMNS_PLACEHOLDERS +
+						")";
+					}
+					try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
 						if (seriesName != null) {
-							insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
+							insertStatement.setString(1, simplifiedTitle);
+							insertStatement.setString(2, seriesName);
 						} else {
-							insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-								"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION, " + TMDB_COLUMNS +
-							") VALUES (" +
-								"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + TMDB_COLUMNS_PLACEHOLDERS +
-							")";
-						}
-						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
-							if (seriesName != null) {
-								insertStatement.setString(1, simplifiedTitle);
-								insertStatement.setString(2, seriesName);
+							insertStatement.setString(1, (String) tvSeries.get("endYear"));
+							insertStatement.setString(2, (String) tvSeries.get("imdbID"));
+							insertStatement.setString(3, (String) tvSeries.get("plot"));
+							insertStatement.setString(4, simplifiedTitle);
+							insertStatement.setString(5, (String) tvSeries.get("startYear"));
+							insertStatement.setString(6, (String) tvSeries.get("title"));
+
+							if (tvSeries.get("totalSeasons") != null) {
+								insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
 							} else {
-								insertStatement.setString(1, (String) tvSeries.get("endYear"));
-								insertStatement.setString(2, (String) tvSeries.get("imdbID"));
-								insertStatement.setString(3, (String) tvSeries.get("plot"));
-								insertStatement.setString(4, simplifiedTitle);
-								insertStatement.setString(5, (String) tvSeries.get("startYear"));
-								insertStatement.setString(6, (String) tvSeries.get("title"));
-
-								if (tvSeries.get("totalSeasons") != null) {
-									insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
-								} else {
-									insertStatement.setDouble(7, 0.0);
-								}
-
-								insertStatement.setString(8, (String) tvSeries.get("votes"));
-								insertStatement.setString(9, (String) tvSeries.get("year"));
-								insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
-
-								// TMDB data, since v11
-								if (tvSeries.get("createdBy") != null) {
-									insertStatement.setString(11, StringUtils.join(tvSeries.get("createdBy"), ","));
-								}
-								insertStatement.setString(12, (String) tvSeries.get("credits"));
-								insertStatement.setString(13, (String) tvSeries.get("externalIDs"));
-								insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
-								insertStatement.setString(15, (String) tvSeries.get("homepage"));
-								insertStatement.setString(16, (String) tvSeries.get("images"));
-								insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
-								insertStatement.setString(18, (String) tvSeries.get("languages"));
-								insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
-								insertStatement.setString(20, (String) tvSeries.get("networks"));
-								insertStatement.setString(21, (String) tvSeries.get("numberOfEpisodes"));
-								insertStatement.setString(22, (String) tvSeries.get("numberOfSeasons"));
-								insertStatement.setString(23, (String) tvSeries.get("originCountry"));
-								insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
-								insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
-								insertStatement.setString(26, (String) tvSeries.get("productionCompanies"));
-								insertStatement.setString(27, (String) tvSeries.get("productionCountries"));
-								insertStatement.setString(28, (String) tvSeries.get("seasons"));
-								insertStatement.setString(29, (String) tvSeries.get("seriesType"));
-								insertStatement.setString(30, (String) tvSeries.get("spokenLanguages"));
-								insertStatement.setString(31, (String) tvSeries.get("status"));
-								insertStatement.setString(32, (String) tvSeries.get("tagline"));
+								insertStatement.setDouble(7, 0.0);
 							}
-							insertStatement.executeUpdate();
 
-							try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
-								if (generatedKeys.next()) {
-									return generatedKeys.getLong(1);
-								} else {
-									LOGGER.debug("Generated key not returned in " + TABLE_NAME);
-								}
+							insertStatement.setString(8, (String) tvSeries.get("votes"));
+							insertStatement.setString(9, (String) tvSeries.get("year"));
+							insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
+
+							// TMDB data, since v11
+							if (tvSeries.get("createdBy") != null) {
+								insertStatement.setString(11, StringUtils.join(tvSeries.get("createdBy"), ","));
+							}
+							insertStatement.setString(12, (String) tvSeries.get("credits"));
+							insertStatement.setString(13, (String) tvSeries.get("externalIDs"));
+							insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
+							insertStatement.setString(15, (String) tvSeries.get("homepage"));
+							insertStatement.setString(16, (String) tvSeries.get("images"));
+							insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
+							insertStatement.setString(18, (String) tvSeries.get("languages"));
+							insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
+							insertStatement.setString(20, (String) tvSeries.get("networks"));
+							insertStatement.setString(21, (String) tvSeries.get("numberOfEpisodes"));
+							insertStatement.setString(22, (String) tvSeries.get("numberOfSeasons"));
+							insertStatement.setString(23, (String) tvSeries.get("originCountry"));
+							insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
+							insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
+							insertStatement.setString(26, (String) tvSeries.get("productionCompanies"));
+							insertStatement.setString(27, (String) tvSeries.get("productionCountries"));
+							insertStatement.setString(28, (String) tvSeries.get("seasons"));
+							insertStatement.setString(29, (String) tvSeries.get("seriesType"));
+							insertStatement.setString(30, (String) tvSeries.get("spokenLanguages"));
+							insertStatement.setString(31, (String) tvSeries.get("status"));
+							insertStatement.setString(32, (String) tvSeries.get("tagline"));
+						}
+						insertStatement.executeUpdate();
+
+						try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
+							if (generatedKeys.next()) {
+								return generatedKeys.getLong(1);
+							} else {
+								LOGGER.debug("Generated key not returned in " + TABLE_NAME);
 							}
 						}
 					}
-				} finally {
-					connection.commit();
 				}
 			}
 		} catch (SQLException e) {
@@ -532,91 +530,89 @@ public final class MediaTableTVSeries extends MediaTable {
 		}
 		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
 
-		try {
-			connection.setAutoCommit(false);
-			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
-					"* " +
+		try (
+			PreparedStatement ps = connection.prepareStatement(
+				"SELECT * " +
 				"FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-				"WHERE " +
-					"SIMPLIFIEDTITLE = ?",
+				"WHERE SIMPLIFIEDTITLE = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
-			)) {
-				ps.setString(1, simplifiedTitle);
-				LOGGER.trace("Inserting API metadata for " + simplifiedTitle + ": " + tvSeries.toString());
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
-						rs.updateString("IMDBID", (String) tvSeries.get("imdbID"));
-						rs.updateString("PLOT", (String) tvSeries.get("plot"));
-						rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
-						rs.updateString("TITLE", (String) tvSeries.get("title"));
-						if (tvSeries.get("totalSeasons") != null) {
-							rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
-						}
-						rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
-						rs.updateString("VOTES", (String) tvSeries.get("votes"));
-						rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
-
-						if (tvSeries.get("createdBy") != null) {
-							rs.updateString("CREATEDBY", StringUtils.join(tvSeries.get("createdBy"), ","));
-						}
-						if (tvSeries.get("credits") != null) {
-							rs.updateString("CREDITS", StringUtils.join(tvSeries.get("credits"), ","));
-						}
-						if (tvSeries.get("externalIDs") != null) {
-							rs.updateString("EXTERNALIDS", StringUtils.join(tvSeries.get("externalIDs"), ","));
-						}
-						rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
-						rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
-						if (tvSeries.get("images") != null) {
-							String json = new Gson().toJson(tvSeries.get("images"));
-							rs.updateString("IMAGES", json);
-						}
-						if (tvSeries.get("inProduction") != null) {
-							rs.updateBoolean("INPRODUCTION", (Boolean) tvSeries.get("inProduction"));
-						}
-						if (tvSeries.get("languages") != null) {
-							rs.updateString("LANGUAGES", StringUtils.join(tvSeries.get("languages"), ","));
-						}
-						rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
-						if (tvSeries.get("networks") != null) {
-							rs.updateString("NETWORKS", StringUtils.join(tvSeries.get("networks"), ","));
-						}
-						if (tvSeries.get("numberOfEpisodes") != null) {
-							rs.updateString("NUMBEROFEPISODES", StringUtils.join(tvSeries.get("numberOfEpisodes"), ","));
-						}
-						if (tvSeries.get("numberOfSeasons") != null) {
-							rs.updateString("NUMBEROFSEASONS", StringUtils.join(tvSeries.get("numberOfSeasons"), ","));
-						}
-						if (tvSeries.get("originCountry") != null) {
-							rs.updateString("ORIGINCOUNTRY", StringUtils.join(tvSeries.get("originCountry"), ","));
-						}
-						rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
-						rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
-						if (tvSeries.get("productionCompanies") != null) {
-							rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(tvSeries.get("productionCompanies"), ","));
-						}
-						if (tvSeries.get("productionCountries") != null) {
-							rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(tvSeries.get("productionCountries"), ","));
-						}
-						if (tvSeries.get("seasons") != null) {
-							rs.updateString("SEASONS", StringUtils.join(tvSeries.get("seasons"), ","));
-						}
-						rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
-						if (tvSeries.get("spokenLanguages") != null) {
-							rs.updateString("SPOKENLANGUAGES", StringUtils.join(tvSeries.get("spokenLanguages"), ","));
-						}
-						rs.updateString("STATUS", (String) tvSeries.get("status"));
-						rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
-						rs.updateRow();
-					} else {
-						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
-						return;
+			)
+		) {
+			ps.setString(1, simplifiedTitle);
+			LOGGER.trace("Inserting API metadata for " + simplifiedTitle + ": " + tvSeries.toString());
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
+					rs.updateString("IMDBID", (String) tvSeries.get("imdbID"));
+					rs.updateString("PLOT", (String) tvSeries.get("plot"));
+					rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
+					rs.updateString("TITLE", (String) tvSeries.get("title"));
+					if (tvSeries.get("totalSeasons") != null) {
+						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
 					}
+					rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
+					rs.updateString("VOTES", (String) tvSeries.get("votes"));
+					rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
+
+          // TMDB columns added in V11
+					if (tvSeries.get("createdBy") != null) {
+						rs.updateString("CREATEDBY", StringUtils.join(tvSeries.get("createdBy"), ","));
+					}
+					if (tvSeries.get("credits") != null) {
+						rs.updateString("CREDITS", StringUtils.join(tvSeries.get("credits"), ","));
+					}
+					if (tvSeries.get("externalIDs") != null) {
+						rs.updateString("EXTERNALIDS", StringUtils.join(tvSeries.get("externalIDs"), ","));
+					}
+					rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
+					rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
+					if (tvSeries.get("images") != null) {
+						String json = new Gson().toJson(tvSeries.get("images"));
+						rs.updateString("IMAGES", json);
+					}
+					if (tvSeries.get("inProduction") != null) {
+						rs.updateBoolean("INPRODUCTION", (Boolean) tvSeries.get("inProduction"));
+					}
+					if (tvSeries.get("languages") != null) {
+						rs.updateString("LANGUAGES", StringUtils.join(tvSeries.get("languages"), ","));
+					}
+					rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
+					if (tvSeries.get("networks") != null) {
+						rs.updateString("NETWORKS", StringUtils.join(tvSeries.get("networks"), ","));
+					}
+					if (tvSeries.get("numberOfEpisodes") != null) {
+						rs.updateString("NUMBEROFEPISODES", StringUtils.join(tvSeries.get("numberOfEpisodes"), ","));
+					}
+					if (tvSeries.get("numberOfSeasons") != null) {
+						rs.updateString("NUMBEROFSEASONS", StringUtils.join(tvSeries.get("numberOfSeasons"), ","));
+					}
+					if (tvSeries.get("originCountry") != null) {
+						rs.updateString("ORIGINCOUNTRY", StringUtils.join(tvSeries.get("originCountry"), ","));
+					}
+					rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
+					rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
+					if (tvSeries.get("productionCompanies") != null) {
+						rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(tvSeries.get("productionCompanies"), ","));
+					}
+					if (tvSeries.get("productionCountries") != null) {
+						rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(tvSeries.get("productionCountries"), ","));
+					}
+					if (tvSeries.get("seasons") != null) {
+						rs.updateString("SEASONS", StringUtils.join(tvSeries.get("seasons"), ","));
+					}
+					rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
+					if (tvSeries.get("spokenLanguages") != null) {
+						rs.updateString("SPOKENLANGUAGES", StringUtils.join(tvSeries.get("spokenLanguages"), ","));
+					}
+					rs.updateString("STATUS", (String) tvSeries.get("status"));
+					rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
+					rs.updateRow();
+				} else {
+					LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
+					return;
 				}
 			}
-			connection.commit();
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting API data to TV series entry", simplifiedTitle, TABLE_NAME, e.getMessage());
 		}

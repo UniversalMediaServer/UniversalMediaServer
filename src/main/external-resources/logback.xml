@@ -41,20 +41,34 @@
 		</encoder>
 	</appender>
 
-	<!--
-		Appender for the default logfile that will keep the file growing in size
-		until UMS is restarted.
-	-->
-	<appender name="default.log" class="ch.qos.logback.core.FileAppender">
-		<!-- No threshold filtering, log everything the root logger allows -->
+	<appender name="default.log" class="net.pms.logging.UmsFileAppender">
 		<file>${logFilePath}${file.separator}${logFileName}</file>
-		<append>false</append>  <!-- Start new logfile on each application start -->
+		<rollingPolicy class="net.pms.logging.UmsRollingPolicy">
+		</rollingPolicy>
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>100MB</maxFileSize>
+		</triggeringPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<charset>UTF-8</charset>
 			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
 		</encoder>
 	</appender>
-
+	<!--
+		Appender for the default logfile that will keep the file growing in size
+		until UMS is restarted.
+	-->
+	<!-- No threshold filtering, log everything the root logger allows -->
+	<!-- Start new logfile on each application start -->
+	<!--
+	<appender name="default.log" class="ch.qos.logback.core.FileAppender">
+		<file>${logFilePath}${file.separator}${logFileName}</file>
+		<append>false</append>  
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %msg%n</pattern>
+		</encoder>
+	</appender>
+	-->
 	<!--
 		Appender for the default logfile that will roll the logfile after 10 MBytes
 		and will keep a maximum of 5 old and compressed logs.

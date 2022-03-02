@@ -25,13 +25,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.support.model.Protocol;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicComProfileName.KnownPanasonicComProfileName;
 import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
+import org.jupnp.support.model.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class handles a Panasonic DMP's {@link ProfileName}s from the custom

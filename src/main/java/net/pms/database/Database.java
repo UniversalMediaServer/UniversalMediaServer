@@ -156,6 +156,7 @@ public abstract class Database extends DatabaseHelper {
 	 */
 	@SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
 	public synchronized void init(boolean force) {
+		deleteDatabaseLock();
 		open();
 		switch (status) {
 			case OPENED:
@@ -293,6 +294,16 @@ public abstract class Database extends DatabaseHelper {
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Delete old database lock file used in previous versions.
+	 */
+	private void deleteDatabaseLock() {
+		final File dbLockFile = new File(dbDir + File.separator + dbName + ".lock.db");
+		if (dbLockFile.exists()) {
+			dbLockFile.delete();
 		}
 	}
 

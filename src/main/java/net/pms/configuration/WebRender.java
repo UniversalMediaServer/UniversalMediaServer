@@ -121,7 +121,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
 		}
 		gson = new Gson();
-		push = new ArrayList<>();
+		pushList = new ArrayList<>();
 	}
 
 	@Override
@@ -664,22 +664,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private final ArrayList<String[]> push;
+	private final ArrayList<String[]> pushList;
 
 	public void push(String... args) {
 		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
-			synchronized (push) {
-				push.add(args);
+			synchronized (pushList) {
+				pushList.add(args);
 			}
 		}
 	}
 
 	public String getPushData() {
 		String json = "{}";
-		synchronized (push) {
-			if (!push.isEmpty()) {
-				json = gson.toJson(push);
-				push.clear();
+		synchronized (pushList) {
+			if (!pushList.isEmpty()) {
+				json = gson.toJson(pushList);
+				pushList.clear();
 			}
 		}
 		return json;
@@ -691,12 +691,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "", ""}));
 			this.sse.close();
 		}
-		synchronized (push) {
+		synchronized (pushList) {
 			this.sse = sse;
 			//empty current push datas
-			while (!push.isEmpty() && this.sse != null && this.sse.isOpened()) {
-				if (this.sse.sendMessage(gson.toJson(push.get(0)))) {
-					push.remove(0);
+			while (!pushList.isEmpty() && this.sse != null && this.sse.isOpened()) {
+				if (this.sse.sendMessage(gson.toJson(pushList.get(0)))) {
+					pushList.remove(0);
 				}
 			}
 		}
@@ -812,7 +812,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			}
 		}
 
-		public void setData(String jsonData) {
+		public void setDataFromJson(String jsonData) {
 			data = gson.fromJson(jsonData, data.getClass());
 			String s = data.get("playback");
 			state.playback = "STOPPED".equals(s) ? STOPPED :

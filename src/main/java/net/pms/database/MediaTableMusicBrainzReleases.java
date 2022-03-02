@@ -252,67 +252,65 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					if (result.next()) {
-						if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
-							if (trace) {
-								LOGGER.trace("Updating row {} to MBID \"{}\"", result.getInt("ID"), mBID);
-							}
-							result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-							if (StringUtil.hasValue(mBID)) {
-								result.updateString("MBID", mBID);
-							} else {
-								result.updateNull("MBID");
-							}
-							result.updateRow();
-						} else if (trace) {
-							LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
-						}
-					} else {
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				if (result.next()) {
+					if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
 						if (trace) {
-							LOGGER.trace(
-								"Inserting new row for MBID \"{}\":\n" +
-								"     Artist    \"{}\"\n" +
-								"     Album     \"{}\"\n" +
-								"     Title     \"{}\"\n" +
-								"     Year      \"{}\"\n" +
-								"     Artist ID \"{}\"\n" +
-								"     Track ID  \"{}\"\n",
-								mBID, tagInfo.artist, tagInfo.album,
-								tagInfo.title, tagInfo.year,
-								tagInfo.artistId, tagInfo.trackId
-							);
+							LOGGER.trace("Updating row {} to MBID \"{}\"", result.getInt("ID"), mBID);
 						}
-
-						result.moveToInsertRow();
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 						if (StringUtil.hasValue(mBID)) {
 							result.updateString("MBID", mBID);
+						} else {
+							result.updateNull("MBID");
 						}
-						if (StringUtil.hasValue(tagInfo.album)) {
-							result.updateString("ALBUM", left(tagInfo.album, 1000));
-						}
-						if (StringUtil.hasValue(tagInfo.artist)) {
-							result.updateString("ARTIST", left(tagInfo.artist, 1000));
-						}
-						if (StringUtil.hasValue(tagInfo.title)) {
-							result.updateString("TITLE", left(tagInfo.title, 1000));
-						}
-						if (StringUtil.hasValue(tagInfo.year)) {
-							result.updateString("MEDIA_YEAR", left(tagInfo.year, 20));
-						}
-						if (StringUtil.hasValue(tagInfo.artistId)) {
-							result.updateString("ARTIST_ID", tagInfo.artistId);
-						}
-						if (StringUtil.hasValue(tagInfo.trackId)) {
-							result.updateString("TRACK_ID", tagInfo.trackId);
-						}
-						result.insertRow();
+						result.updateRow();
+					} else if (trace) {
+						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
 					}
-				} finally {
-					connection.commit();
+				} else {
+					if (trace) {
+						LOGGER.trace(
+							"Inserting new row for MBID \"{}\":\n" +
+							"     Artist    \"{}\"\n" +
+							"     Album     \"{}\"\n" +
+							"     Title     \"{}\"\n" +
+							"     Year      \"{}\"\n" +
+							"     Artist ID \"{}\"\n" +
+							"     Track ID  \"{}\"\n",
+							mBID, tagInfo.artist, tagInfo.album,
+							tagInfo.title, tagInfo.year,
+							tagInfo.artistId, tagInfo.trackId
+						);
+					}
+
+					result.moveToInsertRow();
+					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					if (StringUtil.hasValue(mBID)) {
+						result.updateString("MBID", mBID);
+					}
+					if (StringUtil.hasValue(tagInfo.album)) {
+						result.updateString("ALBUM", left(tagInfo.album, 1000));
+					}
+					if (StringUtil.hasValue(tagInfo.artist)) {
+						result.updateString("ARTIST", left(tagInfo.artist, 1000));
+					}
+					if (StringUtil.hasValue(tagInfo.title)) {
+						result.updateString("TITLE", left(tagInfo.title, 1000));
+					}
+					if (StringUtil.hasValue(tagInfo.year)) {
+						result.updateString("MEDIA_YEAR", left(tagInfo.year, 20));
+					}
+					if (StringUtil.hasValue(tagInfo.artistId)) {
+						result.updateString("ARTIST_ID", tagInfo.artistId);
+					}
+					if (StringUtil.hasValue(tagInfo.trackId)) {
+						result.updateString("TRACK_ID", tagInfo.trackId);
+					}
+					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
 	public static enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
@@ -31,11 +32,10 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private final String serverUrl;
 	private final UriFileRetriever uriRetriever = new UriFileRetriever();
-	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
+	private final Object stateLock = new Object();
 	private final Version currentVersion;
-	private Executor executor = Executors.newSingleThreadExecutor();
+	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
-	private Object stateLock = new Object();
 	private Throwable errorStateCause;
 	private int bytesDownloaded = -1;
 	private int totalBytes = -1;
@@ -125,7 +125,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOGGER.debug("Failed to run update after downloading: {}", e);
 			wrapException(Messages.getString("AutoUpdate.UnableToRunUpdate"), e);
 		}
