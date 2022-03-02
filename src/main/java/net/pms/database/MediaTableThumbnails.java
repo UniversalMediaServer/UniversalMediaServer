@@ -133,8 +133,12 @@ public final class MediaTableThumbnails extends MediaTable {
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
+				connection.setAutoCommit(false);
 				MediaTableThumbnails.setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID);
+				connection.commit();
 			}
+		} catch (SQLException e) {
+			LOGGER.trace("", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -164,45 +168,42 @@ public final class MediaTableThumbnails extends MediaTable {
 			selectQuery = "SELECT ID FROM " + TABLE_NAME + " WHERE MD5 = " + sqlQuote(md5Hash) + " LIMIT 1";
 			LOGGER.trace("Searching for thumbnail in {} with \"{}\" before update", TABLE_NAME, selectQuery);
 
-			try (PreparedStatement selectStatement = connection.prepareStatement(selectQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = selectStatement.executeQuery()) {
-					if (result.next()) {
-						if (fullPathToFile != null) {
-							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
-							MediaTableFiles.updateThumbnailId(connection, fullPathToFile, result.getInt("ID"));
-						} else {
-							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-							MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, result.getInt("ID"));
-						}
+			try (
+				PreparedStatement selectStatement = connection.prepareStatement(selectQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = selectStatement.executeQuery()
+			) {
+				if (result.next()) {
+					if (fullPathToFile != null) {
+						LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", result.getInt("ID"), TABLE_NAME);
+						MediaTableFiles.updateThumbnailId(connection, fullPathToFile, result.getInt("ID"));
 					} else {
-						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
+						LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", result.getInt("ID"), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
+						MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, result.getInt("ID"));
+					}
+				} else {
+					LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
 
-						String insertQuery = "INSERT INTO " + TABLE_NAME + " (THUMBNAIL, MODIFIED, MD5) VALUES (?, ?, ?)";
-						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
-							insertStatement.setObject(1, thumbnail);
-							insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-							insertStatement.setString(3, md5Hash);
-							insertStatement.executeUpdate();
+					String insertQuery = "INSERT INTO " + TABLE_NAME + " (THUMBNAIL, MODIFIED, MD5) VALUES (?, ?, ?)";
+					try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
+						insertStatement.setObject(1, thumbnail);
+						insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+						insertStatement.setString(3, md5Hash);
+						insertStatement.executeUpdate();
 
-							try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
-								if (generatedKeys.next()) {
-									if (fullPathToFile != null) {
-										LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
-										MediaTableFiles.updateThumbnailId(connection, fullPathToFile, generatedKeys.getInt(1));
-									} else {
-										LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-										MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, generatedKeys.getInt(1));
-									}
+						try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
+							if (generatedKeys.next()) {
+								if (fullPathToFile != null) {
+									LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
+									MediaTableFiles.updateThumbnailId(connection, fullPathToFile, generatedKeys.getInt(1));
 								} else {
-									LOGGER.trace("Generated key not returned in " + TABLE_NAME);
+									LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
+									MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, generatedKeys.getInt(1));
 								}
+							} else {
+								LOGGER.trace("Generated key not returned in " + TABLE_NAME);
 							}
 						}
 					}
-				} finally {
-					connection.commit();
-					connection.setAutoCommit(true);
 				}
 			}
 		} catch (SQLException e) {
@@ -210,5 +211,4 @@ public final class MediaTableThumbnails extends MediaTable {
 			LOGGER.trace("", e);
 		}
 	}
-
 }
