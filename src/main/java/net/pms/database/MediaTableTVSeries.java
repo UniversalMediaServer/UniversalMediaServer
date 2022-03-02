@@ -54,6 +54,8 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String TMDB_COLUMNS = "CREATEDBY, CREDITS, EXTERNALIDS, FIRSTAIRDATE, HOMEPAGE, IMAGES, INPRODUCTION, LANGUAGES, LASTAIRDATE, NETWORKS, NUMBEROFEPISODES, NUMBEROFSEASONS, ORIGINCOUNTRY, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, SEASONS, SERIESTYPE, SPOKENLANGUAGES, STATUS, TAGLINE";
 	private static final String TMDB_COLUMNS_PLACEHOLDERS = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
+	private static final Gson gson = new Gson();
+
 	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
@@ -128,8 +130,8 @@ public final class MediaTableTVSeries extends MediaTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LANGUAGES VARCHAR2");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LASTAIRDATE VARCHAR2");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NETWORKS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFEPISODES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFSEASONS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFEPISODES DOUBLE");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFSEASONS DOUBLE");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINCOUNTRY VARCHAR2");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
@@ -182,8 +184,8 @@ public final class MediaTableTVSeries extends MediaTable {
 				"LANGUAGES VARCHAR2, " +
 				"LASTAIRDATE VARCHAR2, " +
 				"NETWORKS VARCHAR2, " +
-				"NUMBEROFEPISODES VARCHAR2, " +
-				"NUMBEROFSEASONS VARCHAR2, " +
+				"NUMBEROFEPISODES DOUBLE, " +
+				"NUMBEROFSEASONS DOUBLE, " +
 				"ORIGINCOUNTRY VARCHAR2, " +
 				"ORIGINALLANGUAGE VARCHAR2, " +
 				"ORIGINALTITLE VARCHAR2, " +
@@ -292,8 +294,8 @@ public final class MediaTableTVSeries extends MediaTable {
 							insertStatement.setString(18, (String) tvSeries.get("languages"));
 							insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
 							insertStatement.setString(20, (String) tvSeries.get("networks"));
-							insertStatement.setString(21, (String) tvSeries.get("numberOfEpisodes"));
-							insertStatement.setString(22, (String) tvSeries.get("numberOfSeasons"));
+							insertStatement.setInt(21, (Double) tvSeries.get("numberOfEpisodes"));
+							insertStatement.setInt(22, (Double) tvSeries.get("numberOfSeasons"));
 							insertStatement.setString(23, (String) tvSeries.get("originCountry"));
 							insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
 							insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
@@ -543,6 +545,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			LOGGER.trace("Inserting API metadata for " + simplifiedTitle + ": " + tvSeries.toString());
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
+					String json;
 					rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
 					rs.updateString("IMDBID", (String) tvSeries.get("imdbID"));
 					rs.updateString("PLOT", (String) tvSeries.get("plot"));
@@ -557,18 +560,21 @@ public final class MediaTableTVSeries extends MediaTable {
 
 					// TMDB columns added in V11
 					if (tvSeries.get("createdBy") != null) {
-						rs.updateString("CREATEDBY", StringUtils.join(tvSeries.get("createdBy"), ","));
+						json = gson.toJson(tvSeries.get("createdBy"));
+						rs.updateString("CREATEDBY", json);
 					}
 					if (tvSeries.get("credits") != null) {
-						rs.updateString("CREDITS", StringUtils.join(tvSeries.get("credits"), ","));
+						json = gson.toJson(tvSeries.get("credits"));
+						rs.updateString("CREDITS", json);
 					}
 					if (tvSeries.get("externalIDs") != null) {
-						rs.updateString("EXTERNALIDS", StringUtils.join(tvSeries.get("externalIDs"), ","));
+						json = gson.toJson(tvSeries.get("externalIDs"));
+						rs.updateString("EXTERNALIDS", json);
 					}
 					rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
 					rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
 					if (tvSeries.get("images") != null) {
-						String json = new Gson().toJson(tvSeries.get("images"));
+						json = gson.toJson(tvSeries.get("images"));
 						rs.updateString("IMAGES", json);
 					}
 					if (tvSeries.get("inProduction") != null) {
@@ -579,13 +585,14 @@ public final class MediaTableTVSeries extends MediaTable {
 					}
 					rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
 					if (tvSeries.get("networks") != null) {
-						rs.updateString("NETWORKS", StringUtils.join(tvSeries.get("networks"), ","));
+						json = gson.toJson(tvSeries.get("networks"));
+						rs.updateString("NETWORKS", json);
 					}
 					if (tvSeries.get("numberOfEpisodes") != null) {
-						rs.updateString("NUMBEROFEPISODES", StringUtils.join(tvSeries.get("numberOfEpisodes"), ","));
+						rs.updateDouble("NUMBEROFEPISODES", (Double) tvSeries.get("numberOfEpisodes"));
 					}
 					if (tvSeries.get("numberOfSeasons") != null) {
-						rs.updateString("NUMBEROFSEASONS", StringUtils.join(tvSeries.get("numberOfSeasons"), ","));
+						rs.updateDouble("NUMBEROFSEASONS", (Double) tvSeries.get("numberOfSeasons"));
 					}
 					if (tvSeries.get("originCountry") != null) {
 						rs.updateString("ORIGINCOUNTRY", StringUtils.join(tvSeries.get("originCountry"), ","));
@@ -593,17 +600,21 @@ public final class MediaTableTVSeries extends MediaTable {
 					rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
 					rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
 					if (tvSeries.get("productionCompanies") != null) {
-						rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(tvSeries.get("productionCompanies"), ","));
+						json = gson.toJson(tvSeries.get("productionCompanies"));
+						rs.updateString("PRODUCTIONCOMPANIES", json);
 					}
 					if (tvSeries.get("productionCountries") != null) {
-						rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(tvSeries.get("productionCountries"), ","));
+						json = gson.toJson(tvSeries.get("productionCountries"));
+						rs.updateString("PRODUCTIONCOUNTRIES", json);
 					}
 					if (tvSeries.get("seasons") != null) {
-						rs.updateString("SEASONS", StringUtils.join(tvSeries.get("seasons"), ","));
+						json = gson.toJson(tvSeries.get("seasons"));
+						rs.updateString("SEASONS", json);
 					}
 					rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
 					if (tvSeries.get("spokenLanguages") != null) {
-						rs.updateString("SPOKENLANGUAGES", StringUtils.join(tvSeries.get("spokenLanguages"), ","));
+						json = gson.toJson(tvSeries.get("spokenLanguages"));
+						rs.updateString("SPOKENLANGUAGES", json);
 					}
 					rs.updateString("STATUS", (String) tvSeries.get("status"));
 					rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
