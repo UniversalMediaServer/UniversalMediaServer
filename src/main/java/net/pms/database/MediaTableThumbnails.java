@@ -202,6 +202,7 @@ public final class MediaTableThumbnails extends MediaTable {
 					}
 				} finally {
 					connection.commit();
+					connection.setAutoCommit(true);
 				}
 			}
 		} catch (SQLException e) {

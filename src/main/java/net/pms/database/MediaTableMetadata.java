@@ -141,26 +141,24 @@ public class MediaTableMetadata extends MediaTable {
 				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
 			}
 
-			try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				connection.setAutoCommit(false);
-				try (ResultSet result = statement.executeQuery(query)) {
-					boolean isCreatingNewRecord = false;
+			try (
+				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+				ResultSet result = statement.executeQuery(query)
+			) {
+				boolean isCreatingNewRecord = false;
 
-					if (!result.next()) {
-						isCreatingNewRecord = true;
-						result.moveToInsertRow();
-					}
+				if (!result.next()) {
+					isCreatingNewRecord = true;
+					result.moveToInsertRow();
+				}
 
-					result.updateString("M_KEY", key);
-					result.updateString("M_VALUE", value);
+				result.updateString("M_KEY", key);
+				result.updateString("M_VALUE", value);
 
-					if (isCreatingNewRecord) {
-						result.insertRow();
-					} else {
-						result.updateRow();
-					}
-				} finally {
-					connection.commit();
+				if (isCreatingNewRecord) {
+					result.insertRow();
+				} else {
+					result.updateRow();
 				}
 			}
 		} catch (SQLException se) {
