@@ -699,8 +699,10 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-
 					<version>${surefire-version}</version>
+					<configuration>
+						<argLine>-Dfile.encoding=UTF-8</argLine>
+					</configuration>
 				</plugin>
 
 				<!--
@@ -2701,7 +2703,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>9.3</version>
+								<version>10.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>
