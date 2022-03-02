@@ -74,7 +74,7 @@ public enum HlsConfiguration {
 	public static String getHLSm3u8(DLNAResource dlna, String baseUrl) {
 		if (dlna.getMedia() != null) {
 			// add 5% to handle cropped borders
-			int maxHeight = dlna.getMedia().getHeight() + Double.valueOf(dlna.getMedia().getHeight() * 0.05).intValue();
+			int maxHeight = (int) (dlna.getMedia().getHeight() * 1.05);
 			String id = dlna.getResourceId();
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
