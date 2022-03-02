@@ -2608,11 +2608,7 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}/win32" />
-										<!--
-											MediaInfo64.dll and other related files should sit under ${project.binaries-base}/win32
-											Correct here when done
-										-->
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2684,11 +2680,7 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}/win32" />
-										<!--
-											MediaInfo64.dll and other related files should sit under ${project.binaries-base}/win32
-											Correct here when done
-										-->
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
