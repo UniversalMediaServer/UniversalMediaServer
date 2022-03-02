@@ -555,7 +555,7 @@ public final class MediaTableTVSeries extends MediaTable {
 					rs.updateString("VOTES", (String) tvSeries.get("votes"));
 					rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
 
-          // TMDB columns added in V11
+					// TMDB columns added in V11
 					if (tvSeries.get("createdBy") != null) {
 						rs.updateString("CREATEDBY", StringUtils.join(tvSeries.get("createdBy"), ","));
 					}
