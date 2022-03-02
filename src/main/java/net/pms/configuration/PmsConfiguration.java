@@ -4689,9 +4689,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public File getWebPath() {
 		File path = new File(getString(KEY_WEB_PATH, "web"));
 		if (!path.exists()) {
-			path.mkdirs();
+			//check if we are running from sources
+			File srcPath = new File("src/main/external-resources/web");
+			if (!srcPath.exists()) {
+				path.mkdirs();
+			} else {
+				path = srcPath;
+			}
 		}
-
 		return path;
 	}
 
