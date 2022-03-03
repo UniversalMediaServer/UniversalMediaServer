@@ -1031,7 +1031,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		DLNAResource dlna;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
-			dlna = renderer.getRootFolder();
+			if (renderer == null) {
+				dlna = PMS.get().getRootFolder(null);
+			} else {
+				dlna = renderer.getRootFolder();
+			}
 		} else {
 			// only allow the last one here
 			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
