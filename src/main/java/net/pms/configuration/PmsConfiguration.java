@@ -3316,11 +3316,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setOnlySharedDirectory(String directoryPath) {
 		synchronized (sharedFoldersLock) {
 			configuration.setProperty(KEY_FOLDERS, directoryPath);
+			configuration.setProperty(KEY_FOLDERS_MONITORED, directoryPath);
 			ArrayList<Path> tmpSharedfolders = new ArrayList<>();
 			Path folder = Paths.get(directoryPath);
 			tmpSharedfolders.add(folder);
 			sharedFolders = tmpSharedfolders;
+			monitoredFolders = tmpSharedfolders;
 			sharedFoldersRead = true;
+			monitoredFoldersRead = true;
 		}
 	}
 
