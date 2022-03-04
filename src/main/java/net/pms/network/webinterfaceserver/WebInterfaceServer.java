@@ -20,6 +20,8 @@
 package net.pms.network.webinterfaceserver;
 
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -39,12 +41,11 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	public WebInterfaceServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
-		resources = new WebInterfaceServerUtil.ResourceManager(
+		resources = AccessController.doPrivileged((PrivilegedAction<WebInterfaceServerUtil.ResourceManager>) () -> new WebInterfaceServerUtil.ResourceManager(
 				"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
 				"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
-				"file:" + CONFIGURATION.getWebPath() + "/",
-				"file:" + "src/main/external-resources/web/"
-		);
+				"file:" + CONFIGURATION.getWebPath() + "/"
+		));
 	}
 
 	public String getTag(String user) {

@@ -3307,16 +3307,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return is;
 	}
 
-	public void destroyExternalProcess() {
-		if (!externalProcess.isDestroyed()) {
-			Runnable r = () -> {
-				LOGGER.error("External process destroying... stopping process");
-				externalProcess.stopProcess();
-			};
-			new Thread(r, "Hanging External Process Stopper").start();
-		}
-	}
-
 	/**
 	 * Wrap an {@link InputStream} in a {@link SizeLimitInputStream} that sets a
 	 * limit to the maximum number of bytes to be read from the original input
