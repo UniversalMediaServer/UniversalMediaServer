@@ -294,8 +294,8 @@ public final class MediaTableTVSeries extends MediaTable {
 							insertStatement.setString(18, (String) tvSeries.get("languages"));
 							insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
 							insertStatement.setString(20, (String) tvSeries.get("networks"));
-							insertStatement.setInt(21, (Double) tvSeries.get("numberOfEpisodes"));
-							insertStatement.setInt(22, (Double) tvSeries.get("numberOfSeasons"));
+							insertStatement.setDouble(21, (Double) tvSeries.get("numberOfEpisodes"));
+							insertStatement.setDouble(22, (Double) tvSeries.get("numberOfSeasons"));
 							insertStatement.setString(23, (String) tvSeries.get("originCountry"));
 							insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
 							insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
