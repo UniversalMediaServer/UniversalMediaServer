@@ -13,8 +13,10 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 ## Current Project Developers
 
+* [ik666][32]
 * [js-kyle][31]
 * [SubJunk][3]
+* [SurfaceS][33]
 * [valib][5]
 
 ## Current Forum Moderators
@@ -108,3 +110,5 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [29]: https://crowdin.com/
   [30]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
   [31]: https://github.com/js-kyle
+  [32]: https://github.com/ik666
+  [33]: https://github.com/SurfaceS
