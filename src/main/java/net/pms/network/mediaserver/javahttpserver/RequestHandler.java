@@ -425,13 +425,14 @@ public class RequestHandler implements HttpHandler {
 			if (fileName.startsWith("hls/")) {
 				//HLS
 				if (fileName.endsWith(".m3u8")) {
+					//HLS rendition m3u8 file
 					String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
 					if (HlsConfiguration.valueOf(rendition) != null) {
 						sendResponse(exchange, renderer, 200, HlsConfiguration.getHLSm3u8ForRendition(dlna, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
 						return;
 					}
 				} else if (fileName.endsWith(".ts")) {
-					//we need to stream
+					//HLS stream request
 					String rendition = uri.substring(uri.indexOf("/hls/") + 5);
 					rendition = rendition.substring(0, rendition.indexOf("/"));
 					//here we need to set rendition to renderer
@@ -453,11 +454,21 @@ public class RequestHandler implements HttpHandler {
 					dlna.setSplitRange(trange);
 					inputStream = dlna.getInputStream(trange, renderer);
 					exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-					sendResponse(exchange, renderer, 200, inputStream);
+					sendResponse(exchange, renderer, 200, inputStream, DLNAMediaInfo.TRANS_SIZE, true);
 					return;
 				}
 			} else if (fileName.endsWith("_transcoded_to.m3u8")) {
-				//HLS
+				//HLS start m3u8 file
+				if (contentFeatures != null) {
+					//output.headers().set("transferMode.dlna.org", "Streaming");
+					if (dlna.getMedia().getDurationInSeconds() > 0) {
+						String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+						exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
+						exchange.getResponseHeaders().set("X-AvailableSeekRange", "npt=0-" + durationStr);
+						//only time seek, transcoded
+						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+					}
+				}
 				sendResponse(exchange, renderer, 200, HlsConfiguration.getHLSm3u8(dlna, "/get/"), HTTPResource.HLS_TYPEMIME);
 				return;
 			} else if (fileName.startsWith("thumbnail0000")) {

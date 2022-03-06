@@ -144,7 +144,7 @@ public enum HlsConfiguration {
 			sb.append("#EXT-X-VERSION:6\n");
 			sb.append("#EXT-X-TARGETDURATION:").append(targetDurationStr).append("\n");
 			sb.append("#EXT-X-MEDIA-SEQUENCE:0\n");
-			sb.append("#EXT-X-PLAYLIST-TYPE:EVENT\n");
+			sb.append("#EXT-X-PLAYLIST-TYPE:VOD\n");
 			sb.append("#EXT-X-INDEPENDENT-SEGMENTS\n");
 			int partCount = 0;
 			while (partLen > 0) {

@@ -132,7 +132,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
-		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AC3);
+		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
 		return true;
 	}
 
