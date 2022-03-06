@@ -312,7 +312,7 @@ public class NetworkConfiguration {
 			checkNetworkInterface(NetworkInterface.getNetworkInterfaces(), null, showTrace);
 		} catch (SocketException ex) {
 			if (showTrace) {
-				LOGGER.error("Inspecting the network failed: " + ex.getMessage(), ex);
+				LOGGER.error("Inspecting the network failed: {}", ex.getMessage(), ex);
 			}
 		}
 	}
@@ -602,7 +602,7 @@ public class NetworkConfiguration {
 		String hostname = CONFIGURATION.getServerHostname();
 
 		if (hostname != null) {
-			LOGGER.trace("Searching network interface for " + hostname);
+			LOGGER.trace("Searching network interface for {}", hostname);
 			return NetworkInterface.getByInetAddress(InetAddress.getByName(hostname));
 		}
 
@@ -614,7 +614,7 @@ public class NetworkConfiguration {
 		boolean forcedInetAddress = StringUtils.isNotBlank(CONFIGURATION.getServerHostname());
 		NetworkInterfaceAssociation ia = null;
 		if (forcedNetworkInterface) {
-			LOGGER.info("Using forced network interface: {}" + CONFIGURATION.getNetworkInterface());
+			LOGGER.info("Using forced network interface: {}", CONFIGURATION.getNetworkInterface());
 			ia = NetworkConfiguration.getAddressForNetworkInterfaceName(CONFIGURATION.getNetworkInterface());
 			if (ia == null) {
 				LOGGER.error("Forced network interface {} not found on this system", CONFIGURATION.getNetworkInterface().trim().replace('\n', ' '));
@@ -639,7 +639,7 @@ public class NetworkConfiguration {
 				LOGGER.error("Forced address {} is unknowned on this system", hostname);
 				if (ia != null) {
 					Set<InetAddress> set = ADDRESS_MAP.get(ia.iface.getIndex());
-					LOGGER.info("Good addresses for the requested network interface are:{}", set);
+					LOGGER.info("Good addresses for the requested network interface are: {}", set);
 				}
 				return null;
 			} else {
@@ -723,7 +723,7 @@ public class NetworkConfiguration {
 		if (StringUtils.isNotBlank(interfaceName)) {
 			synchronized (INTERFACES_ASSOCIATIONS) {
 				for (NetworkInterfaceAssociation netInterface : INTERFACES_ASSOCIATIONS.values()) {
-					if (netInterface.getShortName().equals(interfaceName)) {
+					if (netInterface.getDisplayName().equals(interfaceName)) {
 						return netInterface;
 					}
 				}
