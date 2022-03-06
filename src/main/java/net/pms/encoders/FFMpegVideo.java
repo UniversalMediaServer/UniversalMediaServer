@@ -45,6 +45,7 @@ import net.pms.configuration.ExecutableInfo;
 import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
+import net.pms.configuration.HlsConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -145,7 +146,9 @@ public class FFMpegVideo extends Player {
 
 		// Scale and pad the video if necessary
 		if (renderer.getHlsConfiguration() != null) {
-			scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getHlsConfiguration().resolutionWidth, renderer.getHlsConfiguration().resolutionHeight));
+			//client request the good size itself
+			videoFilterOptions.add("-copyts");
+			return videoFilterOptions;
 		} else if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
 			if (media.is3dFullSbsOrOu()) {
 				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
@@ -341,8 +344,91 @@ public class FFMpegVideo extends Player {
 		final String filename = dlna.getFileName();
 		final RendererConfiguration renderer = params.getMediaRenderer();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-
-		if (
+		if (renderer.isTranscodeToHLS()) {
+			HlsConfiguration hlsConfiguration = renderer.getHlsConfiguration();
+			//transcodeOptions.add("-sc_threshold");
+			//transcodeOptions.add("0");
+			//transcodeOptions.add("-copyts");
+			//setup video
+			transcodeOptions.add("-s:v");
+			transcodeOptions.add(String.valueOf(hlsConfiguration.resolutionWidth) + "x" + String.valueOf(hlsConfiguration.resolutionHeight));
+			transcodeOptions.add("-c:v");
+			if (hlsConfiguration.videoCodec.startsWith("avc1.")) {
+				transcodeOptions.add("libx264");
+				transcodeOptions.add("-keyint_min");
+				transcodeOptions.add("25");
+				transcodeOptions.add("-preset");
+				transcodeOptions.add("ultrafast");
+				//set fps
+				if (hlsConfiguration.framesPerSecond > 0) {
+					transcodeOptions.add("-r");
+					transcodeOptions.add(String.valueOf(hlsConfiguration.framesPerSecond));
+				}
+				//set profile : baseline main high high10 high422 high444
+				if (hlsConfiguration.videoCodec.startsWith("avc1.6400")) {
+					transcodeOptions.add("-profile:v");
+					transcodeOptions.add("high");
+					transcodeOptions.add("-pix_fmt");
+					transcodeOptions.add("yuv420p");
+				} else if (hlsConfiguration.videoCodec.startsWith("avc1.4D40")) {
+					//main profile
+					transcodeOptions.add("-profile:v");
+					transcodeOptions.add("main");
+					transcodeOptions.add("-pix_fmt");
+					transcodeOptions.add("yuv420p");
+				} else if (hlsConfiguration.videoCodec.startsWith("avc1.42E0")) {
+					//baseline profile
+					transcodeOptions.add("-profile:v");
+					transcodeOptions.add("baseline");
+					transcodeOptions.add("-pix_fmt");
+					transcodeOptions.add("yuv420p");
+				}
+				transcodeOptions.add("-level");
+				String hexLevel = hlsConfiguration.videoCodec.substring(hlsConfiguration.videoCodec.length() - 2);
+				int level;
+				try {
+					level = Integer.parseInt(hexLevel, 16);
+				} catch (NumberFormatException ie) {
+					level = 30;
+				}
+				transcodeOptions.add(String.valueOf(level));
+			} else {
+				//here sould not happend !!!!
+				//only h264 for now !!!
+			}
+			if (hlsConfiguration.videoBitRate > 0) {
+				transcodeOptions.add("-b:v");
+				transcodeOptions.add(String.valueOf(hlsConfiguration.videoBitRate));
+			}
+			//setup audio
+			transcodeOptions.add("-c:a");
+			if (hlsConfiguration.audioCodec.startsWith("mp4a.40.")) {
+				transcodeOptions.add("aac");
+				transcodeOptions.add("-ac");
+				transcodeOptions.add("2");
+				if (!hlsConfiguration.audioCodec.endsWith(".2")) {
+					//LC-AAC should be 2
+					//HE-AAC require libfdk_aac
+				}
+			} else {
+				transcodeOptions.add("ac3");
+				//here sould handle ac3 !!!!
+			}
+			if (hlsConfiguration.audioBitRate > 0) {
+				transcodeOptions.add("-ab");
+				transcodeOptions.add(String.valueOf(hlsConfiguration.audioBitRate));
+			}
+			transcodeOptions.add("-f");
+			transcodeOptions.add("mpegts");
+			transcodeOptions.add("-skip_estimate_duration_from_pts");
+			transcodeOptions.add("1");
+			transcodeOptions.add("-use_wallclock_as_timestamps");
+			transcodeOptions.add("1");
+			//transcodeOptions.add("-mpegts_flags");
+			//transcodeOptions.add("latm");
+			transcodeOptions.add("-movflags");
+			transcodeOptions.add("frag_keyframe"); //frag_keyframe
+		} else if (
 			(
 				renderer.isTranscodeToWMV() &&
 				!renderer.isXbox360()
@@ -443,25 +529,6 @@ public class FFMpegVideo extends Player {
 						}
 						transcodeOptions.add("-tune");
 						transcodeOptions.add("zerolatency");
-					}
-					if (renderer.isTranscodeToHLS()) {
-						//here we can have the requested HlsConfiguration with renderer.getHlsConfiguration().
-						transcodeOptions.add("-flags");
-						transcodeOptions.add("+cgop");
-						transcodeOptions.add("-keyint_min");
-						transcodeOptions.add("48");
-						transcodeOptions.add("-sc_threshold");
-						transcodeOptions.add("-0");
-						transcodeOptions.add("-copyts");
-						transcodeOptions.add("-metadata");
-						transcodeOptions.add("service_provider=\"UMS\"");
-						transcodeOptions.add("-metadata");
-						transcodeOptions.add("service_name=\"" + dlna.getDisplayName() + "\"");
-						//transcodeOptions.add("-start_at_zero");
-						transcodeOptions.add("-muxpreload");
-						transcodeOptions.add("0");
-						transcodeOptions.add("-muxdelay");
-						transcodeOptions.add("0");
 					}
 					if (!customFFmpegOptions.contains("-preset")) {
 						transcodeOptions.add("-preset");
@@ -903,6 +970,11 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
+		if (params.getTimeEnd() > 0 && renderer.isTranscodeToHLS()) {
+			cmdList.add("-t");
+			cmdList.add(String.valueOf(params.getTimeEnd() - params.getTimeSeek()));
+		}
+
 		// Decoding threads and GPU deccding
 		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
 			cmdList.add("-threads");
@@ -1129,7 +1201,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(nThreads));
 		}
 
-		if (params.getTimeEnd() > 0) {
+		if (params.getTimeEnd() > 0 && !renderer.isTranscodeToHLS()) {
 			cmdList.add("-t");
 			cmdList.add(String.valueOf(params.getTimeEnd()));
 		}
@@ -1143,7 +1215,7 @@ public class FFMpegVideo extends Player {
 			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
-		if (!override) {
+		if (!override && !renderer.isTranscodeToHLS()) {
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
@@ -1213,6 +1285,10 @@ public class FFMpegVideo extends Player {
 			if (StringUtils.isNotEmpty(customFFmpegOptions)) {
 				parseOptions(customFFmpegOptions, cmdList);
 			}
+		}
+		if (renderer.isTranscodeToHLS()) {
+			// Add the output options (-f, -c:a, -c:v, etc.)
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params, canMuxVideoWithFFmpeg));
 		}
 
 		// Set up the process

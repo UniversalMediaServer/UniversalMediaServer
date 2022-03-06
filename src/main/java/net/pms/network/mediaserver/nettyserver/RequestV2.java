@@ -397,8 +397,8 @@ public class RequestV2 extends HTTPResource {
 						} catch (NumberFormatException es) {
 							//here, we fail
 						}
-						Double askedStart =  Double.valueOf(position) * 10;
-						Range.Time trange = new Range.Time(askedStart, askedStart + 10);
+						Double askedStart =  Double.valueOf(position) * HlsConfiguration.DEFAULT_TARGETDURATION;
+						Range.Time trange = new Range.Time(askedStart, askedStart + HlsConfiguration.DEFAULT_TARGETDURATION);
 						dlna.setSplitRange(trange);
 						inputStream = dlna.getInputStream(trange, mediaRenderer);
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);

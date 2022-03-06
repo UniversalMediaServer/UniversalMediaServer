@@ -167,17 +167,21 @@ public class MediaHandler implements HttpHandler {
 					} catch (NumberFormatException es) {
 						//here, we fail
 					}
-					Double askedStart =  Double.valueOf(position) * 10;
-					Range.Time range = new Range.Time(askedStart, askedStart + 10);
+					Double askedStart =  Double.valueOf(position) * HlsConfiguration.DEFAULT_TARGETDURATION;
+					Range.Time range = new Range.Time(askedStart, askedStart + HlsConfiguration.DEFAULT_TARGETDURATION);
 					root.setSplitRange(range);
-					InputStream in = resource.getInputStream(range, defaultRenderer);
 					Headers headers2 = httpExchange.getResponseHeaders();
-					headers2.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 					headers2.add("Server", PMS.get().getServerName());
-					headers2.add("Connection", "keep-alive");
-					httpExchange.sendResponseHeaders(200, 0);
-					OutputStream os2 = httpExchange.getResponseBody();
-					WebInterfaceServerUtil.dump(in, os2);
+					InputStream in = resource.getInputStream(range, defaultRenderer);
+					if (in != null) {
+						headers2.add("Connection", "keep-alive");
+						headers2.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+						OutputStream os = httpExchange.getResponseBody();
+						httpExchange.sendResponseHeaders(200, 0); //chunked
+						WebInterfaceServerUtil.dump(in, os);
+					} else {
+						httpExchange.sendResponseHeaders(500, -1);
+					}
 					return;
 				} else {
 					if (uri.contains("/hls/")) {
@@ -186,6 +190,14 @@ public class MediaHandler implements HttpHandler {
 						String response = HlsConfiguration.getHLSm3u8ForRendition(resource, "/media/", rendition);
 						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
+						/*
+						for testing locally
+						Headers headers2 = httpExchange.getResponseHeaders();
+						headers2.add("Server", PMS.get().getServerName());
+						headers2.add("Content-Type", HTTPResource.HLS_TYPEMIME);
+						parent.getResources().write("webhls/playlist-test.m3u8", httpExchange);
+						return;
+						*/
 						String response = HlsConfiguration.getHLSm3u8(resource, "/media/");
 						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
 					}

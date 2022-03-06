@@ -24,21 +24,54 @@ import java.util.Locale;
 import java.util.Map;
 import net.pms.dlna.DLNAResource;
 
+/**
+ * HlsConfiguration Helper.
+ *
+ * video :
+ * avc1.XXXXYY			-> h264			XXXX -> profile (42001 = main, 4D40 = main, 6400 = high) and YY -> hex of level
+ * profiles hex :
+ * 4200 -> Baseline
+ * 4240 -> Constrained Baseline
+ * 4D00 -> Main
+ * 4D40 -> Constrained main
+ * 5800 -> Extended
+ * 6400 -> High
+ * 6408 -> High Progressive
+ * 6E00 -> High 10
+ * 6E10 -> High 10 Intra
+ * 7A00 -> High 4:2:2
+ *
+ * hvc1.X.4.LYYY.B01	-> h265			X -> profile		YYY -> level
+ *
+ * audio :
+ * mp4a.40.2			-> AAC-LC
+ * mp4a.40.5			-> HE-AAC
+ * mp4a.40.29			-> HE-AACv2
+ * mp4a.40.33			-> MP2
+ * mp4a.40.34			-> MP3
+ * ac-3					-> AC3
+ * ec-3					-> EAC3
+ */
 public enum HlsConfiguration {
-	ULD("ULD", "Ultra-Low Definition", 426, 240, 350000),		//Main
-	LD("LD", "Low Definition", 640, 360, 800000),				//Main
-	SD("SD", "Standard Definition", 842, 480, 1400000),			//High
-	HD("HD", "High Definition", 1280, 720, 2800000),			//High
-	FHD("FHD", "Full High Definition", 1920, 1080, 5000000),	//High
-	QHD("QHD", "Quad High Definition", 2560, 1440, 8000000),
-	UHD1("UHD1", "Ultra High Definition 4K", 3840, 2160, 18000000),
-	UHD2("UHD2", "Ultra High Definition 8K", 7680, 4320, 72000000);
+	ULD("ULD", "Ultra-Low Definition", 426, 240, 25, 350000, "avc1.4D401e", 350000, "mp4a.40.2", 128000),
+	LD("LD", "Low Definition", 640, 360, 25, 800000, "avc1.4D401e", 600000, "mp4a.40.2", 128000),
+	SD("SD", "Standard Definition", 842, 480, 25, 1400000, "avc1.64001e", 1200000, "mp4a.40.2", 160000),
+	HD("HD", "High Definition", 1280, 720, 25, 2800000, "avc1.64001e", 2400000, "mp4a.40.2", 160000),
+	FHD("FHD", "Full High Definition", 1920, 1080, 25, 5000000, "avc1.64001e", 4800000, "mp4a.40.2", 192000),
+	QHD("QHD", "Quad High Definition", 2560, 1440, 0, 8000000, "avc1.64001e", 9600000, "mp4a.40.2", 192000),
+	UHD1("UHD1", "Ultra High Definition 4K", 3840, 2160, 25, 18000000, "avc1.64001e", 16000000, "mp4a.40.2", 192000),
+	UHD2("UHD2", "Ultra High Definition 8K", 7680, 4320, 25, 72000000, "avc1.64001e", 64000000, "mp4a.40.2", 192000);
 
 	public final String label;
 	public final String description;
 	public final int resolutionWidth;
 	public final int resolutionHeight;
+	public final int framesPerSecond;
 	public final int bandwidth;
+	public final String videoCodec;
+	public final int videoBitRate;
+	public final String audioCodec;
+	public final int audioBitRate;
 	private static final Map<String, HlsConfiguration> BY_LABEL = new LinkedHashMap<>();
 	static {
 		for (HlsConfiguration e: values()) {
@@ -46,17 +79,22 @@ public enum HlsConfiguration {
 		}
 	}
 
-	private HlsConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int bandwidth) {
+	private HlsConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int framesPerSecond, int bandwidth, String videoCodec, int videoBitRate, String audioCodec, int audioBitRate) {
 		this.label = label;
 		this.description = description;
 		this.resolutionWidth = resolutionWidth;
 		this.resolutionHeight = resolutionHeight;
+		this.framesPerSecond = framesPerSecond;
 		this.bandwidth = bandwidth;
+		this.videoCodec = videoCodec;
+		this.videoBitRate = videoBitRate;
+		this.audioCodec = audioCodec;
+		this.audioBitRate = audioBitRate;
 	}
 
 	@Override
 	public String toString() {
-		return "BANDWIDTH=" + bandwidth + ",RESOLUTION=" + resolutionWidth + "x" + resolutionHeight;
+		return "BANDWIDTH=" + bandwidth + ",RESOLUTION=" + resolutionWidth + "x" + resolutionHeight + ",CODECS=\"" + videoCodec + "," + audioCodec + "\"";
 	}
 
 	public static HlsConfiguration getByKey(String label) {
@@ -93,7 +131,7 @@ public enum HlsConfiguration {
 		return null;
 	}
 
-	public static final double DEFAULT_TARGETDURATION = 10;
+	public static final double DEFAULT_TARGETDURATION = 6;
 	public static String getHLSm3u8ForRendition(DLNAResource dlna, String baseUrl, String rendition) {
 		if (dlna.getMedia() != null) {
 			Double duration = dlna.getMedia().getDuration();
@@ -106,7 +144,7 @@ public enum HlsConfiguration {
 			sb.append("#EXT-X-VERSION:6\n");
 			sb.append("#EXT-X-TARGETDURATION:").append(targetDurationStr).append("\n");
 			sb.append("#EXT-X-MEDIA-SEQUENCE:0\n");
-			sb.append("#EXT-X-PLAYLIST-TYPE:VOD\n");
+			sb.append("#EXT-X-PLAYLIST-TYPE:EVENT\n");
 			sb.append("#EXT-X-INDEPENDENT-SEGMENTS\n");
 			int partCount = 0;
 			while (partLen > 0) {

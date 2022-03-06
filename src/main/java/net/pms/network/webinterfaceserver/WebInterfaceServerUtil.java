@@ -117,6 +117,7 @@ public class WebInterfaceServerUtil {
 					os.write(buffer, 0, bytes);
 					os.flush();
 				}
+				LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
 			} catch (IOException e) {
 				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
 			} finally {
