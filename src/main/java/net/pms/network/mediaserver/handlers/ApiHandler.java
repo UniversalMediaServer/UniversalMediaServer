@@ -39,9 +39,9 @@ public class ApiHandler {
 	public String handleApiRequest(HttpMethod method, String content, HttpResponse output, String uri, MessageEvent event) {
 		String serverApiKey = PMS.getConfiguration().getApiKey();
 		if (serverApiKey.length() < 12) {
-			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
+			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 characters.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "Weak or no server API key configured. UMS.conf api_key should have at least 12 digests.";
+			return "Weak or no server API key configured. UMS.conf api_key should have at least 12 characters.";
 		}
 
 		try {
