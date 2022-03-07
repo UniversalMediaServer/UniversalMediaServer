@@ -710,21 +710,24 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 
+		int length;
 		if (mb >= endOF - len) {
+			length = endOF - mb - cut;
 			try {
-				System.arraycopy(buffer, mb, buf, off, endOF - mb - cut);
+				System.arraycopy(buffer, mb, buf, off, length);
 			} catch (ArrayIndexOutOfBoundsException e) {
 				LOGGER.trace("Something went wrong with the buffer, error: " + e);
 				LOGGER.trace("buffer: " + Arrays.toString(buffer));
 				LOGGER.trace("mb: " + mb);
 				LOGGER.trace("buf: " + Arrays.toString(buf));
 				LOGGER.trace("off: " + off);
-				LOGGER.trace("endOF - mb - cut: " + (endOF - mb - cut));
+				LOGGER.trace("endOF - mb - cut: " + length);
 			}
-			return endOF - mb;
+			return length;
 		} else {
-			System.arraycopy(buffer, mb, buf, off, len - cut);
-			return len - cut;
+			length = len - cut;
+			System.arraycopy(buffer, mb, buf, off, length);
+			return length;
 		}
 	}
 
