@@ -75,9 +75,8 @@ public class MediaTableFiles extends MediaTable {
 	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
 	 *       updating H2Database to v2)
 	 * - 26: No db changes, improved filename parsing
-	 * - 27: Added rating column
 	 */
-	private static final int TABLE_VERSION = 27;
+	private static final int TABLE_VERSION = 26;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -244,13 +243,6 @@ public class MediaTableFiles extends MediaTable {
 						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
-					case 26:
-						if (!isColumnExist(connection, TABLE_NAME, "RATING")) {
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD RATING INT");
-							LOGGER.trace("added column RATING on table " + TABLE_NAME);
-							executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on FILES (RATING);");
-							LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
-						}
 					default:
 						// Do the dumb way
 						force = true;
@@ -325,7 +317,6 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", ISTVEPISODE             BOOLEAN");
 			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", RATING                  INT");
 			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(")");
 			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
@@ -363,9 +354,6 @@ public class MediaTableFiles extends MediaTable {
 
 			LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
 			statement.execute("CREATE INDEX FORMAT_TYPE_MODIFIED on FILES (FORMAT_TYPE, MODIFIED)");
-
-			LOGGER.trace("Creating index IDX_LIKE_SONG");
-			statement.execute("CREATE INDEX IDX_LIKE_SONG on FILES (RATING)");
 		}
 	}
 
@@ -544,9 +532,9 @@ public class MediaTableFiles extends MediaTable {
 								audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
+								audio.setRating(elements.getInt("RATING"));
 								audio.setMbidRecord(elements.getString("MBID_RECORD"));
 								audio.setMbidTrack(elements.getString("MBID_TRACK"));
-								audio.setRating(rs.getInt("RATING"));
 								media.getAudioTracksList().add(audio);
 							}
 						}
@@ -682,7 +670,7 @@ public class MediaTableFiles extends MediaTable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, RATING " +
+					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -749,9 +737,6 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-							if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getRating() != null) {
-								rs.updateInt("RATING", media.getFirstAudioTrack().getRating());
-							}
 						}
 						rs.updateRow();
 					}

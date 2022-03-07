@@ -110,6 +110,9 @@ public class StarRating implements ApiResponseHandler {
 		} catch (NumberFormatException e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return "illegal rating. Set rating between 0 and 5 (inclusive)";
+		} catch (SQLException e) {
+			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
+			return "database error : " + e.getMessage();
 		} catch (Exception e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return "ERROR : " + e.getMessage();
@@ -144,17 +147,14 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	public void setDatabaseRating(Connection connection, int ratingInStars, String musicBrainzTrackId) {
+	public void setDatabaseRating(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		String sql;
-		sql = "UPDATE FILES set rating = ? where ID in (select fileid from audiotracks where MBID_TRACK = ?)";
-		try {
-			PreparedStatement ps = connection.prepareStatement(sql);
-			ps.setInt(1, ratingInStars);
-			ps.setString(2, musicBrainzTrackId);
-			ps.executeUpdate();
-		} catch (SQLException e) {
-			LOG.warn("error preparing statement", e);
-		}
+		sql = "UPDATE AUDIOTRACKS set rating = ? where MBID_TRACK = ?";
+		PreparedStatement ps = connection.prepareStatement(sql);
+		ps.setInt(1, ratingInStars);
+		ps.setString(2, musicBrainzTrackId);
+		ps.executeUpdate();
+		connection.commit();
 	}
 
 	private List<FilenameIdVO> getFilenameIdList(Connection connection, String trackId) {
@@ -170,7 +170,7 @@ public class StarRating implements ApiResponseHandler {
 			throw new RuntimeException("cannot handle request", e);
 		}
 		if (list.isEmpty()) {
-			throw new RuntimeException("musicbraint trackid not found : " + trackId);
+			throw new RuntimeException("musicbrainz trackid not found : " + trackId);
 		} else {
 			return list;
 		}
