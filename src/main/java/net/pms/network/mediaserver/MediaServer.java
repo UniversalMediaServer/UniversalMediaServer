@@ -51,7 +51,7 @@ public class MediaServer {
 			{4, "JUPnP (Netty)"},
 			{5, "JUPnP (Java)"},
 		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
-	public static final int DEFAULT_VERSION = 2;
+	public static final int DEFAULT_VERSION = 4;
 
 	public static UmsUpnpService upnpService;
 	private static HttpMediaServer httpMediaServer;
