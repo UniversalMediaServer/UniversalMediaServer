@@ -724,7 +724,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			return endOF - mb;
 		} else {
 			System.arraycopy(buffer, mb, buf, off, len - cut);
-			return len;
+			return len - cut;
 		}
 	}
 
