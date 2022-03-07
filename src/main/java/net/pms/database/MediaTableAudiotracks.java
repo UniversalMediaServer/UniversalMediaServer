@@ -107,7 +107,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
 						LOGGER.trace("Creating index IDX_AUDIO_YEAR");
-						executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
+						executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on " + TABLE_NAME + " (MEDIA_YEAR asc);");
 					}
 					break;
 				default:
@@ -160,19 +160,19 @@ public class MediaTableAudiotracks extends MediaTable {
 			executeUpdate(statement, sb.toString());
 
 			LOGGER.trace("Creating index IDXARTIST");
-			executeUpdate(statement, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
+			executeUpdate(statement, "CREATE INDEX IDXARTIST on " + TABLE_NAME + " (ARTIST asc);");
 
 			LOGGER.trace("Creating index IDXALBUMARTIST");
-			executeUpdate(statement, "CREATE INDEX IDXALBUMARTIST on AUDIOTRACKS (ALBUMARTIST asc);");
+			executeUpdate(statement, "CREATE INDEX IDXALBUMARTIST on " + TABLE_NAME + " (ALBUMARTIST asc);");
 
 			LOGGER.trace("Creating index IDXALBUM");
-			executeUpdate(statement, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
+			executeUpdate(statement, "CREATE INDEX IDXALBUM on " + TABLE_NAME + " (ALBUM asc);");
 
 			LOGGER.trace("Creating index IDXGENRE");
-			executeUpdate(statement, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
+			executeUpdate(statement, "CREATE INDEX IDXGENRE on " + TABLE_NAME + " (GENRE asc);");
 
 			LOGGER.trace("Creating index IDX_AUDIO_YEAR");
-			executeUpdate(statement, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
+			executeUpdate(statement, "CREATE INDEX IDX_AUDIO_YEAR on " + TABLE_NAME + " (MEDIA_YEAR asc);");
 		}
 	}
 

@@ -93,7 +93,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
-							statement.execute("CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)");
+							statement.execute("CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)");
 						}
 					} catch (SQLException e) {
 						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
@@ -128,7 +128,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
 			")",
 			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
-			"CREATE INDEX FILENAME_VERSION on FILES (FILENAME, VERSION)"
+			"CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)"
 		);
 	}
 
