@@ -2570,7 +2570,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			appendThumbnail(sb, mediaType, mediaRenderer);
 		}
 
-		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
+		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata() && (firstAudioTrack == null)) {
 			addXMLTagAndAttribute(sb, "dc:date", simpleDateFormatDate.format(new Date(getLastModified())));
 		}
 
