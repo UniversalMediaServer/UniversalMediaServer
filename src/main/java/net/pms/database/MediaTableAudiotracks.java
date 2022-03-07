@@ -95,10 +95,12 @@ public class MediaTableAudiotracks extends MediaTable {
 					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
 					}
+					break;
 				case 2:
 					if (!isColumnExist(connection, TABLE_NAME, DISC)) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
 					}
+					break;
 				case 3:
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Deleting index IDXYEAR");
@@ -108,6 +110,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Creating index IDX_AUDIO_YEAR");
 						executeUpdate(connection, "CREATE INDEX IDX_AUDIO_YEAR on AUDIOTRACKS (MEDIA_YEAR asc);");
 					}
+					break;
 				case 4:
 					if (!isColumnExist(connection, TABLE_NAME, LIKE_SONG)) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + LIKE_SONG + " BOOLEAN");
@@ -115,6 +118,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on AUDIOTRACKS (" + LIKE_SONG + ");");
 						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
 					}
+					break;
 				case 5:
 					executeUpdate(connection, "CREATE INDEX IDX_MBID on AUDIOTRACKS (MBID_TRACK);");
 					LOGGER.trace("Indexing column MBID_TRACK on table " + TABLE_NAME);
