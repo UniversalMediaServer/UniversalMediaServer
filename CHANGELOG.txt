@@ -1,3 +1,18 @@
+10.18.0 - 2022-03-06
+
+	General:
+		Fixed video metadata not writing to database
+		Fixed shared folder added via wizard not being saved
+		Fixed overwriting WEB.conf with defaults if UMS.conf is missing
+		Fixed initial shared folder not being monitored
+		Improved performance of database writes
+	Renderers:
+		Added recognition of more LG Blu-ray players (thanks, OlliL!)
+	Translation updates via Crowdin:
+		Icelandic (18%) (thanks, Diðrik Valur Diðriksson!)
+	Dependencies:
+		Bump oshi-core from 6.1.3 to 6.1.4
+
 10.17.1 - 2022-02-27
 
 	General:
