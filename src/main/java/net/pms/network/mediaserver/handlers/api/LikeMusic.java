@@ -1,9 +1,17 @@
 package net.pms.network.mediaserver.handlers.api;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.h2.tools.RunScript;
+import org.h2.tools.Script;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -18,6 +26,12 @@ public class LikeMusic implements ApiResponseHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
 	private MediaDatabase db = PMS.get().getMediaDatabase();
+	private final String backupFilename;
+
+	public LikeMusic() {
+		String dir = FilenameUtils.concat(PMS.getConfiguration().getProfileDirectory(), "database_backup");
+		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
+	}
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {
@@ -81,14 +95,22 @@ public class LikeMusic implements ApiResponseHandler {
 				case "issongliked":
 					sql = "SELECT COUNT(*) FROM AUDIOTRACKS where MBID_TRACK = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
+				case "backupLikedAlbums":
+					backupLikedAlbums();
+					return "OK";
+				case "restoreLikedAlbums":
+					restoreLikedAlbums();
+					return "OK";
 				default:
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 					return "ERROR";
 			}
 
-			return "OK";
+			return "ERROR";
 		} catch (SQLException e) {
 			throw new RuntimeException("cannot handle request", e);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("backup file not found.", e);
 		}
 	}
 
@@ -103,5 +125,37 @@ public class LikeMusic implements ApiResponseHandler {
 			throw new RuntimeException("cannot handle request", e);
 		}
 		return false;
+	}
+
+	public void backupLikedAlbums() throws SQLException {
+		try (Connection connection = db.getConnection()) {
+			Script.process(connection, backupFilename, "", "TABLE MUSIC_BRAINZ_RELEASE_LIKE");
+		}
+	}
+
+	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
+		File backupFile = new File(backupFilename);
+		if (backupFile.exists() && backupFile.isFile()) {
+			try (Connection connection = db.getConnection(); Statement stmt = connection.createStatement()) {
+				String sql;
+				sql = "DROP TABLE MUSIC_BRAINZ_RELEASE_LIKE";
+				stmt.execute(sql);
+				try {
+					RunScript.execute(connection, new FileReader(backupFilename));
+				} catch (Exception e) {
+					LOG.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
+					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
+				}
+				connection.commit();
+				LOG.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
+			}
+		} else {
+			if (!StringUtils.isEmpty(backupFilename)) {
+				LOG.trace("Backup file doesn't exist : " + backupFilename);
+				throw new RuntimeException("Backup file doesn't exist : " + backupFilename);
+			} else {
+				throw new RuntimeException("Backup filename not set !");
+			}
+		}
 	}
 }
