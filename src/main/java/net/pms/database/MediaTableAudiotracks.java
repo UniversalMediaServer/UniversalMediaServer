@@ -127,7 +127,7 @@ public class MediaTableAudiotracks extends MediaTable {
 					if (!isColumnExist(connection, TABLE_NAME, "RATING")) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD RATING INT");
 						LOGGER.trace("added column RATING on table " + TABLE_NAME);
-						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (RATING);");
+						executeUpdate(connection, "CREATE INDEX IDX_RATING on " + TABLE_NAME + " (RATING);");
 						LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
 					}
 					break;
@@ -172,6 +172,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", DELAY             INT");
 			sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
 			sb.append(", BITRATE           INT");
+			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INT");
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
@@ -196,8 +197,11 @@ public class MediaTableAudiotracks extends MediaTable {
 			LOGGER.trace("Creating index IDX_AUDIO_YEAR");
 			executeUpdate(statement, "CREATE INDEX IDX_AUDIO_YEAR on " + TABLE_NAME + " (MEDIA_YEAR asc);");
 
+			LOGGER.trace("Creating index IDX_RATING");
+			statement.execute("CREATE INDEX IDX_RATING on " + TABLE_NAME + " (RATING)");
+
 			LOGGER.trace("Creating index IDX_LIKE_SONG");
-			statement.execute("CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (RATING)");
+			statement.execute("CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (LIKE_SONG)");
 		}
 	}
 
