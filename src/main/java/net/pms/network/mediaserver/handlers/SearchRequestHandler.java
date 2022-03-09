@@ -157,6 +157,7 @@ public class SearchRequestHandler {
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
 		addOrderBy(requestMessage, requestType, sb);
 		addLimit(requestMessage, requestType, sb);
+		LOGGER.trace(sb.toString());
 		return sb.toString();
 	}
 
