@@ -161,21 +161,23 @@ public class SearchRequestHandler {
 	}
 
 	private void addOrderBy(SearchRequest requestMessage, DbidMediaType requestType, StringBuilder sb) {
-		String[] sortElements = requestMessage.getSortCriteria().split("[;, ]");
 		sb.append(" ORDER BY ");
-		try {
-			for (String sort : sortElements) {
-				if (!StringUtils.isAllBlank(sort)) {
-					String field = getField(sort.substring(1), requestType);
-					if (!StringUtils.isAllBlank(field)) {
-						sb.append(field);
-						sb.append(sortOrder(sort.substring(0, 1)));
-						sb.append(", ");
+		if (!StringUtils.isAllBlank(requestMessage.getSortCriteria())) {
+			String[] sortElements = requestMessage.getSortCriteria().split("[;, ]");
+			try {
+				for (String sort : sortElements) {
+					if (!StringUtils.isAllBlank(sort)) {
+						String field = getField(sort.substring(1), requestType);
+						if (!StringUtils.isAllBlank(field)) {
+							sb.append(field);
+							sb.append(sortOrder(sort.substring(0, 1)));
+							sb.append(", ");
+						}
 					}
 				}
+			} catch (Exception e) {
+				LOGGER.trace("ERROR while processing 'addOrderBy'");
 			}
-		} catch (Exception e) {
-			LOGGER.trace("ERROR while processing 'addOrderBy'");
 		}
 		sb.append(String.format(" oid "));
 	}
