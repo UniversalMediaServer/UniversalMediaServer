@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
@@ -119,7 +120,7 @@ public class SearchRequestHandler {
 			case TYPE_PERSON:
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			case TYPE_ALBUM:
-				return "select DISTINCT ALBUM as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from AUDIOTRACKS as A where ";
 			case TYPE_PLAYLIST:
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			case TYPE_VIDEO:
@@ -303,10 +304,7 @@ public class SearchRequestHandler {
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
-				try (
-					Statement statement = connection.createStatement();
-					ResultSet resultSet = statement.executeQuery(query)
-				) {
+				try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
 						return resultSet.getInt(1);
 					}
@@ -342,17 +340,20 @@ public class SearchRequestHandler {
 							String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
 							switch (type) {
 								case TYPE_ALBUM:
+									String mbid = resultSet.getString("MBID_RECORD");
+									if (StringUtils.isAllBlank(mbid)) {
+										filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
+									} else {
+										filesList.add(new VirtualFolderDbId(filenameField,
+											new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), ""));
+									}
+									break;
 								case TYPE_PERSON:
 									filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
 									break;
 								case TYPE_PLAYLIST:
 									filesList.add(
-										new VirtualFolderDbId(
-											filenameField,
-											new DbidTypeAndIdent(type, resultSet.getString("FID")),
-											""
-										)
-									);
+										new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, resultSet.getString("FID")), ""));
 									break;
 								default:
 									filesList.add(new RealFileDbId(new DbidTypeAndIdent(type, resultSet.getString("FID")),
