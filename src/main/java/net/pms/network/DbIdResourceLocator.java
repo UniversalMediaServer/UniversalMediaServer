@@ -312,7 +312,7 @@ public class DbIdResourceLocator {
 	 * @param album
 	 * @param albumFolder
 	 */
-	private void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+	public void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
 		DLNAMediaAudio audioInf =  new DLNAMediaAudio();
 		audioInf.setAlbum(album.album);
 		audioInf.setArtist(album.artist);

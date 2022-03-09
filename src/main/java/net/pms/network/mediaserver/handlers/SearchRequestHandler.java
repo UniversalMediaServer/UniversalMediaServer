@@ -21,9 +21,11 @@ import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
+import net.pms.network.DbIdResourceLocator;
 import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mymusic.MusicBrainzAlbum;
 
 /**
  * <pre>
@@ -41,6 +43,7 @@ public class SearchRequestHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchRequestHandler.class);
 	private final static String CRLF = "\r\n";
 	private AtomicInteger updateID = new AtomicInteger(1);
+	private DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	private static Pattern classPattern = Pattern.compile("upnp:class\\s(\\bderivedfrom\\b|=)\\s+\"(?<val>.*?)\"",
 		Pattern.CASE_INSENSITIVE);
@@ -120,7 +123,7 @@ public class SearchRequestHandler {
 			case TYPE_PERSON:
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			case TYPE_ALBUM:
-				return "select DISTINCT ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from AUDIOTRACKS as A where ";
+				return "select DISTINCT MBID_RECORD, album, artist, media_year, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from AUDIOTRACKS as A where ";
 			case TYPE_PLAYLIST:
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			case TYPE_VIDEO:
@@ -344,8 +347,15 @@ public class SearchRequestHandler {
 									if (StringUtils.isAllBlank(mbid)) {
 										filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
 									} else {
-										filesList.add(new VirtualFolderDbId(filenameField,
-											new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), ""));
+										VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
+											new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
+										MusicBrainzAlbum album = new MusicBrainzAlbum(
+											resultSet.getString("MBID_RECORD"),
+											resultSet.getString("album"),
+											resultSet.getString("artist"),
+											resultSet.getInt("media_year"));
+										dbIdResourceLocator.appendAlbumInformation(album, albumFolder);
+										filesList.add(albumFolder);
 									}
 									break;
 								case TYPE_PERSON:
