@@ -50,7 +50,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.HlsConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
@@ -77,6 +76,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
+import net.pms.encoders.HlsHelper;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -376,9 +376,9 @@ public class RequestV2 extends HTTPResource {
 					if (fileName.endsWith(".m3u8")) {
 						//HLS rendition m3u8 file
 						String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
-						if (HlsConfiguration.valueOf(rendition) != null) {
+						if (HlsHelper.getByKey(rendition) != null) {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-							response.append(HlsConfiguration.getHLSm3u8ForRendition(dlna, "/get/", rendition));
+							response.append(HlsHelper.getHLSm3u8ForRendition(dlna, "/get/", rendition));
 						}
 					} else if (fileName.endsWith(".ts")) {
 						//HLS stream request
@@ -386,29 +386,17 @@ public class RequestV2 extends HTTPResource {
 						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
 						rendition = rendition.substring(0, rendition.indexOf("/"));
 						//here we need to set rendition to renderer
-						HlsConfiguration hlsConfiguration = HlsConfiguration.valueOf(rendition);
-						if (hlsConfiguration != null) {
-							mediaRenderer.setHlsConfiguration(hlsConfiguration);
+						HlsHelper.HlsConfiguration hlsConfiguration = HlsHelper.getByKey(rendition);
+						Range timeRange = HlsHelper.getTimeRange(uri);
+						if (hlsConfiguration != null && timeRange != null) {
+							inputStream = dlna.getInputStream(timeRange, mediaRenderer, hlsConfiguration);
+							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 						}
-						String positionStr = uri.substring(uri.lastIndexOf("/") + 1);
-						positionStr = positionStr.replace(".ts", "");
-						//set range
-						int position = 0;
-						try {
-							position = Integer.parseInt(positionStr);
-						} catch (NumberFormatException es) {
-							//here, we fail
-						}
-						Double askedStart =  Double.valueOf(position) * HlsConfiguration.DEFAULT_TARGETDURATION;
-						Range.Time trange = new Range.Time(askedStart, askedStart + HlsConfiguration.DEFAULT_TARGETDURATION);
-						dlna.setSplitRange(trange);
-						inputStream = dlna.getInputStream(trange, mediaRenderer);
-						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 					}
 				} else if (fileName.endsWith("_transcoded_to.m3u8")) {
 					//HLS start m3u8 file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-					response.append(HlsConfiguration.getHLSm3u8(dlna, "/get/"));
+					response.append(HlsHelper.getHLSm3u8(dlna, mediaRenderer, "/get/"));
 					if (contentFeatures != null) {
 						//output.headers().set("transferMode.dlna.org", "Streaming");
 						if (dlna.getMedia().getDurationInSeconds() > 0) {

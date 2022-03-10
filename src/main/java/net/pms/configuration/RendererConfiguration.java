@@ -70,7 +70,6 @@ public class RendererConfiguration extends Renderer {
 	protected Matcher sortedHeaderMatcher;
 	protected List<String> identifiers = null;
 	protected BasicPlayer player;
-	protected HlsConfiguration hlsConfiguration;
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded = false;
@@ -3051,13 +3050,5 @@ public class RendererConfiguration extends Renderer {
 
 	public String getAutomaticVideoQuality() {
 		return automaticVideoQuality;
-	}
-
-	public void setHlsConfiguration(HlsConfiguration value) {
-		hlsConfiguration = value;
-	}
-
-	public HlsConfiguration getHlsConfiguration() {
-		return hlsConfiguration;
 	}
 }

@@ -27,11 +27,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.HlsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.HlsHelper;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.network.HTTPResource;
@@ -149,60 +149,41 @@ public class MediaHandler implements HttpHandler {
 			}
 			if (HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
 				String uri = WebInterfaceServerUtil.getId(path, httpExchange);
-				if (uri.endsWith(".ts")) {
-				//we need to stream
-					String rendition = uri.substring(uri.indexOf("/hls/") + 5);
-					rendition = rendition.substring(0, rendition.indexOf("/"));
-					//here we need to set rendition to renderer
-					HlsConfiguration hlsConfiguration = HlsConfiguration.valueOf(rendition);
-					if (hlsConfiguration != null) {
-						defaultRenderer.setHlsConfiguration(hlsConfiguration);
-					}
-					String positionStr = uri.substring(uri.lastIndexOf("/") + 1);
-					positionStr = positionStr.replace(".ts", "");
-					//set range
-					int position = 0;
-					try {
-						position = Integer.parseInt(positionStr);
-					} catch (NumberFormatException es) {
-						//here, we fail
-					}
-					Double askedStart =  Double.valueOf(position) * HlsConfiguration.DEFAULT_TARGETDURATION;
-					Range.Time range = new Range.Time(askedStart, askedStart + HlsConfiguration.DEFAULT_TARGETDURATION);
-					root.setSplitRange(range);
-					Headers headers2 = httpExchange.getResponseHeaders();
-					headers2.add("Server", PMS.get().getServerName());
-					InputStream in = resource.getInputStream(range, defaultRenderer);
-					if (in != null) {
-						headers2.add("Connection", "keep-alive");
-						headers2.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-						OutputStream os = httpExchange.getResponseBody();
-						httpExchange.sendResponseHeaders(200, 0); //chunked
-						WebInterfaceServerUtil.dump(in, os);
-					} else {
-						httpExchange.sendResponseHeaders(500, -1);
-					}
-					return;
-				} else {
-					if (uri.contains("/hls/")) {
+				Headers headers = httpExchange.getResponseHeaders();
+				headers.add("Server", PMS.get().getServerName());
+				if (uri.contains("/hls/")) {
+					if (uri.endsWith(".m3u8")) {
 						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsConfiguration.getHLSm3u8ForRendition(resource, "/media/", rendition);
+						String response = HlsHelper.getHLSm3u8ForRendition(resource, "/media/", rendition);
 						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
-						/*
-						for testing locally
-						Headers headers2 = httpExchange.getResponseHeaders();
-						headers2.add("Server", PMS.get().getServerName());
-						headers2.add("Content-Type", HTTPResource.HLS_TYPEMIME);
-						parent.getResources().write("webhls/playlist-test.m3u8", httpExchange);
-						return;
-						*/
-						String response = HlsConfiguration.getHLSm3u8(resource, "/media/");
-						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+						//we need to stream
+						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
+						rendition = rendition.substring(0, rendition.indexOf("/"));
+						//here we need to set rendition to renderer
+						HlsHelper.HlsConfiguration hlsConfiguration = HlsHelper.getByKey(rendition);
+						Range timeRange = HlsHelper.getTimeRange(uri);
+						if (hlsConfiguration != null && timeRange != null) {
+							InputStream in = resource.getInputStream(timeRange, defaultRenderer, hlsConfiguration);
+							if (in != null) {
+								headers.add("Connection", "keep-alive");
+								headers.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+								OutputStream os = httpExchange.getResponseBody();
+								httpExchange.sendResponseHeaders(200, 0); //chunked
+								WebInterfaceServerUtil.dump(in, os);
+							} else {
+								httpExchange.sendResponseHeaders(500, -1);
+							}
+						} else {
+							httpExchange.sendResponseHeaders(404, -1);
+						}
 					}
-					return;
+				} else {
+					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), "/media/");
+					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
+				return;
 			}
 			media.setMimeType(mimeType);
 			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());

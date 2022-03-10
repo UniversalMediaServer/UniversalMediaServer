@@ -80,6 +80,7 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -3118,7 +3119,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		return getInputStream(range, mediarenderer, null);
+	}
+
+	/**
+	 * Returns an InputStream of this DLNAResource that starts at a given time,
+	 * if possible. Very useful if video chapters are being used.
+	 *
+	 * @param range
+	 * @param mediarenderer
+	 * @param hlsConfiguration
+	 * @return The inputstream
+	 * @throws IOException
+	 */
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, HlsConfiguration hlsConfiguration) throws IOException {
 		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
@@ -3209,6 +3224,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		params.setTimeSeek(timeRange.getStartOrZero());
 		params.setTimeEnd(timeRange.getEndOrZero());
 		params.setShiftScr(timeseekAuto);
+		params.setHlsConfiguration(hlsConfiguration);
 		if (this instanceof IPushOutput) {
 			params.setStdIn((IPushOutput) this);
 		}
@@ -3233,7 +3249,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// (Re)start transcoding process if necessary
-		if (externalProcess == null || externalProcess.isDestroyed()) {
+		if (externalProcess == null || externalProcess.isDestroyed() || hlsConfiguration != null) {
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 			lastStartSystemTime = System.currentTimeMillis();

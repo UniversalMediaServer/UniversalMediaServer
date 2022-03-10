@@ -247,7 +247,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean hasAudio() {
-		return audioTracks.size() > 0;
+		return !audioTracks.isEmpty();
 	}
 
 	/**
