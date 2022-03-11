@@ -54,16 +54,23 @@ public class HlsHelper {
 			HlsVideoConfiguration videoConf = HlsVideoConfiguration.getByKey(labelParts[0]);
 			HlsAudioConfiguration audioConf = HlsAudioConfiguration.getByKey(labelParts[1]);
 			int audioStream = -1;
+			int subtitle = -1;
 			if (labelParts.length == 3) {
+				int parsedValue;
 				try {
-					audioStream = Integer.parseInt(labelParts[2]);
+					parsedValue = Integer.parseInt(labelParts[2]);
 				} catch (NumberFormatException e) {
 					//remove audioStream
-					audioStream = -1;
+					parsedValue = -1;
+				}
+				if (audioConf != null && !audioConf.label.equals(NONE_CONF_NAME)) {
+					audioStream = parsedValue;
+				} else {
+					subtitle = parsedValue;
 				}
 			}
 			if (videoConf != null && audioConf != null) {
-				return new HlsConfiguration(videoConf, audioConf, audioStream);
+				return new HlsConfiguration(videoConf, audioConf, audioStream, subtitle);
 			}
 		}
 		return null;
@@ -314,11 +321,13 @@ public class HlsHelper {
 		public final HlsVideoConfiguration video;
 		public final HlsAudioConfiguration audio;
 		public final int audioStream;
+		public final int subtitle;
 
-		public HlsConfiguration(HlsVideoConfiguration video, HlsAudioConfiguration audio, int audioStream) {
+		public HlsConfiguration(HlsVideoConfiguration video, HlsAudioConfiguration audio, int audioStream, int subtitle) {
 			this.video = video;
 			this.audio = audio;
 			this.audioStream = audioStream;
+			this.subtitle = subtitle;
 		}
 
 		@Override

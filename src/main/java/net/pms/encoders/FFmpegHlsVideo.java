@@ -103,6 +103,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			} else {
 				cmdList.add(askedLogLevel.label);
 			}
+			cmdList.add("-hide_banner");
 		}
 
 		/*
@@ -140,8 +141,13 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		cmdList.add(filename);
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
 		boolean needAudio = hlsConfiguration.audioStream > -1;
-
-		cmdList.add("-copyts");
+		boolean needSubtitle = hlsConfiguration.subtitle > -1;
+		if (needSubtitle) {
+			cmdList.add("-map");
+			cmdList.add("0:s:" + hlsConfiguration.subtitle);
+		} else {
+			cmdList.add("-sn");
+		}
 
 		if (media.getAudioTracksList().size() > 1) {
 			if (needVideo) {
@@ -153,9 +159,15 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add("0:a:" + hlsConfiguration.audioStream);
 			}
 		}
+		//remove data
+		cmdList.add("-dn");
 		//transcodeOptions.add("-sc_threshold");
 		//transcodeOptions.add("0");
+
 		//transcodeOptions.add("-copyts");
+		if (needVideo || needAudio) {
+			cmdList.add("-copyts");
+		}
 		//setup video
 		if (needVideo) {
 			if (hlsConfiguration.video.resolutionWidth > 0) {
@@ -204,6 +216,8 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add("-b:v");
 				cmdList.add(String.valueOf(hlsConfiguration.video.videoBitRate));
 			}
+		} else {
+			cmdList.add("-vn");
 		}
 		if (needAudio) {
 			//setup audio
@@ -227,6 +241,8 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add("-ab");
 				cmdList.add(String.valueOf(hlsConfiguration.audio.audioBitRate));
 			}
+		} else {
+			cmdList.add("-an");
 		}
 
 		// Encoder threads
@@ -236,19 +252,21 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		}
 
 		cmdList.add("-f");
-		cmdList.add("mpegts");
-		cmdList.add("-skip_estimate_duration_from_pts");
-		cmdList.add("1");
-		cmdList.add("-use_wallclock_as_timestamps");
-		cmdList.add("1");
-		//transcodeOptions.add("-mpegts_flags");
-		//transcodeOptions.add("latm");
-		cmdList.add("-movflags");
-		cmdList.add("frag_keyframe"); //frag_keyframe
-
+		if (needSubtitle && !needAudio && !needVideo) {
+			cmdList.add("webvtt");
+		} else {
+			cmdList.add("mpegts");
+			cmdList.add("-skip_estimate_duration_from_pts");
+			cmdList.add("1");
+			cmdList.add("-use_wallclock_as_timestamps");
+			cmdList.add("1");
+			//transcodeOptions.add("-mpegts_flags");
+			//transcodeOptions.add("latm");
+			cmdList.add("-movflags");
+			cmdList.add("frag_keyframe"); //frag_keyframe
+		}
 
 		// Set up the process
-
 		// basename of the named pipe:
 		String fifoName = String.format(
 			"ffmpeghlsvideo_%d_%d",
