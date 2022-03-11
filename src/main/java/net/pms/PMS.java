@@ -510,11 +510,17 @@ public class PMS {
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
 
-			// Set default local shared content
-			configuration.setSharedFoldersToDefault();
+			// Set default local shared content if the wizard has not set it
+			if (configuration.isSharedFoldersEmpty()) {
+				configuration.setSharedFoldersToDefault();
+			}
 
 			// Set default remote shared content
-			configuration.writeWebConfigurationFile();
+			String webConfPath = configuration.getWebConfPath();
+			File webConf = new File(webConfPath);
+			if (!webConf.exists()) {
+				configuration.writeWebConfigurationFile();
+			}
 
 			// Ensure this only happens once
 			configuration.setHasRunOnce();

@@ -113,11 +113,14 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
-		testHeaders    ("LG Blu-Ray Player", "User-Agent: LG-BP350");
-		testUPNPDetails("LG Blu-Ray Player", "friendlyName=LG-BP350");
+		testHeaders    ("LG Blu-ray Player (BP)", "User-Agent: LG-BP350");
+		testUPNPDetails("LG Blu-ray Player (BP)", "friendlyName=LG-BP350");
 
-		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
-		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
+		testHeaders    ("LG Blu-ray Player (BDP)", "User-Agent: LG-BDP450");
+		testUPNPDetails("LG Blu-ray Player (BDP)", "friendlyName=LG-BDP450");
+
+		testHeaders    ("LG Blu-ray Player (BP550)", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG Blu-ray Player (BP550)", "friendlyName=LG-BP550-1");
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 

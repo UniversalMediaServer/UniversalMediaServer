@@ -341,13 +341,13 @@ public final class MediaTableTVSeries extends MediaTable {
 		sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE IMDBID = ").append(sqlQuote(imdbID)).append(" ");
 		String latestVersion = APIUtils.getApiDataSeriesVersion();
 		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
-			sql.append("AND VERSION = ").append(sqlQuote(imdbID)).append(" ");
+			sql.append("AND VERSION = ").append(sqlQuote(latestVersion)).append(" ");
 		}
 		sql.append("LIMIT 1");
 
 		try {
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+				LOGGER.trace("Searching {} with \"{}\"", TABLE_NAME, sql);
 			}
 
 			try (
@@ -379,15 +379,21 @@ public final class MediaTableTVSeries extends MediaTable {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
 		try {
-			String sql = "SELECT * FROM " + TABLE_NAME + " WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE SIMPLIFIEDTITLE = ").append(sqlQuote(simplifiedTitle)).append(" ");
+			String latestVersion = APIUtils.getApiDataSeriesVersion();
+			if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
+				sql.append("AND VERSION = ").append(sqlQuote(latestVersion)).append(" ");
+			}
+			sql.append("LIMIT 1");
 
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+				LOGGER.trace("Searching {} with \"{}\"", TABLE_NAME, sql);
 			}
 
 			try (
 				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql)
+				ResultSet resultSet = statement.executeQuery(sql.toString())
 			) {
 				if (resultSet.next()) {
 					return convertSingleResultSetToList(resultSet);
