@@ -111,8 +111,8 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 	@Override
 	synchronized public int getPort() {
-		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress channelSocketAddress) {
-			return channelSocketAddress.getPort();
+		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress) {
+			return ((InetSocketAddress) channel.getLocalAddress()).getPort();
 		}
 		return socketAddress.getPort();
 	}
@@ -129,8 +129,8 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		try {
 			channel = bootstrap.bind(socketAddress);
 			allChannels.add(channel);
-			if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress channelSocketAddress) {
-				LOGGER.info("Started StreamServer on: {}", channelSocketAddress);
+			if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress) {
+				LOGGER.info("Started StreamServer on: {}", (InetSocketAddress) channel.getLocalAddress());
 			} else {
 				LOGGER.info("Started StreamServer on: {}", socketAddress);
 			}
