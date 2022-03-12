@@ -432,16 +432,15 @@ public class RequestHandler implements HttpHandler {
 					} else {
 						sendResponse(exchange, renderer, 404, null);
 					}
-				} else if (fileName.endsWith(".ts")) {
+				} else {
 					//HLS stream request
-					String rendition = uri.substring(uri.indexOf("/hls/") + 5);
-					rendition = rendition.substring(0, rendition.indexOf("/"));
-					//here we need to set rendition to renderer
-					HlsHelper.HlsConfiguration hlsConfiguration = HlsHelper.getByKey(rendition);
-					Range timeRange = HlsHelper.getTimeRange(uri);
-					if (hlsConfiguration != null && timeRange != null) {
-						inputStream = dlna.getInputStream(timeRange, renderer, hlsConfiguration);
-						exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+					inputStream = HlsHelper.getInputStream(fileName, dlna, renderer);
+					if (inputStream != null) {
+						if (fileName.endsWith(".ts")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+						} else if (fileName.endsWith(".vtt")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+						}
 						sendResponse(exchange, renderer, 200, inputStream, DLNAMediaInfo.TRANS_SIZE, true);
 					} else {
 						sendResponse(exchange, renderer, 404, null);

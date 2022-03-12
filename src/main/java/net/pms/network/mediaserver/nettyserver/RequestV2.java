@@ -380,17 +380,14 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
 							response.append(HlsHelper.getHLSm3u8ForRendition(dlna, "/get/", rendition));
 						}
-					} else if (fileName.endsWith(".ts")) {
+					} else {
 						//HLS stream request
 						cLoverride = DLNAMediaInfo.TRANS_SIZE;
-						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
-						rendition = rendition.substring(0, rendition.indexOf("/"));
-						//here we need to set rendition to renderer
-						HlsHelper.HlsConfiguration hlsConfiguration = HlsHelper.getByKey(rendition);
-						Range timeRange = HlsHelper.getTimeRange(uri);
-						if (hlsConfiguration != null && timeRange != null) {
-							inputStream = dlna.getInputStream(timeRange, mediaRenderer, hlsConfiguration);
+						inputStream = HlsHelper.getInputStream(fileName, dlna, mediaRenderer);
+						if (fileName.endsWith(".ts")) {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+						} else if (fileName.endsWith(".vtt")) {
+							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
 						}
 					}
 				} else if (fileName.endsWith("_transcoded_to.m3u8")) {
