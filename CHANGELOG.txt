@@ -1,3 +1,15 @@
+10.18.1 - 2022-03-12
+
+	General:
+		Improved speed of video metadata lookups
+		Fixed junk data at the end of transcoded videos (#2867)
+		Fixed the failed lookups table upgrade/creation (#2871)
+		Fixed TV series data versioning
+		Fixed redundant TV series lookups
+		Fixed response caching
+	Dependencies:
+		Bump logback-version from 1.2.10 to 1.2.11
+
 10.18.0 - 2022-03-06
 
 	General:
