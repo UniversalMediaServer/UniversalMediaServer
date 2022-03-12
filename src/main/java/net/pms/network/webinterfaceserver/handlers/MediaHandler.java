@@ -159,24 +159,19 @@ public class MediaHandler implements HttpHandler {
 						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to stream
-						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
-						rendition = rendition.substring(0, rendition.indexOf("/"));
-						//here we need to set rendition to renderer
-						HlsHelper.HlsConfiguration hlsConfiguration = HlsHelper.getByKey(rendition);
-						Range timeRange = HlsHelper.getTimeRange(uri);
-						if (hlsConfiguration != null && timeRange != null) {
-							InputStream in = resource.getInputStream(timeRange, defaultRenderer, hlsConfiguration);
-							if (in != null) {
-								headers.add("Connection", "keep-alive");
+						InputStream in = HlsHelper.getInputStream(uri, resource, defaultRenderer);
+						if (in != null) {
+							headers.add("Connection", "keep-alive");
+							if (uri.endsWith(".ts")) {
 								headers.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-								OutputStream os = httpExchange.getResponseBody();
-								httpExchange.sendResponseHeaders(200, 0); //chunked
-								WebInterfaceServerUtil.dump(in, os);
-							} else {
-								httpExchange.sendResponseHeaders(500, -1);
+							} else if (uri.endsWith(".vtt")) {
+								headers.add("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
 							}
+							OutputStream os = httpExchange.getResponseBody();
+							httpExchange.sendResponseHeaders(200, 0); //chunked
+							WebInterfaceServerUtil.dump(in, os);
 						} else {
-							httpExchange.sendResponseHeaders(404, -1);
+							httpExchange.sendResponseHeaders(500, -1);
 						}
 					}
 				} else {

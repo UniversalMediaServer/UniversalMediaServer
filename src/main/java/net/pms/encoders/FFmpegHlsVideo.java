@@ -77,6 +77,9 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		HlsConfiguration hlsConfiguration = params.getHlsConfiguration();
+		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
+		boolean needAudio = hlsConfiguration.audioStream > -1;
+		boolean needSubtitle = hlsConfiguration.subtitle > -1;
 		String filename = dlna.getFileName();
 
 		// Build the command line
@@ -105,7 +108,9 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			}
 			cmdList.add("-hide_banner");
 		}
-
+		if (needSubtitle) {
+			cmdList.add("-nostdin");
+		}
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -132,19 +137,31 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			cmdList.add("" + (int) params.getTimeSeek());
 		}
 
-		if (params.getTimeEnd() > 0) {
+		if (params.getTimeEnd() > 0 && !needSubtitle) {
 			cmdList.add("-t");
 			cmdList.add(String.valueOf(params.getTimeEnd() - params.getTimeSeek()));
 		}
 
+		//don't decode stream if not needed
+		if (!needVideo) {
+			cmdList.add("-vn");
+		}
+		if (!needAudio) {
+			cmdList.add("-an");
+		}
+		if (!needSubtitle) {
+			cmdList.add("-sn");
+		}
 		cmdList.add("-i");
 		cmdList.add(filename);
-		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
-		boolean needAudio = hlsConfiguration.audioStream > -1;
-		boolean needSubtitle = hlsConfiguration.subtitle > -1;
+
 		if (needSubtitle) {
 			cmdList.add("-map");
 			cmdList.add("0:s:" + hlsConfiguration.subtitle);
+			if (params.getTimeEnd() > 0) {
+				cmdList.add("-t");
+				cmdList.add(String.valueOf(params.getTimeEnd()));
+			}
 		} else {
 			cmdList.add("-sn");
 		}
@@ -161,13 +178,10 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 		}
 		//remove data
 		cmdList.add("-dn");
-		//transcodeOptions.add("-sc_threshold");
-		//transcodeOptions.add("0");
+		cmdList.add("-copyts");
+		//cmdList.add("-sc_threshold");
+		//cmdList.add("0");
 
-		//transcodeOptions.add("-copyts");
-		if (needVideo || needAudio) {
-			cmdList.add("-copyts");
-		}
 		//setup video
 		if (needVideo) {
 			if (hlsConfiguration.video.resolutionWidth > 0) {
@@ -217,6 +231,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add(String.valueOf(hlsConfiguration.video.videoBitRate));
 			}
 		} else {
+			//don't encode stream if not needed
 			cmdList.add("-vn");
 		}
 		if (needAudio) {
@@ -242,6 +257,7 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add(String.valueOf(hlsConfiguration.audio.audioBitRate));
 			}
 		} else {
+			//don't encode stream if not needed
 			cmdList.add("-an");
 		}
 

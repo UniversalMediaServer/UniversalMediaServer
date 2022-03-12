@@ -19,6 +19,8 @@
  */
 package net.pms.encoders;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +32,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 
@@ -143,6 +146,25 @@ public class HlsHelper {
 				}
 				//sb.append("#EXT-X-STREAM-INF:AUDIO=\"").append(groupId).append("\"\n");
 			}
+			boolean subtitleAdded = false;
+			for (DLNAMediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
+				if (mediaSubtitle.isEmbedded()) {
+					subtitleAdded = true;
+					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES,DEFAULT=NO,FORCED=NO");
+					String subtitleName;
+					if (mediaSubtitle.getSubtitlesTrackTitleFromMetadata() != null) {
+						subtitleName = mediaSubtitle.getSubtitlesTrackTitleFromMetadata();
+					} else if (mediaSubtitle.getName() != null) {
+						subtitleName = mediaSubtitle.getName();
+					} else {
+						subtitleName = mediaSubtitle.getLangFullName();
+					}
+					sb.append(",NAME=\"").append(subtitleName).append("\"");
+					sb.append(",LANGUAGE=\"").append(mediaSubtitle.getLang()).append("\"");
+					sb.append(",URI=\"").append(baseUrl).append(id).append("/hls/").append(NONE_CONF_NAME).append("_").append(NONE_CONF_NAME).append("_").append(mediaSubtitle.getId()).append(".m3u8\"\n");
+				}
+			}
+
 			List<HlsVideoConfiguration> videoGroups = new ArrayList<>();
 			//always add copy conf first
 			videoGroups.add(HlsVideoConfiguration.getByKey(COPY_CONF_NAME));
@@ -166,7 +188,11 @@ public class HlsHelper {
 						sb.append(",AUDIO=\"").append(audioGroup.label).append("\"");
 						sb.append(",CODECS=\"").append(videoGroup.videoCodec);
 					}
-					sb.append(",").append(audioGroup.audioCodec).append("\"\n");
+					sb.append(",").append(audioGroup.audioCodec).append("\"");
+					if (subtitleAdded) {
+						sb.append(",SUBTITLES=\"sub1\"");
+					}
+					sb.append("\n");
 					sb.append(baseUrl).append(id).append("/hls/").append(videoGroup.label).append("_").append(audioGroup.label).append("_");
 					if (mediaAudioDefault != null) {
 						sb.append(mediaAudioDefault.getId());
@@ -196,7 +222,7 @@ public class HlsHelper {
 			String id = dlna.getResourceId();
 			String defaultDurationStr = String.format(Locale.ENGLISH, "%.6f", DEFAULT_TARGETDURATION);
 			String targetDurationStr = String.valueOf(Double.valueOf(Math.ceil(DEFAULT_TARGETDURATION)).intValue());
-			String filename = "ts";
+			String filename = rendition.startsWith(NONE_CONF_NAME + "_" + NONE_CONF_NAME + "_") ? "vtt" : "ts";
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
 			sb.append("#EXT-X-VERSION:6\n");
@@ -238,6 +264,21 @@ public class HlsHelper {
 		}
 		double askedStart =  Double.valueOf(position) * HlsHelper.DEFAULT_TARGETDURATION;
 		return new Range.Time(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
+	}
+
+	public static InputStream getInputStream(String url, DLNAResource resource, RendererConfiguration renderer) throws IOException {
+		if (!url.contains("/hls/")) {
+			return null;
+		}
+		String rendition = url.substring(url.indexOf("/hls/") + 5);
+		rendition = rendition.substring(0, rendition.indexOf("/"));
+		//here we need to set rendition to renderer
+		HlsHelper.HlsConfiguration hlsConfiguration = getByKey(rendition);
+		Range timeRange = HlsHelper.getTimeRange(url);
+		if (hlsConfiguration != null && timeRange != null) {
+			return resource.getInputStream(timeRange, renderer, hlsConfiguration);
+		}
+		return null;
 	}
 
 	public static boolean isMediaCompatible(DLNAMediaInfo mediaVideo) {
@@ -328,6 +369,10 @@ public class HlsHelper {
 			this.audio = audio;
 			this.audioStream = audioStream;
 			this.subtitle = subtitle;
+		}
+
+		public boolean isSubtitle() {
+			return subtitle > -1;
 		}
 
 		@Override

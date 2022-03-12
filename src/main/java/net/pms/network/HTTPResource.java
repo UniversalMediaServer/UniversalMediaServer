@@ -112,6 +112,7 @@ public class HTTPResource {
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
 	public static final String WEBP_TYPEMIME = "image/webp";
+	public static final String WEBVTT_TYPEMIME = "text/vtt";
 
 	/**
 	 * This class is not meant to be instantiated.
