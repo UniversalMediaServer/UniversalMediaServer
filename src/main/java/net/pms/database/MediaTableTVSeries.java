@@ -297,12 +297,7 @@ public final class MediaTableTVSeries extends MediaTable {
 
 		try {
 			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE SIMPLIFIEDTITLE = ").append(sqlQuote(simplifiedTitle)).append(" ");
-			String latestVersion = APIUtils.getApiDataSeriesVersion();
-			if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
-				sql.append("AND VERSION = ").append(sqlQuote(latestVersion)).append(" ");
-			}
-			sql.append("LIMIT 1");
+			sql.append("SELECT * FROM ").append(TABLE_NAME).append(" WHERE SIMPLIFIEDTITLE = ").append(sqlQuote(simplifiedTitle)).append(" LIMIT 1");
 
 			if (trace) {
 				LOGGER.trace("Searching {} with \"{}\"", TABLE_NAME, sql);
