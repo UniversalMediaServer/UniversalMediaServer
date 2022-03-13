@@ -485,9 +485,10 @@ public class APIUtils {
 			if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
 				if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
 					LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
+				} else {
+					LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
+					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "No API result - expected ", false);
 				}
-				LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
-				// Return now because the API data is wrong if we have an episode but no series in the API
 				return null;
 			}
 
