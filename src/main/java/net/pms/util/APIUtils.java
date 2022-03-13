@@ -412,10 +412,18 @@ public class APIUtils {
 					}
 					MediaTableVideoMetadataReleased.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
-				connection.commit();
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
+				try {
+					if (connection != null) {
+						connection.commit();
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Error in commit in APIUtils.backgroundLookupAndAdd: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+
 				MediaDatabase.close(connection);
 				frame.setSecondaryStatusLine(null);
 			}
