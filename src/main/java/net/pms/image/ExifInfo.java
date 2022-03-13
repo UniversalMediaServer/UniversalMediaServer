@@ -16,7 +16,7 @@ import com.drew.metadata.exif.ExifThumbnailDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public abstract class ExifInfo extends ImageInfo {
-	private static final long serialVersionUID = 3552335722258681536L;
+	private static final long serialVersionUID = 7572357352308556233L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);
 
