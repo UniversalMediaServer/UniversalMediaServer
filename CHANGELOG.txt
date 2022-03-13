@@ -1,4 +1,4 @@
-10.18.1 - 2022-03-12
+10.19.0 - 2022-03-??
 
 	General:
 		Improved speed of video metadata lookups
