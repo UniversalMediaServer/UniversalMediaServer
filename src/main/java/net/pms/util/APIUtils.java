@@ -767,8 +767,6 @@ public class APIUtils {
 		try {
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setAllowUserInteraction(false);
-			connection.setUseCaches(false);
-			connection.setDefaultUseCaches(false);
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.setRequestProperty("Content-length", "0");
 			connection.setRequestProperty("User-Agent", VERBOSE_UA);
