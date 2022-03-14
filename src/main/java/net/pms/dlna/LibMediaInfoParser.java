@@ -294,7 +294,9 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
-					addMusicBrainzIDs(file, currentAudioTrack);
+					if (videoTrackCount == 0) {
+						addMusicBrainzIDs(file, currentAudioTrack);
+					}
 
 					value = mI.Get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
