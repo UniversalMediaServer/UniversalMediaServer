@@ -1,12 +1,16 @@
-10.19.0 - 2022-03-??
+10.19.0 - 2022-03-14
 
 	General:
 		Improved speed of video metadata lookups
+		Improved speed and drive use when browsing/scanning folders
+		Match more years in filenames for more accurate video metadata lookups
 		Fixed junk data at the end of transcoded videos (#2867)
 		Fixed the failed lookups table upgrade/creation (#2871)
 		Fixed TV series data versioning
 		Fixed redundant TV series lookups
 		Fixed response caching
+		Fixed failed video metadata caching
+		Fixed hanging API requests
 	Dependencies:
 		Bump logback-version from 1.2.10 to 1.2.11
 
