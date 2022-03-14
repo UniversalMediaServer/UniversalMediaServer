@@ -260,7 +260,7 @@ public class SearchRequestHandler {
 			return " A.ALBUM ";
 		} else if ("upnp:rating".equalsIgnoreCase(property)) {
 			return " rating ";
-		} else if ("ums:liked".equalsIgnoreCase(property)) {
+		} else if ("ums:likedAlbum".equalsIgnoreCase(property)) {
 			return " liked ";
 		}
 
