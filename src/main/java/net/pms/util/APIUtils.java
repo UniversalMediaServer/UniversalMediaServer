@@ -412,10 +412,18 @@ public class APIUtils {
 					}
 					MediaTableVideoMetadataReleased.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
-				connection.commit();
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
+				try {
+					if (connection != null) {
+						connection.commit();
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Error in commit in APIUtils.backgroundLookupAndAdd: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+
 				MediaDatabase.close(connection);
 				frame.setSecondaryStatusLine(null);
 			}
@@ -452,147 +460,146 @@ public class APIUtils {
 		 * in our database yet, and persist it to our database.
 		 */
 		try {
-			HashMap<String, Object> seriesMetadataFromDatabase;
+			HashMap<String, Object> seriesMetadataFromDatabase = null;
 			if (seriesIMDbIDFromAPI != null) {
 				seriesMetadataFromDatabase = MediaTableTVSeries.getByIMDbID(connection, seriesIMDbIDFromAPI);
-			} else {
-				seriesMetadataFromDatabase = null;
 			}
 
 			if (seriesMetadataFromDatabase != null) {
 				LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
 				return (String) seriesMetadataFromDatabase.get("TITLE");
-			} else {
-				/*
-				 * This either means there is no entry in the TV Series table for this series, or
-				 * there is but it only contains filename info - not API yet.
-				 */
-				LOGGER.trace("API metadata for TV series {} ({}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
+			}
 
-				// Start by checking if we have already failed this lookup recently
-				if (MediaTableFailedLookups.hasLookupFailedRecently(connection, failedLookupKey, false)) {
-					return null;
-				}
+			/*
+			 * This either means there is no entry in the TV Series table for this series, or
+			 * there is but it only contains filename info - not API yet.
+			 */
+			LOGGER.trace("API metadata for TV series {} (IMDb ID: {}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
 
-				HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
-				if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
-					if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
-						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
-					}
-					LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
-					// Return now because the API data is wrong if we have an episode but no series in the API
-					return null;
-				}
+			// Start by checking if we have already failed this lookup recently
+			if (MediaTableFailedLookups.hasLookupFailedRecently(connection, failedLookupKey, false)) {
+				return null;
+			}
 
-				title = (String) seriesMetadataFromAPI.get("title");
-				if (isNotBlank(yearFromFilename)) {
-					title += " (" + yearFromFilename + ")";
-				}
-				titleSimplified = FileUtil.getSimplifiedShowName(title);
-				String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
-				boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
-
-				boolean isAPIDataValid = true;
-				String validationFailedPrepend = "not storing the series API lookup result because ";
-				// Only continue if the simplified titles match
-				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
-					isAPIDataValid = false;
-					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
-					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
-				} else if (!isSeriesFromAPI) {
-					isAPIDataValid = false;
-					LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
-					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
-				}
-
-				if (!isAPIDataValid) {
-					return null;
-				}
-
-				/*
-				 * Now we have an API result for the TV series, we need to see whether
-				 * to insert it or update existing data, so we attempt to find an entry
-				 * based on the title.
-				 */
-				seriesMetadataFromDatabase = MediaTableTVSeries.getByTitle(connection, title);
-
-				// Restore the year appended to the title if it is in the filename
-				int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
-				if (isNotBlank(yearFromFilename) && yearIndex == -1) {
-					String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename + ")";
-					seriesMetadataFromAPI.replace("title", titleFromAPI);
-				}
-
-				if (seriesMetadataFromDatabase == null) {
-					LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
-					tvSeriesDatabaseId = MediaTableTVSeries.set(connection, seriesMetadataFromAPI, null);
+			HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
+			if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
+				if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
+					LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
 				} else {
-					LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
-					tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
-					MediaTableTVSeries.insertAPIMetadata(connection, seriesMetadataFromAPI);
+					LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
+					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "No API result - expected ", false);
 				}
+				return null;
+			}
 
-				if (tvSeriesDatabaseId == -1) {
-					LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
-					return null;
-				}
+			title = (String) seriesMetadataFromAPI.get("title");
+			if (isNotBlank(yearFromFilename)) {
+				title += " (" + yearFromFilename + ")";
+			}
+			titleSimplified = FileUtil.getSimplifiedShowName(title);
+			String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
+			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
 
-				// Now we insert the TV series data into the other tables
-				HashSet<?> actorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("actors"));
-				if (!actorsFromAPI.isEmpty()) {
-					MediaTableVideoMetadataActors.set(connection, "", actorsFromAPI, tvSeriesDatabaseId);
-				}
-				MediaTableVideoMetadataAwards.set(connection, "", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
-				MediaTableVideoMetadataCountries.set(connection, "", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
-				HashSet<?> directorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("directors"));
-				if (!directorsFromAPI.isEmpty()) {
-					MediaTableVideoMetadataDirectors.set(connection, "", directorsFromAPI, tvSeriesDatabaseId);
-				}
-				HashSet<?> genresFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("genres"));
-				if (!genresFromAPI.isEmpty()) {
-					MediaTableVideoMetadataGenres.set(connection, "", genresFromAPI, tvSeriesDatabaseId);
-				}
-				MediaTableVideoMetadataProduction.set(connection, "", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
+			boolean isAPIDataValid = true;
+			String validationFailedPrepend = "not storing the series API lookup result because ";
+			// Only continue if the simplified titles match
+			if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
+				isAPIDataValid = false;
+				LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
+				MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
+			} else if (!isSeriesFromAPI) {
+				isAPIDataValid = false;
+				LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
+				MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
+			}
 
-				// Set the poster as the thumbnail
-				if (seriesMetadataFromAPI.get("poster") != null) {
-					try {
-						byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
-						MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
-					} catch (EOFException e) {
-						LOGGER.debug(
-							"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
-							file.getName()
-						);
-					} catch (UnknownFormatException e) {
-						LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-					} catch (IOException e) {
-						LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-						LOGGER.trace("", e);
-					}
-				}
+			if (!isAPIDataValid) {
+				return null;
+			}
 
-				MediaTableVideoMetadataPosters.set(connection, "", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
-				MediaTableVideoMetadataRated.set(connection, "", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
-				if (seriesMetadataFromAPI.get("rating") != null && (Double) seriesMetadataFromAPI.get("rating") != 0.0) {
-					MediaTableVideoMetadataIMDbRating.set(connection, "", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
-				}
-				HashSet<?> ratingsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("ratings"));
-				if (!ratingsFromAPI.isEmpty()) {
-					MediaTableVideoMetadataRatings.set(connection, "", ratingsFromAPI, tvSeriesDatabaseId);
-				}
-				MediaTableVideoMetadataReleased.set(connection, "", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
+			/*
+				* Now we have an API result for the TV series, we need to see whether
+				* to insert it or update existing data, so we attempt to find an entry
+				* based on the title.
+				*/
+			seriesMetadataFromDatabase = MediaTableTVSeries.getByTitle(connection, title);
 
-				// Replace any close-but-not-exact titles in the FILES table
-				if (
-					titleFromFilename != null &&
-					titleSimplifiedFromFilename != null &&
-					!title.equals(titleFromFilename) &&
-					titleSimplified.equals(titleSimplifiedFromFilename)
-				) {
-					LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-					MediaTableFiles.updateMovieOrShowName(connection, titleFromFilename, title);
+			// Restore the year appended to the title if it is in the filename
+			int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
+			if (isNotBlank(yearFromFilename) && yearIndex == -1) {
+				String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename + ")";
+				seriesMetadataFromAPI.replace("title", titleFromAPI);
+			}
+
+			if (seriesMetadataFromDatabase == null) {
+				LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
+				tvSeriesDatabaseId = MediaTableTVSeries.set(connection, seriesMetadataFromAPI, null);
+			} else {
+				LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
+				tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
+				MediaTableTVSeries.insertAPIMetadata(connection, seriesMetadataFromAPI);
+			}
+
+			if (tvSeriesDatabaseId == -1) {
+				LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
+				return null;
+			}
+
+			// Now we insert the TV series data into the other tables
+			HashSet<?> actorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("actors"));
+			if (!actorsFromAPI.isEmpty()) {
+				MediaTableVideoMetadataActors.set(connection, "", actorsFromAPI, tvSeriesDatabaseId);
+			}
+			MediaTableVideoMetadataAwards.set(connection, "", (String) seriesMetadataFromAPI.get("awards"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataCountries.set(connection, "", (String) seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
+			HashSet<?> directorsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("directors"));
+			if (!directorsFromAPI.isEmpty()) {
+				MediaTableVideoMetadataDirectors.set(connection, "", directorsFromAPI, tvSeriesDatabaseId);
+			}
+			HashSet<?> genresFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("genres"));
+			if (!genresFromAPI.isEmpty()) {
+				MediaTableVideoMetadataGenres.set(connection, "", genresFromAPI, tvSeriesDatabaseId);
+			}
+			MediaTableVideoMetadataProduction.set(connection, "", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
+
+			// Set the poster as the thumbnail
+			if (seriesMetadataFromAPI.get("poster") != null) {
+				try {
+					byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
+					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+				} catch (EOFException e) {
+					LOGGER.debug(
+						"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
+						file.getName()
+					);
+				} catch (UnknownFormatException e) {
+					LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+				} catch (IOException e) {
+					LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
+					LOGGER.trace("", e);
 				}
+			}
+
+			MediaTableVideoMetadataPosters.set(connection, "", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataRated.set(connection, "", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
+			if (seriesMetadataFromAPI.get("rating") != null && (Double) seriesMetadataFromAPI.get("rating") != 0.0) {
+				MediaTableVideoMetadataIMDbRating.set(connection, "", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
+			}
+			HashSet<?> ratingsFromAPI = new HashSet<Object>((ArrayList<?>) seriesMetadataFromAPI.get("ratings"));
+			if (!ratingsFromAPI.isEmpty()) {
+				MediaTableVideoMetadataRatings.set(connection, "", ratingsFromAPI, tvSeriesDatabaseId);
+			}
+			MediaTableVideoMetadataReleased.set(connection, "", (String) seriesMetadataFromAPI.get("released"), tvSeriesDatabaseId);
+
+			// Replace any close-but-not-exact titles in the FILES table
+			if (
+				titleFromFilename != null &&
+				titleSimplifiedFromFilename != null &&
+				!title.equals(titleFromFilename) &&
+				titleSimplified.equals(titleSimplifiedFromFilename)
+			) {
+				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
+				MediaTableFiles.updateMovieOrShowName(connection, titleFromFilename, title);
 			}
 
 			return title;
@@ -767,11 +774,11 @@ public class APIUtils {
 		try {
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setAllowUserInteraction(false);
-			connection.setUseCaches(false);
-			connection.setDefaultUseCaches(false);
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.setRequestProperty("Content-length", "0");
 			connection.setRequestProperty("User-Agent", VERBOSE_UA);
+			connection.setConnectTimeout(30000);
+			connection.setReadTimeout(30000);
 			connection.connect();
 
 			int status = connection.getResponseCode();

@@ -296,17 +296,19 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
 
-					try {
-						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
-							af = AudioFileIO.readAs(file, "mp3");
-						} else {
-							af = AudioFileIO.read(file);
+					if (videoTrackCount == 0) {
+						try {
+							AudioFile af;
+							if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+								af = AudioFileIO.readAs(file, "mp3");
+							} else {
+								af = AudioFileIO.read(file);
+							}
+							addMusicBrainzIDs(af, file, currentAudioTrack);
+							addRating(af, file, currentAudioTrack);
+						} catch (Exception e) {
+							LOGGER.debug("Could not parse audio file");
 						}
-						addMusicBrainzIDs(af, file, currentAudioTrack);
-						addRating(af, file, currentAudioTrack);
-					} catch (Exception e) {
-						LOGGER.debug("Could not parse audio file");
 					}
 
 					value = mI.Get(general, 0, "Track/Position");
