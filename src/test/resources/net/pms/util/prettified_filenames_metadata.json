@@ -35,6 +35,19 @@
 		}
 	},
 	{
+		"comment": "Video of a TV episode with a year in the series title and an episode title",
+		"filename": "Universal Media Server (2019).S01E02.Mysterious Wordplay.mkv",
+		"prettified": "Universal Media Server (2019) S01E02 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server (2019)",
+			"season": 1,
+			"episodes": [2],
+			"released": { "year": 2019 },
+			"title": "Mysterious Wordplay"
+		}
+	},
+	{
 		"comment": "Video of a TV episode in double-digit seasons",
 		"filename": "Universal.Media.Server.S12E03.720p.mkv",
 		"prettified": "Universal Media Server S12E03",
