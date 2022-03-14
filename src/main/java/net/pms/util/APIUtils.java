@@ -777,6 +777,8 @@ public class APIUtils {
 			connection.setRequestProperty("Content-Type", "application/json");
 			connection.setRequestProperty("Content-length", "0");
 			connection.setRequestProperty("User-Agent", VERBOSE_UA);
+			connection.setConnectTimeout(30000);
+			connection.setReadTimeout(30000);
 			connection.connect();
 
 			int status = connection.getResponseCode();
