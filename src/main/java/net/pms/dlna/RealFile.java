@@ -248,7 +248,6 @@ public class RealFile extends MapFile {
 							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
 							LOGGER.trace("", e);
 						}
-
 					}
 				}
 
@@ -264,14 +263,14 @@ public class RealFile extends MapFile {
 						getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 					}
 
-					if (configuration.getUseCache() && connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
+					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
 						try {
 							/*
-								* Even though subtitles will be resolved later in
-								* DLNAResource.syncResolve, we must make sure that
-								* they are resolved before insertion into the
-								* database
-								*/
+							 * Even though subtitles will be resolved later in
+							 * DLNAResource.syncResolve, we must make sure that
+							 * they are resolved before insertion into the
+							 * database
+							 */
 							if (getMedia() != null && getMedia().isVideo()) {
 								registerExternalSubtitles(false);
 							}
@@ -294,14 +293,21 @@ public class RealFile extends MapFile {
 						}
 					}
 				}
-				connection.commit();
 				if (getMedia() != null && getMedia().isSLS()) {
 					setFormat(getMedia().getAudioVariantFormat());
 				}
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
+				try {
+					if (connection != null) {
+						connection.commit();
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
 				MediaDatabase.close(connection);
 			}
 		}
