@@ -73,6 +73,9 @@ public class MediaHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(httpExchange)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(httpExchange, "");
+			}
 			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(httpExchange), httpExchange);
 			if (root == null) {
 				throw new IOException("Unknown root");
@@ -202,6 +205,9 @@ public class MediaHandler implements HttpHandler {
 			headers.add("Server", PMS.get().getServerName());
 			headers.add("Connection", "keep-alive");
 			httpExchange.sendResponseHeaders(code, 0);
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(httpExchange, null, in);
+			}
 			OutputStream os = httpExchange.getResponseBody();
 			if (render != null) {
 				render.start(resource);

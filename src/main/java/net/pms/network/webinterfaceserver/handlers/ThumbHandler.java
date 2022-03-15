@@ -56,6 +56,9 @@ public class ThumbHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String id = WebInterfaceServerUtil.getId("thumb/", t);
 			LOGGER.trace("web thumb req " + id);
 			if (id.contains("logo")) {
@@ -113,6 +116,9 @@ public class ThumbHandler implements HttpHandler {
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			t.sendResponseHeaders(200, in.getSize());
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(t, null, in);
+			}
 			OutputStream os = t.getResponseBody();
 			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
 			WebInterfaceServerUtil.dump(in, os);

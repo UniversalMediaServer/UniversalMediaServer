@@ -57,6 +57,9 @@ public class DocHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
 				WebInterfaceServerUtil.sendLogo(t);
 				return;
