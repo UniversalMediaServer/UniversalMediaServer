@@ -22,12 +22,10 @@ package net.pms.network.webinterfaceserver.handlers;
 import com.sun.net.httpserver.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -73,10 +71,12 @@ public class ControlHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
-
 		if (WebInterfaceServerUtil.deny(httpExchange) && !WebInterfaceServerUtil.bumpAllowed(httpExchange)) {
 			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
+		}
+		if (LOGGER.isTraceEnabled()) {
+			WebInterfaceServerUtil.logMessageReceived(httpExchange, "");
 		}
 
 		String[] p = httpExchange.getRequestURI().getPath().split("/");
@@ -162,15 +162,10 @@ public class ControlHandler implements HttpHandler {
 		}
 
 		Headers headers = httpExchange.getResponseHeaders();
-		headers.add("Content-Type", mime);
 		// w/o this client may receive response status 0 and no content
 		headers.add("Access-Control-Allow-Origin", "*");
 
-		byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-		httpExchange.sendResponseHeaders(200, bytes.length);
-		try (OutputStream o = httpExchange.getResponseBody()) {
-			o.write(bytes);
-		}
+		WebInterfaceServerUtil.respond(httpExchange, response, 200, mime);
 	}
 
 	public static Map<String, String> parseQuery(HttpExchange x) {

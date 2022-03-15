@@ -61,7 +61,9 @@ public class RawHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
-
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 			if (root == null) {
 				throw new IOException("Unknown root");
@@ -135,6 +137,9 @@ public class RawHandler implements HttpHandler {
 				t.sendResponseHeaders(206, in.available());
 			} else {
 				t.sendResponseHeaders(200, 0);
+			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(t, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(t.getResponseBody(), 512 * 1024);
 			LOGGER.debug("start raw dump");
