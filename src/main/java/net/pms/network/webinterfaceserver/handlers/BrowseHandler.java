@@ -63,10 +63,12 @@ public class BrowseHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String id = WebInterfaceServerUtil.getId("browse/", t);
 			LOGGER.debug("Got a browse request found id " + id);
 			String response = mkBrowsePage(id, t);
-			LOGGER.trace("Browse page:\n{}", response);
 			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} catch (IOException e) {
 			throw e;
