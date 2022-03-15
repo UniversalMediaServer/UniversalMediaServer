@@ -172,6 +172,9 @@ public class MediaHandler implements HttpHandler {
 							}
 							OutputStream os = httpExchange.getResponseBody();
 							httpExchange.sendResponseHeaders(200, 0); //chunked
+							if (LOGGER.isTraceEnabled()) {
+								WebInterfaceServerUtil.logMessageSent(httpExchange, null, in);
+							}
 							WebInterfaceServerUtil.dump(in, os);
 						} else {
 							httpExchange.sendResponseHeaders(500, -1);
