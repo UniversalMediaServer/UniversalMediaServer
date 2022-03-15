@@ -288,11 +288,11 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
 					currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
 
-					currentAudioTrack.setSongname(mI.Get(general, 0, "Track"));
-					currentAudioTrack.setAlbum(mI.Get(general, 0, "Album"));
-					currentAudioTrack.setAlbumArtist(mI.Get(general, 0, "Album/Performer"));
-					currentAudioTrack.setArtist(mI.Get(general, 0, "Performer"));
-					currentAudioTrack.setGenre(mI.Get(general, 0, "Genre"));
+					currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
+					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
+					currentAudioTrack.setAlbumArtist(MI.Get(general, 0, "Album/Performer"));
+					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
+					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
 					if (videoTrackCount == 0) {
 						addMusicBrainzIDs(file, currentAudioTrack);
 					}
