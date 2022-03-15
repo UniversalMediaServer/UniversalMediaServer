@@ -1215,10 +1215,12 @@ public class FileUtil {
 			if (movieOrShowName != null) {
 				movieOrShowName = movieOrShowName.trim();
 			}
-			int yearIndex = indexOf(Pattern.compile("\\s(?:19|20)\\d{2}"), movieOrShowName);
+			int yearIndex = indexOf(Pattern.compile("(?:\\(|\\s)(?:19|20)\\d{2}"), movieOrShowName);
 			if (yearIndex > -1) {
 				year = formattedName.substring(yearIndex + 1, yearIndex + 5);
-				movieOrShowName = formattedName.substring(0, yearIndex) + " (" + year + ")";
+				movieOrShowName = formattedName.substring(0, yearIndex);
+				movieOrShowName = movieOrShowName.trim();
+				movieOrShowName += " (" + year + ")";
 			}
 		} else {
 			if (isMovieWithoutYear) {
