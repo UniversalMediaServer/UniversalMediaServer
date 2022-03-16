@@ -166,11 +166,7 @@ public class AboutTab {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			try {
-				BasicSystemUtils.instance.browseURI(link);
-			} catch (Exception e1) {
-				LOGGER.debug("Caught exception", e1);
-			}
+			BasicSystemUtils.instance.browseURI(link);
 		}
 
 		@Override

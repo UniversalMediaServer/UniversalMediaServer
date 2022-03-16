@@ -9,9 +9,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
@@ -19,6 +16,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.io.BasicSystemUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
@@ -111,12 +109,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			Desktop desktop = Desktop.getDesktop();
-			try {
-				desktop.browse(new URI(Build.getReleasesPageUrl()));
-			} catch (IOException | URISyntaxException ex) {
-				LOGGER.error(ex.getMessage());
-			}
+			BasicSystemUtils.instance.browseURI(Build.getReleasesPageUrl());
 		}
 
 		@Override

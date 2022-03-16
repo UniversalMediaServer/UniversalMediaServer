@@ -27,7 +27,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -497,12 +496,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							try {
-								Desktop.getDesktop().browse(uri);
-							} catch (RuntimeException | IOException be) {
-								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
-								LOGGER.trace("", be);
-								error = Messages.getString("LooksFrame.BrowserError") + "\n" + be.getMessage();
+							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
+								error = Messages.getString("LooksFrame.BrowserError");
 							}
 						} catch (URISyntaxException se) {
 							LOGGER.error(
