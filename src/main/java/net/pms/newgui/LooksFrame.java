@@ -498,7 +498,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
 							try {
-								Desktop.getDesktop().browse(uri);
+								if (Platform.isLinux() && (Runtime.getRuntime().exec(new String[] {"which", "xdg-open"}).getInputStream().read() != -1)) {
+									// Workaround for Linux as Desktop.browse() doesn't work on some Linux
+									Runtime.getRuntime().exec(new String[] {"xdg-open", uri.getPath()});
+								} else if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+									Desktop.getDesktop().browse(uri);
+								} else {
+									LOGGER.error("Action BROWSE isn't supported on this platform");
+								}
 							} catch (RuntimeException | IOException be) {
 								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
 								LOGGER.trace("", be);
