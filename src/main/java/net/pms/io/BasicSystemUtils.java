@@ -116,12 +116,28 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	@Override
-	public void browseURI(String uri) {
+	public boolean browseURI(String url) {
 		try {
-			Desktop.getDesktop().browse(new URI(uri));
+			URI uri = new URI(url);
+			if (Platform.isLinux() && (Runtime.getRuntime().exec(new String[] {"which", "xdg-open"}).getInputStream().read() != -1)) {
+				// Workaround for Linux as Desktop.browse() doesn't work on some Linux
+				Runtime.getRuntime().exec(new String[] {"xdg-open", uri.getPath()});
+				return true;
+			} else if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+				Desktop.getDesktop().browse(uri);
+				return true;
+			} else if (Platform.isMac()) {
+				// On OS X, open the given URI with the "open" command.
+				// This will open HTTP URLs in the default browser.
+				Runtime.getRuntime().exec(new String[] {"open", uri.getPath() });
+				return true;
+			} else {
+				LOGGER.error("Action BROWSE isn't supported on this platform");
+			}
 		} catch (IOException | URISyntaxException e) {
-			LOGGER.trace("Unable to open the given URI: " + uri + ".");
+			LOGGER.trace("Unable to open the given URI: " + url + ".");
 		}
+		return false;
 	}
 
 	@Override
