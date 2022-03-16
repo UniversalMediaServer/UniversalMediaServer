@@ -496,7 +496,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							if (!BasicSystemUtils.instance.browseURI(uri.getPath())) {
+							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
 								error = Messages.getString("LooksFrame.BrowserError");
 							}
 						} catch (URISyntaxException se) {
