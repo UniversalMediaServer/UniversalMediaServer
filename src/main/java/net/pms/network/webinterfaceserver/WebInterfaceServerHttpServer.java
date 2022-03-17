@@ -182,10 +182,12 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = WebInterfaceServerUtil.getCookie("UMS", t);
-		boolean setCookie = (cookie == null);
-		RootFolder root;
+		boolean setCookie = false;
+		RootFolder root = null;
 		synchronized (roots) {
-			root = roots.get(cookie);
+			if (cookie != null) {
+				root = roots.get(cookie);
+			}
 			if (root == null) {
 				// Double-check for cookie errors
 				WebRender valid = WebInterfaceServerUtil.matchRenderer(user, t);
@@ -216,6 +218,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 				return root;
 			}
 
+			LOGGER.debug("Browser connection {} have no uuid", t.getRemoteAddress().getAddress());
 			root = new RootFolder();
 			try {
 				WebRender render = new WebRender(user);
@@ -234,6 +237,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 
 			root.discoverChildren();
 			cookie = UUID.randomUUID().toString();
+			LOGGER.debug("Browser connection set uuid {} to {}", cookie, t.getRemoteAddress().getAddress());
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
 			roots.put(cookie, root);
 		}
