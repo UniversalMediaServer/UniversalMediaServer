@@ -69,7 +69,7 @@ public class BrowseHandler implements HttpHandler {
 			String id = WebInterfaceServerUtil.getId("browse/", t);
 			LOGGER.debug("Got a browse request found id " + id);
 			mkBrowsePage(id, t);
-		} catch (IOException e) {
+		} catch (RuntimeException | IOException e) {
 			LOGGER.error("Unexpected error in BrowseHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 			WebInterfaceServerUtil.respond(t, null, 500, "text/html");
@@ -181,7 +181,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
-			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
+			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder() && StringUtils.isNotBlank(thisResourceFromResources.getParent().getResourceId())) {
 				thisResourceFromResources = thisResourceFromResources.getParent();
 				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
 				String ancestorID = thisResourceFromResources.getResourceId();
@@ -191,7 +191,7 @@ public class BrowseHandler implements HttpHandler {
 				isShowBreadcrumbs = true;
 			}
 
-			if (resources.get(0).getParent().getParent() != null) {
+			if (resources.get(0).getParent().getParent() != null && StringUtils.isNotBlank(resources.get(0).getParent().getParent().getResourceId())) {
 				DLNAResource parentFromResources = resources.get(0).getParent().getParent();
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
