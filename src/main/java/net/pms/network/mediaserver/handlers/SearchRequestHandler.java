@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -370,6 +372,7 @@ public class SearchRequestHandler {
 			if (connection != null) {
 				try (Statement statement = connection.createStatement()) {
 					try (ResultSet resultSet = statement.executeQuery(query)) {
+						Set<String> foundMbidAlbums = new HashSet<>();
 						while (resultSet.next()) {
 							String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
 							switch (type) {
@@ -378,12 +381,15 @@ public class SearchRequestHandler {
 									if (StringUtils.isAllBlank(mbid)) {
 										filesList.add(new VirtualFolderDbId(filenameField, new DbidTypeAndIdent(type, filenameField), ""));
 									} else {
-										VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
-											new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
-										MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
-											resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
-										dbIdResourceLocator.appendAlbumInformation(album, albumFolder);
-										filesList.add(albumFolder);
+										if (!foundMbidAlbums.contains(mbid)) {
+											VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
+												new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
+											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
+												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
+											dbIdResourceLocator.appendAlbumInformation(album, albumFolder);
+											filesList.add(albumFolder);
+											foundMbidAlbums.add(mbid);
+										}
 									}
 									break;
 								case TYPE_PERSON:
