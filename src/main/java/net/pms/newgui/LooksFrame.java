@@ -47,6 +47,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -489,6 +490,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
+			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -532,10 +534,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			}
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
+		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
+		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -796,6 +800,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void serverReady() {
 		st.updateMemoryUsage();
 		generalSettingsTab.addRenderers();
+	}
+
+	@Override
+	public void updateServerStatus() {
+		if (MediaServer.isStarted()) {
+			st.setMediaServerBind(MediaServer.getAddress());
+		} else {
+			st.setMediaServerBind("-");
+		}
+		if (PMS.get().getWebInterfaceServer() != null) {
+			st.setInterfaceServerBind(PMS.get().getWebInterfaceServer().getAddress());
+		} else {
+			st.setInterfaceServerBind("-");
+		}
 	}
 
 	@Override
