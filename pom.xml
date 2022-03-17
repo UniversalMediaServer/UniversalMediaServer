@@ -583,7 +583,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.1.4</version>
+			<version>6.1.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -2040,7 +2040,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jdk-8.jdk/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
@@ -2239,7 +2239,7 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jdk-8.jdk/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx1280M"/>
 											<option value="-Xss16M"/>
