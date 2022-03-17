@@ -177,6 +177,7 @@ public class MediaServer {
 		} else {
 			LOGGER.debug("try to start the media server, but it's already started");
 		}
+		PMS.get().getFrame().updateServerStatus();
 		return isStarted;
 	}
 
@@ -196,6 +197,7 @@ public class MediaServer {
 		}
 		status = ServerStatus.STOPPED;
 		isStarted = false;
+		PMS.get().getFrame().updateServerStatus();
 	}
 
 	public static boolean isStarted() {
@@ -207,15 +209,25 @@ public class MediaServer {
 	}
 
 	public static String getURL() {
-		return getProtocol() + "://" + getHost() + ":" + getPort();
+		return getProtocol() + "://" + getAddress();
 	}
 
 	public static String getProtocol() {
 		return httpMediaServer != null && httpMediaServer.isHTTPS() ? "https" : "http";
 	}
 
+	public static String getAddress() {
+		return getHost() + ":" + getPort();
+	}
+
 	public static String getHost() {
-		return hostname != null ? hostname : CONFIGURATION.getServerHostname();
+		if (hostname != null) {
+			return hostname;
+		} else if (CONFIGURATION.getServerHostname() != null) {
+			return CONFIGURATION.getServerHostname();
+		} else {
+			return "localhost";
+		}
 	}
 
 	public static int getPort() {

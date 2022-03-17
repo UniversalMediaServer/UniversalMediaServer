@@ -573,6 +573,7 @@ public class PMS {
 		if (configuration.useWebInterfaceServer()) {
 			try {
 				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
+				getFrame().updateServerStatus();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
