@@ -11,6 +11,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.PMS;
 
 /**
@@ -41,7 +42,7 @@ public class ApiHandler {
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 characters.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "Weak or no server API key configured. UMS.conf api_key should have at least 12 characters.";
+			return Messages.getString("Api.Error.ApiKeyNotAvail");
 		}
 
 		try {
