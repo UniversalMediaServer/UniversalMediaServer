@@ -199,6 +199,7 @@ public class StarRating implements ApiResponseHandler {
 
 	/**
 	 * Converts 0-5 stars to MP3 TAG value
+	 *
 	 * @param rating
 	 * @return
 	 */
@@ -220,6 +221,7 @@ public class StarRating implements ApiResponseHandler {
 
 	/**
 	 * converts 0-5 stars to VORBIS TAG value
+	 *
 	 * @param rating
 	 * @return
 	 */
@@ -229,20 +231,30 @@ public class StarRating implements ApiResponseHandler {
 
 	/**
 	 * Converts TAG values read from file to 0-5 stars
+	 *
 	 * @param tag
 	 */
 	public static Integer convertTagRatingToStar(Tag tag) {
-		String value = tag.getFirst(FieldKey.RATING);
-		if (!StringUtils.isBlank(value)) {
-			int num = Integer.parseInt(value);
-			if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
-				return convertVorbisToStars(num);
-			} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
-				return convertID3ToStars(num);
-			} else {
-				// Dont't know ... maybe we use vorbis tags by default
-				return convertVorbisToStars(num);
+		try {
+			if (tag == null) {
+				return null;
 			}
+
+			String value = tag.getFirst(FieldKey.RATING);
+			if (!StringUtils.isBlank(value)) {
+				int num = Integer.parseInt(value);
+				if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
+					return convertVorbisToStars(num);
+				} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
+					return convertID3ToStars(num);
+				} else {
+					// Dont't know ... maybe we use vorbis tags by default
+					return convertVorbisToStars(num);
+				}
+			}
+		} catch (Exception e) {
+			// Value couldn't be read.
+			LOG.trace("conversion error", e);
 		}
 		return null;
 	}

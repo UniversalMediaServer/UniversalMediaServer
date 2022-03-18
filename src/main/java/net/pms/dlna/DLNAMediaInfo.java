@@ -56,6 +56,7 @@ import static net.pms.util.StringUtil.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -662,8 +663,6 @@ public class DLNAMediaInfo implements Cloneable {
 						Tag t = af.getTag();
 
 						if (t != null) {
-							addMusicBrainzIDs(af, file, audio);
-							addRating(af, file, audio);
 							if (t.getArtworkList().size() > 0) {
 								thumb = DLNAThumbnail.toThumbnail(
 									t.getArtworkList().get(0).getBinaryData(),
@@ -688,25 +687,27 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 
 							if (!thumbOnly) {
-								audio.setAlbum(t.getFirst(FieldKey.ALBUM));
-								audio.setArtist(t.getFirst(FieldKey.ARTIST));
-								audio.setSongname(t.getFirst(FieldKey.TITLE));
-								audio.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-								audio.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+								audio.setAlbum(extractKeyValue(t, FieldKey.ALBUM));
+								audio.setArtist(extractKeyValue(t, FieldKey.ARTIST));
+								audio.setSongname(extractKeyValue(t, FieldKey.TITLE));
+								audio.setMbidRecord(extractKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
+								audio.setMbidTrack(extractKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
 								audio.setRating(StarRating.convertTagRatingToStar(t));
-								String y = t.getFirst(FieldKey.YEAR);
+								audio.setGenre(extractKeyValue(t, FieldKey.GENRE));
 
-								try {
-									if (y.length() > 4) {
-										y = y.substring(0, 4);
+								String keyyear = extractKeyValue(t, FieldKey.YEAR);
+								if (keyyear != null) {
+									if (keyyear.length() > 4) {
+										// Extract just the year, skipping  '-month-day'
+										keyyear = keyyear.substring(0, 4);
 									}
-									audio.setYear(Integer.parseInt(((y != null && y.length() > 0) ? y : "0")));
-									y = t.getFirst(FieldKey.TRACK);
-									audio.setTrack(Integer.parseInt(((y != null && y.length() > 0) ? y : "1")));
-									audio.setGenre(t.getFirst(FieldKey.GENRE));
-								} catch (NumberFormatException | KeyNotFoundException e) {
-									LOGGER.debug("Error parsing unimportant metadata: " + e.getMessage());
+									if (NumberUtils.isParsable(keyyear)) {
+										audio.setYear(Integer.parseInt(keyyear));
+									}
 								}
+
+								Integer trackNum = extractKeyIntegerValue(t, FieldKey.TRACK, 1);
+								audio.setTrack(trackNum);
 							}
 						}
 					} catch (CannotReadException e) {
@@ -920,29 +921,46 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+	/**
+	 * Extracts key value.
+	 *
+	 * @param key
+	 * @return If key is not available or blanc, NULL will be returned, otherwise string key value
+	 */
+	private String extractKeyValue(Tag t, FieldKey key) {
+		String value = t.getFirst(key);
 		try {
-			Tag t = af.getTag();
-			if (t != null) {
-				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
-				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
-				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
-				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
+			if (StringUtils.isAllBlank(value)) {
+				LOGGER.trace("tag field is blanc");
+				return null;
 			}
 		} catch (Exception e) {
-			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
+			LOGGER.trace("tag field not found", e);
+			return null;
 		}
+		return value;
 	}
 
-	private static void addRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
-		try {
-			Tag t = af.getTag();
-			if (t != null) {
-				currentAudioTrack.setRating(StarRating.convertTagRatingToStar(t));
-			}
-		} catch (Exception e) {
-			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
+	/**
+	 * Extracts key value and converts it to Integer.
+	 *
+	 * @param t
+	 * @param key
+	 * @param defaultValue
+	 * @return	If key is not available or blanc, defaultValue will be returned
+	 */
+	private Integer extractKeyIntegerValue(Tag t, FieldKey key, Integer defaultValue) {
+		String value = extractKeyValue(t, key);
+		if (value == null) {
+			return defaultValue;
 		}
+		try {
+			Integer intValue = Integer.parseInt(value);
+			return intValue;
+		} catch (Exception e) {
+			LOGGER.trace("no int value available for key ", e);
+		}
+		return defaultValue;
 	}
 
 	/**
