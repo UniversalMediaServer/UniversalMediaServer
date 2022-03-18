@@ -662,8 +662,6 @@ public class DLNAMediaInfo implements Cloneable {
 						Tag t = af.getTag();
 
 						if (t != null) {
-							addMusicBrainzIDs(af, file, audio);
-							addRating(af, file, audio);
 							if (t.getArtworkList().size() > 0) {
 								thumb = DLNAThumbnail.toThumbnail(
 									t.getArtworkList().get(0).getBinaryData(),
@@ -691,8 +689,8 @@ public class DLNAMediaInfo implements Cloneable {
 								audio.setAlbum(t.getFirst(FieldKey.ALBUM));
 								audio.setArtist(t.getFirst(FieldKey.ARTIST));
 								audio.setSongname(t.getFirst(FieldKey.TITLE));
-								audio.setMbidRecord(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
-								audio.setMbidTrack(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
+								audio.setMbidRecord(StringUtils.isAllBlank(t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID)) ? null : t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID));
+								audio.setMbidTrack(StringUtils.isAllBlank(t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID)) ? null : t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID));
 								audio.setRating(StarRating.convertTagRatingToStar(t));
 								String y = t.getFirst(FieldKey.YEAR);
 
@@ -920,30 +918,6 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
-		try {
-			Tag t = af.getTag();
-			if (t != null) {
-				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
-				currentAudioTrack.setMbidRecord(val.equals("") ? null : val);
-				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
-				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
-			}
-		} catch (Exception e) {
-			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
-		}
-	}
-
-	private static void addRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
-		try {
-			Tag t = af.getTag();
-			if (t != null) {
-				currentAudioTrack.setRating(StarRating.convertTagRatingToStar(t));
-			}
-		} catch (Exception e) {
-			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
-		}
-	}
 
 	/**
 	 * Parses media info from FFmpeg's stderr output
