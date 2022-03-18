@@ -253,7 +253,7 @@ public class RootFolder extends DLNAResource {
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					scan(connection, this);
+					scan(this);
 					// Running might have been set false during scan
 					if (running) {
 						MediaTableFiles.cleanup(connection);
@@ -272,7 +272,7 @@ public class RootFolder extends DLNAResource {
 		running = false;
 	}
 
-	public void scan(final Connection connection, DLNAResource resource) {
+	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
@@ -302,7 +302,7 @@ public class RootFolder extends DLNAResource {
 						continue;
 					}
 
-					scan(connection, child);
+					scan(child);
 					child.getChildren().clear();
 				} else if (!running) {
 					break;
@@ -1657,15 +1657,7 @@ public class RootFolder extends DLNAResource {
 					DLNAResource dir = new RealFile(file);
 					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 					dir.doRefreshChildren();
-					Connection connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
-						if (connection != null) {
-							PMS.get().getRootFolder(null).scan(connection, dir);
-						}
-					} finally {
-						MediaDatabase.close(connection);
-					}
+					PMS.get().getRootFolder(null).scan(dir);
 				};
 				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
 				scanThread.start();

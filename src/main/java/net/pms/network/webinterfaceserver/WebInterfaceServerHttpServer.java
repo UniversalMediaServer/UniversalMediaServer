@@ -48,6 +48,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
+import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
 import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
@@ -128,6 +129,8 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/poll", new PollHandler(this));
 			addCtx("/event-stream", new EventStreamHandler(this));
 			addCtx("/bump", new ControlHandler(this));
+			addCtx("/console", new ConsoleHandler(this));
+
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		}
