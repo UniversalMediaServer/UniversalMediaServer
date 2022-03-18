@@ -47,7 +47,10 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -69,6 +72,7 @@ import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ShortcutFileSystemView;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1064,18 +1068,31 @@ public class SharedContentTab {
 		}
 	}
 
+	private static Map<String, String> feedTitlesCache = Collections.synchronizedMap(new HashMap<>());
+
 	/**
 	 * @param url feed URL
 	 * @return a feed title from its URL
 	 * @throws Exception
 	 */
 	public static String getFeedTitle(String url) throws Exception {
+		// Check cache first
+		String feedTitle = feedTitlesCache.get(url);
+		if (feedTitle != null) {
+			return feedTitle;
+		}
+
 		SyndFeedInput input = new SyndFeedInput();
 		byte[] b = HTTPResource.downloadAndSendBinary(url);
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			return feed.getTitle();
+			feedTitle = feed.getTitle();
+			if (StringUtils.isNotBlank(feedTitle)) {
+				feedTitlesCache.put(url, feedTitle);
+				return feedTitle;
+			}
 		}
+
 		return null;
 	}
 }
