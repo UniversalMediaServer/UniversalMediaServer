@@ -63,12 +63,16 @@ public class BrowseHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String id = WebInterfaceServerUtil.getId("browse/", t);
 			LOGGER.debug("Got a browse request found id " + id);
-			String response = mkBrowsePage(id, t);
-			LOGGER.trace("Browse page:\n{}", response);
-			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
-		} catch (IOException e) {
+			mkBrowsePage(id, t);
+		} catch (RuntimeException | IOException e) {
+			LOGGER.error("Unexpected error in BrowseHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
+			WebInterfaceServerUtil.respond(t, null, 500, "text/html");
 			throw e;
 		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
@@ -77,7 +81,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
+	private void mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		String user = WebInterfaceServerUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
@@ -106,14 +110,13 @@ public class BrowseHandler implements HttpHandler {
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Location", "/play/" + real.getId());
 				WebInterfaceServerUtil.respond(t, "", 302, "text/html");
-				// return null here to avoid multiple responses
-				return null;
+				return;
 			}
 			// redirect to ourself
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Location", "/browse/" + real.getResourceId());
 			WebInterfaceServerUtil.respond(t, "", 302, "text/html");
-			return null;
+			return;
 		}
 		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
 			UMSUtils.filterResourcesByName(resources, search, false, false);
@@ -178,7 +181,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 			breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
-			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
+			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder() && StringUtils.isNotBlank(thisResourceFromResources.getParent().getResourceId())) {
 				thisResourceFromResources = thisResourceFromResources.getParent();
 				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
 				String ancestorID = thisResourceFromResources.getResourceId();
@@ -188,7 +191,7 @@ public class BrowseHandler implements HttpHandler {
 				isShowBreadcrumbs = true;
 			}
 
-			if (resources.get(0).getParent().getParent() != null) {
+			if (resources.get(0).getParent().getParent() != null && StringUtils.isNotBlank(resources.get(0).getParent().getParent().getResourceId())) {
 				DLNAResource parentFromResources = resources.get(0).getParent().getParent();
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
@@ -393,7 +396,8 @@ public class BrowseHandler implements HttpHandler {
 		mustacheVars.put("media", media);
 		mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 
-		return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+		String response = parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+		WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 	}
 
 	/**

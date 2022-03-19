@@ -4692,9 +4692,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public File getWebPath() {
 		File path = new File(getString(KEY_WEB_PATH, "web"));
 		if (!path.exists()) {
-			path.mkdirs();
+			//check if we are running from sources
+			File srcPath = new File("src/main/external-resources/web");
+			if (!srcPath.exists()) {
+				path.mkdirs();
+			} else {
+				path = srcPath;
+			}
 		}
-
 		return path;
 	}
 
@@ -5086,8 +5091,6 @@ public class PmsConfiguration extends RendererConfiguration {
 			"# audio feeds",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/caliphate",
 			"audiofeed.Web,Podcasts=https://www.nasa.gov/rss/dyn/Gravity-Assist.rss",
-			"audiofeed.Web,Podcasts=http://podcasts.joerogan.net/feed",
-			"audiofeed.Web,Podcasts=https://wakingup.libsyn.com/rss",
 			"audiofeed.Web,Podcasts=https://rss.art19.com/wolverine-the-long-night",
 			"",
 			"# video feeds",
@@ -5095,10 +5098,8 @@ public class PmsConfiguration extends RendererConfiguration {
 			"videofeed.Web,Vodcasts=https://www.nasa.gov/rss/dyn/nasax_vodcast.rss",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC0PEAMcRK7Mnn2G1bCBXOWQ",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCccjdJEay2hpb5scz61zY6Q",
-			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCOiUKJ6lMU3yHbVNtNXJyfw",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCfAOh2t5DpxVrgS9NQKjC7A",
-			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UC8-Th83bH_thdKZDJCrn88g",
 			"videofeed.Web,YouTube Channels=https://www.youtube.com/feeds/videos.xml?channel_id=UCzRBkt4a2hy6HObM3cl-x7g",
 			"",
 			"# audio streams",

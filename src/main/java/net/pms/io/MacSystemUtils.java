@@ -20,18 +20,6 @@ public class MacSystemUtils extends BasicSystemUtils {
 	}
 
 	@Override
-	public void browseURI(String uri) {
-		try {
-			// On OS X, open the given URI with the "open" command.
-			// This will open HTTP URLs in the default browser.
-			Runtime.getRuntime().exec(new String[] {"open", uri });
-
-		} catch (IOException e) {
-			LOGGER.trace("Unable to open the given URI: {}", uri);
-		}
-	}
-
-	@Override
 	public boolean isNetworkInterfaceLoopback(NetworkInterface ni) throws SocketException {
 		return false;
 	}

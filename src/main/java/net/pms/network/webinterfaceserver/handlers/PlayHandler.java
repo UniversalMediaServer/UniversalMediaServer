@@ -75,6 +75,10 @@ public class PlayHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			String body = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, body);
+			}
 			String p = t.getRequestURI().getPath();
 			if (p.contains("/play/")) {
 				LOGGER.debug("got a play request " + t.getRequestURI());
@@ -83,8 +87,7 @@ public class PlayHandler implements HttpHandler {
 				//LOGGER.trace("play page " + response);
 				WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 			} else if (p.contains("/playerstatus/")) {
-				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
-				LOGGER.trace("got player status: " + json);
+				LOGGER.trace("got player status: " + body);
 				WebInterfaceServerUtil.respond(t, "", 200, "text/html");
 
 				RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
@@ -93,7 +96,7 @@ public class PlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(json);
+				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(body);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity

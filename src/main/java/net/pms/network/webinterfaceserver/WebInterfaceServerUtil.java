@@ -69,24 +69,36 @@ public class WebInterfaceServerUtil {
 	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 	//public static final String MIME_TRANS = MIME_WEBM;
 
-	public static void respond(HttpExchange t, String response, int status, String mime) {
-		if (response != null) {
-			respond(t, response.getBytes(), status, mime);
-		}
-	}
+	private static final String HTTPSERVER_REQUEST_BEGIN =  "============================= INTERFACE HTTPSERVER REQUEST BEGIN ================================";
+	private static final String HTTPSERVER_REQUEST_END =    "============================= INTERFACE HTTPSERVER REQUEST END ==================================";
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= INTERFACE HTTPSERVER RESPONSE BEGIN ===============================";
+	private static final String HTTPSERVER_RESPONSE_END =   "============================= INTERFACE HTTPSERVER RESPONSE END =================================";
 
-	public static void respond(HttpExchange t, byte[] response, int status, String mime) {
+	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
 			if (mime != null) {
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Content-Type", mime);
 			}
+			byte[] bytes = response.getBytes();
 			try (OutputStream os = t.getResponseBody()) {
-				t.sendResponseHeaders(status, response.length);
-				os.write(response);
+				t.sendResponseHeaders(status, bytes.length);
+				if (LOGGER.isTraceEnabled()) {
+					logMessageSent(t, response, null);
+				}
+				os.write(bytes);
 				os.close();
 			} catch (Exception e) {
 				LOGGER.debug("Error sending response: " + e);
+			}
+		} else {
+			try {
+				t.sendResponseHeaders(status, -1);
+				if (LOGGER.isTraceEnabled()) {
+					logMessageSent(t, "", null);
+				}
+			} catch (IOException e) {
+				LOGGER.debug("Error sending empty response: " + e);
 			}
 		}
 	}
@@ -102,7 +114,11 @@ public class WebInterfaceServerUtil {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
-		dump(new FileInputStream(f), t.getResponseBody());
+		InputStream in = new FileInputStream(f);
+		if (LOGGER.isTraceEnabled()) {
+			logMessageSent(t, "", in);
+		}
+		dump(in, t.getResponseBody());
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
@@ -133,6 +149,89 @@ public class WebInterfaceServerUtil {
 			}
 		};
 		new Thread(r).start();
+	}
+
+	public static void logMessageSent(HttpExchange exchange, String response, InputStream iStream) {
+		StringBuilder header = new StringBuilder();
+		for (Map.Entry<String, List<String>> headers : exchange.getResponseHeaders().entrySet()) {
+			String name = headers.getKey();
+			if (StringUtils.isNotBlank(name)) {
+				for (String value : headers.getValue()) {
+					header.append("  ").append(name).append(": ").append(value).append("\n");
+				}
+			}
+		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
+
+		String responseCode = exchange.getProtocol() + " " + exchange.getResponseCode();
+		String remoteHost = exchange.getRemoteAddress().getHostString();
+		if (StringUtils.isNotBlank(response)) {
+			LOGGER.trace(
+				"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
+				remoteHost,
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				response,
+				HTTPSERVER_RESPONSE_END
+			);
+		} else if (iStream != null && !"0".equals(exchange.getResponseHeaders().getFirst("Content-Length"))) {
+			LOGGER.trace(
+				"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
+				remoteHost,
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				getResponseIsChunked(exchange) ? "chunked" : "non-chunked",
+				header,
+				HTTPSERVER_RESPONSE_END
+			);
+		} else {
+			LOGGER.trace(
+				"Empty response sent to {}:\n{}\n{}\n{}{}",
+				remoteHost,
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				HTTPSERVER_RESPONSE_END
+			);
+		}
+	}
+
+	public static void logMessageReceived(HttpExchange exchange, String content) {
+		StringBuilder header = new StringBuilder();
+		header.append(exchange.getRequestMethod());
+		header.append(" ").append(exchange.getRequestURI());
+		if (header.length() > 0) {
+			header.append(" ");
+		}
+		header.append(exchange.getProtocol());
+		header.append("\n\n");
+		header.append("HEADER:\n");
+		for (Map.Entry<String, List<String>> headers : exchange.getRequestHeaders().entrySet()) {
+			String name = headers.getKey();
+			if (StringUtils.isNotBlank(name)) {
+				for (String value : headers.getValue()) {
+					header.append("  ").append(name).append(": ").append(value).append("\n");
+				}
+			}
+		}
+		String formattedContent = StringUtils.isNotBlank(content) ? "\nCONTENT:\n" + content + "\n" : "";
+		String remoteHost = exchange.getRemoteAddress().getHostString();
+		LOGGER.trace(
+				"Received a request from {}:\n{}\n{}{}{}",
+				remoteHost,
+				HTTPSERVER_REQUEST_BEGIN,
+				header,
+				formattedContent,
+				HTTPSERVER_REQUEST_END
+		);
+	}
+
+	private static boolean getResponseIsChunked(HttpExchange exchange) {
+		return exchange.getResponseHeaders().containsKey("Transfer-Encoding") &&
+				exchange.getResponseHeaders().getFirst("Transfer-Encoding").toLowerCase().equals("chunked");
 	}
 
 	public static String read(File f) {

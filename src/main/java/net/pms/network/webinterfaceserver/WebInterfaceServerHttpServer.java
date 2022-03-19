@@ -48,6 +48,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
+import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
 import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
@@ -128,6 +129,8 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/poll", new PollHandler(this));
 			addCtx("/event-stream", new EventStreamHandler(this));
 			addCtx("/bump", new ControlHandler(this));
+			addCtx("/console", new ConsoleHandler(this));
+
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		}
@@ -182,9 +185,12 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = WebInterfaceServerUtil.getCookie("UMS", t);
-		RootFolder root;
+		boolean setCookie = false;
+		RootFolder root = null;
 		synchronized (roots) {
-			root = roots.get(cookie);
+			if (cookie != null) {
+				root = roots.get(cookie);
+			}
 			if (root == null) {
 				// Double-check for cookie errors
 				WebRender valid = WebInterfaceServerUtil.matchRenderer(user, t);
@@ -199,6 +205,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 							// Found
 							root = validRoot;
 							cookie = entry.getKey();
+							setCookie = true;
 							LOGGER.debug("Allowing browser connection without cookie match: {}: {}", valid.getRendererName(),
 									t.getRemoteAddress().getAddress());
 							break;
@@ -208,10 +215,13 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			}
 
 			if (!create || (root != null)) {
-				t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
+				if (setCookie) {
+					t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
+				}
 				return root;
 			}
 
+			LOGGER.debug("Browser connection {} have no uuid", t.getRemoteAddress().getAddress());
 			root = new RootFolder();
 			try {
 				WebRender render = new WebRender(user);
@@ -230,6 +240,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 
 			root.discoverChildren();
 			cookie = UUID.randomUUID().toString();
+			LOGGER.debug("Browser connection set uuid {} to {}", cookie, t.getRemoteAddress().getAddress());
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/;SameSite=Strict");
 			roots.put(cookie, root);
 		}
