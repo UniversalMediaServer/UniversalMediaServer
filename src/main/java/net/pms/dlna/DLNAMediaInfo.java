@@ -687,15 +687,15 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 
 							if (!thumbOnly) {
-								audio.setAlbum(extractKeyValue(t, FieldKey.ALBUM));
-								audio.setArtist(extractKeyValue(t, FieldKey.ARTIST));
-								audio.setSongname(extractKeyValue(t, FieldKey.TITLE));
-								audio.setMbidRecord(extractKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
-								audio.setMbidTrack(extractKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
+								audio.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
+								audio.setArtist(extractAudioTagKeyValue(t, FieldKey.ARTIST));
+								audio.setSongname(extractAudioTagKeyValue(t, FieldKey.TITLE));
+								audio.setMbidRecord(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
+								audio.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
 								audio.setRating(StarRating.convertTagRatingToStar(t));
-								audio.setGenre(extractKeyValue(t, FieldKey.GENRE));
+								audio.setGenre(extractAudioTagKeyValue(t, FieldKey.GENRE));
 
-								String keyyear = extractKeyValue(t, FieldKey.YEAR);
+								String keyyear = extractAudioTagKeyValue(t, FieldKey.YEAR);
 								if (keyyear != null) {
 									if (keyyear.length() > 4) {
 										// Extract just the year, skipping  '-month-day'
@@ -706,7 +706,7 @@ public class DLNAMediaInfo implements Cloneable {
 									}
 								}
 
-								Integer trackNum = extractKeyIntegerValue(t, FieldKey.TRACK, 1);
+								Integer trackNum = extractAudioTagKeyIntegerValue(t, FieldKey.TRACK, 1);
 								audio.setTrack(trackNum);
 							}
 						}
@@ -927,7 +927,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param key
 	 * @return If key is not available or blanc, NULL will be returned, otherwise string key value
 	 */
-	private String extractKeyValue(Tag t, FieldKey key) {
+	private String extractAudioTagKeyValue(Tag t, FieldKey key) {
 		String value = t.getFirst(key);
 		try {
 			if (StringUtils.isAllBlank(value)) {
@@ -949,8 +949,8 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param defaultValue
 	 * @return	If key is not available or blanc, defaultValue will be returned
 	 */
-	private Integer extractKeyIntegerValue(Tag t, FieldKey key, Integer defaultValue) {
-		String value = extractKeyValue(t, key);
+	private Integer extractAudioTagKeyIntegerValue(Tag t, FieldKey key, Integer defaultValue) {
+		String value = extractAudioTagKeyValue(t, key);
 		if (value == null) {
 			return defaultValue;
 		}
