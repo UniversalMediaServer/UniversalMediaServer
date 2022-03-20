@@ -1434,7 +1434,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (mimeType == null) {
-			if (codecV != null) {
+			if (codecV != null && !codecV.equals(DLNAMediaLang.UND)) {
 				if ("matroska".equals(container) || "mkv".equals(container)) {
 					mimeType = HTTPResource.MATROSKA_TYPEMIME;
 				} else if ("ogg".equals(container)) {
@@ -1462,7 +1462,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
 					mimeType = HTTPResource.MPEG_TYPEMIME;
 				}
-			} else if (codecV == null && codecA != null) {
+			} else if ((codecV == null || codecV.equals(DLNAMediaLang.UND)) && codecA != null) {
 				if ("ogg".equals(container) || "oga".equals(container)) {
 					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
 				} else if ("3gp".equals(container)) {
