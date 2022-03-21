@@ -305,7 +305,7 @@ public class LibMediaInfoParser {
 								af = AudioFileIO.read(file);
 							}
 							addMusicBrainzIDs(af, file, currentAudioTrack);
-							addRating(af, file, currentAudioTrack);
+							addAudioTrackRating(af, file, currentAudioTrack);
 						} catch (Exception e) {
 							LOGGER.debug("Could not parse audio file");
 						}
@@ -580,7 +580,7 @@ public class LibMediaInfoParser {
 		}
 	}
 
-	private static void addRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+	private static void addAudioTrackRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
 		try {
 			Tag t = af.getTag();
 			if (t != null) {
