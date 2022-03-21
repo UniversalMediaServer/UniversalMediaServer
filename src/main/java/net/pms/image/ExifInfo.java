@@ -13,11 +13,10 @@ import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public abstract class ExifInfo extends ImageInfo {
+	private static final long serialVersionUID = 3L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);
 
 	protected final PhotometricInterpretation photometricInterpretation;
@@ -151,7 +150,6 @@ public abstract class ExifInfo extends ImageInfo {
 		this.hasExifThumbnail = hasExifThumbnail;
 	}
 
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	@Override
 	protected void parseMetadata(Metadata metadata) {
 		if (metadata == null) {

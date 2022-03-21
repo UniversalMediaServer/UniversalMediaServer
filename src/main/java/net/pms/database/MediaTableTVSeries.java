@@ -19,6 +19,9 @@
  */
 package net.pms.database;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,11 +31,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.h2.jdbc.JdbcSQLDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
+import net.pms.util.UnknownFormatException;
+import net.pms.util.UriFileRetriever;
+
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class MediaTableTVSeries extends MediaTable {
@@ -45,6 +54,8 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 3;
+
+	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -345,6 +356,35 @@ public final class MediaTableTVSeries extends MediaTable {
 			) {
 				if (resultSet.next()) {
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
+				}
+			} catch (JdbcSQLDataException e) {
+				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
+				LOGGER.trace("", e);
+
+				// Regenerate the thumbnail from a stored poster if it exists
+				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
+				if (posterInfo == null) {
+					LOGGER.debug("MediaTableVideoMetadataPosters.getByTVSeriesName was null for " + title);
+					return null;
+				}
+
+				String posterURL = (String) posterInfo[0];
+				Long tvSeriesDatabaseId = (Long) posterInfo[1];
+				LOGGER.debug("posterURL " + posterURL);
+				LOGGER.debug("tvSeriesDatabaseId " + tvSeriesDatabaseId);
+				try {
+					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
+					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+				} catch (EOFException e2) {
+					LOGGER.debug(
+						"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
+						posterURL
+					);
+				} catch (UnknownFormatException e2) {
+					LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+				} catch (IOException e2) {
+					LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+					LOGGER.trace("", e2);
 				}
 			}
 		} catch (SQLException e) {

@@ -13,11 +13,10 @@ import com.drew.metadata.jfif.JfifDirectory;
 import com.drew.metadata.jpeg.HuffmanTablesDirectory;
 import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
+	private static final long serialVersionUID = -1126529090741341855L;
+
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;
 	protected final CompressionType compressionType;
