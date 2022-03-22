@@ -9,15 +9,22 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbidTypeAndIdent;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
+import net.pms.network.mymusic.DoubleRecordFilter;
+import net.pms.network.mymusic.MusicBrainzAlbum;
 
 public class DbIdResourceLocator {
 
@@ -30,6 +37,7 @@ public class DbIdResourceLocator {
 		TYPE_FOLDER("FOLDER$", "object.container.storageFolder"),
 		TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
 		TYPE_MUSICBRAINZ_RECORDID("MUSICBRAINZALBUM$", "object.container.album.musicAlbum"),
+		TYPE_MYMUSIC_ALBUM("MYMUSIC$", "object.container.storageFolder"),
 		TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
 		TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
 		TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.storageFolder"),
@@ -153,32 +161,67 @@ public class DbIdResourceLocator {
 
 						case TYPE_MUSICBRAINZ_RECORDID:
 							sql = String.format(
-								"select FILENAME, A.MBID_TRACK, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-									"where (  F.FORMAT_TYPE = 1 and A.MBID_RECORD = UUID '%s' ORDER BY A.MBID_TRACK)",
+								"select FILENAME, A.MBID_TRACK, F.ID as FID, ALBUM from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
+									"where (  F.FORMAT_TYPE = 1 and A.MBID_RECORD = '%s' ) ORDER BY A.MBID_TRACK",
 								typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace(String.format("SQL MUSICBRAINZ RELEASE (AUDIO-ALBUM) : %s", sql));
+								LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
-								res = new VirtualFolderDbId(typeAndIdent.ident,
-									new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
-								String lastUuidTrack = "";
-								while (resultSet.next()) {
-									String currentUuidTrack = resultSet.getString("A.MBID_TRACK");
-									if (currentUuidTrack.equals(lastUuidTrack)) {
-										continue;
-									} else {
-										lastUuidTrack = currentUuidTrack;
-										DLNAResource item = new RealFileDbId(
-											new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
-											new File(resultSet.getString("FILENAME")));
-										item.resolve();
-										res.addChild(item);
-									}
+								if (resultSet.next()) {
+									res = new VirtualFolderDbId(resultSet.getString("ALBUM"),
+										new DbidTypeAndIdent(DbidMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
+									res.setFakeParentId(encodeDbid(new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum"))));
+									// Find "best track" logic should be optimized !!
+									String lastUuidTrack = "";
+									do {
+										String currentUuidTrack = resultSet.getString("MBID_TRACK");
+										if (currentUuidTrack.equals(lastUuidTrack)) {
+											continue;
+										} else {
+											lastUuidTrack = currentUuidTrack;
+											DLNAResource item = new RealFileDbId(
+												new DbidTypeAndIdent(DbidMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+												new File(resultSet.getString("FILENAME")));
+											item.resolve();
+											res.addChild(item);
+										}
+									} while (resultSet.next());
 								}
 							}
 							break;
-
+						case TYPE_MYMUSIC_ALBUM:
+							sql = "Select mbid_release, Album, Artist, media_year from MUSIC_BRAINZ_RELEASE_LIKE as m join AUDIOTRACKS as a on m.mbid_release = A.mbid_record;";
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
+							}
+							DoubleRecordFilter filter = new DoubleRecordFilter();
+							res = new VirtualFolderDbId(
+								Messages.getString("Audio.Like.MyAlbum"),
+								new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum")),
+								"");
+							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+								res.setFakeParentId("0");
+							} else {
+								res.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+							}
+							try (ResultSet resultSet = statement.executeQuery(sql)) {
+								while (resultSet.next()) {
+									filter.addAlbum(new MusicBrainzAlbum(
+										resultSet.getString("mbid_release"),
+										resultSet.getString("album"),
+										resultSet.getString("artist"),
+										resultSet.getInt("media_year")));
+								}
+								for (MusicBrainzAlbum album : filter.getUniqueAlbumSet()) {
+									VirtualFolderDbId albumFolder = new VirtualFolderDbId(album.album, new DbidTypeAndIdent(
+										DbidMediaType.TYPE_MUSICBRAINZ_RECORDID,
+										album.mbReleaseid), "");
+									appendAlbumInformation(album, albumFolder);
+									res.addChild(albumFolder);
+								}
+							}
+							break;
 						case TYPE_PERSON_ALL_FILES:
 							sql = String.format(
 								"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
@@ -253,6 +296,8 @@ public class DbIdResourceLocator {
 							throw new RuntimeException("Unknown Type");
 					}
 				}
+			} else {
+				LOGGER.error("database not available !");
 			}
 		} catch (SQLException e) {
 			LOGGER.warn("getDLNAResourceByDBID", e);
@@ -260,5 +305,22 @@ public class DbIdResourceLocator {
 			MediaDatabase.close(connection);
 		}
 		return res;
+	}
+
+	/**
+	 * Adds album information
+	 * @param album
+	 * @param albumFolder
+	 */
+	public void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+		DLNAMediaAudio audioInf =  new DLNAMediaAudio();
+		audioInf.setAlbum(album.album);
+		audioInf.setArtist(album.artist);
+		audioInf.setYear(album.year);
+		List<DLNAMediaAudio> audios = new ArrayList<>();
+		audios.add(audioInf);
+		DLNAMediaInfo mi = new DLNAMediaInfo();
+		mi.setAudioTracks(audios);
+		albumFolder.setMedia(mi);
 	}
 }
