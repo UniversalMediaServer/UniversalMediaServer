@@ -58,7 +58,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 7;
+	private static final int TABLE_VERSION = 8;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -152,7 +152,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                INT AUTO_INCREMENT PRIMARY KEY");
+			sb.append("  ID                INT");
 			sb.append(", FILEID            BIGINT           NOT NULL");
 			sb.append(", MBID_RECORD       UUID");
 			sb.append(", MBID_TRACK        UUID");
@@ -175,6 +175,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", BITRATE           INT");
 			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INT");
+			sb.append(", AUDIOTRACK_ID     INT 				AUTO_INCREMENT");
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
 			sb.append("    REFERENCES FILES(ID)");
@@ -203,6 +204,9 @@ public class MediaTableAudiotracks extends MediaTable {
 
 			LOGGER.trace("Creating index IDX_LIKE_SONG");
 			statement.execute("CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (LIKE_SONG)");
+
+			LOGGER.trace("Creating index IDX_AUDIOTRACK_ID");
+			statement.execute("CREATE INDEX IDX_AUDIOTRACK_ID on " + TABLE_NAME + " (AUDIOTRACK_ID)");
 		}
 	}
 
