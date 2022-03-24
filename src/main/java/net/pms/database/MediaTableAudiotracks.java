@@ -152,7 +152,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                INT              NOT NULL");
+			sb.append("  ID                INT AUTO_INCREMENT PRIMARY KEY");
 			sb.append(", FILEID            BIGINT           NOT NULL");
 			sb.append(", MBID_RECORD       UUID");
 			sb.append(", MBID_TRACK        UUID");

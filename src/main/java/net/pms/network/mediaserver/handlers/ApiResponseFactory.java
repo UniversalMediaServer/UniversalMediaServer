@@ -2,6 +2,7 @@ package net.pms.network.mediaserver.handlers;
 
 import net.pms.network.mediaserver.handlers.api.FolderScanner;
 import net.pms.network.mediaserver.handlers.api.LikeMusic;
+import net.pms.network.mediaserver.handlers.api.playlist.PlaylistService;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 
 public class ApiResponseFactory {
@@ -14,6 +15,8 @@ public class ApiResponseFactory {
 				return new LikeMusic();
 			case StarRating.PATH_MATCH:
 				return new StarRating();
+			case PlaylistService.PATH_MATCH:
+				return new PlaylistService();
 		}
 
 		throw new RuntimeException("No api Handler found");
