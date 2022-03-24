@@ -6,15 +6,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import net.pms.database.MediaDatabase;
 
 public class PlaylistManager {
 
@@ -22,8 +25,8 @@ public class PlaylistManager {
 
 	private List<Path> availablePlaylists = new ArrayList<>();
 	private List<String> playlistsNames = new ArrayList<>();
-	private final int uuidCharLen = 36;
 	private boolean serviceDisabled = true;
+	private MediaDatabase db = PMS.get().getMediaDatabase();
 
 	public PlaylistManager() {
 		checkPlaylistDirectoryConfiguration();
@@ -73,137 +76,59 @@ public class PlaylistManager {
 		throw new RuntimeException("Playlist not managed : " + playlistName);
 	}
 
-	public List<String> addSongToPlaylist(String musicBrainzId, String playlistName) {
+	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistName) {
 		Path playlistPath = getPlaylistPathFromName(playlistName);
-		String songIndex = getBestSongFromSongList(getIndexedSongFromMBID(musicBrainzId));
+		String filenameToAdd = getFilenameFromId(audiotrackID);
 
-		if (songIndex == null) {
-			LOG.error("song not found " + musicBrainzId);
-			throw new RuntimeException("song was not found for MBID : " + musicBrainzId);
+		if (StringUtils.isAllBlank(filenameToAdd)) {
+			throw new RuntimeException("no path found for id : " + audiotrackID);
 		}
 		if (playlistName == null) {
-			LOG.error("playlist not found " + playlistName);
-			throw new RuntimeException("playlist was not found. name : " + playlistName);
+			throw new RuntimeException("provided playlist unknown : " + playlistName);
 		}
 
-		String entry = calculateRelativeSongPath(Paths.get(songIndex), playlistPath);
+		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
-		if (isSongAlreadyInPlaylist(songIndex, entry, playlistEntries, playlistPath)) {
-			LOG.debug("song already in playlist " + entry);
+		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
+			LOG.trace("song already in playlist " + relativeSongPath);
 			throw new RuntimeException("Song already exists in playlist");
 		} else {
-			playlistEntries.add(entry);
+			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
 		}
 		return playlistEntries;
 	}
 
-	/**
-	 * Checks if path is already in playlist or a song with the same musicBraint
-	 * trackid.
-	 *
-	 * @param entry
-	 * @param playlistEntries
-	 * @return
-	 */
-	private boolean isSongAlreadyInPlaylist(String absolutePath, String entry, List<String> playlistEntries, Path playlistPath) {
-		if (playlistEntries.contains(entry)) {
-			return true;
-		}
-		Set<String> mbIdSet = new HashSet<String>();
-
-		String entryId = selectMusicBrainzIDFromPath(absolutePath);
-		if (entryId == null) {
-			throw new RuntimeException("MusicBrainzID dissapeared for file : " + absolutePath);
-		}
-		String base = FilenameUtils.getFullPath(playlistPath.toFile().getAbsolutePath());
-		for (String aPath : playlistEntries) {
-			String absoluteFile = FilenameUtils.concat(base, aPath);
-			mbIdSet.add(selectMusicBrainzIDFromPath(absoluteFile));
-		}
-		if (mbIdSet.contains(entryId)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Reads the musicBrainzID for the absolute path
-	 *
-	 * @param absolutePath
-	 * @return
-	 */
-	private String selectMusicBrainzIDFromPath(String absolutePath) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getBestSong(String musicBrainzId) {
-		return getBestSongFromSongList(getIndexedSongFromMBID(musicBrainzId));
-	}
-
-	private String getBestSongFromSongList(List<String> songs) {
-		if (songs.size() == 0) {
-			return null;
-		}
-		if (songs.size() == 1) {
-			return songs.get(0);
-		}
-		// TODO analyse filetype and bitrate ...
-		return songs.get(0);
-	}
-
-	public void checkValidUUID(String musicBrainzID) {
-		if ("00000000-0000-0000-0000-000000000000".equals(musicBrainzID) || musicBrainzID == null ||
-			musicBrainzID.length() != uuidCharLen) {
-			throw new RuntimeException(String.format("Invalid UUID : %s", musicBrainzID));
+	private String getFilenameFromId(Integer audiotrackId) {
+		try (Connection connection = db.getConnection()) {
+			String sql = "select FILENAME from FILES as F join AUDIOTRACKS as A on F.ID = A.FILEID where (audiotrack_id = ?)";
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ps.setInt(1, audiotrackId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getString(1);
+			}
+			throw new RuntimeException("Unknown id : " + audiotrackId);
+		} catch (SQLException e) {
+			throw new RuntimeException("Error while reading filename : " + e.getMessage());
 		}
 	}
 
-	/**
-	 *
-	 * @param musicBrainzId
-	 * @return
-	 */
-	private List<String> getIndexedSongFromMBID(String musicBrainzId) {
-		checkValidUUID(musicBrainzId);
-		List<String> songIndexList = getSongByMusicBrainzId(musicBrainzId);
-		if (songIndexList.size() == 0) {
-			LOG.info("musicBrainzID not found in internal table : " + musicBrainzId);
-		}
-		return songIndexList;
+	private boolean isSongAlreadyInPlaylist(String absoluteSongPath, String relativeSongPath, List<String> playlistEntries) {
+		return playlistEntries.contains(relativeSongPath) || playlistEntries.contains(absoluteSongPath);
 	}
 
-	/**
-	 *
-	 * @param musicBrainzId
-	 * @return List with absolute file path
-	 */
-	private List<String> getSongByMusicBrainzId(String musicBrainzId) {
-		return null;
-	}
-
-	public List<String> removeSongFromPlaylist(String musicBrainzId, String playlistName) {
-		int numRemoved = 0;
+	public List<String> removeSongFromPlaylist(Integer audiotrackID, String playlistName) {
 		Path playlistPath = getPlaylistPathFromName(playlistName);
-		List<String> songIndexList = getIndexedSongFromMBID(musicBrainzId);
+		String filenameToRemove = getFilenameFromId(audiotrackID);
+		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
-		for (String filePath : songIndexList) {
-			String entry = calculateRelativeSongPath(Paths.get(filePath), playlistPath);
-			if (playlistEntries.remove(entry)) {
-				numRemoved++;
-			} else {
-				LOG.debug("Song is not in playlist : " + entry != null ? entry : "NULL");
-			}
-		}
-		if (numRemoved == 0) {
-			throw new RuntimeException("Cannot remove song. Song is not in playlist : ");
-		} else {
+		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
+		} else {
+			throw new RuntimeException("song is not in playlist");
 		}
-
 		return playlistEntries;
 	}
 
