@@ -22,6 +22,7 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,7 +157,7 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * @param tvSeriesID
 	 * @param forceNew whether to use a new thumbnail
 	 */
-	public static void setThumbnail(final Connection connection, final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID, final boolean forceNew) {
+	public static void setThumbnail(final Connection connection, final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
 		if (fullPathToFile == null && tvSeriesID == -1) {
 			LOGGER.trace("Either fullPathToFile or tvSeriesID are required for setThumbnail, returning early");
 			return;
@@ -209,6 +210,23 @@ public final class MediaTableThumbnails extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Removes an entry or entries based on its ID.
+	 *
+	 * @param connection the db connection
+	 * @param id the ID to remove
+	 */
+	public static void removeById(final Connection connection, final String id) {
+		String query = "DELETE FROM " + TABLE_NAME + " WHERE ID = " + id;
+		try (Statement statement = connection.createStatement()) {
+			int rows = statement.executeUpdate(query);
+			LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for ID \"{}\"", rows, id);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

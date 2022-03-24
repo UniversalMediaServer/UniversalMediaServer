@@ -339,9 +339,10 @@ public final class MediaTableTVSeries extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+		String thumbnailId = null;
 
 		try {
-			String sql = "SELECT THUMBNAIL " +
+			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
@@ -355,11 +356,16 @@ public final class MediaTableTVSeries extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(sql)
 			) {
 				if (resultSet.next()) {
+					thumbnailId = resultSet.getString("ThumbnailId");
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 				}
 			} catch (JdbcSQLDataException e) {
 				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
 				LOGGER.trace("", e);
+
+				if (thumbnailId != null) {
+					MediaTableThumbnails.removeById(connection, thumbnailId);
+				}
 
 				// Regenerate the thumbnail from a stored poster if it exists
 				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
