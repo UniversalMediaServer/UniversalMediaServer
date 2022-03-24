@@ -2,7 +2,7 @@ package net.pms.network.mediaserver.handlers;
 
 import net.pms.network.mediaserver.handlers.api.FolderScanner;
 import net.pms.network.mediaserver.handlers.api.LikeMusic;
-import net.pms.network.mediaserver.handlers.api.StarRating;
+import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 
 public class ApiResponseFactory {
 

@@ -1,4 +1,4 @@
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.api.starrating;
 
 import java.io.File;
 import java.io.IOException;
