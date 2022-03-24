@@ -2536,7 +2536,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
-				addXMLTagAndAttribute(sb, "audiotrackid", Long.toString(media.getFirstAudioTrack().getId()));
+				addXMLTagAndAttribute(sb, "audiotrackid", Integer.toString(media.getFirstAudioTrack().getAudiotrackId()));
 				if (firstAudioTrack.getDisc() > 0) {
 					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(firstAudioTrack.getDisc()));
 				}
