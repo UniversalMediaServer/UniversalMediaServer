@@ -1,11 +1,12 @@
 package net.pms.network.mediaserver.handlers.api.playlist;
 
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.pms.Messages;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class PlaylistService implements ApiResponseHandler {
@@ -17,34 +18,32 @@ public class PlaylistService implements ApiResponseHandler {
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {
-		try {
-			switch (uri) {
-				case "getallplaylists":
-					try {
-						String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
-						return playlists;
-					} catch (JsonProcessingException e) {
-						LOG.warn("getAllPlaylists", e);
-						return "ERROR : " + e.getMessage();
-					}
-				case "addsongtoplaylist":
-					try {
-						AudioPlaylistVO vo = getParamsFromContent(content);
-						pm.addSongToPlaylist(vo.audiotrackId, vo.playlistName);
-						return "Song added to playlist";
-					} catch (Exception e) {
-						LOG.warn("getAllPlaylists", e);
-						return "ERROR : " + e.getMessage();
-					}
-				case "removesongfromplaylist":
-					AudioPlaylistVO vo = getParamsFromContent(content);
-					pm.removeSongFromPlaylist(vo.audiotrackId, vo.playlistName);
-					return "Song removed from playlist";
-				default:
-					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return "ERROR";
-			}
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		output.setStatus(HttpResponseStatus.OK);
 
+		String uriLower = uri.toLowerCase();
+		try {
+			switch (uriLower) {
+				case "getallplaylists":
+					LOG.trace("getallplaylists");
+					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
+					return playlists;
+				case "addsongtoplaylist":
+					LOG.trace("addsongtoplaylist");
+					AudioPlaylistVO add = getParamsFromContent(content);
+					pm.addSongToPlaylist(add.audiotrackId, add.playlistName);
+					return Messages.getString("Api.Playlist.SongAdded");
+				case "removesongfromplaylist":
+					LOG.trace("removesongfromplaylist");
+					AudioPlaylistVO remove = getParamsFromContent(content);
+					pm.removeSongFromPlaylist(remove.audiotrackId, remove.playlistName);
+					return Messages.getString("Api.Playlist.SongRemoved");
+				default:
+					LOG.trace("default");
+					output.setStatus(HttpResponseStatus.NOT_FOUND);
+					return Messages.getString("Api.Error.UnknownService") + " : " + uri;
+			}
 		} catch (Exception e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return e.getMessage();

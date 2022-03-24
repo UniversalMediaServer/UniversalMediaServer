@@ -16,6 +16,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 
@@ -73,25 +74,25 @@ public class PlaylistManager {
 		if (playlistsNames.indexOf(baseName.toLowerCase()) > -1) {
 			return availablePlaylists.get(playlistsNames.indexOf(baseName.toLowerCase()));
 		}
-		throw new RuntimeException("Playlist not managed : " + playlistName);
+		throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNotManaged") + " : " + playlistName);
 	}
 
-	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistName) {
+	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
 		Path playlistPath = getPlaylistPathFromName(playlistName);
 		String filenameToAdd = getFilenameFromId(audiotrackID);
 
 		if (StringUtils.isAllBlank(filenameToAdd)) {
-			throw new RuntimeException("no path found for id : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("Api.Playlist.AudiotrackIdUnknown") + " : " + audiotrackID);
 		}
 		if (playlistName == null) {
-			throw new RuntimeException("provided playlist unknown : " + playlistName);
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNotProvided"));
 		}
 
 		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
 			LOG.trace("song already in playlist " + relativeSongPath);
-			throw new RuntimeException("Song already exists in playlist");
+			throw new RuntimeException(Messages.getString("Api.Playlist.SongAlredyInPlaylist") + ". ID : " + audiotrackID);
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
@@ -99,7 +100,7 @@ public class PlaylistManager {
 		return playlistEntries;
 	}
 
-	private String getFilenameFromId(Integer audiotrackId) {
+	private String getFilenameFromId(Integer audiotrackId) throws SQLException {
 		try (Connection connection = db.getConnection()) {
 			String sql = "select FILENAME from FILES as F join AUDIOTRACKS as A on F.ID = A.FILEID where (audiotrack_id = ?)";
 			PreparedStatement ps = connection.prepareStatement(sql);
@@ -108,9 +109,7 @@ public class PlaylistManager {
 			if (rs.next()) {
 				return rs.getString(1);
 			}
-			throw new RuntimeException("Unknown id : " + audiotrackId);
-		} catch (SQLException e) {
-			throw new RuntimeException("Error while reading filename : " + e.getMessage());
+			throw new RuntimeException(Messages.getString("Api.Playlist.AudiotrackIdUnknown") + " : " + audiotrackId);
 		}
 	}
 
@@ -118,7 +117,7 @@ public class PlaylistManager {
 		return playlistEntries.contains(relativeSongPath) || playlistEntries.contains(absoluteSongPath);
 	}
 
-	public List<String> removeSongFromPlaylist(Integer audiotrackID, String playlistName) {
+	public List<String> removeSongFromPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
 		Path playlistPath = getPlaylistPathFromName(playlistName);
 		String filenameToRemove = getFilenameFromId(audiotrackID);
 		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
@@ -127,7 +126,7 @@ public class PlaylistManager {
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
 		} else {
-			throw new RuntimeException("song is not in playlist");
+			throw new RuntimeException(Messages.getString("Api.Playlist.SongNotInPlaylist") + " : " + audiotrackID);
 		}
 		return playlistEntries;
 	}
@@ -177,12 +176,8 @@ public class PlaylistManager {
 		return sb.toString();
 	}
 
-	private void writePlaylistToDisk(List<String> lines, Path playlistFile) {
-		try {
-			Files.write(playlistFile, lines);
-		} catch (IOException e) {
-			LOG.warn("cannot write internal media renderer playlist file.", e);
-		}
+	private void writePlaylistToDisk(List<String> lines, Path playlistFile) throws IOException {
+		Files.write(playlistFile, lines);
 	}
 
 	public boolean isValidPlaylist(String filename) {
