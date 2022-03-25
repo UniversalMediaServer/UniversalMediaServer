@@ -605,7 +605,7 @@ public class MediaTableFiles extends MediaTable {
 						removeMediaEntry(connection, name, false);
 						return null;
 					}
-	
+
 					LOGGER.debug("posterURL " + posterURL);
 					try {
 						byte[] image = URI_FILE_RETRIEVER.get(posterURL);

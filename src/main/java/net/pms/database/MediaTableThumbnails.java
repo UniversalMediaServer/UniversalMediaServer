@@ -179,7 +179,7 @@ public final class MediaTableThumbnails extends MediaTable {
 				if (result.next()) {
 					existingId = result.getInt("ID");
 
-					if (forceNew == false) {
+					if (!forceNew) {
 						if (fullPathToFile != null) {
 							LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", existingId, TABLE_NAME);
 							MediaTableFiles.updateThumbnailId(connection, fullPathToFile, existingId);
@@ -190,7 +190,7 @@ public final class MediaTableThumbnails extends MediaTable {
 					}
 				}
 
-				if (existingId == null || forceNew == true) {
+				if (existingId == null || forceNew) {
 					if (existingId == null) {
 						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
 					} else {

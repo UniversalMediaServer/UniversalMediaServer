@@ -21,7 +21,6 @@ package net.pms.database;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
