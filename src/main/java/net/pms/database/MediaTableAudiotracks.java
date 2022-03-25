@@ -132,6 +132,19 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
 					}
 					break;
+				case 7:
+					Connection con = DATABASE.getConnection();
+					con.setAutoCommit(false);
+					try (
+						Statement stmt =  DATABASE.getConnection().createStatement()) {
+						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID int auto_increment");
+						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
+						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
+						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
+					} finally {
+						con.close();
+					}
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
