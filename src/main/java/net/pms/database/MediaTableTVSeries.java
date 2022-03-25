@@ -380,7 +380,9 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.debug("tvSeriesDatabaseId " + tvSeriesDatabaseId);
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId);
+					return thumbnail;
 				} catch (EOFException e2) {
 					LOGGER.debug(
 						"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
