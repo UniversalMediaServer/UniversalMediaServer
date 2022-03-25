@@ -145,35 +145,45 @@ public class PlaylistManager {
 		return lines;
 	}
 
-	/**
-	 *
-	 * @param event
-	 * @param absolutePlaylistFile
-	 * @return
-	 */
 	private String calculateRelativeSongPath(Path absoluteSongPath, Path absolutePlaylistFile) {
 		StringBuilder sb = new StringBuilder();
 
-		if (absoluteSongPath.toString().startsWith(absolutePlaylistFile.getParent().toString())) {
-			String relativePath = absoluteSongPath.toString().substring(absolutePlaylistFile.getParent().toString().length());
+		if (isSongInSubfolderOfPlaylist(absoluteSongPath, absolutePlaylistFile)) {
+			String relativePath = removeSameParentPathFromSongPath(absoluteSongPath, absolutePlaylistFile);
 			sb.append(".");
 			if (!relativePath.startsWith(File.separator)) {
 				sb.append(File.separator);
 			}
 			sb.append(relativePath);
 		} else {
-			Path commonRoot = absolutePlaylistFile.getParent();
-			do {
-				sb.append("..");
-				sb.append(File.separator);
-				commonRoot = commonRoot.getParent();
-			} while (!absoluteSongPath.toString().startsWith(commonRoot.toString()));
-
-			String relativePath = absoluteSongPath.toString().substring(commonRoot.toString().length() + 1);
+			Path commonParent = findFirstCommonParentFolder(absoluteSongPath, absolutePlaylistFile, sb);
+			String relativePath = removeCommonParentPathFromSongFile(absoluteSongPath, commonParent);
 			sb.append(relativePath);
 			return sb.toString();
 		}
 		return sb.toString();
+	}
+
+	private String removeCommonParentPathFromSongFile(Path absoluteSongPath, Path commonParent) {
+		return absoluteSongPath.toString().substring(commonParent.toString().length() + 1);
+	}
+
+	private Path findFirstCommonParentFolder(Path absoluteSongPath, Path absolutePlaylistFile, StringBuilder sb) {
+		Path commonRoot = absolutePlaylistFile.getParent();
+		do {
+			sb.append("..");
+			sb.append(File.separator);
+			commonRoot = commonRoot.getParent();
+		} while (!absoluteSongPath.toString().startsWith(commonRoot.toString()));
+		return commonRoot;
+	}
+
+	private String removeSameParentPathFromSongPath(Path absoluteSongPath, Path absolutePlaylistFile) {
+		return absoluteSongPath.toString().substring(absolutePlaylistFile.getParent().toString().length());
+	}
+
+	private boolean isSongInSubfolderOfPlaylist(Path absoluteSongPath, Path absolutePlaylistFile) {
+		return absoluteSongPath.toString().startsWith(absolutePlaylistFile.getParent().toString());
 	}
 
 	private void writePlaylistToDisk(List<String> lines, Path playlistFile) throws IOException {
