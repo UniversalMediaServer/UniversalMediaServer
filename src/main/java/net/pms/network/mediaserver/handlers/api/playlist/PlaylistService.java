@@ -23,6 +23,9 @@ public class PlaylistService implements ApiResponseHandler {
 
 		String uriLower = uri.toLowerCase();
 		try {
+			if (!pm.isServiceEnabled()) {
+				throw new RuntimeException(Messages.getString("Api.Playlist.ServiceDisabled"));
+			}
 			switch (uriLower) {
 				case "getallplaylists":
 					LOG.trace("getallplaylists");
