@@ -42,6 +42,10 @@ public class PlaylistService implements ApiResponseHandler {
 					AudioPlaylistVO remove = getParamsFromContent(content);
 					pm.removeSongFromPlaylist(remove.audiotrackId, remove.playlistName);
 					return Messages.getString("Api.Playlist.SongRemoved");
+				case "createplaylist":
+					LOG.trace("createplaylist");
+					pm.createPlaylist(content);
+					return Messages.getString("Api.Playlist.PlaylistCreated");
 				default:
 					LOG.trace("default");
 					output.setStatus(HttpResponseStatus.NOT_FOUND);

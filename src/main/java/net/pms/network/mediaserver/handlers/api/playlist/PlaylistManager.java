@@ -1,7 +1,9 @@
 package net.pms.network.mediaserver.handlers.api.playlist;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.dlna.RootFolder;
 
 public class PlaylistManager {
 
@@ -39,6 +42,9 @@ public class PlaylistManager {
 			LOG.info("Playlist directory not set. Playlist management is disabled.");
 			return;
 		}
+
+		availablePlaylists.clear();
+		playlistsNames.clear();
 
 		try {
 			Path dir = Paths.get(PMS.getConfiguration().getManagedPlaylistFolder());
@@ -188,6 +194,38 @@ public class PlaylistManager {
 
 	private void writePlaylistToDisk(List<String> lines, Path playlistFile) throws IOException {
 		Files.write(playlistFile, lines);
+	}
+
+	public void createPlaylist(String playlistName) throws IOException {
+		if (StringUtils.isAllBlank(playlistName)) {
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNameNotProvided"));
+		}
+		if (!FilenameUtils.getBaseName(playlistName).equals(playlistName)) {
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNameNoExt"));
+		}
+		if (playlistsNames.contains(playlistName)) {
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistAlreadyExists"));
+		}
+
+		String absoluteNewFilename = FilenameUtils.concat(PMS.getConfiguration().getManagedPlaylistFolder(), playlistName + ".m3u8");
+		File newPlaylist = new File(absoluteNewFilename);
+		if (newPlaylist.exists()) {
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistAlreadyExists"));
+		}
+
+		createNewEmptyPlaylistFile(newPlaylist);
+		checkPlaylistDirectoryConfiguration();
+		RootFolder.rescanLibraryFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
+	}
+
+	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException, FileNotFoundException {
+		if (!newPlaylist.createNewFile()) {
+			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistCanNotBeCreated"));
+		}
+		PrintWriter pw = new PrintWriter(newPlaylist);
+		pw.println("#EXTM3U");
+		pw.println();
+		pw.close();
 	}
 
 	public boolean isValidPlaylist(String filename) {
