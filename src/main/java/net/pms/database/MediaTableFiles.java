@@ -533,6 +533,7 @@ public class MediaTableFiles extends MediaTable {
 								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
 								audio.setBitRate(elements.getInt("BITRATE"));
 								audio.setRating(elements.getInt("RATING"));
+								audio.setAudiotrackId(elements.getInt("AUDIOTRACK_ID"));
 								audio.setMbidRecord(elements.getString("MBID_RECORD"));
 								audio.setMbidTrack(elements.getString("MBID_TRACK"));
 								media.getAudioTracksList().add(audio);
