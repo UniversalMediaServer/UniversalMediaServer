@@ -141,6 +141,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
 						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
 						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
+						con.commit();
 					} finally {
 						con.close();
 					}
