@@ -241,9 +241,6 @@ public class RealFile extends MapFile {
 								getMedia().postParse(getType(), input);
 								found = true;
 							}
-						} catch (InvalidClassException e) {
-							LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
-							LOGGER.trace("", e);
 						} catch (IOException | SQLException e) {
 							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
 							LOGGER.trace("", e);

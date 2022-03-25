@@ -339,10 +339,11 @@ public final class MediaTableTVSeries extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
-		String thumbnailId = null;
+		Integer thumbnailId = null;
+		Integer tvSeriesId = null;
 
 		try {
-			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, THUMBNAIL " +
+			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
@@ -356,21 +357,22 @@ public final class MediaTableTVSeries extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(sql)
 			) {
 				if (resultSet.next()) {
-					thumbnailId = resultSet.getString("ThumbnailId");
+					thumbnailId = resultSet.getInt("ThumbnailId");
+					tvSeriesId = resultSet.getInt("TVSeriesId");
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 				}
 			} catch (JdbcSQLDataException e) {
 				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
 				LOGGER.trace("", e);
 
-				if (thumbnailId != null) {
-					MediaTableThumbnails.removeById(connection, thumbnailId);
-				}
-
 				// Regenerate the thumbnail from a stored poster if it exists
 				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
 				if (posterInfo == null) {
-					LOGGER.debug("MediaTableVideoMetadataPosters.getByTVSeriesName was null for " + title);
+					LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
+					if (thumbnailId != null) {
+						MediaTableThumbnails.removeById(connection, thumbnailId);
+						removeImdbIdById(connection, tvSeriesId);
+					}
 					return null;
 				}
 
@@ -381,7 +383,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
 					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId);
+					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
 					return thumbnail;
 				} catch (EOFException e2) {
 					LOGGER.debug(
@@ -534,12 +536,12 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	/**
-	 * Removes an entry or entries.
+	 * Removes an entry or entries by IMDb ID.
 	 *
 	 * @param connection the db connection
 	 * @param imdbID the IMDb ID to remove
 	 */
-	public static void remove(final Connection connection, final String imdbID) {
+	public static void removeByImdbId(final Connection connection, final String imdbID) {
 		try {
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
 			try (Statement statement = connection.createStatement()) {
@@ -548,6 +550,25 @@ public final class MediaTableTVSeries extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, imdbID, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Removes an entry by ID.
+	 *
+	 * @param connection the db connection
+	 * @param id the ID to remove
+	 */
+	public static void removeImdbIdById(final Connection connection, final Integer id) {
+		try {
+			String query = "UPDATE " + TABLE_NAME + " SET IMDBID = null WHERE ID = " + id;
+			try (Statement statement = connection.createStatement()) {
+				int row = statement.executeUpdate(query);
+				LOGGER.trace("Removed IMDb ID from {} in " + TABLE_NAME + " for ID \"{}\"", row, id);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entry", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

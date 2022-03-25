@@ -21,15 +21,19 @@ package net.pms.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.*;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.sql.*;
 import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
+import net.pms.image.ImagesUtil.ScaleType;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -40,6 +44,8 @@ import java.util.HashSet;
 import java.util.List;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
+import net.pms.util.UnknownFormatException;
+import net.pms.util.UriFileRetriever;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -52,6 +58,8 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_NAME = "FILES";
 
 	public static final String NONAME = "###";
+
+	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -581,7 +589,43 @@ public class MediaTableFiles extends MediaTable {
 			}
 		} catch (SQLException se) {
 			if (se.getCause() != null && se.getCause() instanceof IOException) {
-				throw (IOException) se.getCause();
+				if (se.getCause() instanceof InvalidClassException && se.toString().contains("net.pms.image.ExifInfo; local class incompatible")) {
+					/*
+					 * Serialization failed for ExifInfo or one of its subclasses,
+					 * this is unrecoverable so we need to remove it and allow it to
+					 * be regenerated.
+					 */
+					LOGGER.debug("Thumbnail for {} seems to be from a previous version, reparsing information", name);
+					LOGGER.trace("", se);
+
+					// Regenerate the thumbnail from a stored poster if it exists
+					String posterURL = MediaTableVideoMetadataPosters.getByFilename(connection, name);
+					if (posterURL == null) {
+						LOGGER.debug("No poster URI was found locally for {}, we need to remove and reparse the file", name);
+						removeMediaEntry(connection, name, false);
+						return null;
+					}
+	
+					LOGGER.debug("posterURL " + posterURL);
+					try {
+						byte[] image = URI_FILE_RETRIEVER.get(posterURL);
+						DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+						MediaTableThumbnails.setThumbnail(connection, thumbnail, name, -1, true);
+						return getData(connection, name, modified);
+					} catch (EOFException e2) {
+						LOGGER.debug(
+							"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
+							posterURL
+						);
+					} catch (UnknownFormatException e2) {
+						LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+					} catch (IOException e2) {
+						LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+						LOGGER.trace("", e2);
+					}
+				} else {
+					throw (IOException) se.getCause();
+				}
 			}
 			throw se;
 		}
@@ -876,7 +920,7 @@ public class MediaTableFiles extends MediaTable {
 			throw se;
 		} finally {
 			if (media != null && media.getThumb() != null) {
-				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1);
+				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1, false);
 			}
 		}
 	}
@@ -1005,10 +1049,12 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param pathToFile the full path to the file to remove.
+	 * @param removeStatus whether to remove file status entry. WARNING: this
+	 *                     is user data and is NOT recoverable like the rest.
 	 */
-	public static void removeMediaEntry(final Connection connection, String pathToFile) {
+	public static void removeMediaEntry(final Connection connection, String pathToFile, boolean removeStatus) {
 		try {
-			removeMedia(connection, pathToFile, false);
+			removeMedia(connection, pathToFile, false, removeStatus);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove \"{}\" from the database: {}",
@@ -1028,7 +1074,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static void removeMediaEntriesInFolder(final Connection connection, String pathToFolder) {
 		try {
-			removeMedia(connection, sqlLikeEscape(pathToFolder) + "%", true);
+			removeMedia(connection, sqlLikeEscape(pathToFolder) + "%", true, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove files matching \"{}\" from the database: {}",
@@ -1049,15 +1095,19 @@ public class MediaTableFiles extends MediaTable {
 	 * @param filename the filename(s) to remove.
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
+	 * @param removeStatus whether to remove file status entry. WARNING: this
+	 *                     is user data and is NOT recoverable like the rest.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void removeMedia(final Connection connection, String filename, boolean useLike) throws SQLException {
+	public static void removeMedia(final Connection connection, String filename, boolean useLike, boolean removeStatus) throws SQLException {
 		if (StringUtils.isEmpty(filename)) {
 			return;
 		}
 
 		deleteRowsInFilesTable(connection, filename, useLike);
-		MediaTableFilesStatus.remove(connection, filename, useLike);
+		if (removeStatus) {
+			MediaTableFilesStatus.remove(connection, filename, useLike);
+		}
 		MediaTableVideoMetadataActors.remove(connection, filename, useLike);
 		MediaTableVideoMetadataAwards.remove(connection, filename, useLike);
 		MediaTableVideoMetadataCountries.remove(connection, filename, useLike);

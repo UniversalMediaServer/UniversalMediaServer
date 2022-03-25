@@ -24,8 +24,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
@@ -138,6 +136,40 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading poster", TABLE_NAME, tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param connection the db connection
+	 * @param filename
+	 * @return the poster for the file, or null.
+	 */
+	public static String getByFilename(final Connection connection, final String filename) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try {
+			String query = "SELECT POSTER FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableFiles.TABLE_NAME + ".FILENAME " +
+				"WHERE " + MediaTableFiles.TABLE_NAME + ".FILENAME = " + sqlQuote(filename) + " " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					return resultSet.getString(1);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading poster", TABLE_NAME, filename, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
