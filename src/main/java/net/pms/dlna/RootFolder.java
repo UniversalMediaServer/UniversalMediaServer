@@ -296,6 +296,10 @@ public class RootFolder extends DLNAResource {
 	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
+				// wait until the realtime lock is released before starting
+				PMS.REALTIME_LOCK.lock();
+				PMS.REALTIME_LOCK.unlock();
+
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 

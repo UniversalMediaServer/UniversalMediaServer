@@ -187,6 +187,10 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
+			// wait until the realtime lock is released before starting
+			PMS.REALTIME_LOCK.lock();
+			PMS.REALTIME_LOCK.unlock();
+
 			if (!CONFIGURATION.getExternalNetwork()) {
 				LOGGER.trace("Not doing background API lookup because external network is disabled");
 				return;
