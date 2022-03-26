@@ -171,200 +171,205 @@ public class PlayHandler implements HttpHandler {
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
-		HashMap<String, Object> mustacheVars = new HashMap<>();
-		mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
+		PMS.REALTIME_LOCK.lock();
+		try {
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
 
-		LOGGER.debug("Make play page " + id);
-		String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
-		RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
-		if (root == null) {
-			LOGGER.debug("root not found");
-			throw new IOException("Unknown root");
-		}
-		WebRender renderer = (WebRender) root.getDefaultRenderer();
-		renderer.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
-		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
-		DLNAResource rootResource = root.getDLNAResource(id, renderer);
-		if (rootResource == null) {
-			LOGGER.debug("Bad web play id: " + id);
-			throw new IOException("Bad Id");
-		}
-		if (!rootResource.isCodeValid(rootResource)) {
-			LOGGER.debug("coded object with invalid code");
-			throw new IOException("Bad code");
-		}
-		if (rootResource instanceof VirtualVideoAction) {
-			// for VVA we just call the enable fun directly
-			// waste of resource to play dummy video
-			synchronized (renderer) {
-				if (((VirtualVideoAction) rootResource).enable()) {
-					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
-				} else {
-					renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
-				}
+			LOGGER.debug("Make play page " + id);
+			String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
+			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
+			if (root == null) {
+				LOGGER.debug("root not found");
+				throw new IOException("Unknown root");
 			}
-			return RETURN_PAGE;
-		}
-
-		String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
-		String id1 = URLEncoder.encode(id, "UTF-8");
-		mustacheVars.put("poster", "/thumb/" + id1);
-		ArrayList<String> folders = new ArrayList<>();
-		ArrayList<String> breadcrumbs = new ArrayList<>();
-		StringBuilder backLinkHTML = new StringBuilder();
-		Boolean isShowBreadcrumbs = false;
-
-		if (
-			rootResource.getParent() != null &&
-			rootResource.getParent().isFolder()
-		) {
-			DLNAResource thisResourceFromResources = rootResource;
-
-			breadcrumbs.add("<li class=\"active\">" + name + "</li>");
-			while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
-				thisResourceFromResources = thisResourceFromResources.getParent();
-				String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
-				ancestorName = StringEscapeUtils.escapeHtml(ancestorName);
-				String ancestorID = thisResourceFromResources.getResourceId();
-				String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
-				String ancestorUri = "/browse/" + ancestorIDForWeb;
-				breadcrumbs.add(0, "<li><a href=\"" + ancestorUri + "\">" + ancestorName + "</a></li>");
-				isShowBreadcrumbs = true;
+			WebRender renderer = (WebRender) root.getDefaultRenderer();
+			renderer.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+			//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
+			DLNAResource rootResource = root.getDLNAResource(id, renderer);
+			if (rootResource == null) {
+				LOGGER.debug("Bad web play id: " + id);
+				throw new IOException("Bad Id");
 			}
-
-			DLNAResource parentFromResources = rootResource.getParent();
-			String parentID = parentFromResources.getResourceId();
-			String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
-			String backUri = "/browse/" + parentIDForWeb;
-			backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
-			backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
-			backLinkHTML.append("</a>");
-			folders.add(backLinkHTML.toString());
-		}
-		mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
-		mustacheVars.put("breadcrumbs", breadcrumbs);
-		mustacheVars.put("folders", folders);
-
-		Format format = rootResource.getFormat();
-		boolean isImage = format.isImage();
-		boolean isVideo = format.isVideo();
-		boolean isAudio = format.isAudio();
-		String query = t.getRequestURI().getQuery();
-		boolean forceFlash = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "flash"));
-		boolean forcehtml5 = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "html5"));
-		boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && CONFIGURATION.getWebFlash()));
-
-		// hack here to ensure we got a root folder to use for recently played etc.
-		root.getDefaultRenderer().setRootFolder(root);
-		String mime = root.getDefaultRenderer().getMimeType(rootResource);
-		String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
-		String auto = "autoplay";
-
-		mustacheVars.put("isVideoWithAPIData", false);
-		mustacheVars.put("javascriptVarsScript", "");
-		if (isVideo) {
-			if (CONFIGURATION.getUseCache()) {
-				String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
-				if (apiMetadataAsJavaScriptVars != null) {
-					mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
-					mustacheVars.put("isVideoWithAPIData", true);
-				}
+			if (!rootResource.isCodeValid(rootResource)) {
+				LOGGER.debug("coded object with invalid code");
+				throw new IOException("Bad code");
 			}
-
-			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-				if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
-					mime = rootResource.getMedia().getMimeType();
-				}
-			}
-			if (!flowplayer) {
-				if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
-					WebRender render = (WebRender) rootResource.getDefaultRenderer();
-					mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
-				}
-			}
-		}
-		mustacheVars.put("isVideo", isVideo);
-
-		// Controls whether to use the browser's native audio player
-		mustacheVars.put("isNativeAudio", false);
-		if (
-			isAudio &&
-			// Audio types that are natively supported by all major browsers:
-			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME)
-		) {
-			mustacheVars.put("isNativeAudio", true);
-		}
-
-		mustacheVars.put("name", name);
-		mustacheVars.put("id1", id1);
-		mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
-		if (CONFIGURATION.isDynamicPls()) {
-			if (rootResource.getParent() instanceof Playlist) {
-				mustacheVars.put("plsOp", "del");
-				mustacheVars.put("plsSign", "-");
-				mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.4", t));
-			} else {
-				mustacheVars.put("plsOp", "add");
-				mustacheVars.put("plsSign", "+");
-				mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.5", t));
-			}
-		}
-		addNextByType(rootResource, mustacheVars);
-		if (isImage) {
-			// do this like this to simplify the code
-			// skip all player crap since img tag works well
-			int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
-			if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
-				mustacheVars.put("delay", delay);
-			}
-		} else {
-			mustacheVars.put("mediaType", mediaType);
-			mustacheVars.put("auto", auto);
-			mustacheVars.put("mime", mime);
-			if (flowplayer) {
-				if (
-					WebInterfaceServerUtil.directmime(mime) &&
-					!WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) &&
-					!rootResource.isResume() &&
-					!forceFlash
-				) {
-					mustacheVars.put("src", true);
-				}
-			} else {
-				mustacheVars.put("width", renderer.getVideoWidth());
-				mustacheVars.put("height", renderer.getVideoHeight());
-			}
-		}
-		if (CONFIGURATION.useWebControl()) {
-			mustacheVars.put("push", true);
-		}
-
-		if (isVideo && CONFIGURATION.getWebSubs()) {
-			// only if subs are requested as <track> tags
-			// otherwise we'll transcode them in
-			boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
-			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
-				CONFIGURATION.setFFmpegFontConfig(false);
-			}
-			OutputParams p = new OutputParams(CONFIGURATION);
-			p.setSid(rootResource.getMediaSubtitle());
-			Player.setAudioAndSubs(rootResource, p);
-			if (p.getSid() != null && p.getSid().getType().isText()) {
-				try {
-					File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
-					LOGGER.debug("subFile " + subFile);
-					if (subFile != null) {
-						mustacheVars.put("sub", parent.getResources().add(subFile));
+			if (rootResource instanceof VirtualVideoAction) {
+				// for VVA we just call the enable fun directly
+				// waste of resource to play dummy video
+				synchronized (renderer) {
+					if (((VirtualVideoAction) rootResource).enable()) {
+						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
+					} else {
+						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
 					}
-				} catch (IOException e) {
-					LOGGER.debug("error when doing sub file " + e);
 				}
+				return RETURN_PAGE;
 			}
 
-			CONFIGURATION.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
-		}
+			String name = StringEscapeUtils.escapeHtml(rootResource.resumeName());
+			String id1 = URLEncoder.encode(id, "UTF-8");
+			mustacheVars.put("poster", "/thumb/" + id1);
+			ArrayList<String> folders = new ArrayList<>();
+			ArrayList<String> breadcrumbs = new ArrayList<>();
+			StringBuilder backLinkHTML = new StringBuilder();
+			Boolean isShowBreadcrumbs = false;
 
-		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(mustacheVars);
+			if (
+				rootResource.getParent() != null &&
+				rootResource.getParent().isFolder()
+			) {
+				DLNAResource thisResourceFromResources = rootResource;
+
+				breadcrumbs.add("<li class=\"active\">" + name + "</li>");
+				while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
+					thisResourceFromResources = thisResourceFromResources.getParent();
+					String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+					ancestorName = StringEscapeUtils.escapeHtml(ancestorName);
+					String ancestorID = thisResourceFromResources.getResourceId();
+					String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
+					String ancestorUri = "/browse/" + ancestorIDForWeb;
+					breadcrumbs.add(0, "<li><a href=\"" + ancestorUri + "\">" + ancestorName + "</a></li>");
+					isShowBreadcrumbs = true;
+				}
+
+				DLNAResource parentFromResources = rootResource.getParent();
+				String parentID = parentFromResources.getResourceId();
+				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
+				String backUri = "/browse/" + parentIDForWeb;
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
+				backLinkHTML.append("</a>");
+				folders.add(backLinkHTML.toString());
+			}
+			mustacheVars.put("isShowBreadcrumbs", isShowBreadcrumbs);
+			mustacheVars.put("breadcrumbs", breadcrumbs);
+			mustacheVars.put("folders", folders);
+
+			Format format = rootResource.getFormat();
+			boolean isImage = format.isImage();
+			boolean isVideo = format.isVideo();
+			boolean isAudio = format.isAudio();
+			String query = t.getRequestURI().getQuery();
+			boolean forceFlash = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "flash"));
+			boolean forcehtml5 = StringUtils.isNotEmpty(WebInterfaceServerUtil.getQueryVars(query, "html5"));
+			boolean flowplayer = isVideo && (forceFlash || (!forcehtml5 && CONFIGURATION.getWebFlash()));
+
+			// hack here to ensure we got a root folder to use for recently played etc.
+			root.getDefaultRenderer().setRootFolder(root);
+			String mime = root.getDefaultRenderer().getMimeType(rootResource);
+			String mediaType = isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "";
+			String auto = "autoplay";
+
+			mustacheVars.put("isVideoWithAPIData", false);
+			mustacheVars.put("javascriptVarsScript", "");
+			if (isVideo) {
+				if (CONFIGURATION.getUseCache()) {
+					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
+					if (apiMetadataAsJavaScriptVars != null) {
+						mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+						mustacheVars.put("isVideoWithAPIData", true);
+					}
+				}
+
+				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+					if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
+						mime = rootResource.getMedia().getMimeType();
+					}
+				}
+				if (!flowplayer) {
+					if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
+						WebRender render = (WebRender) rootResource.getDefaultRenderer();
+						mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
+					}
+				}
+			}
+			mustacheVars.put("isVideo", isVideo);
+
+			// Controls whether to use the browser's native audio player
+			mustacheVars.put("isNativeAudio", false);
+			if (
+				isAudio &&
+				// Audio types that are natively supported by all major browsers:
+				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME)
+			) {
+				mustacheVars.put("isNativeAudio", true);
+			}
+
+			mustacheVars.put("name", name);
+			mustacheVars.put("id1", id1);
+			mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
+			if (CONFIGURATION.isDynamicPls()) {
+				if (rootResource.getParent() instanceof Playlist) {
+					mustacheVars.put("plsOp", "del");
+					mustacheVars.put("plsSign", "-");
+					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.4", t));
+				} else {
+					mustacheVars.put("plsOp", "add");
+					mustacheVars.put("plsSign", "+");
+					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.5", t));
+				}
+			}
+			addNextByType(rootResource, mustacheVars);
+			if (isImage) {
+				// do this like this to simplify the code
+				// skip all player crap since img tag works well
+				int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
+				if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
+					mustacheVars.put("delay", delay);
+				}
+			} else {
+				mustacheVars.put("mediaType", mediaType);
+				mustacheVars.put("auto", auto);
+				mustacheVars.put("mime", mime);
+				if (flowplayer) {
+					if (
+						WebInterfaceServerUtil.directmime(mime) &&
+						!WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) &&
+						!rootResource.isResume() &&
+						!forceFlash
+					) {
+						mustacheVars.put("src", true);
+					}
+				} else {
+					mustacheVars.put("width", renderer.getVideoWidth());
+					mustacheVars.put("height", renderer.getVideoHeight());
+				}
+			}
+			if (CONFIGURATION.useWebControl()) {
+				mustacheVars.put("push", true);
+			}
+
+			if (isVideo && CONFIGURATION.getWebSubs()) {
+				// only if subs are requested as <track> tags
+				// otherwise we'll transcode them in
+				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
+				if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
+					CONFIGURATION.setFFmpegFontConfig(false);
+				}
+				OutputParams p = new OutputParams(CONFIGURATION);
+				p.setSid(rootResource.getMediaSubtitle());
+				Player.setAudioAndSubs(rootResource, p);
+				if (p.getSid() != null && p.getSid().getType().isText()) {
+					try {
+						File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
+						LOGGER.debug("subFile " + subFile);
+						if (subFile != null) {
+							mustacheVars.put("sub", parent.getResources().add(subFile));
+						}
+					} catch (IOException e) {
+						LOGGER.debug("error when doing sub file " + e);
+					}
+				}
+
+				CONFIGURATION.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
+			}
+
+			return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(mustacheVars);
+		} finally {
+			PMS.REALTIME_LOCK.unlock();
+		}
 	}
 
 	private String mkM3u8(DLNAResource dlna) {
