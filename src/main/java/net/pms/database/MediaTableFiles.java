@@ -603,6 +603,7 @@ public class MediaTableFiles extends MediaTable {
 					if (posterURL == null) {
 						LOGGER.debug("No poster URI was found locally for {}, we need to remove and reparse the file", name);
 						removeMediaEntry(connection, name, false);
+						connection.commit();
 						return null;
 					}
 
