@@ -1,3 +1,21 @@
+10.20.0 - 2022-03-
+
+	General:
+		Added ability to update audio ID3 tags via MusicBrainz, disabled by default
+		Added ability to rate/like music via API
+		Added "My Albums" folder to the Media Library
+		Added support for UPnP sortOrder requests when using UPnP searching
+		Added dc:date UPnP attribute for renderers to optionally use
+		Allow API strings to be translated
+		Updated default podcasts and YouTube channels
+		Fixed slow browsing of the root and web folders
+	Translation updates via Crowdin:
+		Chinese (Traditional) (96%) (thanks, Gene Wu!)
+	Dependencies:
+		Bump junrar from 7.4.1 to 7.5.0
+		Bump metadata-extractor from 2.16.0 to 2.17.0
+		Bump oshi-core from 6.1.4 to 6.1.5
+
 10.19.0 - 2022-03-14
 
 	General:

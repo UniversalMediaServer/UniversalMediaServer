@@ -41,6 +41,8 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.DbIdResourceLocator;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +54,7 @@ public class BrowseHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	public BrowseHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
@@ -386,7 +389,17 @@ public class BrowseHandler implements HttpHandler {
 			mustacheVars.put("downloadFolderTooltip", WebInterfaceServerUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
 		}
 
-		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(root.getDLNAResource(id, null).getDisplayName()));
+		DLNAResource dlna = null;
+		if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			try {
+				dlna = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+		} else {
+			dlna = root.getDLNAResource(id, null);
+		}
+		mustacheVars.put("name", id.equals("0") ? CONFIGURATION.getServerDisplayName() : StringEscapeUtils.escapeHtml4(dlna.getDisplayName()));
 		mustacheVars.put("hasFile", hasFile);
 		mustacheVars.put("folders", folders);
 		mustacheVars.put("mediaLibraryFolders", mediaLibraryFolders);

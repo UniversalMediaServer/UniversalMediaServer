@@ -17,6 +17,10 @@ public class DbidTypeAndIdent {
 	public DbidTypeAndIdent(DbidMediaType type, String ident) {
 		super();
 		this.type = type;
-		this.ident = ident;
+		if (ident == null) {
+			this.ident = "";
+		} else {
+			this.ident = ident;
+		}
 	}
 }
