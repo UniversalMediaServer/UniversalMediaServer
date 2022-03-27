@@ -1,0 +1,212 @@
+name: Universal Media Server release
+
+on:
+  push:
+    branches:
+      - release/**
+jobs:
+  bumpversion:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: Extract version
+        shell: bash
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF##*/})"
+        id: extract_version
+
+  build-windows:
+    runs-on: windows-latest
+    needs: [bumpversion]
+    steps:
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'liberica'
+          java-version: 8
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
+      - run: |
+
+          #! set new version
+          mvn versions:set -DnewVersion=${{needs.bumpversion.outputs.version}}
+          sed -i -e 's/\(<project.version.short>\).*\(<\/project.version.short>\)/<project.version.short>${{needs.bumpversion.outputs.version}}<\/project.version.short>/g' pom.xml
+
+          #! build windows
+          mvn package -P windows -DskipTests
+          cp target/UMS-setup.exe  target/UMS-setup-${{needs.bumpversion.outputs.version}}.exe
+          rm target/UMS-setup.exe
+      - name: 'Upload build'
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows
+          path: target/ums-setup**.exe
+          retention-days: 1
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: [bumpversion]
+    steps:
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'liberica'
+          java-version: 8
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
+      - run: |
+
+          #! install dependencies
+          mkdir linux-builds
+          sudo apt-get -y install libmms0
+          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
+
+           #! set new version
+          mvn versions:set -DnewVersion=${{needs.bumpversion.outputs.version}}
+          sed -i -e 's/\(<project.version.short>\).*\(<\/project.version.short>\)/<project.version.short>${{needs.bumpversion.outputs.version}}<\/project.version.short>/g' pom.xml
+
+          #! build linux-x86
+          mvn package -P linux-x86 -DskipTests
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86-${{needs.bumpversion.outputs.version}}.tar.gzip
+
+          #! build linux-x86_64
+          mvn package -P linux-x86_64 -DskipTests
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86_64-${{needs.bumpversion.outputs.version}}.tar.gzip
+
+          #! build linux-arm64
+          mvn package -P linux-arm64 -DskipTests
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-arm64-${{needs.bumpversion.outputs.version}}.tar.gzip
+
+          #! build linux-armel
+          mvn package -P linux-armel -DskipTests
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-armel-${{needs.bumpversion.outputs.version}}.tar.gzip
+
+          #! build linux-armhf
+          mvn package -P linux-armhf -DskipTests
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-armhf-${{needs.bumpversion.outputs.version}}.tar.gzip
+
+      - name: 'Upload build'
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux
+          path: linux-builds
+          retention-days: 1
+
+  build-macos:
+    runs-on: macos-latest
+    needs: [bumpversion]
+    steps:
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'liberica'
+          java-version: 8
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: 3.6.3
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
+      - run: |
+
+          #! Build MacOS
+          mkdir macos-builds
+          mvn versions:set -DnewVersion=${{needs.bumpversion.outputs.version}}
+          sed -i -e 's/\(<project.version.short>\).*\(<\/project.version.short>\)/<project.version.short>${{needs.bumpversion.outputs.version}}<\/project.version.short>/g' pom.xml
+
+          DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn package -P macos -DskipTests
+          hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution macos-builds/ums-macos-${{needs.bumpversion.outputs.version}}.dmg
+
+          DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn package -P macos-pre1015 -DskipTests
+          hdiutil create -volname "Universal Media Server" -srcfolder target/ums-*-distribution macos-builds/ums-macos-pre1015-${{needs.bumpversion.outputs.version}}.dmg
+
+      - name: 'Upload MacOS builds'
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos
+          path: macos-builds
+          retention-days: 1
+
+  gh-release:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos, bumpversion]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: |
+
+          #! Prepare Changelog
+          awk 's{ print ""; print}; $0~v {print; s=1; next}; s=0' RS= v="${{needs.bumpversion.outputs.version}}" CHANGELOG.txt > release.txt
+          increment_version() {
+            local delimiter=.
+            local array=($(echo "$1" | tr $delimiter '\n'))
+            array[$2]=$((array[$2]+1))
+            echo $(local IFS=$delimiter ; echo "${array[*]}")
+          }
+
+          #! bump version
+          newversion=$(increment_version ${{needs.bumpversion.outputs.version}} 1)
+          mvn versions:set -DnewVersion=${newversion}-SNAPSHOT
+          sed -i -e "s/\(<project.version.short>\).*\(<\/project.version.short>\)/<project.version.short>$newversion<\/project.version.short>/g" pom.xml
+
+          #! commit release
+          git add pom.xml
+          git tag ${{needs.bumpversion.outputs.version}}
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git commit -m "Release ${{needs.bumpversion.outputs.version}}"
+          git push
+
+      - uses: actions/download-artifact@v3
+        with:
+          path: builds
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          body_path: release.txt
+          name: ${{needs.bumpversion.outputs.version}}
+          files: |
+            builds/**
+      - uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            linux
+            windows
+            macos
+
+      - name: Create Pull Request
+        uses: devops-infra/action-pull-request@v0.4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: ${{needs.bumpversion.outputs.version}}
+          body: Release ${{needs.bumpversion.outputs.version}}
