@@ -608,7 +608,6 @@ public class MediaTableFiles extends MediaTable {
 						return null;
 					}
 
-					LOGGER.debug("posterURL " + posterURL);
 					try {
 						byte[] image = URI_FILE_RETRIEVER.get(posterURL);
 						DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);

@@ -367,6 +367,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				// Regenerate the thumbnail from a stored poster if it exists
 				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
 				if (posterInfo == null) {
+					// this should never happen, since the only way to have a TV series thumbnail is from an API poster
 					LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
 					if (thumbnailId != null) {
 						MediaTableThumbnails.removeById(connection, thumbnailId);
@@ -377,8 +378,6 @@ public final class MediaTableTVSeries extends MediaTable {
 
 				String posterURL = (String) posterInfo[0];
 				Long tvSeriesDatabaseId = (Long) posterInfo[1];
-				LOGGER.debug("posterURL " + posterURL);
-				LOGGER.debug("tvSeriesDatabaseId " + tvSeriesDatabaseId);
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
 					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
