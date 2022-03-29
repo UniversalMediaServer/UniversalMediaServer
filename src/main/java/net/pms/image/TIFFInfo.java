@@ -6,8 +6,6 @@ import net.pms.util.ParseException;
 import com.drew.metadata.Metadata;
 
 public class TIFFInfo extends ExifInfo {
-	private static final long serialVersionUID = 1L;
-
 	/**
 	 * Use
 	 * {@link ImageInfo#create(int, int, ImageFormat, long, ColorModel, Metadata, boolean, boolean)}

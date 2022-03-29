@@ -15,8 +15,6 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
 
 public abstract class ExifInfo extends ImageInfo {
-	private static final long serialVersionUID = 3L;
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);
 
 	protected final PhotometricInterpretation photometricInterpretation;
