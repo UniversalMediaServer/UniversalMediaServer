@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.20.0-SNAPSHOT</version>
+	<version>10.20.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -106,7 +106,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.10.0</jna-version>
+		<jna-version>5.11.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
