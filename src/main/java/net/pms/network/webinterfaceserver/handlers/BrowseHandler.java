@@ -43,6 +43,8 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.DbIdResourceLocator;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;

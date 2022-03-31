@@ -13,10 +13,7 @@ import com.drew.metadata.jfif.JfifDirectory;
 import com.drew.metadata.jpeg.HuffmanTablesDirectory;
 import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;

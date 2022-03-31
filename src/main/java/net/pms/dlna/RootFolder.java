@@ -1603,7 +1603,7 @@ public class RootFolder extends DLNAResource {
 						} else {
 							if ("ENTRY_DELETE".equals(event)) {
 								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-								MediaTableFiles.removeMediaEntry(connection, filename);
+								MediaTableFiles.removeMediaEntry(connection, filename, true);
 								bumpSystemUpdateId();
 							} else if ("ENTRY_CREATE".equals(event)) {
 								LOGGER.trace("File {} was created on the hard drive", filename);
