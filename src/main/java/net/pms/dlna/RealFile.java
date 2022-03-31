@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidClassException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -253,9 +252,6 @@ public class RealFile extends MapFile {
 								getMedia().postParse(getType(), input);
 								found = true;
 							}
-						} catch (InvalidClassException e) {
-							LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
-							LOGGER.trace("", e);
 						} catch (IOException | SQLException e) {
 							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
 							LOGGER.trace("", e);
