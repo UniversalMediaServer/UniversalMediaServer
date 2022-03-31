@@ -120,11 +120,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
 	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
 	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	protected static final String KEY_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
 	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
 	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
+	protected static final String KEY_AUDIO_UPDATE_RATING_TAG = "audio_update_rating_tag";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
@@ -828,6 +830,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean isCustomProgramPathsSupported() {
 		return programPaths instanceof ConfigurableProgramPaths;
+	}
+
+	public boolean isAudioUpdateTag() {
+		return getBoolean(KEY_AUDIO_UPDATE_RATING_TAG, false);
 	}
 
 	/**
@@ -4396,6 +4402,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setShowLiveSubtitlesFolder(boolean value) {
 		configuration.setProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, value);
+	}
+
+	public boolean displayAudioLikesInRootFolder() {
+		return getBoolean(KEY_AUDIO_LIKES_IN_ROOT_FOLDER, false);
 	}
 
 	/**

@@ -28,6 +28,8 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
@@ -45,6 +47,8 @@ public class ThumbHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+
 
 	public ThumbHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
@@ -72,7 +76,17 @@ public class ThumbHandler implements HttpHandler {
 				throw new IOException("Unknown root");
 			}
 
-			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+			DLNAResource r = null;
+			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				try {
+					r = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				r = root.getDLNAResource(id, root.getDefaultRenderer());
+			}
+
 			if (r == null) {
 				// another error
 				LOGGER.debug("media unknown");
