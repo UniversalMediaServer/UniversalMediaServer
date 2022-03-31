@@ -38,12 +38,12 @@ public class LibraryScanner {
 		} else {
 			Runnable scan = () -> {
 				try {
-						PMS.get().getRootFolder(null).scan();
-					} catch (Exception e) {
-						LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
-						LOGGER.trace("", e);
-					}
-				};
+					PMS.get().getRootFolder(null).scan();
+				} catch (Exception e) {
+					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+			};
 			scanner = new Thread(scan, "Library Scanner");
 			scanner.setPriority(Thread.MIN_PRIORITY);
 			scanner.start();

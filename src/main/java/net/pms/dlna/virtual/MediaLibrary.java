@@ -20,6 +20,11 @@ public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
 	private MediaLibraryFolder tvShowsFolder;
+	private VirtualFolder vfAudio = null;
+
+	public VirtualFolder getAudioFolder() {
+		return vfAudio;
+	}
 
 	public MediaLibraryFolder getAlbumFolder() {
 		return albumFolder;
@@ -170,7 +175,7 @@ public class MediaLibrary extends VirtualFolder {
 		}
 		addChild(vfVideo);
 
-		VirtualFolder vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
+		vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
 		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
 		vfAudio.addChild(allFolder);
 		playlistFolder = new MediaLibraryFolder(Messages.getString("PMS.9"), "select FILENAME, MODIFIED from FILES F WHERE F.FORMAT_TYPE = 16 ORDER BY F.FILENAME ASC", MediaLibraryFolder.PLAYLISTS);

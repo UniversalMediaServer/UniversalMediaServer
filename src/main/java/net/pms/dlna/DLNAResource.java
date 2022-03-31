@@ -39,6 +39,7 @@ import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,7 +60,6 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.Connection;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -1030,7 +1030,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		DLNAResource dlna;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
-			dlna = renderer.getRootFolder();
+			if (renderer == null) {
+				dlna = PMS.get().getRootFolder(null);
+			} else {
+				dlna = renderer.getRootFolder();
+			}
 		} else {
 			// only allow the last one here
 			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);
@@ -1171,6 +1175,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		String album = null;
+		String mbReleaseId = null;
 		int numberOfAudioFiles = 0;
 		int numberOfOtherFiles = 0;
 
@@ -1184,11 +1189,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
-					if (StringUtils.isAllBlank(album)) {
+					mbReleaseId = res.getMedia().getFirstAudioTrack().getMbidRecord();
+					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
 						return false;
 					}
 				} else {
-					if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
+					if (!StringUtils.isAllBlank(mbReleaseId)) {
+						// First check musicbrainz ReleaseID
+						if (!mbReleaseId.equals(res.getMedia().getFirstAudioTrack().getMbidRecord())) {
+							return false;
+						}
+					} else if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
 						return false;
 					}
 				}
@@ -1830,7 +1841,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
 	 */
-	private static String encode(String s) {
+	protected static String encode(String s) {
 		try {
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
@@ -2257,6 +2268,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, this);
 		}
+		if (this instanceof VirtualFolderDbId) {
+			title = getName();
+		}
 
 		title = resumeStr(title);
 		addXMLTagAndAttribute(sb, "dc:title",
@@ -2282,8 +2296,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
 
+			if (firstAudioTrack.getYear() > 1000) {
+				addXMLTagAndAttribute(sb, "dc:date", Integer.toString(firstAudioTrack.getYear()));
+			}
+
 			if (firstAudioTrack.getTrack() > 0) {
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + firstAudioTrack.getTrack());
+			}
+
+			if (firstAudioTrack.getRating() != null) {
+				addXMLTagAndAttribute(sb, "upnp:rating", "" + firstAudioTrack.getRating());
 			}
 		}
 
@@ -2518,6 +2540,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (firstAudioTrack.getDisc() > 0) {
 					addXMLTagAndAttribute(sb, "numberOfThisDisc", "" + firstAudioTrack.getDisc());
 				}
+				if (firstAudioTrack.getRating() != null) {
+					addXMLTagAndAttribute(sb, "rating", "" + firstAudioTrack.getRating());
+				}
 				closeTag(sb, "desc");
 			}
 		}
@@ -2550,7 +2575,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			appendThumbnail(sb, mediaType, mediaRenderer);
 		}
 
-		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
+		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata() && (firstAudioTrack == null)) {
 			addXMLTagAndAttribute(sb, "dc:date", simpleDateFormatDate.format(new Date(getLastModified())));
 		}
 

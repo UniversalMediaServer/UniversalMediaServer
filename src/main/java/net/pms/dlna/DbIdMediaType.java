@@ -32,6 +32,7 @@ public enum DbIdMediaType {
 	TYPE_FOLDER("FOLDER$", "object.container.storageFolder"),
 	TYPE_ALBUM("ALBUM$", "object.container.album.musicAlbum"),
 	TYPE_MUSICBRAINZ_RECORDID("MUSICBRAINZALBUM$", "object.container.album.musicAlbum"),
+	TYPE_MYMUSIC_ALBUM("MYMUSIC$", "object.container.storageFolder"),
 	TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
 	TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
 	TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.storageFolder"),
@@ -39,7 +40,7 @@ public enum DbIdMediaType {
 	TYPE_PLAYLIST("PLAYLIST$", "object.container.playlistContainer"),
 	TYPE_VIDEO("VIDEO$", "object.item.videoItem"),
 	TYPE_IMAGE("IMAGE$", "object.item.imageItem");
-	//@formatter:on//@formatter:on//@formatter:on//@formatter:on
+	//@formatter:on
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdMediaType.class);
 	public final static String GENERAL_PREFIX = "$DBID$";

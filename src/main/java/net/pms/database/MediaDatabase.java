@@ -115,6 +115,7 @@ public class MediaDatabase extends Database {
 
 				// Audio Metadata
 				MediaTableAudiotracks.checkTable(connection);
+				MediaTableMusicBrainzReleaseLike.checkTable(connection);
 			}
 			tablesChecked = true;
 		}
