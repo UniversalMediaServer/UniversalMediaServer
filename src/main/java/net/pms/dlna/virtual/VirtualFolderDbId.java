@@ -19,8 +19,15 @@
  */
 package net.pms.dlna.virtual;
 
+import java.io.IOException;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaTableCoverArtArchive;
+import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdTypeAndIdent2;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
@@ -30,16 +37,34 @@ import net.pms.dlna.DbIdMediaType;
  */
 public class VirtualFolderDbId extends VirtualFolder {
 
+	private static final Logger LOG = LoggerFactory.getLogger(VirtualFolderDbId.class.getName());
 	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
-
-	private final DbIdMediaType mediaType;
+	private final DbIdTypeAndIdent2 typeIdent;
 
 	public VirtualFolderDbId(String folderName, DbIdTypeAndIdent2 typeIdent, String thumbnailIcon) {
 		super(folderName, thumbnailIcon);
-		this.mediaType = typeIdent.type;
+		this.typeIdent = typeIdent;
 		String id = dbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
+	}
+
+	@Override
+	public String getSystemName() {
+		return this.typeIdent.ident;
+	}
+
+	@Override
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(typeIdent.ident);
+		if (!res.found) {
+			try {
+				return super.getThumbnailInputStream();
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		return DLNAThumbnailInputStream.toThumbnailInputStream(res.cover);
 	}
 
 	@Override
@@ -50,10 +75,39 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	public DbIdMediaType getMediaType() {
-		return mediaType;
+		return typeIdent.type;
 	}
 
 	public String getMediaTypeUclass() {
-		return mediaType.uclass;
+		return typeIdent.type.uclass;
+	}
+
+	@Override
+	protected void setId(String id) {
+		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+			super.setId(id);
+		} else {
+			LOG.trace("Attention. ID doesn't match DBID general prefix : " + id != null ? id : "NULL");
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getId());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		VirtualFolderDbId other = (VirtualFolderDbId) obj;
+		return Objects.equals(getId(), other.getId());
 	}
 }

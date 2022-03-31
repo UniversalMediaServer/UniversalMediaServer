@@ -29,6 +29,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.network.mediaserver.handlers.api.StarRating;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
@@ -294,7 +295,18 @@ public class LibMediaInfoParser {
 					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
 					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
 					if (videoTrackCount == 0) {
-						addMusicBrainzIDs(file, currentAudioTrack);
+						try {
+							AudioFile af;
+							if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+								af = AudioFileIO.readAs(file, "mp3");
+							} else {
+								af = AudioFileIO.read(file);
+							}
+							addMusicBrainzIDs(af, file, currentAudioTrack);
+							addAudioTrackRating(af, file, currentAudioTrack);
+						} catch (Exception e) {
+							LOGGER.debug("Could not parse audio file");
+						}
 					}
 
 					value = MI.Get(general, 0, "Track/Position");
@@ -555,14 +567,8 @@ public class LibMediaInfoParser {
 		}
 	}
 
-	private static void addMusicBrainzIDs(File file, DLNAMediaAudio currentAudioTrack) {
+	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
 		try {
-			AudioFile af;
-			if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
-				af = AudioFileIO.readAs(file, "mp3");
-			} else {
-				af = AudioFileIO.read(file);
-			}
 			Tag t = af.getTag();
 			if (t != null) {
 				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
@@ -571,7 +577,18 @@ public class LibMediaInfoParser {
 				currentAudioTrack.setMbidTrack(val.equals("") ? null : val);
 			}
 		} catch (Exception e) {
-			LOGGER.trace("Audio Tag not parsed: " + e.getMessage());
+			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
+		}
+	}
+
+	private static void addAudioTrackRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+		try {
+			Tag t = af.getTag();
+			if (t != null) {
+				currentAudioTrack.setRating(StarRating.convertTagRatingToStar(t));
+			}
+		} catch (Exception e) {
+			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
 		}
 	}
 
