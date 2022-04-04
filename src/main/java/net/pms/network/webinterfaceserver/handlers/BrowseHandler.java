@@ -84,7 +84,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
+	private void mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -116,13 +116,13 @@ public class BrowseHandler implements HttpHandler {
 					hdr.add("Location", "/play/" + real.getId());
 					WebInterfaceServerUtil.respond(t, "", 302, "text/html");
 					// return null here to avoid multiple responses
-					return null;
+					return;
 				}
 				// redirect to ourself
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Location", "/browse/" + real.getResourceId());
 				WebInterfaceServerUtil.respond(t, "", 302, "text/html");
-				return null;
+				return;
 			}
 			if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
 				UMSUtils.filterResourcesByName(resources, search, false, false);
@@ -411,8 +411,8 @@ public class BrowseHandler implements HttpHandler {
 			mustacheVars.put("mediaLibraryFolders", mediaLibraryFolders);
 			mustacheVars.put("media", media);
 			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-
-			return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+			String response = parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
