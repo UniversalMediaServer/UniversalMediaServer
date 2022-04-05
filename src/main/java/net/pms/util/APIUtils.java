@@ -187,6 +187,10 @@ public class APIUtils {
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final DLNAMediaInfo media) {
 		Runnable r = () -> {
+			// wait until the realtime lock is released before starting
+			PMS.REALTIME_LOCK.lock();
+			PMS.REALTIME_LOCK.unlock();
+
 			if (!CONFIGURATION.getExternalNetwork()) {
 				LOGGER.trace("Not doing background API lookup because external network is disabled");
 				return;
@@ -387,7 +391,7 @@ public class APIUtils {
 					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
 
 					if (media.getThumb() != null) {
-						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1);
+						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
 					}
 
 					if (metadataFromAPI.get("actors") != null) {
@@ -566,7 +570,7 @@ public class APIUtils {
 			if (seriesMetadataFromAPI.get("poster") != null) {
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
-					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId, false);
 				} catch (EOFException e) {
 					LOGGER.debug(
 						"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",

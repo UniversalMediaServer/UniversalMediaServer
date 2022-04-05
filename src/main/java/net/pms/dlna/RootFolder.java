@@ -296,6 +296,10 @@ public class RootFolder extends DLNAResource {
 	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
+				// wait until the realtime lock is released before starting
+				PMS.REALTIME_LOCK.lock();
+				PMS.REALTIME_LOCK.unlock();
+
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 
@@ -1600,7 +1604,7 @@ public class RootFolder extends DLNAResource {
 						} else {
 							if ("ENTRY_DELETE".equals(event)) {
 								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-								MediaTableFiles.removeMediaEntry(connection, filename);
+								MediaTableFiles.removeMediaEntry(connection, filename, true);
 								bumpSystemUpdateId();
 							} else if ("ENTRY_CREATE".equals(event)) {
 								LOGGER.trace("File {} was created on the hard drive", filename);

@@ -106,6 +106,77 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 	}
 
 	/**
+	 * @param connection the db connection
+	 * @param tvSeriesTitle
+	 * @return the poster for the TV series, or null.
+	 */
+	public static Object[] getByTVSeriesName(final Connection connection, final String tvSeriesTitle) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try {
+			String query = "SELECT POSTER, TVSERIESID FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediaTableTVSeries.TABLE_NAME + ".ID " +
+				"WHERE " + MediaTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle) + " " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					return new Object[] {
+						resultSet.getString(1),
+						resultSet.getLong(2)
+					};
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading poster", TABLE_NAME, tvSeriesTitle, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * @param connection the db connection
+	 * @param filename
+	 * @return the poster for the file, or null.
+	 */
+	public static String getByFilename(final Connection connection, final String filename) {
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try {
+			String query = "SELECT POSTER FROM " + TABLE_NAME + " " +
+				"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableFiles.TABLE_NAME + ".FILENAME " +
+				"WHERE " + MediaTableFiles.TABLE_NAME + ".FILENAME = " + sqlQuote(filename) + " " +
+				"LIMIT 1";
+
+			if (trace) {
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+			}
+
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query)
+			) {
+				if (resultSet.next()) {
+					return resultSet.getString(1);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading poster", TABLE_NAME, filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Sets a new row.
 	 *
 	 * @param connection the db connection
