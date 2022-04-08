@@ -417,7 +417,7 @@ public class MediaInfo {
 	 *            in integer format (first parameter, second parameter...)
 	 * @return a string about information you search, an empty string if there is a problem
 	 */
-		public String get(StreamType streamType, int streamNumber, int parameterIndex) {
+	public String get(StreamType streamType, int streamNumber, int parameterIndex) {
 		return Get(streamType, streamNumber, parameterIndex, InfoType.Text);
 	}
 

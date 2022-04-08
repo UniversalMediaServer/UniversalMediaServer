@@ -178,7 +178,6 @@ public class HlsHelper {
 						sb.append("NO").append(",URI=\"").append(baseUrl).append(id).append("/hls/").append(NONE_CONF_NAME).append("_").append(audioGroup.label).append("_").append(mediaAudio.getId()).append(".m3u8\"\n");
 					}
 				}
-				//sb.append("#EXT-X-STREAM-INF:AUDIO=\"").append(groupId).append("\"\n");
 			}
 			boolean subtitleAdded = false;
 			for (DLNAMediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
