@@ -275,7 +275,9 @@ public class PlayHandler implements HttpHandler {
 						mustacheVars.put("isVideoWithAPIData", true);
 					}
 				}
-
+				if (rootResource.getMedia().hasChapters()) {
+					mustacheVars.put("isVideoWithChapters", true);
+				}
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 					if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
 						mime = rootResource.getMedia().getMimeType();

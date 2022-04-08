@@ -380,12 +380,15 @@ public class RequestV2 extends HTTPResource {
 							String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
 							if (HlsHelper.getByKey(rendition) != null) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-								response.append(HlsHelper.getHLSm3u8ForRendition(dlna, "/get/", rendition));
+								response.append(HlsHelper.getHLSm3u8ForRendition(dlna, mediaRenderer, "/get/", rendition));
 							}
+						} else if (fileName.endsWith("chapters.json")) {
+							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
+							response.append(HlsHelper.getChapters(dlna));
 						} else {
 							//HLS stream request
 							cLoverride = DLNAMediaInfo.TRANS_SIZE;
-							inputStream = HlsHelper.getInputStream(fileName, dlna, mediaRenderer);
+							inputStream = HlsHelper.getInputStream("/" + fileName, dlna, mediaRenderer);
 							if (fileName.endsWith(".ts")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 							} else if (fileName.endsWith(".vtt")) {
@@ -403,7 +406,7 @@ public class RequestV2 extends HTTPResource {
 								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
 								//only time seek, transcoded
-								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
 							}
 						}
 					} else if (fileName.startsWith("thumbnail0000")) {

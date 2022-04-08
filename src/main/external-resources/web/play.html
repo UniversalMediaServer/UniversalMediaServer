@@ -83,6 +83,9 @@
 							{{#sub}}
 								<track kind="captions" src="/files/{{this}}" default>
 							{{/sub}}
+							{{#isVideoWithChapters}}
+								<track kind="chapters" src="/media/{{id1}}/chapters.vtt" default>
+							{{/isVideoWithChapters}}
 							<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 						</{{mediaType}}>
 						{{^isVideo}}
@@ -132,6 +135,9 @@
 								{{#sub}}
 									<track kind="captions" src="/files/{{this}}" default>
 								{{/sub}}
+								{{#isVideoWithChapters}}
+									<track kind="chapters" src="/media/{{id1}}/chapters.vtt" default>
+								{{/isVideoWithChapters}}
 								<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 							</{{mediaType}}>
 							<script type="text/javascript">

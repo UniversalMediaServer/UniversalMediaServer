@@ -149,6 +149,8 @@ public class RendererConfiguration extends Renderer {
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String HLS_MULTI_VIDEO_QUALITY = "HlsMultiVideoQuality";
+	protected static final String HLS_VERSION = "HlsVersion";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -3050,5 +3052,13 @@ public class RendererConfiguration extends Renderer {
 
 	public String getAutomaticVideoQuality() {
 		return automaticVideoQuality;
+	}
+
+	public int getHlsVersion() {
+		return getInt(HLS_VERSION, 3);
+	}
+
+	public boolean getHlsMultiVideoQuality() {
+		return getBoolean(HLS_MULTI_VIDEO_QUALITY, false);
 	}
 }

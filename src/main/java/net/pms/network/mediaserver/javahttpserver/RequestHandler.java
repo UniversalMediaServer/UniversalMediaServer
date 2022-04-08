@@ -428,13 +428,15 @@ public class RequestHandler implements HttpHandler {
 					//HLS rendition m3u8 file
 					String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
 					if (HlsHelper.getByKey(rendition) != null) {
-						sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8ForRendition(dlna, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
+						sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8ForRendition(dlna, renderer, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
 					} else {
 						sendResponse(exchange, renderer, 404, null);
 					}
+				} else if (fileName.endsWith("chapters.json")) {
+					sendResponse(exchange, renderer, 200, HlsHelper.getChapters(dlna), HTTPResource.JSON_TYPEMIME);
 				} else {
 					//HLS stream request
-					inputStream = HlsHelper.getInputStream(fileName, dlna, renderer);
+					inputStream = HlsHelper.getInputStream("/" + fileName, dlna, renderer);
 					if (inputStream != null) {
 						if (fileName.endsWith(".ts")) {
 							exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);

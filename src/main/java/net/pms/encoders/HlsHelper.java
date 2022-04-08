@@ -31,6 +31,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -79,15 +80,48 @@ public class HlsHelper {
 		return null;
 	}
 
+	/*
+	EXT-X-VERSION Features and usage notes
+	2 :
+		IV attribute of the EXT-X-KEY tag
+	3 :
+		Floating-point EXTINF duration values
+	4 :
+		EXT-X-BYTERANGE, EXT-X-I-FRAME-STREAM-INF, EXT-X-I-FRAMES-ONLY, EXT-X-MEDIA, the AUDIO and VIDEO attributes of the EXT-X-STREAM-INF tag
+	5 :
+		KEYFORMAT and KEYFORMATVERSIONS attributes of the EXT-X-KEY tag.
+		The EXT-X-MAP tag.
+		SUBTITLES media type.
+		SAMPLE-AES encryption method EXT-X-KEY
+	6 :
+		CLOSED-CAPTIONS media type. Allow EXT-X-MAP for subtitle playlists
+	7 :
+		EXT-X-SESSION-DATA, EXT-X-SESSION-KEY, EXT-X-DATERANGE, 'SERVICEn' values of INSTREAM-ID, AVERAGE-BANDWIDTH, FRAME-RATE, CHANNELS, and HDCP-LEVEL attributes.
+	8 :
+		EXT-X-GAP, EXT-X-DEFINE, Variable Substitution, VIDEO-RANGE attribute.
+
+	The following features aren't backward compatible. Older clients may fail to play the content if you use these features but don't specify the protocol version where they were introduced:
+		You must use at least protocol version 2 if you have IV in EXT-X-KEY.
+		You must use at least protocol version 3 if you have floating point EXTINF duration values.
+		You must use at least protocol version 4 if you have EXT-X-BYTERANGE or EXT-X-IFRAME-ONLY.
+		You must use at least protocol version 5 if you specify the SAMPLE-AES encryption method in EXT-X-KEY, or if you have KEYFORMAT and KEYFORMATVERSIONS attributes in EXT-X-KEY, or if you have EXT-X-MAP.
+	    You must use at least protocol version 6 if you have EXT-X-MAP in a Media Playlist that does not contain EXT-X-I-FRAMES-ONLY.
+		You must use at least protocol version 7 if you specify "SERVICE" values for the INSTREAM-ID attribute of EXT-X-MEDIA.
+	    You must use at least protocol version 8 if you use variable substitution.
+	*/
+
 	public static String getHLSm3u8(DLNAResource dlna, RendererConfiguration renderer, String baseUrl) {
 		if (dlna.getMedia() != null) {
+			int hlsVersion = renderer.getHlsVersion();
 			DLNAMediaInfo mediaVideo = dlna.getMedia();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaVideo.getHeight() * 1.05);
 			String id = dlna.getResourceId();
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
-			sb.append("#EXT-X-VERSION:3\n");
+			if (hlsVersion > 1) {
+				sb.append("#EXT-X-VERSION:").append(hlsVersion).append("\n");
+			}
 			//add audio languages
 			List<HlsAudioConfiguration> audioGroups = new ArrayList<>();
 			DLNAMediaAudio mediaAudioDefault = null;
@@ -164,14 +198,20 @@ public class HlsHelper {
 					sb.append(",URI=\"").append(baseUrl).append(id).append("/hls/").append(NONE_CONF_NAME).append("_").append(NONE_CONF_NAME).append("_").append(mediaSubtitle.getId()).append(".m3u8\"\n");
 				}
 			}
-
+			//adding chapters
+			if (mediaVideo.hasChapters()) {
+				sb.append("#EXT-X-SESSION-DATA:DATA-ID=\"com.apple.hls.chapters\",URI=\"").append(baseUrl).append(id).append("/hls/chapters.json\"\n");
+			}
+			//adding video
 			List<HlsVideoConfiguration> videoGroups = new ArrayList<>();
 			//always add copy conf first
 			videoGroups.add(HlsVideoConfiguration.getByKey(COPY_CONF_NAME));
-			//always add basic LD conf and other conf that match
-			for (HlsVideoConfiguration videoConf : HlsVideoConfiguration.getValues()) {
-				if (videoConf.isTranscodable && (maxHeight >= videoConf.resolutionHeight || "LD".equals(videoConf.label)) && !videoGroups.contains(videoConf)) {
-					videoGroups.add(videoConf);
+			if (renderer.getHlsMultiVideoQuality()) {
+				//always add basic LD conf and other conf that match
+				for (HlsVideoConfiguration videoConf : HlsVideoConfiguration.getValues()) {
+					if (videoConf.isTranscodable && ((maxHeight >= videoConf.resolutionHeight && mediaVideo.getWidth() >= videoConf.resolutionWidth) || "LD".equals(videoConf.label)) && !videoGroups.contains(videoConf)) {
+						videoGroups.add(videoConf);
+					}
 				}
 			}
 			for (HlsVideoConfiguration videoGroup : videoGroups) {
@@ -215,28 +255,35 @@ public class HlsHelper {
 	*/
 	public static final double DEFAULT_TARGETDURATION = 6;
 
-	public static String getHLSm3u8ForRendition(DLNAResource dlna, String baseUrl, String rendition) {
+	public static String getHLSm3u8ForRendition(DLNAResource dlna, RendererConfiguration renderer, String baseUrl, String rendition) {
 		if (dlna.getMedia() != null) {
+			int hlsVersion = renderer.getHlsVersion();
 			Double duration = dlna.getMedia().getDuration();
 			double partLen = duration;
 			String id = dlna.getResourceId();
-			String defaultDurationStr = String.format(Locale.ENGLISH, "%.6f", DEFAULT_TARGETDURATION);
 			String targetDurationStr = String.valueOf(Double.valueOf(Math.ceil(DEFAULT_TARGETDURATION)).intValue());
+			String defaultDurationStr = hlsVersion > 2 ? String.format(Locale.ENGLISH, "%.6f", DEFAULT_TARGETDURATION) : targetDurationStr;
 			String filename = rendition.startsWith(NONE_CONF_NAME + "_" + NONE_CONF_NAME + "_") ? "vtt" : "ts";
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
-			sb.append("#EXT-X-VERSION:6\n");
+			if (hlsVersion > 1) {
+				sb.append("#EXT-X-VERSION:").append(hlsVersion).append("\n");
+			}
 			sb.append("#EXT-X-TARGETDURATION:").append(targetDurationStr).append("\n");
 			sb.append("#EXT-X-MEDIA-SEQUENCE:0\n");
 			sb.append("#EXT-X-PLAYLIST-TYPE:VOD\n");
 			sb.append("#EXT-X-INDEPENDENT-SEGMENTS\n");
 			int partCount = 0;
 			while (partLen > 0) {
+				sb.append("#EXTINF:");
 				if (partLen >= DEFAULT_TARGETDURATION) {
-					sb.append("#EXTINF:").append(defaultDurationStr).append(",\n");
+					sb.append(defaultDurationStr);
+				} else if (hlsVersion > 2) {
+					sb.append(String.format(Locale.ENGLISH, "%.6f", partLen));
 				} else {
-					sb.append("#EXTINF:").append(String.format(Locale.ENGLISH, "%.6f", partLen)).append(",\n");
+					sb.append(String.valueOf(Double.valueOf(Math.ceil(partLen)).intValue()));
 				}
+				sb.append(",\n");
 				sb.append(baseUrl).append(id).append("/hls/").append(rendition).append("/").append(partCount).append(".").append(filename).append("\n");
 				partLen -= DEFAULT_TARGETDURATION;
 				partCount++;
@@ -245,6 +292,20 @@ public class HlsHelper {
 			return sb.toString();
 		}
 		return null;
+	}
+
+	public static String getChapters(DLNAResource dlna) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		DLNAMediaInfo mediaVideo = dlna.getMedia();
+		if (mediaVideo.hasChapters()) {
+			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
+				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 
 	public static Range.Time getTimeRange(String url) {

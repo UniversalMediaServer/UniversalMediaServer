@@ -133,6 +133,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
+		configuration.addProperty(HLS_MULTI_VIDEO_QUALITY, true);
+		configuration.addProperty(HLS_VERSION, 6);
 		return true;
 	}
 
