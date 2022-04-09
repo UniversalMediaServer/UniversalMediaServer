@@ -100,10 +100,10 @@ public class MediaTableChapters extends MediaTable {
 				"FILEID         BIGINT                              NOT NULL            , " +
 				"LANG           VARCHAR2(" + SIZE_LANG + ")                             , " +
 				"TITLE          VARCHAR2(" + SIZE_MAX + ")                              , " +
-				"START          DOUBLE                                                  , " +
-				"END            DOUBLE                                                  , " +
+				"START_TIME     DOUBLE                                                  , " +
+				"END_TIME       DOUBLE                                                  , " +
 				"THUMBNAIL		OTHER	                    		            		, " +
-				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, LANG)                        , " +
+				"CONSTRAINT PKCHAP PRIMARY KEY (FILEID, ID, LANG)                       , " +
 				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +
 			")"
 		);
@@ -114,7 +114,7 @@ public class MediaTableChapters extends MediaTable {
 			return;
 		}
 
-		String columns = "FILEID, ID, LANG, TITLE, START, END, THUMBNAIL ";
+		String columns = "FILEID, ID, LANG, TITLE, START_TIME, END_TIME, THUMBNAIL ";
 
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
@@ -138,8 +138,8 @@ public class MediaTableChapters extends MediaTable {
 					if (rs.next()) {
 						rs.updateString("LANG", left(chapter.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(chapter.getTitle(), SIZE_MAX));
-						rs.updateDouble("START", chapter.getStart());
-						rs.updateDouble("END", chapter.getEnd());
+						rs.updateDouble("START_TIME", chapter.getStart());
+						rs.updateDouble("END_TIME", chapter.getEnd());
 						rs.updateObject("THUMBNAIL", chapter.getThumbnail());
 						rs.updateRow();
 					} else {

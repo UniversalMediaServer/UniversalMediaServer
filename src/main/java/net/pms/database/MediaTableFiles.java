@@ -577,8 +577,8 @@ public class MediaTableFiles extends MediaTable {
 								chapter.setId(elements.getInt("ID"));
 								chapter.setLang(elements.getString("LANG"));
 								chapter.setTitle(elements.getString("TITLE"));
-								chapter.setStart(elements.getDouble("START"));
-								chapter.setEnd(elements.getDouble("END"));
+								chapter.setStart(elements.getDouble("START_TIME"));
+								chapter.setEnd(elements.getDouble("END_TIME"));
 								chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
 								LOGGER.trace("Adding chapter from the database for {}: {}", name, chapter.toString());
 								media.addChapter(chapter);
