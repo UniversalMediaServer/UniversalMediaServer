@@ -156,7 +156,7 @@ public class LibMediaInfoParser {
 								chapter.setLang(lang);
 								if (chapterTitle.startsWith(":")) {
 									chapterTitle = chapterTitle.substring(1);
-								} else if (':' == chapterTitle.charAt(2) && (':' != chapterTitle.charAt(5) || ':' == chapterTitle.charAt(8))) {
+								} else if (chapterTitle.length() > 2 && ':' == chapterTitle.charAt(2) && (chapterTitle.length() < 15 || ':' != chapterTitle.charAt(5) || ':' == chapterTitle.charAt(8))) {
 									lang = chapterTitle.substring(0, 2);
 									chapterTitle = chapterTitle.substring(3);
 								}
