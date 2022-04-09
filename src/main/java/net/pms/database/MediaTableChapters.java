@@ -133,10 +133,9 @@ public class MediaTableChapters extends MediaTable {
 			for (DLNAMediaChapter chapter : media.getChapters()) {
 				updateStatement.setLong(1, fileId);
 				updateStatement.setInt(2, chapter.getId());
-
+				updateStatement.setString(3, chapter.getLang());
 				try (ResultSet rs = updateStatement.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("LANG", left(chapter.getLang(), SIZE_LANG));
 						rs.updateString("TITLE", left(chapter.getTitle(), SIZE_MAX));
 						rs.updateDouble("START_TIME", chapter.getStart());
 						rs.updateDouble("END_TIME", chapter.getEnd());
