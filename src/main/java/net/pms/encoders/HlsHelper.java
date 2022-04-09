@@ -444,16 +444,16 @@ public class HlsHelper {
 	public static class HlsVideoConfiguration {
 		private static final Map<String, HlsVideoConfiguration> BY_LABEL = new LinkedHashMap<>();
 		static {
-			BY_LABEL.put(NONE_CONF_NAME, new HlsVideoConfiguration(NONE_CONF_NAME, "", -1, 0, 0, 0, "", false));
-			BY_LABEL.put(COPY_CONF_NAME, new HlsVideoConfiguration(COPY_CONF_NAME, "", 0, 0, 0, 0, "avc1.64001e", false));
-			BY_LABEL.put("UHD2", new HlsVideoConfiguration("UHD2", "Ultra High Definition 8K", 7680, 4320, 25, 72000000, "avc1.64001e", true));
-			BY_LABEL.put("UHD1", new HlsVideoConfiguration("UHD1", "Ultra High Definition 4K", 3840, 2160, 25, 18000000, "avc1.64001e", true));
-			BY_LABEL.put("QHD", new HlsVideoConfiguration("QHD", "Quad High Definition", 2560, 1440, 0, 8000000, "avc1.64001e", true));
-			BY_LABEL.put("FHD", new HlsVideoConfiguration("FHD", "Full High Definition", 1920, 1080, 25, 5000000, "avc1.64001e", true));
-			BY_LABEL.put("HD", new HlsVideoConfiguration("HD", "High Definition", 1280, 720, 25, 2800000, "avc1.64001e", true));
-			BY_LABEL.put("SD", new HlsVideoConfiguration("SD", "Standard Definition", 842, 480, 25, 1400000, "avc1.64001e", true));
-			BY_LABEL.put("LD", new HlsVideoConfiguration("LD", "Low Definition", 640, 360, 25, 800000, "avc1.4D401e", true));
-			BY_LABEL.put("ULD", new HlsVideoConfiguration("ULD", "Ultra-Low Definition", 426, 240, 25, 350000, "avc1.4D401e", true));
+			BY_LABEL.put(NONE_CONF_NAME, new HlsVideoConfiguration(NONE_CONF_NAME, "", -1, 0, 0, 0, "", 0, false));
+			BY_LABEL.put(COPY_CONF_NAME, new HlsVideoConfiguration(COPY_CONF_NAME, "", 0, 0, 0, 0, "avc1.64001e", 0, false));
+			BY_LABEL.put("UHD2", new HlsVideoConfiguration("UHD2", "Ultra High Definition 8K", 7680, 4320, 25, 72000000, "avc1.64001e", 64000000, true));
+			BY_LABEL.put("UHD1", new HlsVideoConfiguration("UHD1", "Ultra High Definition 4K", 3840, 2160, 25, 18000000, "avc1.64001e", 16000000, true));
+			BY_LABEL.put("QHD", new HlsVideoConfiguration("QHD", "Quad High Definition", 2560, 1440, 0, 8000000, "avc1.64001e", 9600000, true));
+			BY_LABEL.put("FHD", new HlsVideoConfiguration("FHD", "Full High Definition", 1920, 1080, 25, 5000000, "avc1.64001e", 4800000, true));
+			BY_LABEL.put("HD", new HlsVideoConfiguration("HD", "High Definition", 1280, 720, 25, 2800000, "avc1.64001e", 2400000, true));
+			BY_LABEL.put("SD", new HlsVideoConfiguration("SD", "Standard Definition", 842, 480, 25, 1400000, "avc1.64001e", 1200000, true));
+			BY_LABEL.put("LD", new HlsVideoConfiguration("LD", "Low Definition", 640, 360, 25, 800000, "avc1.4D401e", 600000, true));
+			BY_LABEL.put("ULD", new HlsVideoConfiguration("ULD", "Ultra-Low Definition", 426, 240, 25, 350000, "avc1.4D401e", 350000, true));
 		}
 		public final String label;
 		public final String description;
@@ -462,9 +462,10 @@ public class HlsHelper {
 		public final int framesPerSecond;
 		public final int bandwidth;
 		public final String videoCodec;
+		public final int maxVideoBitRate;
 		public final boolean isTranscodable;
 
-		public HlsVideoConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int framesPerSecond, int bandwidth, String videoCodec, boolean isTranscodable) {
+		public HlsVideoConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int framesPerSecond, int bandwidth, String videoCodec, int maxVideoBitRate, boolean isTranscodable) {
 			this.label = label;
 			this.description = description;
 			this.resolutionWidth = resolutionWidth;
@@ -472,6 +473,7 @@ public class HlsHelper {
 			this.framesPerSecond = framesPerSecond;
 			this.bandwidth = bandwidth;
 			this.videoCodec = videoCodec;
+			this.maxVideoBitRate = maxVideoBitRate;
 			this.isTranscodable = isTranscodable;
 		}
 
