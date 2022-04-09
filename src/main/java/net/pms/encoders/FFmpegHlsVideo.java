@@ -226,6 +226,10 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				level = 30;
 			}
 			cmdList.add(String.valueOf(level));
+			if (hlsConfiguration.video.videoBitRate > 0) {
+				cmdList.add("-b:v");
+				cmdList.add(String.valueOf(hlsConfiguration.video.videoBitRate));
+			}
 		} else {
 			//don't encode stream if not needed
 			cmdList.add("-vn");
