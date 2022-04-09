@@ -477,10 +477,10 @@ public class HlsHelper {
 		public final int framesPerSecond;
 		public final int bandwidth;
 		public final String videoCodec;
-		public final int videoBitRate;
+		public final int maxVideoBitRate;
 		public final boolean isTranscodable;
 
-		public HlsVideoConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int framesPerSecond, int bandwidth, String videoCodec, int videoBitRate, boolean isTranscodable) {
+		public HlsVideoConfiguration(String label, String description, int resolutionWidth, int resolutionHeight, int framesPerSecond, int bandwidth, String videoCodec, int maxVideoBitRate, boolean isTranscodable) {
 			this.label = label;
 			this.description = description;
 			this.resolutionWidth = resolutionWidth;
@@ -488,7 +488,7 @@ public class HlsHelper {
 			this.framesPerSecond = framesPerSecond;
 			this.bandwidth = bandwidth;
 			this.videoCodec = videoCodec;
-			this.videoBitRate = videoBitRate;
+			this.maxVideoBitRate = maxVideoBitRate;
 			this.isTranscodable = isTranscodable;
 		}
 

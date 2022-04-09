@@ -226,9 +226,13 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				level = 30;
 			}
 			cmdList.add(String.valueOf(level));
-			if (hlsConfiguration.video.videoBitRate > 0) {
-				cmdList.add("-b:v");
-				cmdList.add(String.valueOf(hlsConfiguration.video.videoBitRate));
+
+			// https://trac.ffmpeg.org/wiki/Limiting%20the%20output%20bitrate
+			if (hlsConfiguration.video.maxVideoBitRate > 0) {
+				cmdList.add("-maxrate");
+				cmdList.add(String.valueOf(hlsConfiguration.video.maxVideoBitRate));
+				cmdList.add("-bufsize");
+				cmdList.add(String.valueOf(hlsConfiguration.video.maxVideoBitRate));
 			}
 		} else {
 			//don't encode stream if not needed
