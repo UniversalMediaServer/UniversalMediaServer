@@ -21,8 +21,10 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
+import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -32,6 +34,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,10 +129,38 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			}
 		}
 
-		// Decoder threads
-		if (nThreads > 0) {
+		// Decoding threads and GPU deccding
+		if (nThreads > 0 && !configuration.isGPUAcceleration()) {
 			cmdList.add("-threads");
-			cmdList.add("" + nThreads);
+			cmdList.add(String.valueOf(nThreads));
+		} else if (
+			configuration.isGPUAcceleration() &&
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"))
+		) {
+			// GPU decoding method
+			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
+				cmdList.add("-hwaccel");
+				cmdList.add(configuration.getFFmpegGPUDecodingAccelerationMethod().trim());
+			} else {
+				if (configuration.getFFmpegGPUDecodingAccelerationMethod().matches(".*-hwaccel +[a-z]+.*")) {
+					String[] hwaccelOptions = StringUtils.split(configuration.getFFmpegGPUDecodingAccelerationMethod());
+					cmdList.addAll(Arrays.asList(hwaccelOptions));
+				} else {
+					cmdList.add("-hwaccel");
+					cmdList.add("auto");
+				}
+			}
+
+			// GPU decoding threads
+			if (configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim().matches("^[0-9]+$")) {
+				if (Integer.parseInt(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()) > 0) {
+					cmdList.add("-threads");
+					cmdList.add(String.valueOf(configuration.getFFmpegGPUDecodingAccelerationThreadNumber().trim()));
+				}
+			} else {
+				cmdList.add("-threads");
+				cmdList.add("1");
+			}
 		}
 
 		if (params.getTimeSeek() > 0) {

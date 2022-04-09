@@ -20,6 +20,9 @@
 		{{^isNativeAudio}}
 			<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
 			<script src="/files/util/video-js/video.min.js"></script>
+			<script src="/files/util/video-js/videojs-contrib-quality-levels.min.js"></script>
+			<script src="/files/util/video-js/videojs-hls-quality-selector.min.js"></script>
+			<link href="/files/util/video-js/videojs-hls-quality-selector.min.css" type="text/css" rel="stylesheet">
 		{{/isNativeAudio}}
 
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
@@ -191,6 +194,7 @@
 			<script>
 				var state = {};
 				var player = document.getElementById('player');
+				videojs('player').hlsQualitySelector();
 
 				function status(k, v, wait) {
 					//console.log('status '+JSON.stringify(arguments));
