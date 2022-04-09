@@ -1287,7 +1287,37 @@ public class DLNAMediaInfo implements Cloneable {
 						List<DLNAMediaChapter> ffmpegChapters = new ArrayList();
 						while (line.contains("Chapter #")) {
 							DLNAMediaChapter chapter = new DLNAMediaChapter();
-							chapter.setChapterFromFfmpeg(line);
+							//set chapter id
+							String idStr = line.substring(line.indexOf("Chapter #") + 9);
+							if (idStr.contains(" ")) {
+								idStr = idStr.substring(0, idStr.indexOf(" "));
+							}
+							String[] ids = idStr.split(":");
+							if (ids.length > 1) {
+								chapter.setId(Integer.valueOf(ids[1]));
+							} else {
+								chapter.setId(Integer.valueOf(ids[0]));
+							}
+							//set chapter start
+							if (line.contains("start ")) {
+								String startStr = line.substring(line.indexOf("start ") + 6);
+								if (startStr.contains(" ")) {
+									startStr = startStr.substring(0, startStr.indexOf(" "));
+								}
+								if (startStr.endsWith(",")) {
+									startStr = startStr.substring(0, startStr.length() - 1);
+								}
+								chapter.setStart(Double.valueOf(startStr));
+							}
+							//set chapter end
+							if (line.contains(" end ")) {
+								String endStr = line.substring(line.indexOf(" end ") + 5);
+								if (endStr.contains(" ")) {
+									endStr = endStr.substring(0, endStr.indexOf(" "));
+								}
+								chapter.setEnd(Double.valueOf(endStr));
+							}
+							chapter.setLang(DLNAMediaLang.UND);
 							fFmpegMetaDataNr += 1;
 							line = lines.get(fFmpegMetaDataNr);
 							if (line.contains("Metadata:")) {
@@ -1298,7 +1328,14 @@ public class DLNAMediaInfo implements Cloneable {
 										int aa = line.indexOf(": ");
 										String key = line.substring(0, aa);
 										String value = line.substring(aa + 2);
-										chapter.setMetadata(key, value);
+										if ("title".equals(key)) {
+											//do not set title if it is default, it will be filled automatically later
+											if (!DLNAMediaChapter.isTitleDefault(value)) {
+												chapter.setTitle(value);
+											}
+										} else {
+											LOGGER.debug("New chapter metadata not handled \"" + key + "\" : \"" + value + "\"");
+										}
 									} else {
 										fFmpegMetaDataNr += 1;
 										line = lines.get(fFmpegMetaDataNr);
@@ -2790,7 +2827,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * @param chapter the chapter to add
 	 */
-	public void addChapters(DLNAMediaChapter chapter) {
+	public void addChapter(DLNAMediaChapter chapter) {
 		this.chapters.add(chapter);
 	}
 

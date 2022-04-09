@@ -25,8 +25,6 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -92,9 +90,9 @@ public class MediaHandler implements HttpHandler {
 				//clean for hls
 				id = id.substring(0, id.indexOf("/hls/"));
 			}
-			if (id.endsWith("/chapters")) {
+			if (id.endsWith("/chapters.json") || id.endsWith("/chapters.vtt")) {
 				//clean for chapters
-				id = id.substring(0, id.indexOf("/chapters"));
+				id = id.substring(0, id.lastIndexOf("/chapters"));
 			}
 			RendererConfiguration defaultRenderer = renderer;
 			if (renderer == null) {
@@ -161,17 +159,17 @@ public class MediaHandler implements HttpHandler {
 				Headers headers = httpExchange.getResponseHeaders();
 				headers.add("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
-					String response = mkChaptersVtt(resource);
+					String response = DLNAMediaChapter.getWebVtt(resource);
 					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+				} else if (uri.endsWith("/chapters.json")) {
+					String response = DLNAMediaChapter.getHls(resource);
+					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (uri.contains("/hls/")) {
 					if (uri.endsWith(".m3u8")) {
 						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
 						rendition = rendition.replace(".m3u8", "");
 						String response = HlsHelper.getHLSm3u8ForRendition(resource, root.getDefaultRenderer(), "/media/", rendition);
 						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
-					} else if (uri.endsWith("chapters.json")) {
-						String response = HlsHelper.getChapters(resource);
-						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.JSON_TYPEMIME);
 					} else {
 						//we need to stream
 						InputStream in = HlsHelper.getInputStream(uri, resource, defaultRenderer);
@@ -241,28 +239,4 @@ public class MediaHandler implements HttpHandler {
 		}
 	}
 
-	private String mkChaptersVtt(DLNAResource dlna) {
-		StringBuilder chaptersVtt = new StringBuilder();
-		chaptersVtt.append("WEBVTT\n");
-		if (dlna != null && dlna.getMedia() != null && dlna.getMedia().hasChapters()) {
-			int chaptersCount = dlna.getMedia().getChapters().size();
-			for (int i = 1; i <= chaptersCount; i++) {
-				chaptersVtt.append("\nChapter ").append(i).append("\n");
-				long nanoOfDay = (long) (dlna.getMedia().getChapters().get(i - 1).getStart() * 1000_000_000D);
-				LocalTime lt = LocalTime.ofNanoOfDay(nanoOfDay);
-				chaptersVtt.append(lt.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")));
-				chaptersVtt.append(" --> ");
-				if (chaptersCount > i) {
-					nanoOfDay = (long) (dlna.getMedia().getChapters().get(i).getStart() * 1000_000_000D);
-					lt = LocalTime.ofNanoOfDay(nanoOfDay);
-				} else {
-					nanoOfDay = (long) (dlna.getMedia().getDurationInSeconds() * 1000_000_000D);
-					lt = LocalTime.ofNanoOfDay(nanoOfDay);
-				}
-				chaptersVtt.append(lt.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"))).append("\n");
-				chaptersVtt.append("Chapter ").append(i).append("\n");
-			}
-		}
-		return chaptersVtt.toString();
-	}
 }

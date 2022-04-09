@@ -61,6 +61,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -422,7 +423,13 @@ public class RequestHandler implements HttpHandler {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
 			// DLNAresource was found.
-			if (fileName.startsWith("hls/")) {
+			if (fileName.endsWith("/chapters.vtt")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
+				return;
+			} else if (fileName.endsWith("/chapters.json")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getHls(dlna), HTTPResource.JSON_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("hls/")) {
 				//HLS
 				if (fileName.endsWith(".m3u8")) {
 					//HLS rendition m3u8 file
@@ -432,8 +439,6 @@ public class RequestHandler implements HttpHandler {
 					} else {
 						sendResponse(exchange, renderer, 404, null);
 					}
-				} else if (fileName.endsWith("chapters.json")) {
-					sendResponse(exchange, renderer, 200, HlsHelper.getChapters(dlna), HTTPResource.JSON_TYPEMIME);
 				} else {
 					//HLS stream request
 					inputStream = HlsHelper.getInputStream("/" + fileName, dlna, renderer);

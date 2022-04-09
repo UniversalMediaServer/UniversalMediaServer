@@ -31,7 +31,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -291,20 +290,6 @@ public class HlsHelper {
 			return sb.toString();
 		}
 		return null;
-	}
-
-	public static String getChapters(DLNAResource dlna) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		DLNAMediaInfo mediaVideo = dlna.getMedia();
-		if (mediaVideo.hasChapters()) {
-			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
-				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
-			}
-			sb.deleteCharAt(sb.length() - 1);
-		}
-		sb.append("]");
-		return sb.toString();
 	}
 
 	public static Range.Time getTimeRange(String url) {

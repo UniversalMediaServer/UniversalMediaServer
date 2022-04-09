@@ -19,35 +19,27 @@
  */
 package net.pms.dlna;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
+import net.pms.Messages;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of the chapter properties of media.
  */
-public class DLNAMediaChapter {
-	private int id;
+public class DLNAMediaChapter extends DLNAMediaLang {
+	public static final Pattern CHAPTERS_TITLE_DEFAULT = Pattern.compile("^Chapter\\s\\d\\d$");
+	public static final Pattern CHAPTERS_TITLE_TIMESTAMP = Pattern.compile("^\\d\\d:\\d\\d:\\d\\d.\\d\\d\\d$");
+	public static final DateTimeFormatter CHAPTERS_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 	private int parentId;
+	private String title;
 	private double start;
+	private double end;
 	private Map<String, String> metadatas;
-
-	/**
-	 * Returns the unique id for this chapter object
-	 *
-	 * @return The id.
-	 */
-	public int getId() {
-		return id;
-	}
-
-	/**
-	 * Sets a unique id for this chapter object.
-	 *
-	 * @param id the id to set.
-	 */
-	public void setId(int id) {
-		this.id = id;
-	}
+	private DLNAThumbnail thumbnail;
 
 	/**
 	 * Returns the parent id for this chapter object
@@ -65,6 +57,24 @@ public class DLNAMediaChapter {
 	 */
 	public void setParentId(int parentId) {
 		this.parentId = parentId;
+	}
+
+	/**
+	 * Returns the title for this chapter object
+	 *
+	 * @return The title.
+	 */
+	public String getTitle() {
+		return title;
+	}
+
+	/**
+	 * Sets a title for this chapter object.
+	 *
+	 * @param title the title to set.
+	 */
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	/**
@@ -117,30 +127,101 @@ public class DLNAMediaChapter {
 	}
 
 	/**
-	 * Sets the Id, start time and end time for this chapter object.
+	 * Returns the end time for this chapter object.
 	 *
-	 * @param line The line from ffmpeg.
+	 * @return The end time.
 	 */
-	public void setChapterFromFfmpeg(String line) {
-		if (line.contains("Chapter #")) {
-			String idStr = line.substring(line.indexOf("Chapter #") + 9);
-			if (idStr.contains(" ")) {
-				idStr = idStr.substring(0, idStr.indexOf(" "));
-			}
-			String[] ids = idStr.split(":");
-			if (ids.length > 1) {
-				setParentId(Integer.valueOf(ids[0]));
-				setId(Integer.valueOf(ids[0]));
-			} else {
-				setId(Integer.valueOf(ids[0]));
+	public double getEnd() {
+		return end;
+	}
+
+	/**
+	 * Sets the end time for this chapter object.
+	 *
+	 * @param end The end time to set.
+	 */
+	public void setEnd(double end) {
+		this.end = end;
+	}
+
+	/**
+	 * Returns the thumbnail for this chapter object.
+	 * Format png 63x30
+	 *
+	 * @return The thumbnail.
+	 */
+	public DLNAThumbnail getThumbnail() {
+		return thumbnail;
+	}
+
+	/**
+	 * Sets the thumbnail for this chapter object.
+	 *
+	 * @param thumbnail The thumbnail to set.
+	 */
+	public void setThumbnail(DLNAThumbnail thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
+	/**
+	 * Check if the title is a default title.
+	 *
+	 * @param title The title to check.
+	 * @return true if the title is a default title.
+	 */
+	public static boolean isTitleDefault(String title) {
+		return CHAPTERS_TITLE_DEFAULT.matcher(title).matches() || CHAPTERS_TITLE_TIMESTAMP.matcher(title).matches();
+	}
+
+	/**
+	 * Return a WebVtt from a resource.
+	 *
+	 * @param dlna The dlna resource.
+	 * @return The WebVtt representation of the chapter list.
+	 */
+	public static String getWebVtt(DLNAResource dlna) {
+		StringBuilder chaptersVtt = new StringBuilder();
+		chaptersVtt.append("WEBVTT\n");
+		DLNAMediaInfo mediaVideo = dlna.getMedia();
+		if (mediaVideo != null && mediaVideo.hasChapters()) {
+			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
+				int chaptersNum = chapter.getId() + 1;
+				chaptersVtt.append("\nChapter ").append(chaptersNum).append("\n");
+				long nanoOfDay = (long) (chapter.getStart() * 1000_000_000D);
+				LocalTime lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER));
+				chaptersVtt.append(" --> ");
+				nanoOfDay = (long) (chapter.getEnd() * 1000_000_000D);
+				lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER)).append("\n");
+				if (StringUtils.isNotBlank(chapter.getTitle())) {
+					chaptersVtt.append(chapter.getTitle());
+				} else {
+					chaptersVtt.append(Messages.getString("DLNAMediaChapter.Chapter")).append(" ").append(String.format("%02d", chaptersNum));
+				}
+				chaptersVtt.append("\n");
 			}
 		}
-		if (line.contains("start ")) {
-			String startStr = line.substring(line.indexOf("start ") + 6);
-			if (startStr.contains(" ")) {
-				startStr = startStr.substring(0, startStr.indexOf(" "));
+		return chaptersVtt.toString();
+	}
+
+	/**
+	 * Return a HLS json representation of a dlna resource's chapters.
+	 *
+	 * @param dlna The dlna resource.
+	 * @return The HLS json representation of the chapter list.
+	 */
+	public static String getHls(DLNAResource dlna) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		DLNAMediaInfo mediaVideo = dlna.getMedia();
+		if (mediaVideo != null && mediaVideo.hasChapters()) {
+			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
+				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
 			}
-			setStart(Double.valueOf(startStr));
+			sb.deleteCharAt(sb.length() - 1);
 		}
+		sb.append("]");
+		return sb.toString();
 	}
 }

@@ -84,7 +84,7 @@ public class MediaTableFiles extends MediaTable {
 	 *       updating H2Database to v2)
 	 * - 26: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 27;
+	private static final int TABLE_VERSION = 26;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -251,19 +251,6 @@ public class MediaTableFiles extends MediaTable {
 						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
-					case 26:
-						try (Statement statement = connection.createStatement()) {
-							/*
-							 * Since the last release, 10.15.0, we fixed some bugs with TV episode and sport
-							 * filename parsing so here we clear any cached data for non-episodes.
-							 */
-							StringBuilder sb = new StringBuilder();
-							sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD CHAPTERS VARCHAR2(1024)");
-							statement.execute(sb.toString());
-						}
-						version++;
-						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-						break;
 					default:
 						// Do the dumb way
 						force = true;
@@ -338,7 +325,6 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", ISTVEPISODE             BOOLEAN");
 			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", CHAPTERS                VARCHAR2(1024)");
 			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(")");
 			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
@@ -485,6 +471,7 @@ public class MediaTableFiles extends MediaTable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement chapters = connection.prepareStatement("SELECT * FROM " + MediaTableChapters.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
@@ -522,7 +509,6 @@ public class MediaTableFiles extends MediaTable {
 						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
 						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
 						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
-						media.setChaptersFromJson(rs.getString("CHAPTERS"));
 
 						if (rs.getBoolean("ISTVEPISODE")) {
 							media.setTVSeason(rs.getString("TVSEASON"));
@@ -581,6 +567,21 @@ public class MediaTableFiles extends MediaTable {
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
 								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
 								media.addSubtitlesTrack(sub);
+							}
+						}
+
+						chapters.setLong(1, id);
+						try (ResultSet elements = chapters.executeQuery()) {
+							while (elements.next()) {
+								DLNAMediaChapter chapter = new DLNAMediaChapter();
+								chapter.setId(elements.getInt("ID"));
+								chapter.setLang(elements.getString("LANG"));
+								chapter.setTitle(elements.getString("TITLE"));
+								chapter.setStart(elements.getDouble("START"));
+								chapter.setEnd(elements.getDouble("END"));
+								chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
+								LOGGER.trace("Adding chapter from the database for {}: {}", name, chapter.toString());
+								media.addChapter(chapter);
 							}
 						}
 
@@ -730,7 +731,7 @@ public class MediaTableFiles extends MediaTable {
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
 					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, " +
-					"EXTRAINFORMATION, CHAPTERS " +
+					"EXTRAINFORMATION " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -797,7 +798,6 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
 							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-							rs.updateString("CHAPTERS", left(media.getChaptersToJson(), 1024));
 						}
 						rs.updateRow();
 					}
@@ -810,7 +810,7 @@ public class MediaTableFiles extends MediaTable {
 					"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, " +
-					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, CHAPTERS";
+					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION";
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(
@@ -877,7 +877,6 @@ public class MediaTableFiles extends MediaTable {
 						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
 						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
 						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getChaptersToJson(), 1024));
 					} else {
 						ps.setString(++databaseColumnIterator, null);
 						ps.setInt(++databaseColumnIterator, 0);
@@ -914,7 +913,6 @@ public class MediaTableFiles extends MediaTable {
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setBoolean(++databaseColumnIterator, false);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 					}
 					ps.executeUpdate();
 					try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -928,6 +926,7 @@ public class MediaTableFiles extends MediaTable {
 			if (media != null && fileId > -1) {
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {

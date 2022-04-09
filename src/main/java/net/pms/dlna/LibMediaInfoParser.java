@@ -138,18 +138,42 @@ public class LibMediaInfoParser {
 				if (!chaptersPosBeginStr.isEmpty() && !chaptersPosEndStr.isEmpty()) {
 					int chaptersPosBegin = Integer.valueOf(chaptersPosBeginStr);
 					int chaptersPosEnd = Integer.valueOf(chaptersPosEndStr);
-					List<DLNAMediaChapter> chapterTracks = new ArrayList();
+					List<DLNAMediaChapter> chapters = new ArrayList();
 					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
 						String chapterName = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Name);
+						String chapterTitle = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Text);
 						if (!chapterName.isEmpty()) {
 							DLNAMediaChapter chapter = new DLNAMediaChapter();
 							LocalTime lt = LocalTime.parse(chapterName, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
 							chapter.setId(i - chaptersPosBegin);
 							chapter.setStart(lt.toNanoOfDay() / 1000_000_000D);
-							chapterTracks.add(chapter);
+							//set end for previous chapter
+							if (!chapters.isEmpty()) {
+								chapters.get(chapters.size() - 1).setEnd(chapter.getStart());
+							}
+							if (!chapterTitle.isEmpty()) {
+								String lang = DLNAMediaLang.UND;
+								chapter.setLang(lang);
+								if (chapterTitle.startsWith(":")) {
+									chapterTitle = chapterTitle.substring(1);
+								} else if (':' == chapterTitle.charAt(2) && (':' != chapterTitle.charAt(5) || ':' == chapterTitle.charAt(8))) {
+									lang = chapterTitle.substring(0, 2);
+									chapterTitle = chapterTitle.substring(3);
+								}
+								//do not set title if it is default, it will be filled automatically later
+								if (!DLNAMediaChapter.isTitleDefault(chapterTitle)) {
+									chapter.setLang(lang);
+									chapter.setTitle(chapterTitle);
+								}
+							}
+							chapters.add(chapter);
 						}
 					}
-					media.setChapters(chapterTracks);
+					//set end for previous chapter
+					if (!chapters.isEmpty()) {
+						chapters.get(chapters.size() - 1).setEnd(media.getDurationInSeconds());
+					}
+					media.setChapters(chapters);
 				}
 			}
 			value = MI.Get(general, 0, "Cover_Data");

@@ -56,6 +56,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -373,7 +374,13 @@ public class RequestV2 extends HTTPResource {
 
 				if (dlna != null) {
 					// DLNAresource was found.
-					if (fileName.startsWith("hls/")) {
+					if (fileName.endsWith("/chapters.vtt")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
+						response.append(DLNAMediaChapter.getWebVtt(dlna));
+					} else if (fileName.endsWith("/chapters.json")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
+						response.append(DLNAMediaChapter.getHls(dlna));
+					} else if (fileName.startsWith("hls/")) {
 						//HLS
 						if (fileName.endsWith(".m3u8")) {
 							//HLS rendition m3u8 file
@@ -382,9 +389,6 @@ public class RequestV2 extends HTTPResource {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
 								response.append(HlsHelper.getHLSm3u8ForRendition(dlna, mediaRenderer, "/get/", rendition));
 							}
-						} else if (fileName.endsWith("chapters.json")) {
-							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
-							response.append(HlsHelper.getChapters(dlna));
 						} else {
 							//HLS stream request
 							cLoverride = DLNAMediaInfo.TRANS_SIZE;
