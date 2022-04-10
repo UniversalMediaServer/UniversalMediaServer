@@ -2691,7 +2691,11 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public boolean match(SortedHeaderMap headers) {
 		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
-			return sortedHeaderMatcher.reset(headers.joined()).find();
+			try {
+ 				return sortedHeaderMatcher.reset(headers.joined()).find();
+			} catch (Exception e) {
+				return false;
+ 			}
 		}
 		return false;
 	}
