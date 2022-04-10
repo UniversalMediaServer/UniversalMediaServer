@@ -227,12 +227,27 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			cmdList.add("-keyint_min");
 			cmdList.add("25");
 			cmdList.add("-preset");
-			cmdList.add("ultrafast");
+
+			// Let x264 optimize the bitrate more for lower resolutions
+			if (hlsConfiguration.video.resolutionWidth < 842) {
+				cmdList.add("superfast");
+			} else {
+				cmdList.add("ultrafast");
+			}
+
 			//set fps
 			if (hlsConfiguration.video.framesPerSecond > 0) {
 				cmdList.add("-r");
 				cmdList.add(String.valueOf(hlsConfiguration.video.framesPerSecond));
 			}
+
+			/**
+			 * 1.3a. For maximum compatibility, some H.264 variants SHOULD be less than or equal to High Profile, Level 4.1.
+			 * 1.3b. * Profile and Level for H.264 MUST be less than or equal to High Profile, Level 5.2.
+			 * 1.4. For H.264, you SHOULD use High Profile in preference to Main or Baseline Profile.
+			 *
+			 * @see https://developer.apple.com/documentation/http_live_streaming/http_live_streaming_hls_authoring_specification_for_apple_devices
+			 */
 			//set profile : baseline main high high10 high422 high444
 			if (hlsConfiguration.video.videoCodec.startsWith("avc1.64")) {
 				cmdList.add("-profile:v");
@@ -246,25 +261,19 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add("-profile:v");
 				cmdList.add("baseline");
 			}
-			cmdList.add("-pix_fmt");
-			cmdList.add("yuv420p");
+
 			cmdList.add("-level");
 			String hexLevel = hlsConfiguration.video.videoCodec.substring(hlsConfiguration.video.videoCodec.length() - 2);
 			int level;
 			try {
 				level = Integer.parseInt(hexLevel, 16);
-			} catch (NumberFormatException ie) {
+			} catch (NumberFormatException nfe) {
 				level = 30;
 			}
 			cmdList.add(String.valueOf(level));
 
-			// https://trac.ffmpeg.org/wiki/Limiting%20the%20output%20bitrate
-			if (hlsConfiguration.video.maxVideoBitRate > 0) {
-				cmdList.add("-maxrate");
-				cmdList.add(String.valueOf(hlsConfiguration.video.maxVideoBitRate));
-				cmdList.add("-bufsize");
-				cmdList.add(String.valueOf(hlsConfiguration.video.maxVideoBitRate));
-			}
+			cmdList.add("-pix_fmt");
+			cmdList.add("yuv420p");
 		} else {
 			//don't encode stream if not needed
 			cmdList.add("-vn");
