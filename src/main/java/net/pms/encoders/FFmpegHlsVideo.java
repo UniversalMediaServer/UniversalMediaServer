@@ -235,12 +235,6 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 				cmdList.add("ultrafast");
 			}
 
-			//set fps
-			if (hlsConfiguration.video.framesPerSecond > 0) {
-				cmdList.add("-r");
-				cmdList.add(String.valueOf(hlsConfiguration.video.framesPerSecond));
-			}
-
 			/**
 			 * 1.3a. For maximum compatibility, some H.264 variants SHOULD be less than or equal to High Profile, Level 4.1.
 			 * 1.3b. * Profile and Level for H.264 MUST be less than or equal to High Profile, Level 5.2.
