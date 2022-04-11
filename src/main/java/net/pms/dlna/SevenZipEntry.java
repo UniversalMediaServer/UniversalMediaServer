@@ -27,7 +27,7 @@ import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
-import net.sf.sevenzipjbinding.ISevenZipInArchive;
+import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -41,7 +41,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private File file;
 	private String zeName;
 	private long length;
-	private ISevenZipInArchive arc;
+	private IInArchive arc;
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
@@ -91,7 +91,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
-		setHasExternalSubtitles(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -102,57 +101,53 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
-		Runnable r = new Runnable() {
+		Runnable r = () -> {
 			InputStream in = null;
 
-			@Override
-			public void run() {
+			try {
+				// byte data[] = new byte[65536];
+				RandomAccessFile rf = new RandomAccessFile(file, "r");
+
+				arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
+				ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
+				ISimpleInArchiveItem realItem = null;
+
+				for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
+					if (item.getPath().equals(zeName)) {
+						realItem = item;
+						break;
+					}
+				}
+
+				if (realItem == null) {
+					LOGGER.trace("No such item " + zeName + " found in archive");
+					return;
+				}
+
+				realItem.extractSlow(new ISequentialOutStream() {
+
+					@Override
+					public int write(byte[] data) throws SevenZipException {
+						try {
+							out.write(data);
+						} catch (IOException e) {
+							LOGGER.debug("Caught exception", e);
+							throw new SevenZipException();
+						}
+						return data.length;
+					}
+				});
+			} catch (FileNotFoundException | SevenZipException e) {
+				LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
+			} finally {
 				try {
-					//byte data[] = new byte[65536];
-					RandomAccessFile rf = new RandomAccessFile(file, "r");
-
-					arc = SevenZip.openInArchive(null, new RandomAccessFileInStream(rf));
-					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
-					ISimpleInArchiveItem realItem = null;
-
-					for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
-						if (item.getPath().equals(zeName)) {
-							realItem = item;
-							break;
-						}
+					if (in != null) {
+						in.close();
 					}
-
-					if (realItem == null) {
-						LOGGER.trace("No such item " + zeName + " found in archive");
-						return;
-					}
-
-					realItem.extractSlow(new ISequentialOutStream() {
-						@Override
-						public int write(byte[] data) throws SevenZipException {
-							try {
-								out.write(data);
-							} catch (IOException e) {
-								LOGGER.debug("Caught exception", e);
-								throw new SevenZipException();
-							}
-							return data.length;
-						}
-					});
-				} catch (FileNotFoundException | SevenZipException e) {
-					LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
-				} finally {
-					try {
-						if (in != null) {
-							in.close();
-						}
-						arc.close();
-						out.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					} catch (SevenZipException e) {
-						LOGGER.debug("Caught 7-Zip exception", e);
-					}
+					arc.close();
+					out.close();
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
 				}
 			}
 		};

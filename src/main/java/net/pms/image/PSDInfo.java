@@ -8,11 +8,9 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.photoshop.PsdHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class PSDInfo extends ImageInfo {
-
 	protected final ColorMode colorMode;
 	protected final Integer channelCount;
 
@@ -180,14 +178,12 @@ public class PSDInfo extends ImageInfo {
 		}
 	}
 
-
 	/**
 	 * @return The {@link ColorMode} or {@code null} if unknown.
 	 */
 	public ColorMode getColorMode() {
 		return colorMode;
 	}
-
 
 	/**
 	 * The number of channels in the image, including any alpha channels.

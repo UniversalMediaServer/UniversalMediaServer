@@ -23,9 +23,8 @@ import java.awt.color.ColorSpace;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.ImageIO;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ColorSpaceType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -39,7 +38,10 @@ import net.pms.image.ImagesUtil.ScaleType;
  */
 public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 
+	/** The {@link ImageInfo} instance describing this {@link DLNAThumbnailInputStream} */
 	protected final ImageInfo imageInfo;
+
+	/** The {@link DLNAImageProfile} for this {@link DLNAThumbnailInputStream} */
 	protected final DLNAImageProfile profile;
 
 	/**
@@ -161,15 +163,15 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
-    /**
-     * Creates a {@link DLNAThumbnailInputStream} where it uses
-     * {@code thumbnail}'s buffer as its buffer array. The buffer array is
-     * not copied.
-     *
-     * @param thumbnail the input thumbnail.
+	/**
+	 * Creates a {@link DLNAThumbnailInputStream} where it uses
+	 * {@code thumbnail}'s buffer as its buffer array. The buffer array is
+	 * not copied.
+	 *
+	 * @param thumbnail the input thumbnail.
 	 * @return The populated {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if the source thumbnail is {@code null}.
-     */
+	 */
 
 	public static DLNAThumbnailInputStream toThumbnailInputStream(DLNAThumbnail thumbnail) {
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
@@ -184,11 +186,11 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 *
 	 * @throws NullPointerException if {@code thumbnail} is {@code null}.
 	 */
-    protected DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
-    	super(thumbnail.getBytes(false));
-    	this.imageInfo = thumbnail.getImageInfo();
-    	this.profile = thumbnail.getDLNAImageProfile();
-    }
+	public DLNAThumbnailInputStream(DLNAThumbnail thumbnail) {
+		super(thumbnail.getBytes(false));
+		this.imageInfo = thumbnail.getImageInfo();
+		this.profile = thumbnail.getDLNAImageProfile();
+	}
 
 	/**
 	 * Converts and scales a thumbnail according to the given
@@ -198,24 +200,33 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	 * @param outputProfile the DLNA media profile to adhere to for the output.
 	 * @param padToSize Whether padding should be used if source aspect doesn't
 	 *                  match target aspect.
+	 * @param filterChain a {@link BufferedImageFilterChain} to apply during the
+	 *            operation or {@code null}.
 	 * @return The scaled and/or converted thumbnail, {@code null} if the
 	 *         source is {@code null}.
 	 * @exception IOException if the operation fails.
 	 */
 	public DLNAThumbnailInputStream transcode(
 		DLNAImageProfile outputProfile,
-		boolean padToSize
+		boolean padToSize,
+		BufferedImageFilterChain filterChain
 	) throws IOException {
 		DLNAThumbnail thumbnail;
 		thumbnail = (DLNAThumbnail) ImagesUtil.transcodeImage(
 			this.getBytes(false),
 			outputProfile,
 			true,
-			padToSize);
+			padToSize,
+			filterChain
+		);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
 	}
 
 	/**
+	 * Returns the byte array with the thumbnail image data.
+	 *
+	 * @param copy if {@code true} a copy of the array is returned, if
+	 *            {@code false} a reference to the existing array is returned.
 	 * @return The bytes of this thumbnail.
 	 */
 	@SuppressFBWarnings("EI_EXPOSE_REP")
@@ -224,15 +235,13 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 			byte[] result = new byte[buf.length];
 			System.arraycopy(buf, 0, result, 0, buf.length);
 			return result;
-		} else {
-			return buf;
 		}
+		return buf;
 	}
-
 
 	/**
 	 * @return A {@link DLNAThumbnail} sharing the the underlying buffer.
-	 * @throws DLNAProfileException
+	 * @throws DLNAProfileException If the thumbnail isn't compliant.
 	 */
 	public DLNAThumbnail getThumbnail() throws DLNAProfileException {
 		return new DLNAThumbnail(buf, imageInfo, profile, false);
@@ -252,14 +261,12 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this thumbnail.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this thumbnail.
@@ -344,10 +351,10 @@ public class DLNAThumbnailInputStream extends ByteArrayInputStream {
 	}
 
 	/**
-     * Resets the buffer to the start position and clears any marks.
-     */
-    public synchronized void fullReset() {
-        pos = 0;
-        mark = 0;
-    }
+	 * Resets the buffer to the start position and clears any marks.
+	 */
+	public synchronized void fullReset() {
+		pos = 0;
+		mark = 0;
+	}
 }

@@ -20,11 +20,13 @@ Thanks for your efforts in helping us make UMS better!
 
 We welcome Pull Requests. Please be descriptive about the purpose of the code change, and please try to use the code conventions we use.
 
-For more information, please see STYLEGUIDE.md
+We will only merge Pull Requests if they don't break our automated tests, if they pass code review by one of our developers, and if they pass manual testing.
+
+For more information, please see [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/STYLEGUIDE.md)
 
 # <a name="Attachments"></a>Attachments
 
-GitHub only allows image attachments. Other attachments, for example zipped logs, can be posted in the <a href="http://www.universalmediaserver.com/forum/viewtopic.php?f=14&t=1656">Github attachments thread</a> in the UMS forum.
+GitHub only allows image attachments. Other attachments, for example zipped logs, can be posted in the <a href="https://www.universalmediaserver.com/forum/viewtopic.php?f=14&t=1656">Github attachments thread</a> in the UMS forum.
 Remember to include a link to the attachment in your post here.
 
 If you prefer to upload your attachment elsewhere, please avoid sites with restricted access or captcha if possible.

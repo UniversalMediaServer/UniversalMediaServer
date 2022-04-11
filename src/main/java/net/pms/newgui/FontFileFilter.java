@@ -8,8 +8,7 @@ public class FontFileFilter extends FileFilter {
 	@Override
 	public boolean accept(File f) {
 		String name = f.getName().toUpperCase();
-		if (name.endsWith("TTC") || name.endsWith("TTF") || name.endsWith(".DESC"))
-		{
+		if (name.endsWith("TTC") || name.endsWith("TTF") || name.endsWith(".DESC")) {
 			return true;
 		}
 		return f.isDirectory();

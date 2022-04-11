@@ -249,7 +249,6 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 			}
 			return null;
 		}
-
 	}
 
 	/**
@@ -259,7 +258,6 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 	 * @author Nadahar
 	 */
 	public static class DLNAOrgOperationsHTTP extends DLNAOrgOperations {
-
 		private static final long serialVersionUID = 1L;
 
 		/** Neither flag is set, corresponds to {@code "00"} */
@@ -270,7 +268,6 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 		 * to {@code "10"}
 		 */
 		public static final DLNAOrgOperations HTTP_TIME_SEEK = new DLNAOrgOperationsHTTP(true, false);
-
 
 		/** Range HTTP header support is set, corresponds to {@code "01"} */
 		public static final DLNAOrgOperations HTTP_HEADER = new DLNAOrgOperationsHTTP(false, true);

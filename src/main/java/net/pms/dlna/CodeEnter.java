@@ -27,8 +27,8 @@ public class CodeEnter extends VirtualFolder {
 		}
 
 		@Override
-		public boolean quietPlay() {
-			return true;
+		public boolean isLogPlayEvents() {
+			return false;
 		}
 	}
 

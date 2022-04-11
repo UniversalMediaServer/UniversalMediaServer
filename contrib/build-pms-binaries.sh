@@ -152,7 +152,7 @@ check_binary() {
     BINARY=$1
     BINARY_PATH=`command -v $BINARY`
     
-    if [ "$BINARY_PATH" == "" ]; then
+    if [ -z "$BINARY_PATH" ]; then
         case "$BINARY" in
         ant)
             if is_osx; then

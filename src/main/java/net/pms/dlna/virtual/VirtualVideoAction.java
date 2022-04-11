@@ -66,7 +66,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		DLNAMediaInfo mediaInfo = new DLNAMediaInfo();
 		mediaInfo.setContainer("mpegps");
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<>();
-		mediaInfo.setAudioTracksList(audioCodes);
+		mediaInfo.setAudioTracks(audioCodes);
 		mediaInfo.setMimeType("video/mpeg");
 		mediaInfo.setCodecV("mpeg2");
 		mediaInfo.setMediaparsed(true);
@@ -153,12 +153,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	@Override
 	public long length() {
 		return -1; //DLNAMediaInfo.TRANS_SIZE;
-	}
-
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
 	}
 
 	@Override

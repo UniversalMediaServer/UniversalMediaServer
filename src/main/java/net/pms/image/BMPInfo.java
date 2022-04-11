@@ -8,11 +8,9 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.bmp.BmpHeaderDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class BMPInfo extends ImageInfo {
-
 	protected final CompressionType compressionType;
 
 	/**
@@ -149,11 +147,11 @@ public class BMPInfo extends ImageInfo {
 				Integer bitsPerPixel = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_BITS_PER_PIXEL);
 
 				if (compression != null && headerSize != null && bitsPerPixel != null) {
-					CompressionType compressionType =
+					CompressionType compressionTypeTemp =
 						CompressionType.typeOf(compression.intValue(), headerSize.intValue());
-					((BMPParseInfo) parsedInfo).compressionType = compressionType;
+					((BMPParseInfo) parsedInfo).compressionType = compressionTypeTemp;
 					if (parsedInfo.bitDepth != null) {
-						switch (compressionType) {
+						switch (compressionTypeTemp) {
 							case BIT_FIELDS:
 							case HUFFMAN_1D:
 							case NONE:
@@ -253,7 +251,6 @@ public class BMPInfo extends ImageInfo {
 		CMYK_RLE8,
 		CMYK_RLE4,
 		UNKNOWN;
-
 
 		@Override
 		public String toString() {

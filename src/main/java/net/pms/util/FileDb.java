@@ -28,7 +28,7 @@ public class FileDb {
 	private boolean autoSync;
 	private boolean overwrite;
 	private boolean useNullObj;
-	private Object nullObj;
+	private static final Object NULL_OBJ = new Object();
 	private boolean hasNulls;
 
 	public FileDb(DbHandler h) {
@@ -48,7 +48,6 @@ public class FileDb {
 		overwrite = false;
 		useNullObj = false;
 		db = new HashMap<>();
-		nullObj = new Object();
 		hasNulls = false;
 	}
 
@@ -72,19 +71,27 @@ public class FileDb {
 		overwrite = b;
 	}
 
-	public void setUseNullObj(boolean b) { useNullObj = b; }
+	public void setUseNullObj(boolean b) {
+		useNullObj = b;
+	}
 
-	public Object nullObj() { return nullObj; }
+	public static Object nullObj() {
+		return NULL_OBJ;
+	}
 
-	public boolean isNull(Object obj) { return ((obj == null) || (obj == nullObj)); }
+	public boolean isNull(Object obj) {
+		return ((obj == null) || (obj == NULL_OBJ));
+	}
 
-	public boolean hasNulls() { return hasNulls; }
+	public boolean hasNulls() {
+		return hasNulls;
+	}
 
 	public Set<String> keys() {
 		return db.keySet();
 	}
 
-	public Iterator iterator() {
+	public Iterator<Entry<String, Object>> iterator() {
 		return db.entrySet().iterator();
 	}
 
@@ -112,7 +119,7 @@ public class FileDb {
 						// translate to nullobj
 						hasNulls = true;
 						String[] key = Pattern.compile(separator, Pattern.LITERAL).split(line);
-						db.put(recode(key[0]), nullObj);
+						db.put(recode(key[0]), NULL_OBJ);
 						continue;
 					}
 				}
@@ -178,8 +185,8 @@ public class FileDb {
 			for (Entry<String, Object> entry : db.entrySet()) {
 				Object obj = entry.getValue();
 				data = new StringBuilder(Pattern.compile(separator, Pattern.LITERAL).
-										 matcher(entry.getKey()).
-										 replaceAll(Matcher.quoteReplacement(encodedSeparator)));
+											matcher(entry.getKey()).
+											replaceAll(Matcher.quoteReplacement(encodedSeparator)));
 				if (isNull(obj)) {
 					hasNulls = true;
 					if (useNullObj) {

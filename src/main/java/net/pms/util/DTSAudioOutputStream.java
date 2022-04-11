@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class DTSAudioOutputStream extends FlowParserOutputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DTSAudioOutputStream.class);
-	private static int bits[] = new int[]{16, 16, 20, 20, 0, 24, 24};
+	private static int[] bits = new int[]{16, 16, 20, 20, 0, 24, 24};
 	private boolean dts = false;
 	private boolean dtsHD = false;
 	private int framesize;
@@ -44,7 +44,7 @@ public class DTSAudioOutputStream extends FlowParserOutputStream {
 				int bitspersample = ((data[off + 11] & 0x01) << 2) + ((data[off + 12] & 0xfc) >> 6);
 				streamableByteNumber = framesize;
 				//reset of default values
-				int pcm_wrapped_frame_size = 2048;
+				int pcmWrappedFrameSize = 2048;
 				if (out instanceof PCMAudioOutputStream) {
 					PCMAudioOutputStream pout = (PCMAudioOutputStream) out;
 					pout.nbchannels = 2;
@@ -52,7 +52,7 @@ public class DTSAudioOutputStream extends FlowParserOutputStream {
 					pout.bitsperSample = 16;
 					pout.init();
 				}
-				padding = pcm_wrapped_frame_size - framesize;
+				padding = pcmWrappedFrameSize - framesize;
 				if (bitspersample < 7) {
 					LOGGER.trace("DTS bits per sample: " + bits[bitspersample]);
 				}

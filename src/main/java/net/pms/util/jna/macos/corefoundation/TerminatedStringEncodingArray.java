@@ -20,13 +20,10 @@ package net.pms.util.jna.macos.corefoundation;
 
 import java.util.Collection;
 import java.util.EnumSet;
-
 import com.sun.jna.Pointer;
-import net.pms.util.jna.TerminatedArray;
 import net.pms.util.jna.TerminatedIntArray;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFStringBuiltInEncodings;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFStringRef;
-
 
 /**
  * A representation of an array of {@code CFStringEncoding} terminated by
@@ -46,7 +43,8 @@ public class TerminatedStringEncodingArray extends TerminatedIntArray {
 	}
 
 	/**
-	 * Creates a new instance with the internal {@link Pointer} set to {@code p}.
+	 * Creates a new instance with the internal {@link Pointer} set to
+	 * {@code p}.
 	 *
 	 * @param p the {@link Pointer} to use for the new instance.
 	 */

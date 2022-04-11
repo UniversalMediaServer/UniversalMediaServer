@@ -19,7 +19,7 @@ You can develop using whatever tools you like, but in this guide we are using th
 build system and the Eclipse IDE.
 
 Prerequisites:
-   * You have built a snapshot UMS as described in the [instructions](https://github.com/ps3mediaserver/ps3mediaserver/blob/master/BUILD.md) and you have set up the development environment.
+   * You have built a snapshot UMS as described in the [instructions](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/BUILD.md) and you have set up the development environment.
    * [Gradle](http://www.gradle.org/) is installed and working
    
 ### Step 1: install UMS to local maven repository

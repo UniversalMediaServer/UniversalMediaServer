@@ -1,12 +1,12 @@
 You can find some helpful files in the root folder of the repository if you're
 using Eclipse as your IDE. To import UMS into Eclipse as a project, go to:
 File -> Import -> Maven -> Existing Maven Project
-and browse to the root of the UMS git repository. Naming the project "ums" will
+and browse to the root of the UMS git repository. Naming the project "UniversalMediaServer" will
 make the included debug configuration work without further configuration.
 
 - UMS.launch:
     This is a pre-configured debug configuration for Eclipse that will only
-    work without editing if your Eclipse project is called "ums". To run UMS
+    work without editing if your Eclipse project is called "UniversalMediaServer". To run UMS
     in Eclipse, simply select the file and either press F11 or choose debug from
     the main menu or the context menu.
 

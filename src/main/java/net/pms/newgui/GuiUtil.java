@@ -77,10 +77,10 @@ public final class GuiUtil {
 			}
 			// Draw a continuous horizontal left-to-right bar
 			int filled = getAmountFull(b, w, h);
-			Graphics2D g2 = (Graphics2D)g;
+			Graphics2D g2 = (Graphics2D) g;
 			g2.setColor(progressBar.getForeground());
 			g2.setStroke(new BasicStroke(h, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
-			g2.drawLine(b.left, (h/2) + b.top, filled + b.left, (h/2) + b.top);
+			g2.drawLine(b.left, (h / 2) + b.top, filled + b.left, (h / 2) + b.top);
 			// Draw the string, if any
 			if (progressBar.isStringPainted()) {
 				paintString(g, b.left, b.top, w, h, filled, b);
@@ -128,7 +128,7 @@ public final class GuiUtil {
 	// wider than a specified maximum.
 	public static class MarqueeLabel extends JLabel {
 		private static final long serialVersionUID = 8600355251271220610L;
-		public int speed, spacer, dir, max_w, interval = 33;
+		public int speed, spacer, dir, maxWidth, interval = 33;
 		Timer timer = null;
 
 		public MarqueeLabel(String text) {
@@ -141,7 +141,7 @@ public final class GuiUtil {
 
 		public MarqueeLabel(String text, int width, int speed, int dir, int spacer) {
 			super(text);
-			this.max_w = width;
+			this.maxWidth = width;
 			this.speed = speed;
 			this.dir = dir;
 			this.spacer = spacer;
@@ -149,19 +149,19 @@ public final class GuiUtil {
 		}
 
 		public void setMaxWidth(int width) {
-			max_w = width;
+			maxWidth = width;
 		}
 
 		@Override
 		protected void paintComponent(Graphics g) {
 			int w = getWidth();
-			if (w <= max_w) {
+			if (w <= maxWidth) {
 				// Static
 				super.paintComponent(g);
 			} else {
 				// Wraparound scrolling
 				w += spacer;
-				int offset = (int)((System.currentTimeMillis() / speed) % w);
+				int offset = (int) ((System.currentTimeMillis() / speed) % w);
 				g.translate(dir * offset, 0);
 				super.paintComponent(g);
 				g.translate(-dir * w, 0);
@@ -202,7 +202,7 @@ public final class GuiUtil {
 			new Timer(200, new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					text = new StringBuffer(text.substring(1)).append(text.substring(0,1)).toString();
+					text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
 					setText(text);
 				}
 			}).start();
@@ -291,26 +291,26 @@ public final class GuiUtil {
 			float unit = (float) w / max;
 			int total = total();
 			int x = b.left;
-			Graphics2D g2 = (Graphics2D)g;
+			Graphics2D g2 = (Graphics2D) g;
 			// Draw the tick marks, if any
 			if (tickmarks > 0) {
 				g2.setStroke(new BasicStroke());
 				g2.setColor(Color.gray);
-				paintTicks(g, b.left, (int)(unit * tickmarks), b.left + w);
+				paintTicks(g, b.left, (int) (unit * tickmarks), b.left + w);
 			}
 			g2.setStroke(new BasicStroke(h, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
 			// Draw the segments
 			for (Segment s : segments) {
 				if (s.val > 0) {
-					int seg_w = (int)(s.val * unit);
+					int segmentWidth = (int) (s.val * unit);
 					g2.setColor(s.color);
-					g2.drawLine(x, (h/2) + b.top, x + seg_w, (h/2) + b.top);
+					g2.drawLine(x, (h / 2) + b.top, x + segmentWidth, (h / 2) + b.top);
 					// Draw the segment string, if any
 					if (progressBar.isStringPainted() && StringUtils.isNotBlank(s.label)) {
 						progressBar.setString(s.label);
-						paintString(g, x, b.top, seg_w, h, seg_w, b);
+						paintString(g, x, b.top, segmentWidth, h, segmentWidth, b);
 					}
-					x += seg_w;
+					x += segmentWidth;
 				}
 			}
 			// Draw the main label, if any
@@ -325,8 +325,8 @@ public final class GuiUtil {
 				}
 				g2.setColor(active.color);
 				String label = active.label.replace("{}", "" + total);
-				int label_w = (int)g.getFontMetrics().getStringBounds(label, g).getWidth();
-				g2.drawString(label, x - label_w - 2, g2.getFontMetrics().getAscent());
+				int labelWidth = (int) g.getFontMetrics().getStringBounds(label, g).getWidth();
+				g2.drawString(label, x - labelWidth - 2, g2.getFontMetrics().getAscent());
 			}
 		}
 
@@ -337,7 +337,7 @@ public final class GuiUtil {
 			int h = progressBar.getHeight();
 			Font font = g.getFont();
 			// Use a small font
-			g.setFont(font.deriveFont((float)10));
+			g.setFont(font.deriveFont((float) 10));
 			int x;
 			for (x = x0 + step; x < max; x += step) {
 				// Draw a half-height tick mark
@@ -345,16 +345,16 @@ public final class GuiUtil {
 				// And label it, if required
 				if (tickLabel != null) {
 					String s = tickLabel.replace("{}", "" + ((x - x0) / step) * tickmarks);
-					int w = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
+					int w = (int) g.getFontMetrics().getStringBounds(s, g).getWidth();
 					g.drawString(s, x - 3 - w, h - 3);
 				}
 			}
 			// Draw the max value if it's not at a tick mark and we have room
 			if (tickLabel != null && ((max - x0) % step != 0)) {
-				int avail_w = max - x + step;
+				int availableWidth = max - x + step;
 				String s = "" + progressBar.getMaximum();
-				int w = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
-				if (avail_w > w + 10) {
+				int w = (int) g.getFontMetrics().getStringBounds(s, g).getWidth();
+				if (availableWidth > w + 10) {
 					g.drawString(s, max - 3 - w, h - 3);
 				}
 			}
@@ -559,12 +559,12 @@ public final class GuiUtil {
 			dim.height += rowHeight;
 		}
 	}
-	
+
 	public static void enableContainer(Container c, boolean enable) {
 		for (Component component : c.getComponents()) {
 			component.setEnabled(enable);
 			if (component instanceof Container) {
-				enableContainer((Container)component, enable);
+				enableContainer((Container) component, enable);
 			}
 		}
 	}

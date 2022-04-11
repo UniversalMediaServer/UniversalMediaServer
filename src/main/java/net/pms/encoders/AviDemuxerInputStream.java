@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviDemuxerInputStream extends InputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviDemuxerInputStream.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private Process process;
 	private InputStream stream;
@@ -63,98 +63,93 @@ public class AviDemuxerInputStream extends InputStream {
 		this.attachedProcesses = at;
 		this.params = params;
 
-		aOut = params.output_pipes[1].getOutputStream();
-		if (params.no_videoencode && params.forceType != null && params.forceType.equals("V_MPEG4/ISO/AVC") && params.header != null) {
+		aOut = params.getOutputPipes()[1].getOutputStream();
+		if (
+			params.isNoVideoEncode() &&
+			params.getForceType() != null &&
+			params.getForceType().equals("V_MPEG4/ISO/AVC") &&
+			params.getHeader() != null
+		) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
-			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header)) {
-				final OutputStream out = params.output_pipes[0].getOutputStream();
-				r = new Runnable() {
-					@Override
-					public void run() {
-						try {
-							byte[] b = new byte[512 * 1024];
-							int n;
-							while ((n = pin.read(b)) > -1) {
-								out.write(b, 0, n);
-							}
-						} catch (Exception e) {
-							LOGGER.error(null, e);
+			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.getHeader())) {
+				final OutputStream out = params.getOutputPipes()[0].getOutputStream();
+				r = () -> {
+					try {
+						byte[] b = new byte[512 * 1024];
+						int n;
+						while ((n = pin.read(b)) > -1) {
+							out.write(b, 0, n);
 						}
+					} catch (Exception e) {
+						LOGGER.error(null, e);
 					}
 				};
 			}
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
 		} else {
-			vOut = params.output_pipes[0].getOutputStream();
+			vOut = params.getOutputPipes()[0].getOutputStream();
 		}
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					// TODO(tcox): Is this used anymore?
-					TsMuxeRVideo ts = new TsMuxeRVideo();
-					File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
-					try (PrintWriter pw = new PrintWriter(f)) {
-						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-						String videoType = "V_MPEG-2";
+		Runnable r = () -> {
+			try {
+				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, false);
+				File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
+				try (PrintWriter pw = new PrintWriter(f)) {
+					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+					String videoType = "V_MPEG-2";
 
-						if (params.no_videoencode && params.forceType != null) {
-							videoType = params.forceType;
-						}
-
-						String fps = "";
-
-						if (params.forceFps != null) {
-							fps = "fps=" + params.forceFps + ", ";
-						}
-
-						String audioType = "A_LPCM";
-
-						if (params.lossyaudio) {
-							audioType = "A_AC3";
-						}
-
-						pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-						pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
+					if (params.isNoVideoEncode() && params.getForceType() != null) {
+						videoType = params.getForceType();
 					}
 
-					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
-					ProcessWrapper pipe_process = tsPipe.getPipeProcess();
-					attachedProcesses.add(pipe_process);
-					pipe_process.runInNewThread();
-					tsPipe.deleteLater();
+					String fps = "";
 
-					String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
-					ProcessBuilder pb = new ProcessBuilder(cmd);
-					pb.redirectErrorStream(true);
-					process = pb.start();
-					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
-					attachedProcesses.add(pwi);
-					// consume the error and output process streams
-					StreamGobbler.consume(process.getInputStream(), true);
+					if (params.getForceFps() != null) {
+						fps = "fps=" + params.getForceFps() + ", ";
+					}
 
-					realIS = tsPipe.getInputStream();
-					ProcessUtil.waitFor(process);
-					LOGGER.trace("tsMuxeR muxing finished");
-				} catch (IOException e) {
-					LOGGER.error(null, e);
+					String audioType = "A_LPCM";
+
+					if (params.isLossyAudio()) {
+						audioType = "A_AC3";
+					}
+
+					pw.println(videoType + ", \"" + params.getOutputPipes()[0].getOutputPipe() + "\", " + fps +
+						"level=4.1, insertSEI, contSPS, track=1");
+					pw.println(audioType + ", \"" + params.getOutputPipes()[1].getOutputPipe() + "\", track=2");
 				}
+
+				PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+				ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
+				attachedProcesses.add(pipeProcess);
+				pipeProcess.runInNewThread();
+				tsPipe.deleteLater();
+
+				String[] cmd = new String[] {ts.getExecutable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
+				ProcessBuilder pb = new ProcessBuilder(cmd);
+				pb.redirectErrorStream(true);
+				process = pb.start();
+				ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
+				attachedProcesses.add(pwi);
+				// consume the error and output process streams
+				StreamGobbler.consume(process.getInputStream(), true);
+
+				realIS = tsPipe.getInputStream();
+				ProcessUtil.waitFor(process);
+				LOGGER.trace("tsMuxeR muxing finished");
+			} catch (IOException e) {
+				LOGGER.error(null, e);
 			}
 		};
 
-		Runnable r2 = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					//Thread.sleep(500);
-					parseHeader();
-				} catch (IOException e) {
-					LOGGER.debug("Parsing error", e);
-				}
+		Runnable r2 = () -> {
+			try {
+				parseHeader();
+			} catch (IOException e) {
+				LOGGER.debug("Parsing error", e);
 			}
 		};
 
@@ -265,11 +260,11 @@ public class AviDemuxerInputStream extends InputStream {
 					aud.setNbAudio(nbAudio);
 					long fileLength = 100;
 
-					if (params.losslessaudio) {
+					if (params.isLosslessAudio()) {
 						aOut = new PCMAudioOutputStream(aOut, nbAudio, 48000, bitsPerSample);
 					}
 
-					if (!params.lossyaudio && params.losslessaudio) {
+					if (!params.isLossyAudio() && params.isLosslessAudio()) {
 						writePCMHeader(aOut, fileLength, nbAudio, aud.getRate(), aud.getSampleSize(), bitsPerSample);
 					}
 				}
@@ -362,12 +357,12 @@ public class AviDemuxerInputStream extends InputStream {
 		vOut.close();
 	}
 
-	private String getString(InputStream input, int sz) throws IOException {
+	private static String getString(InputStream input, int sz) throws IOException {
 		byte[] bb = getBytes(input, sz);
 		return new String(bb);
 	}
 
-	private byte[] getBytes(InputStream input, int sz) throws IOException {
+	private static byte[] getBytes(InputStream input, int sz) throws IOException {
 		byte[] bb = new byte[sz];
 		int n = input.read(bb);
 
@@ -384,7 +379,7 @@ public class AviDemuxerInputStream extends InputStream {
 		return bb;
 	}
 
-	private int readBytes(InputStream input, int number) throws IOException {
+	private static int readBytes(InputStream input, int number) throws IOException {
 		byte[] buffer = new byte[number];
 		int read = input.read(buffer);
 
@@ -407,23 +402,23 @@ public class AviDemuxerInputStream extends InputStream {
 			case 2:
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8);
 			case 3:
-				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8)
-					| ((buffer[2] & 0xff) << 16);
+				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
+					((buffer[2] & 0xff) << 16);
 			case 4:
-				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8)
-					| ((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
+				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
+					((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
 			default:
 				throw new IOException("Illegal Read quantity");
 		}
 	}
 
-	private int readByte(InputStream input) throws IOException {
+	private static int readByte(InputStream input) throws IOException {
 		return input.read();
 	}
 
 	public static int str2ulong(byte[] data, int i) {
-		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8)
-			| ((data[i + 2] & 0xff) << 16) | ((data[i + 3] & 0xff) << 24);
+		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8) |
+			((data[i + 2] & 0xff) << 16) | ((data[i + 3] & 0xff) << 24);
 	}
 
 	public static int str2ushort(byte[] data, int i) {
@@ -470,9 +465,8 @@ public class AviDemuxerInputStream extends InputStream {
 		if (realIS != null) {
 			readCount++;
 			return realIS.read();
-		} else {
-			return -1;
 		}
+		return -1;
 	}
 
 	@Override
@@ -498,9 +492,8 @@ public class AviDemuxerInputStream extends InputStream {
 			int n = realIS.read(b);
 			readCount += n;
 			return n;
-		} else {
-			return -1;
 		}
+		return -1;
 	}
 
 	public static void writePCMHeader(OutputStream aOut, long fileLength, int nbAudio, int rate, int sampleSize, int bitsPerSample) { }

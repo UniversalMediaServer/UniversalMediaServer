@@ -32,7 +32,7 @@ public class GIF extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "gif" };
+		return new String[] {"gif"};
 	}
 
 	@Override

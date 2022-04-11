@@ -23,10 +23,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
-import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
-import net.pms.network.UPNPControl.Renderer;
+import net.pms.network.mediaserver.Renderer;
 
 /**
  * This class is used to represent a {@code <res>} element representing an image

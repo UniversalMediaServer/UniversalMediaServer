@@ -19,9 +19,7 @@
  */
 package net.pms.formats;
 
-
 public class ISOVOB extends MPG {
-
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.ISOVOB;

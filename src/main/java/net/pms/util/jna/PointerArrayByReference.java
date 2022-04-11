@@ -18,6 +18,7 @@
  */
 package net.pms.util.jna;
 
+import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
 
@@ -56,7 +57,7 @@ public class PointerArrayByReference extends ArrayByReference<Pointer> {
 
 	@Override
 	public int getElementSize() {
-		return Pointer.SIZE;
+		return Native.POINTER_SIZE;
 	}
 
 	/**

@@ -19,12 +19,16 @@
 package net.pms.io;
 
 /**
- * Solaris specific platform code
+ * Solaris specific platform code.
  *
  * @author zsombor
  *
  */
 public class SolarisUtils extends BasicSystemUtils {
+
+	/** Only to be instantiated by {@link BasicSystemUtils#createInstance()}. */
+	protected SolarisUtils() {
+	}
 
 	/**
 	 * Return the Solaris specific ping command for the given host address,
@@ -39,6 +43,12 @@ public class SolarisUtils extends BasicSystemUtils {
 	 */
 	@Override
 	public String[] getPingCommand(String hostAddress, int numberOfPackets, int packetSize) {
-		return new String[] { "ping", "-s",  hostAddress,  /* size */  Integer.toString(packetSize), /* count */  Integer.toString(numberOfPackets) };
+		return new String[] {
+			"ping",
+			"-s",
+			hostAddress,
+			Integer.toString(packetSize), // size
+			Integer.toString(numberOfPackets) // count
+		};
 	}
 }

@@ -19,9 +19,6 @@
 package net.pms.formats;
 
 public class DVRMS extends Format {
-	/**
-	 * {@inheritDoc} 
-	 */
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.DVRMS;
@@ -36,9 +33,6 @@ public class DVRMS extends Format {
 		type = VIDEO;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public String[] getSupportedExtensions() {
 		return new String[] {

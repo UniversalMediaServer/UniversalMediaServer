@@ -30,7 +30,7 @@ public class Flip {
 			g.dispose();
 
 			return newImage;
-		};
+		}
 	};
 
 	/**
@@ -49,6 +49,6 @@ public class Flip {
 			g.dispose();
 
 			return newImage;
-		};
+		}
 	};
 }

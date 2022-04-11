@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<project name="Build script for building docker image" default="build" basedir=".">
+	<property name="userid" value="atamariya"/>
+
+	<fileset dir="../target" id="jar.file">
+		<include name="ums*with-dependencies.jar" />
+	</fileset>
+	<pathconvert property="ums.jar" refid="jar.file">
+	</pathconvert>
+	<available file="${ums.jar}" property="jar.present">
+	</available>
+
+	<target name="build">
+		<antcall target="build.ums">
+		</antcall>
+		<antcall target="build.docker">
+		</antcall>
+	</target>
+
+	<target name="build.ums" unless="jar.present">
+		<echo>Checking if UMS jar exists</echo>
+		<fail>Run a UMS build first</fail>
+	</target>
+
+	<target name="build.docker">
+		<copy todir="renderers">
+			<fileset dir="../src/main/external-resources/renderers" />
+		</copy>
+		<copy todir="web">
+			<fileset dir="../src/main/external-resources/web" />
+		</copy>
+		<copy file="../src/main/external-resources/logback.headless.xml" todir="." />
+		<copy file="${ums.jar}" tofile="ums.jar" />
+		<exec executable="docker">
+			<arg line="build -t ums ." />
+		</exec>
+	</target>
+
+	<target name="publish" depends="build">
+		<exec executable="docker">
+			<arg line="tag ums ${userid}/ums" />
+		</exec>
+		<exec executable="docker">
+			<arg line="push ${userid}/ums" />
+		</exec>
+	</target>
+</project>

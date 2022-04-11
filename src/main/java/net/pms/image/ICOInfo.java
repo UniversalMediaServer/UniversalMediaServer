@@ -8,7 +8,6 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.ico.IcoDirectory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-
 @SuppressWarnings("serial")
 @SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class ICOInfo extends ImageInfo {

@@ -19,12 +19,11 @@
  */
 package net.pms.dlna.protocolinfo;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -120,7 +119,7 @@ public class DeviceProtocolInfo implements Serializable {
 	}
 
 	/**
-	 * Creates a new instance with containing the content from the parsing of
+	 * Creates a new instance containing the content from the parsing of
 	 * {@code protocolInfoString}.
 	 *
 	 * @param type The {@link DeviceProtocolInfoSource} of
@@ -163,9 +162,18 @@ public class DeviceProtocolInfo implements Serializable {
 				protocolInfoSets.put(type, currentSet);
 			}
 
+			SortedSet<ProtocolInfo> tempSet = null;
 			for (String element : elements) {
 				try {
-					result |= currentSet.add(new ProtocolInfo(unescapeString(element)));
+					tempSet = handleSpecialCaseString(element);
+					if (tempSet == null) {
+						// No special handling
+						result |= currentSet.add(new ProtocolInfo(unescapeString(element)));
+					} else {
+						// Add the special handling results
+						result |= currentSet.addAll(tempSet);
+						tempSet = null;
+					}
 				} catch (ParseException e) {
 					LOGGER.warn(
 						"Unable to parse protocolInfo from \"{}\", this profile will not be registered: {}",
@@ -200,9 +208,7 @@ public class DeviceProtocolInfo implements Serializable {
 		}
 	}
 
-
 	// Standard java.util.Collection methods.
-
 
 	/**
 	 * Returns the number of elements of the given
@@ -705,9 +711,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return result;
 	}
 
-
 	// imageProfileSet "java.util.Collection methods" getters
-
 
 	/**
 	 * Returns the number of {@link DLNAImageProfile} elements. If this contains
@@ -776,7 +780,6 @@ public class DeviceProtocolInfo implements Serializable {
 			setsLock.readLock().unlock();
 		}
 	}
-
 
 	/**
 	 * Returns {@code true} if this contains all the {@link DLNAImageProfile} instances in the
@@ -873,9 +876,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return sb.toString();
 	}
 
-
 	// Static methods
-
 
 	/**
 	 * Escapes {@code protocolInfo} strings for use in {@code GetProtocolInfo}
@@ -898,6 +899,34 @@ public class DeviceProtocolInfo implements Serializable {
 	 */
 	public static String unescapeString(String escapedString) {
 		return PROTOCOLINFO_UNESCAPE.translate(escapedString);
+	}
+
+	/**
+	 * Handles known special cases, i.e bugs in renderers' {@code protocolInfo}
+	 * output so that we are able to parse them despite them being broken.
+	 *
+	 * @param element the {@code protocolInfo} element to handle if needed.
+	 * @return {@code null} if {@code element} doesn't match a known special
+	 *         case, or a {@link SortedSet} of {@link ProtocolInfo} instances
+	 *         with the result of the parsed special case.
+	 * @throws ParseException If {@code element} is a known special case but the
+	 *             parsing fails.
+	 */
+	public static SortedSet<ProtocolInfo> handleSpecialCaseString(String element) throws ParseException {
+		if (isBlank(element)) {
+			return null;
+		}
+		switch (element) {
+			/*
+			 * Seen on a LG-BP550-1, missing comma between elements
+			 */
+			case "http-get:*:audio/sonyoma:*http-get:*:audio/ogg:*":
+				SortedSet<ProtocolInfo> currentSet = new TreeSet<>();
+				currentSet.add(new ProtocolInfo("http-get:*:audio/sonyoma:*"));
+				currentSet.add(new ProtocolInfo("http-get:*:audio/ogg:*"));
+				return currentSet;
+		}
+		return null;
 	}
 
 	/**

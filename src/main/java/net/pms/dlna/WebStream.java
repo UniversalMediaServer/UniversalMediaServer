@@ -26,13 +26,6 @@ import java.net.URL;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.util.FileUtil;
 
-/**
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
- */
 public class WebStream extends DLNAResource {
 	@Override
 	public boolean isValid() {
@@ -40,23 +33,9 @@ public class WebStream extends DLNAResource {
 		return getFormat() != null;
 	}
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String url;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String fluxName;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	protected String thumbURL;
+	private String url;
+	private String fluxName;
+	private String thumbURL;
 
 	public WebStream(String fluxName, String url, String thumbURL, int type) {
 		super(type);
@@ -92,7 +71,8 @@ public class WebStream extends DLNAResource {
 				FileUtil.isUrl(thumbURL) ? downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
 			);
 		} else {
-			return super.getThumbnailInputStream();
+			DLNAThumbnailInputStream inputStream = super.getThumbnailInputStream();
+			return inputStream;
 		}
 	}
 
@@ -114,12 +94,6 @@ public class WebStream extends DLNAResource {
 	@Override
 	public boolean isFolder() {
 		return false;
-	}
-
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
 	}
 
 	@Override

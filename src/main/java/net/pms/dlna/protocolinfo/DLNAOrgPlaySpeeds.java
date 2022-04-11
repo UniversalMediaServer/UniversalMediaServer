@@ -24,7 +24,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -95,7 +94,6 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		stringValue = generateStringValue(speeds);
 		hashCode = calculateHashCode();
 	}
-
 
 	/**
 	 * @return The unmodifiable {@link Set} or {@link Rational} play speeds for
@@ -238,7 +236,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
 				if (isNotBlank(value)) {
-					valueSet.add(new Rational(value));
+					valueSet.add(Rational.valueOf(value));
 				}
 			}
 			return getPlaySpeeds(valueSet);
@@ -319,7 +317,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
 				if (isNotBlank(value)) {
-					valueSet.add(new Rational(value));
+					valueSet.add(Rational.valueOf(value));
 				}
 			}
 

@@ -20,6 +20,7 @@ package net.pms.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -36,18 +37,9 @@ public class OutputTextLogger extends OutputConsumer {
 		super(inputStream);
 	}
 
-	@Deprecated
-	public OutputTextLogger(InputStream inputStream, ProcessWrapperImpl pwi) {
-		this(inputStream);
-	}
-
 	@Override
 	public void run() {
-		LineIterator it = null;
-
-		try {
-			it = IOUtils.lineIterator(inputStream, "UTF-8");
-
+		try (LineIterator it = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 				LOGGER.debug(line);
@@ -59,8 +51,6 @@ public class OutputTextLogger extends OutputConsumer {
 			LOGGER.debug("Error consuming input stream: {}", ioe.getMessage());
 		} catch (IllegalStateException ise) {
 			LOGGER.debug("Error reading from closed input stream: {}", ise.getMessage());
-		} finally {
-			LineIterator.closeQuietly(it); // clean up all associated resources
 		}
 	}
 

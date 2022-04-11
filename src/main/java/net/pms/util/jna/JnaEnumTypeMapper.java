@@ -19,8 +19,6 @@
 package net.pms.util.jna;
 
 import com.sun.jna.DefaultTypeMapper;
-import com.sun.jna.TypeMapper;
-
 
 /**
  * A {@link TypeMapper} for {@link JnaIntEnum} and {@link JnaLongEnum}.

@@ -24,4 +24,9 @@ public class TranscodeVirtualFolder extends VirtualFolder {
 	public TranscodeVirtualFolder(String thumbnailIcon, PmsConfiguration configuration) { // XXX thumbnailIcon is always null
 		super(configuration.getTranscodeFolderName(), thumbnailIcon);
 	}
+
+	// Sub class constructor
+	protected TranscodeVirtualFolder(String name, String thumbnailIcon) {
+		super(name, thumbnailIcon);
+	}
 }

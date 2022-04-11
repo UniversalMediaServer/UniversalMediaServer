@@ -19,22 +19,16 @@
  */
 package net.pms.image;
 
+import com.drew.metadata.Metadata;
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.io.Serializable;
 import java.util.Arrays;
-import javax.imageio.ImageIO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.drew.metadata.Metadata;
-import net.pms.dlna.DLNAImage;
-import net.pms.dlna.DLNAImageInputStream;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnail;
-import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.image.ExifInfo.ExifParseInfo;
 import net.pms.util.InvalidStateException;
 import net.pms.util.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This holds information about a given image, and is used as a standard image
@@ -48,7 +42,7 @@ import net.pms.util.ParseException;
  *
  * The class itself is immutable although some of the objects it or it's
  * subclasses references might not be. The definition of immutable requires any
- * immutable class to also be {@code final] because otherwise a subclass could
+ * immutable class to also be {@code final} because otherwise a subclass could
  * break the immutability. Instead, any subclasses must make sure not to break
  * the immutability.
  *
@@ -56,6 +50,7 @@ import net.pms.util.ParseException;
  */
 @SuppressWarnings("serial")
 public abstract class ImageInfo implements Serializable {
+	private static final long serialVersionUID = 4247040093720562338L;
 
 	/*
 	 * Please note: This class is packed and stored in the database. Any changes
@@ -297,10 +292,10 @@ public abstract class ImageInfo implements Serializable {
 			this.colorSpace = null;
 			this.colorSpaceType = parsedInfo.colorSpaceType;
 		} else {
-			int bitDepth = UNKNOWN;
+			int bitDepthTemp = UNKNOWN;
 			if (colorModel.getNumComponents() > 0) {
 				try {
-					bitDepth = ImagesUtil.getBitDepthFromArray(colorModel.getComponentSize());
+					bitDepthTemp = ImagesUtil.getBitDepthFromArray(colorModel.getComponentSize());
 				} catch (InvalidStateException e) {
 					LOGGER.trace(
 						"Unexpected bit depth array retrieved from ColorModel: {}",
@@ -308,24 +303,24 @@ public abstract class ImageInfo implements Serializable {
 					);
 				}
 			}
-			int numComponents = colorModel.getNumComponents();
-			ColorSpaceType colorSpaceType = ColorSpaceType.toColorSpaceType(colorModel.getColorSpace().getType());
+			int numComponentsTemp = colorModel.getNumComponents();
+			ColorSpaceType colorSpaceTypeTemp = ColorSpaceType.toColorSpaceType(colorModel.getColorSpace().getType());
 
-			compareColorModel(bitDepth, numComponents, colorSpaceType, parsedInfo);
+			compareColorModel(bitDepthTemp, numComponentsTemp, colorSpaceTypeTemp, parsedInfo);
 
 			this.bitDepth =
-				bitDepth == UNKNOWN && parsedInfo.bitDepth != null ?
+				bitDepthTemp == UNKNOWN && parsedInfo.bitDepth != null ?
 					parsedInfo.bitDepth.intValue() :
-					bitDepth;
+					bitDepthTemp;
 			this.numComponents =
-				numComponents == UNKNOWN && parsedInfo.numComponents != null ?
+				numComponentsTemp == UNKNOWN && parsedInfo.numComponents != null ?
 					parsedInfo.numComponents.intValue() :
-					numComponents;
+					numComponentsTemp;
 			this.colorSpace = colorModel.getColorSpace();
 			this.colorSpaceType =
-				colorSpaceType == null && parsedInfo.colorSpaceType != null ?
+				colorSpaceTypeTemp == null && parsedInfo.colorSpaceType != null ?
 					parsedInfo.colorSpaceType :
-					colorSpaceType;
+					colorSpaceTypeTemp;
 		}
 		this.imageIOSupport = imageIOSupport;
 	}
@@ -920,8 +915,7 @@ public abstract class ImageInfo implements Serializable {
 
 		return ((ExifInfo) this).exifOrientation != null ?
 			((ExifInfo) this).exifOrientation :
-			ExifOrientation.TOP_LEFT
-		;
+			ExifOrientation.TOP_LEFT;
 	}
 
 	/**
@@ -971,7 +965,7 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		int parsedWidth = parsedInfo.width != null ? parsedInfo.width.intValue() : UNKNOWN;
-		int parsedHeight = parsedInfo.height!= null ? parsedInfo.height.intValue() : UNKNOWN;
+		int parsedHeight = parsedInfo.height != null ? parsedInfo.height.intValue() : UNKNOWN;
 		if (this instanceof RAWInfo) {
 			// DCRaw decodes pixels that's normally hidden because they are too
 			// expensive to decode for CPU restrained devices, so the resolution

@@ -111,12 +111,10 @@ public enum ExifOrientation {
 	 * the 0th column is the visual bottom. See {@link ExifOrientation} for a
 	 * visualized representation.
 	 */
-	LEFT_BOTTOM(8),
-	;
+	LEFT_BOTTOM(8);
 
 	private int value;
-	private ExifOrientation(int value)
-	{
+	private ExifOrientation(int value) {
 		this.value = value;
 	}
 
@@ -125,12 +123,9 @@ public enum ExifOrientation {
 	 * @return The {@link ExifOrientation} corresponding to the Exif orientation
 	 *         value or {@link #TOP_LEFT} if invalid.
 	 */
-	public static ExifOrientation typeOf(int value)
-	{
-		for (ExifOrientation orientation : ExifOrientation.values())
-		{
-			if (orientation.value == value)
-			{
+	public static ExifOrientation typeOf(int value) {
+		for (ExifOrientation orientation : ExifOrientation.values()) {
+			if (orientation.value == value) {
 				return orientation;
 			}
 		}
@@ -142,16 +137,13 @@ public enum ExifOrientation {
 	 * @return The {@link ExifOrientation} corresponding to the Exif orientation
 	 *         value or {@link #TOP_LEFT} if invalid or {@code null}.
 	 */
-	public static ExifOrientation typeOf(Integer value)
-	{
+	public static ExifOrientation typeOf(Integer value) {
 		if (value == null) {
 			return TOP_LEFT;
 		}
 
-		for (ExifOrientation orientation : ExifOrientation.values())
-		{
-			if (orientation.value == value.intValue())
-			{
+		for (ExifOrientation orientation : ExifOrientation.values()) {
+			if (orientation.value == value.intValue()) {
 				return orientation;
 			}
 		}
@@ -164,7 +156,7 @@ public enum ExifOrientation {
 	 * @return The {@link ExifOrientation} corresponding to the DCRaw flip
 	 *         value.
 	 */
-	public static ExifOrientation FromDCRawOrientation(int dcRawOrientation) {
+	public static ExifOrientation fromDCRawOrientation(int dcRawOrientation) {
 		switch (dcRawOrientation & 7) {
 			case 0:
 				return TOP_LEFT;
@@ -195,9 +187,8 @@ public enum ExifOrientation {
 	}
 
 	@Override
-	public String toString()
-	{
-		return "Orientation " + this.name() + " ("+ value + ")";
+	public String toString() {
+		return "Orientation " + this.name() + " (" + value + ")";
 	}
 
 	/**

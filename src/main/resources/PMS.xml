@@ -12,11 +12,11 @@
 		<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
 		<friendlyName>Universal Media Server</friendlyName>
 		<manufacturer>UMS</manufacturer>
-		<manufacturerURL>http://www.universalmediaserver.com</manufacturerURL>
+		<manufacturerURL>https://www.universalmediaserver.com</manufacturerURL>
 		<modelDescription>UPnP/AV 1.0 Compliant Media Server</modelDescription>
 		<modelName>UMS</modelName>
 		<modelNumber>01</modelNumber>
-		<modelURL>http://www.universalmediaserver.com</modelURL>
+		<modelURL>https://www.universalmediaserver.com</modelURL>
 		<serialNumber/>
 		<UPC/>
 		<UDN>[uuid]</UDN>
@@ -86,6 +86,13 @@
 				<SCPDURL>/UPnP_AV_ConnectionManager_1.0.xml</SCPDURL>
 				<controlURL>/upnp/control/connection_manager</controlURL>
 				<eventSubURL>/upnp/event/connection_manager</eventSubURL>
+			</service>
+			<service>
+				<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>
+				<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>
+				<SCPDURL>/UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml</SCPDURL>
+				<controlURL>/upnp/control/x_ms_mediareceiverregistrar</controlURL>
+				<eventSubURL>/upnp/event/x_ms_mediareceiverregistrar</eventSubURL>
 			</service>
 		</serviceList>
 	</device>

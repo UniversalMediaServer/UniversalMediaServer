@@ -32,13 +32,13 @@ var img = bump.setImages({
 $('body').append([
 	'<div class="bumpcontainer"><table class="bumppanel"><tr>',
 	'<td id="bumpsettings">',
-		'<select id="bplaylist"/>',
-		'<span id="bplaylistctrl"/>',
-		'<select id="brenderers"/>',
+		'<select id="bplaylist"></select>',
+		'<span id="bplaylistctrl"></span>',
+		'<select id="brenderers"></select>',
 	'</td>',
 	'<td><input id="bumpvol"/></td>',
-	'<td id="bumpmute"/>',
-	'<td id="bumpctrl"/>',
+	'<td id="bumpmute"></td>',
+	'<td id="bumpctrl"></td>',
 	'<td id="bumppos" title="Show/hide playlist">0:00</td>',
 	'<td><div id="bexit"><img id="bclose"/></div></td>',
 	'</tr></table></div>'
@@ -58,7 +58,7 @@ bump.addButton('add', '#bplaylistctrl', 'Add to playlist');
 bump.addButton('remove', '#bplaylistctrl', 'Remove from playlist');
 bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 
-// css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
+// css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax
 
 $('.bumpcontainer').css({
 	position:'fixed',    /* Do not scroll out of view on this or other websites */
@@ -84,9 +84,9 @@ $('* .bumppanel').css({
 	borderRadius:'2px',
 	'-moz-border-radius':'2px',
 	'-webkit-border-radius':'2px',
-	boxShadow:' 16px 4px 2px rgba(136,136,136,0.5)',
-	'-moz-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
-	'-webkit-box-shadow':'16px 4px 2px rgba(136,136,136,0.5)',
+	boxShadow:' 0px 4px 2px rgba(136,136,136,0.5)',
+	'-moz-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
+	'-webkit-box-shadow':'0px 4px 2px rgba(136,136,136,0.5)',
 	appearance:'none',
 	'-moz-appearance':'none',
 	'-webkit-appearance':'none',
@@ -111,7 +111,6 @@ $('#bumppos').css({
 
 $('#bexit').css({
 	verticalAlign:'top',
-	marginRight:'-20px',
 	color:'#fff',
 	cursor:'pointer',
 });
@@ -129,4 +128,3 @@ $('head').append(['<style>',
 	'.bumpcontainer .bselected {font-style:italic;color:blue;}',
 	'</style>',
 ].join(''));
-

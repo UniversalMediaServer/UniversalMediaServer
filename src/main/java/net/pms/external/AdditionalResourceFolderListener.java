@@ -10,7 +10,7 @@ public interface AdditionalResourceFolderListener extends ExternalListener {
 	/**
 	 * Allows to add a virtual folder resource, similar to the #transcoded
 	 * folder to every existing folder
-	 * 
+	 *
 	 * @param currentResource
 	 *            Parent resource
 	 * @param child
