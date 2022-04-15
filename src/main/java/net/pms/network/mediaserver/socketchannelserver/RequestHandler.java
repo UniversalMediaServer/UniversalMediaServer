@@ -325,7 +325,7 @@ public class RequestHandler implements Runnable {
 						header.append("  ").append(headerLines.get(i)).append("\n");
 						if (headerLines.get(i).toUpperCase(Locale.ROOT).contains("SOAPACTION")) {
 							soapAction = headerLines.get(i).toUpperCase(Locale.ROOT).replaceFirst("\\s*SOAPACTION:\\s*", "");
-						} else if ("/XML".contains(headerLines.get(i).toUpperCase())) {
+						} else if (headerLines.get(i).toUpperCase().contains("/XML")) {
 							isXml = true;
 						}
 					}

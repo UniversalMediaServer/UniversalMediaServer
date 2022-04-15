@@ -304,7 +304,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
 						soapAction = entry.getValue().toUpperCase(Locale.ROOT);
-					} else if ("content-type".equalsIgnoreCase(entry.getKey()) && "/XML".contains(entry.getValue().toUpperCase())) {
+					} else if ("content-type".equalsIgnoreCase(entry.getKey()) && entry.getValue().toUpperCase().contains("/XML")) {
 						isXml = true;
 					}
 				}

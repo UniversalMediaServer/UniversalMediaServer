@@ -1008,7 +1008,7 @@ public class RequestV2 extends HTTPResource {
 				header.append("  ").append(entry.getKey())
 				.append(": ").append(entry.getValue()).append("\n");
 
-				if ("content-type".equalsIgnoreCase(entry.getKey()) && "/XML".contains(entry.getValue().toUpperCase())) {
+				if ("content-type".equalsIgnoreCase(entry.getKey()) && entry.getValue().toUpperCase().contains("/XML")) {
 					isXml = true;
 				}
 			}
