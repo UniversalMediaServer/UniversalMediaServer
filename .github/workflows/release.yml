@@ -90,23 +90,23 @@ jobs:
 
           #! build linux-x86
           mvn package -P linux-x86 -DskipTests
-          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86-${{needs.bumpversion.outputs.version}}.tar.gzip
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86-${{needs.bumpversion.outputs.version}}.tgz
 
           #! build linux-x86_64
           mvn package -P linux-x86_64 -DskipTests
-          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86_64-${{needs.bumpversion.outputs.version}}.tar.gzip
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-x86_64-${{needs.bumpversion.outputs.version}}.tgz
 
           #! build linux-arm64
           mvn package -P linux-arm64 -DskipTests
-          cp target/ums-*-distribution.tar.gz linux-builds/ums-arm64-${{needs.bumpversion.outputs.version}}.tar.gzip
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-arm64-${{needs.bumpversion.outputs.version}}.tgz
 
           #! build linux-armel
           mvn package -P linux-armel -DskipTests
-          cp target/ums-*-distribution.tar.gz linux-builds/ums-armel-${{needs.bumpversion.outputs.version}}.tar.gzip
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-armel-${{needs.bumpversion.outputs.version}}.tgz
 
           #! build linux-armhf
           mvn package -P linux-armhf -DskipTests
-          cp target/ums-*-distribution.tar.gz linux-builds/ums-armhf-${{needs.bumpversion.outputs.version}}.tar.gzip
+          cp target/ums-*-distribution.tar.gz linux-builds/ums-armhf-${{needs.bumpversion.outputs.version}}.tgz
 
       - name: 'Upload build'
         uses: actions/upload-artifact@v2
