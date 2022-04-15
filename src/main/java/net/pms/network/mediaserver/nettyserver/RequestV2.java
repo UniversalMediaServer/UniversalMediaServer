@@ -84,6 +84,7 @@ import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
+import net.pms.util.Logging;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
@@ -1001,10 +1002,15 @@ public class RequestV2 extends HTTPResource {
 
 	private void logRequest(HttpResponse output, StringBuilder response, InputStream iStream) {
 		StringBuilder header = new StringBuilder();
+		boolean isXml = false;
 		for (Entry<String, String> entry : output.headers().entries()) {
 			if (isNotBlank(entry.getKey())) {
 				header.append("  ").append(entry.getKey())
 				.append(": ").append(entry.getValue()).append("\n");
+
+				if ("content-type".equalsIgnoreCase(entry.getKey()) && "text/xml".equalsIgnoreCase(entry.getValue())) {
+					isXml = true;
+				}
 			}
 		}
 
@@ -1020,13 +1026,8 @@ public class RequestV2 extends HTTPResource {
 			);
 		} else {
 			String formattedResponse = null;
-			if (isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.toString().replace("\n", "\n    ");
-				}
+			if (StringUtils.isNotBlank(response) && isXml) {
+				formattedResponse = Logging.getPrettifiedXml(response.toString());
 			}
 			if (isNotBlank(formattedResponse)) {
 				LOGGER.trace(

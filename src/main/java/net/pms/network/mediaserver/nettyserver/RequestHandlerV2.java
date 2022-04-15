@@ -33,15 +33,12 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.util.StringUtil;
+import net.pms.util.Logging;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -51,7 +48,6 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
@@ -291,6 +287,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
+		boolean isXml = false;
 		if (event.getMessage() instanceof HttpRequest) {
 			header.append(((HttpRequest) event.getMessage()).getMethod());
 			header.append(" ").append(((HttpRequest) event.getMessage()).getUri());
@@ -307,6 +304,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
 						soapAction = entry.getValue().toUpperCase(Locale.ROOT);
+					} else if ("content-type".equalsIgnoreCase(entry.getKey()) && "text/xml".equalsIgnoreCase(entry.getValue())) {
+						isXml = true;
 					}
 				}
 			}
@@ -315,14 +314,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			header.append(event).append("\n");
 		}
 		String formattedContent = null;
-		if (StringUtils.isNotBlank(content)) {
-			try {
-				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
-			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-				LOGGER.trace("XML parsing failed with:\n{}", e);
-				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
-			}
+		if (StringUtils.isNotBlank(content) && isXml) {
+			formattedContent = Logging.getPrettifiedXml(content);
 		}
 		String requestType = "";
 		// Map known requests to request type

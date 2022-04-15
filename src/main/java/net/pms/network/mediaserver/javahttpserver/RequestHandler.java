@@ -92,6 +92,7 @@ import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
 import net.pms.util.FullyPlayed;
+import net.pms.util.Logging;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
@@ -1369,11 +1370,15 @@ public class RequestHandler implements HttpHandler {
 
 	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
+		boolean isXml = false;
 		for (Map.Entry<String, List<String>> headers : exchange.getResponseHeaders().entrySet()) {
 			String name = headers.getKey();
 			if (StringUtils.isNotBlank(name)) {
 				for (String value : headers.getValue()) {
 					header.append("  ").append(name).append(": ").append(value).append("\n");
+					if ("content-type".equalsIgnoreCase(name) && "text/xml".equalsIgnoreCase(value)) {
+						isXml = true;
+					}
 				}
 			}
 		}
@@ -1390,13 +1395,8 @@ public class RequestHandler implements HttpHandler {
 			);
 		} else {
 			String formattedResponse = null;
-			if (StringUtils.isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response, StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.replace("\n", "\n    ");
-				}
+			if (StringUtils.isNotBlank(response) && isXml) {
+				formattedResponse = Logging.getPrettifiedXml(response);
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
@@ -1444,6 +1444,7 @@ public class RequestHandler implements HttpHandler {
 	private static void logMessageReceived(HttpExchange exchange, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
+		boolean isXml = false;
 		header.append(exchange.getRequestMethod());
 		header.append(" ").append(exchange.getRequestURI());
 		if (header.length() > 0) {
@@ -1459,19 +1460,15 @@ public class RequestHandler implements HttpHandler {
 					header.append("  ").append(name).append(": ").append(value).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(name)) {
 						soapAction = value.toUpperCase(Locale.ROOT);
+					} else if ("content-type".equalsIgnoreCase(name) && "text/xml".equalsIgnoreCase(value)) {
+						isXml = true;
 					}
 				}
 			}
 		}
 		String formattedContent = null;
-		if (StringUtils.isNotBlank(content)) {
-			try {
-				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
-			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-				LOGGER.trace("XML parsing failed with:\n{}", e);
-				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
-			}
+		if (StringUtils.isNotBlank(content) && isXml) {
+			formattedContent = Logging.getPrettifiedXml(content);
 		}
 		String requestType = "";
 		// Map known requests to request type

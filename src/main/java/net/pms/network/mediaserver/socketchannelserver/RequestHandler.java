@@ -31,22 +31,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.util.StringUtil;
+import net.pms.util.Logging;
 import static net.pms.util.StringUtil.convertStringToTime;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 public class RequestHandler implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
@@ -316,6 +312,7 @@ public class RequestHandler implements Runnable {
 	private static void logMessageReceived(List<String> headerLines, String content, SocketAddress remote, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
+		boolean isXml = false;
 
 		if (headerLines != null) {
 			if (!headerLines.isEmpty()) {
@@ -328,6 +325,8 @@ public class RequestHandler implements Runnable {
 						header.append("  ").append(headerLines.get(i)).append("\n");
 						if (headerLines.get(i).toUpperCase(Locale.ROOT).contains("SOAPACTION")) {
 							soapAction = headerLines.get(i).toUpperCase(Locale.ROOT).replaceFirst("\\s*SOAPACTION:\\s*", "");
+						} else if (headerLines.get(i).contains("/xml")) {
+							isXml = true;
 						}
 					}
 				}
@@ -337,14 +336,8 @@ public class RequestHandler implements Runnable {
 		}
 
 		String formattedContent = null;
-		if (StringUtils.isNotBlank(content)) {
-			try {
-				formattedContent = StringUtil.prettifyXML(content, StandardCharsets.UTF_8, 2);
-			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
-				LOGGER.trace("XML parsing failed with:\n{}", e);
-				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
-			}
+		if (StringUtils.isNotBlank(content) && isXml) {
+			formattedContent = Logging.getPrettifiedXml(content.toString());
 		}
 		String requestType = "";
 		// Map known requests to request type

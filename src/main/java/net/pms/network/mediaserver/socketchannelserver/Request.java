@@ -61,11 +61,14 @@ import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.service.Services;
 import net.pms.util.FullyPlayed;
+import net.pms.util.Logging;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1041,9 +1044,13 @@ public class Request extends HTTPResource {
 			if (LOGGER.isTraceEnabled()) {
 				// Log trace information
 				StringBuilder header = new StringBuilder();
+				boolean isXml = false;
 				for (int i = 0; i < responseHeader.size(); i++) {
 					if (isNotBlank(responseHeader.get(i))) {
 						header.append("  ").append(responseHeader.get(i)).append("\n");
+						if (responseHeader.get(i).contains("/xml")) {
+							isXml = true;
+						}
 					}
 				}
 				String rendererName;
@@ -1070,13 +1077,8 @@ public class Request extends HTTPResource {
 					LOGGER.trace("HEAD only response sent to {}:\n\nHEADER:\n{}", rendererName, header);
 				} else {
 					String formattedResponse = null;
-					if (isNotBlank(response)) {
-						try {
-							formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 2);
-						} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-							formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-							formattedResponse += "    " + response.toString().replace("\n", "\n    ");
-						}
+					if (StringUtils.isNotBlank(response) && isXml) {
+						formattedResponse = Logging.getPrettifiedXml(response.toString());
 					}
 					if (isNotBlank(formattedResponse)) {
 						LOGGER.trace(
