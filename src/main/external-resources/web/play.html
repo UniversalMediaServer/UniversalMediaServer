@@ -20,6 +20,9 @@
 		{{^isNativeAudio}}
 			<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
 			<script src="/files/util/video-js/video.min.js"></script>
+			<script src="/files/util/video-js/videojs-contrib-quality-levels.min.js"></script>
+			<script src="/files/util/video-js/videojs-hls-quality-selector.min.js"></script>
+			<link href="/files/util/video-js/videojs-hls-quality-selector.min.css" type="text/css" rel="stylesheet">
 		{{/isNativeAudio}}
 
 		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
@@ -76,13 +79,16 @@
 							{{auto}}
 							fullscreen
 							{{^isNativeAudio}}width="{{width}}" height="{{height}}" {{/isNativeAudio}}
-							data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+							data-setup='{ "liveui": true }'
 							poster="/thumb/{{id1}}"
 						>
 							<source src="/media/{{id1}}" type="{{mime}}">
 							{{#sub}}
 								<track kind="captions" src="/files/{{this}}" default>
 							{{/sub}}
+							{{#isVideoWithChapters}}
+								<track kind="chapters" src="/media/{{id1}}/chapters.vtt" default>
+							{{/isVideoWithChapters}}
 							<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 						</{{mediaType}}>
 						{{^isVideo}}
@@ -132,6 +138,9 @@
 								{{#sub}}
 									<track kind="captions" src="/files/{{this}}" default>
 								{{/sub}}
+								{{#isVideoWithChapters}}
+									<track kind="chapters" src="/media/{{id1}}/chapters.vtt" default>
+								{{/isVideoWithChapters}}
 								<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 							</{{mediaType}}>
 							<script type="text/javascript">
@@ -185,12 +194,15 @@
 			<script>
 				var state = {};
 				var player = document.getElementById('player');
+				videojs('player').hlsQualitySelector();
 
 				function status(k, v, wait) {
 					//console.log('status '+JSON.stringify(arguments));
-					state[k] = v;
-					if (! wait) {
-						$.post('/playerstatus/', JSON.stringify(state));
+					if (state[k] != v) {
+						state[k] = v;
+						if (! wait) {
+							$.post('/playerstatus/', JSON.stringify(state));
+						}
 					}
 				}
 
@@ -202,7 +214,8 @@
 				player.addEventListener('playing', function(){status('playback', 'PLAYING');});
 				player.addEventListener('play', function(){status('playback', 'PLAYING');});
 				player.addEventListener('pause', function(){status('playback', 'PAUSED');});
-				player.addEventListener('canplay', function(){status('playback', 'STOPPED');});
+				player.addEventListener('dispose', function(){status('playback', 'STOPPED');});
+				player.addEventListener('abort', function(){status('playback', 'STOPPED');});
 				player.addEventListener('ended', function(){status('playback', 'STOPPED');});
 				player.addEventListener('error', function(){status('playback', 'STOPPED');});
 				player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
@@ -210,7 +223,7 @@
 				{{#autoContinue}}
 					player.addEventListener('ended', next, false);
 				{{/autoContinue}}
-				window.onbeforeunload = function(){status('playback','STOPPED');}
+				window.addEventListener("beforeunload", function(){status('playback', 'STOPPED');});
 				// Send initial status
 				volumeStatus();
 

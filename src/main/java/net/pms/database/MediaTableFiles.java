@@ -471,6 +471,7 @@ public class MediaTableFiles extends MediaTable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement chapters = connection.prepareStatement("SELECT * FROM " + MediaTableChapters.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
@@ -566,6 +567,21 @@ public class MediaTableFiles extends MediaTable {
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
 								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
 								media.addSubtitlesTrack(sub);
+							}
+						}
+
+						chapters.setLong(1, id);
+						try (ResultSet elements = chapters.executeQuery()) {
+							while (elements.next()) {
+								DLNAMediaChapter chapter = new DLNAMediaChapter();
+								chapter.setId(elements.getInt("ID"));
+								chapter.setLang(elements.getString("LANG"));
+								chapter.setTitle(elements.getString("TITLE"));
+								chapter.setStart(elements.getDouble("START_TIME"));
+								chapter.setEnd(elements.getDouble("END_TIME"));
+								chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
+								LOGGER.trace("Adding chapter from the database for {}: {}", name, chapter.toString());
+								media.addChapter(chapter);
 							}
 						}
 
@@ -714,7 +730,8 @@ public class MediaTableFiles extends MediaTable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, " +
+					"EXTRAINFORMATION " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -909,6 +926,7 @@ public class MediaTableFiles extends MediaTable {
 			if (media != null && fileId > -1) {
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {

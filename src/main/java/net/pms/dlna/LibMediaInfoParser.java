@@ -10,6 +10,10 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -127,6 +131,51 @@ public class LibMediaInfoParser {
 			media.setDuration(parseDuration(MI.Get(general, 0, "Duration")));
 			media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
 			media.setStereoscopy(MI.Get(general, 0, "StereoscopicLayout"));
+			// set Chapters
+			if (MI.Count_Get(StreamType.Menu, 0) > 0) {
+				String chaptersPosBeginStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_Begin", MediaInfo.InfoType.Text);
+				String chaptersPosEndStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_End", MediaInfo.InfoType.Text);
+				if (!chaptersPosBeginStr.isEmpty() && !chaptersPosEndStr.isEmpty()) {
+					int chaptersPosBegin = Integer.valueOf(chaptersPosBeginStr);
+					int chaptersPosEnd = Integer.valueOf(chaptersPosEndStr);
+					List<DLNAMediaChapter> chapters = new ArrayList();
+					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
+						String chapterName = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Name);
+						String chapterTitle = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Text);
+						if (!chapterName.isEmpty()) {
+							DLNAMediaChapter chapter = new DLNAMediaChapter();
+							LocalTime lt = LocalTime.parse(chapterName, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
+							chapter.setId(i - chaptersPosBegin);
+							chapter.setStart(lt.toNanoOfDay() / 1000_000_000D);
+							//set end for previous chapter
+							if (!chapters.isEmpty()) {
+								chapters.get(chapters.size() - 1).setEnd(chapter.getStart());
+							}
+							if (!chapterTitle.isEmpty()) {
+								String lang = DLNAMediaLang.UND;
+								chapter.setLang(lang);
+								if (chapterTitle.startsWith(":")) {
+									chapterTitle = chapterTitle.substring(1);
+								} else if (chapterTitle.length() > 2 && ':' == chapterTitle.charAt(2) && (chapterTitle.length() < 15 || ':' != chapterTitle.charAt(5) || ':' == chapterTitle.charAt(8))) {
+									lang = chapterTitle.substring(0, 2);
+									chapterTitle = chapterTitle.substring(3);
+								}
+								//do not set title if it is default, it will be filled automatically later
+								if (!DLNAMediaChapter.isTitleDefault(chapterTitle)) {
+									chapter.setLang(lang);
+									chapter.setTitle(chapterTitle);
+								}
+							}
+							chapters.add(chapter);
+						}
+					}
+					//set end for previous chapter
+					if (!chapters.isEmpty()) {
+						chapters.get(chapters.size() - 1).setEnd(media.getDurationInSeconds());
+					}
+					media.setChapters(chapters);
+				}
+			}
 			value = MI.Get(general, 0, "Cover_Data");
 			if (!value.isEmpty()) {
 				try {

@@ -339,7 +339,6 @@ public class FFMpegVideo extends Player {
 		final String filename = dlna.getFileName();
 		final RendererConfiguration renderer = params.getMediaRenderer();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-
 		if (
 			(
 				renderer.isTranscodeToWMV() &&
@@ -808,6 +807,12 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		RendererConfiguration renderer = params.getMediaRenderer();
+		if (params.isHlsConfigured()) {
+			LOGGER.trace("Switching from FFmpeg to Hls FFmpeg to transcode.");
+			FFmpegHlsVideo hls = (FFmpegHlsVideo) PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_HLS_VIDEO, false, true);
+			return hls.launchTranscode(dlna, media, params);
+		}
 		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
@@ -815,7 +820,6 @@ public class FFMpegVideo extends Player {
 		// Use device-specific pms conf
 		PmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
-		RendererConfiguration renderer = params.getMediaRenderer();
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -875,11 +879,6 @@ public class FFMpegVideo extends Player {
 			} else {
 				cmdList.add(askedLogLevel.label);
 			}
-		}
-
-		if (params.getTimeSeek() > 0) {
-			cmdList.add("-ss");
-			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Decoding threads and GPU deccding
@@ -946,6 +945,12 @@ public class FFMpegVideo extends Player {
 
 		String frameRateRatio = media.getValidFps(true);
 		String frameRateNumber = media.getValidFps(false);
+
+		// Set seeks
+		if (params.getTimeSeek() > 0) {
+			cmdList.add("-ss");
+			cmdList.add(String.valueOf(params.getTimeSeek()));
+		}
 
 		// Input filename
 		cmdList.add("-i");
@@ -1077,7 +1082,7 @@ public class FFMpegVideo extends Player {
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
 		List<String> videoFilterOptions = getVideoFilterOptions(dlna, media, params);
-		if (videoFilterOptions.size() > 0) {
+		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 			canMuxVideoWithFFmpeg = false;
 		}

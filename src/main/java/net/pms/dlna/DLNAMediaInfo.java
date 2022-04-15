@@ -18,6 +18,8 @@
  */
 package net.pms.dlna;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
@@ -77,7 +79,7 @@ import org.slf4j.LoggerFactory;
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
+	private static final Gson GSON = new Gson();
 	public static final long ENDFILE_POS = 99999475712L;
 
 	/**
@@ -173,6 +175,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
+	private List<DLNAMediaChapter> chapters = new ArrayList<>();
 
 	private String muxingMode;
 	private String muxingModeAudio;
@@ -249,7 +252,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean hasAudio() {
-		return audioTracks.size() > 0;
+		return !audioTracks.isEmpty();
 	}
 
 	/**
@@ -1196,7 +1199,6 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 					} else if (line.contains("Subtitle:")) {
 						DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-
 						// $ ffmpeg -codecs | grep "^...S"
 						// ..S... = Subtitle codec
 						// DES... ass                  ASS (Advanced SSA) subtitle
@@ -1221,7 +1223,6 @@ public class DLNAMediaInfo implements Cloneable {
 						// D.S... vplayer              VPlayer subtitle
 						// D.S... webvtt               WebVTT subtitle
 						// DES... xsub                 XSUB
-
 						if (line.contains("srt") || line.contains("subrip")) {
 							lang.setType(SubtitleType.SUBRIP);
 						} else if (line.contains(" text")) {
@@ -1248,7 +1249,6 @@ public class DLNAMediaInfo implements Cloneable {
 						} else {
 							lang.setType(SubtitleType.UNKNOWN);
 						}
-
 						int a = line.indexOf('(');
 						int b = line.indexOf("):", a);
 						if (a > -1 && b > a) {
@@ -1256,18 +1256,14 @@ public class DLNAMediaInfo implements Cloneable {
 						} else {
 							lang.setLang(DLNAMediaLang.UND);
 						}
-
 						lang.setId(subId++);
 						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
-
 						if (fFmpegMetaDataNr > -1) {
 							line = lines.get(fFmpegMetaDataNr);
 						}
-
 						if (line.contains("Metadata:")) {
 							fFmpegMetaDataNr += 1;
 							line = lines.get(fFmpegMetaDataNr);
-
 							while (line.indexOf("      ") == 0) {
 								if (line.toLowerCase().contains("title           :")) {
 									int aa = line.indexOf(": ");
@@ -1283,6 +1279,72 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 						}
 						subtitleTracks.add(lang);
+					} else if (line.contains("Chapters:")) {
+						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
+						if (fFmpegMetaDataNr > -1) {
+							line = lines.get(fFmpegMetaDataNr);
+						}
+						List<DLNAMediaChapter> ffmpegChapters = new ArrayList();
+						while (line.contains("Chapter #")) {
+							DLNAMediaChapter chapter = new DLNAMediaChapter();
+							//set chapter id
+							String idStr = line.substring(line.indexOf("Chapter #") + 9);
+							if (idStr.contains(" ")) {
+								idStr = idStr.substring(0, idStr.indexOf(" "));
+							}
+							String[] ids = idStr.split(":");
+							if (ids.length > 1) {
+								chapter.setId(Integer.valueOf(ids[1]));
+							} else {
+								chapter.setId(Integer.valueOf(ids[0]));
+							}
+							//set chapter start
+							if (line.contains("start ")) {
+								String startStr = line.substring(line.indexOf("start ") + 6);
+								if (startStr.contains(" ")) {
+									startStr = startStr.substring(0, startStr.indexOf(" "));
+								}
+								if (startStr.endsWith(",")) {
+									startStr = startStr.substring(0, startStr.length() - 1);
+								}
+								chapter.setStart(Double.valueOf(startStr));
+							}
+							//set chapter end
+							if (line.contains(" end ")) {
+								String endStr = line.substring(line.indexOf(" end ") + 5);
+								if (endStr.contains(" ")) {
+									endStr = endStr.substring(0, endStr.indexOf(" "));
+								}
+								chapter.setEnd(Double.valueOf(endStr));
+							}
+							chapter.setLang(DLNAMediaLang.UND);
+							fFmpegMetaDataNr += 1;
+							line = lines.get(fFmpegMetaDataNr);
+							if (line.contains("Metadata:")) {
+								fFmpegMetaDataNr += 1;
+								line = lines.get(fFmpegMetaDataNr);
+								while (line.indexOf("      ") == 0) {
+									if (line.contains(": ")) {
+										int aa = line.indexOf(": ");
+										String key = line.substring(0, aa);
+										String value = line.substring(aa + 2);
+										if ("title".equals(key)) {
+											//do not set title if it is default, it will be filled automatically later
+											if (!DLNAMediaChapter.isTitleDefault(value)) {
+												chapter.setTitle(value);
+											}
+										} else {
+											LOGGER.debug("New chapter metadata not handled \"" + key + "\" : \"" + value + "\"");
+										}
+									} else {
+										fFmpegMetaDataNr += 1;
+										line = lines.get(fFmpegMetaDataNr);
+									}
+								}
+							}
+							ffmpegChapters.add(chapter);
+						}
+						setChapters(ffmpegChapters);
 					}
 				}
 			}
@@ -1383,6 +1445,9 @@ public class DLNAMediaInfo implements Cloneable {
 					break;
 				case FormatConfiguration.MPEGTS:
 					mimeType = HTTPResource.MPEGTS_TYPEMIME;
+					break;
+				case FormatConfiguration.MPEGTS_HLS:
+					mimeType = HTTPResource.HLS_TYPEMIME;
 					break;
 				case FormatConfiguration.WMV:
 					mimeType = HTTPResource.WMV_TYPEMIME;
@@ -2741,6 +2806,63 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public synchronized void addSubtitlesTrack(DLNAMediaSubtitle subtitlesTrack) {
 		this.subtitleTracks.add(subtitlesTrack);
+	}
+
+	/**
+	 * @return the chapters
+	 */
+	public synchronized List<DLNAMediaChapter> getChapters() {
+		return chapters;
+	}
+
+	/**
+	 *
+	 * @param chapters the chapters to add
+	 */
+	public void setChapters(List<DLNAMediaChapter> chapters) {
+		this.chapters = chapters;
+	}
+
+	/**
+	 *
+	 * @param chapter the chapter to add
+	 */
+	public void addChapter(DLNAMediaChapter chapter) {
+		this.chapters.add(chapter);
+	}
+
+	/**
+	 *
+	 * @return true if has chapter
+	 */
+	public boolean hasChapters() {
+		return !chapters.isEmpty();
+	}
+
+	/**
+	 *
+	 * @return the json string representation of chapters
+	 */
+	public String getChaptersToJson() {
+		return GSON.toJson(chapters);
+	}
+
+	/**
+	 *
+	 * @param json the json string representation of chapters to set
+	 */
+	public void setChaptersFromJson(String json) {
+		if (StringUtils.isNotBlank(json)) {
+			try {
+				DLNAMediaChapter[] jsonChapters = new DLNAMediaChapter[0];
+				jsonChapters = GSON.fromJson(json, jsonChapters.getClass());
+				if (jsonChapters.length > 0) {
+					chapters = Arrays.asList(jsonChapters);
+				}
+			} catch (JsonIOException e) {
+				LOGGER.debug("Could not parsejson string representation of chapters");
+			}
+		}
 	}
 
 	/**

@@ -56,6 +56,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -76,6 +77,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
+import net.pms.encoders.HlsHelper;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -372,7 +374,46 @@ public class RequestV2 extends HTTPResource {
 
 				if (dlna != null) {
 					// DLNAresource was found.
-					if (fileName.startsWith("thumbnail0000")) {
+					if (fileName.endsWith("/chapters.vtt")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
+						response.append(DLNAMediaChapter.getWebVtt(dlna));
+					} else if (fileName.endsWith("/chapters.json")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
+						response.append(DLNAMediaChapter.getHls(dlna));
+					} else if (fileName.startsWith("hls/")) {
+						//HLS
+						if (fileName.endsWith(".m3u8")) {
+							//HLS rendition m3u8 file
+							String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+							if (HlsHelper.getByKey(rendition) != null) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
+								response.append(HlsHelper.getHLSm3u8ForRendition(dlna, mediaRenderer, "/get/", rendition));
+							}
+						} else {
+							//HLS stream request
+							cLoverride = DLNAMediaInfo.TRANS_SIZE;
+							inputStream = HlsHelper.getInputStream("/" + fileName, dlna, mediaRenderer);
+							if (fileName.endsWith(".ts")) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+							} else if (fileName.endsWith(".vtt")) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
+							}
+						}
+					} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+						//HLS start m3u8 file
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
+						response.append(HlsHelper.getHLSm3u8(dlna, mediaRenderer, "/get/"));
+						if (contentFeatures != null) {
+							//output.headers().set("transferMode.dlna.org", "Streaming");
+							if (dlna.getMedia().getDurationInSeconds() > 0) {
+								String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
+								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
+								//only time seek, transcoded
+								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
+							}
+						}
+					} else if (fileName.startsWith("thumbnail0000")) {
 						// This is a request for a thumbnail file.
 						DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
@@ -1036,7 +1077,7 @@ public class RequestV2 extends HTTPResource {
 
 		String responseCode = output.getProtocolVersion() + " " + output.getStatus();
 		String rendererName = getRendererName();
-
+		String contentType = output.headers().get(HttpHeaders.Names.CONTENT_TYPE);
 		if (HEAD.equals(method)) {
 			LOGGER.trace(
 				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
@@ -1049,11 +1090,15 @@ public class RequestV2 extends HTTPResource {
 		} else {
 			String formattedResponse = null;
 			if (isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.toString().replace("\n", "\n    ");
+				if (contentType != null && contentType.startsWith("text/xml")) {
+					try {
+						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse += "    " + response.toString().replace("\n", "\n    ");
+					}
+				} else {
+					formattedResponse = response.toString();
 				}
 			}
 			if (isNotBlank(formattedResponse)) {
