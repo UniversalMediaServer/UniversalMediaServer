@@ -25,8 +25,9 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.IPushOutput;
+import net.pms.encoders.HlsHelper.HlsConfiguration;
 
-public class OutputParams {
+public final class OutputParams {
 
 	private File workDir;
 	private Map<String, String> env;
@@ -58,6 +59,7 @@ public class OutputParams {
 	private boolean avidemux;
 	private boolean shiftScr;
 	private boolean cleanup;
+	private HlsConfiguration hlsConfiguration;
 
 	public OutputParams(PmsConfiguration configuration) {
 		if (configuration != null) {
@@ -78,6 +80,7 @@ public class OutputParams {
 		}
 		setTimeSeek(0);
 		setEnv(null);
+		setHlsConfiguration(null);
 	}
 
 	/**
@@ -362,5 +365,17 @@ public class OutputParams {
 
 	public void setCleanup(boolean cleanup) {
 		this.cleanup = cleanup;
+	}
+
+	public boolean isHlsConfigured() {
+		return hlsConfiguration != null;
+	}
+
+	public HlsConfiguration getHlsConfiguration() {
+		return hlsConfiguration;
+	}
+
+	public void setHlsConfiguration(HlsConfiguration hlsConfiguration) {
+		this.hlsConfiguration = hlsConfiguration;
 	}
 }

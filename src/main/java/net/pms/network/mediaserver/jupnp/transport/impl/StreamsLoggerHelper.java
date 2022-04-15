@@ -139,21 +139,23 @@ public class StreamsLoggerHelper {
 	}
 
 	private static String getFormattedBody(UpnpMessage message) {
-		String formattedBody;
+		String formattedBody = "";
 		//message.isBodyNonEmptyString throw StringIndexOutOfBoundsException if string is empty
 		try {
 			boolean bodyNonEmpty = message.getBody() != null &&
 					((message.getBody() instanceof String && ((String) message.getBody()).length() > 0) ||
 					(message.getBody() instanceof byte[] && ((byte[]) message.getBody()).length > 0));
 			if (bodyNonEmpty && message.isBodyNonEmptyString()) {
-				try {
-					formattedBody = StringUtil.prettifyXML(message.getBodyString(), StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedBody = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedBody += "    " + message.getBodyString().replace("\n", "\n    ");
+				if (message.getContentTypeHeader().isText()) {
+					try {
+						formattedBody = StringUtil.prettifyXML(message.getBodyString(), StandardCharsets.UTF_8, 4);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						formattedBody = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedBody += "    " + message.getBodyString().replace("\n", "\n    ");
+					}
+				} else {
+					formattedBody = message.getBodyString();
 				}
-			} else {
-				formattedBody = message.getBodyString();
 			}
 		} catch (Exception e) {
 			formattedBody = "";

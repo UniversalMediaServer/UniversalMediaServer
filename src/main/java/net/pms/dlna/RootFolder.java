@@ -46,6 +46,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.BasicSystemUtils;
@@ -82,6 +83,25 @@ public class RootFolder extends DLNAResource {
 	public RootFolder() {
 		setIndexId(0);
 		webFolders = new ArrayList<>();
+		addVirtualMyMusicFolder();
+	}
+
+	private void addVirtualMyMusicFolder() {
+		DbIdTypeAndIdent2 myAlbums = new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			if (!getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId("0");
+				addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to root");
+			}
+		} else {
+			if (!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+				PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to 'Audio' folder");
+			}
+		}
 	}
 
 	@Override
@@ -275,6 +295,10 @@ public class RootFolder extends DLNAResource {
 	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
+				// wait until the realtime lock is released before starting
+				PMS.REALTIME_LOCK.lock();
+				PMS.REALTIME_LOCK.unlock();
+
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 
@@ -1579,7 +1603,7 @@ public class RootFolder extends DLNAResource {
 						} else {
 							if ("ENTRY_DELETE".equals(event)) {
 								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-								MediaTableFiles.removeMediaEntry(connection, filename);
+								MediaTableFiles.removeMediaEntry(connection, filename, true);
 								bumpSystemUpdateId();
 							} else if ("ENTRY_CREATE".equals(event)) {
 								LOGGER.trace("File {} was created on the hard drive", filename);

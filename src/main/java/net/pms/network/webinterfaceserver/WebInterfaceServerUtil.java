@@ -134,6 +134,7 @@ public class WebInterfaceServerUtil {
 					os.write(buffer, 0, bytes);
 					os.flush();
 				}
+				LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
 			} catch (IOException e) {
 				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
 			} finally {
@@ -521,14 +522,14 @@ public class WebInterfaceServerUtil {
 	 * - A template manager.
 	 */
 	public static class ResourceManager extends URLClassLoader {
-		private HashSet<File> files;
-		private HashMap<String, Template> templates;
+		private final HashSet<File> files;
+		private final HashMap<String, Template> templates;
 
 		public ResourceManager(String... urls) {
 			super(new URL[]{}, null);
 			try {
 				for (String url : urls) {
-					addURL(new URL(url));
+					super.addURL(new URL(url));
 				}
 			} catch (MalformedURLException e) {
 				LOGGER.debug("Error adding resource url: " + e);
@@ -544,7 +545,7 @@ public class WebInterfaceServerUtil {
 				if (file != null && file.exists()) {
 					try {
 						stream = new FileInputStream(file);
-					} catch (Exception e) {
+					} catch (FileNotFoundException e) {
 						LOGGER.debug("Error opening stream: " + e);
 					}
 				}

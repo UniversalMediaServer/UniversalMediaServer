@@ -61,6 +61,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -82,6 +83,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
+import net.pms.encoders.HlsHelper;
+import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -419,9 +422,53 @@ public class RequestHandler implements HttpHandler {
 			if (exchange.getRequestHeaders().containsKey("getcontentfeatures.dlna.org")) {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
-
 			// DLNAresource was found.
-			if (fileName.startsWith("thumbnail0000")) {
+			if (fileName.endsWith("/chapters.vtt")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
+				return;
+			} else if (fileName.endsWith("/chapters.json")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getHls(dlna), HTTPResource.JSON_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("hls/")) {
+				//HLS
+				if (fileName.endsWith(".m3u8")) {
+					//HLS rendition m3u8 file
+					String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+					if (HlsHelper.getByKey(rendition) != null) {
+						sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8ForRendition(dlna, renderer, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
+					} else {
+						sendResponse(exchange, renderer, 404, null);
+					}
+				} else {
+					//HLS stream request
+					inputStream = HlsHelper.getInputStream("/" + fileName, dlna, renderer);
+					if (inputStream != null) {
+						if (fileName.endsWith(".ts")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+						} else if (fileName.endsWith(".vtt")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+						}
+						sendResponse(exchange, renderer, 200, inputStream, DLNAMediaInfo.TRANS_SIZE, true);
+					} else {
+						sendResponse(exchange, renderer, 404, null);
+					}
+				}
+				return;
+			} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+				//HLS start m3u8 file
+				if (contentFeatures != null) {
+					//output.headers().set("transferMode.dlna.org", "Streaming");
+					if (dlna.getMedia().getDurationInSeconds() > 0) {
+						String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+						exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
+						exchange.getResponseHeaders().set("X-AvailableSeekRange", "npt=0-" + durationStr);
+						//only time seek, transcoded
+						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+					}
+				}
+				sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8(dlna, renderer, "/get/"), HTTPResource.HLS_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("thumbnail0000")) {
 				// This is a request for a thumbnail file.
 				DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 				exchange.getResponseHeaders().set("Content-Type", imageProfile.getMimeType().toString());

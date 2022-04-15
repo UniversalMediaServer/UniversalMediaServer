@@ -6,23 +6,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdTypeAndIdent2;
 import net.pms.dlna.RealFileDbId;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mymusic.MusicBrainzAlbum;
 
 /**
  * <pre>
@@ -45,6 +50,7 @@ public class SearchRequestHandler {
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
 	private final AtomicInteger updateID = new AtomicInteger(1);
+	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	public SearchRequestHandler() {
 	}
@@ -81,16 +87,9 @@ public class SearchRequestHandler {
 		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
 		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbIdTypeAndIdent2(requestType, ""), "");
-		if (requestType == DbIdMediaType.TYPE_AUDIO || requestType == DbIdMediaType.TYPE_PLAYLIST) {
-			String sqlFiles = convertToFilesSql(requestMessage, requestType);
-			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
-				folder.addChild(resource);
-			}
-		} else {
-			String sqlFiles = convertToFilesSql(requestMessage, requestType);
-			for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
-				folder.addChild(resource);
-			}
+		String sqlFiles = convertToFilesSql(requestMessage, requestType);
+		for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
+			folder.addChild(resource);
 		}
 
 		folder.discoverChildren();
@@ -115,11 +114,11 @@ public class SearchRequestHandler {
 	private String addSqlSelectByType(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO:
-				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				return "select A.RATING, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			case TYPE_PERSON:
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			case TYPE_ALBUM:
-				return "select DISTINCT ALBUM as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
 			case TYPE_PLAYLIST:
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			case TYPE_VIDEO:
@@ -158,8 +157,41 @@ public class SearchRequestHandler {
 		StringBuilder sb = new StringBuilder();
 		sb.append(addSqlSelectByType(requestType));
 		addSqlWherePart(requestMessage.getSearchCriteria(), requestType, sb);
+		addOrderBy(requestMessage, requestType, sb);
 		addLimit(requestMessage, requestType, sb);
+		LOGGER.trace(sb.toString());
 		return sb.toString();
+	}
+
+	private void addOrderBy(SearchRequest requestMessage, DbIdMediaType requestType, StringBuilder sb) {
+		sb.append(" ORDER BY ");
+		if (!StringUtils.isAllBlank(requestMessage.getSortCriteria())) {
+			String[] sortElements = requestMessage.getSortCriteria().split("[;, ]");
+			try {
+				for (String sort : sortElements) {
+					if (!StringUtils.isAllBlank(sort)) {
+						String field = getField(sort.substring(1), requestType);
+						if (!StringUtils.isAllBlank(field)) {
+							sb.append(field);
+							sb.append(sortOrder(sort.substring(0, 1)));
+							sb.append(", ");
+						}
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.trace("ERROR while processing 'addOrderBy'");
+			}
+		}
+		sb.append(String.format(" oid "));
+	}
+
+	private String sortOrder(String order) {
+		if ("+".equals(order)) {
+			return " ASC ";
+		} else if ("-".equals(order)) {
+			return " DESC ";
+		}
+		return "";
 	}
 
 	private void addLimit(SearchRequest requestMessage, DbIdMediaType requestType, StringBuilder sb) {
@@ -168,7 +200,7 @@ public class SearchRequestHandler {
 		if (limit == 0) {
 			limit = 999; // performance issue: do only deliver top 999 items
 		}
-		sb.append(String.format(" ORDER BY oid LIMIT %d OFFSET %d ", limit, offset));
+		sb.append(String.format(" LIMIT %d OFFSET %d ", limit, offset));
 	}
 
 	String convertToCountSql(String upnpSearch, DbIdMediaType requestType) {
@@ -216,19 +248,24 @@ public class SearchRequestHandler {
 		sb.append("");
 	}
 
-	private Object getField(String property, DbIdMediaType requestType) {
+	private String getField(String property, DbIdMediaType requestType) {
 		// handle title by return type.
 		if ("dc:title".equalsIgnoreCase(property)) {
 			return getTitlePropertyMapping(requestType);
 		} else if ("upnp:artist".equalsIgnoreCase(property)) {
-			return " A.ARTIST";
+			return " A.ARTIST ";
 		} else if ("upnp:genre".equalsIgnoreCase(property)) {
-			return " A.GENRE";
+			return " A.GENRE ";
 		} else if ("dc:creator".equalsIgnoreCase(property)) {
 			return " A.ALBUMARTIST ";
 		} else if ("upnp:album".equalsIgnoreCase(property)) {
 			return " A.ALBUM ";
+		} else if ("upnp:rating".equalsIgnoreCase(property)) {
+			return " rating ";
+		} else if ("ums:likedAlbum".equalsIgnoreCase(property)) {
+			return " liked ";
 		}
+
 		throw new RuntimeException("unknown or unimplemented property: >" + property + "<");
 	}
 
@@ -303,10 +340,7 @@ public class SearchRequestHandler {
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
-				try (
-					Statement statement = connection.createStatement();
-					ResultSet resultSet = statement.executeQuery(query)
-				) {
+				try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(query)) {
 					if (resultSet.next()) {
 						return resultSet.getInt(1);
 					}
@@ -338,20 +372,32 @@ public class SearchRequestHandler {
 			if (connection != null) {
 				try (Statement statement = connection.createStatement()) {
 					try (ResultSet resultSet = statement.executeQuery(query)) {
+						Set<String> foundMbidAlbums = new HashSet<>();
 						while (resultSet.next()) {
 							String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
 							switch (type) {
 								case TYPE_ALBUM:
+									String mbid = resultSet.getString("MBID_RECORD");
+									if (StringUtils.isAllBlank(mbid)) {
+										filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
+									} else {
+										if (!foundMbidAlbums.contains(mbid)) {
+											VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
+												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
+											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
+												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
+											dbIdResourceLocator.appendAlbumInformation(album, albumFolder);
+											filesList.add(albumFolder);
+											foundMbidAlbums.add(mbid);
+										}
+									}
+									break;
 								case TYPE_PERSON:
 									filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
 									break;
 								case TYPE_PLAYLIST:
-									filesList.add(new VirtualFolderDbId(
-											filenameField,
-											new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
-											""
-										)
-									);
+									filesList.add(
+										new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, resultSet.getString("FID")), ""));
 									break;
 								default:
 									filesList.add(new RealFileDbId(new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
