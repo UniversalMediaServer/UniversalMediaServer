@@ -1376,7 +1376,7 @@ public class RequestHandler implements HttpHandler {
 			if (StringUtils.isNotBlank(name)) {
 				for (String value : headers.getValue()) {
 					header.append("  ").append(name).append(": ").append(value).append("\n");
-					if ("content-type".equalsIgnoreCase(name) && "text/xml".equalsIgnoreCase(value)) {
+					if ("content-type".equalsIgnoreCase(name) && "/XML".contains(value.toUpperCase())) {
 						isXml = true;
 					}
 				}
@@ -1460,7 +1460,7 @@ public class RequestHandler implements HttpHandler {
 					header.append("  ").append(name).append(": ").append(value).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(name)) {
 						soapAction = value.toUpperCase(Locale.ROOT);
-					} else if ("content-type".equalsIgnoreCase(name) && "text/xml".equalsIgnoreCase(value)) {
+					} else if ("content-type".equalsIgnoreCase(name) && "/XML".contains(value.toUpperCase())) {
 						isXml = true;
 					}
 				}

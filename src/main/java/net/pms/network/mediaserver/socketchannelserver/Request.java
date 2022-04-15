@@ -1048,7 +1048,7 @@ public class Request extends HTTPResource {
 				for (int i = 0; i < responseHeader.size(); i++) {
 					if (isNotBlank(responseHeader.get(i))) {
 						header.append("  ").append(responseHeader.get(i)).append("\n");
-						if (responseHeader.get(i).contains("/xml")) {
+						if ("/XML".contains(responseHeader.get(i).toUpperCase())) {
 							isXml = true;
 						}
 					}
