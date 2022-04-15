@@ -58,6 +58,7 @@ public class ConsoleHandler implements HttpHandler {
 
 	public static String servePage(String command) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("<!DOCTYPE html>");
 		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
 		PmsConfiguration configuration = PMS.getConfiguration();
