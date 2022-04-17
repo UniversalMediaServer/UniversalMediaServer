@@ -85,8 +85,9 @@ public class MediaTableFiles extends MediaTable {
 	 *       updating H2Database to v2)
 	 * - 26: No db changes, improved filename parsing
 	 * - 27: Added many columns for TMDB information
+	 * - 28: No db changes, clear database metadata to populate new columns
 	 */
-	private static final int TABLE_VERSION = 27;
+	private static final int TABLE_VERSION = 28;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -98,9 +99,6 @@ public class MediaTableFiles extends MediaTable {
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_FRAMERATEMODE = 16;
 
-	private static final int SIZE_SAMPLEFREQ = 16;
-	private static final int SIZE_CODECA = 32;
-	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
 	private static final int SIZE_TVEPISODENUMBER = 8;
@@ -109,7 +107,6 @@ public class MediaTableFiles extends MediaTable {
 	 * The columns we added from TMDB in V11
 	 */
 	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
-	private static final String TMDB_COLUMNS_PLACEHOLDERS = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
 	/*
 	 * Checks and creates or upgrades the table as needed.
@@ -270,6 +267,28 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
+						version++;
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 27:
+						try (Statement statement = connection.createStatement()) {
+							// Clear database metadata to populate new columns
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("UPDATE ")
+									.append("FILES ")
+								.append("SET ")
+									.append("IMDBID = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
+									.append("MOVIEORSHOWNAME = NULL, ")
+									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+									.append("TVSEASON = NULL, ")
+									.append("TVEPISODENUMBER = NULL, ")
+									.append("TVEPISODENAME = NULL, ")
+									.append("ISTVEPISODE = NULL, ")
+									.append("EXTRAINFORMATION = NULL ");
+							statement.execute(sb.toString());
+						}
 						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
