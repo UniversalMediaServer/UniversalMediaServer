@@ -714,11 +714,11 @@ public class WebInterfaceServerUtil {
 			String firstAirDate = "";
 			String homepage = "";
 			String images = "[]";
-			Boolean inProduction = null;
+			String inProduction = "";
 			String languages = "";
 			String lastAirDate = "";
 			String networks = "";
-			String numberOfEpisodes = "";
+			Double numberOfEpisodes = null;
 			String numberOfSeasons = "";
 			String originCountry = "";
 			String originalLanguage = "";
@@ -892,7 +892,7 @@ public class WebInterfaceServerUtil {
 					images = (String) row.get("IMAGES");
 				}
 				if (row.get("INPRODUCTION") != null) {
-					inProduction = (Boolean) row.get("INPRODUCTION");
+					inProduction = (String) row.get("INPRODUCTION");
 				}
 				if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
 					languages = (String) row.get("LANGUAGES");
@@ -903,8 +903,8 @@ public class WebInterfaceServerUtil {
 				if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
 					networks = (String) row.get("NETWORKS");
 				}
-				if (StringUtils.isNotBlank((String) row.get("NUMBEROFEPISODES"))) {
-					numberOfEpisodes = (String) row.get("NUMBEROFEPISODES");
+				if (row.get("NUMBEROFEPISODES") != null) {
+					numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
 				}
 				if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
 					numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
@@ -1015,11 +1015,11 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var homepage = \"" + StringEscapeUtils.escapeEcmaScript(homepage) + "\";";
 			javascriptVarsScript += "var imageBaseURL = \"" + APIUtils.getApiImageBaseURL() + "\";";
 			javascriptVarsScript += "var images = " + images + ";";
-			javascriptVarsScript += "var inProduction = " + inProduction + ";";
+			javascriptVarsScript += "var inProduction = \"" + StringEscapeUtils.escapeEcmaScript(inProduction) + "\";";
 			javascriptVarsScript += "var languages = \"" + StringEscapeUtils.escapeEcmaScript(languages) + "\";";
 			javascriptVarsScript += "var lastAirDate = \"" + StringEscapeUtils.escapeEcmaScript(lastAirDate) + "\";";
 			javascriptVarsScript += "var networks = \"" + StringEscapeUtils.escapeEcmaScript(networks) + "\";";
-			javascriptVarsScript += "var numberOfEpisodes = \"" + StringEscapeUtils.escapeEcmaScript(numberOfEpisodes) + "\";";
+			javascriptVarsScript += "var numberOfEpisodes = " + numberOfEpisodes + ";";
 			javascriptVarsScript += "var numberOfSeasons = \"" + StringEscapeUtils.escapeEcmaScript(numberOfSeasons) + "\";";
 			javascriptVarsScript += "var originCountry = \"" + StringEscapeUtils.escapeEcmaScript(originCountry) + "\";";
 			javascriptVarsScript += "var originalLanguage = \"" + StringEscapeUtils.escapeEcmaScript(originalLanguage) + "\";";
