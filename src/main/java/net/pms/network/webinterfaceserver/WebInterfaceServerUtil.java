@@ -726,6 +726,7 @@ public class WebInterfaceServerUtil {
 			String productionCompanies = "";
 			String productionCountries = "";
 			String seasons = "";
+			String seriesImages = "[]";
 			String seriesType = "";
 			String spokenLanguages = "";
 			String status = "";
@@ -888,6 +889,30 @@ public class WebInterfaceServerUtil {
 				if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
 					homepage = (String) row.get("HOMEPAGE");
 				}
+
+				if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
+					connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
+							List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
+							Iterator<HashMap<String, Object>> seriesIterator = optionalSeriesMetadataFromDatabase.iterator();
+							if (optionalSeriesMetadataFromDatabase != null) {
+								HashMap<String, Object> seriesRow = seriesIterator.next();
+								if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
+									seriesImages = (String) seriesRow.get("IMAGES");
+								}
+							}
+						}
+					} catch (Exception e) {
+						LOGGER.error("Error while getting series metadata for web interface");
+						LOGGER.debug("", e);
+					} finally {
+						MediaDatabase.close(connection);
+					}
+				}
+
 				if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
 					images = (String) row.get("IMAGES");
 				}
@@ -1027,6 +1052,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var productionCompanies = \"" + StringEscapeUtils.escapeEcmaScript(productionCompanies) + "\";";
 			javascriptVarsScript += "var productionCountries = \"" + StringEscapeUtils.escapeEcmaScript(productionCountries) + "\";";
 			javascriptVarsScript += "var seasons = \"" + StringEscapeUtils.escapeEcmaScript(seasons) + "\";";
+			javascriptVarsScript += "var seriesImages = " + seriesImages + ";";
 			javascriptVarsScript += "var seriesType = \"" + StringEscapeUtils.escapeEcmaScript(seriesType) + "\";";
 			javascriptVarsScript += "var spokenLanguages = \"" + StringEscapeUtils.escapeEcmaScript(spokenLanguages) + "\";";
 			javascriptVarsScript += "var status = \"" + StringEscapeUtils.escapeEcmaScript(status) + "\";";

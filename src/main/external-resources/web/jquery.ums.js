@@ -456,6 +456,49 @@ function setBackgroundAndColorScheme(imageElementId) {
 	$('body').addClass(isDarkColorNeededOnThisColor([rgb.r, rgb.g, rgb.b]) ? 'dark' : 'light');
 }
 
+function useApiImages(apiImages) {
+	// Set the page background and color scheme
+	if (apiImages[0].backdrops && apiImages[0].backdrops[0]) {
+		var backgrounds = apiImages[0].backdrops;
+		var randomIndex = Math.floor(Math.random() * backgrounds.length);
+		var randomBackground = backgrounds[randomIndex];
+
+		var backgroundImagePreCreation = new Image();
+		backgroundImagePreCreation.crossOrigin = '';
+		backgroundImagePreCreation.id = 'backgroundPreload';
+		backgroundImagePreCreation.onload = function() {
+			document.body.style.backgroundRepeat = 'no-repeat';
+			document.body.style.backgroundSize = 'cover';
+			document.body.style.backgroundAttachment = 'fixed';
+			document.body.style.transition = 'background-image 1s ease-in-out';
+			setBackgroundAndColorScheme('backgroundPreload');
+		}
+		setTimeout(function() {
+			backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
+			$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
+		});
+
+		isBackgroundImage = true;
+	}
+	// Set a logo as the heading
+	if (apiImages[0].logos && apiImages[0].logos[0]) {
+		// TODO: Support i18n for logos
+		var logos = _.pickBy(apiImages[0].logos, function(logo) {
+			return logo.iso_639_1 === null || logo.iso_639_1 === 'en';
+		});
+		var logo = logos[0];
+
+		var logoImagePreCreation = new Image();
+		logoImagePreCreation.crossOrigin = '';
+		logoImagePreCreation.id = 'logo';
+		logoImagePreCreation.style.maxHeight = '150px';
+		logoImagePreCreation.style.maxWidth = 'calc(100% - 61px)'; // width minus the IMDb icon
+		logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
+		$('h1').html(logoImagePreCreation);
+		$('h1').css('margin','10px 0 30px 0');
+	}
+}
+
 function populateMetadataDisplayFromGlobalVars() {
 	var isDark = $('body').hasClass('dark');
 	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
@@ -477,45 +520,11 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (director && director.id) {
 		$('.director').html('<strong>' + directorTranslation + ':</strong> <a href="/browse/' + director.id + '" class="badge ' + badgeClass + '">' + director.name + '</a>');
 	}
-	if (imageBaseURL && images && images[0]) {
-		// Set the page background and color scheme
-		if (images[0].backdrops && images[0].backdrops[0]) {
-			var backgrounds = images[0].backdrops;
-			var randomIndex = Math.floor(Math.random() * backgrounds.length);
-			var randomBackground = backgrounds[randomIndex];
-
-			var backgroundImagePreCreation = new Image();
-			backgroundImagePreCreation.crossOrigin = '';
-			backgroundImagePreCreation.id = 'backgroundPreload';
-			backgroundImagePreCreation.onload = function() {
-				document.body.style.backgroundRepeat = 'no-repeat';
-				document.body.style.backgroundSize = 'cover';
-				document.body.style.backgroundAttachment = 'fixed';
-				document.body.style.transition = 'background-image 1s ease-in-out';
-				setBackgroundAndColorScheme('backgroundPreload');
-			}
-			setTimeout(function() {
-				backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
-				$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
-			});
-
-			isBackgroundImage = true;
-		}
-		// Set a logo as the heading
-		if (images[0].logos && images[0].logos[0]) {
-			// TODO: Support i18n for logos
-			var logos = _.pickBy(images[0].logos, function(logo) {
-				return logo.iso_639_1 === null || logo.iso_639_1 === 'en';
-			});
-			var logo = logos[0];
-
-			var logoImagePreCreation = new Image();
-			logoImagePreCreation.crossOrigin = '';
-			logoImagePreCreation.id = 'logo';
-			logoImagePreCreation.style.maxHeight = '150px';
-			logoImagePreCreation.style.maxWidth = '500px';
-			logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
-			$('h1').html(logoImagePreCreation);
+	if (imageBaseURL) {
+		if (seriesImages && seriesImages[0]) {
+			useApiImages(seriesImages);
+		} else if (images && images[0]) {
+			useApiImages(images);
 		}
 	}
 	if (imdbID) {
