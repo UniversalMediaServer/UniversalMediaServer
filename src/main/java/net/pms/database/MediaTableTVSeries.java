@@ -54,7 +54,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 5;
 
 	/**
 	 * The columns we added from TMDB in V11
@@ -130,28 +130,40 @@ public final class MediaTableTVSeries extends MediaTable {
 					break;
 				case 3:
 					LOGGER.trace("Adding TMDB columns");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREATEDBY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD FIRSTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD INPRODUCTION VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LASTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NETWORKS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFEPISODES DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NUMBEROFSEASONS DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINCOUNTRY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SEASONS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SERIESTYPE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD SPOKENLANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD STATUS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD TAGLINE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FIRSTAIRDATE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS INPRODUCTION VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LANGUAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LASTAIRDATE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NETWORKS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFEPISODES DOUBLE");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFSEASONS DOUBLE");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINCOUNTRY VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SEASONS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SERIESTYPE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR2");
+					break;
+				case 4:
+					LOGGER.trace("Clearing database metadata to populate new columns");
+					try (Statement statement = connection.createStatement()) {
+						StringBuilder sb = new StringBuilder();
+						sb
+							.append("UPDATE ")
+								.append(TABLE_NAME)
+							.append(" SET ")
+								.append("IMDBID = ''");
+						statement.execute(sb.toString());
+					}
 					break;
 				default:
 					throw new IllegalStateException(
