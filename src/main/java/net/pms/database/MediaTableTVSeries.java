@@ -161,7 +161,7 @@ public final class MediaTableTVSeries extends MediaTable {
 							.append("UPDATE ")
 								.append(TABLE_NAME)
 							.append(" SET ")
-								.append("IMDBID = ''");
+								.append("IMDBID = NULL");
 						statement.execute(sb.toString());
 					}
 					break;
