@@ -94,6 +94,11 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	}
 
 	@Override
+	public int getRegistryMaintenanceIntervalMillis() {
+		return 15000;
+	}
+
+	@Override
 	public int getAliveIntervalMillis() {
 		return CONFIGURATION.getAliveDelay() != 0 ? CONFIGURATION.getAliveDelay() : 30000;
 	}
