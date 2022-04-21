@@ -33,6 +33,7 @@ import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.MediaMonitor;
+import net.pms.util.FileUtil;
 
 /**
  * This class is responsible for managing the FilesStatus table. It
@@ -358,7 +359,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 */
 	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String pathWithWildcard = sqlLikeEscape(fullPathToFolder) + "%";
+		String pathWithWildcard = sqlLikeEscape(FileUtil.appendPathSeparator(fullPathToFolder)) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
