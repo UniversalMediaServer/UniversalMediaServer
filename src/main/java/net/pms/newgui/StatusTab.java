@@ -317,28 +317,28 @@ public class StatusTab {
 		connectionStatus.setFocusable(false);
 
 		// Bitrate
-		String conColSpec = "left:pref:grow, 3dlu, right:pref:grow";
-		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 3dlu, p, 1dlu, p, 1dlu, p"));
-		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xy(1, 1, "center, fill"), conColSpec, orientation));
+		String conColSpec = "left:pref, 3dlu, right:pref:grow";
+		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
+		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
 		// Set initial connection state
 		setConnectionState(ConnectionState.SEARCHING);
 
 		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);
-		connectionBuilder.add(mediaServerLabel, FormLayoutUtil.flip(cc.xy(1, 3, "center, fill"), conColSpec, orientation));
+		connectionBuilder.add(mediaServerLabel, FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
 		mediaServerBindLabel = new JLabel("-");
 		mediaServerBindLabel.setForeground(fgColor);
 		mediaServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		mediaServerBindLabel.addMouseListener(new ServerBindMouseListener(mediaServerBindLabel));
 		mediaServerBindLabel.setToolTipText(Messages.getString("StatusTab.MediaServerTooltip"));
-		connectionBuilder.add(mediaServerBindLabel, FormLayoutUtil.flip(cc.xy(1, 5, "center, fill"), conColSpec, orientation));
+		connectionBuilder.add(mediaServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 3, "left, top"), conColSpec, orientation));
 		interfaceServerBindLabel = new JLabel("-");
 		interfaceServerBindLabel.setForeground(fgColor);
 		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
 		interfaceServerBindLabel.setToolTipText(Messages.getString("StatusTab.InterfaceServerTooltip"));
-		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(1, 7, "center, fill"), conColSpec, orientation));
-		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 4, "center, fill"), colSpec, orientation));
+		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
+		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
