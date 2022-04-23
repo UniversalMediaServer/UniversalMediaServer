@@ -742,6 +742,9 @@ public class UPNPControl {
 	}
 
 	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
+		if (StringUtils.isBlank(xml)) {
+			return;
+		}
 		try {
 			if (db == null) {
 				try {

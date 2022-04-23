@@ -750,15 +750,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		statusLine = line;
 
 		if (line == null) {
-			line = "";
+			line = " ";
 		}
 
-		if (line.equals("")) {
-			status.setBorder(BorderFactory.createEmptyBorder());
-		} else {
-			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
-		}
-
+		status.setBorder(BorderFactory.createEmptyBorder(0, 12, 9, 0));
 		status.setText(line);
 	}
 
@@ -773,16 +768,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			if (statusLine != null) {
 				line = statusLine;
 			} else {
-				line = "";
+				line = " ";
 			}
 		}
 
-		if (line.equals("")) {
-			status.setBorder(BorderFactory.createEmptyBorder());
-		} else {
-			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
-		}
-
+		status.setBorder(BorderFactory.createEmptyBorder(0, 12, 9, 0));
 		status.setText(line);
 	}
 
