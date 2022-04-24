@@ -412,6 +412,7 @@ public class GeneralTab {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
 			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
+			serverEngine.setToolTipText(Messages.getString("NetworkTab.MediaServerEngineTooltip"));
 			serverEngine.setEditable(false);
 			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
 			if (serverEngine.getSelectedIndex() == -1) {
