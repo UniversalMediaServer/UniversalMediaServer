@@ -109,6 +109,15 @@ public class APIUtils {
 	private static String apiDataSeriesVersion = null;
 
 	/**
+	 * These versions are used to manually invalidate API data. They should be
+	 * bumped when we want to re-fetch valid API data, for example if we fixed
+	 * a bug that caused some data to not be stored properly.
+	 * The values will be appended to the versions above on startup.
+	 */
+	private static String apiDataVideoVersionLocal = "1";
+	private static String apiDataSeriesVersionLocal = "1";
+
+	/**
 	 * The base URL for all images from TMDB
 	 */
 	private static String apiImageBaseURL = null;
@@ -132,7 +141,10 @@ public class APIUtils {
 	/**
 	 * Populates the apiDataSeriesVersion and apiDataVideoVersion
 	 * variables, preferably from the API, but falling back to
-	 * the local database.
+	 * the local database, and appended with our local values.
+	 * For example:
+	 * A value of "3-2" means the remote version is 3 and the local
+	 * version is 2.
 	 */
 	public static void setApiMetadataVersions() {
 		Connection connection = null;
@@ -158,8 +170,8 @@ public class APIUtils {
 				}
 				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
 				if (connection != null) {
-					apiDataSeriesVersion = MediaTableMetadata.getMetadataValue(connection, "SERIES_VERSION");
-					apiDataVideoVersion = MediaTableMetadata.getMetadataValue(connection, "VIDEO_VERSION");
+					apiDataSeriesVersion = MediaTableMetadata.getMetadataValue(connection, "SERIES_VERSION") + "-" + apiDataSeriesVersionLocal;
+					apiDataVideoVersion = MediaTableMetadata.getMetadataValue(connection, "VIDEO_VERSION") + "-" + apiDataVideoVersionLocal;
 				}
 				if (apiDataSeriesVersion == null) {
 					LOGGER.trace("API versions could not be fetched from the API or the local database");
@@ -177,6 +189,9 @@ public class APIUtils {
 					MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
 				}
 			}
+
+			apiDataSeriesVersion += "-" + apiDataSeriesVersionLocal;
+			apiDataVideoVersion += "-" + apiDataVideoVersionLocal;
 		} catch (IOException e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
 		} finally {
