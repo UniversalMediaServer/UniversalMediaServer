@@ -1,4 +1,4 @@
-10.21.0 - 2022-04-??
+10.21.0 - 2022-04-24
 
 	General:
 		Improved API matches for TV series
@@ -10,6 +10,9 @@
 		Fixed setting directory as fully played when folder names are similar
 		Fixed peakaboo in status bar during scans
 		Fixed database upgrade bugs
+	Translation updates via Crowdin:
+		German (100%) (thanks, pipin!)
+		Portuguese (100%) (thanks, RPargana!)
 	Dependencies:
 		Bump h2 from 2.1.210 to 2.1.212
 		Bump icu4j from 70.1 to 71.1
