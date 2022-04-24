@@ -270,25 +270,7 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 27:
-						try (Statement statement = connection.createStatement()) {
-							// Clear database metadata to populate new columns
-							StringBuilder sb = new StringBuilder();
-							sb
-								.append("UPDATE ")
-									.append("FILES ")
-								.append("SET ")
-									.append("IMDBID = NULL, ")
-									.append("MEDIA_YEAR = NULL, ")
-									.append("MOVIEORSHOWNAME = NULL, ")
-									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
-									.append("TVSEASON = NULL, ")
-									.append("TVEPISODENUMBER = NULL, ")
-									.append("TVEPISODENAME = NULL, ")
-									.append("ISTVEPISODE = NULL, ")
-									.append("EXTRAINFORMATION = NULL ");
-							statement.execute(sb.toString());
-						}
-
+						// This version was for testing, left here to not break tester dbs
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:
