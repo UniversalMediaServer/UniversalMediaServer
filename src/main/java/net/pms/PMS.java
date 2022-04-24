@@ -725,11 +725,6 @@ public class PMS {
 				try {
 					//Stop network scanner
 					NetworkConfiguration.stop();
-					// force to save the configuration to file before stopping the UMS
-					// only for gui context
-					if (!isHeadless()) {
-						saveConfiguration();
-					}
 
 					LOGGER.debug("Shutting down the media server");
 					MediaServer.stop();
