@@ -27,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -303,28 +304,68 @@ public final class MediaTableTVSeries extends MediaTable {
 							insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
 
 							// TMDB data, since v11
+							String json;
 							if (tvSeries.get("createdBy") != null) {
-								insertStatement.setString(11, StringUtils.join(tvSeries.get("createdBy"), ","));
+								json = GSON.toJson(tvSeries.get("createdBy"));
+								insertStatement.setString(11, json);
 							}
-							insertStatement.setString(12, (String) tvSeries.get("credits"));
-							insertStatement.setString(13, (String) tvSeries.get("externalIDs"));
+							if (tvSeries.get("credits") != null) {
+								json = GSON.toJson(tvSeries.get("credits"));
+								insertStatement.setString(12, json);
+							}
+							if (tvSeries.get("externalIDs") != null) {
+								json = GSON.toJson(tvSeries.get("externalIDs"));
+								insertStatement.setString(13, json);
+							}
 							insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
 							insertStatement.setString(15, (String) tvSeries.get("homepage"));
-							insertStatement.setString(16, (String) tvSeries.get("images"));
-							insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
-							insertStatement.setString(18, (String) tvSeries.get("languages"));
+							if (tvSeries.get("images") != null) {
+								json = GSON.toJson(tvSeries.get("images"));
+								insertStatement.setString(16, json);
+							}
+							if (tvSeries.get("inProduction") != null) {
+								insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
+							}
+							if (tvSeries.get("languages") != null) {
+								insertStatement.setString(18, StringUtils.join(tvSeries.get("languages"), ","));
+							}
 							insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
-							insertStatement.setString(20, (String) tvSeries.get("networks"));
-							insertStatement.setDouble(21, (Double) tvSeries.get("numberOfEpisodes"));
-							insertStatement.setDouble(22, (Double) tvSeries.get("numberOfSeasons"));
-							insertStatement.setString(23, (String) tvSeries.get("originCountry"));
+							if (tvSeries.get("networks") != null) {
+								json = GSON.toJson(tvSeries.get("networks"));
+								insertStatement.setString(20, json);
+							}
+							if (tvSeries.get("numberOfEpisodes") != null) {
+								insertStatement.setDouble(21, (Double) tvSeries.get("numberOfEpisodes"));
+							} else {
+								insertStatement.setNull(22, Types.DOUBLE);
+							}
+							if (tvSeries.get("numberOfSeasons") != null) {
+								insertStatement.setDouble(22, (Double) tvSeries.get("numberOfSeasons"));
+							} else {
+								insertStatement.setNull(22, Types.DOUBLE);
+							}
+							if (tvSeries.get("originCountry") != null) {
+								insertStatement.setString(23, StringUtils.join(tvSeries.get("originCountry"), ","));
+							}
 							insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
 							insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
-							insertStatement.setString(26, (String) tvSeries.get("productionCompanies"));
-							insertStatement.setString(27, (String) tvSeries.get("productionCountries"));
-							insertStatement.setString(28, (String) tvSeries.get("seasons"));
+							if (tvSeries.get("productionCompanies") != null) {
+								json = GSON.toJson(tvSeries.get("productionCompanies"));
+								insertStatement.setString(26, json);
+							}
+							if (tvSeries.get("productionCountries") != null) {
+								json = GSON.toJson(tvSeries.get("productionCountries"));
+								insertStatement.setString(27, json);
+							}
+							if (tvSeries.get("seasons") != null) {
+								json = GSON.toJson(tvSeries.get("seasons"));
+								insertStatement.setString(28, json);
+							}
 							insertStatement.setString(29, (String) tvSeries.get("seriesType"));
-							insertStatement.setString(30, (String) tvSeries.get("spokenLanguages"));
+							if (tvSeries.get("spokenLanguages") != null) {
+								json = GSON.toJson(tvSeries.get("spokenLanguages"));
+								insertStatement.setString(30, json);
+							}
 							insertStatement.setString(31, (String) tvSeries.get("status"));
 							insertStatement.setString(32, (String) tvSeries.get("tagline"));
 						}
