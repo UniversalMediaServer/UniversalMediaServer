@@ -456,6 +456,8 @@ function setBackgroundAndColorScheme(imageElementId) {
 	$('body').addClass(isDarkColorNeededOnThisColor([rgb.r, rgb.g, rgb.b]) ? 'dark' : 'light');
 }
 
+var isBackgroundImage = false;
+
 function useApiImages(apiImages) {
 	var apiImagesList = _.first(apiImages);
 	// Set the page background and color scheme
@@ -504,7 +506,6 @@ function useApiImages(apiImages) {
 function populateMetadataDisplayFromGlobalVars() {
 	var isDark = $('body').hasClass('dark');
 	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
-	var isBackgroundImage = false;
 	if (!_.isEmpty(actors)) {
 		var actorLinks = [];
 		for (var i = 0; i < actors.length; i++) {
