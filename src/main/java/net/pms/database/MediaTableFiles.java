@@ -252,6 +252,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 						}
+
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 26:
@@ -265,7 +266,7 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
-						version++;
+
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 27:
@@ -287,7 +288,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("EXTRAINFORMATION = NULL ");
 							statement.execute(sb.toString());
 						}
-						version++;
+
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:
