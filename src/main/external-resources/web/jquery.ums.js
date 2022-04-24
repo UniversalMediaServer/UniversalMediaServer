@@ -457,9 +457,10 @@ function setBackgroundAndColorScheme(imageElementId) {
 }
 
 function useApiImages(apiImages) {
+	var apiImagesList = _.first(apiImages);
 	// Set the page background and color scheme
-	if (apiImages[0].backdrops && apiImages[0].backdrops[0]) {
-		var backgrounds = apiImages[0].backdrops;
+	if (!_.isEmpty(apiImagesList.backdrops)) {
+		var backgrounds = apiImagesList.backdrops;
 		var randomIndex = Math.floor(Math.random() * backgrounds.length);
 		var randomBackground = backgrounds[randomIndex];
 
@@ -481,21 +482,22 @@ function useApiImages(apiImages) {
 		isBackgroundImage = true;
 	}
 	// Set a logo as the heading
-	if (apiImages[0].logos && apiImages[0].logos[0]) {
+	if (!_.isEmpty(apiImagesList.logos)) {
 		// TODO: Support i18n for logos
-		var logos = _.pickBy(apiImages[0].logos, function(logo) {
+		var logos = _.pickBy(apiImagesList.logos, function(logo) {
 			return logo.iso_639_1 === null || logo.iso_639_1 === 'en';
 		});
-		var logo = logos[0];
-
-		var logoImagePreCreation = new Image();
-		logoImagePreCreation.crossOrigin = '';
-		logoImagePreCreation.id = 'logo';
-		logoImagePreCreation.style.maxHeight = '150px';
-		logoImagePreCreation.style.maxWidth = 'calc(100% - 61px)'; // width minus the IMDb icon
-		logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
-		$('h1').html(logoImagePreCreation);
-		$('h1').css('margin','10px 0 30px 0');
+		_.each(logos, function(logo) {
+			var logoImagePreCreation = new Image();
+			logoImagePreCreation.crossOrigin = '';
+			logoImagePreCreation.id = 'logo';
+			logoImagePreCreation.style.maxHeight = '150px';
+			logoImagePreCreation.style.maxWidth = 'calc(100% - 61px)'; // width minus the IMDb icon
+			logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
+			$('h1').html(logoImagePreCreation);
+			$('h1').css('margin','10px 0 30px 0');
+			return false;
+		});
 	}
 }
 
@@ -503,7 +505,7 @@ function populateMetadataDisplayFromGlobalVars() {
 	var isDark = $('body').hasClass('dark');
 	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
 	var isBackgroundImage = false;
-	if (actors && actors[0]) {
+	if (!_.isEmpty(actors)) {
 		var actorLinks = [];
 		for (var i = 0; i < actors.length; i++) {
 			var actor = actors[i];
