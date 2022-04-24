@@ -5065,7 +5065,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							// TODO: Make sure this does not happen if ANY version already exists, before doing this
-							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
+							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API

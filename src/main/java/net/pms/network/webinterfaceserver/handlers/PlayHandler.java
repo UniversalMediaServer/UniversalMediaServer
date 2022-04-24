@@ -126,7 +126,7 @@ public class PlayHandler implements HttpHandler {
 					}
 				}
 				WebInterfaceServerUtil.respond(t, RETURN_PAGE, 200, "text/html");
-			}  else if (p.contains("/m3u8/")) {
+			} else if (p.contains("/m3u8/")) {
 				String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
 				String response = mkM3u8(PMS.getGlobalRepo().get(id));
 				if (response != null) {
@@ -138,10 +138,10 @@ public class PlayHandler implements HttpHandler {
 			}
 		} catch (IOException e) {
 			throw e;
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in PlayHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 	}
 

@@ -714,6 +714,7 @@ public class PMS {
 		// Ensure up-to-date API metadata versions
 		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
 			APIUtils.setApiMetadataVersions();
+			APIUtils.setApiImageBaseURL();
 		}
 
 		frame.serverReady();

@@ -108,6 +108,20 @@ public class APIUtils {
 	private static String apiDataVideoVersion = null;
 	private static String apiDataSeriesVersion = null;
 
+	/**
+	 * These versions are used to manually invalidate API data. They should be
+	 * bumped when we want to re-fetch valid API data, for example if we fixed
+	 * a bug that caused some data to not be stored properly.
+	 * The values will be appended to the versions above on startup.
+	 */
+	private static String apiDataVideoVersionLocal = "1";
+	private static String apiDataSeriesVersionLocal = "1";
+
+	/**
+	 * The base URL for all images from TMDB
+	 */
+	private static String apiImageBaseURL = null;
+
 	public static String getApiDataVideoVersion() {
 		if (apiDataVideoVersion == null) {
 			setApiMetadataVersions();
@@ -127,17 +141,20 @@ public class APIUtils {
 	/**
 	 * Populates the apiDataSeriesVersion and apiDataVideoVersion
 	 * variables, preferably from the API, but falling back to
-	 * the local database.
+	 * the local database, and appended with our local values.
+	 * For example:
+	 * A value of "3-2" means the remote version is 3 and the local
+	 * version is 2.
 	 */
 	public static void setApiMetadataVersions() {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
-			URL domain = new URL("https://api.universalmediaserver.com");
-			URL url = new URL(domain, "/api/subversions");
 			HashMap<String, String> jsonData = new HashMap<>();
 
 			if (CONFIGURATION.getExternalNetwork()) {
+				URL domain = new URL("https://api.universalmediaserver.com");
+				URL url = new URL(domain, "/api/subversions");
 				String apiResult = getJson(url);
 
 				try {
@@ -153,8 +170,8 @@ public class APIUtils {
 				}
 				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
 				if (connection != null) {
-					apiDataSeriesVersion = MediaTableMetadata.getMetadataValue(connection, "SERIES_VERSION");
-					apiDataVideoVersion = MediaTableMetadata.getMetadataValue(connection, "VIDEO_VERSION");
+					apiDataSeriesVersion = MediaTableMetadata.getMetadataValue(connection, "SERIES_VERSION") + "-" + apiDataSeriesVersionLocal;
+					apiDataVideoVersion = MediaTableMetadata.getMetadataValue(connection, "VIDEO_VERSION") + "-" + apiDataVideoVersionLocal;
 				}
 				if (apiDataSeriesVersion == null) {
 					LOGGER.trace("API versions could not be fetched from the API or the local database");
@@ -172,8 +189,70 @@ public class APIUtils {
 					MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
 				}
 			}
+
+			apiDataSeriesVersion += "-" + apiDataSeriesVersionLocal;
+			apiDataVideoVersion += "-" + apiDataVideoVersionLocal;
 		} catch (IOException e) {
 			LOGGER.trace("Error while setting API metadata versions", e);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	public static String getApiImageBaseURL() {
+		if (apiImageBaseURL == null) {
+			setApiImageBaseURL();
+		}
+
+		return apiImageBaseURL;
+	}
+
+	/**
+	 * Populates the apiImageBaseURL variable, preferably from the API,
+	 * but falling back to the local database.
+	 */
+	public static void setApiImageBaseURL() {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			HashMap<String, String> jsonData = new HashMap<>();
+
+			if (CONFIGURATION.getExternalNetwork()) {
+				URL domain = new URL("https://api.universalmediaserver.com");
+				URL url = new URL(domain, "/api/configuration");
+				String apiResult = getJson(url);
+
+				try {
+					jsonData = gson.fromJson(apiResult, jsonData.getClass());
+				} catch (JsonSyntaxException e) {
+					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
+				}
+			}
+
+			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
+				if (jsonData != null && jsonData.containsKey("statusCode") && "500".equals(jsonData.get("statusCode"))) {
+					LOGGER.debug("Got a 500 error while looking for imageBaseURL");
+				}
+				LOGGER.trace("Did not get imageBaseURL, will attempt to use the database version");
+				if (connection != null) {
+					apiImageBaseURL = MediaTableMetadata.getMetadataValue(connection, "IMAGE_BASE_URL");
+				}
+				if (apiImageBaseURL == null) {
+					LOGGER.trace("imageBaseURL could not be fetched from the API or the local database");
+				}
+				return;
+			}
+
+			apiImageBaseURL = jsonData.get("imageBaseURL");
+
+			// Persist the values to the database to be used as fallbacks
+			if (connection != null) {
+				if (apiImageBaseURL != null) {
+					MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Error while setting imageBaseURL", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -388,7 +467,7 @@ public class APIUtils {
 
 				if (CONFIGURATION.getUseCache()) {
 					LOGGER.trace("setting metadata for " + file.getName());
-					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
+					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, metadataFromAPI);
 
 					if (media.getThumb() != null) {
 						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);

@@ -5,6 +5,7 @@
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
 		<script src="/files/jquery.min.js"></script>
 		<script src="/files/js.cookie.min.js"></script>
+		<script src="/files/util/lodash.js"></script>
 		<script src="/files/jquery.ums.js"></script>
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
@@ -131,7 +132,7 @@
 							<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
 							{{/isVideo}}
 							<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
-								data-setup='{ "html5" : { "nativeTextTracks" : true } }'
+								data-setup='{ "liveui" : true }'
 								poster="/thumb/{{id1}}"
 							>
 								<source src="/media/{{id1}}" type="{{mime}}">
@@ -185,6 +186,9 @@
 						<div class="posterContainer">
 							<img id="poster" crossorigin="" />
 						</div>
+						<div class="backgroundPreloadContainer">
+							<img id="backgroundPreload" crossorigin="" />
+						</div>
 						<br style="clear: left" />
 					</div>
 				{{/isVideoWithAPIData}}
@@ -213,17 +217,20 @@
 
 				player.addEventListener('playing', function(){status('playback', 'PLAYING');});
 				player.addEventListener('play', function(){status('playback', 'PLAYING');});
+
 				player.addEventListener('pause', function(){status('playback', 'PAUSED');});
 				player.addEventListener('dispose', function(){status('playback', 'STOPPED');});
 				player.addEventListener('abort', function(){status('playback', 'STOPPED');});
 				player.addEventListener('ended', function(){status('playback', 'STOPPED');});
 				player.addEventListener('error', function(){status('playback', 'STOPPED');});
+
 				player.addEventListener('timeupdate', function(){status('position', player.currentTime.toFixed(0));});
 				player.addEventListener('volumechange', volumeStatus);
 				{{#autoContinue}}
 					player.addEventListener('ended', next, false);
 				{{/autoContinue}}
 				window.addEventListener("beforeunload", function(){status('playback', 'STOPPED');});
+
 				// Send initial status
 				volumeStatus();
 
