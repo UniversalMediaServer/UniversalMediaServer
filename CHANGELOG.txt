@@ -1,3 +1,30 @@
+10.21.0 - 2022-04-24
+
+	General:
+		Improved API matches for TV series
+		Language improvements (thanks, NCAA!)
+		Fixed database not recovering from serialization changes (#2874)
+		Fixed custom renderer configurations not being loaded (#2917)
+		Fixed MEncoder and MPlayer on Docker (thanks, Jille Timmermans!) (#2922)
+		Fixed config being overwritten when UMS closes (#2875)
+		Fixed setting directory as fully played when folder names are similar
+		Fixed peakaboo in status bar during scans
+		Fixed database upgrade bugs
+	Translation updates via Crowdin:
+		German (100%) (thanks, pipin!)
+		Portuguese (100%) (thanks, RPargana!)
+	Dependencies:
+		Bump FFmpeg to latest
+		Bump h2 from 2.1.210 to 2.1.212
+		Bump icu4j from 70.1 to 71.1
+		Bump JRE from 8u322 to 8u332
+		Bump maven-antrun-plugin from 3.0.0 to 3.1.0
+		Bump maven-javadoc-plugin from 3.3.2 to 3.4.0
+		Bump maven-site-plugin from 3.11.0 to 3.12.0
+		Bump MediaInfo from 21.09 to 22.03
+		Bump oshi-core from 6.1.5 to 6.1.6
+		Bump surefire-version from 3.0.0-M5 to 3.0.0-M6
+
 10.20.0 - 2022-03-30
 
 	General:

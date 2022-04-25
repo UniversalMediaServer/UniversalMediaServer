@@ -176,7 +176,6 @@ public class MediaTableFiles extends MediaTable {
 
 							statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on " + TABLE_NAME + " (FILENAME, MODIFIED, VERSION, IMDBID)");
 						}
-						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 24:
@@ -248,7 +247,6 @@ public class MediaTableFiles extends MediaTable {
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 						}
-						version++;
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:

@@ -735,12 +735,6 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
-					// force to save the configuration to file before stopping the UMS
-					// only for gui context
-					if (!isHeadless()) {
-						saveConfiguration();
-					}
-
 					LOGGER.debug("Shutting down the media server");
 					MediaServer.stop();
 					Thread.sleep(500);

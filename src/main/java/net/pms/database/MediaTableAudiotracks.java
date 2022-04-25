@@ -133,17 +133,17 @@ public class MediaTableAudiotracks extends MediaTable {
 					}
 					break;
 				case 7:
-					Connection con = DATABASE.getConnection();
-					con.setAutoCommit(false);
+					connection.setAutoCommit(false);
 					try (
 						Statement stmt =  DATABASE.getConnection().createStatement()) {
 						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID int auto_increment");
 						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
 						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
 						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
-						con.commit();
-					} finally {
-						con.close();
+						connection.commit();
+						connection.setAutoCommit(true);;
+					} catch (Exception e) {
+						LOGGER.warn("Upgrade failed", e);
 					}
 					break;
 				default:

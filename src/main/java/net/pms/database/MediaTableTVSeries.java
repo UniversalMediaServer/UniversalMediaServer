@@ -110,7 +110,6 @@ public final class MediaTableTVSeries extends MediaTable {
 						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 						throw new SQLException(e);
 					}
-					version++;
 					break;
 				case 2:
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {

@@ -11,7 +11,7 @@ import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class PlaylistService implements ApiResponseHandler {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PlaylistService.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistService.class.getName());
 	public static final String PATH_MATCH = "playlist";
 	private PlaylistManager pm = new PlaylistManager();
 	private ObjectMapper om = new ObjectMapper();
@@ -28,26 +28,26 @@ public class PlaylistService implements ApiResponseHandler {
 			}
 			switch (uriLower) {
 				case "getallplaylists":
-					LOG.trace("getallplaylists");
+					LOGGER.trace("getallplaylists");
 					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 					return playlists;
 				case "addsongtoplaylist":
-					LOG.trace("addsongtoplaylist");
+					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
 					pm.addSongToPlaylist(add.audiotrackId, add.playlistName);
 					return Messages.getString("Api.Playlist.SongAdded");
 				case "removesongfromplaylist":
-					LOG.trace("removesongfromplaylist");
+					LOGGER.trace("removesongfromplaylist");
 					AudioPlaylistVO remove = getParamsFromContent(content);
 					pm.removeSongFromPlaylist(remove.audiotrackId, remove.playlistName);
 					return Messages.getString("Api.Playlist.SongRemoved");
 				case "createplaylist":
-					LOG.trace("createplaylist");
+					LOGGER.trace("createplaylist");
 					pm.createPlaylist(content);
 					return Messages.getString("Api.Playlist.PlaylistCreated");
 				default:
-					LOG.trace("default");
+					LOGGER.trace("default");
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 					return Messages.getString("Api.Error.UnknownService") + " : " + uri;
 			}
