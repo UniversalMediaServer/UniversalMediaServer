@@ -25,7 +25,7 @@ import net.pms.dlna.RootFolder;
 
 public class PlaylistManager {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PlaylistManager.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistManager.class.getName());
 
 	private List<Path> availablePlaylists = new ArrayList<>();
 	private List<String> playlistsNames = new ArrayList<>();
@@ -37,9 +37,9 @@ public class PlaylistManager {
 	}
 
 	private void checkPlaylistDirectoryConfiguration() {
-		LOG.trace("Playlist directory is set to : " + PMS.getConfiguration().getManagedPlaylistFolder());
+		LOGGER.trace("Playlist directory is set to : " + PMS.getConfiguration().getManagedPlaylistFolder());
 		if (StringUtils.isAllBlank(PMS.getConfiguration().getManagedPlaylistFolder())) {
-			LOG.info("Playlist directory not set. Playlist management is disabled.");
+			LOGGER.info("Playlist directory not set. Playlist management is disabled.");
 			return;
 		}
 
@@ -53,10 +53,10 @@ public class PlaylistManager {
 				serviceDisabled = false;
 				return;
 			} else {
-				LOG.debug("Invalid playlist directory. Playlist management is disabled.");
+				LOGGER.debug("Invalid playlist directory. Playlist management is disabled.");
 			}
 		} catch (Exception e) {
-			LOG.warn("Error while scanning Playlist files from disc.", e);
+			LOGGER.warn("Error while scanning Playlist files from disc.", e);
 		}
 	}
 
@@ -97,7 +97,7 @@ public class PlaylistManager {
 		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
-			LOG.trace("song already in playlist " + relativeSongPath);
+			LOGGER.trace("song already in playlist " + relativeSongPath);
 			throw new RuntimeException(Messages.getString("Api.Playlist.SongAlredyInPlaylist") + ". ID : " + audiotrackID);
 		} else {
 			playlistEntries.add(relativeSongPath);
@@ -146,7 +146,7 @@ public class PlaylistManager {
 		try {
 			lines = Files.readAllLines(playlistFile, StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			LOG.error("readCurrentPlaylist", e);
+			LOGGER.error("readCurrentPlaylist", e);
 		}
 		return lines;
 	}
