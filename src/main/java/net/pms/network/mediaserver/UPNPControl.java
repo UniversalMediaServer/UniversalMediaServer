@@ -817,7 +817,10 @@ public class UPNPControl {
 
 	public static InetAddress getAddress(String uuid) {
 		try {
-			return InetAddress.getByName(getURL(getDevice(uuid)).getHost());
+			Device device = getDevice(uuid);
+			if (device != null) {
+				return InetAddress.getByName(getURL(device).getHost());
+			}
 		} catch (UnknownHostException e) {
 		}
 		return null;

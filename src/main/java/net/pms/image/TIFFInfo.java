@@ -4,12 +4,8 @@ import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import net.pms.util.ParseException;
 import com.drew.metadata.Metadata;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class TIFFInfo extends ExifInfo {
-
 	/**
 	 * Use
 	 * {@link ImageInfo#create(int, int, ImageFormat, long, ColorModel, Metadata, boolean, boolean)}

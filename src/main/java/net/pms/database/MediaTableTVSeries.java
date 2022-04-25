@@ -19,6 +19,8 @@
  */
 package net.pms.database;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,11 +30,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.h2.jdbc.JdbcSQLDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
+import net.pms.util.UnknownFormatException;
+import net.pms.util.UriFileRetriever;
+
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class MediaTableTVSeries extends MediaTable {
@@ -45,6 +53,8 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 3;
+
+	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -100,7 +110,6 @@ public final class MediaTableTVSeries extends MediaTable {
 						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 						throw new SQLException(e);
 					}
-					version++;
 					break;
 				case 2:
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
@@ -328,9 +337,11 @@ public final class MediaTableTVSeries extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+		Integer thumbnailId = null;
+		Integer tvSeriesId = null;
 
 		try {
-			String sql = "SELECT THUMBNAIL " +
+			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
 				"FROM " + TABLE_NAME + " " +
 				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
 				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
@@ -344,7 +355,43 @@ public final class MediaTableTVSeries extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(sql)
 			) {
 				if (resultSet.next()) {
+					thumbnailId = resultSet.getInt("ThumbnailId");
+					tvSeriesId = resultSet.getInt("TVSeriesId");
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
+				}
+			} catch (JdbcSQLDataException e) {
+				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
+				LOGGER.trace("", e);
+
+				// Regenerate the thumbnail from a stored poster if it exists
+				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
+				if (posterInfo == null) {
+					// this should never happen, since the only way to have a TV series thumbnail is from an API poster
+					LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
+					if (thumbnailId != null) {
+						MediaTableThumbnails.removeById(connection, thumbnailId);
+						removeImdbIdById(connection, tvSeriesId);
+					}
+					return null;
+				}
+
+				String posterURL = (String) posterInfo[0];
+				Long tvSeriesDatabaseId = (Long) posterInfo[1];
+				try {
+					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
+					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
+					return thumbnail;
+				} catch (EOFException e2) {
+					LOGGER.debug(
+						"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
+						posterURL
+					);
+				} catch (UnknownFormatException e2) {
+					LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+				} catch (IOException e2) {
+					LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+					LOGGER.trace("", e2);
 				}
 			}
 		} catch (SQLException e) {
@@ -486,12 +533,12 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	/**
-	 * Removes an entry or entries.
+	 * Removes an entry or entries by IMDb ID.
 	 *
 	 * @param connection the db connection
 	 * @param imdbID the IMDb ID to remove
 	 */
-	public static void remove(final Connection connection, final String imdbID) {
+	public static void removeByImdbId(final Connection connection, final String imdbID) {
 		try {
 			String query = "DELETE FROM " + TABLE_NAME + " WHERE IMDBID = " + sqlQuote(imdbID);
 			try (Statement statement = connection.createStatement()) {
@@ -500,6 +547,25 @@ public final class MediaTableTVSeries extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, imdbID, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Removes an entry by ID.
+	 *
+	 * @param connection the db connection
+	 * @param id the ID to remove
+	 */
+	public static void removeImdbIdById(final Connection connection, final Integer id) {
+		try {
+			String query = "UPDATE " + TABLE_NAME + " SET IMDBID = null WHERE ID = " + id;
+			try (Statement statement = connection.createStatement()) {
+				int row = statement.executeUpdate(query);
+				LOGGER.trace("Removed IMDb ID from {} in " + TABLE_NAME + " for ID \"{}\"", row, id);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entry", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
