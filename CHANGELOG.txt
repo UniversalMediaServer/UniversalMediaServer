@@ -28,9 +28,14 @@
 		Added x64 windows service wrapper
 		Fixed support for latest Maven versions
 		Replaced Cling with JUPnP
-		Bump checkstyle from 9.3 to 10.1
+		Bump checkstyle from 9.3 to 10.2
 		Bump JRE from 8u332 to 17.0.3
 		Bump Video.js from 7.13.3 to 7.19.2
+
+10.21.0.1 - 2022-04-26
+
+	General:
+		Fixed duplicate TV series entries in Media Library
 
 10.21.0 - 2022-04-24
 
