@@ -1191,7 +1191,7 @@ public class MediaTableFiles extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 			}
-		} catch (SQLException se) {
+		} catch (Exception se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}
