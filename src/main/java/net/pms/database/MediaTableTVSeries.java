@@ -339,7 +339,7 @@ public final class MediaTableTVSeries extends MediaTable {
 							if (tvSeries.get("numberOfEpisodes") != null) {
 								insertStatement.setDouble(21, (Double) tvSeries.get("numberOfEpisodes"));
 							} else {
-								insertStatement.setNull(22, Types.DOUBLE);
+								insertStatement.setNull(21, Types.DOUBLE);
 							}
 							if (tvSeries.get("numberOfSeasons") != null) {
 								insertStatement.setDouble(22, (Double) tvSeries.get("numberOfSeasons"));
