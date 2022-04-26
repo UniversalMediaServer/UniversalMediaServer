@@ -180,7 +180,7 @@ public class HlsHelper {
 			}
 			boolean subtitleAdded = false;
 			for (DLNAMediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
-				if (mediaSubtitle.isEmbedded()) {
+				if (mediaSubtitle.isEmbedded() && mediaSubtitle.getType().isText()) {
 					subtitleAdded = true;
 					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES,DEFAULT=NO,FORCED=NO");
 					String subtitleName;

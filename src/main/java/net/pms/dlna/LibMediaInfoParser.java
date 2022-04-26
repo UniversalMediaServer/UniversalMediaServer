@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -144,7 +145,13 @@ public class LibMediaInfoParser {
 						String chapterTitle = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Text);
 						if (!chapterName.isEmpty()) {
 							DLNAMediaChapter chapter = new DLNAMediaChapter();
-							LocalTime lt = LocalTime.parse(chapterName, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
+							LocalTime lt;
+							try {
+								lt = LocalTime.parse(chapterName, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
+							} catch (DateTimeParseException e) {
+								LOGGER.debug("Skip chapter as time cannot be parsed: {}", chapterName);
+								continue;
+							}
 							chapter.setId(i - chaptersPosBegin);
 							chapter.setStart(lt.toNanoOfDay() / 1000_000_000D);
 							//set end for previous chapter
