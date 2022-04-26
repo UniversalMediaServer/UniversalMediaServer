@@ -1,3 +1,8 @@
+10.21.0.1 - 2022-04-26
+
+	General:
+		Fixed duplicate TV series entries in Media Library
+
 10.21.0 - 2022-04-24
 
 	General:
