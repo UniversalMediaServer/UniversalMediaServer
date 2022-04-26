@@ -325,6 +325,8 @@ public final class MediaTableTVSeries extends MediaTable {
 							}
 							if (tvSeries.get("inProduction") != null) {
 								insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
+							} else {
+								insertStatement.setBoolean(17, false);
 							}
 							if (tvSeries.get("languages") != null) {
 								insertStatement.setString(18, StringUtils.join(tvSeries.get("languages"), ","));
