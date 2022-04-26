@@ -714,7 +714,7 @@ public class WebInterfaceServerUtil {
 			String firstAirDate = "";
 			String homepage = "";
 			String images = "[]";
-			String inProduction = "";
+			Boolean inProduction = null;
 			String languages = "";
 			String lastAirDate = "";
 			String networks = "";
@@ -917,7 +917,7 @@ public class WebInterfaceServerUtil {
 					images = (String) row.get("IMAGES");
 				}
 				if (row.get("INPRODUCTION") != null) {
-					inProduction = (String) row.get("INPRODUCTION");
+					inProduction = (Boolean) row.get("INPRODUCTION");
 				}
 				if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
 					languages = (String) row.get("LANGUAGES");
@@ -1040,7 +1040,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var homepage = \"" + StringEscapeUtils.escapeEcmaScript(homepage) + "\";";
 			javascriptVarsScript += "var imageBaseURL = \"" + APIUtils.getApiImageBaseURL() + "\";";
 			javascriptVarsScript += "var images = " + images + ";";
-			javascriptVarsScript += "var inProduction = \"" + StringEscapeUtils.escapeEcmaScript(inProduction) + "\";";
+			javascriptVarsScript += "var inProduction = " + inProduction + ";";
 			javascriptVarsScript += "var languages = \"" + StringEscapeUtils.escapeEcmaScript(languages) + "\";";
 			javascriptVarsScript += "var lastAirDate = \"" + StringEscapeUtils.escapeEcmaScript(lastAirDate) + "\";";
 			javascriptVarsScript += "var networks = \"" + StringEscapeUtils.escapeEcmaScript(networks) + "\";";
