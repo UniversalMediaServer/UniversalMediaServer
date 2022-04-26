@@ -497,18 +497,17 @@ public class APIUtils {
 			}
 
 			title = (String) seriesMetadataFromAPI.get("title");
-			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			if (isNotBlank(year)) {
 				title += " (" + year + ")";
 			}
-			String titleSimplifiedWithYear = FileUtil.getSimplifiedShowName(title);
+			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
 			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
 
 			boolean isAPIDataValid = true;
 			String validationFailedPrepend = "not storing the series API lookup result because ";
 			// Only continue if the simplified titles match
-			if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename) && !titleSimplifiedWithYear.equalsIgnoreCase(titleSimplifiedFromFilename)) {
+			if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
 				isAPIDataValid = false;
 				LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
 				MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
@@ -601,10 +600,7 @@ public class APIUtils {
 				titleFromFilename != null &&
 				titleSimplifiedFromFilename != null &&
 				!title.equals(titleFromFilename) &&
-				(
-					titleSimplified.equals(titleSimplifiedFromFilename) ||
-					titleSimplifiedWithYear.equals(titleSimplifiedFromFilename)
-				)
+				titleSimplified.equals(titleSimplifiedFromFilename)
 			) {
 				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
 				MediaTableFiles.updateMovieOrShowName(connection, titleFromFilename, title);
