@@ -532,7 +532,7 @@ public final class MediaTableTVSeries extends MediaTable {
 					LOGGER.trace("", e2);
 				}
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series thumbnail from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -552,7 +552,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "updating cached thumbnail", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
 		}
