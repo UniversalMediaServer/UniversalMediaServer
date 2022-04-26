@@ -51,14 +51,17 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
+
 	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
+	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
+
+	public static final String NOTRANSCODE = "_NOTRANSCODE_";
+	public static final File NOFILE = new File("NOFILE");
+
+	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
-	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
-	public static final String NOTRANSCODE = "_NOTRANSCODE_";
-	public static final File NOFILE = new File("NOFILE");
 
 	protected RootFolder rootFolder;
 	protected File file;
@@ -621,7 +624,7 @@ public class RendererConfiguration extends Renderer {
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
 		}
-		for (RendererConfiguration r : enabledRendererConfs) {
+		for (RendererConfiguration r : getEnabledRenderersConfigurations()) {
 			if (r.match(sortedHeaders)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
