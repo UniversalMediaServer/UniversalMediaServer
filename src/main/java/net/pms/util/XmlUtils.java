@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.util;
 
 import javax.xml.XMLConstants;
@@ -43,57 +42,61 @@ public class XmlUtils {
 	 */
 	public static DocumentBuilderFactory xxeDisabledDocumentBuilderFactory() {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		if (!configuration.disableExternalEntities()) {
-			String FEATURE = null;
+		if (configuration.disableExternalEntities()) {
+			String feature = null;
 			try {
-				FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
-				dbf.setFeature(FEATURE, true);    
-				FEATURE = "http://xml.org/sax/features/external-general-entities";
-				dbf.setFeature(FEATURE, false);   
-				FEATURE = "http://xml.org/sax/features/external-parameter-entities";
-				dbf.setFeature(FEATURE, false);
-				FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
-				dbf.setFeature(FEATURE, false);
+				feature = "http://apache.org/xml/features/disallow-doctype-decl";
+				dbf.setFeature(feature, true);
+				feature = "http://xml.org/sax/features/external-general-entities";
+				dbf.setFeature(feature, false);
+				feature = "http://xml.org/sax/features/external-parameter-entities";
+				dbf.setFeature(feature, false);
+				feature = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+				dbf.setFeature(feature, false);
 			} catch (ParserConfigurationException e) {
-				LOGGER.info("ParserConfigurationException was thrown. The feature '{}' is probably not supported by the XML processor.", FEATURE);
+				LOGGER.info("ParserConfigurationException was thrown. The feature '{}' is probably not supported by the XML processor.", feature);
 			}
 
 			dbf.setXIncludeAware(false);
 			dbf.setExpandEntityReferences(false);
 		}
-		
+
 		return dbf;
 	}
 
 	/**
-	 * Returns a new {@code TransformerFactory} instance with XML External Entity (XXE) processing disabled.
+	 * Returns a new {@code TransformerFactory} instance with XML External
+	 * Entity (XXE) processing disabled.
 	 *
-	 * @return the new {@code TransformerFactory} instance with XXE processing disabled
+	 * @return the new {@code TransformerFactory} instance with XXE
+	 * processing disabled
 	 * @see TransformerFactory
 	 */
 	public static TransformerFactory xxeDisabledTransformerFactory() {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		if (!configuration.disableExternalEntities()) {
+		if (configuration.disableExternalEntities()) {
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 		}
-		
+
 		return transformerFactory;
 	}
 
 	/**
-	 * Returns a new {@code XMLInputFactory} instance with XML External Entity (XXE) processing disabled.
+	 * Returns a new {@code XMLInputFactory} instance with XML External
+	 * Entity (XXE) processing disabled.
 	 *
-	 * @return the new {@code XMLInputFactory} instance with XXE processing disabled
+	 * @return the new {@code XMLInputFactory} instance with XXE processing
+	 * disabled
 	 * @see XMLInputFactory
 	 */
 	public static XMLInputFactory xxeDisabledXMLInputFactory() {
 		XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-		if (!configuration.disableExternalEntities()) {
+		if (configuration.disableExternalEntities()) {
 			xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 			xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
 		}
-		
+
 		return xmlInputFactory;
 	}
 }

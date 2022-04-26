@@ -20,7 +20,6 @@
 package net.pms.util;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import java.awt.List;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,13 +29,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -568,7 +565,7 @@ public class XMLRPCUtil {
 							case "value":
 								Value<?> value = Value.read(reader);
 								if (value == null) {
-									result = new Member<Value<Object>, Object>(null, memberName, null);
+									result = new Member<>(null, memberName, null);
 								} else {
 									switch (value.getType()) {
 										case ARRAY:

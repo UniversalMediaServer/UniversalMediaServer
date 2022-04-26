@@ -19,9 +19,7 @@
  */
 package net.pms.formats.image;
 
-
 public class PNM extends ImageBase {
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -35,7 +33,7 @@ public class PNM extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "pbm", "pgm", "ppm", "pnm" };
+		return new String[] {"pbm", "pgm", "ppm", "pnm"};
 	}
 
 	@Override

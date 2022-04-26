@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * TODO: Since no data is buffered, seek requests should be not be delegated to this
  * class. This class can only be used for straightforward streaming. Instead, the
  * current process should be stopped (killed) and a new process should be started.
- * This has not been implemented yet, so seeking is not an option right now. 
+ * This has not been implemented yet, so seeking is not an option right now.
  * <p>
  * Because of the missing feature, this class is currently not used anywhere in PMS. If
  * you want to experiment with it, search for "new BufferedOutputFileImpl(" and replace it
@@ -48,20 +48,20 @@ import org.slf4j.LoggerFactory;
 public class UnbufferedOutputFile implements BufferedOutputFile {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UnbufferedOutputFile.class);
-	
+
 	private PipedOutputStream pipedOutputStream;
 	private PipedInputStream pipedInputStream;
-	
+
 	public UnbufferedOutputFile(OutputParams params) {
 		pipedOutputStream = new PipedOutputStream();
-		
+
 		try {
 			pipedInputStream = new PipedInputStream(pipedOutputStream);
 		} catch (IOException e) {
 			LOGGER.debug("Error creating piped input stream: " + e);
 		}
 	}
-	
+
 	/**
 	 * Closes the piped streams and releases any system resources associated with
 	 * them. This object may no longer be used for writing bytes.
@@ -86,7 +86,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	/**
 	 * Writes len bytes from the specified byte array starting at offset off to
 	 * the piped output stream.
-	 *  
+	 *
 	 * @param b The data
 	 * @param off The start offset in the data
 	 * @param len The number of bytes to write
@@ -95,10 +95,10 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public void write(byte[] b, int off, int len) throws IOException {
 		pipedOutputStream.write(b, off, len);
 	}
-	
+
 	/**
 	 * Writes the specified byte to the piped output stream.
-	 * 
+	 *
 	 * @param b The byte to write
 	 */
 	@Override
@@ -116,7 +116,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public void write(byte[] byteArray) throws IOException {
 		pipedOutputStream.write(byteArray);
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 * @return null
@@ -126,7 +126,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public WaitBufferedInputStream getCurrentInputStream() {
 		return null;
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 * @return 0
@@ -136,7 +136,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public long getWriteCount() {
 		return 0;
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 * @return 0
@@ -156,7 +156,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public int read(boolean firstRead, long readCount, byte[] b, int off, int len) {
 		return 0;
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 */
@@ -164,7 +164,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	@Override
 	public void attachThread(ProcessWrapper thread) {
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 */
@@ -172,7 +172,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	@Override
 	public void reset() {
 	}
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 */
@@ -181,7 +181,7 @@ public class UnbufferedOutputFile implements BufferedOutputFile {
 	public void removeInputStream(WaitBufferedInputStream waitBufferedInputStream) {
 	}
 
-	
+
 	/**
 	 * @deprecated Unused method from interface.
 	 */

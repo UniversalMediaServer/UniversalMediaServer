@@ -65,6 +65,8 @@ public class FormatRecognitionTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
+		PMS.get();
+		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
 		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
 
@@ -74,14 +76,13 @@ public class FormatRecognitionTest {
 
 		// Initialize the RendererConfiguration
 		configuration = new PmsConfiguration(false);
-		RendererConfiguration.loadRendererConfigurations(configuration);
 	}
 
     /**
      * Test some basic functionality of {@link RendererConfiguration#isCompatible(DLNAMediaInfo, Format)}
      */
     @Test
-	public void testRendererConfigurationBasics() {
+    public void testRendererConfigurationBasics() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
@@ -110,7 +111,7 @@ public class FormatRecognitionTest {
 		audio.getAudioProperties().setNumberOfChannels(2);
 		List<DLNAMediaAudio> audioCodes = new ArrayList<>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioTracks(audioCodes);
 		dlna.setMedia(info);
 		Format format = new MP3();
 		format.match("test.mp3");
@@ -143,7 +144,7 @@ public class FormatRecognitionTest {
 		audio.getAudioProperties().setNumberOfChannels(5);
 		List<DLNAMediaAudio> audioCodes = new ArrayList<>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioTracks(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.avi");
@@ -177,7 +178,7 @@ public class FormatRecognitionTest {
 		audio.getAudioProperties().setNumberOfChannels(5);
 		List<DLNAMediaAudio> audioCodes = new ArrayList<>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioTracks(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.mkv");
@@ -189,7 +190,7 @@ public class FormatRecognitionTest {
 	/**
 	 * Test the compatibility of the
 	 * {@link Format#isCompatible(DLNAMediaInfo, RendererConfiguration)} for the
-	 * Playstation 3 renderer.
+	 * Sony Playstation 3 renderer.
 	 */
 	@Test
 	public void testPS3Compatibility() {
@@ -300,7 +301,7 @@ public class FormatRecognitionTest {
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mpegps");
 		List<DLNAMediaAudio> audioCodes = new ArrayList<>();
-		info.setAudioTracksList(audioCodes);
+		info.setAudioTracks(audioCodes);
 		info.setMimeType("video/mpeg");
 		info.setCodecV("mpeg2");
 		info.setMediaparsed(true);

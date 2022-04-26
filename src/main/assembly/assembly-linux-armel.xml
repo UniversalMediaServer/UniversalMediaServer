@@ -31,26 +31,20 @@
 			<lineEnding>keep</lineEnding>
 		</file>
 
-		<!-- Include the tsMuxeR binaries -->
-		<file>
-			<source>${project.binaries}/linux/tsMuxeR</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
-		<file>
-			<source>${project.binaries}/linux/tsMuxeR-new</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
-
 		<!-- Include executable script UMS.sh -->
 		<file>
 			<source>${project.external-resources}/UMS.sh</source>
 			<outputDirectory>.</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>unix</lineEnding>
+		</file>
+
+		<!-- Include the youtube-dl binary -->
+		<file>
+			<source>${project.binaries}/linux/youtube-dl</source>
+			<outputDirectory>./linux</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
 		</file>
 	</files>
 	<fileSets>

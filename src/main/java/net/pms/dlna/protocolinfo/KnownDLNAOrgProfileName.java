@@ -1,6 +1,5 @@
 package net.pms.dlna.protocolinfo;
 
-
 /**
  * This {@code enum} contains predefined {@code DLNA.ORG_PN} values that
  * isn't already defined in {@link DLNAProfiles}.

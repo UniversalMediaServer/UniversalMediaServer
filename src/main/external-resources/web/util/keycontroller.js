@@ -515,15 +515,7 @@ function moveInPlay(key) {
 			window.location.replace('/play/{{nextId}}?html5=1');
 			break;
 		}
-		case VK_PLAY_PAUSE:{
-			var myPlayer = videojs("player");
-			if (myPlayer.paused()) {
-				myPlayer.play();
-			} else {
-				myPlayer.pause();
-			}
-			break;
-		}
+		
 		case VK_RED:{
 			window.location.replace('/play/{{id1}}?flash=1');
 		}

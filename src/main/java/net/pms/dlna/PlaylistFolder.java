@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PlaylistFolder extends DLNAResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 	private String name;
 	private String uri;
@@ -92,10 +93,49 @@ public class PlaylistFolder extends DLNAResource {
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
-				return new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(playlistfile)), charset));
+				FileInputStream inputStream = new FileInputStream(playlistfile);
+				return new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), charset));
 			}
 		}
 		return null;
+	}
+
+	@Override
+	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+		File thumbnailImage = null;
+		if (!isweb) {
+			thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");
+			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".jpg");
+			}
+			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.png");
+			}
+			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				thumbnailImage = new File(FilenameUtils.getFullPath(uri) + "folder.jpg");
+			}
+			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
+				return super.getThumbnailInputStream();
+			}
+			DLNAThumbnailInputStream result = null;
+			try {
+				LOGGER.debug("PlaylistFolder albumart path : " + thumbnailImage.getAbsolutePath());
+				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
+			} catch (IOException e) {
+				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
+					e.getMessage());
+				LOGGER.trace("", e);
+			}
+			return result != null ? result : super.getThumbnailInputStream();
+		}
+		return null;
+	}
+
+	@Override
+	public void resolve() {
+		getChildren().clear();
+		setLastModified(getPlaylistfile().lastModified());
+		resolveOnce();
 	}
 
 	@Override
@@ -129,10 +169,10 @@ public class PlaylistFolder extends DLNAResource {
 							title = null;
 							int index = 0;
 							if (var.startsWith("file")) {
-								index = Integer.valueOf(var.substring(4));
+								index = Integer.parseInt(var.substring(4));
 								fileName = value;
 							} else if (var.startsWith("title")) {
-								index = Integer.valueOf(var.substring(5));
+								index = Integer.parseInt(var.substring(5));
 								title = value;
 							}
 							if (index > 0) {
@@ -189,7 +229,7 @@ public class PlaylistFolder extends DLNAResource {
 			Format f = FormatFactory.getAssociatedFormat(ext);
 			int type = f == null ? defaultContent : f.getType();
 
-			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
+			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
 				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
 				if (en.exists()) {
 					addChild(type == Format.PLAYLIST ? new PlaylistFolder(en) : new RealFile(en, entry.title));
@@ -197,25 +237,26 @@ public class PlaylistFolder extends DLNAResource {
 				}
 			} else {
 				String u = FileUtil.urlJoin(uri, entry.fileName);
-				if (type == Format.PLAYLIST && ! entry.fileName.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has a query string) it's
-					// likely not a nested playlist but a media item, for instance Twitch TV media urls:
-					//    'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
+					// If the filename continues past the "extension" (i.e. has
+					// a query string) it's
+					// likely not a nested playlist but a media item, for
+					// instance Twitch TV media urls:
+					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
 				}
-				DLNAResource d =
-					type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
+				DLNAResource d = type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
 					type == Format.AUDIO ? new WebAudioStream(entry.title, u, null) :
-					type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
-					type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
+						type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
+							type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
 				if (d != null) {
 					addChild(d);
 					valid = true;
 				}
 			}
 		}
-		if (! isweb) {
-			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
+		if (!isweb) {
+			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
@@ -227,6 +268,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	private static class Entry {
+
 		public String fileName;
 		public String title;
 
@@ -248,6 +290,8 @@ public class PlaylistFolder extends DLNAResource {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 				case "ups":
 					return new Playlist(name, uri);
+				default:
+					break;
 			}
 		}
 		return null;

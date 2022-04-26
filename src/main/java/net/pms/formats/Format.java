@@ -25,7 +25,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
-import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +104,7 @@ public abstract class Format implements Cloneable {
 		WAV,
 		WBMP,
 		WEB,
+		WEBP,
 		WEBVTT,
 		WMA,
 		WV,
@@ -161,14 +161,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * @deprecated Use {@link #getSupportedExtensions} instead.
-	 */
-	@Deprecated
-	public String[] getId() {
-		return getSupportedExtensions();
-	}
-
-	/**
 	 * Returns a list of file extensions to use to identify
 	 * a particular format e.g. "mp3" or "mpg". Extensions
 	 * are expected to be in lower case. The default value is
@@ -188,15 +180,11 @@ public abstract class Format implements Cloneable {
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
 	 * be returned.
 	 *
-	 * @param media
-	 *            The media information.
-	 * @param renderer
-	 *            The renderer for which to check. If <code>null</code> is set
-	 *            as renderer, the default renderer configuration will be used.
-	 *
-	 * @return True if the format can be handled by the renderer, false
-	 *         otherwise.
-	 *
+	 * @param dlna The media information.
+	 * @param renderer The renderer for which to check. If <code>null</code>
+	 *                 is set as renderer, the default renderer configuration
+	 *                 will be used.
+	 * @return Whether the format can be handled by the renderer
 	 * @since 1.50.1
 	 */
 	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
@@ -216,18 +204,11 @@ public abstract class Format implements Cloneable {
 
 	public abstract boolean transcodable();
 
+	/**
+	 * Returns the default MIME for the given media type.
+	 */
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
-	}
-
-	/**
-	 * Not in use, handled by {@link GenericIcons}
-	 *
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setIcon(String filename) {
-		icon = filename;
 	}
 
 	public String getIcon() {
@@ -303,11 +284,6 @@ public abstract class Format implements Cloneable {
 		return (Format) this.clone();
 	}
 
-	@Deprecated
-	public void parse(DLNAMediaInfo media, InputFile file, int type) {
-		parse(media, file, type, null);
-	}
-
 	/**
 	 * Chooses which parsing method to parse the file with.
 	 */
@@ -342,7 +318,7 @@ public abstract class Format implements Cloneable {
 				return true;
 			}
 
-			String[] extensionsArray = extensionsString.split(",");
+			String[] extensionsArray = extensionsString.split(",\\s*");
 			for (String extension : extensionsArray) {
 				if (StringUtil.hasValue(extension) && extension.equalsIgnoreCase(matchedExtension)) {
 					return true;

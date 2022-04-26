@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
@@ -42,11 +43,15 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
+import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.SharedContentTab;
 import net.pms.platform.macos.NSFoundation;
@@ -74,12 +79,30 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private Playlist recentlyPlayed;
 	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder() {
 		setIndexId(0);
 		webFolders = new ArrayList<>();
+		addVirtualMyMusicFolder();
+	}
+
+	private void addVirtualMyMusicFolder() {
+		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			if (!getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId("0");
+				addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to root");
+			}
+		} else {
+			if (!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+				PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to 'Audio' folder");
+			}
+		}
 	}
 
 	@Override
@@ -122,46 +145,42 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (configuration.isShowMediaLibraryFolder()) {
+		if (isAddGlobally && configuration.isShowMediaLibraryFolder()) {
 			DLNAResource libraryRes = PMS.get().getLibrary();
 			if (libraryRes != null) {
-				addChild(libraryRes, true, isAddGlobally);
+				addChild(libraryRes, true);
 			}
 		}
 
-		if (configuration.isShowRecentlyPlayedFolder()) {
-			recentlyPlayed = new Playlist(Messages.getString("VirtualFolder.1"),
-				PMS.getConfiguration().getDataFile("UMS.last"),
-				PMS.getConfiguration().getInt("last_play_limit", 250),
-				Playlist.PERMANENT|Playlist.AUTOSAVE);
-			addChild(recentlyPlayed, true, isAddGlobally);
-		}
-
-		List<Path> foldersMonitored = configuration.getMonitoredFolders();
-		if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
-			File[] dirs = new File[foldersMonitored.size()];
-			int i = 0;
-			for (Path folderMonitored : foldersMonitored) {
-				dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
-				i++;
-			}
-			mon = new MediaMonitor(dirs);
-
-			if (configuration.isShowNewMediaFolder()) {
-				addChild(mon, true, isAddGlobally);
+		if (configuration.getUseCache()) {
+			List<Path> foldersMonitored = configuration.getMonitoredFolders();
+			if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+				File[] dirs = new File[foldersMonitored.size()];
+				int i = 0;
+				for (Path folderMonitored : foldersMonitored) {
+					dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
+					i++;
+				}
+				mon = new MediaMonitor(dirs);
 			}
 		}
 
-		if (configuration.getFolderLimit() && getDefaultRenderer() != null && getDefaultRenderer().isLimitFolders()) {
-			lim = new FolderLimit();
-			addChild(lim, true, isAddGlobally);
-		}
+		if (isAddGlobally) {
+			if (
+				configuration.getFolderLimit() &&
+				getDefaultRenderer() != null &&
+				getDefaultRenderer().isLimitFolders()
+			) {
+				lim = new FolderLimit();
+				addChild(lim, true);
+			}
 
-		if (configuration.isDynamicPls()) {
-			addChild(PMS.get().getDynamicPls(), true, isAddGlobally);
-			if (!configuration.isHideSavedPlaylistFolder()) {
-				File plsdir = new File(configuration.getDynamicPlsSavePath());
-				addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true, isAddGlobally);
+			if (configuration.isDynamicPls()) {
+				addChild(PMS.get().getDynamicPls(), true);
+				if (!configuration.isHideSavedPlaylistFolder()) {
+					File plsdir = new File(configuration.getDynamicPlsSavePath());
+					addChild(new RealFile(plsdir, Messages.getString("VirtualFolder.3")), true);
+				}
 			}
 		}
 
@@ -196,36 +215,38 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		loadWebConf();
+		if (isAddGlobally) {
+			loadWebConf();
 
-		switch(Platform.getOSType()) {
-			case Platform.MAC:
-				if (configuration.isShowIphotoLibrary()) {
-					DLNAResource iPhotoRes = getiPhotoFolder();
-					if (iPhotoRes != null) {
-						addChild(iPhotoRes);
+			switch (Platform.getOSType()) {
+				case Platform.MAC:
+					if (configuration.isShowIphotoLibrary()) {
+						DLNAResource iPhotoRes = getiPhotoFolder();
+						if (iPhotoRes != null) {
+							addChild(iPhotoRes);
+						}
 					}
-				}
-				if (configuration.isShowApertureLibrary()) {
-					DLNAResource apertureRes = getApertureFolder();
-					if (apertureRes != null) {
-						addChild(apertureRes);
+					if (configuration.isShowApertureLibrary()) {
+						DLNAResource apertureRes = getApertureFolder();
+						if (apertureRes != null) {
+							addChild(apertureRes);
+						}
 					}
-				}
-			case Platform.WINDOWS:
-				if (configuration.isShowItunesLibrary()) {
-					DLNAResource iTunesRes = getiTunesFolder();
-					if (iTunesRes != null) {
-						addChild(iTunesRes);
+				case Platform.WINDOWS:
+					if (configuration.isShowItunesLibrary()) {
+						DLNAResource iTunesRes = getiTunesFolder();
+						if (iTunesRes != null) {
+							addChild(iTunesRes);
+						}
 					}
-				}
+			}
+
+			if (configuration.isShowServerSettingsFolder()) {
+				addAdminFolder();
+			}
+
+			setDiscovered(true);
 		}
-
-		if (configuration.isShowServerSettingsFolder()) {
-			addAdminFolder();
-		}
-
-		setDiscovered(true);
 	}
 
 	public void setFolderLim(DLNAResource r) {
@@ -248,31 +269,37 @@ public class RootFolder extends DLNAResource {
 
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		LOGGER.debug("Starting scan of: {}", this.getName());
-		scan(this);
-
-		// Running might have been set false during scan
 		if (running) {
-			PMS.get().getDatabase().cleanup();
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					scan(this);
+					// Running might have been set false during scan
+					if (running) {
+						MediaTableFiles.cleanup(connection);
+					}
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
+
 		frame.setScanLibraryEnabled(true);
 		frame.setStatusLine(null);
-	}
-
-	/*
-	 * @deprecated Use {@link #stopScan()} instead.
-	 */
-	@Deprecated
-	public void stopscan() {
-		stopScan();
 	}
 
 	public void stopScan() {
 		running = false;
 	}
 
-	private void scan(DLNAResource resource) {
+	public void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
+				// wait until the realtime lock is released before starting
+				PMS.REALTIME_LOCK.lock();
+				PMS.REALTIME_LOCK.unlock();
+
 				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 
@@ -302,12 +329,13 @@ public class RootFolder extends DLNAResource {
 
 					scan(child);
 					child.getChildren().clear();
-				} else if (!running){
+				} else if (!running) {
 					break;
 				}
 			}
 		} else {
 			frame.setScanLibraryEnabled(true);
+			frame.setStatusLine(null);
 		}
 	}
 
@@ -365,7 +393,7 @@ public class RootFolder extends DLNAResource {
 		return null;
 	}
 
-	private static final Object defaultFoldersLock = new Object();
+	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
 	@GuardedBy("defaultFoldersLock")
 	private static List<Path> defaultFolders = null;
 
@@ -378,12 +406,12 @@ public class RootFolder extends DLNAResource {
 	 */
 	@Nonnull
 	public static List<Path> getDefaultFolders() {
-		synchronized (defaultFoldersLock) {
+		synchronized (DEFAULT_FOLDERS_LOCK) {
 			if (defaultFolders == null) {
 				// Lazy initialization
 				defaultFolders = new ArrayList<Path>();
 				if (Platform.isWindows()) {
-					Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
+					Double version = BasicSystemUtils.instance.getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
 							KnownFolders.FOLDERID_Music,
@@ -489,16 +517,38 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public void loadWebConf() {
+	public synchronized void loadWebConf() {
+		Integer currentlySelectedPosition = -1;
+
+		if (SharedContentTab.webContentList != null) {
+			currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
+		}
+
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
 		webFolders.clear();
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
-		if (webConf.exists() && configuration.getExternalNetwork()) {
-			parseWebConf(webConf);
-			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), rootWatcher, this, RELOAD_WEB_CONF));
+		if (!webConf.exists()) {
+			configuration.writeWebConfigurationFile();
+		}
+		if (
+			webConf.exists() &&
+			configuration.getExternalNetwork() &&
+			(
+				SharedContentTab.lastWebContentUpdate == 1L ||
+				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
+			)
+		) {
+			/**
+			 * If the GUI last updated less than 2 seconds ago, chances are good
+			 * that this method was triggered by changes in the GUI, which means
+			 * we can skip updating the GUI here (avoiding the peakaboo effect)
+			 */
+			LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
+			parseWebConf(webConf, currentlySelectedPosition);
+			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
 		}
 		setLastModified(1);
 	}
@@ -508,7 +558,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @param webConf
 	 */
-	private void parseWebConf(File webConf) {
+	private synchronized void parseWebConf(File webConf, Integer currentlySelectedPosition) {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
@@ -559,6 +609,7 @@ public class RootFolder extends DLNAResource {
 									parent = this;
 								}
 
+								// Handle web playlists
 								if (sourceType.endsWith("stream")) {
 									int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
 									DLNAResource playlist = PlaylistFolder.getPlaylist(uri, values[1], type);
@@ -568,21 +619,28 @@ public class RootFolder extends DLNAResource {
 									}
 								}
 
+								String optionalStreamThumbnail = values.length > 2 ? values[2] : null;
+
 								switch (sourceType) {
 									case "imagefeed":
 										parent.addChild(new ImagesFeed(uri));
 										break;
 									case "videofeed":
+										// Convert YouTube channel URIs to their feed URIs
+										if (uri.contains("youtube.com/channel/")) {
+											uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+										}
+
 										parent.addChild(new VideosFeed(uri));
 										break;
 									case "audiofeed":
 										parent.addChild(new AudiosFeed(uri));
 										break;
 									case "audiostream":
-										parent.addChild(new WebAudioStream(uri, values[1], values[2]));
+										parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									case "videostream":
-										parent.addChild(new WebVideoStream(uri, values[1], values[2]));
+										parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
 										break;
 									default:
 										break;
@@ -603,7 +661,7 @@ public class RootFolder extends DLNAResource {
 			LOGGER.debug("", e);
 		} finally {
 			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.parseWebConf(webConf);
+				SharedContentTab.setWebContentGUIFromWebConfFile(webConf, currentlySelectedPosition);
 			}
 		}
 	}
@@ -631,21 +689,14 @@ public class RootFolder extends DLNAResource {
 
 	/**
 	 * Splits the second part of a WEB.conf spec into a triple of Strings
-	 * representing the DLNA path, resource URI and optional thumbnail URI.
+	 * representing the DLNA path, resource URI, optional thumbnail URI
+	 * and name.
 	 *
 	 * @param spec (String) to be split
 	 * @return Array of (String) that represents the tokenized entry.
 	 */
 	public static String[] parseFeedValue(String spec) {
-		StringTokenizer st = new StringTokenizer(spec, ",");
-		String[] triple = new String[3];
-		int i = 0;
-
-		while (st.hasMoreTokens()) {
-			triple[i++] = st.nextToken();
-		}
-
-		return triple;
+		return spec.split(",");
 	}
 
 	/**
@@ -660,13 +711,17 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
-			InputStream inputStream = null;
-
+			Process process = null;
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
-				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
-				inputStream = process.getInputStream();
-				List<String> lines = IOUtils.readLines(inputStream);
+				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
+			} catch (IOException e1) {
+				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e1);
+				return null;
+			}
+
+			try (InputStream inputStream = process.getInputStream()) {
+				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
 				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
 				if (lines.size() >= 2) {
@@ -725,8 +780,6 @@ public class RootFolder extends DLNAResource {
 				}
 			} catch (XmlParseException | URISyntaxException | IOException e) {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
-			} finally {
-				IOUtils.closeQuietly(inputStream);
 			}
 		}
 
@@ -923,8 +976,10 @@ public class RootFolder extends DLNAResource {
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 				// we want the 2nd line
-				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-					line = line.trim(); // remove extra spaces
+				String line1 = in.readLine();
+				String line2 = in.readLine();
+				if (line1 != null && line2 != null) {
+					line = line2.trim(); // remove extra spaces
 					line = line.substring(1, line.length() - 1); // remove quotes and spaces
 					URI tURI = new URI(line);
 					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
@@ -937,9 +992,9 @@ public class RootFolder extends DLNAResource {
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 				location = null;
 				while ((line = in.readLine()) != null) {
-					final String LOOK_FOR = "REG_SZ";
-					if (line.contains(LOOK_FOR)) {
-						location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+					final String lookFor = "REG_SZ";
+					if (line.contains(lookFor)) {
+						location = line.substring(line.indexOf(lookFor) + lookFor.length()).trim();
 					}
 				}
 			}
@@ -981,50 +1036,50 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac() || Platform.isWindows()) {
 			Map<String, Object> iTunesLib;
-			List<?> Playlists;
-			Map<?, ?> Playlist;
-			Map<?, ?> Tracks;
+			List<?> playlists;
+			Map<?, ?> playlist;
+			Map<?, ?> tracks;
 			Map<?, ?> track;
-			List<?> PlaylistTracks;
+			List<?> playlistTracks;
 
 			try {
 				String iTunesFile = getiTunesFile();
 
 				if (iTunesFile != null && (new File(iTunesFile)).exists()) {
 					iTunesLib = Plist.load(URLDecoder.decode(iTunesFile, System.getProperty("file.encoding"))); // loads the (nested) properties.
-					Tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
-					Playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
+					tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
+					playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
 					res = new VirtualFolder("iTunes Library", null);
 
 					VirtualFolder playlistsFolder = null;
 
-					for (Object item : Playlists) {
-						Playlist = (Map<?, ?>) item;
+					for (Object item : playlists) {
+						playlist = (Map<?, ?>) item;
 
-						if (Playlist.containsKey("Visible") && Playlist.get("Visible").equals(Boolean.FALSE)) {
+						if (playlist.containsKey("Visible") && playlist.get("Visible").equals(Boolean.FALSE)) {
 							continue;
 						}
 
-						if (Playlist.containsKey("Music") && Playlist.get("Music").equals(Boolean.TRUE)) {
+						if (playlist.containsKey("Music") && playlist.get("Music").equals(Boolean.TRUE)) {
 							// Create virtual folders for artists, albums and genres
 
-							VirtualFolder musicFolder = new VirtualFolder(Playlist.get("Name").toString(), null);
+							VirtualFolder musicFolder = new VirtualFolder(playlist.get("Name").toString(), null);
 							res.addChild(musicFolder);
 
 							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("FoldTab.50"), null);
 							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("FoldTab.51"), null);
 							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("FoldTab.52"), null);
 							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("PMS.11"), null);
-							PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
+							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							String artistName;
 							String albumName;
 							String genreName;
 
-							if (PlaylistTracks != null) {
-								for (Object t : PlaylistTracks) {
+							if (playlistTracks != null) {
+								for (Object t : playlistTracks) {
 									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
+									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
 
 									if (
 										track != null &&
@@ -1079,76 +1134,70 @@ public class RootFolder extends DLNAResource {
 										RealFile file = new RealFile(refFile, name);
 
 										// Put the track into the artist's album folder and the artist's "All tracks" folder
-										{
-											VirtualFolder individualArtistFolder = null;
-											VirtualFolder individualArtistAllTracksFolder;
-											VirtualFolder individualArtistAlbumFolder = null;
+										VirtualFolder individualArtistFolder = null;
+										VirtualFolder individualArtistAllTracksFolder;
+										VirtualFolder individualArtistAlbumFolder = null;
 
-											for (DLNAResource artist : virtualFolderArtists.getChildren()) {
-												if (areNamesEqual(artist.getName(), artistName)) {
-													individualArtistFolder = (VirtualFolder) artist;
-													for (DLNAResource album : individualArtistFolder.getChildren()) {
-														if (areNamesEqual(album.getName(), albumName)) {
-															individualArtistAlbumFolder = (VirtualFolder) album;
-														}
+										for (DLNAResource artist : virtualFolderArtists.getChildren()) {
+											if (areNamesEqual(artist.getName(), artistName)) {
+												individualArtistFolder = (VirtualFolder) artist;
+												for (DLNAResource album : individualArtistFolder.getChildren()) {
+													if (areNamesEqual(album.getName(), albumName)) {
+														individualArtistAlbumFolder = (VirtualFolder) album;
 													}
-													break;
 												}
+												break;
 											}
-
-											if (individualArtistFolder == null) {
-												individualArtistFolder = new VirtualFolder(artistName, null);
-												virtualFolderArtists.addChild(individualArtistFolder);
-												individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("PMS.11"), null);
-												individualArtistFolder.addChild(individualArtistAllTracksFolder);
-											} else {
-												individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
-											}
-
-											if (individualArtistAlbumFolder == null) {
-												individualArtistAlbumFolder = new VirtualFolder(albumName, null);
-												individualArtistFolder.addChild(individualArtistAlbumFolder);
-											}
-
-											individualArtistAlbumFolder.addChild(file.clone());
-											individualArtistAllTracksFolder.addChild(file);
 										}
+
+										if (individualArtistFolder == null) {
+											individualArtistFolder = new VirtualFolder(artistName, null);
+											virtualFolderArtists.addChild(individualArtistFolder);
+											individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("PMS.11"), null);
+											individualArtistFolder.addChild(individualArtistAllTracksFolder);
+										} else {
+											individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
+										}
+
+										if (individualArtistAlbumFolder == null) {
+											individualArtistAlbumFolder = new VirtualFolder(albumName, null);
+											individualArtistFolder.addChild(individualArtistAlbumFolder);
+										}
+
+										individualArtistAlbumFolder.addChild(file.clone());
+										individualArtistAllTracksFolder.addChild(file);
 
 										// Put the track into its album folder
-										{
-											if (!isCompilation) {
-												albumName += " - " + artistName;
-											}
-
-											VirtualFolder individualAlbumFolder = null;
-											for (DLNAResource album : virtualFolderAlbums.getChildren()) {
-												if (areNamesEqual(album.getName(), albumName)) {
-													individualAlbumFolder = (VirtualFolder) album;
-													break;
-												}
-											}
-											if (individualAlbumFolder == null) {
-												individualAlbumFolder = new VirtualFolder(albumName, null);
-												virtualFolderAlbums.addChild(individualAlbumFolder);
-											}
-											individualAlbumFolder.addChild(file.clone());
+										if (!isCompilation) {
+											albumName += " - " + artistName;
 										}
+
+										VirtualFolder individualAlbumFolder = null;
+										for (DLNAResource album : virtualFolderAlbums.getChildren()) {
+											if (areNamesEqual(album.getName(), albumName)) {
+												individualAlbumFolder = (VirtualFolder) album;
+												break;
+											}
+										}
+										if (individualAlbumFolder == null) {
+											individualAlbumFolder = new VirtualFolder(albumName, null);
+											virtualFolderAlbums.addChild(individualAlbumFolder);
+										}
+										individualAlbumFolder.addChild(file.clone());
 
 										// Put the track into its genre folder
-										{
-											VirtualFolder individualGenreFolder = null;
-											for (DLNAResource genre : virtualFolderGenres.getChildren()) {
-												if (areNamesEqual(genre.getName(), genreName)) {
-													individualGenreFolder = (VirtualFolder) genre;
-													break;
-												}
+										VirtualFolder individualGenreFolder = null;
+										for (DLNAResource genre : virtualFolderGenres.getChildren()) {
+											if (areNamesEqual(genre.getName(), genreName)) {
+												individualGenreFolder = (VirtualFolder) genre;
+												break;
 											}
-											if (individualGenreFolder == null) {
-												individualGenreFolder = new VirtualFolder(genreName, null);
-												virtualFolderGenres.addChild(individualGenreFolder);
-											}
-											individualGenreFolder.addChild(file.clone());
 										}
+										if (individualGenreFolder == null) {
+											individualGenreFolder = new VirtualFolder(genreName, null);
+											virtualFolderGenres.addChild(individualGenreFolder);
+										}
+										individualGenreFolder.addChild(file.clone());
 
 										// Put the track into the global "All tracks" folder
 										virtualFolderAllTracks.addChild(file.clone());
@@ -1190,13 +1239,13 @@ public class RootFolder extends DLNAResource {
 							});
 						} else {
 							// Add all playlists
-							VirtualFolder pf = new VirtualFolder(Playlist.get("Name").toString(), null);
-							PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
+							VirtualFolder pf = new VirtualFolder(playlist.get("Name").toString(), null);
+							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
-							if (PlaylistTracks != null) {
-								for (Object t : PlaylistTracks) {
+							if (playlistTracks != null) {
+								for (Object t : playlistTracks) {
 									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
+									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
 
 									if (
 										track != null &&
@@ -1218,7 +1267,7 @@ public class RootFolder extends DLNAResource {
 								}
 							}
 
-							int kind = Playlist.containsKey("Distinguished Kind") ? ((Number) Playlist.get("Distinguished Kind")).intValue() : -1;
+							int kind = playlist.containsKey("Distinguished Kind") ? ((Number) playlist.get("Distinguished Kind")).intValue() : -1;
 							if (kind >= 0 && kind != 17 && kind != 19 && kind != 20) {
 								// System folder, but not voice memos (17) and purchased items (19 & 20)
 								res.addChild(pf);
@@ -1496,16 +1545,13 @@ public class RootFolder extends DLNAResource {
 		if (mon != null) {
 			mon.stopped(res);
 		}
-		if (recentlyPlayed != null) {
-			recentlyPlayed.add(res);
-		}
 	}
 
 	// Automatic reloading
 
 	public final static int RELOAD_WEB_CONF = 1;
 
-	public static final FileWatcher.Listener rootWatcher = new FileWatcher.Listener() {
+	public static final FileWatcher.Listener ROOT_WATCHER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			RootFolder r = (RootFolder) watch.getItem();
@@ -1525,55 +1571,68 @@ public class RootFolder extends DLNAResource {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						/**
+						 * If a new directory is created with files, the listener may not
+						 * give us information about those new files, as it wasn't listening
+						 * when they were created, so make sure we parse them.
+						 */
+						if (isDir) {
+							if ("ENTRY_CREATE".equals(event)) {
+								LOGGER.trace("Folder {} was created on the hard drive", filename);
 
-				if (database != null) {
-					/**
-					 * If a new directory is created with files, the listener may not
-					 * give us information about those new files, as it wasn't listening
-					 * when they were created, so make sure we parse them.
-					 */
-					if (isDir) {
-						if ("ENTRY_CREATE".equals(event)) {
-							LOGGER.trace("Folder {} was created on the hard drive", filename);
-
-							File[] files = new File(filename).listFiles();
-							if (files != null) {
-								LOGGER.trace("Crawling {}", filename);
-								for (File file : files) {
-									if (file.isFile()) {
-										LOGGER.trace("File {} found in {}", file.getName(), filename);
-										parseFileForDatabase(file);
+								File[] files = new File(filename).listFiles();
+								if (files != null) {
+									LOGGER.trace("Crawling {}", filename);
+									for (File file : files) {
+										if (file.isFile()) {
+											LOGGER.trace("File {} found in {}", file.getName(), filename);
+											parseFileForDatabase(file);
+										}
 									}
+								} else {
+									LOGGER.trace("Folder {} is empty", filename);
 								}
-							} else {
-								LOGGER.trace("Folder {} is empty", filename);
+							} else if ("ENTRY_DELETE".equals(event)) {
+								LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
+								MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
+								bumpSystemUpdateId();
 							}
-						} else if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-							PMS.get().getDatabase().removeMediaEntriesInFolder(filename);
-						}
-					} else {
-						if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-							PMS.get().getDatabase().removeMediaEntry(filename);
-						} else if ("ENTRY_CREATE".equals(event)) {
-							LOGGER.trace("File {} was created on the hard drive", filename);
-							File file = new File(filename);
-							parseFileForDatabase(file);
+						} else {
+							if ("ENTRY_DELETE".equals(event)) {
+								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+								MediaTableFiles.removeMediaEntry(connection, filename, true);
+								bumpSystemUpdateId();
+							} else if ("ENTRY_CREATE".equals(event)) {
+								LOGGER.trace("File {} was created on the hard drive", filename);
+								File file = new File(filename);
+								parseFileForDatabase(file);
+							}
 						}
 					}
+				} finally {
+					MediaDatabase.close(connection);
 				}
 			}
 		}
 	};
 
 	/**
-	 * Parses a file so it gets added to the Media Library along the way.
+	 * Parses a file so it gets parsed and added to the database
+	 * along the way.
 	 *
 	 * @param file the file to parse
 	 */
 	public static final void parseFileForDatabase(File file) {
+		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
+			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
+		// TODO: Can this use UnattachedFolder and add instead?
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -1582,8 +1641,63 @@ public class RootFolder extends DLNAResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
+			bumpSystemUpdateId();
+
+			/*
+			 * Something about this process causes Java to hold onto the
+			 * file, which prevents things happening to it on the filesystem
+			 * until the garbage collector runs.
+			 * Some sources say it is a symptom of the nio namespace itself
+			 * and the fix is to use older syntax, and others say other things,
+			 * but until we have a real fix for it we ask Java to collect the
+			 * garbage. It might not do it, but usually it does, which is better
+			 * than what we had before.
+			 */
+			System.gc();
+			System.runFinalization();
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
 		}
-	};
+	}
+
+	/**
+	 * Starts partial rescan
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 *                 the parent folder will be scanned.
+	 */
+	public static void rescanLibraryFileOrFolder(String filename) {
+		if (
+			hasSameBasePath(PMS.getConfiguration().getSharedFolders(), filename) ||
+			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
+		) {
+			LOGGER.debug("rescanning file or folder : " + filename);
+
+			if (!LibraryScanner.isScanLibraryRunning()) {
+				Runnable scan = () -> {
+					File file = new File(filename);
+					if (file.isFile()) {
+						file = file.getParentFile();
+					}
+					DLNAResource dir = new RealFile(file);
+					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					dir.doRefreshChildren();
+					PMS.get().getRootFolder(null).scan(dir);
+				};
+				Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
+				scanThread.start();
+			}
+		} else {
+			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
+		}
+	}
+
+	public static boolean hasSameBasePath(List<Path> dirs, String content) {
+		for (Path path : dirs) {
+			if (content.startsWith(path.toString())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

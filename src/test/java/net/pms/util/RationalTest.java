@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,14 +34,9 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class RationalTest {
-
-	@Rule
-	public final ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testStaticInstances() {
@@ -55,7 +51,6 @@ public class RationalTest {
 		assertEquals("0", Rational.ZERO.toDecimalString());
 		assertEquals("0", Rational.ZERO.toUnreducedHexString());
 		assertEquals("0", Rational.ZERO.toHexString());
-		assertEquals("1:1", Rational.ZERO.toAspectRatio());
 		assertEquals(Rational.ZERO, Rational.ZERO);
 
 		assertTrue(Rational.ONE.equals(BigInteger.ONE));
@@ -69,7 +64,6 @@ public class RationalTest {
 		assertEquals("1", Rational.ONE.toDecimalString());
 		assertEquals("1", Rational.ONE.toUnreducedHexString());
 		assertEquals("1", Rational.ONE.toHexString());
-		assertEquals("1:1", Rational.ONE.toAspectRatio());
 		assertEquals(Rational.ONE, Rational.ONE);
 
 		assertTrue(Rational.POSITIVE_INFINITY.equals(Double.POSITIVE_INFINITY));
@@ -84,7 +78,6 @@ public class RationalTest {
 		assertEquals("\u221e", Rational.POSITIVE_INFINITY.toDecimalString());
 		assertEquals("\u221e", Rational.POSITIVE_INFINITY.toUnreducedHexString());
 		assertEquals("\u221e", Rational.POSITIVE_INFINITY.toHexString());
-		assertEquals("1:1", Rational.POSITIVE_INFINITY.toAspectRatio());
 		assertEquals(Rational.POSITIVE_INFINITY, Rational.POSITIVE_INFINITY);
 
 		assertTrue(Rational.NEGATIVE_INFINITY.equals(Double.NEGATIVE_INFINITY));
@@ -99,7 +92,6 @@ public class RationalTest {
 		assertEquals("-\u221e", Rational.NEGATIVE_INFINITY.toDecimalString());
 		assertEquals("-\u221e", Rational.NEGATIVE_INFINITY.toUnreducedHexString());
 		assertEquals("-\u221e", Rational.NEGATIVE_INFINITY.toHexString());
-		assertEquals("1:1", Rational.NEGATIVE_INFINITY.toAspectRatio());
 		assertEquals(Rational.NEGATIVE_INFINITY, Rational.NEGATIVE_INFINITY);
 
 		assertTrue(Rational.NaN.equals(Double.NaN));
@@ -114,7 +106,6 @@ public class RationalTest {
 		assertEquals("NaN", Rational.NaN.toDecimalString());
 		assertEquals("NaN", Rational.NaN.toUnreducedHexString());
 		assertEquals("NaN", Rational.NaN.toHexString());
-		assertEquals("1:1", Rational.NaN.toAspectRatio());
 		assertEquals(Rational.NaN, Rational.NaN);
 	}
 
@@ -139,7 +130,6 @@ public class RationalTest {
 		assertEquals("0.8", rational.toDecimalString());
 		assertEquals("1/2", rational.toUnreducedHexString());
 		assertEquals("4/5", rational.toHexString());
-		assertEquals("4:5", rational.toAspectRatio());
 
 		Rational rational2 = new Rational(
 			BigInteger.valueOf(20),
@@ -160,7 +150,6 @@ public class RationalTest {
 		assertEquals("0.92", rational2.toDecimalString());
 		assertEquals("14/15", rational2.toUnreducedHexString());
 		assertEquals("17/19", rational2.toHexString());
-		assertEquals("23:25", rational2.toAspectRatio());
 
 		assertNotEquals(rational, rational2);
 		assertEquals(0, rational.compareTo(rational));
@@ -214,7 +203,6 @@ public class RationalTest {
 		assertEquals("116753208/125", Rational.valueOf(new BigDecimal("934025.6640")).toString());
 		assertEquals("6f58338/7d", Rational.valueOf(new BigDecimal("934025.6640")).toUnreducedHexString());
 		assertEquals("6f58338/7d", Rational.valueOf(new BigDecimal("934025.6640")).toHexString());
-		assertEquals("16:9", Rational.valueOf(new BigDecimal("1.7777777777")).toAspectRatio());
 	}
 
 	@Test
@@ -266,8 +254,9 @@ public class RationalTest {
 		assertEquals(-602.3090620625292, Rational.valueOf("1,936,122.48 :-3,214.5", NumberFormat.getInstance(Locale.US)).doubleValue(), 0.0);
 		assertEquals(602.3090620625292, Rational.valueOf("1.936.122,48: 3.214,5", Locale.GERMANY).doubleValue(), 0.0);
 		assertEquals(-602.3090620625292, Rational.valueOf("-1.936.122,48 / 3.214,5", NumberFormat.getInstance(Locale.GERMANY)).doubleValue(), 0.0);
-		exception.expect(NumberFormatException.class);
-		assertNull(Rational.valueOf(" - 3/ 0"));
+		assertThrows(NumberFormatException.class, () -> {
+			Rational.valueOf(" - 3/ 0"); // wrong number format "- 3" instead of "-3"
+		});
 	}
 
 	@Test
@@ -900,59 +889,6 @@ public class RationalTest {
 		assertEquals("16/6", rational.toUnreducedHexString());
 		assertEquals("b/3", rational.toHexString());
 		assertEquals("Value: 22/6, Reduced: 11/3, Decimal: 3.66666666666666666667", rational.toDebugString());
-		assertEquals("11:3", rational.toAspectRatio());
-		assertEquals("19:16", Rational.valueOf(1.18).toAspectRatio());
-		assertEquals("19:16", Rational.valueOf(1.195).toAspectRatio());
-		assertEquals("5:4", Rational.valueOf(1.24).toAspectRatio());
-		assertEquals("5:4", Rational.valueOf(1.26).toAspectRatio());
-		assertEquals("4:3", Rational.valueOf(1.31).toAspectRatio());
-		assertEquals("4:3", Rational.valueOf(1.35).toAspectRatio());
-		assertEquals("1.37:1", Rational.valueOf(1.36).toAspectRatio());
-		assertEquals("1.37:1", Rational.valueOf(1.372).toAspectRatio());
-		assertEquals("11:8", Rational.valueOf(1.373).toAspectRatio());
-		assertEquals("11:8", Rational.valueOf(1.399).toAspectRatio());
-		assertEquals("1.43:1", Rational.valueOf(1.420001).toAspectRatio());
-		assertEquals("1.43:1", Rational.valueOf(1.439999).toAspectRatio());
-		assertEquals("3:2", Rational.valueOf(1.49).toAspectRatio());
-		assertEquals("3:2", Rational.valueOf(1.51).toAspectRatio());
-		assertEquals("14:9", Rational.valueOf(1.54).toAspectRatio());
-		assertEquals("14:9", Rational.valueOf(1.56).toAspectRatio());
-		assertEquals("16:10", Rational.valueOf(1.59).toAspectRatio());
-		assertEquals("16:10", Rational.valueOf(1.61).toAspectRatio());
-		assertEquals("15:9", Rational.valueOf(1.65).toAspectRatio());
-		assertEquals("15:9", Rational.valueOf(1.67).toAspectRatio());
-		assertEquals("7:4", Rational.valueOf(1.7400001).toAspectRatio());
-		assertEquals("7:4", Rational.valueOf(1.7599999).toAspectRatio());
-		assertEquals("16:9", Rational.valueOf(1.76).toAspectRatio());
-		assertEquals("16:9", Rational.valueOf(1.8).toAspectRatio());
-		assertEquals("1.85:1", Rational.valueOf(1.84).toAspectRatio());
-		assertEquals("1.85:1", Rational.valueOf(1.86).toAspectRatio());
-		assertEquals("1.896:1", Rational.valueOf(1.89).toAspectRatio());
-		assertEquals("1.896:1", Rational.valueOf(1.9).toAspectRatio());
-		assertEquals("2.00:1", Rational.valueOf(2).toAspectRatio());
-		assertEquals("11:5", Rational.valueOf(2.19).toAspectRatio());
-		assertEquals("11:5", Rational.valueOf(2.21).toAspectRatio());
-		assertEquals("2.35:1", Rational.valueOf(2.34).toAspectRatio());
-		assertEquals("2.35:1", Rational.valueOf(2.36).toAspectRatio());
-		assertEquals("2.37:1", Rational.valueOf(2.3600001).toAspectRatio());
-		assertEquals("2.37:1", Rational.valueOf(2.3799999).toAspectRatio());
-		assertEquals("2.39:1", Rational.valueOf(2.38).toAspectRatio());
-		assertEquals("2.39:1", Rational.valueOf(2.41).toAspectRatio());
-		assertEquals("2.55:1", Rational.valueOf(2.54).toAspectRatio());
-		assertEquals("2.55:1", Rational.valueOf(2.56).toAspectRatio());
-		assertEquals("2.59:1", Rational.valueOf(2.58).toAspectRatio());
-		assertEquals("2.59:1", Rational.valueOf(2.6).toAspectRatio());
-		assertEquals("24:9", Rational.valueOf(2.65).toAspectRatio());
-		assertEquals("24:9", Rational.valueOf(2.67).toAspectRatio());
-		assertEquals("2.76:1", Rational.valueOf(2.75).toAspectRatio());
-		assertEquals("2.76:1", Rational.valueOf(2.77).toAspectRatio());
-		assertEquals("4.00:1", Rational.valueOf(3.9).toAspectRatio());
-		assertEquals("4.00:1", Rational.valueOf(4.1).toAspectRatio());
-		assertEquals("12.00:1", Rational.valueOf(11.9).toAspectRatio());
-		assertEquals("12.00:1", Rational.valueOf(12.1).toAspectRatio());
-		assertEquals("1:1", Rational.NaN.toAspectRatio());
-		assertEquals("1:1", Rational.POSITIVE_INFINITY.toAspectRatio());
-		assertEquals("1:1", Rational.NEGATIVE_INFINITY.toAspectRatio());
 	}
 
 	@Test

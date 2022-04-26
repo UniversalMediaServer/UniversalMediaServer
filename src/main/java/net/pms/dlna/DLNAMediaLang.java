@@ -23,29 +23,17 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of the language information for subtitles or audio.
- *
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaLang {
 	public static final String UND = "und";
+	private int id;
+	protected String lang;
 
 	/**
 	 * A special ID value that indicates that the instance is just a placeholder
 	 * that shouldn't be used.
 	 */
 	public static final int DUMMY_ID = Integer.MIN_VALUE;
-
-	private int id;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String lang;
 
 	/**
 	 * Returns the full language name for an audio or subtitle track based on a

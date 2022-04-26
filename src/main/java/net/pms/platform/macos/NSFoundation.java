@@ -277,7 +277,7 @@ public class NSFoundation {
 		/**
 		 * The static {@link NSFoundationIF} instance.
 		 */
-		NSFoundationIF INSTANCE = Native.loadLibrary(
+		NSFoundationIF INSTANCE = Native.load(
 			"/System/Library/Frameworks/Foundation.framework/Resources/BridgeSupport/Foundation.dylib",
 			NSFoundationIF.class,
 			OPTIONS

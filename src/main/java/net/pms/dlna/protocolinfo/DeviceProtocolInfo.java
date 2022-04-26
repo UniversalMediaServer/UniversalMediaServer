@@ -23,9 +23,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -210,9 +208,7 @@ public class DeviceProtocolInfo implements Serializable {
 		}
 	}
 
-
 	// Standard java.util.Collection methods.
-
 
 	/**
 	 * Returns the number of elements of the given
@@ -715,9 +711,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return result;
 	}
 
-
 	// imageProfileSet "java.util.Collection methods" getters
-
 
 	/**
 	 * Returns the number of {@link DLNAImageProfile} elements. If this contains
@@ -786,7 +780,6 @@ public class DeviceProtocolInfo implements Serializable {
 			setsLock.readLock().unlock();
 		}
 	}
-
 
 	/**
 	 * Returns {@code true} if this contains all the {@link DLNAImageProfile} instances in the
@@ -883,9 +876,7 @@ public class DeviceProtocolInfo implements Serializable {
 		return sb.toString();
 	}
 
-
 	// Static methods
-
 
 	/**
 	 * Escapes {@code protocolInfo} strings for use in {@code GetProtocolInfo}

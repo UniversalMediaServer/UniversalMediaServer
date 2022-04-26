@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Vector;
 import javax.swing.Icon;
-import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.filechooser.FileView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +40,15 @@ import org.slf4j.LoggerFactory;
  */
 public class RestrictedFileSystemView extends FileSystemView {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RestrictedFileSystemView.class);
-	private static final String newFolderString = UIManager.getString("FileChooser.other.newFolder");
-	private File _defaultDirectory;
+	private static final String NEW_FOLDER_STRING = UIManager.getString("FileChooser.other.newFolder");
+	private File defaultDirectory;
 
 	public RestrictedFileSystemView() {
 		this(null);
 	}
 
 	public RestrictedFileSystemView(File defaultDirectory) {
-		_defaultDirectory = defaultDirectory;
+		defaultDirectory = defaultDirectory;
 	}
 
 	/**
@@ -260,16 +258,16 @@ public class RestrictedFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public File getDefaultDirectory() {
-		if (_defaultDirectory == null) {
+		if (defaultDirectory == null) {
 			try {
 				File tempFile = File.createTempFile("filesystemview", "restricted");
 				tempFile.deleteOnExit();
-				_defaultDirectory = tempFile.getParentFile();
+				defaultDirectory = tempFile.getParentFile();
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
 		}
-		return _defaultDirectory;
+		return defaultDirectory;
 	}
 
 	/**
@@ -394,10 +392,10 @@ public class RestrictedFileSystemView extends FileSystemView {
 			throw new IOException("Containing directory is null:");
 		}
 		File newFolder;
-		newFolder = createFileObject(containingDir, newFolderString);
+		newFolder = createFileObject(containingDir, NEW_FOLDER_STRING);
 		int i = 2;
 		while (newFolder.exists() && (i < 100)) {
-			newFolder = createFileObject(containingDir, MessageFormat.format(newFolderString,
+			newFolder = createFileObject(containingDir, MessageFormat.format(NEW_FOLDER_STRING,
 				new Object[]{i}));
 			i++;
 		}

@@ -28,7 +28,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A {@link ProcessWrapperConsumer} implementation that return the process
  * output as an array of bytes wrapped in a {@link ByteProcessWrapperResult}.

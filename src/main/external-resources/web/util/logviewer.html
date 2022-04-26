@@ -1,37 +1,41 @@
 <!DOCTYPE html>
-<head>
-<link rel="stylesheet" href="/files/util/sh.css" type="text/css">
-<script src="/files/jquery.min.js"></script>
-<script src="/files/util/shCore.js"></script>
-<script src="/files/util/zip.js"></script>
-<script src="/files/util/sh.js"></script>
-<script>$(document).unbind('ready');</script>
-</head>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="/files/util/sh.css" type="text/css">
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/util/shCore.js"></script>
+		<script src="/files/util/zip.js"></script>
+		<script src="/files/util/sh.js"></script>
+		<script>$(document).unbind('ready');</script>
+		<title>Log viewer</title>
+	</head>
 
-<body>
-<center>
-<table title="Open a log, conf, zip, etc"><tr><td>
-<div ondrop="drop(event); this.style.backgroundColor='lightgrey';"
-	ondragover="drag(event); this.style.backgroundColor='cyan';"
-	ondragleave="this.style.backgroundColor='lightgrey';"
-	style="background-color:lightgray;width:200px;height:40px;display:table-cell;margin:auto;text-align:center;vertical-align:middle">
-Drop file here
-</div>
-</td><td>
-or
-</td><td>
-<!--Note: hiding actual file input to suppress its automatically appended filename-->
-<input type="file" accept="*" id="file-input" onchange="load(this.files[0])" style="display:none;"/>
-<input type="button" value="Browse..." onclick="$('#file-input').click();"/>
-</td></tr></table>
-</center>
-<div id="zip"
-	style="display:none;position:fixed;top:10px;right:10px;min-width:150px;background-color:lightgrey;">
-	<span id="zipname" onclick="$('#file-list').toggle();" title="Show/hide contents" style="cursor:pointer"></span>
-	<ul id="file-list" ></ul>
-</div>
-
-<script>
+	<body>
+		<table title="Open a log, conf, zip, etc" style="margin:auto;text-align:center;">
+			<tr>
+				<td>
+					<div ondrop="drop(event); this.style.backgroundColor='lightgrey';"
+					ondragover="drag(event); this.style.backgroundColor='cyan';"
+					ondragleave="this.style.backgroundColor='lightgrey';"
+					style="background-color:lightgray;width:200px;height:40px;display:table-cell;margin:auto;text-align:center;vertical-align:middle">
+						Drop file here
+					</div>
+				</td>
+				<td>or</td>
+				<td>
+					<!--Note: hiding actual file input to suppress its automatically appended filename-->
+					<input type="file" id="file-input" onchange="load(this.files[0])" style="display:none;"/>
+					<input type="button" value="Browse..." onclick="$('#file-input').click();"/>
+				</td>
+			</tr>
+		</table>
+		<div id="zip"
+			style="display:none;position:fixed;top:10px;right:10px;min-width:150px;background-color:lightgrey;">
+			<span id="zipname" onclick="$('#file-list').toggle();" title="Show/hide contents" style="cursor:pointer"></span>
+			<ul id="file-list" ></ul>
+		</div>
+		<script>
 function reset(iszip) {
 	var chunks = $('[id^=chunk_]');
 	for (var i=chunks.length-1; i > -1; i--) {
@@ -120,6 +124,6 @@ function show(filename, text, iszip) {
 	chop(text.replace(/[<]/g, '&lt;'), 'brush: '+brush);
 	paint_visible_chunks();
 }
-</script>
-</body>
+		</script>
+	</body>
 </html>

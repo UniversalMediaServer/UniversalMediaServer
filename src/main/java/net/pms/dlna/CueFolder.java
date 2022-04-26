@@ -23,13 +23,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import jwbroek.cuelib.*;
-import net.pms.PMS;
 import net.pms.dlna.Range.Time;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
+import org.digitalmediaserver.cuelib.CueParser;
+import org.digitalmediaserver.cuelib.CueSheet;
+import org.digitalmediaserver.cuelib.FileData;
+import org.digitalmediaserver.cuelib.Position;
+import org.digitalmediaserver.cuelib.TrackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +43,7 @@ public class CueFolder extends DLNAResource {
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
+
 	private boolean valid = true;
 
 	public CueFolder(File f) {
@@ -82,7 +86,7 @@ public class CueFolder extends DLNAResource {
 		if (playlistfile.length() < 10000000) {
 			CueSheet sheet;
 			try {
-				sheet = CueParser.parse(playlistfile);
+				sheet = CueParser.parse(playlistfile, null);
 			} catch (IOException e) {
 				LOGGER.info("Error in parsing cue: " + e.getMessage());
 				return;
@@ -91,7 +95,7 @@ public class CueFolder extends DLNAResource {
 			if (sheet != null) {
 				List<FileData> files = sheet.getFileData();
 				// only the first one
-				if (files.size() > 0) {
+				if (!files.isEmpty()) {
 					FileData f = files.get(0);
 					List<TrackData> tracks = f.getTrackData();
 					Player defaultPlayer = null;
@@ -124,7 +128,7 @@ public class CueFolder extends DLNAResource {
 							realFile.setMedia(new DLNAMediaInfo());
 							realFile.getMedia().setMediaparsed(true);
 						}
-						realFile.resolve();
+						realFile.syncResolve();
 						if (i == 0) {
 							originalMedia = realFile.getMedia();
 							if (originalMedia == null) {
@@ -174,7 +178,7 @@ public class CueFolder extends DLNAResource {
 
 					}
 
-					if (tracks.size() > 0 && addedResources.size() > 0) {
+					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						DLNAResource lastTrack = addedResources.get(addedResources.size() - 1);
 						Time lastTrackSplitRange = lastTrack.getSplitRange();
 						DLNAMediaInfo lastTrackMedia = lastTrack.getMedia();
@@ -186,7 +190,7 @@ public class CueFolder extends DLNAResource {
 						}
 					}
 
-					PMS.get().storeFileInCache(playlistfile, Format.PLAYLIST);
+					storeFileInCache(playlistfile, Format.PLAYLIST);
 				}
 			}
 		}

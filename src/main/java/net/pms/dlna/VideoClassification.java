@@ -58,7 +58,7 @@ public enum VideoClassification {
 			default:
 				return name();
 		}
-	};
+	}
 
 	/**
 	 * Tries to parse the {@link VideoClassification} from the specified

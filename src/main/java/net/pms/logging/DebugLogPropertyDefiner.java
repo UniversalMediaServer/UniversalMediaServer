@@ -28,7 +28,7 @@ import net.pms.configuration.PmsConfiguration;
  * @author thomas@innot.de
  */
 public class DebugLogPropertyDefiner extends PropertyDefinerBase {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	String key;
 
@@ -39,19 +39,19 @@ public class DebugLogPropertyDefiner extends PropertyDefinerBase {
 	@Override
 	public String getPropertyValue() {
 		String result = null;
-		ConfigurationReader configurationReader = configuration.getConfigurationReader();
+		ConfigurationReader configurationReader = CONFIGURATION.getConfigurationReader();
 		boolean saveLogOverride = configurationReader.getLogOverrides();
 		configurationReader.setLogOverrides(false);
 		switch (key) {
 			case "debugLogPath":
 			case "logFilePath":
-				result = configuration.getDefaultLogFileFolder();
+				result = CONFIGURATION.getDefaultLogFileFolder();
 				break;
 			case "rootLevel":
-				result = configuration.getRootLogLevel();
+				result = CONFIGURATION.getRootLogLevel();
 				break;
 			case "logFileName":
-				result = configuration.getDefaultLogFileName();
+				result = CONFIGURATION.getDefaultLogFileName();
 				break;
 		}
 		configurationReader.setLogOverrides(saveLogOverride);

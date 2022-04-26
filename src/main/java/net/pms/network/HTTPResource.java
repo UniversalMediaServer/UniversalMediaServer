@@ -18,8 +18,6 @@
  */
 package net.pms.network;
 
-import static net.pms.util.StringUtil.convertURLToFileName;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,17 +30,16 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -101,6 +98,7 @@ public class HTTPResource {
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
+	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -109,26 +107,12 @@ public class HTTPResource {
 	public static final String WMV_TYPEMIME = "video/x-ms-wmv";
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
-	public HTTPResource() { }
+	public static final String WEBP_TYPEMIME = "image/webp";
 
 	/**
-	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
-	 * as in the client might do different things for different MIME types.
-	 * @param type Type for which the default MIME type is needed.
-	 * @return Default MIME associated with the file type.
+	 * This class is not meant to be instantiated.
 	 */
-	public static String getDefaultMimeType(int type) {
-		String mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-
-		if (type == Format.VIDEO) {
-			mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-		} else if (type == Format.IMAGE) {
-			mimeType = HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
-		} else if (type == Format.AUDIO) {
-			mimeType = HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
-		}
-
-		return mimeType;
+	public HTTPResource() {
 	}
 
 	/**
@@ -151,6 +135,25 @@ public class HTTPResource {
 	}
 
 	/**
+	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
+	 * as in the client might do different things for different MIME types.
+	 * @param type Type for which the default MIME type is needed.
+	 * @return Default MIME associated with the file type.
+	 */
+	public static String getDefaultMimeType(int type) {
+		switch (type) {
+			case Format.VIDEO:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+			case Format.IMAGE:
+				return HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
+			case Format.AUDIO:
+				return HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
+			default:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+		}
+	}
+
+	/**
 	 * Creates an InputStream based on a URL. This is used while accessing external resources
 	 * like online radio stations.
 	 * @param u URL.
@@ -165,9 +168,9 @@ public class HTTPResource {
 
 		if (saveOnDisk) {
 			String host = url.getHost();
-			String hostName = convertURLToFileName(host);
+			String hostName = StringUtil.convertURLToFileName(host);
 			String fileName = url.getFile();
-			fileName = convertURLToFileName(fileName);
+			fileName = StringUtil.convertURLToFileName(fileName);
 			File hostDir = new File(PMS.getConfiguration().getTempFolder(), hostName);
 
 			if (!hostDir.isDirectory()) {
@@ -193,7 +196,7 @@ public class HTTPResource {
 	 * @return byte array.
 	 * @throws IOException
 	 */
-	protected static byte[] downloadAndSendBinary(String u) throws IOException {
+	public static byte[] downloadAndSendBinary(String u) throws IOException {
 		return downloadAndSendBinary(u, false, null);
 	}
 
@@ -225,7 +228,7 @@ public class HTTPResource {
 			cookieManager != null &&
 			cookieManager.getCookieStore() != null &&
 			cookieManager.getCookieStore().getCookies() != null &&
-			cookieManager.getCookieStore().getCookies().size() > 0
+			!cookieManager.getCookieStore().getCookies().isEmpty()
 		) {
 			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
 			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
@@ -258,19 +261,19 @@ public class HTTPResource {
 
 	/**
 	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param mimetype MIME type to customize.
 	 * @param renderer media renderer to customize the MIME type for.
+	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+	public static String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
 		return renderer.getMimeType(resource);
 	}
 
-	public int getDLNALocalesCount() {
+	public static int getDLNALocalesCount() {
 		return 3;
 	}
 
-	public final String getMPEG_PS_PALLocalizedValue(int index) {
+	public static final String getMpegPsOrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -278,43 +281,138 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMPEG_TS_SD_EU_ISOLocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA_ISO";
+	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "MPEG_TS_";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HD";
+		} else {
+			orgPN += "SD";
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP_ISO";
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		return "MPEG_TS_SD_EU_ISO";
+		if (!isStreaming) {
+			orgPN += "_ISO";
+		}
+
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_SD_EULocalizedValue(int index) {
-		if (index == 1) {
-			return "MPEG_TS_SD_NA";
+	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_TS";
+
+		switch (index) {
+			case 1:
+				orgPN += "_NA";
+				break;
+			case 2:
+				orgPN += "_JP";
+				break;
+			default:
+				orgPN += "_EU";
+				break;
 		}
 
-		if (index == 2) {
-			return "MPEG_TS_SD_JP";
+		if (!isStreaming) {
+			orgPN += "_ISO";
 		}
 
-		return "MPEG_TS_SD_EU";
+		return orgPN;
 	}
 
-	public final String getMPEG_TS_EULocalizedValue(int index, boolean isHD) {
-		String definition = "SD";
-		if (isHD) {
-			definition = "HD";
+	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "AVC_MKV";
+
+		if (media == null || "high".equals(media.getH264Profile())) {
+			orgPN += "_HP";
+		} else {
+			orgPN += "_MP";
 		}
 
-		if (index == 1) {
-			return "MPEG_TS_" + definition + "_NA";
-		}
-		if (index == 2) {
-			return "MPEG_TS_" + definition + "_JP";
+		orgPN += "_HD";
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC_MULT5";
+			} else if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAC3()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_AC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isEAC3()
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HEAAC_L4";
+			}
 		}
 
-		return "MPEG_TS_" + definition + "_EU";
+		return orgPN;
+	}
+
+	public static final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+		String orgPN = "WMV";
+		if (media != null && media.isHDVideo()) {
+			orgPN += "HIGH";
+		} else {
+			orgPN += "MED";
+		}
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isWMA()
+				) || (
+					!isStreaming &&
+					mediaRenderer.isTranscodeToWMV()
+				)
+			) {
+				orgPN += "_FULL";
+			} else if (
+				isStreaming &&
+				(
+					media.getFirstAudioTrack().isWMAPro() ||
+					media.getFirstAudioTrack().isWMA10()
+				)
+			) {
+				orgPN += "_PRO";
+			}
+		}
+
+		return orgPN;
 	}
 }

@@ -3,7 +3,6 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +17,14 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 import net.pms.io.WinUtils;
 
 /**
- * This is a utility class for IMDB related operations.
+ * This is a utility class for IMDb related operations.
  */
 public class ImdbUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImdbUtil.class);
@@ -34,21 +33,25 @@ public class ImdbUtil {
 	private static final Pattern NFO_IMDB_ID = Pattern.compile("imdb\\.[^\\/]+\\/title\\/tt(\\d+)", Pattern.CASE_INSENSITIVE);
 
 	/**
-	 * Not to be instantiated.
-	private ImdbUtil() {
-	}
-
-	/**
-	 * Extracts the OpenSubtitle file hash from the filename if the file has "
-	 * {@code _os<hash>_}" in it.
+	 * Extracts the OpenSubtitle file hash from the filename if the file has
+	 * "{@code FILENAME_HASH}" in it.
 	 *
-	 * @param file the {@link File} whose filename to extract from.
+	 * @param file the {@link Path} of the file whose filename to extract from.
 	 * @return The extracted OpenSubtitle file hash or {@code null}.
 	 */
 	public static String extractOSHash(Path file) {
 		return extractFromFileName(file, FILENAME_HASH);
 	}
 
+	/**
+	 * Extracts the IMDb ID from the filename if the file has
+	 * "{@code FILENAME_IMDB_ID}" in it.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @param scanNfo true to try to extract the IMDb ID from the NFO file when failed
+	 * to extract it from the file name
+	 * @return The extracted IMDb ID or {@code null}.
+	 */
 	public static String extractImdbId(Path file, boolean scanNfo) {
 		String imdbId = extractFromFileName(file, FILENAME_IMDB_ID);
 		if (isNotBlank(imdbId)) {
@@ -57,6 +60,13 @@ public class ImdbUtil {
 		return scanNfo ? extractImdbIdFromNfo(file) : null;
 	}
 
+	/**
+	 * Extracts the OpenSubtitle file hash or the IMDb ID from the filename.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @param regex the parameter to find
+	 * @return The extracted OpenSubtitle file hash or the IMDb ID or {@code null}.
+	 */
 	private static String extractFromFileName(Path file, String regex) {
 		if (file == null || file.getFileName() == null || regex == null) {
 			return null;
@@ -71,6 +81,12 @@ public class ImdbUtil {
 		return null;
 	}
 
+	/**
+	 * Extracts the IMDb ID from the associated NFO file if exists.
+	 *
+	 * @param file the {@link Path} of the file whose IMDb ID to extract from.
+	 * @return The extracted IMDb ID or {@code null}.
+	 */
 	private static String extractImdbIdFromNfo(Path file) {
 		if (file == null) {
 			return null;
@@ -99,9 +115,9 @@ public class ImdbUtil {
 						if (isBlank(entryName)) {
 							continue;
 						}
-						double score = StringUtils.getJaroWinklerDistance(nfoFileName, entryName);
+						double score = new JaroWinklerSimilarity().apply(nfoFileName, entryName);
 						if (score >= 0.85) {
-							candidates.put(entry, Double.valueOf(score));
+							candidates.put(entry, score);
 						}
 					}
 					if (!candidates.isEmpty()) {
@@ -128,20 +144,20 @@ public class ImdbUtil {
 			}
 		}
 		if (!Files.exists(nfoFile)) {
-			LOGGER.debug("Didn't find a matching nfo file for \"{}\" to search for IMDB ID", file);
+			LOGGER.debug("Didn't find a matching nfo file for \"{}\" to search for IMDb ID", file);
 			return null;
 		}
 		try {
 			if (Files.size(nfoFile) > 100000) {
 				LOGGER.debug(
-					"Skipping search for IMDB ID in \"{}\" since it's too large ({})",
+					"Skipping search for IMDb ID in \"{}\" since it's too large ({})",
 					nfoFile,
 					StringUtil.formatBytes(Files.size(nfoFile), true)
 				);
 				return null;
 			}
 		} catch (IOException e) {
-			LOGGER.warn("Failed to get size of \"{}\", skipping search for IMDB ID: {}", nfoFile, e.getMessage());
+			LOGGER.warn("Failed to get size of \"{}\", skipping search for IMDb ID: {}", nfoFile, e.getMessage());
 			LOGGER.trace("", e);
 			return null;
 		}
@@ -173,31 +189,31 @@ public class ImdbUtil {
 				charset
 			);
 		}
-		LOGGER.trace("Scanning \"{}\" for IMDB ID for \"{}\"", nfoFile, file);
+		LOGGER.trace("Scanning \"{}\" for IMDb ID for \"{}\"", nfoFile, file);
 		try (BufferedReader reader = Files.newBufferedReader(nfoFile, charset)) {
 			String line = reader.readLine();
 			while (line != null) {
 				Matcher matcher = NFO_IMDB_ID.matcher(line);
 				if (matcher.find()) {
-					LOGGER.trace("Found IMDB ID {} for \"{}\" in \"{}\"", matcher.group(1), file, nfoFile);
+					LOGGER.trace("Found IMDb ID {} for \"{}\" in \"{}\"", matcher.group(1), file, nfoFile);
 					return matcher.group(1);
 				}
 				line = reader.readLine();
 			}
 		} catch (IOException e) {
-			LOGGER.error("An error occurred while scanning \"{}\" for IMDB ID: {}", nfoFile, e.getMessage());
+			LOGGER.error("An error occurred while scanning \"{}\" for IMDb ID: {}", nfoFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
-		LOGGER.trace("Failed to find IMDB ID for \"{}\" in \"{}\"", file, nfoFile);
+		LOGGER.trace("Failed to find IMDb ID for \"{}\" in \"{}\"", file, nfoFile);
 		return null;
 	}
 
 	/**
-	 * Makes sure the IMDB ID starts with "{@code tt}" by prefixing it if
+	 * Makes sure the IMDb ID starts with "{@code tt}" by prefixing it if
 	 * needed.
 	 *
-	 * @param imdbId the IMDB ID to make sure starts with "{@code tt}".
-	 * @return The "{@code tt}" prefixed IMDB ID.
+	 * @param imdbId the IMDbB ID to make sure starts with "{@code tt}".
+	 * @return The "{@code tt}" prefixed IMDb ID.
 	 */
 	public static String ensureTT(String imdbId) {
 		if (isBlank(imdbId)) {
@@ -208,11 +224,11 @@ public class ImdbUtil {
 	}
 
 	/**
-	 * Makes sure the IMDB doesn't start with "{@code tt}" by removing it if
+	 * Makes sure the IMDb doesn't start with "{@code tt}" by removing it if
 	 * present.
 	 *
-	 * @param imdbId the IMDB ID to make sure doesn't start with "{@code tt}".
-	 * @return The IMDB ID without a "{@code tt}" prefix.
+	 * @param imdbId the IMDb ID to make sure doesn't start with "{@code tt}".
+	 * @return The IMDb ID without a "{@code tt}" prefix.
 	 */
 	public static String removeTT(String imdbId) {
 		if (isBlank(imdbId)) {

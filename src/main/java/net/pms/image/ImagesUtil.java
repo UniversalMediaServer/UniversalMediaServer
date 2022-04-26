@@ -464,6 +464,7 @@ public class ImagesUtil {
 			return null;
 		}
 	}
+
 	/**
 	 * This attempts to get the underlying byte array directly from the
 	 * {@link InputStream} if it is backed by a byte array, otherwise the
@@ -1656,11 +1657,13 @@ public class ImagesUtil {
 			.append(", Re-encode = ").append(reencode ? "True" : "False");
 
 			LOGGER.trace(
-				"Finished converting {} {} image{}. Output image resolution: {}, {}. Flags: {}",
-				inputResult.width + "×" + inputResult.height,
+				"Finished converting {}x{} {} image{}. Output image resolution: {}x{}, {}. Flags: {}",
+				inputResult.width,
+				inputResult.height,
 				inputResult.imageFormat,
 				orientation != ExifOrientation.TOP_LEFT ? " with orientation " + orientation : "",
-				bufferedImage.getWidth() + "×" + bufferedImage.getHeight(),
+				bufferedImage.getWidth(),
+				bufferedImage.getHeight(),
 				dlnaCompliant && outputProfile != null ? "profile: " + outputProfile : "format: " + outputFormat,
 				sb
 			);
@@ -1842,6 +1845,7 @@ public class ImagesUtil {
 					metadata = RafMetadataReader.readMetadata(inputStream);
 					break;
 				case Riff:
+				case WebP:
 					metadata = WebpMetadataReader.readMetadata(inputStream);
 					break;
 				case Tiff:

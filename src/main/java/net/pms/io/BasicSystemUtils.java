@@ -47,7 +47,7 @@ public class BasicSystemUtils implements SystemUtils {
 	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	/** The singleton platform dependent {@link SystemUtils} instance */
-	public static SystemUtils INSTANCE = BasicSystemUtils.createInstance();
+	public static SystemUtils instance = BasicSystemUtils.createInstance();
 
 	protected Path vlcPath;
 	protected Version vlcVersion;
@@ -154,12 +154,12 @@ public class BasicSystemUtils implements SystemUtils {
 				}
 			});
 
-			if (PMS.getConfiguration().useWebInterface()) {
+			if (PMS.getConfiguration().useWebInterfaceServer()) {
 				MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 				webInterfaceItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						browseURI(PMS.get().getWebInterface().getUrl());
+						browseURI(PMS.get().getWebInterfaceServer().getUrl());
 					}
 				});
 				popup.add(webInterfaceItem);
@@ -210,8 +210,8 @@ public class BasicSystemUtils implements SystemUtils {
 	 */
 	@Override
 	public String[] getPingCommand(String hostAddress, int count, int packetSize) {
-		return new String[] { "ping", /* count */"-c", Integer.toString(count), /* size */
-				"-s", Integer.toString(packetSize), hostAddress };
+		return new String[] {"ping", /* count */"-c", Integer.toString(count), /* size */
+				"-s", Integer.toString(packetSize), hostAddress};
 	}
 
 	@Override
@@ -220,7 +220,7 @@ public class BasicSystemUtils implements SystemUtils {
 		String timeString = null;
 
 		if (msPos > -1) {
-			if (line.lastIndexOf('<', msPos) > -1){
+			if (line.lastIndexOf('<', msPos) > -1) {
 				timeString = "0.5";
 			} else {
 				timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();

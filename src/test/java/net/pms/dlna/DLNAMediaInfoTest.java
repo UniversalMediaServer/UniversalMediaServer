@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -8,8 +9,10 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,9 @@ import org.slf4j.LoggerFactory;
 public class DLNAMediaInfoTest {
 	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfoTest.class.getName());
+
+	// Look for more formats at https://samples.ffmpeg.org/
 	private static final String[] test_files = {
 		"video-h264-aac.mp4",
 		"video-mpeg4-aac.mkv",
@@ -35,12 +41,25 @@ public class DLNAMediaInfoTest {
 		"audio-mp3.mp3",
 		"video-av1-aac.mp4",
 		"video-av1.mp4",
-		"video-h264-6ch-ac4.mp4"
+		"video-vc1.mkv",
+		"video-h264-heaac.mp4",
+		"video-h264-eac3.mkv",
+		"audio-flac24.flac",
+		"video-xvid-mp3.avi",
+		"video-h265_dolbyvision_p05.05-eac3_atmos.mkv",
+		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
+    "video-h264-6ch-ac4.mp4",
 	};
-	private static final int[] test_content = new int[test_files.length];
 
-	@BeforeClass
-	public static void setUpBeforeClass() {
+	/**
+	 * Set up testing conditions before running the tests.
+	 *
+	 * @throws ConfigurationException
+	 */
+	@BeforeAll
+	public static final void setUp() throws ConfigurationException, InterruptedException {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.configureJNA();
 		PMS.forceHeadless();
 		try {
@@ -49,17 +68,13 @@ public class DLNAMediaInfoTest {
 			throw new AssertionError(ex);
 		}
 		assert PMS.getConfiguration() != null;
+		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
 		PMS.getConfiguration().setSharedFolders(null);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 
-		LoggingConfig.setRootLevel(Level.TRACE);
-		// force unbuffered if in trace mode
-		LoggingConfig.setBuffered(false);
-
-		Logger LOGGER = LoggerFactory.getLogger(CLASS);
-
 		Services.create();
+
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
@@ -72,6 +87,15 @@ public class DLNAMediaInfoTest {
 
 		// Create a new PMS instance
 		PMS.getNewInstance();
+	}
+
+	@Test
+	public void testContainerProperties() throws Exception {
+		// Check if the MediaInfo library is properly installed and initialized
+		// especially on Linux which needs users to be involved.
+		assertThat(LibMediaInfoParser.isValid())
+			.withFailMessage("\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n")
+			.isTrue();
 
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
@@ -80,132 +104,148 @@ public class DLNAMediaInfoTest {
 		PMS.getGlobalRepo().add(parent);
 
 		for (int i = 0; i < test_files.length; ++i) {
-			DLNAResource dlna;
-			dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
-			dlna.setMedia(new DLNAMediaInfo());
+			DLNAResource dlna = new RealFile(FileUtils.toFile(CLASS.getResource(test_files[i])));
 			dlna.setParent(parent);
-			dlna.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
 			dlna.resolveFormat();
 			dlna.syncResolve();
-			PMS.getGlobalRepo().add(dlna);
-			test_content[i] = dlna.getIntId();
+
+			DLNAMediaInfo mediaInfo = dlna.getMedia();
+
+			switch(i) {
+				case 0:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
+					);
+					break;
+				case 1:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 2097841, Overall Bitrate: 1575843, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:10.650, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 0, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 2:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 5291494, Overall Bitrate: 2619551, Video Tracks: 1, Video Codec: h265, Duration: 0:00:16.160, Video Resolution: 1920 x 960, Display Aspect Ratio: 2.00:1, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: Stereo, Audio Codec: AAC-LC, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 3:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: OGG, Size: 1734919, Overall Bitrate: 454643, Video Tracks: 1, Video Codec: theora, Duration: 0:00:30.528, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/ogg"
+					);
+					break;
+				case 4:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 3538130, Overall Bitrate: 542149, Video Tracks: 1, Video Codec: h264, Duration: 0:00:52.209, Video Resolution: 720 x 480, Display Aspect Ratio: 2.35:1, Pixel Aspect Ratio: 1.563, Scan Type: Progressive, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 128290, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/mp4"
+					);
+					break;
+				case 5:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: 3G2, Size: 1792091, Overall Bitrate: 275410, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.056, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Scan Type: Progressive, Frame Rate: 18.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 59721, Channels: 2, Sample Frequency: 22050 Hz], Mime Type: video/3gpp2"
+					);
+					break;
+				case 6:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: AVI, Size: 3893340, Overall Bitrate: 598711, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.023, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Frame Rate: 24.000, Video Track Title from Metadata: Sintel Trailer, Audio Tracks: 1 [Audio Codec: ADPCM, Bitrate: 128000, Bits per Sample: 4, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/avi"
+					);
+					break;
+				case 7:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MOV, Size: 2658492, Overall Bitrate: 408339, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.084, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Scan Type: Progressive, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: Sintel Trailer, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: AAC-LC, Bitrate: 125805, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/quicktime"
+					);
+					break;
+				case 8:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: WMV, Size: 3002945, Overall Bitrate: 460107, Video Tracks: 1, Video Codec: wmv, Duration: 0:00:52.213, Video Resolution: 360 x 240, Display Aspect Ratio: 2.35:1, Pixel Aspect Ratio: 1.563, Frame Rate: 24.000, Audio Tracks: 1 [Audio Codec: WMA, Bitrate: 128000, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/x-ms-wmv"
+					);
+					break;
+				case 9:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: WEBM, Size: 901185, Overall Bitrate: 236044, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:30.543, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/webm"
+					);
+					break;
+				case 10:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: FLV, Size: 2097492, Overall Bitrate: 1529899, Video Tracks: 1, Video Codec: sor, Duration: 0:00:10.968, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 375000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-flv"
+					);
+					break;
+				case 11:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: AVI, Size: 742478, Overall Bitrate: 194029, Video Tracks: 1, Video Codec: h264, Duration: 0:00:30.613, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 30.000, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Reference Frame Count: 4, AVC Level: 2.1, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 139632, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
+					);
+					break;
+				case 12:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: WAV, Size: 1073218, Overall Bitrate: 256062, Bitrate: 256062, Duration: 0:00:33.530, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
+					);
+					break;
+				case 13:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: OGA, Size: 1089524, Overall Bitrate: 117233, Bitrate: 117233, Duration: 0:01:14.349, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 120000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/ogg"
+					);
+					break;
+				case 14:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP3, Size: 764176, Overall Bitrate: 224000, Bitrate: 224000, Duration: 0:00:27.252, Audio Tracks: 1 [Audio Codec: MP3, Bitrate: 224000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/mpeg"
+					);
+					break;
+				case 15:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 245747, Overall Bitrate: 130716, Video Tracks: 1, Video Codec: av1, Duration: 0:00:15.040, Video Resolution: 960 x 540, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: vid, Audio Tracks: 1 [Id: 0, Language Code: snd, Audio Track Title From Metadata: snd, Audio Codec: AAC-LC, Bitrate: 8887, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4"
+					);
+					break;
+				case 16:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 690235, Overall Bitrate: 952377, Video Tracks: 1, Video Codec: av1, Duration: 0:00:05.798, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: ivf@GPAC0.7.2-DEV-rev654-gb6f7409ce-github_master, Mime Type: video/mp4"
+					);
+					break;
+				case 17:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 6291087, Overall Bitrate: 22468168, Video Tracks: 1, Video Codec: vc1, Duration: 0:00:02.240, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Interlaced, Scan Order: Top Field First, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Mime Type: video/x-matroska"
+					);
+					break;
+				case 18:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 1099408, Overall Bitrate: 188638, Video Tracks: 1, Video Codec: h264, Duration: 0:00:46.625, Video Resolution: 800 x 600, Display Aspect Ratio: 4:3, Scan Type: Progressive, Frame Rate: 8.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 4, AVC Level: 3.1, AVC Profile: main, Audio Tracks: 1 [Audio Codec: HE-AAC, Bitrate: 159992, Channels: 6, Sample Frequency: 44100 Hz], Mime Type: video/mp4"
+					);
+					break;
+				case 19:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 6356992, Overall Bitrate: 7121, Video Tracks: 1, Video Codec: h264, Duration: 1:59:01.690, Video Resolution: 1280 x 544, Display Aspect Ratio: 2.35:1, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 1, AVC Level: 5.1, AVC Profile: main, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 1536000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 20:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: FLAC, Size: 3208022, Overall Bitrate: 1231959, Bitrate: 1231959, Duration: 0:00:20.832, Audio Tracks: 1 [Audio Codec: FLAC, Bitrate: 1231916, Bits per Sample: 24, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: audio/x-flac"
+					);
+					break;
+				case 21:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: AVI, Size: 1282694, Overall Bitrate: 793255, Video Tracks: 1, Video Codec: divx, Duration: 0:00:12.936, Video Resolution: 720 x 400, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 25.000, Audio Tracks: 1 [Audio Track Title From Metadata: video-mpeg4-aac, Audio Codec: MP3, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
+					);
+					break;
+				case 22:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 8925360, Overall Bitrate: 11868830, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Bit Depth: 10, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 23:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MKV, Size: 7799945, Overall Bitrate: 10372267, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 24:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
+					);
+					break;
+				default:
+					break;
+			}
 		}
-	}
-
-	@Test
-	public void testContainerProperties() throws Exception {
-		DLNAResource mp4Video = PMS.getGlobalRepo().get(test_content[0]);
-		DLNAMediaInfo mp4VideoMediaInfo = mp4Video.getMedia();
-		assertThat(mp4VideoMediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
-		);
-
-		DLNAResource mkvVideo = PMS.getGlobalRepo().get(test_content[1]);
-		DLNAMediaInfo mkvVideoMediaInfo = mkvVideo.getMedia();
-		assertThat(mkvVideoMediaInfo.toString()).isEqualTo(
-			"Container: MKV, Size: 2097841, Overall Bitrate: 1575843, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:10.650, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 0, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
-		);
-
-		DLNAResource mkvHevcVideo = PMS.getGlobalRepo().get(test_content[2]);
-		DLNAMediaInfo mkvHevcVideoMediaInfo = mkvHevcVideo.getMedia();
-		assertThat(mkvHevcVideoMediaInfo.toString()).isEqualTo(
-			"Container: MKV, Size: 5291494, Overall Bitrate: 2619552, Video Tracks: 1, Video Codec: h265, Duration: 0:00:16.160, Video Resolution: 1920 x 960, Display Aspect Ratio: 2.00:1, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.709, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: Stereo, Audio Codec: AAC-LC, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
-		);
-
-		DLNAResource oggVideo = PMS.getGlobalRepo().get(test_content[3]);
-		DLNAMediaInfo oggVideoMediaInfo = oggVideo.getMedia();
-		assertThat(oggVideoMediaInfo.toString()).isEqualTo(
-			"Container: OGG, Size: 1734919, Overall Bitrate: 454643, Video Tracks: 1, Video Codec: theora, Duration: 0:00:30.528, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/ogg"
-		);
-
-		DLNAResource m4vVideo = PMS.getGlobalRepo().get(test_content[4]);
-		DLNAMediaInfo m4vVideoMediaInfo = m4vVideo.getMedia();
-		assertThat(m4vVideoMediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 3538130, Overall Bitrate: 542149, Video Tracks: 1, Video Codec: h264, Duration: 0:00:52.209, Video Resolution: 720 x 480, Display Aspect Ratio: 2.35:1, Pixel Aspect Ratio: 1.56 (1563/1000), Scan Type: Progressive, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 128290, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/mp4"
-		);
-
-		DLNAResource a3g2Video = PMS.getGlobalRepo().get(test_content[5]);
-		DLNAMediaInfo a3g2VideoMediaInfo = a3g2Video.getMedia();
-		assertThat(a3g2VideoMediaInfo.toString()).isEqualTo(
-			"Container: 3G2, Size: 1792091, Overall Bitrate: 275410, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.056, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Scan Type: Progressive, Frame Rate: 18.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 59721, Channels: 2, Sample Frequency: 22050 Hz], Mime Type: video/3gpp2"
-		);
-
-		DLNAResource aviVideo = PMS.getGlobalRepo().get(test_content[6]);
-		DLNAMediaInfo aviVideoMediaInfo = aviVideo.getMedia();
-		assertThat(aviVideoMediaInfo.toString()).isEqualTo(
-			"Container: AVI, Size: 3893340, Overall Bitrate: 598711, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.023, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Frame Rate: 24.000, Video Track Title from Metadata: Sintel Trailer, Audio Tracks: 1 [Audio Codec: ADPCM, Bitrate: 128000, Bits per Sample: 4, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/avi"
-		);
-
-		DLNAResource movVideo = PMS.getGlobalRepo().get(test_content[7]);
-		DLNAMediaInfo movVideoMediaInfo = movVideo.getMedia();
-		assertThat(movVideoMediaInfo.toString()).isEqualTo(
-			"Container: MOV, Size: 2658492, Overall Bitrate: 408339, Video Tracks: 1, Video Codec: mp4, Duration: 0:00:52.084, Video Resolution: 360 x 240, Display Aspect Ratio: 3:2, Scan Type: Progressive, Frame Rate: 24.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: Sintel Trailer, Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: AAC-LC, Bitrate: 125805, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/quicktime"
-		);
-
-		DLNAResource wmvVideo = PMS.getGlobalRepo().get(test_content[8]);
-		DLNAMediaInfo wmvVideoMediaInfo = wmvVideo.getMedia();
-		assertThat(wmvVideoMediaInfo.toString()).isEqualTo(
-			"Container: WMV, Size: 3002945, Overall Bitrate: 460107, Video Tracks: 1, Video Codec: wmv, Duration: 0:00:52.213, Video Resolution: 360 x 240, Display Aspect Ratio: 2.35:1, Pixel Aspect Ratio: 1.56 (1563/1000), Frame Rate: 24.000, Audio Tracks: 1 [Audio Codec: WMA, Bitrate: 128000, Channels: 2, Sample Frequency: 44100 Hz], Mime Type: video/x-ms-wmv"
-		);
-
-		DLNAResource webmVideo = PMS.getGlobalRepo().get(test_content[9]);
-		DLNAMediaInfo webmVideoMediaInfo = webmVideo.getMedia();
-		assertThat(webmVideoMediaInfo.toString()).isEqualTo(
-			"Container: WEBM, Size: 901185, Overall Bitrate: 236044, Video Tracks: 1, Video Codec: vp8, Duration: 0:00:30.543, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/webm"
-		);
-
-		DLNAResource flvVideo = PMS.getGlobalRepo().get(test_content[10]);
-		DLNAMediaInfo flvVideoMediaInfo = flvVideo.getMedia();
-		assertThat(flvVideoMediaInfo.toString()).isEqualTo(
-			"Container: FLV, Size: 2097492, Overall Bitrate: 1529899, Video Tracks: 1, Video Codec: sor, Duration: 0:00:10.968, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 375000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-flv"
-		);
-
-		DLNAResource aviH264Video = PMS.getGlobalRepo().get(test_content[11]);
-		DLNAMediaInfo aviH264VideoMediaInfo = aviH264Video.getMedia();
-		assertThat(aviH264VideoMediaInfo.toString()).isEqualTo(
-			"Container: AVI, Size: 742478, Overall Bitrate: 194029, Video Tracks: 1, Video Codec: h264, Duration: 0:00:30.613, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 30.000, Frame Rate Mode: VFR (VFR), Frame Rate Mode Raw: VFR, Reference Frame Count: 4, AVC Level: 2.1, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 139632, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/avi"
-		);
-
-		DLNAResource wavAudio = PMS.getGlobalRepo().get(test_content[12]);
-		DLNAMediaInfo wavAudioMediaInfo = wavAudio.getMedia();
-		assertThat(wavAudioMediaInfo.toString()).isEqualTo(
-			"Container: WAV, Size: 1073218, Overall Bitrate: 256069, Bitrate: 256069, Duration: 0:00:33.529, Audio Tracks: 1 [Audio Codec: LPCM, Bitrate: 256000, Channels: 2, Sample Frequency: 8000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/wav"
-		);
-
-		DLNAResource vorbisAudio = PMS.getGlobalRepo().get(test_content[13]);
-		DLNAMediaInfo vorbisAudioMediaInfo = vorbisAudio.getMedia();
-		assertThat(vorbisAudioMediaInfo.toString()).isEqualTo(
-			"Container: OGA, Size: 1089524, Overall Bitrate: 117233, Bitrate: 117233, Duration: 0:01:14.349, Audio Tracks: 1 [Audio Codec: Vorbis, Bitrate: 120000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/ogg"
-		);
-
-		DLNAResource mp3Audio = PMS.getGlobalRepo().get(test_content[14]);
-		DLNAMediaInfo mp3AudioMediaInfo = mp3Audio.getMedia();
-		assertThat(mp3AudioMediaInfo.toString()).isEqualTo(
-			"Container: MP3, Size: 764176, Overall Bitrate: 224000, Bitrate: 224000, Duration: 0:00:27.252, Audio Tracks: 1 [Audio Codec: MP3, Bitrate: 224000, Channels: 2, Sample Frequency: 32000 Hz, Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic], Mime Type: audio/mpeg"
-		);
-
-		DLNAResource av1Video = PMS.getGlobalRepo().get(test_content[15]);
-		DLNAMediaInfo av1VideoMediaInfo = av1Video.getMedia();
-		assertThat(av1VideoMediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 245747, Overall Bitrate: 130716, Video Tracks: 1, Video Codec: av1, Duration: 0:00:15.040, Video Resolution: 960 x 540, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: vid, Audio Tracks: 1 [Id: 0, Language Code: snd, Audio Track Title From Metadata: snd, Audio Codec: AAC-LC, Bitrate: 8887, Channel: 1, Sample Frequency: 32000 Hz], Mime Type: video/mp4"
-		);
-
-		DLNAResource av1Video2 = PMS.getGlobalRepo().get(test_content[16]);
-		DLNAMediaInfo av1Video2MediaInfo = av1Video2.getMedia();
-		assertThat(av1Video2MediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 690235, Overall Bitrate: 952377, Video Tracks: 1, Video Codec: av1, Duration: 0:00:05.798, Video Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Video Track Title from Metadata: ivf@GPAC0.7.2-DEV-rev654-gb6f7409ce-github_master, Mime Type: video/mp4"
-		);
-
-		DLNAResource mp4VideoAc4 = PMS.getGlobalRepo().get(test_content[17]);
-		DLNAMediaInfo mp4VideoAc4MediaInfo = mp4VideoAc4.getMedia();
-		assertThat(mp4VideoAc4MediaInfo.toString()).isEqualTo(
-			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
-		);
 	}
 
 //	@Test
 //	public void testMediaInfoOutputParse() throws Exception {
-//		for (int id : test_content) {
+//		for (int id : dlnaResourceIds) {
 //			DLNAResource dlna = PMS.getGlobalRepo().get(id);
 //			System.out.format("mediainfo: %s\n", dlna.getMedia().toString());
 //			assertThat(dlna.getMedia().getExifOrientation().getValue()).isEqualTo(1);
@@ -233,4 +273,11 @@ public class DLNAMediaInfoTest {
 		// 	System.out.println(p.getClass().getName());
 		// }
 //	}
+
+	@AfterAll
+	public static final void tearDown() throws ConfigurationException, InterruptedException {
+		if (PMS.getConfiguration().isRunSingleInstance()) {
+			PMS.killOld();
+		}
+	}
 }

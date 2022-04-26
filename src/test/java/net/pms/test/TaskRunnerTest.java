@@ -49,11 +49,8 @@ public class TaskRunnerTest {
 		final Counter c = new Counter();
 
 		for (int i = 0; i < 3; i++) {
-			tk.submitNamed("myTask", new Runnable() {
-				@Override
-				public void run() {
-					c.incr();
-				}
+			tk.submitNamed("myTask", () -> {
+				c.incr();
 			});
 		}
 		tk.shutdown();
@@ -68,12 +65,9 @@ public class TaskRunnerTest {
 		final Counter c = new Counter();
 
 		for (int i = 0; i < 5; i++) {
-			tk.submitNamed("myTask", true, new Runnable() {
-				@Override
-				public void run() {
-					sleep();
-					c.incr();
-				}
+			tk.submitNamed("myTask", true, () -> {
+				sleep();
+				c.incr();
 			});
 		}
 		tk.shutdown();

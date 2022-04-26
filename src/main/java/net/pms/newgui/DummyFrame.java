@@ -61,6 +61,10 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
+	public void setSecondaryStatusLine(String line) {
+	}
+
+	@Override
 	public void addRenderer(RendererConfiguration renderer) {
 	}
 
@@ -74,6 +78,10 @@ public class DummyFrame implements IFrame {
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
+	}
+
+	@Override
+	public void enableWebUiButton() {
 	}
 
 	public String getLog() {

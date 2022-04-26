@@ -25,15 +25,12 @@ import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.util.ParseException;
 
@@ -540,14 +537,12 @@ public class Image implements Serializable {
 		return imageInfo != null ? imageInfo.getWidth() : -1;
 	}
 
-
 	/**
 	 * @return The height of this image.
 	 */
 	public int getHeight() {
 		return imageInfo != null ? imageInfo.getHeight() : -1;
 	}
-
 
 	/**
 	 * @return The {@link ImageFormat} for this image.

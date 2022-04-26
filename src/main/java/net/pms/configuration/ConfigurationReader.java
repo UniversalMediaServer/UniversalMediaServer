@@ -285,11 +285,11 @@ public class ConfigurationReader {
 		log(key, value, def);
 		return value;
 	}
-	
+
 	public boolean getLogOverrides() {
 		return logOverrides;
 	}
-	
+
 	public void setLogOverrides(boolean logOverrides) {
 		this.logOverrides = logOverrides;
 	}

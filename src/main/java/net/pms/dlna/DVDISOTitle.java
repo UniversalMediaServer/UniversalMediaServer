@@ -58,19 +58,10 @@ public class DVDISOTitle extends DLNAResource {
 		"^subtitle \\( sid \\): (?<StreamNumber>\\d+) language: (?<Language>\\w*)$"
 	);
 
-
 	private File file;
 	private int title;
 	private long length;
 	private String parentName;
-
-	/**
-	 * @deprecated Use {@link #DVDISOTitle(File, String, int)} instead.
-	 */
-	@Deprecated
-	public DVDISOTitle(File file, int title) {
-		this(file, null, title);
-	}
 
 	public DVDISOTitle(File file, String parentName, int title) {
 		this.file = file;
@@ -86,13 +77,13 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		OutputParams params = new OutputParams(configuration);
-		params.maxBufferSize = 1;
-		params.log = true;
+		params.setMaxBufferSize(1);
+		params.setLog(true);
 
 		boolean generateThumbnails = false;
 		if (configuration.isDvdIsoThumbnails()) {
 			try {
-				params.workDir = configuration.getTempFolder();
+				params.setWorkDir(configuration.getTempFolder());
 				generateThumbnails = true;
 			} catch (IOException e1) {
 				LOGGER.error("Could not create temporary folder, DVD thumbnails won't be generated: {}", e1.getMessage());
@@ -100,7 +91,7 @@ public class DVDISOTitle extends DLNAResource {
 			}
 		}
 
-		String cmd[];
+		String[] cmd;
 		if (generateThumbnails) {
 			String outFolder = "jpeg:outdir=mplayer_thumbs:subdirs=\"" + this.hashCode() + "\"";
 			cmd = new String[] {
@@ -139,16 +130,14 @@ public class DVDISOTitle extends DLNAResource {
 		}
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-				}
-				pw.stopProcess();
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
 			}
+			pw.stopProcess();
 		};
+
 		Thread failsafe = new Thread(r, "DVD ISO Title Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
@@ -259,8 +248,8 @@ public class DVDISOTitle extends DLNAResource {
 			d = Double.parseDouble(duration);
 		}
 
-		getMedia().setAudioTracksList(audioTracks);
-		getMedia().setSubtitleTracksList(subtitles);
+		getMedia().setAudioTracks(audioTracks);
+		getMedia().setSubtitlesTracks(subtitles);
 
 		if (duration != null) {
 			getMedia().setDuration(d);
@@ -333,8 +322,8 @@ public class DVDISOTitle extends DLNAResource {
 	@Override
 	public long length(RendererConfiguration mediaRenderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
-		int cbr_video_bitrate = getDefaultRenderer().getCBRVideoBitrate();
-		return (cbr_video_bitrate > 0) ? (long) (((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
+		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
+		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
 	}
 
 	@Override
@@ -380,9 +369,11 @@ public class DVDISOTitle extends DLNAResource {
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
+			DLNAThumbnailInputStream inputStream = getMedia().getThumbnailInputStream();
+			return inputStream;
 		} else {
-			return getGenericThumbnailInputStream(null);
+			DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStream(null);
+			return inputStream;
 		}
 	}
 
@@ -499,17 +490,16 @@ public class DVDISOTitle extends DLNAResource {
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
 		if (
-			media != null &&
+			getMedia() != null &&
 			renderer != null &&
-			media.getDurationInSeconds() > 0 &&
+			getMedia().getDurationInSeconds() > 0 &&
 			renderer.isShowDVDTitleDuration()
 		) {
-			nameSuffix += " (" + StringUtil.convertTimeToString(media.getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
+			nameSuffix += " (" + StringUtil.convertTimeToString(getMedia().getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
 		}
 
 		return nameSuffix;

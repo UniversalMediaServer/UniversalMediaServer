@@ -32,13 +32,13 @@ var img = bump.setImages({
 $('body').append([
 	'<div class="bumpcontainer"><table class="bumppanel"><tr>',
 	'<td id="bumpsettings">',
-		'<select id="bplaylist"/>',
-		'<span id="bplaylistctrl"/>',
-		'<select id="brenderers"/>',
+		'<select id="bplaylist"></select>',
+		'<span id="bplaylistctrl"></span>',
+		'<select id="brenderers"></select>',
 	'</td>',
 	'<td><input id="bumpvol"/></td>',
-	'<td id="bumpmute"/>',
-	'<td id="bumpctrl"/>',
+	'<td id="bumpmute"></td>',
+	'<td id="bumpctrl"></td>',
 	'<td id="bumppos" title="Show/hide playlist">0:00</td>',
 	'<td><div id="bexit"><img id="bclose"/></div></td>',
 	'</tr></table></div>'
@@ -58,7 +58,7 @@ bump.addButton('add', '#bplaylistctrl', 'Add to playlist');
 bump.addButton('remove', '#bplaylistctrl', 'Remove from playlist');
 bump.addButton('clear', '#bplaylistctrl', 'Clear playlist');
 
-// css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax 
+// css: go crazy. Modify/add/remove blocks as appropriate using jquery selector syntax
 
 $('.bumpcontainer').css({
 	position:'fixed',    /* Do not scroll out of view on this or other websites */
@@ -128,4 +128,3 @@ $('head').append(['<style>',
 	'.bumpcontainer .bselected {font-style:italic;color:blue;}',
 	'</style>',
 ].join(''));
-

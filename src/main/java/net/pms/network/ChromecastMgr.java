@@ -1,6 +1,7 @@
 package net.pms.network;
 
 
+import net.pms.network.mediaserver.UPNPControl;
 import ch.qos.logback.classic.Level;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -123,7 +124,7 @@ public class ChromecastMgr implements ServiceListener {
 		public BasicPlayer getPlayer() {
 			if (player == null) {
 				player = new ChromecastPlayer(this, chromeCast);
-				((ChromecastPlayer)player).startPoll();
+				((ChromecastPlayer) player).startPoll();
 			}
 			return player;
 		}

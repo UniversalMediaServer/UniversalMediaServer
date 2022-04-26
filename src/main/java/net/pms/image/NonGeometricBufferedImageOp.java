@@ -27,7 +27,6 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 
-
 /**
  * This abstract class contains boilerplate methods for {@link BufferedImageOp}
  * implementations that doesn't alter the {@link BufferedImage}'s

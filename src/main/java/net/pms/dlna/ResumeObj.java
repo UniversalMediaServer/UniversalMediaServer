@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResumeObj {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 	private static final int DAYS = 3600 * 24 * 1000;
 
@@ -27,7 +27,7 @@ public class ResumeObj {
 	private long minDur;
 
 	private static File resumePath() {
-		File path = new File(configuration.getDataFile("resume"));
+		File path = new File(CONFIGURATION.getDataFile("resume"));
 		path.mkdirs();
 		return path;
 	}
@@ -95,12 +95,12 @@ public class ResumeObj {
 		offsetTime = 0;
 		resDuration = 0;
 		file = f;
-		minDur = configuration.getMinimumWatchedPlayTime();
+		minDur = CONFIGURATION.getMinimumWatchedPlayTime();
 	}
 
 	public void setMinDuration(long dur) {
 		if (dur == 0) {
-			dur = configuration.getMinimumWatchedPlayTime();
+			dur = CONFIGURATION.getMinimumWatchedPlayTime();
 		}
 		minDur = dur;
 	}
@@ -126,8 +126,8 @@ public class ResumeObj {
 				out.write(time + "," + duration);
 				out.flush();
 				out.close();
-				if (configuration.getResumeKeepTime() > 0) {
-					PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
+				if (CONFIGURATION.getResumeKeepTime() > 0) {
+					PMS.get().addTempFile(f, CONFIGURATION.getResumeKeepTime() * DAYS);
 				}
 			}
 		} catch (IOException e) {
@@ -170,12 +170,12 @@ public class ResumeObj {
 		long thisPlay = now - startTime;
 		long duration = thisPlay + offsetTime;
 
-		if (expDuration > minDur && duration >= (expDuration * configuration.getResumeBackFactor())) {
+		if (expDuration > minDur && duration >= (expDuration * CONFIGURATION.getResumeBackFactor())) {
 			// We've seen the whole video (likely)
 			file.delete();
 			return;
 		}
-		if (thisPlay < configuration.getResumeRewind()) {
+		if (thisPlay < CONFIGURATION.getResumeRewind()) {
 			return;
 		}
 		if (thisPlay < minDur) {
@@ -183,7 +183,7 @@ public class ResumeObj {
 			return;
 		}
 
-		offsetTime = duration - configuration.getResumeRewind();
+		offsetTime = duration - CONFIGURATION.getResumeRewind();
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
 		write(offsetTime, expDuration, file);

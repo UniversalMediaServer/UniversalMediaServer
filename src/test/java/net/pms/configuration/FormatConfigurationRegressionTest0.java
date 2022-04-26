@@ -501,7 +501,7 @@ public class FormatConfigurationRegressionTest0 {
 
 	@Test
 	public void test62() throws Throwable {
-		String str0 = FormatConfiguration.und;
+		String str0 = FormatConfiguration.UND;
 
 		// Regression assertion (captures the current behavior of the code)
 		assertTrue("'" + str0 + "' != '" + "und"+ "'", str0.equals("und"));

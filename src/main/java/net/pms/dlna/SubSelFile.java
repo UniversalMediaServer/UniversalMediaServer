@@ -57,8 +57,8 @@ public class SubSelFile extends VirtualFolder {
 				DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
 				DLNAResource liveResource = originalResource.clone();
 				if (liveResource.getMedia() != null) {
-					liveResource.getMedia().getSubtitleTracksList().clear();
-					liveResource.getMedia().getSubtitleTracksList().add(subtitle);
+					liveResource.getMedia().setSubtitlesTracks(new ArrayList<>());
+					liveResource.getMedia().addSubtitlesTrack(subtitle);
 				}
 				liveResource.setMediaSubtitle(subtitle);
 				liveResource.resetSubtitlesStatus();

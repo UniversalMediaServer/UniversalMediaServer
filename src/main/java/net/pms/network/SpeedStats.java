@@ -58,23 +58,6 @@ public class SpeedStats {
 	 * {@code addr}, {@code null} is returned.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
-	 * @param rendererName not in use.
-	 * @return The {@link Future} with the estimated network throughput or
-	 *         {@code null}.
-	 * @deprecated Use {@link #getSpeedInMBitsStored(InetAddress)} instead.
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	public Future<Integer> getSpeedInMBitsStored(InetAddress addr, String rendererName) {
-		return getSpeedInMBitsStored(addr);
-	}
-
-	/**
-	 * Returns the estimated networks throughput for the given IP address in
-	 * Mb/s from the cache as a {@link Future}. If no value is cached for
-	 * {@code addr}, {@code null} is returned.
-	 *
-	 * @param addr the {@link InetAddress} to lookup.
 	 * @return The {@link Future} with the estimated network throughput or
 	 *         {@code null}.
 	 */
@@ -184,19 +167,16 @@ public class SpeedStats {
 		private double doPing(int size) {
 			// let's get that speed
 			OutputParams op = new OutputParams(null);
-			op.log = true;
-			op.maxBufferSize = 1;
-			SystemUtils sysUtil = BasicSystemUtils.INSTANCE;
+			op.setLog(true);
+			op.setMaxBufferSize(1);
+			SystemUtils sysUtil = BasicSystemUtils.instance;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(3000);
-					} catch (InterruptedException e) {
-					}
-					pw.stopProcess();
+			Runnable r = () -> {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
 				}
+				pw.stopProcess();
 			};
 
 			Thread failsafe = new Thread(r, "SpeedStats Failsafe");

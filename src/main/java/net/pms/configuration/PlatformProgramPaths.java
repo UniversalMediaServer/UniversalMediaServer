@@ -92,6 +92,12 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getInterFrame();
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for InterFrame.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getYoutubeDl();
+
+	/**
 	 * @return The {@link Path} for {@code ctrlsender.exe} for Windows.
 	 */
 	@Nullable

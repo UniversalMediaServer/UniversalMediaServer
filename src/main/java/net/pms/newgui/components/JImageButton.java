@@ -58,7 +58,7 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 	private void setProperites() {
 		setRequestFocusEnabled(false);
 		setBorderPainted(false);
-		setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+		setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 		setContentAreaFilled(false);
 		setOpaque(false);
 	}
@@ -100,7 +100,7 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 	}
 
 
-	 /**
+	/**
 	 * Set icons based on standard naming convention from a base image name.
 	 *
 	 * @param iconName the base image resource name used when the button is in

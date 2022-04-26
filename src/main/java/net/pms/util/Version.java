@@ -3,6 +3,7 @@ package net.pms.util;
 import java.util.Arrays;
 
 public final class Version implements Comparable<Version> {
+
 	private final static int MAX_ELEMENTS = 4;
 	private final int[] elements;
 
@@ -29,13 +30,13 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Compares this version to the supplied version and returns
-	 * an <code>int</code> which indicates whether this version is
-	 * less than, equal to, or greater than the supplied version.
+	 * Compares this version to the supplied version and returns an
+	 * <code>int</code> which indicates whether this version is less than, equal
+	 * to, or greater than the supplied version.
 	 *
 	 * @param other version to compare this version to
-	 * @return less than zero if this version is lower, 0 if they're
-	 * equal, or greater than zero if this version is higher
+	 * @return less than zero if this version is lower, 0 if they're equal, or
+	 *         greater than zero if this version is higher
 	 */
 	@Override
 	public int compareTo(Version other) {
@@ -64,55 +65,64 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns true if this version equals the supplied object,
-	 * false otherwise
+	 * Returns true if this version equals the supplied object, false otherwise
+	 *
 	 * @param other object to be compared with this version
-	 * @return true if this version is equal to the supplied object, false otherwise
+	 * @return true if this version is equal to the supplied object, false
+	 *         otherwise
 	 */
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Version) {
-			return compareTo((Version)other) == 0;
+			return compareTo((Version) other) == 0;
 		} else {
 			return false;
 		}
 	}
 
 	/**
-	 * Returns true if this version is less than the supplied
-	 * version, false otherwise
+	 * Returns true if this version is less than the supplied version, false
+	 * otherwise
+	 *
 	 * @param other version to be compared with this version
-	 * @return true if this version is less than the supplied version, false otherwise
+	 * @return true if this version is less than the supplied version, false
+	 *         otherwise
 	 */
 	public boolean isLessThan(Version other) {
 		return compareTo(other) < 0;
 	}
 
 	/**
-	 * Returns true if this version is less than or equal
-	 * to the supplied version, false otherwise
+	 * Returns true if this version is less than or equal to the supplied
+	 * version, false otherwise
+	 *
 	 * @param other version to be compared with this version2yy
-	 * @return true if this version is less than or equal to the supplied version, false otherwise
+	 * @return true if this version is less than or equal to the supplied
+	 *         version, false otherwise
 	 */
 	public boolean isLessThanOrEqualTo(Version other) {
 		return compareTo(other) <= 0;
 	}
 
 	/**
-	 * Returns true if this version is greater than
-	 * the supplied version, false otherwise
+	 * Returns true if this version is greater than the supplied version, false
+	 * otherwise
+	 *
 	 * @param other version to be compared with this version2yy
-	 * @return true if this version is greater than the supplied version, false otherwise
+	 * @return true if this version is greater than the supplied version, false
+	 *         otherwise
 	 */
 	public boolean isGreaterThan(Version other) {
 		return compareTo(other) > 0;
 	}
 
 	/**
-	 * Returns true if this version is greater than or
-	 * equal to the supplied version, false otherwise
+	 * Returns true if this version is greater than or equal to the supplied
+	 * version, false otherwise
+	 *
 	 * @param other version to be compared with this version2yy
-	 * @return true if this version is greater than or equal to the supplied version,false otherwise
+	 * @return true if this version is greater than or equal to the supplied
+	 *         version,false otherwise
 	 */
 	public boolean isGreaterThanOrEqualTo(Version other) {
 		return compareTo(other) >= 0;
@@ -120,20 +130,22 @@ public final class Version implements Comparable<Version> {
 
 	/**
 	 * Compares an initial (current) version and a target version of PMS and
-	 * returns true if the initial version can be updated
-	 * to the target version. See src/main/external-resources/update/README
-	 * for the criteria.
+	 * returns true if the initial version can be updated to the target version.
+	 * See src/main/external-resources/update/README for the criteria.
+	 *
 	 * @param vFrom The initial version
 	 * @param vTo The target version
-	 * @return <code>true</code> if the current version can safely be updated, <code>false</code> otherwise.
+	 * @return <code>true</code> if the current version can safely be updated,
+	 *         <code>false</code> otherwise.
 	 */
 	public static boolean isPmsUpdatable(Version vFrom, Version vTo) {
 		return vTo.isGreaterThan(vFrom);
 	}
 
 	/**
-	 * Returns the first integer element of this version string,
-	 * or 0 if a first integer was not defined or could not be parsed
+	 * Returns the first integer element of this version string, or 0 if a first
+	 * integer was not defined or could not be parsed
+	 *
 	 * @return the major number
 	 */
 	public int getMajor() {
@@ -145,8 +157,9 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns the second integer element of this version string,
-	 * or 0 if a second integer was not defined or could not be parsed
+	 * Returns the second integer element of this version string, or 0 if a
+	 * second integer was not defined or could not be parsed
+	 *
 	 * @return the minor number
 	 */
 	public int getMinor() {
@@ -158,8 +171,9 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns the third integer element of this version string,
-	 * or 0 if a third integer was not defined or could not be parsed
+	 * Returns the third integer element of this version string, or 0 if a third
+	 * integer was not defined or could not be parsed
+	 *
 	 * @return the revision number
 	 */
 	public int getRevision() {
@@ -171,8 +185,9 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns the fourth integer element of this version string,
-	 * or 0 if a fourth integer was not defined or could not be parsed
+	 * Returns the fourth integer element of this version string, or 0 if a
+	 * fourth integer was not defined or could not be parsed
+	 *
 	 * @return the build number
 	 */
 	public int getBuild() {
@@ -184,13 +199,11 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns the element array with trailing zeros
-	 * removed - used to ensure e.g. 2.2 and 2.2.0.0
-	 * (normalized to [ 2, 2 ]) have the same hash code.
+	 * Returns the element array with trailing zeros removed - used to ensure
+	 * e.g. 2.2 and 2.2.0.0 (normalized to [ 2, 2 ]) have the same hash code.
 	 *
-	 * If there are trailing zeros, a new element
-	 * array with the trailing zeros removed is returned,
-	 * otherwise the original element array is returned.
+	 * If there are trailing zeros, a new element array with the trailing zeros
+	 * removed is returned, otherwise the original element array is returned.
 	 *
 	 * @return the element array with trailing zeros removed
 	 */
@@ -229,7 +242,8 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Returns a string representation of the version. The format of the string returned is "major.minor.revision.build".
+	 * Returns a string representation of the version. The format of the string
+	 * returned is "major.minor.revision.build".
 	 *
 	 * @return The string representation of the version.
 	 */

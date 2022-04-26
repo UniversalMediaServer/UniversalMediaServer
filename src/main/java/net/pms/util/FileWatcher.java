@@ -2,7 +2,6 @@ package net.pms.util;
 
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
  * file-change notifications as opposed to directly polling or examining files.
- * 
+ *
  * @see https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java
  */
 public class FileWatcher {
@@ -134,7 +133,8 @@ public class FileWatcher {
 	}
 
 	/**
-	 * Add a file watchpoint to the Watch Service.
+	 * Add a file watchpoint to the Watch Service. Will not
+	 * add duplicates.
 	 *
 	 * @param w The watch object.
 	 */
@@ -227,13 +227,26 @@ public class FileWatcher {
 			start(dir);
 		}
 
+		// Ignore common system directories that should never be watched
+		if (
+			Platform.isMac() &&
+			(
+				dir.toString().contains("/Music/Audio Music Apps") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/resources/cpl/cloudsync.noindex/storage/filecache/") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/private") ||
+				dir.toString().contains("/Pictures/Photos Library.photoslibrary/external")
+			)
+		) {
+			return;
+		}
+
 		WatchKey key;
 
 		try {
 			if (nativeRecursive) {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH, ExtendedWatchEventModifier.FILE_TREE);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, ExtendedWatchEventModifier.FILE_TREE);
 			} else {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
+				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE});
 			}
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
@@ -272,71 +285,86 @@ public class FileWatcher {
 		// Start the service
 		try {
 			watchService = dir.getFileSystem().newWatchService();
+
+			Runtime.getRuntime().addShutdownHook(new Thread("File watcher shutdown") {
+				@Override
+				public void run() {
+					try {
+						watchService.close();
+						LOGGER.trace("Shut down file watcher");
+					} catch (Exception e) {
+						LOGGER.debug("Error while shutting down file watcher service: {}", e);
+					}
+				}
+			});
 		} catch (Exception e) {
 			LOGGER.debug("Error creating WatchService: " + e);
 			e.printStackTrace();
 		}
 
 		// Watch for subscribed file events
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					do {
-						// take() will block until events occur in our subscribed directories
-						WatchKey key = watchService.take();
-						try {
-							// Wait a bit in case there are a few repeats
-							Thread.sleep(100);
-						} catch (InterruptedException e) { }
-						// Filter the received directory event(s)
-						for (WatchEvent<?> e : key.pollEvents()) {
-							final WatchEvent.Kind<?> kind = e.kind();
-							if (kind != OVERFLOW) {
-								WatchEvent<Path> event = (WatchEvent<Path>) e;
-								// Determine the actual file
-								Path dir = (Path) key.watchable();
-								final Path filename = dir.resolve(event.context());
-								final boolean isDir;
-								if (!Files.exists(filename)) {
-									isDir = FileUtil.isDirectory(filename.toString());
-								} else {
-									isDir = Files.isDirectory(filename/*, NOFOLLOW_LINKS*/); 
-								}
+		new Thread(() -> {
+			try {
+				do {
+					// take() will block until events occur in our subscribed
+					// directories
+					WatchKey key = watchService.take();
+					try {
+						// Wait a bit in case there are a few repeats
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						LOGGER.debug("Sleep interrupted {}", e);
+					}
+					// Filter the received directory event(s)
+					for (WatchEvent<?> e : key.pollEvents()) {
+						final WatchEvent.Kind<?> kind = e.kind();
+						if (kind != OVERFLOW) {
+							WatchEvent<Path> event = (WatchEvent<Path>) e;
+							// Determine the actual file
+							Path path = (Path) key.watchable();
+							final Path filename = path.resolve(event.context());
+							final boolean isDir;
+							if (!Files.exists(filename)) {
+								isDir = FileUtil.isDirectory(filename.toString());
+							} else {
+								isDir = Files
+									.isDirectory(filename/* , NOFOLLOW_LINKS */);
+							}
 
-								// See if we're watching for this specific file
-								for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
-									final Watch w = iterator.next();
-									if (!Watch.isValid(w)) {
-										LOGGER.debug("Deleting expired file watch at {}: {}", dir, w.fspec);
-										iterator.remove();
-										continue;
-									}
-									if (w.matcher.matches(filename)) {
-										// We have an event of interest
-										LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
-										if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
-											// It's a new directory in a recursive scope,
-											// traverse it to include any subdirs
-											addRecursive(w, filename);
-										} else {
-											// It's a regular event, schedule a notice
-											notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
-												kind == ENTRY_MODIFY ? 500 : 0);
-										}
+							// See if we're watching for this specific file
+							for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
+								final Watch w = iterator.next();
+								if (!Watch.isValid(w)) {
+									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.fspec);
+									iterator.remove();
+									continue;
+								}
+								if (w.matcher.matches(filename)) {
+									// We have an event of interest
+									LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
+									if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
+										// It's a new directory in a recursive
+										// scope,
+										// traverse it to include any subdirs
+										addRecursive(w, filename);
+									} else {
+										// It's a regular event, schedule a
+										// notice
+										notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
+											kind == ENTRY_MODIFY ? 500 : 0);
 									}
 								}
 							}
 						}
-						// Reset and clean up
-						if (!key.reset()) {
-							keys.remove(key);
-						}
-					} while (!keys.isEmpty());
-				} catch (Exception e) {
-					LOGGER.debug("Event process error: " + e);
-					e.printStackTrace();
-				}
+					}
+					// Reset and clean up
+					if (!key.reset()) {
+						keys.remove(key);
+					}
+				} while (!keys.isEmpty());
+			} catch (Exception e) {
+				LOGGER.debug("Event process error: " + e);
+				e.printStackTrace();
 			}
 		}, "File watcher").start();
 	}

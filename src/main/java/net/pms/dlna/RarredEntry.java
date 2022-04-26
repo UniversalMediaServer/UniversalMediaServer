@@ -19,7 +19,7 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
-import com.github.junrar.impl.FileVolumeManager;
+import com.github.junrar.volume.FileVolumeManager;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
@@ -78,12 +78,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 		return false;
 	}
 
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
-	}
-
 	@Override
 	public String getSystemName() {
 		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(name);
@@ -102,34 +96,31 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				Archive rarFile = null;
+		Runnable r = () -> {
+			Archive rarFile = null;
+			try {
+				rarFile = new Archive(new FileVolumeManager(file), null, null);
+				FileHeader header = null;
+				for (FileHeader fh : rarFile.getFileHeaders()) {
+					if (fh.getFileName().equals(fileHeaderName)) {
+						header = fh;
+						break;
+					}
+				}
+				if (header != null) {
+					LOGGER.trace("Starting the extraction of " + header.getFileName());
+					rarFile.extractFile(header, out);
+				}
+			} catch (RarException | IOException e) {
+				LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
+			} finally {
 				try {
-					rarFile = new Archive(new FileVolumeManager(file),null);
-					FileHeader header = null;
-					for (FileHeader fh : rarFile.getFileHeaders()) {
-						if (fh.getFileNameString().equals(fileHeaderName)) {
-							header = fh;
-							break;
-						}
+					if (rarFile != null) {
+						rarFile.close();
 					}
-					if (header != null) {
-						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
-						rarFile.extractFile(header, out);
-					}
-				} catch (RarException | IOException e) {
-					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
-				} finally {
-					try {
-						if (rarFile != null) {
-							rarFile.close();
-						}
-						out.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					}
+					out.close();
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
 				}
 			}
 		};

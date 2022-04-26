@@ -62,7 +62,7 @@ public class AboutTab {
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
 
 		final LinkMouseListener pms3Link = new LinkMouseListener(projectName + " " + PMS.getVersion(),
-			"http://www.universalmediaserver.com/");
+			"https://www.universalmediaserver.com/");
 		JLabel lPms3Link = builder.addLabel(pms3Link.getLabel(), cc.xy(2, 1, "center, fill"));
 		lPms3Link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lPms3Link.addMouseListener(pms3Link);
@@ -167,7 +167,7 @@ public class AboutTab {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			try {
-				BasicSystemUtils.INSTANCE.browseURI(link);
+				BasicSystemUtils.instance.browseURI(link);
 			} catch (Exception e1) {
 				LOGGER.debug("Caught exception", e1);
 			}

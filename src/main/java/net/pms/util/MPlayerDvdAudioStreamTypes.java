@@ -35,7 +35,7 @@ public enum MPlayerDvdAudioStreamTypes {
 	AC3("ac3", FormatConfiguration.AC3),
 
 	/** Unknown audio stream type */
-	UNKNOWN("unknown", FormatConfiguration.und),
+	UNKNOWN("unknown", FormatConfiguration.UND),
 
 	/** MPEG Audio */
 	MPEG1("mpeg1", FormatConfiguration.MP2),

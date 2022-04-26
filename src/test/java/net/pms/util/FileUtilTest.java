@@ -28,15 +28,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.util.FilePermissions.FileFlag;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Fail;
 import static org.junit.Assert.*;
@@ -50,7 +49,7 @@ public class FileUtilTest {
 
 	@BeforeClass
 	public static void SetUPClass() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();
@@ -59,13 +58,13 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsUrl() throws Exception {
-		assertThat(FileUtil.isUrl("universalmediaserver.com")).isFalse();
-		assertThat(FileUtil.isUrl("http://www.universalmediaserver.com")).isTrue();
+		assertFalse(FileUtil.isUrl("universalmediaserver.com"));
+		assertTrue(FileUtil.isUrl("http://www.universalmediaserver.com"));
 	}
 
 	@Test
 	public void testGetProtocol() throws Exception {
-		assertThat(FileUtil.getProtocol("universalmediaserver.com")).isNull();
+		assertNull(FileUtil.getProtocol("universalmediaserver.com"));
 		assertThat(FileUtil.getProtocol("http://www.universalmediaserver.com")).isEqualTo("http");
 	}
 
@@ -77,7 +76,7 @@ public class FileUtilTest {
 
 	@Test
 	public void testGetUrlExtension() throws Exception {
-		assertThat(FileUtil.getUrlExtension("filename")).isNull();
+		assertNull(FileUtil.getUrlExtension("filename"));
 		assertThat(FileUtil.getUrlExtension("http://www.universalmediaserver.com/file.html?foo=bar")).isEqualTo("html");
 	}
 
@@ -94,10 +93,8 @@ public class FileUtilTest {
 	 */
 	@Test
 	public void testGetFileNameWithRewriting() throws Exception {
-		JsonParser parser = new JsonParser();
-
 		try {
-			JsonElement tree = parser.parse(
+			JsonElement tree = JsonParser.parseReader(
 				new java.io.FileReader(
 					FileUtils.toFile(
 						CLASS.getResource("prettified_filenames_metadata.json")
@@ -109,8 +106,13 @@ public class FileUtilTest {
 			for (JsonElement test : tests) {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
-				String prettified = o.get("prettified").getAsString();
-				assertThat(FileUtil.getFileNamePrettified(original)).isEqualTo(prettified);
+				String absolutePath = null;
+				if (o.get("absolutepath") != null) {
+					absolutePath = o.get("absolutepath").getAsString();
+				}
+				String expectedOutput = o.get("prettified").getAsString();
+				String fileNamePrettified = FileUtil.getFileNamePrettified(original, absolutePath);
+				assertThat(fileNamePrettified).as(o.get("comment").getAsString()).isEqualTo(expectedOutput);
 			}
 		} catch (Exception ex) {
 			throw (new AssertionError(ex));
@@ -127,10 +129,8 @@ public class FileUtilTest {
 	public void testGetFileNameMetadata() throws Exception {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-		JsonParser parser = new JsonParser();
-
 		try {
-			JsonElement tree = parser.parse(
+			JsonElement tree = JsonParser.parseReader(
 				new java.io.FileReader(
 					FileUtils.toFile(
 						CLASS.getResource("prettified_filenames_metadata.json")
@@ -142,13 +142,17 @@ public class FileUtilTest {
 			for (JsonElement test : tests) {
 				JsonObject o = test.getAsJsonObject();
 				String original = o.get("filename").getAsString();
+				String absolutePath = null;
+				if (o.get("absolutepath") != null) {
+					absolutePath = o.get("absolutepath").getAsString();
+				}
 				JsonObject metadata = o.get("metadata").getAsJsonObject();
 				boolean todo = false;
 				if (o.has("todo")) {
 					todo = o.get("todo").getAsBoolean();
 				}
 
-				String[] extracted_metadata = FileUtil.getFileNameMetadata(original);
+				String[] extracted_metadata = FileUtil.getFileNameMetadata(original, absolutePath);
 				assert extracted_metadata.length == 6;
 				String movieOrShowName = extracted_metadata[0];
 				int year = -1;
@@ -315,13 +319,15 @@ public class FileUtilTest {
 						for (JsonElement elem2 : elem.getAsJsonArray()) {
 							range = range + "-" + String.format("%02d", elem2.getAsInt());
 						}
-						try {
-							assertThat(tvEpisodeNumber).isEqualTo(range.substring(1));
-						} catch (AssertionError err) {
-							if (todo) {
-								logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
-							} else {
-								throw (err);
+						if (isNotBlank(range)) {
+							try {
+								assertThat(range.substring(1)).isEqualTo(tvEpisodeNumber);
+							} catch (AssertionError err) {
+								if (todo) {
+									logger.warn("testGetFileNameMetadata/episodes would fail for TODO test " + original);
+								} else {
+									throw err;
+								}
 							}
 						}
 					}
@@ -361,6 +367,12 @@ public class FileUtilTest {
 								}
 							}
 						}
+					}
+				} else if ("sport".equals(metadata.get("type").getAsString())) {
+					// We do not do anything with sport videos at the moment, so here we make sure it does NOT match
+					logger.debug("Doing sport " + original);
+					if (movieOrShowName != null) {
+						throw (new AssertionError("Sport videos should not match: " + metadata));
 					}
 				} else {
 					logger.error("Unknown content type in " + original);
@@ -435,91 +447,91 @@ public class FileUtilTest {
 	@Test
 	public void testIsFileUTF8() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf8_3)).isTrue();
+		assertTrue(FileUtil.isFileUTF8(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF8(file_utf_16_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF8(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF8(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF8(file_ch_2));
 	}
 
 	@Test
 	public void testIsCharsetUTF8() throws Exception {
-		assertThat(FileUtil.isCharsetUTF8("UTF-8")).isTrue();
-		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
-		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
+		assertTrue(FileUtil.isCharsetUTF8(StandardCharsets.UTF_8));
+		assertTrue(FileUtil.isCharsetUTF8("uTf-8"));
+		assertFalse(FileUtil.isCharsetUTF8("uTf-88"));
 	}
 
 	@Test
 	public void testIsCharsetUTF18_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF8(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF8(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF8("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF8(c));
+		assertFalse(FileUtil.isCharsetUTF8(""));
 	}
 
 	@Test
 	public void testIsFileUTF16() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8));
 		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_2));
 		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf8_3)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_utf8_3));
 		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16));
 		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
-		assertThat(FileUtil.isFileUTF16(file_utf_16_2)).isTrue();
+		assertTrue(FileUtil.isFileUTF16(file_utf_16_2));
 		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
-		assertThat(FileUtil.isFileUTF16(file_cp1251)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_cp1251));
 		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch));
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
-		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+		assertFalse(FileUtil.isFileUTF16(file_ch_2));
 	}
 
 	@Test
 	public void testIsCharsetUTF16() throws Exception {
-		assertThat(FileUtil.isCharsetUTF16("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16("UTF-16LE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
-		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(StandardCharsets.UTF_8));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16BE));
+		assertTrue(FileUtil.isCharsetUTF16(StandardCharsets.UTF_16LE));
+		assertTrue(FileUtil.isCharsetUTF16("utF-16le"));
+		assertFalse(FileUtil.isCharsetUTF16(" utF-16le"));
 	}
 
 	@Test
 	public void testIsCharsetUTF16_withNullOrEmptyCharset() throws Exception {
 		String s = null;
-		assertThat(FileUtil.isCharsetUTF16(s)).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(s));
 		Charset c = null;
-		assertThat(FileUtil.isCharsetUTF16(c)).isFalse();
-		assertThat(FileUtil.isCharsetUTF16("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF16(c));
+		assertFalse(FileUtil.isCharsetUTF16(""));
 	}
 
 	@Test
 	public void testIsCharsetUTF32() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32("UTF-8")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-16BE")).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-32Be")).isTrue();
-		assertThat(FileUtil.isCharsetUTF32("utF-332Be")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32("UTF-8"));
+		assertFalse(FileUtil.isCharsetUTF32("UTF-16BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("UTF-32BE"));
+		assertTrue(FileUtil.isCharsetUTF32("utF-32Be"));
+		assertFalse(FileUtil.isCharsetUTF32("utF-332Be"));
 	}
 
 	@Test
 	public void testIsCharsetUTF32_withNullOrEmptyCharset() throws Exception {
-		assertThat(FileUtil.isCharsetUTF32(null)).isFalse();
-		assertThat(FileUtil.isCharsetUTF32("")).isFalse();
+		assertFalse(FileUtil.isCharsetUTF32(null));
+		assertFalse(FileUtil.isCharsetUTF32(""));
 	}
 
 	@Test
@@ -529,7 +541,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8le, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
@@ -540,7 +552,7 @@ public class FileUtilTest {
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8be, outputFile);
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
-		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 

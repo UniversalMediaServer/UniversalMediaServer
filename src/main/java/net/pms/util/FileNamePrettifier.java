@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.text.WordUtils;
+import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;

@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 
-
 /**
  * This is an interface for consuming a process wrapper output
  * {@link InputStream}. An implementation will start consuming an

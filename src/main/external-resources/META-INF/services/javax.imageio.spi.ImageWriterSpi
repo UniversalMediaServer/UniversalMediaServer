@@ -4,3 +4,4 @@ com.twelvemonkeys.imageio.plugins.pict.PICTImageWriterSpi
 com.twelvemonkeys.imageio.plugins.pnm.PNMImageWriterSpi
 com.twelvemonkeys.imageio.plugins.pnm.PAMImageWriterSpi
 com.twelvemonkeys.imageio.plugins.tiff.TIFFImageWriterSpi
+com.luciad.imageio.webp.WebPImageWriterSpi

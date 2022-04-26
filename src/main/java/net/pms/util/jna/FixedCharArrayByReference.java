@@ -18,14 +18,12 @@
  */
 package net.pms.util.jna;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 

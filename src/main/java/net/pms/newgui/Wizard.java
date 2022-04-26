@@ -20,7 +20,6 @@
 
 package net.pms.newgui;
 
-import com.sun.jna.Platform;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -39,11 +38,11 @@ public class Wizard {
 
 	public static void run(final PmsConfiguration configuration) {
 		// Total number of questions
-		int numberOfQuestions = Platform.isMac() ? 4 : 5;
+		int numberOfQuestions = 5;
 
 		// The current question number
 		int currentQuestionNumber = 1;
-		
+
 		String status = new StringBuilder()
 			.append(Messages.getString("Wizard.2"))
 			.append(" %d ")
@@ -67,7 +66,30 @@ public class Wizard {
 				Messages.getString("Wizard.10")
 			};
 
-		if (!Platform.isMac()) {
+		Object[] defaultOptions = {
+				Messages.getString("Wizard.DefaultsYes"),
+				Messages.getString("Wizard.DefaultsNo")
+			};
+
+		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
+			null,
+			Messages.getString("Wizard.13"),
+			String.format(status, currentQuestionNumber++),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.QUESTION_MESSAGE,
+			null,
+			defaultOptions,
+			defaultOptions[1]
+		);
+
+		if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
+			configuration.setMinimized(false);
+			configuration.setAutomaticMaximumBitrate(true);
+			configuration.setMPEG2MainSettings("Automatic (Wired)");
+			configuration.setx264ConstantRateFactor("Automatic (Wired)");
+			configuration.setHideAdvancedOptions(true);
+			configuration.setScanSharedFoldersOnStartup(true);
+		} else {
 			// Ask if they want UMS to start minimized
 			int whetherToStartMinimized = JOptionPane.showOptionDialog(
 				null,
@@ -85,95 +107,57 @@ public class Wizard {
 			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
 				configuration.setMinimized(false);
 			}
-		}
 
-		// Ask if their network is wired, etc.
-		int networkType = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.7"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_CANCEL_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			networkTypeOptions,
-			networkTypeOptions[1]
-		);
+			// Ask if they want to hide advanced options
+			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.11"),
+				String.format(status, currentQuestionNumber++),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				yesNoOptions[0]
+			);
 
-		switch (networkType) {
-			case JOptionPane.YES_OPTION:
-				// Wired (Gigabit)
-				configuration.setMaximumBitrate("0");
-				configuration.setMPEG2MainSettings("Automatic (Wired)");
-				configuration.setx264ConstantRateFactor("Automatic (Wired)");
-				break;
-			case JOptionPane.NO_OPTION:
-				// Wired (100 Megabit)
-				configuration.setMaximumBitrate("90");
-				configuration.setMPEG2MainSettings("Automatic (Wired)");
-				configuration.setx264ConstantRateFactor("Automatic (Wired)");
-				break;
-			case JOptionPane.CANCEL_OPTION:
-				// Wireless
-				configuration.setMaximumBitrate("30");
-				configuration.setMPEG2MainSettings("Automatic (Wireless)");
-				configuration.setx264ConstantRateFactor("Automatic (Wireless)");
-				break;
-			default:
-				break;
-		}
+			if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
+				configuration.setHideAdvancedOptions(true);
+			} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
+				configuration.setHideAdvancedOptions(false);
+			}
 
-		// Ask if they want to hide advanced options
-		int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.11"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			yesNoOptions,
-			yesNoOptions[0]
-		);
+			// Ask if they want to scan shared folders
+			int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.IsStartupScan"),
+				String.format(status, currentQuestionNumber++),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				yesNoOptions[0]
+			);
 
-		if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
-			configuration.setHideAdvancedOptions(true);
-		} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
-			configuration.setHideAdvancedOptions(false);
-		}
+			if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
+				configuration.setScanSharedFoldersOnStartup(true);
+			} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
+				configuration.setScanSharedFoldersOnStartup(false);
+			}
 
-		// Ask if they want to scan shared folders
-		int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.IsStartupScan"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.QUESTION_MESSAGE,
-			null,
-			yesNoOptions,
-			yesNoOptions[0]
-		);
+			// Ask to set at least one shared folder
+			JOptionPane.showOptionDialog(
+				null,
+				Messages.getString("Wizard.12"),
+				String.format(status, currentQuestionNumber++),
+				JOptionPane.OK_OPTION,
+				JOptionPane.INFORMATION_MESSAGE,
+				null,
+				okOptions,
+				okOptions[0]
+			);
 
-		if (whetherToScanSharedFolders == JOptionPane.YES_OPTION) {
-			configuration.setScanSharedFoldersOnStartup(true);
-		} else if (whetherToScanSharedFolders == JOptionPane.NO_OPTION) {
-			configuration.setScanSharedFoldersOnStartup(false);
-		}
-
-		// Ask to set at least one shared folder
-		JOptionPane.showOptionDialog(
-			null,
-			Messages.getString("Wizard.12"),
-			String.format(status, currentQuestionNumber++),
-			JOptionPane.OK_OPTION,
-			JOptionPane.INFORMATION_MESSAGE,
-			null,
-			okOptions,
-			okOptions[0]
-		);
-
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
+			try {
+				SwingUtilities.invokeAndWait(() -> {
 					JFileChooser chooser;
 					try {
 						chooser = new JFileChooser();
@@ -186,13 +170,14 @@ public class Wizard {
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
-					} else {
-						// If the user cancels this option, the default directories will be used.
+						// } else {
+						// If the user cancels this option, the default directories
+						// will be used.
 					}
-				}
-			});
-		} catch (InterruptedException | InvocationTargetException e) {
-			LOGGER.error("Error when saving folders: ", e);
+				});
+			} catch (InterruptedException | InvocationTargetException e) {
+				LOGGER.error("Error when saving folders: ", e);
+			}
 		}
 
 		// The wizard finished, do not ask them again
@@ -206,4 +191,3 @@ public class Wizard {
 		}
 	}
 }
-

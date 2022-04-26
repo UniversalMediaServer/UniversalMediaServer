@@ -1,6 +1,6 @@
 Installers for Windows and Mac OS X and tarballs for Linux can be found at:
 
-    http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
+    https://www.universalmediaserver.com
 
 To install UMS from the tarball on Linux, open a terminal and enter the
 following commands (set VERSION to the version you're installing):
@@ -9,13 +9,10 @@ should work on most Unix distributions)
 
 1. Install the dependencies (this only needs to be done once):
     
-    First you must have Java 8 JRE installed on the server. OpenJava will not work.
+    All releases of UMS come with Java Runtime Environment bundled, except for
+    the ARM architecture releases. You will need to ensure you have JRE 8 installed.
 
-        sudo apt-get install software-properties-common
-        sudo apt-get update
-        sudo apt-get install openjdk-8-jre openjdk-8-jre-headless
-
-    With Java installed, we now need to add some other pre-reqs:
+    Next, add some other pre-reqs:
 
         sudo apt-get install mediainfo dcraw vlc-nox mplayer mencoder
       
@@ -23,11 +20,12 @@ should work on most Unix distributions)
 
 2. Download the tarball e.g.:
 
-    get the direct link from http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
-  
-    if wget isn't installed, run: `sudo apt-get install wget`
-    
-        wget <insert the direct link here>
+    Get the direct link from https://www.universalmediaserver.com
+
+    Your operating system and architecture should be automatically detected so
+    that you get the correct download. If for some reason you get the wrong file,
+    you can manually select a file by clicking the big arrow to the right of the
+    download buttons.
 
 3. Extract the tarball into a ums-$VERSION directory:
 

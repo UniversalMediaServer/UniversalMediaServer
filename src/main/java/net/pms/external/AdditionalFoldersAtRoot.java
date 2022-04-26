@@ -12,7 +12,7 @@ public interface AdditionalFoldersAtRoot extends ExternalListener {
 	/**
 	 * Gets the list of DLNAResource that will be added to the root folder. If
 	 * they are functional, they will show up after the default folders.
-	 * 
+	 *
 	 * @return an iterator containing DLNAResources that will be added to the
 	 *         root folder
 	 */

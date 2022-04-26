@@ -33,7 +33,7 @@ public class BMP extends ImageBase {
 	 */
 	@Override
 	public String[] getSupportedExtensions() {
-		return new String[] { "bmp" };
+		return new String[] {"bmp"};
 	}
 
 	@Override

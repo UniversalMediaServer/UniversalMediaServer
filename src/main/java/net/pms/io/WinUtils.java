@@ -47,8 +47,13 @@ import org.slf4j.LoggerFactory;
 public class WinUtils extends BasicSystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
 
+	@SuppressWarnings({
+		"checkstyle:ConstantName",
+		"checkstyle:MethodName",
+		"checkstyle:ParameterName"
+	})
 	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = Native.loadLibrary("kernel32", Kernel32.class);
+		Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
 		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
@@ -116,8 +121,8 @@ public class WinUtils extends BasicSystemUtils {
 		}
 		boolean unicodeChars;
 		try {
-			byte b1[] = longPathName.getBytes("UTF-8");
-			byte b2[] = longPathName.getBytes("cp1252");
+			byte[] b1 = longPathName.getBytes("UTF-8");
+			byte[] b2 = longPathName.getBytes("cp1252");
 			unicodeChars = b1.length != b2.length;
 		} catch (Exception e) {
 			return longPathName;
@@ -127,7 +132,7 @@ public class WinUtils extends BasicSystemUtils {
 			try {
 				WString pathname = new WString(longPathName);
 
-				char test[] = new char[2 + pathname.length() * 2];
+				char[] test = new char[2 + pathname.length() * 2];
 				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
 				if (r > 0) {
 					String result = Native.toString(test);
@@ -146,7 +151,7 @@ public class WinUtils extends BasicSystemUtils {
 
 	@Override
 	public String getWindowsDirectory() {
-		char test[] = new char[2 + 256 * 2];
+		char[] test = new char[2 + 256 * 2];
 		int r = Kernel32.INSTANCE.GetWindowsDirectoryW(test, 256);
 		if (r > 0) {
 			return Native.toString(test);
@@ -160,32 +165,32 @@ public class WinUtils extends BasicSystemUtils {
 		try {
 			driveName = f.getCanonicalPath().substring(0, 2) + "\\";
 
-			char[] lpRootPathName_chars = new char[4];
+			char[] lpRootPathNameChars = new char[4];
 			for (int i = 0; i < 3; i++) {
-				lpRootPathName_chars[i] = driveName.charAt(i);
+				lpRootPathNameChars[i] = driveName.charAt(i);
 			}
-			lpRootPathName_chars[3] = '\0';
+			lpRootPathNameChars[3] = '\0';
 			int nVolumeNameSize = 256;
-			CharBuffer lpVolumeNameBuffer_char = CharBuffer.allocate(nVolumeNameSize);
+			CharBuffer lpVolumeNameBufferChar = CharBuffer.allocate(nVolumeNameSize);
 			LongByReference lpVolumeSerialNumber = new LongByReference();
 			LongByReference lpMaximumComponentLength = new LongByReference();
 			LongByReference lpFileSystemFlags = new LongByReference();
 			int nFileSystemNameSize = 256;
-			CharBuffer lpFileSystemNameBuffer_char = CharBuffer.allocate(nFileSystemNameSize);
+			CharBuffer lpFileSystemNameBufferChar = CharBuffer.allocate(nFileSystemNameSize);
 
 			boolean result2 = Kernel32.INSTANCE.GetVolumeInformationW(
-				lpRootPathName_chars,
-				lpVolumeNameBuffer_char,
+				lpRootPathNameChars,
+				lpVolumeNameBufferChar,
 				nVolumeNameSize,
 				lpVolumeSerialNumber,
 				lpMaximumComponentLength,
 				lpFileSystemFlags,
-				lpFileSystemNameBuffer_char,
+				lpFileSystemNameBufferChar,
 				nFileSystemNameSize);
 			if (!result2) {
 				return null;
 			}
-			String diskLabel = charString2String(lpVolumeNameBuffer_char);
+			String diskLabel = charString2String(lpVolumeNameBufferChar);
 			return diskLabel;
 		} catch (Exception e) {
 			return null;

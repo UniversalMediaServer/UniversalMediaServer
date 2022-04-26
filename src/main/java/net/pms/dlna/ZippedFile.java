@@ -88,12 +88,6 @@ public class ZippedFile extends DLNAResource {
 		return true;
 	}
 
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
-	}
-
 	@Override
 	public String getSystemName() {
 		return file.getAbsolutePath();

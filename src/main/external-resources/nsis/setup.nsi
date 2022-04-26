@@ -78,7 +78,7 @@ FunctionEnd
 Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
-	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
+	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
 
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
@@ -89,6 +89,18 @@ Function LockedListShow
 
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
+
+	services::IsServiceRunning 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'stop' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+			Abort
+		success:
+	${EndIf}
 FunctionEnd
 
 Function LockedListLeave
@@ -130,7 +142,9 @@ Function AdvancedSettings
 	Pop $4
 
 	; Choose the maximum amount of RAM we want to use based on installed RAM
-	${If} $4 > 4000 
+	${If} $4 > 8000 
+		StrCpy $MaximumMemoryJava "2048"
+	${ElseIf} $4 > 4000 
 		StrCpy $MaximumMemoryJava "1280"
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
@@ -171,7 +185,19 @@ FunctionEnd
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
-	Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'start' 'Universal Media Server'
+		Pop $1
+		StrCmp $1 'Ok' success 0
+			; If we failed to start the service it might be disabled, so we start the GUI
+			Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+		success:
+	${Else}
+		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+	${EndIf}
 FunctionEnd 
 
 Function CreateDesktopShortcut
@@ -185,12 +211,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x64"
-		File /r /x "ffmpeg.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x64"
+		File /r /x "ffmpeg.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x64 jre8
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre-x86"
-		File /r /x "ffmpeg64.exe" /x "jre-x64" /x "jre-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x86"
+		File /r /x "ffmpeg64.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre8-x86 jre8
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -296,6 +326,25 @@ Section "Program Files"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV671.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV3900.conf"
 
+	; Remove old folders
+	RMDir /R /REBOOTOK "$INSTDIR\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
+	
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
@@ -326,11 +375,13 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
-	${If} ${RunningX64}
-		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x64\bin\javaw.exe" enable=yes profile=public,private'
-	${Else}
-		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre-x86\bin\javaw.exe" enable=yes profile=public,private'
-	${EndIf}
+	; Remove existing firewall rules in case they need updating
+	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
+
+	; Add firewall rules
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre8\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre8\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -340,12 +391,17 @@ Section "Start Menu Shortcuts"
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	; Only start UMS with Windows when it is a new install
-	IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-		goto end_of_startup_section
-	shortcut_file_not_found:
-		CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	end_of_startup_section:
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		; Only start UMS with Windows when it is a new install
+		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
+			goto end_of_startup_section
+		shortcut_file_not_found:
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		end_of_startup_section:
+	${EndIf}
 
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
@@ -353,18 +409,25 @@ SectionEnd
 Section "Uninstall"
 	SetShellVarContext all
 
+	; Current files/folders
 	Delete /REBOOTOK "$INSTDIR\uninst.exe"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
+
+	; Old folders
+	RMDir /R /REBOOTOK "$INSTDIR\jre14"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\jre15"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-VLC.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Apple-TV-4K-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Apple-iDevice-VLC32bit.conf"
@@ -376,6 +439,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\DLink-DSM510.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\FetchTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Free-Freebox.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\foobar2000-mobile.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Freecom-MusicPal.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Google-Android-Chromecast.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Google-Android.conf"
@@ -433,6 +497,8 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VieraVT60.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-AureaAndNetTV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PFL.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Philips-PUS-6500Series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Philips-Streamium.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-BDP.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Pioneer-Kuro.conf"
@@ -442,6 +508,9 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-5.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-6-7.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-DVP10.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV-4K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV8.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-8series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-9series.conf"
@@ -477,7 +546,13 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-NotCD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-PL51E490.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-0.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-1.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-2.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-3.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
@@ -487,6 +562,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray2013.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bluray-UBP-X800M2.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bravia4500.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Bravia5500.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaBX305.conf"
@@ -500,6 +576,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaW.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaX.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXBR.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXBR-OLED.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-BraviaXD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-HomeTheatreSystem.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-PlayStation3.conf"
@@ -507,6 +584,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-PlayStationVita.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-SMPN100.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-STR5800ES.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-X-Series-TV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Xperia.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-XperiaZ3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Technisat-S1Plus.conf"
@@ -630,7 +708,15 @@ Section "Uninstall"
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
+
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
+	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	nsSCM::Stop "${PROJECT_NAME}"
 	nsSCM::Remove "${PROJECT_NAME}"

@@ -40,14 +40,12 @@ import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
 
-
 /**
  * This immutable class represents a {@code protocolInfo} element.
  *
  * @author Nadahar
  */
 public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
-
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolInfo.class);
 

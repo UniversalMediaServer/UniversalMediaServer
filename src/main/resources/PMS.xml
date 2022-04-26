@@ -12,11 +12,11 @@
 		<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
 		<friendlyName>Universal Media Server</friendlyName>
 		<manufacturer>UMS</manufacturer>
-		<manufacturerURL>http://www.universalmediaserver.com</manufacturerURL>
+		<manufacturerURL>https://www.universalmediaserver.com</manufacturerURL>
 		<modelDescription>UPnP/AV 1.0 Compliant Media Server</modelDescription>
 		<modelName>UMS</modelName>
 		<modelNumber>01</modelNumber>
-		<modelURL>http://www.universalmediaserver.com</modelURL>
+		<modelURL>https://www.universalmediaserver.com</modelURL>
 		<serialNumber/>
 		<UPC/>
 		<UDN>[uuid]</UDN>

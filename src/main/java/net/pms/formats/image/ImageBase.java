@@ -21,7 +21,6 @@ package net.pms.formats.image;
 
 import net.pms.formats.Format;
 
-
 public abstract class ImageBase extends Format {
 
 	public ImageBase() {

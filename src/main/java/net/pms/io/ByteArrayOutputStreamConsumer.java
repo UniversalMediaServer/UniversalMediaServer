@@ -49,7 +49,7 @@ public class ByteArrayOutputStreamConsumer extends OutputConsumer {
 	 */
 	public ByteArrayOutputStreamConsumer(InputStream inputStream, OutputParams params) {
 		super(inputStream);
-		bufferSize = params.outputByteArrayStreamBufferSize > 512 ? params.outputByteArrayStreamBufferSize : 512;
+		bufferSize = params.getOutputByteArrayStreamBufferSize() > 512 ? params.getOutputByteArrayStreamBufferSize() : 512;
 		outputBuffer = new BufferedOutputByteArrayImpl(bufferSize);
 	}
 

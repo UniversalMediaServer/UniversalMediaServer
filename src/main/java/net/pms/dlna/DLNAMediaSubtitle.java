@@ -191,7 +191,6 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * Detects and sets the subtitles' character set. If the language isn't
 	 * set/known and it is detected, the language is also set.
 	 */
-	@SuppressWarnings("deprecation")
 	private void setFileSubsCharacterSet() {
 		if (externalFile != null && !type.isPicture()) {
 			try {
@@ -228,28 +227,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @deprecated use {@link #setSubCharacterSet(String)}
-	 */
-	@Deprecated
-	public void setExternalFileCharacterSet(String charSet) {
-		setSubCharacterSet(charSet);
-	}
-
-	/**
 	 * Sets the subtitles character set.
 	 *
 	 * @param charSet the subtitles character set.
 	 */
 	public void setSubCharacterSet(String charSet) {
 		subsCharacterSet = charSet;
-	}
-
-	/**
-	 * @deprecated use {@link #getSubCharacterSet()}
-	 */
-	@Deprecated
-	public String getExternalFileCharacterSet() {
-		return getSubCharacterSet();
 	}
 
 	/**

@@ -27,6 +27,6 @@
 
 		@Override
 		public String[] getSupportedExtensions() {
-			return new String[] { "dff" };
+			return new String[] {"dff"};
 		}
 	}

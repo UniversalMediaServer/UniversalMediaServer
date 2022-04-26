@@ -62,7 +62,7 @@ public class HTTPResourceAuthenticator extends Authenticator {
 			if (pass != null) {
 				// Send user information for the URL.
 				PasswordAuthentication pwAuth = new PasswordAuthentication(user, pass.toCharArray());
-	
+
 				return pwAuth;
 			} else {
 				return null;

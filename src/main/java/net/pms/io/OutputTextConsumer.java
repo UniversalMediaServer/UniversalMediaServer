@@ -18,8 +18,11 @@
  */
 package net.pms.io;
 
+import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
@@ -32,22 +35,26 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextConsumer.class);
-	private List<String> lines = new ArrayList<>();
-	private Object linesLock = new Object();
-	private boolean log;
+	private static Charset charset = null;
+	private final List<String> lines = new ArrayList<>();
+	private final Object linesLock = new Object();
+	private final boolean log;
 
 	public OutputTextConsumer(InputStream inputStream, boolean log) {
 		super(inputStream);
-		linesLock = new Object();
 		this.log = log;
+		if (charset == null) {
+			if (Platform.isWindows() && WinUtils.getOEMCharset() != null) {
+				charset = WinUtils.getOEMCharset();
+			} else {
+				charset = StandardCharsets.UTF_8;
+			}
+		}
 	}
 
 	@Override
 	public void run() {
-		LineIterator it = null;
-		try {
-			it = IOUtils.lineIterator(inputStream, "UTF-8");
-
+		try (LineIterator it = IOUtils.lineIterator(inputStream, charset)) {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 
@@ -66,8 +73,6 @@ public class OutputTextConsumer extends OutputConsumer {
 			LOGGER.debug("Error consuming input stream: {}", ioe.getMessage());
 		} catch (IllegalStateException ise) {
 			LOGGER.debug("Error reading from closed input stream: {}", ise.getMessage());
-		} finally {
-			LineIterator.closeQuietly(it); // clean up all associated resources
 		}
 	}
 

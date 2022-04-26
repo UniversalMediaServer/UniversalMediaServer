@@ -1,4 +1,4 @@
-isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
+isTouchDevice = window.screenX === 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
 
 var bump = (function() {
 //	console.log('jquery '+$.fn.jquery);
@@ -120,21 +120,21 @@ var bump = (function() {
 			}
 			setSelect('#bplaylist', vars['playlist'], selindex > -1 ? selindex:found);
 			tog('#bremovebutton,#bclearbutton', $('#bplaylist > option').length < 2);
-			if (editmode == 1) editmode++;
+			if (editmode === 1) editmode++;
 		}
 	}
 	
 	function setState(newstate) {
 		var last = state.playback;
 		state = newstate;
-		if (state.playback != last) {
+		if (state.playback !== last) {
 			setButtons();
 		}
 		if (!sliding) {
 			$('#bumpvol').val(state.volume);
 		}
 		$('#bumpvol').attr('disabled', state.mute === 'true');
-		$('#bumppos').html(state.position+(state.position == '0:00' ? '' : state.duration == '0:00' ? '' : (' / '+state.duration)));
+		$('#bumppos').html(state.position+(state.position === '0:00' ? '' : state.duration === '0:00' ? '' : (' / '+state.duration)));
 		status();
 	}
 
@@ -143,8 +143,8 @@ var bump = (function() {
 		var override = index!==undefined && index>-1;
 		for (var i=0; i<opts.length; i++) {
 			var name = opts[i][0];
-			var marked = opts[i][1]==1;
-			var sel = override ? index==i:marked;
+			var marked = opts[i][1]===1;
+			var sel = override ? index===i:marked;
 			var val = opts[i][2];
 			$(select).append($('<option value="'+val+(sel ? '" selected="selected"':'"')+(marked ? ' class="bselected"':'')+'>'+name+'</option>'));
 		}
@@ -155,12 +155,12 @@ var bump = (function() {
 	}
 
 	function setButtons() {
-		var stopped = state.playback == STOPPED;
+		var stopped = state.playback === STOPPED;
 //		$('#brenderers').attr('disabled', !stopped);
 		tog('#brewbutton,#bstopbutton,#bfwdbutton', stopped);
 		tog('#bprevbutton,#bnextbutton', $('#bplaylist > option').length < 2);
 		$('#bplaybutton').css({
-			background:'url('+img[state.playback==PLAYING ? 'pause':'play']+') no-repeat center center'
+			background:'url('+img[state.playback===PLAYING ? 'pause':'play']+') no-repeat center center'
 		});
 		$('#bmutebutton').css({
 			background:'url('+img[state.mute === 'true' ? 'mute':'vol']+') no-repeat center center'
@@ -178,7 +178,7 @@ var bump = (function() {
 		img = {}
 		var first = true;
 		for(var k in i){
-			if (first && i[k].indexOf('data:') == 0) {
+			if (first && i[k].indexOf('data:') === 0) {
 				img = i;
 				break;
 			}

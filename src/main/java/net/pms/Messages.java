@@ -50,11 +50,10 @@ public class Messages {
 		 */
 		resourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault());
 		ROOT_RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, Locale.ROOT, new ResourceBundle.Control() {
-	        @Override
-	        public List<Locale> getCandidateLocales(String name,
-	                                                Locale locale) {
-	            return Collections.singletonList(Locale.ROOT);
-	        }
+			@Override
+			public List<Locale> getCandidateLocales(String name, Locale locale) {
+				return Collections.singletonList(Locale.ROOT);
+			}
 		});
 
 	}

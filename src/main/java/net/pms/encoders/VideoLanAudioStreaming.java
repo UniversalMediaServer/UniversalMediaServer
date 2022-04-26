@@ -48,6 +48,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	public String getExecutableTypeKey() {
 		return KEY_VLC_LEGACY_AUDIO_EXECUTABLE_TYPE;
 	}
+
 	@Override
 	public String name() {
 		return NAME;
