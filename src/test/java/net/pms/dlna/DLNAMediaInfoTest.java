@@ -7,7 +7,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.logging.LoggingConfig;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -234,7 +233,7 @@ public class DLNAMediaInfoTest {
 					break;
 				case 24:
 					assertThat(mediaInfo.toString()).isEqualTo(
-						"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
+						"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
 					);
 					break;
 				default:
