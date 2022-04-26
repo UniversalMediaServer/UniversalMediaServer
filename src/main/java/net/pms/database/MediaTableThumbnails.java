@@ -221,7 +221,7 @@ public final class MediaTableThumbnails extends MediaTable {
 					}
 				}
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
