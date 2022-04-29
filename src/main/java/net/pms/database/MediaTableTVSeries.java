@@ -192,7 +192,6 @@ public final class MediaTableTVSeries extends MediaTable {
 				"TOTALSEASONS		DOUBLE							, " +
 				"VERSION			VARCHAR2(1024)					, " +
 				"VOTES				VARCHAR2(1024)					, " +
-				"MEDIA_YEAR			VARCHAR2(1024)					, " +
 				"CREATEDBY VARCHAR2, " +
 				"CREDITS VARCHAR2, " +
 				"EXTERNALIDS VARCHAR2, " +
@@ -273,9 +272,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						insertQuery = "INSERT INTO " + TABLE_NAME + " (SIMPLIFIEDTITLE, TITLE) VALUES (?, ?)";
 					} else {
 						insertQuery = "INSERT INTO " + TABLE_NAME + " (" +
-							"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, MEDIA_YEAR, VERSION, " + TMDB_COLUMNS +
+							"ENDYEAR, IMDBID, PLOT, SIMPLIFIEDTITLE, STARTYEAR, TITLE, TOTALSEASONS, VOTES, VERSION, " + TMDB_COLUMNS +
 						") VALUES (" +
-							"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " + TMDB_COLUMNS_PLACEHOLDERS +
+							"?, ?, ?, ?, ?, ?, ?, ?, ?, " + TMDB_COLUMNS_PLACEHOLDERS +
 						")";
 					}
 					try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -297,76 +296,75 @@ public final class MediaTableTVSeries extends MediaTable {
 							}
 
 							insertStatement.setString(8, (String) tvSeries.get("votes"));
-							insertStatement.setString(9, (String) tvSeries.get("year"));
-							insertStatement.setString(10, APIUtils.getApiDataSeriesVersion());
+							insertStatement.setString(9, APIUtils.getApiDataSeriesVersion());
 
 							// TMDB data, since v11
 							String json;
 							if (tvSeries.get("createdBy") != null) {
 								json = GSON.toJson(tvSeries.get("createdBy"));
-								insertStatement.setString(11, json);
+								insertStatement.setString(10, json);
 							}
 							if (tvSeries.get("credits") != null) {
 								json = GSON.toJson(tvSeries.get("credits"));
-								insertStatement.setString(12, json);
+								insertStatement.setString(11, json);
 							}
 							if (tvSeries.get("externalIDs") != null) {
 								json = GSON.toJson(tvSeries.get("externalIDs"));
-								insertStatement.setString(13, json);
+								insertStatement.setString(12, json);
 							}
-							insertStatement.setString(14, (String) tvSeries.get("firstAirDate"));
-							insertStatement.setString(15, (String) tvSeries.get("homepage"));
+							insertStatement.setString(13, (String) tvSeries.get("firstAirDate"));
+							insertStatement.setString(14, (String) tvSeries.get("homepage"));
 							if (tvSeries.get("images") != null) {
 								json = GSON.toJson(tvSeries.get("images"));
-								insertStatement.setString(16, json);
+								insertStatement.setString(15, json);
 							}
 							if (tvSeries.get("inProduction") != null) {
-								insertStatement.setBoolean(17, (Boolean) tvSeries.get("inProduction"));
+								insertStatement.setBoolean(16, (Boolean) tvSeries.get("inProduction"));
 							} else {
-								insertStatement.setBoolean(17, false);
+								insertStatement.setBoolean(16, false);
 							}
 							if (tvSeries.get("languages") != null) {
-								insertStatement.setString(18, StringUtils.join(tvSeries.get("languages"), ","));
+								insertStatement.setString(17, StringUtils.join(tvSeries.get("languages"), ","));
 							}
-							insertStatement.setString(19, (String) tvSeries.get("lastAirDate"));
+							insertStatement.setString(18, (String) tvSeries.get("lastAirDate"));
 							if (tvSeries.get("networks") != null) {
 								json = GSON.toJson(tvSeries.get("networks"));
-								insertStatement.setString(20, json);
+								insertStatement.setString(19, json);
 							}
 							if (tvSeries.get("numberOfEpisodes") != null) {
-								insertStatement.setDouble(21, (Double) tvSeries.get("numberOfEpisodes"));
+								insertStatement.setDouble(20, (Double) tvSeries.get("numberOfEpisodes"));
+							} else {
+								insertStatement.setNull(20, Types.DOUBLE);
+							}
+							if (tvSeries.get("numberOfSeasons") != null) {
+								insertStatement.setDouble(21, (Double) tvSeries.get("numberOfSeasons"));
 							} else {
 								insertStatement.setNull(21, Types.DOUBLE);
 							}
-							if (tvSeries.get("numberOfSeasons") != null) {
-								insertStatement.setDouble(22, (Double) tvSeries.get("numberOfSeasons"));
-							} else {
-								insertStatement.setNull(22, Types.DOUBLE);
-							}
 							if (tvSeries.get("originCountry") != null) {
-								insertStatement.setString(23, StringUtils.join(tvSeries.get("originCountry"), ","));
+								insertStatement.setString(22, StringUtils.join(tvSeries.get("originCountry"), ","));
 							}
-							insertStatement.setString(24, (String) tvSeries.get("originalLanguage"));
-							insertStatement.setString(25, (String) tvSeries.get("originalTitle"));
+							insertStatement.setString(23, (String) tvSeries.get("originalLanguage"));
+							insertStatement.setString(24, (String) tvSeries.get("originalTitle"));
 							if (tvSeries.get("productionCompanies") != null) {
 								json = GSON.toJson(tvSeries.get("productionCompanies"));
-								insertStatement.setString(26, json);
+								insertStatement.setString(25, json);
 							}
 							if (tvSeries.get("productionCountries") != null) {
 								json = GSON.toJson(tvSeries.get("productionCountries"));
-								insertStatement.setString(27, json);
+								insertStatement.setString(26, json);
 							}
 							if (tvSeries.get("seasons") != null) {
 								json = GSON.toJson(tvSeries.get("seasons"));
-								insertStatement.setString(28, json);
+								insertStatement.setString(27, json);
 							}
-							insertStatement.setString(29, (String) tvSeries.get("seriesType"));
+							insertStatement.setString(28, (String) tvSeries.get("seriesType"));
 							if (tvSeries.get("spokenLanguages") != null) {
 								json = GSON.toJson(tvSeries.get("spokenLanguages"));
-								insertStatement.setString(30, json);
+								insertStatement.setString(29, json);
 							}
-							insertStatement.setString(31, (String) tvSeries.get("status"));
-							insertStatement.setString(32, (String) tvSeries.get("tagline"));
+							insertStatement.setString(30, (String) tvSeries.get("status"));
+							insertStatement.setString(31, (String) tvSeries.get("tagline"));
 						}
 						insertStatement.executeUpdate();
 
@@ -656,7 +654,6 @@ public final class MediaTableTVSeries extends MediaTable {
 					}
 					rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
 					rs.updateString("VOTES", (String) tvSeries.get("votes"));
-					rs.updateString("MEDIA_YEAR", (String) tvSeries.get("year"));
 
 					// TMDB columns added in V11
 					if (tvSeries.get("createdBy") != null) {
