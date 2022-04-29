@@ -5039,7 +5039,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (yearFromFilename != null) {
-					media.setYear(yearFromFilename);
+					if (media.isTVEpisode()) {
+						media.setTVSeriesStartYear(yearFromFilename);
+					} else {
+						media.setYear(yearFromFilename);
+					}
 				}
 
 				if (extraInformationFromFilename != null) {

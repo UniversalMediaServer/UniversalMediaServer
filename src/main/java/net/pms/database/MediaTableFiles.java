@@ -493,6 +493,7 @@ public class MediaTableFiles extends MediaTable {
 				PreparedStatement stmt = connection.prepareStatement(
 					"SELECT * FROM " + TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + MediaTableThumbnails.TABLE_NAME + ".ID " +
+					"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".MOVIEORSHOWNAMESIMPLE=" + MediaTableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
 					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
 					"LIMIT 1"
 				);
@@ -550,6 +551,10 @@ public class MediaTableFiles extends MediaTable {
 						} else {
 							media.setIsTVEpisode(false);
 						}
+
+						// Fields from TV Series table
+						media.setTVSeriesStartYear(rs.getString("STARTYEAR"));
+
 						media.setMediaparsed(true);
 						audios.setInt(1, id);
 						try (ResultSet elements = audios.executeQuery()) {

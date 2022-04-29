@@ -159,6 +159,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String tvSeason;
 	private String tvEpisodeNumber;
 	private String tvEpisodeName;
+	private String tvSeriesStartYear;
 	private String extraInformation;
 	private boolean isTVEpisode;
 
@@ -2330,6 +2331,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setYear(String value) {
 		this.year = value;
+	}
+
+	public String getTVSeriesStartYear() {
+		return tvSeriesStartYear;
+	}
+
+	public void setTVSeriesStartYear(String value) {
+		this.tvSeriesStartYear = value;
 	}
 
 	public String getMovieOrShowName() {
