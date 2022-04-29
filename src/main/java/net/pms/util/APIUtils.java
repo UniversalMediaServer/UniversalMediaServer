@@ -279,6 +279,11 @@ public class APIUtils {
 				return;
 			}
 
+			if (!CONFIGURATION.getUseCache()) {
+				LOGGER.trace("Not doing background API lookup because cache/database is disabled");
+				return;
+			}
+
 			if (!MediaDatabase.isAvailable()) {
 				LOGGER.trace("Database is closed");
 				return;
