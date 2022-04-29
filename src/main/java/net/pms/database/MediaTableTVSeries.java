@@ -55,7 +55,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 6;
 
 	/**
 	 * The columns we added from TMDB in V11
@@ -154,15 +154,12 @@ public final class MediaTableTVSeries extends MediaTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR2");
 					break;
 				case 4:
-					LOGGER.trace("Clearing database metadata to populate new columns");
-					try (Statement statement = connection.createStatement()) {
-						StringBuilder sb = new StringBuilder();
-						sb
-							.append("UPDATE ")
-								.append(TABLE_NAME)
-							.append(" SET ")
-								.append("IMDBID = NULL");
-						statement.execute(sb.toString());
+					// This version was for testing, left here to not break tester dbs
+					break;
+				case 5:
+					if (isColumnExist(connection, TABLE_NAME, "INPRODUCTION")) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN INPRODUCTION");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN INPRODUCTION BOOLEAN");
 					}
 					break;
 				default:
