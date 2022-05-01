@@ -86,8 +86,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 26: No db changes, improved filename parsing
 	 * - 27: Added many columns for TMDB information
 	 * - 28: No db changes, clear database metadata to populate new columns
+	 * - 29: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 28;
+	private static final int TABLE_VERSION = 29;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -271,6 +272,32 @@ public class MediaTableFiles extends MediaTable {
 						break;
 					case 27:
 						// This version was for testing, left here to not break tester dbs
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 28:
+						try (Statement statement = connection.createStatement()) {
+							/*
+							 * Since the last release, 10.20.0.1, we fixed some bugs with miniseries
+							 * filename parsing so here we clear any cached data for potential miniseries.
+							 */
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("UPDATE ")
+									.append("FILES ")
+								.append("SET ")
+									.append("IMDBID = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
+									.append("MOVIEORSHOWNAME = NULL, ")
+									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+									.append("TVSEASON = NULL, ")
+									.append("TVEPISODENUMBER = NULL, ")
+									.append("TVEPISODENAME = NULL, ")
+									.append("ISTVEPISODE = NULL, ")
+									.append("EXTRAINFORMATION = NULL ")
+								.append("WHERE ")
+									.append("FILENAME LIKE '%[0-9]of[0-9]%'");
+							statement.execute(sb.toString());
+						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:

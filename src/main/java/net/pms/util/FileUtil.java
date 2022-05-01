@@ -597,8 +597,8 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|\\sDUBBED.*|\\sAC3.*|\\sNTSC.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*\\sDUBBED.*|.*\\sAC3.*|.*\\sNTSC.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|\\sDUBBED.*|\\sAC3.*|\\sNTSC.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080i.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*\\sDUBBED.*|.*\\sAC3.*|.*\\sNTSC.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080i.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
 
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
@@ -608,6 +608,10 @@ public class FileUtil {
 	private static final String MIXED_EPISODE_CONVENTION = "\\s(?:Ep|e)(?:\\s{1,2}|)(\\d{1,4})(?:\\s|$)";
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
+
+	private static final String MINISERIES_CONVENTION = "\\s(\\d{1,2})of\\d{1,2}\\s";
+	private static final String MINISERIES_CONVENTION_MATCH = ".*" + MINISERIES_CONVENTION + ".*";
+	private static final Pattern MINISERIES_CONVENTION_PATTERN = Pattern.compile(MINISERIES_CONVENTION);
 
 	private static final String SCENE_MULTI_EPISODE_CONVENTION = "[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])(\\d{1,})";
 	private static final String SCENE_MULTI_EPISODE_CONVENTION_MATCH = ".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*";
@@ -1033,8 +1037,40 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s(\\d{3})", " S" + tvSeason + "E" + tvEpisodeNumber);
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches(MINISERIES_CONVENTION_MATCH)) {
+			// This matches some episodes in miniseries, like:
+			// e.g. Universal.Media.Server.2of6.Mysterious.Wordplay.HDTV.1080i.groupname.mkv[website].mkv
+			matcher = MINISERIES_CONVENTION_PATTERN.matcher(formattedName);
+			if (matcher.find()) {
+				tvSeason = "01";
+				tvEpisodeNumber = matcher.group(1);
+				if (isNotBlank(tvEpisodeNumber) && tvEpisodeNumber.length() == 1) {
+					tvEpisodeNumber = "0" + tvEpisodeNumber;
+				}
+			}
+
+			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
+			formattedName = result.formattedName;
+			if (result.edition != null) {
+				edition = result.edition;
+			}
+
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS_CASE_SENSITIVE + ")", "");
+			formattedName = formattedName.replaceAll("(" + COMMON_FILE_ENDS + ")", "");
+
+			// Here we match existing case, otherwise we risk breaking the Title Case conversion later
+			String seasonLetterReplace = "S";
+			String episodeLetterReplace = "E";
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				seasonLetterReplace = "s";
+				episodeLetterReplace = "e";
+			}
+			formattedName = formattedName.replaceAll(MINISERIES_CONVENTION, " " + seasonLetterReplace + tvSeason + episodeLetterReplace + tvEpisodeNumber + " - ");
+			formattedName = removeFilenameEndMetadata(formattedName);
+			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
 		} else if (formattedName.matches(MIXED_EPISODE_CONVENTION_MATCH)) {
-			// This matches anoter mixed convention, like:
+			// This matches another mixed convention, like:
 			// e.g. Universal Media Server - Ep. 02 - Mysterious Wordplay.mp4
 			matcher = MIXED_EPISODE_CONVENTION_PATTERN.matcher(formattedName);
 			if (matcher.find()) {

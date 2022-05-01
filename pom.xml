@@ -388,7 +388,7 @@
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>7.5.0</version>
+			<version>7.5.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -911,7 +911,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.2.2</version>
+				<version>3.3.0</version>
 				<reportSets>
 					<reportSet>
 						<reports>
