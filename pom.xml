@@ -1889,7 +1889,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,${project.jre-version}.999.999]</version>
+											<version>${project.jre-version}</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2089,7 +2089,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,${project.jre-version}.0-999]</version>
+											<version>${project.jre-version}</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
