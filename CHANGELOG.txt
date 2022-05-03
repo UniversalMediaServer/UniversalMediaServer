@@ -7,11 +7,13 @@
 		Improved video forward-backward positioning in videos via the web video player
 		Improved web interface design
 		Improved web video player design
+		Improved API metadata matches for TV series
 		Added HLS video option which may improve support for transcoding via some renderers like Philips TVs
 		Log splitting/zipping (#2608)
 		Implemented network state scanner
 		Show the addresses of servers on the Status tab (#2372)
 		Allow to set the log level of FFmpeg in its engine settings in the desktop UI (#2677)
+		Increased maximum memory limit on macOS to match Windows
 		Fixed Restart server when network interface becomes available (#2615)
 		Fixed Network Interface not found (#1485)
 		Fixed GetProtocolInfo not being recieved (#2338)
