@@ -97,13 +97,15 @@ public class RootFolder extends DLNAResource {
 				LOGGER.debug("adding My Music folder to root");
 			}
 		} else {
-			if (PMS.get().getLibrary() != null) {
-				if (PMS.get().getLibrary().getAudioFolder() != null && PMS.get().getLibrary().getAudioFolder().getChildren() != null &&
-					!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)) {
-					myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
-					PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
-					LOGGER.debug("adding My Music folder to 'Audio' folder");
-				}
+			if (
+				PMS.get().getLibrary() != null &&
+				PMS.get().getLibrary().getAudioFolder() != null &&
+				PMS.get().getLibrary().getAudioFolder().getChildren() != null &&
+				!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)
+			) {
+				myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+				PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to 'Audio' folder");
 			} else {
 				LOGGER.debug("couldn't add 'My Music' folder because the media library is not initialized.");
 			}
