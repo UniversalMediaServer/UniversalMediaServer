@@ -12,10 +12,23 @@ body {
 	font-family: "Roboto", "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color: #d9d9d9;
 	background-color: #212121;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-attachment: fixed;
 }
 
 body#ContentPage.browsePage {
 	min-height: 100%;
+}
+
+.bodyBackgroundImageScreen {
+	height: 100%;
+	width: 100%;
+	background-color: rgba(33, 33, 33, 1);
+	transition: background-color .5s ease-in-out;
+	-moz-transition: background-color .5s ease-in-out;
+	-webkit-transition: background-color .5s ease-in-out; 
+	-o-transition: background-color .5s ease-in-out; 
 }
 
 /* Scaffolding */

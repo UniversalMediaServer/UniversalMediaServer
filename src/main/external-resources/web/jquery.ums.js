@@ -454,6 +454,7 @@ function setBackgroundAndColorScheme(imageElementId) {
 		document.body.style.backgroundImage = 'url("' + imageElement.src + '")';
 	}
 	$('body').addClass(isDarkColorNeededOnThisColor([rgb.r, rgb.g, rgb.b]) ? 'dark' : 'light');
+	$('.bodyBackgroundImageScreen').css({ backgroundColor: 'rgba(33, 33, 33, 0)' });
 }
 
 var isBackgroundImage = false;
@@ -470,10 +471,6 @@ function useApiImages(apiImages) {
 		backgroundImagePreCreation.crossOrigin = '';
 		backgroundImagePreCreation.id = 'backgroundPreload';
 		backgroundImagePreCreation.onload = function() {
-			document.body.style.backgroundRepeat = 'no-repeat';
-			document.body.style.backgroundSize = 'cover';
-			document.body.style.backgroundAttachment = 'fixed';
-			document.body.style.transition = 'background-image 1s ease-in-out';
 			setBackgroundAndColorScheme('backgroundPreload');
 		}
 		setTimeout(function() {
