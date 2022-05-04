@@ -804,7 +804,7 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by DMS.
+	 * Returns the MediaLibrary.
 	 *
 	 * @return The current {@link MediaLibrary} or {@code null} if none is in
 	 *         use.
