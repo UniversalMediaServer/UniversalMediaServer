@@ -252,7 +252,7 @@ public class MediaTableFiles extends MediaTable {
 					case 26:
 						try (Statement statement = connection.createStatement()) {
 							/*
-							 * Since the last release, 10.15.0, we fixed some bugs with miniseries
+							 * Since the last release, 10.21.0.1, we fixed some bugs with miniseries
 							 * filename parsing so here we clear any cached data for potential miniseries.
 							 */
 							StringBuilder sb = new StringBuilder();
@@ -270,7 +270,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("ISTVEPISODE = NULL, ")
 									.append("EXTRAINFORMATION = NULL ")
 								.append("WHERE ")
-									.append("FILENAME LIKE '%[0-9]of[0-9]%'");
+									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
