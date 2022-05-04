@@ -82,9 +82,9 @@ public class MediaTableFiles extends MediaTable {
 	 *       API metadata version is saved for that file
 	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
 	 *       updating H2Database to v2)
-	 * - 26: No db changes, improved filename parsing
+	 * - 26-27: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 26;
+	private static final int TABLE_VERSION = 27;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -245,6 +245,32 @@ public class MediaTableFiles extends MediaTable {
 									.append("EXTRAINFORMATION = NULL ")
 								.append("WHERE ")
 									.append("NOT ISTVEPISODE");
+							statement.execute(sb.toString());
+						}
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 26:
+						try (Statement statement = connection.createStatement()) {
+							/*
+							 * Since the last release, 10.21.0.1, we fixed some bugs with miniseries
+							 * filename parsing so here we clear any cached data for potential miniseries.
+							 */
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("UPDATE ")
+									.append("FILES ")
+								.append("SET ")
+									.append("IMDBID = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
+									.append("MOVIEORSHOWNAME = NULL, ")
+									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+									.append("TVSEASON = NULL, ")
+									.append("TVEPISODENUMBER = NULL, ")
+									.append("TVEPISODENAME = NULL, ")
+									.append("ISTVEPISODE = NULL, ")
+									.append("EXTRAINFORMATION = NULL ")
+								.append("WHERE ")
+									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
