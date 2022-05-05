@@ -463,28 +463,37 @@ function useApiImages(apiImages) {
 	var apiImagesList = _.first(apiImages);
 	// Set the page background and color scheme
 	if (!_.isEmpty(apiImagesList.backdrops)) {
-		var backgrounds = apiImagesList.backdrops;
-		var randomIndex = Math.floor(Math.random() * backgrounds.length);
-		var randomBackground = backgrounds[randomIndex];
-
-		var backgroundImagePreCreation = new Image();
-		backgroundImagePreCreation.crossOrigin = '';
-		backgroundImagePreCreation.id = 'backgroundPreload';
-		backgroundImagePreCreation.onload = function() {
-			setBackgroundAndColorScheme('backgroundPreload');
-		}
-		setTimeout(function() {
-			backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
-			$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
+		var backgrounds = _.pickBy(apiImagesList.backdrops, function(background) {
+			return !background.iso_639_1;
 		});
+		if (_.isEmpty(backgrounds)) {
+			// TODO: Support i18n for backgrounds
+			backgrounds = _.pickBy(apiImagesList.backdrops, function(background) {
+				return background.iso_639_1 === 'en';
+			});
+		}
+		if (!_.isEmpty(backgrounds)) {
+			var shuffledBackgrounds = _.shuffle(backgrounds);
+			var randomBackground = _.first(shuffledBackgrounds);
+			var backgroundImagePreCreation = new Image();
+			backgroundImagePreCreation.crossOrigin = '';
+			backgroundImagePreCreation.id = 'backgroundPreload';
+			backgroundImagePreCreation.onload = function() {
+				setBackgroundAndColorScheme('backgroundPreload');
+			}
+			setTimeout(function() {
+				backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
+				$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
+			});
 
-		isBackgroundImage = true;
+			isBackgroundImage = true;
+		}
 	}
 	// Set a logo as the heading
 	if (!_.isEmpty(apiImagesList.logos)) {
 		// TODO: Support i18n for logos
 		var logos = _.pickBy(apiImagesList.logos, function(logo) {
-			return logo.iso_639_1 === null || logo.iso_639_1 === 'en';
+			return !logo.iso_639_1 || logo.iso_639_1 === 'en';
 		});
 		_.each(logos, function(logo) {
 			var logoImagePreCreation = new Image();
