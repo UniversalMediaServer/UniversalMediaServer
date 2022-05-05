@@ -1,3 +1,11 @@
+11.0.0-a2 - 2022-05-05 - Changes since 11.0.0-a1
+
+	General:
+		Backgrounds for TV series, episodes and movies fade in
+		Image backgrounds in Media Library without text are prioritized over ones with text
+		Match more TV series in API
+		All v10 changes up to 10.21.1
+
 10.21.1 - 2022-05-04
 
 	General:
