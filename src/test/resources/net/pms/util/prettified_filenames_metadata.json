@@ -397,6 +397,18 @@
 		}
 	},
 	{
+		"comment": "Video of an episode in a miniseries",
+		"filename": "Universal.Media.Server.2of6.Mysterious.Wordplay.HDTV.1080i.groupname.mkv[website].mkv",
+		"prettified": "Universal Media Server S01E02 - Mysterious Wordplay",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2],
+			"title": "Mysterious Wordplay"
+		}
+	},
+	{
 		"comment": "Video of a movie",
 		"filename": "Universal.Media.Server.2015.720p.mkv",
 		"prettified": "Universal Media Server (2015)",
