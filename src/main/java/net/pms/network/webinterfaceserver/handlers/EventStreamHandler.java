@@ -47,6 +47,9 @@ public class EventStreamHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			Headers hdr = t.getResponseHeaders();

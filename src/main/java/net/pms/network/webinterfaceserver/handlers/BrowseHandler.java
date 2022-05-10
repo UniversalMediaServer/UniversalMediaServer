@@ -34,6 +34,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
@@ -41,8 +43,6 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,12 +66,16 @@ public class BrowseHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String id = WebInterfaceServerUtil.getId("browse/", t);
 			LOGGER.debug("Got a browse request found id " + id);
-			String response = mkBrowsePage(id, t);
-			LOGGER.trace("Browse page:\n{}", response);
-			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
-		} catch (IOException e) {
+			mkBrowsePage(id, t);
+		} catch (RuntimeException | IOException e) {
+			LOGGER.error("Unexpected error in BrowseHandler.handle(): {}", e.getMessage());
+			LOGGER.trace("", e);
+			WebInterfaceServerUtil.respond(t, null, 500, "text/html");
 			throw e;
 		} catch (InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
@@ -80,7 +84,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 	}
 
-	private String mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
+	private void mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -112,13 +116,13 @@ public class BrowseHandler implements HttpHandler {
 					hdr.add("Location", "/play/" + real.getId());
 					WebInterfaceServerUtil.respond(t, "", 302, "text/html");
 					// return null here to avoid multiple responses
-					return null;
+					return;
 				}
 				// redirect to ourself
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Location", "/browse/" + real.getResourceId());
 				WebInterfaceServerUtil.respond(t, "", 302, "text/html");
-				return null;
+				return;
 			}
 			if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
 				UMSUtils.filterResourcesByName(resources, search, false, false);
@@ -392,7 +396,7 @@ public class BrowseHandler implements HttpHandler {
 			}
 
 			DLNAResource dlna = null;
-			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
@@ -407,8 +411,8 @@ public class BrowseHandler implements HttpHandler {
 			mustacheVars.put("mediaLibraryFolders", mediaLibraryFolders);
 			mustacheVars.put("media", media);
 			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-
-			return parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+			String response = parent.getResources().getTemplate("browse.html").execute(mustacheVars);
+			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}

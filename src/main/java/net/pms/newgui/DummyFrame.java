@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class DummyFrame implements IFrame {
 
-	private ArrayList<String> log;
+	private final ArrayList<String> log;
 
 	public DummyFrame() {
 		log = new ArrayList<>();
@@ -77,6 +77,10 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
+	public void updateServerStatus() {
+	}
+
+	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 	}
 
@@ -84,6 +88,7 @@ public class DummyFrame implements IFrame {
 	public void enableWebUiButton() {
 	}
 
+	@Override
 	public String getLog() {
 		return StringUtils.join(log, "\n");
 	}

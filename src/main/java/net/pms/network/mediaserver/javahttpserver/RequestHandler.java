@@ -30,7 +30,6 @@ import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,6 +61,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -81,7 +81,10 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.network.DbIdResourceLocator;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
+import net.pms.encoders.HlsHelper;
+import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -119,13 +122,18 @@ public class RequestHandler implements HttpHandler {
 
 	private static final DbIdResourceLocator DB_ID_RESOURCE_LOCATOR = new DbIdResourceLocator();
 
+	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
+	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
+
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		RendererConfiguration renderer = null;
 		try {
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			String userAgentString = exchange.getRequestHeaders().getFirst("User-Agent");
-			// Is the request from our own Cling service, i.e. self-originating?
+			// Is the request from our own JUPnP service, i.e. self-originating?
 			boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 					userAgentString != null &&
 					userAgentString.contains("UMS/");
@@ -183,6 +191,31 @@ public class RequestHandler implements HttpHandler {
 				uri = uri.substring(1);
 			}
 
+			//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
+			//let transform JUPnP uri to old uri then handlerV2 can process
+			if (uri.startsWith("dev/" + PMS.get().udn())) {
+				if (uri.endsWith("/ContentDirectory/desc")) {
+					uri = "UPnP_AV_ContentDirectory_1.0.xml";
+				} else if (uri.endsWith("/ContentDirectory/action")) {
+					uri = "upnp/control/content_directory";
+				} else if (uri.endsWith("/ContentDirectory/event")) {
+					uri = "upnp/event/content_directory";
+				} else if (uri.endsWith("/ConnectionManager/desc")) {
+					uri = "UPnP_AV_ConnectionManager_1.0.xml";
+				} else if (uri.endsWith("/ConnectionManager/action")) {
+					uri = "upnp/control/connection_manager";
+				} else if (uri.endsWith("/ConnectionManager/event")) {
+					uri = "upnp/event/connection_manager";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
+					uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
+					uri = "upnp/control/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
+					uri = "upnp/event/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/desc")) {
+					uri = "description/fetch";
+				}
+			}
 			if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
 				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
@@ -279,15 +312,24 @@ public class RequestHandler implements HttpHandler {
 		long contentLength = 0;
 		if (cLoverride > -2) {
 			// Content-Length override has been set, send or omit as appropriate
-			if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
+			if (cLoverride == 0) {
+				//mean no content, HttpExchange use the -1 value for it.
+				contentLength = -1;
+			} else if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
 				contentLength = cLoverride;
+			} else if (cLoverride == -1) {
+				//chunked, HttpExchange use the 0 value for it.
+				contentLength = 0;
 			}
 		} else {
 			contentLength = inputStream.available();
 			LOGGER.trace("Available Content-Length: {}", contentLength);
+		}
+		if (contentLength > 0) {
+			exchange.getResponseHeaders().set("Content-length", Long.toString(contentLength));
 		}
 
 		// Send the response headers to the client.
@@ -300,13 +342,23 @@ public class RequestHandler implements HttpHandler {
 			// Send the response body to the client in chunks.
 			byte[] buf = new byte[BUFFER_SIZE];
 			int length;
-			//don't use FixedLengthOutputStream as dlna does not know the real size
-			try (OutputStream outputStream = new FilterOutputStream(exchange.getResponseBody())) {
-				exchange.setStreams(null, new FilterOutputStream(exchange.getResponseBody()));
-				while ((length = inputStream.read(buf)) > 0) {
-					outputStream.write(buf, 0, length);
-					outputStream.flush();
+			try (OutputStream outputStream = exchange.getResponseBody()) {
+				int lengthSent = 0;
+				try {
+					while ((length = inputStream.read(buf)) > 0) {
+						outputStream.write(buf, 0, length);
+						outputStream.flush();
+						lengthSent += length;
+					}
+				} catch (IOException ioe) {
+					//client close the connection
 				}
+				try {
+					outputStream.close();
+				} catch (IOException ioe) {
+					//client close the connection and insufficient bytes written to stream
+				}
+				LOGGER.trace("OutputStream({}) - bytes sent: {}/{}", outputStream.getClass().getName(), lengthSent, contentLength);
 			}
 		}
 		try {
@@ -321,6 +373,7 @@ public class RequestHandler implements HttpHandler {
 		// Request to retrieve a file
 		Range.Time timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		Range.Byte range = getRange(exchange.getRequestHeaders().getFirst("Range"));
+		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		StartStopListenerDelegate startStopListenerDelegate = null;
 		DLNAResource dlna = null;
 		InputStream inputStream = null;
@@ -343,8 +396,7 @@ public class RequestHandler implements HttpHandler {
 		id = id.replace("%24", "$");
 
 		// Retrieve the DLNAresource itself.
-		String fileName;
-		if (id.startsWith(DbIdResourceLocator.DbidMediaType.GENERAL_PREFIX)) {
+		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
 				dlna = DB_ID_RESOURCE_LOCATOR.locateResource(id.substring(0, id.indexOf('/')));
 			} catch (Exception e) {
@@ -353,7 +405,7 @@ public class RequestHandler implements HttpHandler {
 		} else {
 			dlna = PMS.get().getRootFolder(renderer).getDLNAResource(id, renderer);
 		}
-		fileName = id.substring(id.indexOf('/') + 1);
+		String fileName = id.substring(id.indexOf('/') + 1);
 
 		if (exchange.getRequestHeaders().containsKey("transfermode.dlna.org")) {
 			exchange.getResponseHeaders().set("TransferMode.DLNA.ORG", exchange.getRequestHeaders().getFirst("transfermode.dlna.org"));
@@ -370,9 +422,53 @@ public class RequestHandler implements HttpHandler {
 			if (exchange.getRequestHeaders().containsKey("getcontentfeatures.dlna.org")) {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
-
 			// DLNAresource was found.
-			if (fileName.startsWith("thumbnail0000")) {
+			if (fileName.endsWith("/chapters.vtt")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
+				return;
+			} else if (fileName.endsWith("/chapters.json")) {
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getHls(dlna), HTTPResource.JSON_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("hls/")) {
+				//HLS
+				if (fileName.endsWith(".m3u8")) {
+					//HLS rendition m3u8 file
+					String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+					if (HlsHelper.getByKey(rendition) != null) {
+						sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8ForRendition(dlna, renderer, "/get/", rendition), HTTPResource.HLS_TYPEMIME);
+					} else {
+						sendResponse(exchange, renderer, 404, null);
+					}
+				} else {
+					//HLS stream request
+					inputStream = HlsHelper.getInputStream("/" + fileName, dlna, renderer);
+					if (inputStream != null) {
+						if (fileName.endsWith(".ts")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+						} else if (fileName.endsWith(".vtt")) {
+							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+						}
+						sendResponse(exchange, renderer, 200, inputStream, DLNAMediaInfo.TRANS_SIZE, true);
+					} else {
+						sendResponse(exchange, renderer, 404, null);
+					}
+				}
+				return;
+			} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+				//HLS start m3u8 file
+				if (contentFeatures != null) {
+					//output.headers().set("transferMode.dlna.org", "Streaming");
+					if (dlna.getMedia().getDurationInSeconds() > 0) {
+						String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+						exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
+						exchange.getResponseHeaders().set("X-AvailableSeekRange", "npt=0-" + durationStr);
+						//only time seek, transcoded
+						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+					}
+				}
+				sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8(dlna, renderer, "/get/"), HTTPResource.HLS_TYPEMIME);
+				return;
+			} else if (fileName.startsWith("thumbnail0000")) {
 				// This is a request for a thumbnail file.
 				DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 				exchange.getResponseHeaders().set("Content-Type", imageProfile.getMimeType().toString());
@@ -686,7 +782,6 @@ public class RequestHandler implements HttpHandler {
 			exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 			exchange.getResponseHeaders().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 		}
-		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		try {
 			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
 		} finally {
@@ -772,7 +867,7 @@ public class RequestHandler implements HttpHandler {
 	 */
 	private static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = RequestHandler.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
@@ -1377,16 +1472,21 @@ public class RequestHandler implements HttpHandler {
 				}
 			}
 		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
 
+		String responseCode = exchange.getProtocol() + " " + exchange.getResponseCode();
 		String rendererName = getRendererName(exchange, renderer);
 
 		if (HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
-				exchange.getProtocol(),
-				exchange.getResponseCode(),
-				header
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -1400,12 +1500,13 @@ public class RequestHandler implements HttpHandler {
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
-					formattedResponse
+					formattedResponse,
+					HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1422,20 +1523,22 @@ public class RequestHandler implements HttpHandler {
 				}
 			} else if (iStream != null && !"0".equals(exchange.getResponseHeaders().getFirst("Content-Length"))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					getResponseIsChunked(exchange) ? "chunked" : "non-chunked",
-					header
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Empty response sent to {}:\n{}\n{}\n{}{}",
 					rendererName,
-					exchange.getProtocol(),
-					exchange.getResponseCode(),
-					header
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
@@ -1470,7 +1573,7 @@ public class RequestHandler implements HttpHandler {
 			} catch (XPathExpressionException | SAXException | ParserConfigurationException | TransformerException e) {
 				LOGGER.trace("XML parsing failed with:\n{}", e);
 				formattedContent = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
-				formattedContent += "    " + content.replaceAll("\n", "\n    ") + "\n";
+				formattedContent += "    " + content.replace("\n", "\n    ") + "\n";
 			}
 		}
 		String requestType = "";
@@ -1489,19 +1592,23 @@ public class RequestHandler implements HttpHandler {
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (StringUtils.isNotBlank(requestType)) {
 			LOGGER.trace(
-					"Received a {}request from {}:\n\n{}{}",
+					"Received a {}request from {}:\n{}\n{}{}{}",
 					requestType,
 					rendererName,
+					HTTPSERVER_REQUEST_BEGIN,
 					header,
-					formattedContent
+					formattedContent,
+					HTTPSERVER_REQUEST_END
 			);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-					"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
+					"Received a {}request from {}:\n{}\n{}{}{}\nRenderer UUID={}",
 					soapAction,
 					rendererName,
+					HTTPSERVER_REQUEST_BEGIN,
 					header,
 					formattedContent,
+					HTTPSERVER_REQUEST_END,
 					renderer != null ? renderer.uuid : "null"
 			);
 		}

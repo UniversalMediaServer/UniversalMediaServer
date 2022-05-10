@@ -9,7 +9,7 @@ jobs:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
-        java-version: [ 8 ]
+        java-version: [ 17 ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java-version }}
@@ -17,17 +17,6 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -35,7 +24,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        java-version: [ 8 ]
+        java-version: [ 17 ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK ${{ matrix.java-version }}
@@ -43,17 +32,6 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Run linter and tests
         run: mvn verify -P linter
 
@@ -61,7 +39,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        java-version: [ 8 ]
+        java-version: [ 17 ]
 
     steps:
       - uses: actions/checkout@v2
@@ -70,17 +48,6 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
-      - name: Cache local Maven repository
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -94,7 +61,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        java-version: [ 8 ]
+        java-version: [ 17 ]
 
     steps:
       - uses: actions/checkout@v2
@@ -103,16 +70,6 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: ${{ matrix.java-version }}
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0

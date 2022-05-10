@@ -23,9 +23,11 @@ package net.pms.configuration;
 import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -57,19 +59,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
-	private String user;
+	private final String user;
+	private final String defaultMime;
+	private final Gson gson;
 	private String ip;
 	@SuppressWarnings("unused")
 	private int port;
 	private String ua;
-	private String defaultMime;
 	private int browser = 0;
 	private String platform = null;
 	private int screenWidth = 0;
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
 	private String subLang;
-	private Gson gson;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] SUPPORTED_FORMATS = {
@@ -112,7 +114,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
 		}
 		gson = new Gson();
-		push = new ArrayList<>();
+		pushList = new ArrayList<>();
 	}
 
 	@Override
@@ -120,6 +122,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		// FIXME: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
+		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
 		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
 		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
@@ -129,6 +132,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
+		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
+		configuration.addProperty(HLS_MULTI_VIDEO_QUALITY, true);
+		configuration.addProperty(HLS_VERSION, 6);
 		return true;
 	}
 
@@ -142,7 +148,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public InetAddress getAddress() {
 		try {
 			return InetAddress.getByName(ip);
-		} catch (Exception e) {
+		} catch (UnknownHostException e) {
 			return null;
 		}
 	}
@@ -271,12 +277,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public String getVideoMimeType() {
+		return HTTPResource.HLS_TYPEMIME;
+		/*
 		if (browser == CHROME) {
 			return HTTPResource.WEBM_TYPEMIME;
 		} else if (browser == FIREFOX) {
 			return HTTPResource.MP4_TYPEMIME;
 		}
 		return defaultMime;
+		*/
 	}
 
 	@Override
@@ -296,7 +305,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
 			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
-		} catch (Exception e) {
+		} catch (InterruptedException | ExecutionException e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
@@ -321,6 +330,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						case HTTPResource.WEBM_TYPEMIME:
 							ffWebmCmd(cmdList);
 							break;
+						case HTTPResource.HLS_TYPEMIME:
+							return false;
 					default:
 						break;
 					}
@@ -499,7 +510,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	 */
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return getVideoMimeType() == HTTPResource.OGG_TYPEMIME ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
+		return getVideoMimeType().equals(HTTPResource.OGG_TYPEMIME) ? "scale=" + getVideoWidth() + ":" + getVideoHeight() : "";
 	}
 
 	@Override
@@ -542,22 +553,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private final ArrayList<String[]> push;
+	private final ArrayList<String[]> pushList;
 
 	public void push(String... args) {
 		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
-			synchronized (push) {
-				push.add(args);
+			synchronized (pushList) {
+				pushList.add(args);
 			}
 		}
 	}
 
 	public String getPushData() {
 		String json = "{}";
-		synchronized (push) {
-			if (!push.isEmpty()) {
-				json = gson.toJson(push);
-				push.clear();
+		synchronized (pushList) {
+			if (!pushList.isEmpty()) {
+				json = gson.toJson(pushList);
+				pushList.clear();
 			}
 		}
 		return json;
@@ -569,12 +580,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "", ""}));
 			this.sse.close();
 		}
-		synchronized (push) {
+		synchronized (pushList) {
 			this.sse = sse;
 			//empty current push datas
-			while (!push.isEmpty() && this.sse != null && this.sse.isOpened()) {
-				if (this.sse.sendMessage(gson.toJson(push.get(0)))) {
-					push.remove(0);
+			while (!pushList.isEmpty() && this.sse != null && this.sse.isOpened()) {
+				if (this.sse.sendMessage(gson.toJson(pushList.get(0)))) {
+					pushList.remove(0);
 				}
 			}
 		}
@@ -608,8 +619,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public static class WebPlayer extends BasicPlayer.Logical {
+		private final Gson gson;
 		private HashMap<String, String> data;
-		private Gson gson;
 
 		public WebPlayer(WebRender renderer) {
 			super(renderer);
@@ -670,7 +681,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			}
 		}
 
-		public void setData(String jsonData) {
+		public void setDataFromJson(String jsonData) {
 			data = gson.fromJson(jsonData, data.getClass());
 			String s = data.get("playback");
 			state.playback = "STOPPED".equals(s) ? STOPPED :

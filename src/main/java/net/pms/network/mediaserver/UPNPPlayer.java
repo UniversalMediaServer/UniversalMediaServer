@@ -26,7 +26,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.model.meta.Device;
+import org.jupnp.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

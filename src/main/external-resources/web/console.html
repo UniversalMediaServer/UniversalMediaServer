@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<script src="/files/jquery.min.js"></script>
+		<script src="/files/js.cookie.min.js"></script>
+		<script src="/files/jquery.ums.js"></script>
+		<!-- New webUI -->
+		<script src="/files/util/bootstrap.min.js"></script>
+		<script src="/files/util/html5.js"></script>
+		<script src="/files/util/modernizr.custom.js"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<title>Tools</title>
+	</head>
+	<body id="ContentPage" class="browsePage">
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a id="HomeButton" class="navbar-brand" href="/browse/0" title="UMS"></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li class="dropdown" id="settingsContainer">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true" id="settings"><i class="fa fa-cog"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="/browse/0" title="Web Player"><i class="fa fa-play-circle" aria-hidden="true"></i> Web Player</a></li>
+								<li><a href="/doc" title="Documentation"><i class="fa fa-info-circle" aria-hidden="true"></i> Documentation</a></li>
+								<li><a href="/files/subs.html" title="Subtitle Translator"><i class="fa fa-file-export" aria-hidden="true"></i> Subtitle translator</a></li>
+								<li><a href="https://www.universalmediaserver.com" title="Go to UMS website" target="_blank"><i class="fa fa-info-circle" aria-hidden="true"></i> UMS {{umsversion}}</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<div class="container-fluid" style="margin-top: 50px;">
+			<div class="row">
+				<div class="col-sm-12 col-md-10 main">
+					<h1 class="page-header">Tools</h1>
+					<br>
+					<ul class="breadcrumb">
+						<li><a href="/files/util/logviewer.html" title="Open general purpose log viewer">View</a> <span class="badge"> logs and Confs:</span>
+							<ul class="breadcrumb">
+								{{#logs}}
+								<li><a href="/files/log/{{id}}">{{filename}}</a><span class="divider">/</span></li>
+								{{/logs}}
+							</ul>
+						</li>
+					</ul>
+					{{#scanLibrary}}
+					<h1 class="page-header">Scan Library Folders</h1>
+					{{this}}
+					{{/scanLibrary}}
+				</div>
+			</div>
+		</div>
+	<script src="/files/util/fontawesome/js/all.min.js"></script>
+	</body>
+</html>

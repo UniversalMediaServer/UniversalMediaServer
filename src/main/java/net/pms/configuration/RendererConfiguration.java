@@ -51,13 +51,17 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
+
 	protected static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
+	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
+
+	public static final String NOTRANSCODE = "_NOTRANSCODE_";
+	public static final File NOFILE = new File("NOFILE");
+
+	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
-	public static final String NOTRANSCODE = "_NOTRANSCODE_";
-	protected static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
@@ -68,13 +72,11 @@ public class RendererConfiguration extends Renderer {
 	protected int rank;
 	protected Matcher sortedHeaderMatcher;
 	protected List<String> identifiers = null;
+	protected BasicPlayer player;
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded = false;
 	public boolean fileless = false;
-	protected BasicPlayer player;
-
-	public static final File NOFILE = new File("NOFILE");
 
 	public interface OutputOverride {
 		/**
@@ -118,6 +120,16 @@ public class RendererConfiguration extends Renderer {
 	protected static final String MPEGTSH265AC3 = "MPEGTS-H265-AC3";
 	protected static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
 	protected static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
+	//HLS (HTTP Live Streaming) encapsulated by MPEG-2 Transport Stream
+	protected static final String HLSMPEGTSH264AAC = "HLS-MPEGTS-H264-AAC";
+	protected static final String HLSMPEGTSH264AC3 = "HLS-MPEGTS-H264-AC3";
+	//protected static final String HLSMPEGTSH264MP3 = "HLS-MPEGTS-H264-MP3";
+	//protected static final String HLSMPEGTSH264EAC3 = "HLS-MPEGTS-H264-EAC3";
+	//HLS (HTTP Live Streaming) encapsulated by MPEG-4_Part_14
+	//protected static final String HLSMPEG4H264AAC = "HLS-MPEG4-H264-AAC";
+	//protected static final String HLSMPEG4H264AC3 = "HLS-MPEG4-H264-AC3";
+	//protected static final String HLSMPEG4H264MP3 = "HLS-MPEG4-H264-MP3";
+	//protected static final String HLSMPEG4H264EAC3 = "HLS-MPEG4-H264-EAC3";
 
 	// property names
 	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
@@ -140,6 +152,8 @@ public class RendererConfiguration extends Renderer {
 	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String HALVE_BITRATE = "HalveBitrate";
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
+	protected static final String HLS_MULTI_VIDEO_QUALITY = "HlsMultiVideoQuality";
+	protected static final String HLS_VERSION = "HlsVersion";
 	protected static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	protected static final String IMAGE = "Image";
 	protected static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
@@ -548,7 +562,7 @@ public class RendererConfiguration extends Renderer {
 				sa.isAnyLocalAddress()
 			)
 		) {
-			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+			SpeedStats.getSpeedInMBits(sa, getRendererName());
 		}
 		return true;
 	}
@@ -561,7 +575,7 @@ public class RendererConfiguration extends Renderer {
 			}
 			RendererConfiguration r = entry.getValue();
 			if (!r.isOffline()) {
-				SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+				SpeedStats.getSpeedInMBits(sa, r.getRendererName());
 			}
 		}
 	}
@@ -610,7 +624,7 @@ public class RendererConfiguration extends Renderer {
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
 		}
-		for (RendererConfiguration r : enabledRendererConfs) {
+		for (RendererConfiguration r : getEnabledRenderersConfigurations()) {
 			if (r.match(sortedHeaders)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
@@ -766,7 +780,7 @@ public class RendererConfiguration extends Renderer {
 				conf.add("");
 				conf.add("# ============================================================================");
 				conf.add("# This renderer has sent the following string/s:");
-				if (headers != null && headers.size() > 0) {
+				if (headers != null && !headers.isEmpty()) {
 					conf.add("#");
 					for (String h : headers) {
 						conf.add("# " + h);
@@ -1087,9 +1101,8 @@ public class RendererConfiguration extends Renderer {
 			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
 				PMS.get().updateRenderer(d);
 			}
-		} catch (Exception e) {
+		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
-			e.printStackTrace();
 		}
 	}
 
@@ -1159,25 +1172,40 @@ public class RendererConfiguration extends Renderer {
 		return getVideoTranscode().equals(MPEGTSH265AC3);
 	}
 
+	public boolean isTranscodeToHLSMPEGTSH264AAC() {
+		return getVideoTranscode().equals(HLSMPEGTSH264AAC);
+	}
+
+	public boolean isTranscodeToHLSMPEGTSH264AC3() {
+		return getVideoTranscode().equals(HLSMPEGTSH264AC3);
+	}
+
+	/**
+	 * @return whether to use the HLS format for transcoded video
+	 */
+	public boolean isTranscodeToHLS() {
+		return isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
+	}
+
 	/**
 	 * @return whether to use the AC-3 audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH265AC3();
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH265AC3() || isTranscodeToHLSMPEGTSH264AC3();
 	}
 
 	/**
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
 	}
 
 	/**
 	 * @return whether to use the H.264 video codec for transcoded video
 	 */
 	public boolean isTranscodeToH264() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3() || isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
 	}
 
 	/**
@@ -1191,7 +1219,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return whether to use the MPEG-TS container for transcoded video
 	 */
 	public boolean isTranscodeToMPEGTS() {
-		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AC3() || isTranscodeToMPEGTSH265AAC();
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AC3() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
 	}
 
 	/**
@@ -1252,13 +1280,10 @@ public class RendererConfiguration extends Renderer {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(DLNAMediaInfo media) {
-		if (
+		return (
 			(isTranscodeToH264() && media.isH264()) ||
 			(isTranscodeToH265() && media.isH265())
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**
@@ -1273,13 +1298,10 @@ public class RendererConfiguration extends Renderer {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isAudioStreamTypeSupportedInTranscodingContainer(DLNAMediaAudio audio) {
-		if (
+		return (
 			(isTranscodeToAAC() && audio.isAACLC()) ||
 			(isTranscodeToAC3() && audio.isAC3())
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**
@@ -1303,7 +1325,11 @@ public class RendererConfiguration extends Renderer {
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToMPEGTSH264AC3()) {
+				if (isTranscodeToHLSMPEGTSH264AC3()) {
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS_HLS, FormatConfiguration.H264, FormatConfiguration.AC3);
+				} else if (isTranscodeToHLSMPEGTSH264AAC()) {
+					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS_HLS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
+				} else if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
 				} else if (isTranscodeToMPEGTSH264AAC()) {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
@@ -1354,6 +1380,8 @@ public class RendererConfiguration extends Renderer {
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToWMV()) {
 					matchedMimeType = HTTPResource.WMV_TYPEMIME;
+				} else if (isTranscodeToHLS()) {
+					matchedMimeType = HTTPResource.HLS_TYPEMIME;
 				} else if (isTranscodeToMPEGTS()) {
 					// Default video transcoding mime type
 					matchedMimeType = HTTPResource.MPEGTS_TYPEMIME;
@@ -1462,7 +1490,7 @@ public class RendererConfiguration extends Renderer {
 					{
 						put(Messages.getString("RendererPanel.10"), getRendererName());
 						if (getAddress() != null) {
-							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress().toString());
+							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress());
 						}
 					}
 				};
@@ -1956,6 +1984,7 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * Converts the MEncoder's quality settings format to FFmpeg's.
 	 *
+	 * @param mpegSettings
 	 * @return The FFmpeg format.
 	 */
 	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
@@ -2589,7 +2618,7 @@ public class RendererConfiguration extends Renderer {
 		int max = getInt(MAX_VIDEO_BITRATE, 0);
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(entry.getKey());
+				Future<Integer> speed = SpeedStats.getSpeedInMBitsStored(entry.getKey());
 				if (speed != null) {
 					if (max == 0) {
 						return speed.get();
@@ -2609,12 +2638,7 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * A case-insensitive string comparator
 	 */
-	public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = new Comparator<String>() {
-		@Override
-		public int compare(String s1, String s2) {
-			return s1.compareToIgnoreCase(s2);
-		}
-	};
+	public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (String s1, String s2) -> s1.compareToIgnoreCase(s2);
 
 	/**
 	 * A case-insensitive key-sorted map of headers that can join its values
@@ -2670,7 +2694,11 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public boolean match(SortedHeaderMap headers) {
 		if (headers != null && !headers.isEmpty() && sortedHeaderMatcher != null) {
-			return sortedHeaderMatcher.reset(headers.joined()).find();
+			try {
+				return sortedHeaderMatcher.reset(headers.joined()).find();
+			} catch (Exception e) {
+				return false;
+			}
 		}
 		return false;
 	}
@@ -3031,5 +3059,13 @@ public class RendererConfiguration extends Renderer {
 
 	public String getAutomaticVideoQuality() {
 		return automaticVideoQuality;
+	}
+
+	public int getHlsVersion() {
+		return getInt(HLS_VERSION, 3);
+	}
+
+	public boolean getHlsMultiVideoQuality() {
+		return getBoolean(HLS_MULTI_VIDEO_QUALITY, false);
 	}
 }
