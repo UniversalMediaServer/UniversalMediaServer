@@ -41,14 +41,6 @@
 					</div>
 				</div>
 			</nav>
-			<script>
-	{{#prevId}}
-				function prev() {window.location.replace('/play/{{prevId}}?html5=1');}
-	{{/prevId}}
-	{{#nextId}}
-				function next() {window.location.replace('/play/{{nextId}}?html5=1');}
-	{{/nextId}}
-			</script>
 			<div id="Container" class="noHzScroll">
 				<div id="FoldersContainer">
 					<ul id="Folders" class="nav nav-sidebar">
@@ -99,14 +91,11 @@
 								</div>
 							{{/isVideo}}
 							{{^isNativeAudio}}
-								<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
-									<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
-									<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-next"></span></button>
-									{{#plsSign}}
-									<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
-									{{/plsSign}}
-									<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
-								</div>
+								{{#plsSign}}
+									<div id="toolbar" class="{{^isVideo}}full-card{{/isVideo}}">
+										<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
+									</div>
+								{{/plsSign}}
 							{{/isNativeAudio}}
 						</div>
 					{{/isVideoWithAPIData}}
@@ -147,14 +136,11 @@
 										<h2>{{name}}</h2>
 									</div>
 								{{/isVideo}}
-								<div id="toolbar" class=" {{^isVideo}}full-card{{/isVideo}}">
-									<button id="prev" onclick="prev()"{{prevAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-prev"></span></button>
-									<button id="next" onclick="next()"{{nextAttr}} type="button" class="btn btn-sm btn-playbar"><span class="icon-player-next"></span></button>
-									{{#plsSign}}
+								{{#plsSign}}
+									<div id="toolbar" class="{{^isVideo}}full-card{{/isVideo}}">
 										<button id="playlist" title="{{plsAttr}}" onclick="umsAjax('/playlist/{{plsOp}}/{{id1}}', false);return false;" type="button" class="btn btn-sm btn-playbar">{{plsSign}}</button>
-									{{/plsSign}}
-									<a href="/raw/{{id1}}" target="_blank" download="{{name}}" id="DownloadLink" title="Download this {{mediaType}}" class="btn btn-sm btn-playbar"><span class="fa fa-download"></span></a>
-								</div>
+									</div>
+								{{/plsSign}}
 							</div>
 							<div class="mediaInfoText">
 								<h1>{{name}}</h1>
@@ -201,6 +187,39 @@
 						status('volume', (player.volume * 100).toFixed(0));
 					}
 
+					var Button = videojs.getComponent('Button');
+					{{#prevId}}
+						var prevButton = new Button(videojs('player'), {
+							className: 'icon-player-prev',
+							controlText: '{{prevName}}',
+							clickHandler: function(event) {
+								window.location.replace('/play/{{prevId}}?html5=1');
+								videojs.log('prev clicked');
+							}
+						});
+						var prevButtonAddedResponse = videojs('player').controlBar.addChild(prevButton);
+					{{/prevId}}
+					{{#nextId}}
+						var nextButton = new Button(videojs('player'), {
+							className: 'icon-player-next',
+							controlText: '{{nextName}}',
+							clickHandler: function(event) {
+								window.location.replace('/play/{{nextId}}?html5=1');
+								videojs.log('next clicked');
+							}
+						});
+						var nextButtonAddedResponse = videojs('player').controlBar.addChild(nextButton);
+					{{/nextId}}
+					var downloadButton = new Button(videojs('player'), {
+						className: 'fa fa-download',
+						controlText: 'Download this {{mediaType}}',
+						clickHandler: function(event) {
+							window.location.replace('/raw/{{id1}}');
+							videojs.log('download clicked');
+						},
+					});
+					var downloadButtonAddedResponse = videojs('player').controlBar.addChild(downloadButton);
+
 					player.addEventListener('playing', function(){status('playback', 'PLAYING');});
 					player.addEventListener('play', function(){status('playback', 'PLAYING');});
 
@@ -242,11 +261,10 @@
 									break;
 							}
 						}
-					{{/push}}			
+					{{/push}}
 				</script>
 			{{/isNativeAudio}}
 			<input type="hidden" class="jQKeyboard" name="dummy">
-			<script src="/files/util/fontawesome/js/all.min.js"></script>
 		</div>
 	</body>
 </html>
