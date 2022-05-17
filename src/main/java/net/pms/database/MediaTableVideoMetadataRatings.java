@@ -161,7 +161,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 								insertStatement.setString(2, left(fullPathToFile, 255));
 								insertStatement.setString(3, rating.get("Source"));
 								insertStatement.setString(4, rating.get("Value"));
-		
+
 								insertStatement.executeUpdate();
 								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
 									if (rs2.next()) {
