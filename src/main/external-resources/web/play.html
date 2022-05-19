@@ -231,6 +231,13 @@
 				{{/autoContinue}}
 				window.addEventListener("beforeunload", function(){status('playback', 'STOPPED');});
 
+				{{#resumePosition}}
+					// Set resume pos
+					var initPosDone = false;
+					player.addEventListener('loadedmetadata', function(){videojs('player').currentTime({{resumePosition}});});
+					player.addEventListener('canplaythrough', function(){if(!initPosDone) {videojs('player').currentTime({{resumePosition}});initPosDone = true;} });
+				{{/resumePosition}}
+
 				// Send initial status
 				volumeStatus();
 
