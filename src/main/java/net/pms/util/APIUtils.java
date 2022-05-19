@@ -411,6 +411,12 @@ public class APIUtils {
 
 					LOGGER.trace("Filename data: " + media);
 					LOGGER.trace("API data: " + metadataFromAPI);
+
+					// Before we return, attempt to enhance TV series data
+					if (isTVEpisode) {
+						setTVSeriesInfo(connection, null, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
+					}
+
 					return;
 				}
 

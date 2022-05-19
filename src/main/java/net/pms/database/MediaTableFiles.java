@@ -86,9 +86,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 26: No db changes, improved filename parsing
 	 * - 27: Added many columns for TMDB information
 	 * - 28: No db changes, clear database metadata to populate new columns
-	 * - 29: No db changes, improved filename parsing
+	 * - 29-30: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 29;
+	private static final int TABLE_VERSION = 30;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -107,7 +107,7 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * The columns we added from TMDB in V11
 	 */
-	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
+	private static final String TMDB_COLUMNS = ", BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
 
 	/*
 	 * Checks and creates or upgrades the table as needed.
@@ -275,9 +275,13 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 28:
+						// This didn't work and was fixed in the next version
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 29:
 						try (Statement statement = connection.createStatement()) {
 							/*
-							 * Since the last release, 10.20.0.1, we fixed some bugs with miniseries
+							 * Since the last release, 10.21.0.1, we fixed some bugs with miniseries
 							 * filename parsing so here we clear any cached data for potential miniseries.
 							 */
 							StringBuilder sb = new StringBuilder();
@@ -295,7 +299,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("ISTVEPISODE = NULL, ")
 									.append("EXTRAINFORMATION = NULL ")
 								.append("WHERE ")
-									.append("FILENAME LIKE '%[0-9]of[0-9]%'");
+									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
@@ -1052,7 +1056,7 @@ public class MediaTableFiles extends MediaTable {
 		try (
 			PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
+					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION" +
 					TMDB_COLUMNS + " " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +

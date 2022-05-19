@@ -169,7 +169,7 @@ public class PlayHandler implements HttpHandler {
 			}
 			String pos = step > 0 ? "next" : "prev";
 			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
+			vars.put(pos + "Name", next != null ? (StringEscapeUtils.escapeHtml(next.resumeName())) : null);
 		}
 	}
 
