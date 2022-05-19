@@ -100,7 +100,6 @@ public final class MediaTableFailedLookups extends MediaTable {
 						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 						throw new SQLException(e);
 					}
-					version++;
 					break;
 				default:
 					throw new IllegalStateException(

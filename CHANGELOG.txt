@@ -1,4 +1,51 @@
-10.20.0 - 2022-03-
+10.21.1 - 2022-05-04
+
+	General:
+		Improved parsing of miniseries
+		Fixed crash for users with cache disabled
+		Fixed macOS build not installing for some users
+		Reduced macOS build size
+	Translation updates via Crowdin:
+		English (United Kingdom) (45%) (thanks, Sudeep James!)
+		Slovenian (55%) (thanks, Blaž Kozlevčar!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Bump junrar from 7.5.0 to 7.5.1
+		Bump maven-project-info-reports-plugin from 3.2.2 to 3.3.0
+
+10.21.0.1 - 2022-04-26
+
+	General:
+		Fixed duplicate TV series entries in Media Library
+
+10.21.0 - 2022-04-24
+
+	General:
+		Improved API matches for TV series
+		Language improvements (thanks, NCAA!)
+		Fixed database not recovering from serialization changes (#2874)
+		Fixed custom renderer configurations not being loaded (#2917)
+		Fixed MEncoder and MPlayer on Docker (thanks, Jille Timmermans!) (#2922)
+		Fixed config being overwritten when UMS closes (#2875)
+		Fixed setting directory as fully played when folder names are similar
+		Fixed peakaboo in status bar during scans
+		Fixed database upgrade bugs
+	Translation updates via Crowdin:
+		German (100%) (thanks, pipin!)
+		Portuguese (100%) (thanks, RPargana!)
+	Dependencies:
+		Bump FFmpeg to latest
+		Bump h2 from 2.1.210 to 2.1.212
+		Bump icu4j from 70.1 to 71.1
+		Bump JRE from 8u322 to 8u332
+		Bump maven-antrun-plugin from 3.0.0 to 3.1.0
+		Bump maven-javadoc-plugin from 3.3.2 to 3.4.0
+		Bump maven-site-plugin from 3.11.0 to 3.12.0
+		Bump MediaInfo from 21.09 to 22.03
+		Bump oshi-core from 6.1.5 to 6.1.6
+		Bump surefire-version from 3.0.0-M5 to 3.0.0-M6
+
+10.20.0 - 2022-03-30
 
 	General:
 		Added ability to update audio ID3 tags via MusicBrainz, disabled by default
@@ -9,12 +56,28 @@
 		Allow API strings to be translated
 		Updated default podcasts and YouTube channels
 		Fixed slow browsing of the root and web folders
+		Improved responsiveness during startup scans
 	Translation updates via Crowdin:
-		Chinese (Traditional) (96%) (thanks, Gene Wu!)
+		Catalan (100%) (thanks, Toni Grau i Quellos!)
+		Chinese (Traditional) (95%) (thanks, Gene Wu!)
+		Danish (100%) (thanks, NCAA!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos!)
+		Italian (100%) (thanks, Oscar Zambotti!)
+		Japanese (99%) (thanks, was0914!)
+		Korean (100%) (thanks, VenusGirl!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (100%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+		Spanish (100%) (thanks, Sergio Varela!)
+		Swedish (99%) (thanks, Lorien aka the First One!)
+		Turkish (100%) (thanks, Burak Yavuz!)
 	Dependencies:
+		Bump jna from 5.10.0 to 5.11.0
 		Bump junrar from 7.4.1 to 7.5.0
 		Bump metadata-extractor from 2.16.0 to 2.17.0
 		Bump oshi-core from 6.1.4 to 6.1.5
+		Bump spotbugs-maven-plugin from 4.5.3.0 to 4.6.0.0
 
 10.19.0 - 2022-03-14
 

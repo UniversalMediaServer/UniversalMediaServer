@@ -32,7 +32,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -391,7 +390,7 @@ public class APIUtils {
 					MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
 
 					if (media.getThumb() != null) {
-						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1);
+						MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
 					}
 
 					if (metadataFromAPI.get("actors") != null) {
@@ -416,20 +415,20 @@ public class APIUtils {
 					}
 					MediaTableVideoMetadataReleased.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("released"), -1);
 				}
-			} catch (SQLException ex) {
+			} catch (Exception ex) {
 				LOGGER.trace("Error in API parsing:", ex);
 			} finally {
 				try {
 					if (connection != null) {
 						connection.commit();
 					}
-				} catch (SQLException e) {
+
+					MediaDatabase.close(connection);
+					frame.setSecondaryStatusLine(null);
+				} catch (Exception e) {
 					LOGGER.error("Error in commit in APIUtils.backgroundLookupAndAdd: {}", e.getMessage());
 					LOGGER.trace("", e);
 				}
-
-				MediaDatabase.close(connection);
-				frame.setSecondaryStatusLine(null);
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
@@ -449,7 +448,7 @@ public class APIUtils {
 	 * @param title
 	 * @return the title of the series.
 	 */
-	private static String setTVSeriesInfo(final Connection connection, String seriesIMDbIDFromAPI, String titleFromFilename, String yearFromFilename, String titleSimplifiedFromFilename, File file) {
+	private static String setTVSeriesInfo(final Connection connection, String seriesIMDbIDFromAPI, String titleFromFilename, String year, String titleSimplifiedFromFilename, File file) {
 		long tvSeriesDatabaseId;
 		String title;
 		String titleSimplified;
@@ -485,7 +484,7 @@ public class APIUtils {
 				return null;
 			}
 
-			HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, yearFromFilename);
+			HashMap<String, Object> seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, year);
 			if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.containsKey("statusCode")) {
 				if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.containsKey("statusCode") && seriesMetadataFromAPI.get("statusCode") == "500") {
 					LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
@@ -497,8 +496,8 @@ public class APIUtils {
 			}
 
 			title = (String) seriesMetadataFromAPI.get("title");
-			if (isNotBlank(yearFromFilename)) {
-				title += " (" + yearFromFilename + ")";
+			if (isNotBlank(year)) {
+				title += " (" + year + ")";
 			}
 			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			String typeFromAPI = (String) seriesMetadataFromAPI.get("type");
@@ -522,16 +521,16 @@ public class APIUtils {
 			}
 
 			/*
-				* Now we have an API result for the TV series, we need to see whether
-				* to insert it or update existing data, so we attempt to find an entry
-				* based on the title.
-				*/
+			 * Now we have an API result for the TV series, we need to see whether
+			 * to insert it or update existing data, so we attempt to find an entry
+			 * based on the title.
+			 */
 			seriesMetadataFromDatabase = MediaTableTVSeries.getByTitle(connection, title);
 
 			// Restore the year appended to the title if it is in the filename
 			int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), (String) seriesMetadataFromAPI.get("title"));
-			if (isNotBlank(yearFromFilename) && yearIndex == -1) {
-				String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + yearFromFilename + ")";
+			if (isNotBlank(year) && yearIndex == -1) {
+				String titleFromAPI = seriesMetadataFromAPI.get("title") + " (" + year + ")";
 				seriesMetadataFromAPI.replace("title", titleFromAPI);
 			}
 
@@ -570,7 +569,7 @@ public class APIUtils {
 			if (seriesMetadataFromAPI.get("poster") != null) {
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
-					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId);
+					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId, false);
 				} catch (EOFException e) {
 					LOGGER.debug(
 						"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
@@ -644,8 +643,6 @@ public class APIUtils {
 
 			imdbID = ImdbUtil.extractImdbId(path, false);
 		}
-
-		String mediaType = isBlank(episode) ? "movie" : "episode";
 
 		// Remove the year from the title before lookup if it exists
 		int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), movieOrTVSeriesTitle);
