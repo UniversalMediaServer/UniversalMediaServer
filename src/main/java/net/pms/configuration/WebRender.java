@@ -614,6 +614,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (startStop == null) {
 			return;
 		}
+		if (getPlayingRes() != null) {
+			LOGGER.trace("WebRender stop for " + getPlayingRes().getDisplayName());
+		}
 		startStop.stop();
 		startStop = null;
 	}
@@ -682,27 +685,38 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 
 		public void setDataFromJson(String jsonData) {
-			data = gson.fromJson(jsonData, data.getClass());
+			data = gson.fromJson(jsonData, HashMap.class);
 			String s = data.get("playback");
-			state.playback = "STOPPED".equals(s) ? STOPPED :
+			if (s != null) {
+				state.playback = "STOPPED".equals(s) ? STOPPED :
 				"PLAYING".equals(s) ? PLAYING :
 				"PAUSED".equals(s) ? PAUSED : -1;
-			state.mute = !"0".equals(data.get("mute"));
-			s = data.get("volume");
-			try {
-				state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;
-			} catch (NumberFormatException e) {
-				LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
 			}
-			long seconds = 0;
-			if (data.get("position") != null) {
+			s = data.get("mute");
+			if (s != null) {
+				state.mute = !"0".equals(data.get("mute"));
+			}
+			s = data.get("volume");
+			if (s != null) {
 				try {
-					seconds = Integer.valueOf(data.get("position"));
+					state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;
 				} catch (NumberFormatException e) {
-					LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
+					LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
 				}
 			}
-			state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
+			if (state.playback == STOPPED) {
+				state.position = "";
+			} else {
+				s = data.get("position");
+				if (s != null) {
+					try {
+						long seconds = Integer.valueOf(s);
+						state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
+					} catch (NumberFormatException e) {
+						LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
+					}
+				}
+			}
 			alert();
 			if (state.playback == STOPPED) {
 				((WebRender) renderer).stop();
