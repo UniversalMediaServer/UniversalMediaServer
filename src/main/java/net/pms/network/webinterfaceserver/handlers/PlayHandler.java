@@ -169,7 +169,7 @@ public class PlayHandler implements HttpHandler {
 			}
 			String pos = step > 0 ? "next" : "prev";
 			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
+			vars.put(pos + "Name", next != null ? (StringEscapeUtils.escapeHtml(next.resumeName())) : null);
 		}
 	}
 
@@ -275,7 +275,7 @@ public class PlayHandler implements HttpHandler {
 						mustacheVars.put("isVideoWithAPIData", true);
 					}
 				}
-				if (rootResource.getMedia().hasChapters()) {
+				if (rootResource.getMedia() != null && rootResource.getMedia().hasChapters()) {
 					mustacheVars.put("isVideoWithChapters", true);
 				}
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
@@ -287,6 +287,9 @@ public class PlayHandler implements HttpHandler {
 					if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 						WebRender render = (WebRender) rootResource.getDefaultRenderer();
 						mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
+					}
+					if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
+						mustacheVars.put("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
 					}
 				}
 			}
