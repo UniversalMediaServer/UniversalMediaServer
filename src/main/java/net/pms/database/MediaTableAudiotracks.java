@@ -141,7 +141,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
 						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
 						connection.commit();
-						connection.setAutoCommit(true);;
+						connection.setAutoCommit(true);
 					} catch (Exception e) {
 						LOGGER.warn("Upgrade failed", e);
 					}
