@@ -961,8 +961,6 @@ public class APIUtils {
 	 * @return a full URL to a poster or meaningful screenshot
 	 */
 	private static String getPosterUrlFromApiInfo(String posterFromApi, String posterRelativePathFromApi) {
-		String posterRelativePath = null;
-
 		if (posterRelativePathFromApi != null) {
 			return getApiImageBaseURL() + "w500" + posterRelativePathFromApi;
 		}
