@@ -452,7 +452,7 @@ public class APIUtils {
 				// Set the poster as the thumbnail
 				String posterFromApi = getPosterUrlFromApiInfo(
 					(String) metadataFromAPI.get("poster"),
-					(String) metadataFromAPI.get("posterRelativePath"),
+					(String) metadataFromAPI.get("posterRelativePath")
 				);
 				if (posterFromApi != null) {
 					try {
@@ -672,7 +672,7 @@ public class APIUtils {
 
 			String posterFromApi = getPosterUrlFromApiInfo(
 				(String) seriesMetadataFromAPI.get("poster"),
-				(String) seriesMetadataFromAPI.get("posterRelativePath"),
+				(String) seriesMetadataFromAPI.get("posterRelativePath")
 			);
 			if (posterFromApi != null) {
 				try {
