@@ -1,4 +1,4 @@
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.api.starrating;
 
 public class FilenameIdVO {
 

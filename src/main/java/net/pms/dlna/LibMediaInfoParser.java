@@ -34,7 +34,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.network.mediaserver.handlers.api.StarRating;
+import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.StringUtil;

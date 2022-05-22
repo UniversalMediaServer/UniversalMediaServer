@@ -2527,8 +2527,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			// DESC Metadata support: add ability for control point to identify
-			// song by MusicBrainz TrackID
-			if (media != null && media.isAudio() && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().getMbidRecord() != null) {
+			// songs by MusicBrainz TrackID or audiotrack-id
+			if (media != null && media.isAudio() && media.getFirstAudioTrack() != null) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
@@ -2537,11 +2537,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				addXMLTagAndAttribute(sb, "audiotrackid", Integer.toString(media.getFirstAudioTrack().getAudiotrackId()));
 				if (firstAudioTrack.getDisc() > 0) {
-					addXMLTagAndAttribute(sb, "numberOfThisDisc", "" + firstAudioTrack.getDisc());
+					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(firstAudioTrack.getDisc()));
 				}
 				if (firstAudioTrack.getRating() != null) {
-					addXMLTagAndAttribute(sb, "rating", "" + firstAudioTrack.getRating());
+					addXMLTagAndAttribute(sb, "rating", Integer.toString(firstAudioTrack.getRating()));
 				}
 				closeTag(sb, "desc");
 			}

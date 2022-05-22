@@ -64,7 +64,7 @@ public class NavigationShareTab {
 	private JCheckBox aperture;
 	public static JCheckBox iTunes;
 	private CustomJButton select;
-	private CustomJButton cacheReset;
+	private static CustomJButton cacheReset;
 	private JCheckBox ignoreTheWordThe;
 	private JTextField atzLimit;
 	private JCheckBox prettifyFilenames;
@@ -80,7 +80,7 @@ public class NavigationShareTab {
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
 	private JCheckBox isShowFolderTranscode;
-	private JCheckBox isShowFolderMediaLibrary;
+	private static JCheckBox isShowFolderMediaLibrary;
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
 
@@ -228,6 +228,17 @@ public class NavigationShareTab {
 		return scrollPane;
 	}
 
+	public static void toggleSettingsThatRelyOnCache(boolean enabled) {
+		isShowFolderMediaLibrary.setEnabled(enabled);
+		if (enabled) {
+			isShowFolderMediaLibrary.setToolTipText(Messages.getString("NavigationSettingsTab.ShowMediaLibraryFolderTooltip"));
+		} else {
+			isShowFolderMediaLibrary.setToolTipText(Messages.getString("General.ThisFeatureRequiresTheCache"));
+		}
+		cacheReset.setEnabled(enabled);
+		SharedContentTab.setScanLibraryEnabled(enabled);
+	}
+
 	private void initSimpleComponents(CellConstraints cc) {
 		// Thumbnail seeking position
 		seekPosition = new JTextField("" + configuration.getThumbnailSeekPos());
@@ -347,7 +358,6 @@ public class NavigationShareTab {
 
 		// Show Media Library folder
 		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("FoldTab.ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
-		isShowFolderMediaLibrary.setToolTipText(Messages.getString("NavigationSettingsTab.ShowMediaLibraryFolderTooltip"));
 		isShowFolderMediaLibrary.setContentAreaFilled(false);
 		isShowFolderMediaLibrary.addItemListener((ItemEvent e) -> {
 			configuration.setShowMediaLibraryFolder((e.getStateChange() == ItemEvent.SELECTED));
@@ -366,8 +376,7 @@ public class NavigationShareTab {
 		cacheEnable.setContentAreaFilled(false);
 		cacheEnable.addItemListener((ItemEvent e) -> {
 			configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
-			cacheReset.setEnabled(configuration.getUseCache());
-			SharedContentTab.setScanLibraryEnabled(configuration.getUseCache());
+			toggleSettingsThatRelyOnCache(configuration.getUseCache());
 		});
 
 		// Reset cache
@@ -388,7 +397,8 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		cacheReset.setEnabled(configuration.getUseCache());
+
+		toggleSettingsThatRelyOnCache(configuration.getUseCache());
 
 		// Hide file extensions
 		hideExtensions = new JCheckBox(Messages.getString("FoldTab.5"), configuration.isHideExtensions());

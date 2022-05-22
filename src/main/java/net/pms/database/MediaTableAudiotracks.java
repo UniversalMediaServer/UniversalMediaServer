@@ -58,7 +58,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 7;
+	private static final int TABLE_VERSION = 8;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -132,6 +132,20 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
 					}
 					break;
+				case 7:
+					connection.setAutoCommit(false);
+					try (
+						Statement stmt =  DATABASE.getConnection().createStatement()) {
+						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID int auto_increment");
+						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
+						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
+						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
+						connection.commit();
+						connection.setAutoCommit(true);
+					} catch (Exception e) {
+						LOGGER.warn("Upgrade failed", e);
+					}
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -175,6 +189,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", BITRATE           INT");
 			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INT");
+			sb.append(", AUDIOTRACK_ID     INT 				AUTO_INCREMENT");
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
 			sb.append("    REFERENCES FILES(ID)");
@@ -203,6 +218,9 @@ public class MediaTableAudiotracks extends MediaTable {
 
 			LOGGER.trace("Creating index IDX_LIKE_SONG");
 			statement.execute("CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (LIKE_SONG)");
+
+			LOGGER.trace("Creating index IDX_AUDIOTRACK_ID");
+			statement.execute("CREATE INDEX IDX_AUDIOTRACK_ID on " + TABLE_NAME + " (AUDIOTRACK_ID)");
 		}
 	}
 
