@@ -1,25 +1,55 @@
-11.0.0-a2 - 2022-05-05 - Changes since 11.0.0-a1
+# Changelog
 
-	General:
-		Backgrounds for TV series, episodes and movies fade in
-		Image backgrounds in Media Library without text are prioritized over ones with text
-		Match more TV series in API
-		All v10 changes up to 10.21.1
+## [Unreleased]
+### General
+- Added editable server-side playlist support
+- Prevent users from enabling startup scanning while the cache is disabled
 
-10.21.1 - 2022-05-04
+### Translation updates via Crowdin
+- Catalan (100%) (thanks, Toni Grau i Quellos!)
+- Chinese (Simplified) (97%) (thanks, wwj402_github!)
+- Danish (100%) (thanks, GurliGebis!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Archaos and Philippe P!)
+- Korean (100%) (thanks, VenusGirl!)
+- Persian (34%) (thanks, Behzad Najafizad!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Swedish (99%) (thanks, Lorien aka the First One (The1stOne)!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
-	General:
-		Improved parsing of miniseries
-		Fixed crash for users with cache disabled
-		Fixed macOS build not installing for some users
-		Reduced macOS build size
-	Translation updates via Crowdin:
-		English (United Kingdom) (45%) (thanks, Sudeep James!)
-		Slovenian (55%) (thanks, Blaž Kozlevčar!)
-		Turkish (100%) (thanks, Burak Yavuz!)
-	Dependencies:
-		Bump junrar from 7.5.0 to 7.5.1
-		Bump maven-project-info-reports-plugin from 3.2.2 to 3.3.0
+### Dependencies
+- Started using Renovate for dependency tracking
+- Update actions/cache action to v3
+- Update actions/checkout action to v3
+- Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.0.0
+- Update dependency moment.js to v2.29.3
+- Update dependency pako to v1.0.11
+- Bump metadata-extractor from 2.17.0 to 2.18.0
+
+## [11.0.0-a2] - 2022-05-05 - Changes since 11.0.0-a1
+### General
+- Backgrounds for TV series, episodes and movies fade in
+- Image backgrounds in Media Library without text are prioritized over ones with text
+- Match more TV series in API
+- All v10 changes up to 10.21.1
+
+## [10.21.1] - 2022-05-04
+### General
+- Improved parsing of miniseries
+- Fixed crash for users with cache disabled
+- Fixed macOS build not installing for some users
+- Reduced macOS build size
+
+### Translation updates via Crowdin
+- English (United Kingdom) (45%) (thanks, Sudeep James!)
+- Slovenian (55%) (thanks, Blaž Kozlevčar!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Bump junrar from 7.5.0 to 7.5.1
+- Bump maven-project-info-reports-plugin from 3.2.2 to 3.3.0
 
 10.21.0.1 - 2022-04-26
 
