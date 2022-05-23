@@ -1,3 +1,30 @@
+10.22.0
+
+	General:
+		Added editable server-side playlist support
+		Prevent users from enabling startup scanning while the cache is disabled
+	Translation updates via Crowdin:
+		Catalan (100%) (thanks, Toni Grau i Quellos!)
+		Chinese (Simplified) (97%) (thanks, wwj402_github!)
+		Danish (100%) (thanks, GurliGebis!)
+		Finnish (100%) (thanks, Esko Gardner!)
+		French (100%) (thanks, Archaos and Philippe P!)
+		Korean (100%) (thanks, VenusGirl!)
+		Persian (34%) (thanks, Behzad Najafizad!)
+		Polish (100%) (thanks, Karol Szastok!)
+		Portuguese (100%) (thanks, mariopinto!)
+		Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+		Swedish (99%) (thanks, Lorien aka the First One (The1stOne)!)
+		Turkish (100%) (thanks, Burak Yavuz!)
+	Dependencies:
+		Started using Renovate for dependency tracking
+		Update actions/cache action to v3
+		Update actions/checkout action to v3
+		Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.0.0
+		Update dependency moment.js to v2.29.3
+		Update dependency pako to v1.0.11
+		Bump metadata-extractor from 2.17.0 to 2.18.0
+
 10.21.1 - 2022-05-04
 
 	General:
