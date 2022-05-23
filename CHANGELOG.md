@@ -1,6 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [Unreleased] - V11
+### General
+- Removed second toolbar on the web interface video page
+- Increased speed of API lookups
+- Improved video and TV series posters
+- Fixed some API metadata not updating
+- Fixed Resume videos on the web interface
+
+### Dependencies
+- Bump Jackson from 2.13.1 to 2.13.2.2
+
+## [Unreleased] - V10
 ### General
 - Added editable server-side playlist support
 - Prevent users from enabling startup scanning while the cache is disabled
