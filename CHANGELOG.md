@@ -7,6 +7,7 @@
 - Improved video and TV series posters
 - Fixed some API metadata not updating
 - Fixed Resume videos on the web interface
+- Fixed API response handling
 
 ### Dependencies
 - Bump Jackson from 2.13.1 to 2.13.2.2
