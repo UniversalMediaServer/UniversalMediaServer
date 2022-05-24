@@ -450,9 +450,13 @@ public class APIUtils {
 				media.setIMDbID((String) metadataFromAPI.get("imdbID"));
 
 				// Set the poster as the thumbnail
-				if (metadataFromAPI.get("poster") != null) {
+				String posterFromApi = getPosterUrlFromApiInfo(
+					(String) metadataFromAPI.get("poster"),
+					(String) metadataFromAPI.get("posterRelativePath")
+				);
+				if (posterFromApi != null) {
 					try {
-						byte[] image = URI_FILE_RETRIEVER.get((String) metadataFromAPI.get("poster"));
+						byte[] image = URI_FILE_RETRIEVER.get(posterFromApi);
 						media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
 					} catch (EOFException e) {
 						LOGGER.debug(
@@ -506,7 +510,9 @@ public class APIUtils {
 				if (metadataFromAPI.get("genres") != null) {
 					MediaTableVideoMetadataGenres.set(connection, file.getAbsolutePath(), new HashSet<Object>((ArrayList<?>) metadataFromAPI.get("genres")), -1);
 				}
-				MediaTableVideoMetadataPosters.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("poster"), -1);
+				if (posterFromApi != null) {
+					MediaTableVideoMetadataPosters.set(connection, file.getAbsolutePath(), posterFromApi, -1);
+				}
 				MediaTableVideoMetadataProduction.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("production"), -1);
 				MediaTableVideoMetadataRated.set(connection, file.getAbsolutePath(), (String) metadataFromAPI.get("rated"), -1);
 				if (metadataFromAPI.get("ratings") != null) {
@@ -664,10 +670,13 @@ public class APIUtils {
 			}
 			MediaTableVideoMetadataProduction.set(connection, "", (String) seriesMetadataFromAPI.get("production"), tvSeriesDatabaseId);
 
-			// Set the poster as the thumbnail
-			if (seriesMetadataFromAPI.get("poster") != null) {
+			String posterFromApi = getPosterUrlFromApiInfo(
+				(String) seriesMetadataFromAPI.get("poster"),
+				(String) seriesMetadataFromAPI.get("posterRelativePath")
+			);
+			if (posterFromApi != null) {
 				try {
-					byte[] image = URI_FILE_RETRIEVER.get((String) seriesMetadataFromAPI.get("poster"));
+					byte[] image = URI_FILE_RETRIEVER.get(posterFromApi);
 					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId, false);
 				} catch (EOFException e) {
 					LOGGER.debug(
@@ -680,9 +689,9 @@ public class APIUtils {
 					LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
 					LOGGER.trace("", e);
 				}
+				MediaTableVideoMetadataPosters.set(connection, "", posterFromApi, tvSeriesDatabaseId);
 			}
 
-			MediaTableVideoMetadataPosters.set(connection, "", (String) seriesMetadataFromAPI.get("poster"), tvSeriesDatabaseId);
 			MediaTableVideoMetadataRated.set(connection, "", (String) seriesMetadataFromAPI.get("rated"), tvSeriesDatabaseId);
 			if (seriesMetadataFromAPI.get("rating") != null && (Double) seriesMetadataFromAPI.get("rating") != 0.0) {
 				MediaTableVideoMetadataIMDbRating.set(connection, "", Double.toString((Double) seriesMetadataFromAPI.get("rating")), tvSeriesDatabaseId);
@@ -846,7 +855,7 @@ public class APIUtils {
 		long filebytesize
 	) throws IOException {
 		URL domain = new URL("https://api.universalmediaserver.com");
-		String endpoint = isSeries ? "seriestitle" : "video";
+		String endpoint = isSeries ? "series/v2" : "video/v2";
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
 			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
@@ -944,5 +953,18 @@ public class APIUtils {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * @param posterFromApi a full URL of a poster from OMDb
+	 * @param posterRelativePathFromApi this is either a "poster_path" or "still_path" from TMDB
+	 * @return a full URL to a poster or meaningful screenshot
+	 */
+	private static String getPosterUrlFromApiInfo(String posterFromApi, String posterRelativePathFromApi) {
+		if (posterRelativePathFromApi != null) {
+			return getApiImageBaseURL() + "w500" + posterRelativePathFromApi;
+		}
+
+		return posterFromApi;
 	}
 }
