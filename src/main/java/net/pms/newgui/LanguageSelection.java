@@ -29,9 +29,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -51,6 +48,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.newgui.components.CustomHTMLEditorKit;
 import net.pms.util.KeyedComboBoxModel;
 import net.pms.util.Languages;
@@ -402,15 +400,9 @@ public class LanguageSelection {
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					boolean error = false;
+					boolean error;
 					if (Desktop.isDesktopSupported()) {
-						try {
-							Desktop.getDesktop().browse(new URI(e.getDescription()));
-						} catch (IOException | URISyntaxException ex) {
-							LOGGER.error("Language selection failed to open translation page hyperlink: ", ex.getMessage());
-							LOGGER.trace("", ex);
-							error = true;
-						}
+						error = !BasicSystemUtils.instance.browseURI(e.getDescription());
 					} else {
 						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
 						error = true;

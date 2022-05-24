@@ -51,7 +51,6 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.SharedContentTab;
 import net.pms.platform.macos.NSFoundation;
@@ -88,7 +87,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private void addVirtualMyMusicFolder() {
-		DbidTypeAndIdent myAlbums = new DbidTypeAndIdent(DbidMediaType.TYPE_MYMUSIC_ALBUM, null);
+		DbIdTypeAndIdent2 myAlbums = new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
 		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (!getChildren().contains(myMusicFolder)) {

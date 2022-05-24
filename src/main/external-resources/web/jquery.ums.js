@@ -390,71 +390,129 @@ function isDarkColorNeededOnThisColor(rgbColor) {
       return (backgroundLightness > LIGHT_DARK_THRESHOLD);
 }
 
+function getAverageRGB(imgEl) {
+	var blockSize = 5, // only visit every 5 pixels
+		defaultRGB = {r: 0, g: 0, b: 0}, // for non-supporting envs
+		canvas = document.createElement('canvas'),
+		context = canvas.getContext && canvas.getContext('2d'),
+		data, width, height,
+		i = -4,
+		length,
+		rgb = {r: 0, g: 0, b: 0},
+		count = 0;
+
+	if (!context) {
+		return defaultRGB;
+	}
+
+	height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+	width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+
+	context.drawImage(imgEl, 0, 0);
+
+	try {
+		data = context.getImageData(0, 0, width, height);
+	} catch (e) {
+		/* security error, img on diff domain */
+		console.log('Could not get image data');
+		return defaultRGB;
+	}
+
+	length = data.data.length;
+
+	while ((i += blockSize * 4) < length) {
+		++count;
+		rgb.r += data.data[i];
+		rgb.g += data.data[i + 1];
+		rgb.b += data.data[i + 2];
+	}
+
+	// ~~ used to floor values
+	rgb.r = ~~(rgb.r / count);
+	rgb.g = ~~(rgb.g / count);
+	rgb.b = ~~(rgb.b / count);
+
+	return rgb;
+}
+
 /**
- * Sets the background color of the page to one based on the poster.
+ * Sets the background of the page to one based on the
+ * poster or background image.
  *
  * @see https://stackoverflow.com/a/2541680
  */
-function setBackgroundColorFromPoster() {
-	var poster = document.getElementById('poster');
-	if (!poster || !poster.src) {
-		// console.log('poster was not ready to analyze')
+function setBackgroundAndColorScheme(imageElementId) {
+	var imageElement = document.getElementById(imageElementId);
+	if (!imageElement || !imageElement.src) {
+		console.log('imageElement ' + imageElementId + ' was not ready to analyze')
 		return;
 	}
-	var rgb = getAverageRGB(poster);
-	document.body.style.backgroundColor = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+	var rgb = getAverageRGB(imageElement);
+	if (imageElementId === 'poster') {
+		document.body.style.backgroundColor = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+	} else {
+		document.body.style.backgroundImage = 'url("' + imageElement.src + '")';
+	}
 	$('body').addClass(isDarkColorNeededOnThisColor([rgb.r, rgb.g, rgb.b]) ? 'dark' : 'light');
+	$('.bodyBackgroundImageScreen').css({ backgroundColor: 'rgba(33, 33, 33, 0)' });
+}
 
-	function getAverageRGB(imgEl) {
-		var blockSize = 5, // only visit every 5 pixels
-			defaultRGB = {r: 0, g: 0, b: 0}, // for non-supporting envs
-			canvas = document.createElement('canvas'),
-			context = canvas.getContext && canvas.getContext('2d'),
-			data, width, height,
-			i = -4,
-			length,
-			rgb = {r: 0, g: 0, b: 0},
-			count = 0;
+var isBackgroundImage = false;
 
-		if (!context) {
-			return defaultRGB;
+function useApiImages(apiImages) {
+	var apiImagesList = _.first(apiImages);
+	// Set the page background and color scheme
+	if (!_.isEmpty(apiImagesList.backdrops)) {
+		var backgrounds = _.pickBy(apiImagesList.backdrops, function(background) {
+			return !background.iso_639_1;
+		});
+		if (_.isEmpty(backgrounds)) {
+			// TODO: Support i18n for backgrounds
+			backgrounds = _.pickBy(apiImagesList.backdrops, function(background) {
+				return background.iso_639_1 === 'en';
+			});
 		}
+		if (!_.isEmpty(backgrounds)) {
+			var shuffledBackgrounds = _.shuffle(backgrounds);
+			var randomBackground = _.first(shuffledBackgrounds);
+			var backgroundImagePreCreation = new Image();
+			backgroundImagePreCreation.crossOrigin = '';
+			backgroundImagePreCreation.id = 'backgroundPreload';
+			backgroundImagePreCreation.onload = function() {
+				setBackgroundAndColorScheme('backgroundPreload');
+			}
+			setTimeout(function() {
+				backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
+				$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
+			});
 
-		height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
-		width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
-
-		context.drawImage(imgEl, 0, 0);
-
-		try {
-			data = context.getImageData(0, 0, width, height);
-		} catch (e) {
-			/* security error, img on diff domain */
-			console.log('Could not get image data');
-			return defaultRGB;
+			isBackgroundImage = true;
 		}
-
-		length = data.data.length;
-
-		while ((i += blockSize * 4) < length) {
-			++count;
-			rgb.r += data.data[i];
-			rgb.g += data.data[i + 1];
-			rgb.b += data.data[i + 2];
-		}
-
-		// ~~ used to floor values
-		rgb.r = ~~(rgb.r / count);
-		rgb.g = ~~(rgb.g / count);
-		rgb.b = ~~(rgb.b / count);
-
-		return rgb;
+	}
+	// Set a logo as the heading
+	if (!_.isEmpty(apiImagesList.logos)) {
+		// TODO: Support i18n for logos
+		var logos = _.pickBy(apiImagesList.logos, function(logo) {
+			return !logo.iso_639_1 || logo.iso_639_1 === 'en';
+		});
+		_.each(logos, function(logo) {
+			var logoImagePreCreation = new Image();
+			logoImagePreCreation.crossOrigin = '';
+			logoImagePreCreation.id = 'logo';
+			logoImagePreCreation.style.maxHeight = '150px';
+			logoImagePreCreation.style.maxWidth = 'calc(100% - 61px)'; // width minus the IMDb icon
+			logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
+			$('h1').html(logoImagePreCreation);
+			$('h1').css('margin','10px 0 30px 0');
+			return false;
+		});
 	}
 }
 
 function populateMetadataDisplayFromGlobalVars() {
 	var isDark = $('body').hasClass('dark');
 	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
-	if (actors && actors[0]) {
+	if (!_.isEmpty(actors)) {
 		var actorLinks = [];
 		for (var i = 0; i < actors.length; i++) {
 			var actor = actors[i];
@@ -471,8 +529,15 @@ function populateMetadataDisplayFromGlobalVars() {
 	if (director && director.id) {
 		$('.director').html('<strong>' + directorTranslation + ':</strong> <a href="/browse/' + director.id + '" class="badge ' + badgeClass + '">' + director.name + '</a>');
 	}
+	if (imageBaseURL) {
+		if (seriesImages && seriesImages[0]) {
+			useApiImages(seriesImages);
+		} else if (images && images[0]) {
+			useApiImages(images);
+		}
+	}
 	if (imdbID) {
-		$('h1').append(' <a href="https://www.imdb.com/title/' + imdbID + '/"><i class=\"fab fa-imdb\"></i></a>');
+		$('h1').append(' <a href="https://www.imdb.com/title/' + imdbID + '/" id="imdbLink"><i class=\"fab fa-imdb\"></i></a>');
 	}
 	if (genres && genres[0]) {
 		var genreLinks = [];
@@ -487,9 +552,13 @@ function populateMetadataDisplayFromGlobalVars() {
 	}
 	if (poster) {
 		var img = new Image();
-		img.onload = function() { setBackgroundColorFromPoster(); }
+		if (!isBackgroundImage) {
+			// If there is no background image from the API, set the color from the poster
+			img.onload = function() { setBackgroundAndColorScheme('poster'); }
+		}
 		img.crossOrigin = '';
 		img.id = 'poster';
+		img.style.maxHeight = '500px';
 		img.src = poster;
 		$('.posterContainer').html(img);
 	}

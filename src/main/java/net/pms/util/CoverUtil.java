@@ -41,8 +41,8 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
+	private static final Object INSTANCE_LOCK = new Object();
 	protected static final String ENCODING = StandardCharsets.UTF_8.name();
-	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
 	/**
@@ -60,7 +60,7 @@ public abstract class CoverUtil {
 
 	public static CoverUtil get() {
 		CoverSupplier supplier = PMS.getConfiguration().getAudioThumbnailMethod();
-		synchronized (instanceLock) {
+		synchronized (INSTANCE_LOCK) {
 			switch (supplier.toInt()) {
 				case CoverSupplier.COVER_ART_ARCHIVE_INT:
 					if (instance == null || !(instance instanceof CoverArtArchiveUtil)) {

@@ -343,12 +343,12 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	/**
-	 * Creates a {@link org.seamless.util.MimeType} from this instance.
+	 * Creates a {@link org.jupnp.util.MimeType} from this instance.
 	 *
-	 * @return The new {@link org.seamless.util.MimeType} instance.
+	 * @return The new {@link org.jupnp.util.MimeType} instance.
 	 */
-	public org.seamless.util.MimeType toSeamlessMimeType() {
-		return new org.seamless.util.MimeType(type, subtype, parameters);
+	public org.jupnp.util.MimeType toSeamlessMimeType() {
+		return new org.jupnp.util.MimeType(type, subtype, parameters);
 	}
 
 	/**

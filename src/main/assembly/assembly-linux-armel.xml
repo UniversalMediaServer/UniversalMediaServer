@@ -57,7 +57,7 @@
 			<includes>
 				<include>BUILD.md</include>
 				<include>README.md</include>
-				<include>CHANGELOG.txt</include>
+				<include>CHANGELOG.md</include>
 				<include>INSTALL.txt</include>
 				<include>LICENSE.txt</include>
 			</includes>

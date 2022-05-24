@@ -90,6 +90,7 @@ public class MediaDatabase extends Database {
 				MediaTableMetadata.checkTable(connection);
 				MediaTableFiles.checkTable(connection);
 				MediaTableSubtracks.checkTable(connection);
+				MediaTableChapters.checkTable(connection);
 				MediaTableRegexpRules.checkTable(connection);
 
 				MediaTableMusicBrainzReleases.checkTable(connection);
@@ -147,6 +148,7 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableChapters.TABLE_NAME);
 
 		dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);

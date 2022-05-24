@@ -61,6 +61,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		Pattern.CASE_INSENSITIVE
 	);
 
+	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
+	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
+
 	private final ChannelGroup group;
 
 	public RequestHandlerV2(ChannelGroup group) {
@@ -97,7 +100,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// Is the request from our own Cling service, i.e. self-originating?
+		// Is the request from our own JUPnP service, i.e. self-originating?
 		boolean isSelf = ia.getHostAddress().equals(MediaServer.getHost()) &&
 			headers.get(HttpHeaders.Names.USER_AGENT) != null &&
 			headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
@@ -360,20 +363,24 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
 		if (isNotBlank(requestType)) {
 			LOGGER.trace(
-				"Received a {}request from {}:\n\n{}{}",
+				"Received a {}request from {}:\n{}\n{}{}{}",
 				requestType,
 				rendererName,
+				HTTPSERVER_REQUEST_BEGIN,
 				header,
-				formattedContent
+				formattedContent,
+				HTTPSERVER_REQUEST_END
 				);
 		} else { // Trace not supported request type
 			LOGGER.trace(
-				"Received a {}request from {}:\n\n{}{}\nRenderer UUID={}",
+				"Received a {}request from {}:\n{}\n{}{}{}\nRenderer UUID={}",
 				soapAction,
 				rendererName,
+				HTTPSERVER_REQUEST_BEGIN,
 				header,
 				formattedContent,
-				renderer.uuid
+				HTTPSERVER_REQUEST_END,
+				renderer != null ? renderer.uuid : "null"
 				);
 		}
 	}

@@ -31,8 +31,9 @@ public interface SystemUtils {
 	/**
 	 * Open HTTP URLs in the default browser.
 	 * @param uri URI string to open externally.
+	 * @return false if not browsed
 	 */
-	public void browseURI(String uri);
+	public boolean browseURI(String uri);
 
 	public boolean isNetworkInterfaceLoopback(NetworkInterface ni) throws SocketException;
 

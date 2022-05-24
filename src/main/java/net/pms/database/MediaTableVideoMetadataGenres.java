@@ -138,7 +138,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	}
 
 	/**
-	 * Sets a new row.
+	 * Sets a new row if it doesn't already exist.
 	 *
 	 * @param connection the db connection
 	 * @param fullPathToFile
@@ -154,34 +154,55 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 			Iterator<String> i = genres.iterator();
 			while (i.hasNext()) {
 				String genre = i.next();
+
 				try (
-					PreparedStatement insertStatement = connection.prepareStatement(
-						"INSERT INTO " + TABLE_NAME + " (" +
-							"TVSERIESID, FILENAME, GENRE" +
-						") VALUES (" +
-							"?, ?, ?" +
-						")",
-						Statement.RETURN_GENERATED_KEYS
+					PreparedStatement ps = connection.prepareStatement(
+						"SELECT " +
+							"ID " +
+						"FROM " + TABLE_NAME + " " +
+						"WHERE " +
+							"TVSERIESID = ? AND " +
+							"FILENAME = ? AND " +
+							"GENRE = ? " +
+						"LIMIT 1"
 					)
 				) {
-					insertStatement.clearParameters();
-					insertStatement.setLong(1, tvSeriesID);
-					insertStatement.setString(2, left(fullPathToFile, 255));
-					insertStatement.setString(3, left(genre, 255));
-
-					insertStatement.executeUpdate();
-					try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+					ps.setLong(1, tvSeriesID);
+					ps.setString(2, left(fullPathToFile, 255));
+					ps.setString(3, left(genre, 255));
+					try (ResultSet rs = ps.executeQuery()) {
 						if (rs.next()) {
-							LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
+							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fullPathToFile, genre);
+						} else {
+							try (
+								PreparedStatement insertStatement = connection.prepareStatement(
+									"INSERT INTO " + TABLE_NAME + " (" +
+										"TVSERIESID, FILENAME, GENRE" +
+									") VALUES (" +
+										"?, ?, ?" +
+									")",
+									Statement.RETURN_GENERATED_KEYS
+								)
+							) {
+								insertStatement.clearParameters();
+								insertStatement.setLong(1, tvSeriesID);
+								insertStatement.setString(2, left(fullPathToFile, 255));
+								insertStatement.setString(3, left(genre, 255));
+
+								insertStatement.executeUpdate();
+								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
+									if (rs2.next()) {
+										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 		} catch (SQLException e) {
-			if (e.getErrorCode() != 23505) {
-				LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fullPathToFile, e.getMessage());
-				LOGGER.trace("", e);
-			}
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
