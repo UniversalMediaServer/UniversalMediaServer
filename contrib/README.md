@@ -7,7 +7,7 @@ shipped with the regular UMS distribution.
 There are three scripts available: the first for downloading the sources, the
 second for building the sources into binaries, and the third for downloading
 and building a static ffmpeg build (see
-[ffmpeg/README.md](https://github.com/UniversalMediaServer/UniversalMediaServer/tree/master/contrib/ffmpeg)
+[ffmpeg/README.md](https://github.com/UniversalMediaServer/UniversalMediaServer/tree/main/contrib/ffmpeg)
 for more details).
 
 After running the first two scripts the following directory structure is created:

@@ -230,7 +230,7 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
 
-	File "${PROJECT_BASEDIR}\CHANGELOG.txt"
+	File "${PROJECT_BASEDIR}\CHANGELOG.md"
 	File "${PROJECT_BASEDIR}\README.md"
 	File "${PROJECT_BASEDIR}\LICENSE.txt"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
@@ -346,7 +346,15 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
-	
+
+	; Delete old MediaInfo files
+	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
+	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
+
+	; Delete old changelog file
+	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
+
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
@@ -420,7 +428,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
-	; Old folders
+	; Old folders (maybe do this on install/upgrade ?)
 	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
@@ -607,7 +615,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Yamaha-RXV500D.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Yamaha-RXV671.conf"
 
-	; Old renderer files
+	; Old renderer files (should have already been removed during install/upgrade)
 	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Android.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\AndroidChromecast.conf"
@@ -684,6 +692,7 @@ Section "Uninstall"
 	${EndIf}
 	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
 
+	Delete /REBOOTOK "$INSTDIR\CHANGELOG.md"
 	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
 	Delete /REBOOTOK "$INSTDIR\README.md"
