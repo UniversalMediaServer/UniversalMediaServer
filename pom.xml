@@ -44,7 +44,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/UniversalMediaServer/UniversalMediaServer.git</connection>
 		<developerConnection>scm:git:git@github.com:UniversalMediaServer/UniversalMediaServer.git</developerConnection>
-		<tag>master</tag>
+		<tag>main</tag>
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
 	<issueManagement>

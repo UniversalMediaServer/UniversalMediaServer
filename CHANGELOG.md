@@ -1,6 +1,6 @@
 # Changelog
 
-### [Unreleased V11](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...11.0.0)
+### [Unreleased V11](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...main)
 ### General
 - Removed second toolbar on the web interface video page
 - Increased speed of API lookups
@@ -12,7 +12,7 @@
 ### Dependencies
 - Bump Jackson from 2.13.1 to 2.13.2.2
 
-### [Unreleased V10](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...master)
+### [Unreleased V10](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...d87a213606dda1e6773935a375700b33036861ea)
 ### General
 - Added editable server-side playlist support
 - Prevent users from enabling startup scanning while the cache is disabled
