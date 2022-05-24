@@ -35,7 +35,7 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
  * @author Andy Taylor (andy.taylor@jboss.org)
  */
 public class HttpServerPipelineFactory implements ChannelPipelineFactory {
-	private ChannelGroup group;
+	private final ChannelGroup group;
 
 	public HttpServerPipelineFactory(ChannelGroup group) {
 		this.group = group;

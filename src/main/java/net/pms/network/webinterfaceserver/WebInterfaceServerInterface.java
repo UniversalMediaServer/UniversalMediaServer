@@ -25,5 +25,4 @@ public interface WebInterfaceServerInterface {
 	String getAddress();
 	String getUrl();
 	boolean isSecure();
-	boolean setPlayerControlService();
 }

@@ -68,7 +68,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>/jre8/**</include>
+				<include>/jre${project.jre-version}/**</include>
 			</includes>
 		</fileSet>
 

@@ -52,6 +52,9 @@ public class StandardPlayerId extends PlayerId {
 	/** The identifier for {@link FFMpegVideo} */
 	public static final PlayerId FFMPEG_VIDEO = new StandardPlayerId("FFmpegVideo");
 
+	/** The identifier for {@link FFmpegHlsVideo} */
+	public static final PlayerId FFMPEG_HLS_VIDEO = new StandardPlayerId("FFmpegHlsVideo");
+
 	/** The identifier for {@link FFmpegWebVideo} */
 	public static final PlayerId FFMPEG_WEB_VIDEO = new StandardPlayerId("FFmpegWebVideo");
 
@@ -103,6 +106,7 @@ public class StandardPlayerId extends PlayerId {
 		allPlayers.add(VLC_VIDEO);
 		allPlayers.add(FFMPEG_AUDIO);
 		allPlayers.add(TSMUXER_AUDIO);
+		allPlayers.add(FFMPEG_HLS_VIDEO);
 		allPlayers.add(FFMPEG_WEB_VIDEO);
 		allPlayers.add(VLC_WEB_VIDEO);
 		allPlayers.add(VLC_VIDEO_STREAMING);

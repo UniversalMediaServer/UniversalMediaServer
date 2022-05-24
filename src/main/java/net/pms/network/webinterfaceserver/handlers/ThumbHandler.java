@@ -28,14 +28,14 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImageFormat;
-import net.pms.network.DbIdResourceLocator;
 import net.pms.network.HTTPResource;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.util.FullyPlayed;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
@@ -60,6 +60,9 @@ public class ThumbHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String id = WebInterfaceServerUtil.getId("thumb/", t);
 			LOGGER.trace("web thumb req " + id);
 			if (id.contains("logo")) {
@@ -74,7 +77,7 @@ public class ThumbHandler implements HttpHandler {
 			}
 
 			DLNAResource r = null;
-			if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					r = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
@@ -127,6 +130,9 @@ public class ThumbHandler implements HttpHandler {
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			t.sendResponseHeaders(200, in.getSize());
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(t, null, in);
+			}
 			OutputStream os = t.getResponseBody();
 			LOGGER.trace("Web thumbnail: Input is {} output is {}", in, os);
 			WebInterfaceServerUtil.dump(in, os);

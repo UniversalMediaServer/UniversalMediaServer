@@ -3,7 +3,6 @@ package net.pms.util;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.filechooser.FileSystemView;
-import sun.awt.shell.ShellFolder;
 
 public class ShortcutFileSystemView extends FileSystemView {
 	/**
@@ -15,11 +14,8 @@ public class ShortcutFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public boolean isFileSystem(File file) {
-		if (file instanceof ShellFolder) {
-			ShellFolder sf = (ShellFolder) file;
-			if (sf.isLink()) {
-				return true;
-			}
+		if ("Win32ShellFolder2".equals(file.getClass().getName()) && file.isDirectory() && FileUtil.isSymbolicLink(file)) {
+			return true;
 		}
 		return super.isFileSystem(file);
 	}

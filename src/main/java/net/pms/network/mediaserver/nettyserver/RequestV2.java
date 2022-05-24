@@ -21,8 +21,10 @@ package net.pms.network.mediaserver.nettyserver;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -54,6 +56,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -72,8 +75,9 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
+import net.pms.dlna.DbIdResourceLocator;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.encoders.HlsHelper;
 import net.pms.network.mediaserver.handlers.HTMLConsole;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -89,7 +93,6 @@ import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -118,6 +121,8 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
+	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
@@ -277,28 +282,47 @@ public class RequestV2 extends HTTPResource {
 		final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
 		PMS.REALTIME_LOCK.lock();
+		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
+		StringBuilder response = new StringBuilder();
+		DLNAResource dlna = null;
+		InputStream inputStream = null;
+		ChannelFuture future = null;
 		try {
-			long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
-			StringBuilder response = new StringBuilder();
-			DLNAResource dlna = null;
-			InputStream inputStream = null;
-
 			// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 			if (uri.startsWith("/")) {
 				LOGGER.trace("Stripping preceding slash from: " + uri);
 				uri = uri.substring(1);
 			}
 
-			if (uri.startsWith("api/")) {
-				try {
-					ApiHandler api = new ApiHandler();
-					String apiResponse = api.handleApiRequest(method, content, output, uri.substring(4), event);
-					if (!StringUtils.isAllBlank(apiResponse)) {
-						response.append(apiResponse);
-					}
-				} catch (Exception e) {
-					LOGGER.warn("error while processing api call ", e);
+			//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
+			//let transform JUPnP uri to old uri then handlerV2 can process
+			if (uri.startsWith("dev/" + PMS.get().udn())) {
+				if (uri.endsWith("/ContentDirectory/desc")) {
+					uri = "UPnP_AV_ContentDirectory_1.0.xml";
+				} else if (uri.endsWith("/ContentDirectory/action")) {
+					uri = "upnp/control/content_directory";
+				} else if (uri.endsWith("/ContentDirectory/event")) {
+					uri = "upnp/event/content_directory";
+				} else if (uri.endsWith("/ConnectionManager/desc")) {
+					uri = "UPnP_AV_ConnectionManager_1.0.xml";
+				} else if (uri.endsWith("/ConnectionManager/action")) {
+					uri = "upnp/control/connection_manager";
+				} else if (uri.endsWith("/ConnectionManager/event")) {
+					uri = "upnp/event/connection_manager";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
+					uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
+					uri = "upnp/control/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
+					uri = "upnp/event/x_ms_mediareceiverregistrar";
+				} else if (uri.endsWith("/desc")) {
+					uri = "description/fetch";
 				}
+			}
+
+			if (uri.startsWith("api/")) {
+				ApiHandler api = new ApiHandler();
+				response.append(api.handleApiRequest(method, content, output, uri.substring(4), event));
 			} else if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("console/")) {
 				// Request to output a page to the HTML console.
 				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
@@ -323,8 +347,7 @@ public class RequestV2 extends HTTPResource {
 				id = id.replace("%24", "$");
 
 				// Retrieve the DLNAresource itself.
-				String fileName = null;
-				if (id.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+				if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 					try {
 						dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 					} catch (Exception e) {
@@ -333,7 +356,7 @@ public class RequestV2 extends HTTPResource {
 				} else {
 					dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 				}
-				fileName = id.substring(id.indexOf('/') + 1);
+				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (transferMode != null) {
 					output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -347,7 +370,46 @@ public class RequestV2 extends HTTPResource {
 
 				if (dlna != null) {
 					// DLNAresource was found.
-					if (fileName.startsWith("thumbnail0000")) {
+					if (fileName.endsWith("/chapters.vtt")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
+						response.append(DLNAMediaChapter.getWebVtt(dlna));
+					} else if (fileName.endsWith("/chapters.json")) {
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
+						response.append(DLNAMediaChapter.getHls(dlna));
+					} else if (fileName.startsWith("hls/")) {
+						//HLS
+						if (fileName.endsWith(".m3u8")) {
+							//HLS rendition m3u8 file
+							String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+							if (HlsHelper.getByKey(rendition) != null) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
+								response.append(HlsHelper.getHLSm3u8ForRendition(dlna, mediaRenderer, "/get/", rendition));
+							}
+						} else {
+							//HLS stream request
+							cLoverride = DLNAMediaInfo.TRANS_SIZE;
+							inputStream = HlsHelper.getInputStream("/" + fileName, dlna, mediaRenderer);
+							if (fileName.endsWith(".ts")) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+							} else if (fileName.endsWith(".vtt")) {
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
+							}
+						}
+					} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+						//HLS start m3u8 file
+						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
+						response.append(HlsHelper.getHLSm3u8(dlna, mediaRenderer, "/get/"));
+						if (contentFeatures != null) {
+							//output.headers().set("transferMode.dlna.org", "Streaming");
+							if (dlna.getMedia().getDurationInSeconds() > 0) {
+								String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
+								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
+								//only time seek, transcoded
+								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
+							}
+						}
+					} else if (fileName.startsWith("thumbnail0000")) {
 						// This is a request for a thumbnail file.
 						DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
@@ -459,7 +521,7 @@ public class RequestV2 extends HTTPResource {
 							output.setStatus(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
 
 							// Send the response headers to the client.
-							ChannelFuture future = event.getChannel().write(output);
+							future = event.getChannel().write(output);
 
 							if (close) {
 								// Close the channel after the response is sent.
@@ -714,7 +776,6 @@ public class RequestV2 extends HTTPResource {
 
 			output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
 
-			ChannelFuture future;
 			if (response.length() > 0) {
 				// A response message was constructed; convert it to data ready to be sent.
 				byte[] responseData = response.toString().getBytes(StandardCharsets.UTF_8);
@@ -812,15 +873,14 @@ public class RequestV2 extends HTTPResource {
 					future.addListener(ChannelFutureListener.CLOSE);
 				}
 			}
-
-			if (LOGGER.isTraceEnabled()) {
-				// Log trace information
-				logRequest(output, response, inputStream);
-			}
-			return future;
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
+		if (LOGGER.isTraceEnabled()) {
+			// Log trace information
+			logRequest(output, response, inputStream);
+		}
+		return future;
 	}
 
 	private String getSortCapabilitiesHandler() {
@@ -1007,35 +1067,45 @@ public class RequestV2 extends HTTPResource {
 				.append(": ").append(entry.getValue()).append("\n");
 			}
 		}
+		if (header.length() > 0) {
+			header.insert(0, "\nHEADER:\n");
+		}
 
+		String responseCode = output.getProtocolVersion() + " " + output.getStatus();
 		String rendererName = getRendererName();
-
+		String contentType = output.headers().get(HttpHeaders.Names.CONTENT_TYPE);
 		if (HEAD.equals(method)) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
-				output.getProtocolVersion(),
-				output.getStatus(),
-				header
+				HTTPSERVER_RESPONSE_BEGIN,
+				responseCode,
+				header,
+				HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
 			if (isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
-					formattedResponse += "    " + response.toString().replace("\n", "\n    ");
+				if (contentType != null && contentType.startsWith("text/xml")) {
+					try {
+						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
+					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse += "    " + response.toString().replace("\n", "\n    ");
+					}
+				} else {
+					formattedResponse = response.toString();
 				}
 			}
 			if (isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n\nHEADER:\n  {} {}\n{}\nCONTENT:\n{}",
+					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					header,
-					formattedResponse
+					formattedResponse,
+					HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
@@ -1052,20 +1122,22 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n\nHEADER:\n  {} {} ({})\n{}",
+					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
 					output.isChunked() ? "chunked" : "non-chunked",
-					header
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n\nHEADER:\n  {} {}\n{}",
+					"Empty response sent to {}:\n{}\n{}\n{}{}",
 					rendererName,
-					output.getProtocolVersion(),
-					output.getStatus(),
-					header
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
+					header,
+					HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
@@ -1207,7 +1279,7 @@ public class RequestV2 extends HTTPResource {
 
 		if (searchCriteria != null && files != null) {
 			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && files.size() > 0) {
+			if (xbox360 && !files.isEmpty()) {
 				files = files.get(0).getChildren();
 			}
 		}
@@ -1223,16 +1295,17 @@ public class RequestV2 extends HTTPResource {
 					}
 				}
 
-				if (xbox360 && containerID != null) {
+				if (xbox360 && containerID != null && uf != null) {
 					uf.setFakeParentId(containerID);
 				}
 
 				if (
-					uf.isCompatible(mediaRenderer) &&
+					uf != null &&
+					(uf.isCompatible(mediaRenderer) &&
 					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder()
+					files.get(0).isInsideTranscodeFolder())
 				) {
 					filesData.append(uf.getDidlString(mediaRenderer));
 				} else {
@@ -1377,7 +1450,7 @@ public class RequestV2 extends HTTPResource {
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 			Document body = message.getSOAPBody().extractContentAsDocument();
 			return unmarshaller.unmarshal(body, clazz).getValue();
-		} catch (Exception e) {
+		} catch (JAXBException | SOAPException | IOException e) {
 			LOGGER.error("Unmarshalling error", e);
 			return null;
 		}

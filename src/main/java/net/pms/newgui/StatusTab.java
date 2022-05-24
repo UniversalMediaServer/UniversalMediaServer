@@ -25,12 +25,18 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -151,6 +157,8 @@ public class StatusTab {
 	}
 
 	private JPanel renderers;
+	private JLabel mediaServerBindLabel;
+	private JLabel interfaceServerBindLabel;
 	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
 	private JLabel bitrateLabel;
@@ -307,10 +315,30 @@ public class StatusTab {
 		searchingIcon.start();
 		disconnectedIcon.start();
 		connectionStatus.setFocusable(false);
-		builder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, CellConstraints.CENTER, CellConstraints.TOP), colSpec, orientation));
 
+		// Bitrate
+		String conColSpec = "left:pref, 3dlu, right:pref:grow";
+		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
+		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
 		// Set initial connection state
 		setConnectionState(ConnectionState.SEARCHING);
+
+		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.Servers") + "</b></html>");
+		mediaServerLabel.setForeground(fgColor);
+		connectionBuilder.add(mediaServerLabel, FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
+		mediaServerBindLabel = new JLabel("-");
+		mediaServerBindLabel.setForeground(fgColor);
+		mediaServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		mediaServerBindLabel.addMouseListener(new ServerBindMouseListener(mediaServerBindLabel));
+		mediaServerBindLabel.setToolTipText(Messages.getString("StatusTab.MediaServerTooltip"));
+		connectionBuilder.add(mediaServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 3, "left, top"), conColSpec, orientation));
+		interfaceServerBindLabel = new JLabel("-");
+		interfaceServerBindLabel.setForeground(fgColor);
+		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
+		interfaceServerBindLabel.setToolTipText(Messages.getString("StatusTab.InterfaceServerTooltip"));
+		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
+		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
@@ -366,6 +394,18 @@ public class StatusTab {
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		startMemoryUpdater();
 		return scrollPane;
+	}
+
+	public void setMediaServerBind(String bind) {
+		SwingUtilities.invokeLater(() -> {
+			mediaServerBindLabel.setText(bind);
+		});
+	}
+
+	public void setInterfaceServerBind(String bind) {
+		SwingUtilities.invokeLater(() -> {
+			interfaceServerBindLabel.setText(bind);
+		});
 	}
 
 	public void setReadValue(long v, String msg) {
@@ -567,5 +607,38 @@ public class StatusTab {
 			}
 		};
 		new Thread(r).start();
+	}
+
+	private static class ServerBindMouseListener implements MouseListener {
+		private final JLabel label;
+
+		public ServerBindMouseListener(JLabel label) {
+			this.label = label;
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (label.getText() != null) {
+				StringSelection selection = new StringSelection(label.getText());
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				clipboard.setContents(selection, selection);
+			}
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+		}
 	}
 }

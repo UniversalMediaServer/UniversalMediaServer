@@ -43,9 +43,11 @@ public class PollHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
-			// LOGGER.debug("poll req " + t.getRequestURI());
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
+			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
 			}
 			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
 			WebRender renderer = (WebRender) root.getDefaultRenderer();

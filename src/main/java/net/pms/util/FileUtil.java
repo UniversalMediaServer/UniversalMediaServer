@@ -731,12 +731,13 @@ public class FileUtil {
 		String formattedName;
 
 		String title;
-		String year;
+		String year = "";
 		String extraInformation;
 		String tvSeason;
 		String tvSeasonPadded;
 		String tvEpisodeNumber;
 		String tvEpisodeName;
+		String tvSeriesStartYear = "";
 		boolean isTVEpisode = false;
 
 		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
@@ -758,17 +759,17 @@ public class FileUtil {
 		if (media != null && getConfiguration().getUseCache() && isNotBlank(media.getMovieOrShowName())) {
 			title = media.getMovieOrShowName();
 
-			year             = isNotBlank(media.getYear())             ? media.getYear()             : "";
-			extraInformation = isNotBlank(media.getExtraInformation()) ? media.getExtraInformation() : "";
-			tvSeason         = isNotBlank(media.getTVSeason())         ? media.getTVSeason()         : "";
-			tvEpisodeNumber  = isNotBlank(media.getTVEpisodeNumber())  ? media.getTVEpisodeNumber()  : "";
-			tvEpisodeName    = isNotBlank(media.getTVEpisodeName())    ? media.getTVEpisodeName()    : "";
-			isTVEpisode      = isNotBlank(media.getTVSeason());
+			year              = isNotBlank(media.getYear())              ? media.getYear()              : "";
+			extraInformation  = isNotBlank(media.getExtraInformation())  ? media.getExtraInformation()  : "";
+			tvSeason          = isNotBlank(media.getTVSeason())          ? media.getTVSeason()          : "";
+			tvEpisodeNumber   = isNotBlank(media.getTVEpisodeNumber())   ? media.getTVEpisodeNumber()   : "";
+			tvEpisodeName     = isNotBlank(media.getTVEpisodeName())     ? media.getTVEpisodeName()     : "";
+			isTVEpisode       = isNotBlank(media.getTVSeason());
+			tvSeriesStartYear = isNotBlank(media.getTVSeriesStartYear()) ? media.getTVSeriesStartYear() : "";
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f, absolutePath);
 
 			title            = isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
-			year             = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
 			extraInformation = isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
 			tvSeason         = isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
 			tvEpisodeNumber  = isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
@@ -776,6 +777,9 @@ public class FileUtil {
 
 			if (isNotBlank(tvSeason)) {
 				isTVEpisode = true;
+				tvSeriesStartYear = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			} else {
+				year = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
 			}
 		}
 
@@ -850,8 +854,10 @@ public class FileUtil {
 			}
 		} else {
 			formattedName = title;
-			if (isNotBlank(year)) {
+			if (year != null && isNotBlank(year)) {
 				formattedName += " (" + year + ")";
+			} else if (isNotBlank(tvSeriesStartYear)) {
+				formattedName += " (" + tvSeriesStartYear + ")";
 			}
 		}
 
@@ -2262,7 +2268,7 @@ public class FileUtil {
 	}
 
 	private static Boolean isAdmin = null;
-	private static Object isAdminLock = new Object();
+	private static final Object IS_ADMIN_LOCK = new Object();
 
 	/**
 	 * Determines whether or not the program has admin/root permissions.
@@ -2270,7 +2276,7 @@ public class FileUtil {
 	 * @return true if the program has admin/root permissions
 	 */
 	public static boolean isAdmin() {
-		synchronized (isAdminLock) {
+		synchronized (IS_ADMIN_LOCK) {
 			if (isAdmin != null) {
 				return isAdmin;
 			}
@@ -2428,7 +2434,7 @@ public class FileUtil {
 	}
 
 	private static int unixUID = Integer.MIN_VALUE;
-	private static Object unixUIDLock = new Object();
+	private static final Object UNIX_UID_LOCK = new Object();
 
 	/**
 	 * Gets the user ID on Unix based systems. This should not change during a
@@ -2443,7 +2449,7 @@ public class FileUtil {
 			Platform.isLinux() || Platform.isMac() || Platform.isNetBSD() || Platform.isOpenBSD() ||
 			Platform.isSolaris()
 		) {
-			synchronized (unixUIDLock) {
+			synchronized (UNIX_UID_LOCK) {
 				if (unixUID < 0) {
 					String response;
 					Process id;

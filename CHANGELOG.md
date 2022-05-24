@@ -1,6 +1,18 @@
 # Changelog
 
-## [Unreleased]
+### [Unreleased V11](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...11.0.0)
+### General
+- Removed second toolbar on the web interface video page
+- Increased speed of API lookups
+- Improved video and TV series posters
+- Fixed some API metadata not updating
+- Fixed Resume videos on the web interface
+- Fixed API response handling
+
+### Dependencies
+- Bump Jackson from 2.13.1 to 2.13.2.2
+
+### [Unreleased V10](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...master)
 ### General
 - Added editable server-side playlist support
 - Prevent users from enabling startup scanning while the cache is disabled
@@ -28,14 +40,14 @@
 - Update dependency pako to v1.0.11
 - Bump metadata-extractor from 2.17.0 to 2.18.0
 
-## [11.0.0-a2] - 2022-05-05 - Changes since 11.0.0-a1
+### [11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a1...11.0.0-a2) (2022-05-05)
 ### General
 - Backgrounds for TV series, episodes and movies fade in
 - Image backgrounds in Media Library without text are prioritized over ones with text
 - Match more TV series in API
 - All v10 changes up to 10.21.1
 
-## [10.21.1] - 2022-05-04
+### [10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.0.1...10.21.1) (2022-05-04)
 ### General
 - Improved parsing of miniseries
 - Fixed crash for users with cache disabled
@@ -51,73 +63,73 @@
 - Bump junrar from 7.5.0 to 7.5.1
 - Bump maven-project-info-reports-plugin from 3.2.2 to 3.3.0
 
-10.21.0.1 - 2022-04-26
+#### [10.21.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.0...10.21.0.1) (2022-04-26)
 
-	General:
-		Fixed duplicate TV series entries in Media Library
+### General
+- Fixed duplicate TV series entries in Media Library
 
-11.0.0-a1 - 2022-04-25
+### [11.0.0-a1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.0...11.0.0-a1) (2022-04-25)
 
-	General:
-		Uses image backgrounds and logos for movies, TV series and episodes on the web interface
-		Web interface switches between dark and light themes in Media Library based on background images
-		Automatic quality adjustment on web interface, with optional manual settings
-		Improved video forward-backward positioning in videos via the web video player
-		Improved web interface design
-		Improved web video player design
-		Improved API metadata matches for TV series
-		Added HLS video option which may improve support for transcoding via some renderers like Philips TVs
-		Log splitting/zipping (#2608)
-		Implemented network state scanner
-		Show the addresses of servers on the Status tab (#2372)
-		Allow to set the log level of FFmpeg in its engine settings in the desktop UI (#2677)
-		Increased maximum memory limit on macOS to match Windows
-		Fixed Restart server when network interface becomes available (#2615)
-		Fixed Network Interface not found (#1485)
-		Fixed GetProtocolInfo not being recieved (#2338)
-		Fixed Font scaling issues on some elements of the GUI for some users (#2549)
-		Fixed UMS doesn't free DLNA ports after closing (#739)
-		Fixed Service wrapper for Windows doesn't work with 64 bit JVM (#767)
-		Fixed Deinstallation does not remove autostart entry for wrapper.exe (#2343)
-		Fixed Attempt to remove medias.lock on install/startup (#2838)
-		Fixed Media Library no longer populated and startup scan slowness (#2826)
-		Fixed Cound not open the default web browser: The BROWSE action is not supported on the current platform! (#2725)
-	Renderers:
-		Samsung 2021 TVs use HLS transcoding
-	Dependencies:
-		Added x64 windows service wrapper
-		Fixed support for latest Maven versions
-		Replaced Cling with JUPnP
-		Bump checkstyle from 9.3 to 10.2
-		Bump JRE from 8u332 to 17.0.3
-		Bump Video.js from 7.13.3 to 7.19.2
+### General
+- Uses image backgrounds and logos for movies, TV series and episodes on the web interface
+- Web interface switches between dark and light themes in Media Library based on background images
+- Automatic quality adjustment on web interface, with optional manual settings
+- Improved video forward-backward positioning in videos via the web video player
+- Improved web interface design
+- Improved web video player design
+- Improved API metadata matches for TV series
+- Added HLS video option which may improve support for transcoding via some renderers like Philips TVs
+- Log splitting/zipping (#2608)
+- Implemented network state scanner
+- Show the addresses of servers on the Status tab (#2372)
+- Allow to set the log level of FFmpeg in its engine settings in the desktop UI (#2677)
+- Increased maximum memory limit on macOS to match Windows
+- Fixed Restart server when network interface becomes available (#2615)
+- Fixed Network Interface not found (#1485)
+- Fixed GetProtocolInfo not being recieved (#2338)
+- Fixed Font scaling issues on some elements of the GUI for some users (#2549)
+- Fixed UMS doesn't free DLNA ports after closing (#739)
+- Fixed Service wrapper for Windows doesn't work with 64 bit JVM (#767)
+- Fixed Deinstallation does not remove autostart entry for wrapper.exe (#2343)
+- Fixed Attempt to remove medias.lock on install/startup (#2838)
+- Fixed Media Library no longer populated and startup scan slowness (#2826)
+- Fixed Cound not open the default web browser: The BROWSE action is not supported on the current platform! (#2725)
+### Renderers
+- Samsung 2021 TVs use HLS transcoding
+### Dependencies
+- Added x64 windows service wrapper
+- Fixed support for latest Maven versions
+- Replaced Cling with JUPnP
+- Bump checkstyle from 9.3 to 10.2
+- Bump JRE from 8u332 to 17.0.3
+- Bump Video.js from 7.13.3 to 7.19.2
 
-10.21.0 - 2022-04-24
+## [10.21.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.20.0...10.21.0) (2022-04-24)
 
-	General:
-		Improved API matches for TV series
-		Language improvements (thanks, NCAA!)
-		Fixed database not recovering from serialization changes (#2874)
-		Fixed custom renderer configurations not being loaded (#2917)
-		Fixed MEncoder and MPlayer on Docker (thanks, Jille Timmermans!) (#2922)
-		Fixed config being overwritten when UMS closes (#2875)
-		Fixed setting directory as fully played when folder names are similar
-		Fixed peakaboo in status bar during scans
-		Fixed database upgrade bugs
-	Translation updates via Crowdin:
-		German (100%) (thanks, pipin!)
-		Portuguese (100%) (thanks, RPargana!)
-	Dependencies:
-		Bump FFmpeg to latest
-		Bump h2 from 2.1.210 to 2.1.212
-		Bump icu4j from 70.1 to 71.1
-		Bump JRE from 8u322 to 8u332
-		Bump maven-antrun-plugin from 3.0.0 to 3.1.0
-		Bump maven-javadoc-plugin from 3.3.2 to 3.4.0
-		Bump maven-site-plugin from 3.11.0 to 3.12.0
-		Bump MediaInfo from 21.09 to 22.03
-		Bump oshi-core from 6.1.5 to 6.1.6
-		Bump surefire-version from 3.0.0-M5 to 3.0.0-M6
+### General
+- Improved API matches for TV series
+- Language improvements (thanks, NCAA!)
+- Fixed database not recovering from serialization changes (#2874)
+- Fixed custom renderer configurations not being loaded (#2917)
+- Fixed MEncoder and MPlayer on Docker (thanks, Jille Timmermans!) (#2922)
+- Fixed config being overwritten when UMS closes (#2875)
+- Fixed setting directory as fully played when folder names are similar
+- Fixed peakaboo in status bar during scans
+- Fixed database upgrade bugs
+### Translation updates via Crowdin
+- German (100%) (thanks, pipin!)
+- Portuguese (100%) (thanks, RPargana!)
+### Dependencies
+- Bump FFmpeg to latest
+- Bump h2 from 2.1.210 to 2.1.212
+- Bump icu4j from 70.1 to 71.1
+- Bump JRE from 8u322 to 8u332
+- Bump maven-antrun-plugin from 3.0.0 to 3.1.0
+- Bump maven-javadoc-plugin from 3.3.2 to 3.4.0
+- Bump maven-site-plugin from 3.11.0 to 3.12.0
+- Bump MediaInfo from 21.09 to 22.03
+- Bump oshi-core from 6.1.5 to 6.1.6
+- Bump surefire-version from 3.0.0-M5 to 3.0.0-M6
 
 10.20.0 - 2022-03-30
 
