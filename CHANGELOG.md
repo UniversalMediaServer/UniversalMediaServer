@@ -1,28 +1,104 @@
 # Changelog
 
-### [Unreleased V11](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...main)
+## [11.0.0 - since 10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...main)
 ### General
+- Uses image backgrounds and logos for movies, TV series and episodes on the web interface
+- Web interface switches between dark and light themes in Media Library based on background images
+- Automatic quality adjustment on web interface, with optional manual settings
+- Improved video forward-backward positioning in videos via the web video player
+- Improved web interface design
+- Improved web video player design
+- Improved API metadata matches for TV series
+- Added HLS video option which may improve support for transcoding via some renderers like Philips TVs
+- Log splitting/zipping (#2608)
+- Implemented network state scanner
+- Show the addresses of servers on the Status tab (#2372)
+- Allow to set the log level of FFmpeg in its engine settings in the desktop UI (#2677)
+- Increased maximum memory limit on macOS to match Windows
+- Fixed Restart server when network interface becomes available (#2615)
+- Fixed Network Interface not found (#1485)
+- Fixed GetProtocolInfo not being recieved (#2338)
+- Fixed Font scaling issues on some elements of the GUI for some users (#2549)
+- Fixed UMS doesn't free DLNA ports after closing (#739)
+- Fixed Service wrapper for Windows doesn't work with 64 bit JVM (#767)
+- Fixed Deinstallation does not remove autostart entry for wrapper.exe (#2343)
+- Fixed Attempt to remove medias.lock on install/startup (#2838)
+- Fixed Media Library no longer populated and startup scan slowness (#2826)
+- Fixed Cound not open the default web browser: The BROWSE action is not supported on the current platform! (#2725)
+- Added editable server-side playlist support
+- Prevent users from enabling startup scanning while the cache is disabled
 - Removed second toolbar on the web interface video page
 - Increased speed of API lookups
 - Improved video and TV series posters
 - Fixed some API metadata not updating
 - Fixed Resume videos on the web interface
 - Fixed API response handling
+- Backgrounds for TV series, episodes and movies fade in
+- Image backgrounds in Media Library without text are prioritized over ones with text
+- Match more TV series in API
+- Use markdown in changelog
+- Use main branch instead of master
+- Fixed audio files detected as video files
 
-### Dependencies
-- Bump Jackson from 2.13.1 to 2.13.2.2
-
-### [Unreleased V10](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...d87a213606dda1e6773935a375700b33036861ea)
-### General
-- Added editable server-side playlist support
-- Prevent users from enabling startup scanning while the cache is disabled
+### Renderers
+- Samsung 2021 TVs use HLS transcoding
 
 ### Translation updates via Crowdin
 - Catalan (100%) (thanks, Toni Grau i Quellos!)
 - Chinese (Simplified) (97%) (thanks, wwj402_github!)
-- Danish (100%) (thanks, GurliGebis!)
+- Czech (100%)
+- Danish (99%) (thanks, GurliGebis and NCAA!)
+- English (UK) (99%) (thanks, Pete Russell!)
 - Finnish (100%) (thanks, Esko Gardner!)
 - French (100%) (thanks, Archaos and Philippe P!)
+- Italian (100%) (thanks, Oscar Zambotti!)
+- Korean (100%) (thanks, VenusGirl!)
+- Persian (34%) (thanks, Behzad Najafizad!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Swedish (99%) (thanks, Lorien aka the First One (The1stOne)!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Started using Renovate for dependency tracking
+- Added x64 windows service wrapper
+- Replaced Cling with JUPnP
+- Update actions/cache action to v3
+- Update actions/checkout action to v3
+- Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.0.0
+- Update dependency moment.js to v2.29.3
+- Update dependency pako to v1.0.11
+- Bump checkstyle from 9.3 to 10.2
+- Bump Jackson from 2.13.1 to 2.13.2.2
+- Bump JRE from 8u332 to 17.0.3
+- Bump metadata-extractor from 2.17.0 to 2.18.0
+- Bump Video.js from 7.13.3 to 7.19.2
+- Fixed support for latest Maven versions
+
+## [11.0.0 - since 11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...main)
+### General
+- Added editable server-side playlist support
+- Prevent users from enabling startup scanning while the cache is disabled
+- Removed second toolbar on the web interface video page
+- Increased speed of API lookups
+- Improved video and TV series posters
+- Fixed some API metadata not updating
+- Fixed Resume videos on the web interface
+- Fixed API response handling
+- Use markdown in changelog
+- Use main branch instead of master
+- Fixed audio files detected as video files
+
+### Translation updates via Crowdin
+- Catalan (100%) (thanks, Toni Grau i Quellos!)
+- Chinese (Simplified) (97%) (thanks, wwj402_github!)
+- Czech (100%)
+- Danish (99%) (thanks, GurliGebis and NCAA!)
+- English (UK) (99%) (thanks, Pete Russell!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Archaos and Philippe P!)
+- Italian (100%) (thanks, Oscar Zambotti!)
 - Korean (100%) (thanks, VenusGirl!)
 - Persian (34%) (thanks, Behzad Najafizad!)
 - Polish (100%) (thanks, Karol Szastok!)
@@ -35,9 +111,13 @@
 - Started using Renovate for dependency tracking
 - Update actions/cache action to v3
 - Update actions/checkout action to v3
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.13.3
 - Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.0.0
 - Update dependency moment.js to v2.29.3
+- Update dependency org.jupnp:org.jupnp to v2.6.1
+- Update dependency org.jupnp:org.jupnp.support to v2.6.1
 - Update dependency pako to v1.0.11
+- Bump Jackson from 2.13.1 to 2.13.2.2
 - Bump metadata-extractor from 2.17.0 to 2.18.0
 
 ### [11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a1...11.0.0-a2) (2022-05-05)
