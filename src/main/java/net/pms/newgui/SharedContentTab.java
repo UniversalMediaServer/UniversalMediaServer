@@ -91,7 +91,7 @@ public class SharedContentTab {
 	private SharedFoldersTableModel folderTableModel;
 	public static WebContentTableModel webContentTableModel;
 	public static JCheckBox itunes;
-	private JCheckBox isScanSharedFoldersOnStartup;
+	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("NetworkTab.StartupScan"));
 	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
 	private static final AnimatedIcon SCAN_NORMAL_ICON = (AnimatedIcon) SCAN_BUTTON.getIcon();
 	private static final AnimatedIcon SCAN_ROLLOVER_ICON = (AnimatedIcon) SCAN_BUTTON.getRolloverIcon();
@@ -438,14 +438,15 @@ public class SharedContentTab {
 
 		SCAN_BUTTON.setEnabled(configuration.getUseCache());
 
-		isScanSharedFoldersOnStartup = new JCheckBox(Messages.getString("NetworkTab.StartupScan"), configuration.isScanSharedFoldersOnStartup());
-		isScanSharedFoldersOnStartup.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltip"));
-		isScanSharedFoldersOnStartup.setContentAreaFilled(false);
-		isScanSharedFoldersOnStartup.addItemListener((ItemEvent e) -> {
+		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setSelected(configuration.isScanSharedFoldersOnStartup());
+		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setContentAreaFilled(false);
+		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.addItemListener((ItemEvent e) -> {
 			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
-		builderFolder.add(isScanSharedFoldersOnStartup, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
+		setScanLibraryEnabled(configuration.getUseCache());
+
+		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 		updateSharedFolders();
 
@@ -726,6 +727,14 @@ public class SharedContentTab {
 		SCAN_BUTTON.setPressedIcon(SCAN_PRESSED_ICON);
 		SCAN_BUTTON.setDisabledIcon(SCAN_DISABLED_ICON);
 		SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.2"));
+
+		if (enabled) {
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltipEnabled"));
+		} else {
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(false);
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("General.ThisFeatureRequiresTheCache"));
+		}
 	}
 
 	/**

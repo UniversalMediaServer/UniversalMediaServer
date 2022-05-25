@@ -33,6 +33,7 @@ public interface IFrame {
 	public void setStatusLine(String line);
 	public void setSecondaryStatusLine(String line);
 	public void serverReady();
+	public void updateServerStatus();
 	public void setScanLibraryEnabled(boolean flag);
 	public String getLog();
 	public void enableWebUiButton();

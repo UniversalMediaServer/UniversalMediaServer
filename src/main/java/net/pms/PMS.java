@@ -29,7 +29,6 @@ import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -47,7 +46,6 @@ import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-import javax.jmdns.JmDNS;
 import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
@@ -68,7 +66,7 @@ import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
-import net.pms.network.ChromecastMgr;
+import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.*;
@@ -81,7 +79,6 @@ import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
-import org.fest.util.Files;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -126,8 +123,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	private JmDNS jmDNS;
 
 	/**
 	 * Returns a pointer to the DMS GUI's main window.
@@ -428,6 +423,8 @@ public class PMS {
 			profiler.startCollecting();
 		}
 
+		// Start network scanner
+		NetworkConfiguration.start();
 		// Initialize mediaDatabase
 		MediaDatabase.init();
 
@@ -590,6 +587,7 @@ public class PMS {
 		if (configuration.useWebInterfaceServer()) {
 			try {
 				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
+				getFrame().updateServerStatus();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -605,12 +603,6 @@ public class PMS {
 		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
-		// Now that renderer confs are all loaded, we can start searching for renderers
-		MediaServer.init();
-
-		// launch ChromecastMgr
-		jmDNS = null;
-		launchJmDNSRenderers();
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
@@ -685,7 +677,8 @@ public class PMS {
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
 
-		boolean binding = MediaServer.start();
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		MediaServer.start();
 
 		new Thread("Connection Checker") {
 			@Override
@@ -703,10 +696,6 @@ public class PMS {
 			}
 		}.start();
 
-		if (!binding) {
-			return false;
-		}
-
 		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
 			frame.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
@@ -715,7 +704,6 @@ public class PMS {
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: " + MediaServer.getURL() + "/console/home");
 		}
 
 		// XXX: this must be called:
@@ -726,6 +714,7 @@ public class PMS {
 		// Ensure up-to-date API metadata versions
 		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
 			APIUtils.setApiMetadataVersions();
+			APIUtils.setApiImageBaseURL();
 		}
 
 		frame.serverReady();
@@ -735,6 +724,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					//Stop network scanner
+					NetworkConfiguration.stop();
+
 					LOGGER.debug("Shutting down the media server");
 					MediaServer.stop();
 					Thread.sleep(500);
@@ -812,7 +804,7 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by DMS.
+	 * Returns the MediaLibrary.
 	 *
 	 * @return The current {@link MediaLibrary} or {@code null} if none is in
 	 *         use.
@@ -853,7 +845,11 @@ public class PMS {
 	 */
 	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
 	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
-	public synchronized String usn() {
+	public String usn() {
+		return "uuid:" + udn();
+	}
+
+	public synchronized String udn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = configuration.getUuid();
@@ -870,7 +866,7 @@ public class PMS {
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
 		}
 
-		return "uuid:" + uuid;
+		return uuid;
 	}
 
 	/**
@@ -1040,7 +1036,6 @@ public class PMS {
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
-			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new PmsConfiguration'
@@ -1187,30 +1182,6 @@ public class PMS {
 	}
 
 	/**
-	 * Try to rename old logfile to <filename>.prev
-	 */
-	private static void renameOldLogFile() {
-		String fullLogFileName = configuration.getDefaultLogFilePath();
-		String newLogFileName = fullLogFileName + ".prev";
-
-		try {
-			File logFile = new File(newLogFileName);
-			if (logFile.exists()) {
-				Files.delete(logFile);
-			}
-			logFile = new File(fullLogFileName);
-			if (logFile.exists()) {
-				File newFile = new File(newLogFileName);
-				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
-		}
-	}
-
-	/**
 	 * Restart handling
 	 */
 	public static void killOld() {
@@ -1218,7 +1189,7 @@ public class PMS {
 		// only that we lack the required permission for these specific items.
 		try {
 			killProc();
-		} catch (AccessControlException e) {
+		} catch (SecurityException e) {
 			LOGGER.error(
 				"Failed to check for already running instance: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
@@ -1289,12 +1260,12 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException {
+	private static void killProc() throws SecurityException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
 		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
-			throw new AccessControlException("Cannot read " + pidFile);
+			throw new SecurityException("Cannot read " + pidFile);
 		}
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {
@@ -1583,27 +1554,6 @@ public class PMS {
 				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
 		}
 		return dynamicPls;
-	}
-
-	private void launchJmDNSRenderers() {
-		if (configuration.useChromecastExt()) {
-			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
-				try {
-					startjmDNS();
-					new ChromecastMgr(jmDNS);
-				} catch (Exception e) {
-					LOGGER.debug("Can't create chromecast mgr");
-				}
-			} else {
-				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
-			}
-		}
-	}
-
-	private void startjmDNS() throws IOException {
-		if (jmDNS == null) {
-			jmDNS = JmDNS.create();
-		}
 	}
 
 	private static int traceMode = 0;

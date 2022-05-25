@@ -27,7 +27,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -48,6 +47,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -63,15 +63,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LooksFrame extends JFrame implements IFrame, Observer {
+	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
+	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
+	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
+	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
+	public static final String START_SERVICE = "start.service";
 
 	private final AutoUpdater autoUpdater;
 	private final PmsConfiguration configuration;
-	public static final String START_SERVICE = "start.service";
 	private final WindowProperties windowProperties;
-	private static final long serialVersionUID = 8723727186288427690L;
-	protected static final Dimension STANDARD_SIZE = new Dimension(1000, 750);
-	protected static final Dimension MINIMUM_SIZE = new Dimension(640, 480);
 
 	/**
 	 * List of context sensitive help pages URLs. These URLs should be
@@ -104,7 +105,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private AnimatedIcon restartIcon;
 	private AbstractButton webinterface;
 	private JLabel status;
-	private static Object lookAndFeelInitializedLock = new Object();
 	private static boolean lookAndFeelInitialized = false;
 	private ViewLevel viewLevel = ViewLevel.UNKNOWN;
 
@@ -156,6 +156,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return generalSettingsTab;
 	}
 
+	@Override
 	public void enableWebUiButton() {
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface.setEnabled(true);
@@ -163,7 +164,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public static void initializeLookAndFeel() {
-		synchronized (lookAndFeelInitializedLock) {
+		synchronized (LOOK_AND_FEEL_INITIALIZED_LOCK) {
 			if (lookAndFeelInitialized) {
 				return;
 			}
@@ -489,6 +490,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
+			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -496,12 +498,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							try {
-								Desktop.getDesktop().browse(uri);
-							} catch (RuntimeException | IOException be) {
-								LOGGER.error("Cound not open the default web browser: {}", be.getMessage());
-								LOGGER.trace("", be);
-								error = Messages.getString("LooksFrame.BrowserError") + "\n" + be.getMessage();
+							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
+								error = Messages.getString("LooksFrame.BrowserError");
 							}
 						} catch (URISyntaxException se) {
 							LOGGER.error(
@@ -536,10 +534,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			}
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
+		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
+		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -790,6 +790,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void serverReady() {
 		st.updateMemoryUsage();
 		generalSettingsTab.addRenderers();
+	}
+
+	@Override
+	public void updateServerStatus() {
+		if (MediaServer.isStarted()) {
+			st.setMediaServerBind(MediaServer.getAddress());
+		} else {
+			st.setMediaServerBind("-");
+		}
+		if (PMS.get().getWebInterfaceServer() != null) {
+			st.setInterfaceServerBind(PMS.get().getWebInterfaceServer().getAddress());
+		} else {
+			st.setInterfaceServerBind("-");
+		}
 	}
 
 	@Override

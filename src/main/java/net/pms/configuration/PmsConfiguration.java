@@ -175,6 +175,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
+	protected static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
@@ -326,6 +327,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
+	protected static final String KEY_UPNP_DEBUG = "upnp_debug";
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
@@ -2570,6 +2572,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		return convertMencoderSettingToFFmpegFormat(mpegSettings);
 	}
 
+	public void setFFmpegLoggingLevel(String value) {
+		configuration.setProperty(KEY_FFMPEG_LOGGING_LEVEL, value);
+	}
+
+	public String getFFmpegLoggingLevel() {
+		return getString(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
+	}
+
 	public void setFfmpegMultithreading(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_MULTITHREADING, value);
 	}
@@ -4693,9 +4703,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public File getWebPath() {
 		File path = new File(getString(KEY_WEB_PATH, "web"));
 		if (!path.exists()) {
-			path.mkdirs();
+			//check if we are running from sources
+			File srcPath = new File("src/main/external-resources/web");
+			if (!srcPath.exists()) {
+				path.mkdirs();
+			} else {
+				path = srcPath;
+			}
 		}
-
 		return path;
 	}
 
@@ -4927,6 +4942,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean isUpnpEnabled() {
 		return getBoolean(KEY_UPNP_ENABLED, true);
+	}
+
+	public boolean isUpnpDebug() {
+		return getBoolean(KEY_UPNP_DEBUG, false);
 	}
 
 	public String getRootLogLevel() {

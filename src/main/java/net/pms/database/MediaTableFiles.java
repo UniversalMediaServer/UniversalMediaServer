@@ -19,6 +19,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.*;
 import java.io.EOFException;
@@ -34,7 +35,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil.ScaleType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +84,11 @@ public class MediaTableFiles extends MediaTable {
 	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
 	 *       updating H2Database to v2)
 	 * - 26: No db changes, improved filename parsing
+	 * - 27: Added many columns for TMDB information
+	 * - 28: No db changes, clear database metadata to populate new columns
+	 * - 29-30: No db changes, improved filename parsing
 	 */
-	private static final int TABLE_VERSION = 26;
+	private static final int TABLE_VERSION = 30;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -96,14 +100,16 @@ public class MediaTableFiles extends MediaTable {
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_FRAMERATEMODE = 16;
 
-	private static final int SIZE_SAMPLEFREQ = 16;
-	private static final int SIZE_CODECA = 32;
-	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
 	private static final int SIZE_TVEPISODENUMBER = 8;
 
 	/**
+	 * The columns we added from TMDB in V11
+	 */
+	private static final String TMDB_COLUMNS = ", BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
+
+	/*
 	 * Checks and creates or upgrades the table as needed.
 	 *
 	 * @param connection the {@link Connection} to use
@@ -247,6 +253,55 @@ public class MediaTableFiles extends MediaTable {
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 						}
+
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 26:
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
+
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 27:
+						// This version was for testing, left here to not break tester dbs
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 28:
+						// This didn't work and was fixed in the next version
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 29:
+						try (Statement statement = connection.createStatement()) {
+							/*
+							 * Since the last release, 10.21.0.1, we fixed some bugs with miniseries
+							 * filename parsing so here we clear any cached data for potential miniseries.
+							 */
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("UPDATE ")
+									.append("FILES ")
+								.append("SET ")
+									.append("IMDBID = NULL, ")
+									.append("MEDIA_YEAR = NULL, ")
+									.append("MOVIEORSHOWNAME = NULL, ")
+									.append("MOVIEORSHOWNAMESIMPLE = NULL, ")
+									.append("TVSEASON = NULL, ")
+									.append("TVEPISODENUMBER = NULL, ")
+									.append("TVEPISODENAME = NULL, ")
+									.append("ISTVEPISODE = NULL, ")
+									.append("EXTRAINFORMATION = NULL ")
+								.append("WHERE ")
+									.append("FILENAME REGEXP '[0-9]of[0-9]'");
+							statement.execute(sb.toString());
+						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:
@@ -324,6 +379,16 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", ISTVEPISODE             BOOLEAN");
 			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
 			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", BUDGET DOUBLE");
+			sb.append(", CREDITS VARCHAR2");
+			sb.append(", EXTERNALIDS VARCHAR2");
+			sb.append(", HOMEPAGE VARCHAR2");
+			sb.append(", IMAGES VARCHAR2");
+			sb.append(", ORIGINALLANGUAGE VARCHAR2");
+			sb.append(", ORIGINALTITLE VARCHAR2");
+			sb.append(", PRODUCTIONCOMPANIES VARCHAR2");
+			sb.append(", PRODUCTIONCOUNTRIES VARCHAR2");
+			sb.append(", REVENUE VARCHAR2");
 			sb.append(")");
 			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 
@@ -459,6 +524,7 @@ public class MediaTableFiles extends MediaTable {
 				PreparedStatement stmt = connection.prepareStatement(
 					"SELECT * FROM " + TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + MediaTableThumbnails.TABLE_NAME + ".ID " +
+					"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".MOVIEORSHOWNAMESIMPLE=" + MediaTableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
 					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
 					"LIMIT 1"
 				);
@@ -469,6 +535,7 @@ public class MediaTableFiles extends MediaTable {
 					ResultSet rs = stmt.executeQuery();
 					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
+					PreparedStatement chapters = connection.prepareStatement("SELECT * FROM " + MediaTableChapters.TABLE_NAME + " WHERE FILEID = ?");
 					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
 				) {
 					if (rs.next()) {
@@ -515,6 +582,10 @@ public class MediaTableFiles extends MediaTable {
 						} else {
 							media.setIsTVEpisode(false);
 						}
+
+						// Fields from TV Series table
+						media.setTVSeriesStartYear(rs.getString("STARTYEAR"));
+
 						media.setMediaparsed(true);
 						audios.setInt(1, id);
 						try (ResultSet elements = audios.executeQuery()) {
@@ -565,6 +636,21 @@ public class MediaTableFiles extends MediaTable {
 								sub.setSubCharacterSet(elements.getString("CHARSET"));
 								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
 								media.addSubtitlesTrack(sub);
+							}
+						}
+
+						chapters.setLong(1, id);
+						try (ResultSet elements = chapters.executeQuery()) {
+							while (elements.next()) {
+								DLNAMediaChapter chapter = new DLNAMediaChapter();
+								chapter.setId(elements.getInt("ID"));
+								chapter.setLang(elements.getString("LANG"));
+								chapter.setTitle(elements.getString("TITLE"));
+								chapter.setStart(elements.getDouble("START_TIME"));
+								chapter.setEnd(elements.getDouble("END_TIME"));
+								chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
+								LOGGER.trace("Adding chapter from the database for {}: {}", name, chapter.toString());
+								media.addChapter(chapter);
 							}
 						}
 
@@ -713,7 +799,8 @@ public class MediaTableFiles extends MediaTable {
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
+					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, " +
+					"EXTRAINFORMATION " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? " +
@@ -908,6 +995,7 @@ public class MediaTableFiles extends MediaTable {
 			if (media != null && fileId > -1) {
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {
@@ -956,7 +1044,7 @@ public class MediaTableFiles extends MediaTable {
 	 * @param media the {@link DLNAMediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final HashMap apiExtendedMetadata) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -969,7 +1057,8 @@ public class MediaTableFiles extends MediaTable {
 		try (
 			PreparedStatement ps = connection.prepareStatement(
 				"SELECT " +
-					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
+					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION" +
+					TMDB_COLUMNS + " " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILENAME = ? AND MODIFIED = ? " +
@@ -992,6 +1081,34 @@ public class MediaTableFiles extends MediaTable {
 					rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
 					rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
 					rs.updateString("VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
+
+					// TMDB data, since v11
+					if (apiExtendedMetadata != null) {
+						if (apiExtendedMetadata.get("budget") != null) {
+							rs.updateDouble("BUDGET", (Double) apiExtendedMetadata.get("budget"));
+						}
+						if (apiExtendedMetadata.get("credits") != null) {
+							rs.updateString("CREDITS", StringUtils.join(apiExtendedMetadata.get("credits"), ","));
+						}
+						if (apiExtendedMetadata.get("externalIDs") != null) {
+							rs.updateString("EXTERNALIDS", StringUtils.join(apiExtendedMetadata.get("externalIDs"), ","));
+						}
+						rs.updateString("HOMEPAGE", (String) apiExtendedMetadata.get("homepage"));
+						if (apiExtendedMetadata.get("images") != null) {
+							String json = new Gson().toJson(apiExtendedMetadata.get("images"));
+							rs.updateString("IMAGES", json);
+						}
+						rs.updateString("ORIGINALLANGUAGE", (String) apiExtendedMetadata.get("originalLanguage"));
+						rs.updateString("ORIGINALTITLE", (String) apiExtendedMetadata.get("originalTitle"));
+						if (apiExtendedMetadata.get("productionCompanies") != null) {
+							rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(apiExtendedMetadata.get("productionCompanies"), ","));
+						}
+						if (apiExtendedMetadata.get("productionCountries") != null) {
+							rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(apiExtendedMetadata.get("productionCountries"), ","));
+						}
+						rs.updateString("REVENUE", (String) apiExtendedMetadata.get("revenue"));
+					}
+
 					rs.updateRow();
 				} else {
 					LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
@@ -1192,7 +1309,7 @@ public class MediaTableFiles extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 			}
-		} catch (SQLException se) {
+		} catch (Exception se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}

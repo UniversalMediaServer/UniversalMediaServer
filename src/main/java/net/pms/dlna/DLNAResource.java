@@ -80,6 +80,7 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -96,8 +97,6 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
-import net.pms.network.DbIdResourceLocator;
-import net.pms.network.DbIdResourceLocator.DbidMediaType;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.Renderer;
@@ -1086,7 +1085,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			if (objectId.startsWith(DbidMediaType.GENERAL_PREFIX)) {
+			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
 					dlna = dbIdResourceLocator.locateResource(objectId);
 				} catch (Exception e) {
@@ -2503,6 +2502,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodedExtension = "_transcoded_to.mov";
 						} else if (mediaRenderer.getCustomFFmpegOptions().contains("-f webm")) {
 							transcodedExtension = "_transcoded_to.webm";
+						} else if (mediaRenderer.isTranscodeToHLS()) {
+							transcodedExtension = "_transcoded_to.m3u8";
 						} else if (mediaRenderer.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
 						} else if (mediaRenderer.isTranscodeToWMV() && !xbox360) {
@@ -3144,7 +3145,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
-	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		return getInputStream(range, mediarenderer, null);
+	}
+
+	/**
+	 * Returns an InputStream of this DLNAResource that starts at a given time,
+	 * if possible. Very useful if video chapters are being used.
+	 *
+	 * @param range
+	 * @param mediarenderer
+	 * @param hlsConfiguration
+	 * @return The inputstream
+	 * @throws IOException
+	 */
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, HlsConfiguration hlsConfiguration) throws IOException {
 		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
@@ -3235,6 +3250,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		params.setTimeSeek(timeRange.getStartOrZero());
 		params.setTimeEnd(timeRange.getEndOrZero());
 		params.setShiftScr(timeseekAuto);
+		params.setHlsConfiguration(hlsConfiguration);
 		if (this instanceof IPushOutput) {
 			params.setStdIn((IPushOutput) this);
 		}
@@ -3259,7 +3275,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// (Re)start transcoding process if necessary
-		if (externalProcess == null || externalProcess.isDestroyed()) {
+		if (externalProcess == null || externalProcess.isDestroyed() || hlsConfiguration != null) {
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 			lastStartSystemTime = System.currentTimeMillis();
@@ -4350,7 +4366,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param splitRange The time range to set.
 	 * @since 1.50
 	 */
-	protected void setSplitRange(Range.Time splitRange) {
+	public void setSplitRange(Range.Time splitRange) {
 		this.splitRange = splitRange;
 	}
 
@@ -5024,7 +5040,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (yearFromFilename != null) {
-					media.setYear(yearFromFilename);
+					if (media.isTVEpisode()) {
+						media.setTVSeriesStartYear(yearFromFilename);
+					} else {
+						media.setYear(yearFromFilename);
+					}
 				}
 
 				if (extraInformationFromFilename != null) {
@@ -5050,7 +5070,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							// TODO: Make sure this does not happen if ANY version already exists, before doing this
-							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media);
+							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API

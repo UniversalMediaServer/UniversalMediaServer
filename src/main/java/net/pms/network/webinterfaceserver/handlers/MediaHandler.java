@@ -31,8 +31,10 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.HlsHelper;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
+import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
@@ -71,6 +73,9 @@ public class MediaHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(httpExchange)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(httpExchange, "");
+			}
 			RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(httpExchange), httpExchange);
 			if (root == null) {
 				throw new IOException("Unknown root");
@@ -81,6 +86,14 @@ public class MediaHandler implements HttpHandler {
 			}
 			String id = WebInterfaceServerUtil.getId(path, httpExchange);
 			id = WebInterfaceServerUtil.strip(id);
+			if (id.contains("/hls/")) {
+				//clean for hls
+				id = id.substring(0, id.indexOf("/hls/"));
+			}
+			if (id.endsWith("/chapters.json") || id.endsWith("/chapters.vtt")) {
+				//clean for chapters
+				id = id.substring(0, id.lastIndexOf("/chapters"));
+			}
 			RendererConfiguration defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
@@ -141,7 +154,49 @@ public class MediaHandler implements HttpHandler {
 				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
-
+			if (HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+				String uri = WebInterfaceServerUtil.getId(path, httpExchange);
+				Headers headers = httpExchange.getResponseHeaders();
+				headers.add("Server", PMS.get().getServerName());
+				if (uri.endsWith("/chapters.vtt")) {
+					String response = DLNAMediaChapter.getWebVtt(resource);
+					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+				} else if (uri.endsWith("/chapters.json")) {
+					String response = DLNAMediaChapter.getHls(resource);
+					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.JSON_TYPEMIME);
+				} else if (uri.contains("/hls/")) {
+					if (uri.endsWith(".m3u8")) {
+						String rendition = uri.substring(uri.indexOf("/hls/") + 5);
+						rendition = rendition.replace(".m3u8", "");
+						String response = HlsHelper.getHLSm3u8ForRendition(resource, root.getDefaultRenderer(), "/media/", rendition);
+						WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+					} else {
+						//we need to stream
+						InputStream in = HlsHelper.getInputStream(uri, resource, defaultRenderer);
+						if (in != null) {
+							headers.add("Connection", "keep-alive");
+							if (uri.endsWith(".ts")) {
+								headers.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+							} else if (uri.endsWith(".vtt")) {
+								headers.add("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+							}
+							OutputStream os = httpExchange.getResponseBody();
+							httpExchange.sendResponseHeaders(200, 0); //chunked
+							render.start(resource);
+							if (LOGGER.isTraceEnabled()) {
+								WebInterfaceServerUtil.logMessageSent(httpExchange, null, in);
+							}
+							WebInterfaceServerUtil.dump(in, os);
+						} else {
+							httpExchange.sendResponseHeaders(500, -1);
+						}
+					}
+				} else {
+					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), "/media/");
+					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.HLS_TYPEMIME);
+				}
+				return;
+			}
 			media.setMimeType(mimeType);
 			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
@@ -164,6 +219,9 @@ public class MediaHandler implements HttpHandler {
 			headers.add("Server", PMS.get().getServerName());
 			headers.add("Connection", "keep-alive");
 			httpExchange.sendResponseHeaders(code, 0);
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(httpExchange, null, in);
+			}
 			OutputStream os = httpExchange.getResponseBody();
 			if (render != null) {
 				render.start(resource);
@@ -180,4 +238,5 @@ public class MediaHandler implements HttpHandler {
 			LOGGER.trace("", e);
 		}
 	}
+
 }

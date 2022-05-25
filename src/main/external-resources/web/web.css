@@ -10,15 +10,25 @@ html {
 
 body {
 	font-family: "Roboto", "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
-	color: #bbb;
+	color: #d9d9d9;
 	background-color: #212121;
-	-webkit-transition: background-color 1000ms linear;
-	-ms-transition: background-color 1000ms linear;
-	transition: background-color 1000ms linear;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-attachment: fixed;
 }
 
 body#ContentPage.browsePage {
 	min-height: 100%;
+}
+
+.bodyBackgroundImageScreen {
+	height: 100%;
+	width: 100%;
+	background-color: rgba(33, 33, 33, 1);
+	transition: background-color .5s ease-in-out;
+	-moz-transition: background-color .5s ease-in-out;
+	-webkit-transition: background-color .5s ease-in-out; 
+	-o-transition: background-color .5s ease-in-out; 
 }
 
 /* Scaffolding */
@@ -146,7 +156,7 @@ ul li a {
 }
 
 ul#Folders li a {
-	color: #aaa;
+	color: #d9d9d9;
 	font-size: 16px;
 }
 
@@ -575,24 +585,45 @@ form#SearchForm {
 	overflow-wrap: break-word;
 }
 
-.mediaInfo h1 > a {
-	margin-left: 20px;
-	color: #e0ac00;
-}
-
 .mediaInfoText {
 	padding: 30px 50px;
-	background-color: rgba(0, 0, 0, 0.1);
 	border-radius: 4px;
+}
+
+.breadcrumb {
+	margin-right: 20px;
+}
+
+.mediaInfoText,
+.breadcrumb {
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+.breadcrumb li a {
+	color: rgba(217, 217, 217, 1);
+}
+
+.breadcrumb li.active {
+	color: rgba(255, 255, 255, 1);
 }
 
 .browsePage .mediaInfo {
 	display: flex;
 }
 
-body.dark .mediaInfoText {
-	background-color: rgba(255, 255, 255, 0.1);
+body.dark .mediaInfoText,
+body.dark .breadcrumb {
+	background-color: rgba(255, 255, 255, 0.7);
 	color: rgba(18, 18, 18, 1);
+}
+
+body.dark .breadcrumb li a,
+body.dark .breadcrumb>li+li:before {
+	color: rgba(40, 40, 40, 1);
+}
+
+body.dark .breadcrumb li.active {
+	color: rgba(0, 0, 0, 1);
 }
 
 body .mediaInfoText .badge {
@@ -609,21 +640,12 @@ body .mediaInfoText a:hover {
 	color: rgba(255, 255, 255, 1);
 }
 
-.videoPage .posterContainer {
+.videoPage .posterContainer,
+.backgroundPreloadContainer {
 	display: none;
 }
 
-/* Bootstrap overrides */
-
-.breadcrumb {
-	background-color: rgba(51, 51, 51, 0.8);
-	margin-right: 20px;
-}
-
-.breadcrumb li a {
-	color: #bbb;
-}
-
-.breadcrumb li.active {
-	color: #ddd;
+#imdbLink {
+	margin-left: 20px;
+	color: #e0ac00;
 }
