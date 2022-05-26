@@ -23,11 +23,11 @@ import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdTypeAndIdent2;
 import net.pms.dlna.RealFileDbId;
+import net.pms.dlna.api.MusicBrainzAlbum;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.network.mymusic.MusicBrainzAlbum;
 
 /**
  * <pre>
