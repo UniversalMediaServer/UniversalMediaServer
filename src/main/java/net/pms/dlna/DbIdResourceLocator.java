@@ -34,9 +34,9 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.dlna.api.DoubleRecordFilter;
+import net.pms.dlna.api.MusicBrainzAlbum;
 import net.pms.dlna.virtual.VirtualFolderDbId;
-import net.pms.network.mymusic.DoubleRecordFilter;
-import net.pms.network.mymusic.MusicBrainzAlbum;
 
 public class DbIdResourceLocator {
 
