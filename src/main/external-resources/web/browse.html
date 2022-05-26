@@ -15,27 +15,27 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1"> 
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<script src="/files/jquery.min.js"></script>
-		<script src="/files/js.cookie.min.js"></script>
-		<script src="/files/util/lodash.js"></script>
-		<script src="/files/jquery.ums.js"></script>
-		<script src="/bump/bump.js"></script>
+		<script src="/files/util/jquery.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/js.cookie.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/lodash.js?v={{umsversion}}"></script>
+		<script src="/files/util/jquery.ums.js?v={{umsversion}}"></script>
+		<script src="/bump/bump.js?v={{umsversion}}"></script>
 		<!-- New webUI -->
-		<script src="/files/util/bootstrap.min.js"></script>
-		<script src="/files/util/html5.js"></script>
-		<script src="/files/util/modernizr.custom.js"></script>
-		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<script src="/files/util/bootstrap.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/html5.js?v={{umsversion}}"></script>
+		<script src="/files/util/modernizr.custom.js?v={{umsversion}}"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css?v={{umsversion}}" type="text/css" media="screen">
 		<!--TV - REMOTE CONTROL-->
-		<script src="/files/util/jQKeyboard.js"></script><!--load before keycontroller-->
-		<script src="/files/util/keycode.js"></script>
-		<script src="/files/util/keycontroller.js"></script>
-		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css">
-		<link rel="stylesheet" href="/files/util/jQKeyboard.css" type="text/css">
+		<script src="/files/util/jQKeyboard.js?v={{umsversion}}"></script><!--load before keycontroller-->
+		<script src="/files/util/keycode.js?v={{umsversion}}"></script>
+		<script src="/files/util/keycontroller.js?v={{umsversion}}"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css?v={{umsversion}}" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css?v={{umsversion}}">
+		<link rel="stylesheet" href="/files/util/jQKeyboard.css?v={{umsversion}}" type="text/css">
 
-		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
-		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/files/util/web.css?v={{umsversion}}" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/web-narrow.css?v={{umsversion}}" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/util/web-wide.css?v={{umsversion}}" type="text/css" media="screen and (min-width: 1081px)">
 		<title>{{name}}</title>
 	</head>
 	<body id="ContentPage" class="browsePage">
@@ -230,10 +230,10 @@
 			</div>
 		</div>
 	</body>
-	<script src="/files/util/fontawesome/js/all.min.js"></script>
+	<script src="/files/util/fontawesome/js/all.min.js?v={{umsversion}}"></script>
 	{{#hasFile}}
-		<script src="/files/util/searchclassie.js"></script>
-		<script src="/files/util/search.js"></script>
+		<script src="/files/util/searchclassie.js?v={{umsversion}}"></script>
+		<script src="/files/util/search.js?v={{umsversion}}"></script>
 	{{/hasFile}}
 	<script>$('input.jQKeyboard').initKeypad({'keyboardLayout': keyboard});</script>
 </html>

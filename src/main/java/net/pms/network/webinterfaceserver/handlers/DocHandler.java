@@ -53,9 +53,9 @@ public class DocHandler implements HttpHandler {
 				return;
 			}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			String response = parent.getResources().getTemplate("doc.html").execute(vars);
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+			String response = parent.getResources().getTemplate("doc.html").execute(mustacheVars);
 			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread

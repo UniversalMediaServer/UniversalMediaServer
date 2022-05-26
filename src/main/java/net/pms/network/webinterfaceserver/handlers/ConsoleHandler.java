@@ -63,8 +63,8 @@ public class ConsoleHandler implements HttpHandler {
 				return;
 			}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("logs", getLogs(true));
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("logs", getLogs(true));
 			if (CONFIGURATION.getUseCache()) {
 				int pos = t.getRequestURI().getPath().indexOf("scan/");
 				if (pos != -1) {
@@ -78,13 +78,13 @@ public class ConsoleHandler implements HttpHandler {
 					}
 				}
 				if (LibraryScanner.isScanLibraryRunning()) {
-					vars.put("scanLibrary", "<b>Scan in progress!</b><br>You can <b><a href=\"/console/scan/stop\">stop it</a></b><br>");
+					mustacheVars.put("scanLibrary", "<b>Scan in progress!</b><br>You can <b><a href=\"/console/scan/stop\">stop it</a></b><br>");
 				} else {
-					vars.put("scanLibrary", "<b>Scan stopped!</b><br>You can <b><a href=\"/console/scan/start\">Start it</a></b><br>");
+					mustacheVars.put("scanLibrary", "<b>Scan stopped!</b><br>You can <b><a href=\"/console/scan/start\">Start it</a></b><br>");
 				}
 			}
-			vars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			String response = parent.getResources().getTemplate("console.html").execute(vars);
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+			String response = parent.getResources().getTemplate("console.html").execute(mustacheVars);
 			WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread

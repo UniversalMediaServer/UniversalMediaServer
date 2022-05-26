@@ -15,7 +15,7 @@ ul#Media,
 }
 
 #ContentPage #Menu {
-	background: url('/files/menu-background-content.png');
+	background: url('/files/img/menu-background-content.png');
 	background-repeat: repeat-x;
 	background-position: bottom;
 	height: 53px;

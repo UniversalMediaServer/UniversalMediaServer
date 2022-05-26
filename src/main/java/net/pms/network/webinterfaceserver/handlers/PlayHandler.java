@@ -52,6 +52,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.util.PropertiesUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -145,7 +146,7 @@ public class PlayHandler implements HttpHandler {
 		}
 	}
 
-	private static void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
+	private static void addNextByType(DLNAResource d, HashMap<String, Object> mustacheVars) {
 		List<DLNAResource> children = d.getParent().getChildren();
 		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
 		int type = d.getType();
@@ -168,8 +169,8 @@ public class PlayHandler implements HttpHandler {
 				next = null;
 			}
 			String pos = step > 0 ? "next" : "prev";
-			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Name", next != null ? (StringEscapeUtils.escapeHtml(next.resumeName())) : null);
+			mustacheVars.put(pos + "Id", next != null ? next.getResourceId() : null);
+			mustacheVars.put(pos + "Name", next != null ? (StringEscapeUtils.escapeHtml(next.resumeName())) : null);
 		}
 	}
 
@@ -178,6 +179,7 @@ public class PlayHandler implements HttpHandler {
 		try {
 			HashMap<String, Object> mustacheVars = new HashMap<>();
 			mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 
 			LOGGER.debug("Make play page " + id);
 			String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
@@ -424,10 +426,10 @@ public class PlayHandler implements HttpHandler {
 		}
 
 		if (!items.isEmpty()) {
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
-			vars.put("items", items);
-			return parent.getResources().getTemplate("play.m3u8").execute(vars);
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
+			mustacheVars.put("items", items);
+			return parent.getResources().getTemplate("play.m3u8").execute(mustacheVars);
 		}
 		return null;
 	}
