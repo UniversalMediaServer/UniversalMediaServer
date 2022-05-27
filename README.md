@@ -21,7 +21,6 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 ## Current Forum Moderators
 
-* [atamariya][8]
 * [mik_s][7]
 * [squadjot][30]
 
@@ -49,6 +48,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * Redlum
 * renszarv
 * [SharkHunter][4]
+* skeptical
 * taconaut
 * tcox
 * tomeko
