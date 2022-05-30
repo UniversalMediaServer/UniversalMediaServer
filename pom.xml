@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.0.0</version>
+	<version>11.0.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -44,7 +44,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/UniversalMediaServer/UniversalMediaServer.git</connection>
 		<developerConnection>scm:git:git@github.com:UniversalMediaServer/UniversalMediaServer.git</developerConnection>
-		<tag>master</tag>
+		<tag>main</tag>
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
 	<issueManagement>
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.0.0</project.version.short>
+		<project.version.short>11.0.1</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -466,7 +466,7 @@
 		<dependency>
 			<groupId>org.jupnp</groupId>
 			<artifactId>org.jupnp.support</artifactId>
-			<version>2.6.0</version>
+			<version>2.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
@@ -2697,7 +2697,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.2</version>
+								<version>10.3</version>
 							</dependency>
 						</dependencies>
 						<configuration>

@@ -29,7 +29,7 @@ var bump = (function() {
 		}
 		here = [title !== undefined ? title:document.title,0,uri !== undefined ? uri:location];
 		selindex = -1;
-		refresh('{"playlist":[]}');
+		refresh({"playlist":[]});
 	}
 
 	function hookup() {
@@ -96,8 +96,7 @@ var bump = (function() {
 		}
 	}
 
-	function refresh(data) {
-		var vars = $.parseJSON(data);
+	function refresh(vars) {
 		if ('uuid' in vars && vars['uuid'] !== renderer) return;
 		if ('state' in vars) {
 			setState(vars['state']);

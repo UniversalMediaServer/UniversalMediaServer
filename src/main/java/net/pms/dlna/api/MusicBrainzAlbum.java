@@ -1,4 +1,4 @@
-package net.pms.network.mymusic;
+package net.pms.dlna.api;
 
 import java.util.Objects;
 

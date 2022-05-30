@@ -610,6 +610,10 @@ public class WebInterfaceServerUtil {
 						headers.add("Content-Type", mime);
 					}
 				}
+				//add cache for js and css versionned
+				if (filename.startsWith("util/") && t.getRequestURI() != null && t.getRequestURI().getQuery() != null && t.getRequestURI().getQuery().startsWith("v=")) {
+					headers.add("Cache-Control", "public, max-age=604800");
+				}
 				// Note: available() isn't officially guaranteed to return the full
 				// stream length but effectively seems to do so in our context.
 				t.sendResponseHeaders(200, stream.available());

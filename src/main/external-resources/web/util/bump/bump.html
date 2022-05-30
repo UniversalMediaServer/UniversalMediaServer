@@ -1,11 +1,12 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>bump</title>
-		<link rel="stylesheet" href="/files/web.css" type="text/css">
-		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css">
-		<link rel="stylesheet" href="/files/web-wide.css" type="text/css">
+		<link rel="stylesheet" href="/files/util/web.css?v={{umsversion}}" type="text/css">
+		<link rel="stylesheet" href="/files/util/web-narrow.css?v={{umsversion}}" type="text/css">
+		<link rel="stylesheet" href="/files/util/web-wide.css?v={{umsversion}}" type="text/css">
 		<script>
-			server_addr = 'http://127.0.0.1:9001';
+			server_addr = '{{serverUrl}}';
 
 			function set_addr(new_addr) {
 				var u = document.getElementById('addr');
@@ -65,10 +66,10 @@
 							<a id="bookmarklet" title="press to test the bookmarklet"
 							   href="javascript:(function(){
 
-							   var addr='http://127.0.0.1:9001';
+							   var addr='{{serverUrl}}';
 							   if(typeof bump !== 'undefined' && bump.enabled()){return;}
 							   loadjs('https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js',function(){
-							   loadjs(addr+'/bump/bump.js',function(){
+							   loadjs(addr+'/bump/bump.js?v={{umsversion}}',function(){
 							   bump.start(addr);
 							   });
 							   });
@@ -88,7 +89,7 @@
 							   };
 							   head.appendChild(script);
 							   }
-							   })();"><img src="files/bump/bump32.png" alt="bump"/></a></div>
+							   })();"><img src="files/util/bump/bump32.png" alt="bump"/></a></div>
 					</center>
 					<br><br>
 					<div class="bump">
@@ -163,12 +164,12 @@
 						switch server modes). Alternatively you can also switch to the <u><i>http</i></u> version
 						of the page if one is available (e.g. on youtube).</li>
 						<li>The button is currently configured for UMS
-							web server address at <i><b><code id="addr">http://127.0.0.1:9001</code></b></i>
+							web server address at <i><b><code id="addr">{{serverUrl}}</code></b></i>
 							(<a href="javascript:get_addr()" title="Click to set the network address of UMS/PMS' host machine">change...</a>
 							then repeat setup).</li>
 						<li>You can create a new skin for the player as follows:
 							<ul>
-								<li>Copy the UMS program subfolder <i><b>web/bump/skin</b></i> anywhere and maybe rename it, e.g. <i><b>mySkin</b></i>.</li>
+								<li>Copy the UMS program subfolder <i><b>web/util/bump/skin</b></i> anywhere and maybe rename it, e.g. <i><b>mySkin</b></i>.</li>
 								<li>Set <span style="color:#0000BB"><b>bump.skin</b>=<i>c:\\path\\to\\mySkin</i></span> in <i>UMS.conf</i>.</li>
 								<li>
 									Replace images and edit the embedded css and html in <i><b>mySkin\skin.js</b></i> as desired,

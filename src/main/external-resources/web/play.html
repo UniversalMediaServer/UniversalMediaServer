@@ -3,32 +3,32 @@
 	<head>
 		<meta charset="utf-8">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<script src="/files/jquery.min.js"></script>
-		<script src="/files/js.cookie.min.js"></script>
-		<script src="/files/util/lodash.js"></script>
-		<script src="/files/jquery.ums.js"></script>
+		<script src="/files/util/jquery.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/js.cookie.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/lodash.js?v={{umsversion}}"></script>
+		<script src="/files/util/jquery.ums.js?v={{umsversion}}"></script>
 		<!-- New webUI -->
-		<script src="/files/util/bootstrap.min.js"></script>
-		<script src="/files/util/html5.js"></script>
-		<script src="/files/util/modernizr.custom.js"></script>
-		<link rel="stylesheet" href="/files/util/bootstrap.min.css" type="text/css" media="screen">
+		<script src="/files/util/bootstrap.min.js?v={{umsversion}}"></script>
+		<script src="/files/util/html5.js?v={{umsversion}}"></script>
+		<script src="/files/util/modernizr.custom.js?v={{umsversion}}"></script>
+		<link rel="stylesheet" href="/files/util/bootstrap.min.css?v={{umsversion}}" type="text/css" media="screen">
 		<!--TV - REMOTE CONTROL-->
-		<script src="/files/util/keycode.js"></script>
-		<script src="/files/util/keycontroller.js"></script>
-		<link rel="stylesheet" href="/files/util/remoteui.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css" type="text/css">
+		<script src="/files/util/keycode.js?v={{umsversion}}"></script>
+		<script src="/files/util/keycontroller.js?v={{umsversion}}"></script>
+		<link rel="stylesheet" href="/files/util/remoteui.css?v={{umsversion}}" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/fontawesome/css/all.min.css?v={{umsversion}}" type="text/css">
 
 		{{^isNativeAudio}}
-			<link href="/files/util/video-js/video-js.min.css" type="text/css" rel="stylesheet">
-			<script src="/files/util/video-js/video.min.js"></script>
-			<script src="/files/util/video-js/videojs-contrib-quality-levels.min.js"></script>
-			<script src="/files/util/video-js/videojs-hls-quality-selector.min.js"></script>
-			<link href="/files/util/video-js/videojs-hls-quality-selector.min.css" type="text/css" rel="stylesheet">
+			<link href="/files/util/video-js/video-js.min.css?v={{umsversion}}" type="text/css" rel="stylesheet">
+			<script src="/files/util/video-js/video.min.js?v={{umsversion}}"></script>
+			<script src="/files/util/video-js/videojs-contrib-quality-levels.min.js?v={{umsversion}}"></script>
+			<script src="/files/util/video-js/videojs-hls-quality-selector.min.js?v={{umsversion}}"></script>
+			<link href="/files/util/video-js/videojs-hls-quality-selector.min.css?v={{umsversion}}" type="text/css" rel="stylesheet">
 		{{/isNativeAudio}}
 
-		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
-		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/files/util/web.css?v={{umsversion}}" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/web-narrow.css?v={{umsversion}}" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/util/web-wide.css?v={{umsversion}}" type="text/css" media="screen and (min-width: 1081px)">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{{name}}</title>
 	</head>
@@ -61,7 +61,7 @@
 					{{^isVideoWithAPIData}}
 						<div id="VideoContainer">
 							{{^isVideo}}
-							<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
+							<link rel="stylesheet" href="/files/util/flipper.css?v={{umsversion}}" type="text/css" media="screen">
 							{{/isVideo}}
 							<{{mediaType}}
 								id="player"
@@ -110,7 +110,7 @@
 						<div class="mediaInfo">
 							<div id="VideoContainer">
 								{{^isVideo}}
-								<link rel="stylesheet" href="/files/util/flipper.css" type="text/css" media="screen">
+								<link rel="stylesheet" href="/files/util/flipper.css?v={{umsversion}}" type="text/css" media="screen">
 								{{/isVideo}}
 								<{{mediaType}} id="player" class="video-js vjs-default-skin vjs-fluid vjs-big-play-centered{{^isVideo}} full-card card{{/isVideo}}" controls {{auto}} fullscreen width="{{width}}" height="{{height}}"
 									data-setup='{ "liveui" : true }'
