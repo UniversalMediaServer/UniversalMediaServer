@@ -29,6 +29,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,18 +52,22 @@ public class StartHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
 				WebInterfaceServerUtil.sendLogo(t);
 				return;
 			}
 
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", CONFIGURATION.getServerDisplayName());
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 
 			try {
 				Template template = parent.getResources().getTemplate("start.html");
 				if (template != null) {
-					String response = template.execute(vars);
+					String response = template.execute(mustacheVars);
 					WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 				} else {
 					throw new IOException("Web template \"start.html\" not found");

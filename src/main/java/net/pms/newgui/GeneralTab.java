@@ -35,8 +35,8 @@ import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.NetworkConfiguration;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
@@ -344,7 +344,7 @@ public class GeneralTab {
 			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
 			String savedNetworkInterface = configuration.getNetworkInterface();
 			// for backwards-compatibility check if the short network interface name is used
-			savedNetworkInterface = NetworkConfiguration.getInstance().replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
+			savedNetworkInterface = NetworkConfiguration.replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
 			networkInterfaces.setSelectedKey(savedNetworkInterface);
 			networkinterfacesCBX.addItemListener((ItemEvent e) -> {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -412,6 +412,7 @@ public class GeneralTab {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
 			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
+			serverEngine.setToolTipText(Messages.getString("NetworkTab.MediaServerEngineTooltip"));
 			serverEngine.setEditable(false);
 			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
 			if (serverEngine.getSelectedIndex() == -1) {
@@ -574,8 +575,8 @@ public class GeneralTab {
 	}
 
 	private KeyedComboBoxModel<String, String> createNetworkInterfacesModel() {
-		List<String> keys = NetworkConfiguration.getInstance().getDisplayNames();
-		List<String> names = NetworkConfiguration.getInstance().getDisplayNamesWithAddress();
+		List<String> keys = NetworkConfiguration.getDisplayNames();
+		List<String> names = NetworkConfiguration.getDisplayNamesWithAddress();
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(

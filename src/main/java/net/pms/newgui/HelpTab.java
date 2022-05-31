@@ -22,12 +22,9 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -38,6 +35,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import net.pms.PMS;
+import net.pms.io.BasicSystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,14 +90,13 @@ public class HelpTab {
 
 						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
 							// Open external links in the desktop web browser
-							URI uri = new URI(urlString);
-							Desktop.getDesktop().browse(uri);
+							BasicSystemUtils.instance.browseURI(urlString);
 						} else {
 							// Open anchor links in the editorPane
 							editorPane.setPage(event.getURL());
 						}
 					}
-				} catch (IOException | URISyntaxException e) {
+				} catch (IOException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}

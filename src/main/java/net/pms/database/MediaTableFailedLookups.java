@@ -232,17 +232,8 @@ public final class MediaTableFailedLookups extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			if (e.getErrorCode() != 23505) {
-				LOGGER.error(
-					LOG_ERROR_WHILE_IN_FOR,
-					DATABASE_NAME,
-					"writing",
-					TABLE_NAME,
-					fullPathToFile,
-					e.getMessage()
-				);
-				LOGGER.trace("", e);
-			}
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
 		} catch (Exception e) {
 			LOGGER.trace("", e);
 		}

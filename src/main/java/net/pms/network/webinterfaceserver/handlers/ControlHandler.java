@@ -22,12 +22,10 @@ package net.pms.network.webinterfaceserver.handlers;
 import com.sun.net.httpserver.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -39,6 +37,7 @@ import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -65,18 +64,20 @@ public class ControlHandler implements HttpHandler {
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
 		String basepath = CONFIGURATION.getWebPath().getPath();
-		bumpjs = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpJS("bump/bump.js")));
-		skindir = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpSkinDir("bump/skin")));
+		bumpjs = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpJS("util/bump/bump.js")));
+		skindir = new File(FilenameUtils.concat(basepath, CONFIGURATION.getBumpSkinDir("util/bump/skin")));
 		bumpAddress = CONFIGURATION.getBumpAddress();
 		defaultRenderer = null;
 	}
 
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
-
 		if (WebInterfaceServerUtil.deny(httpExchange) && !WebInterfaceServerUtil.bumpAllowed(httpExchange)) {
 			LOGGER.debug("Denying {}", httpExchange);
 			throw new IOException("Denied");
+		}
+		if (LOGGER.isTraceEnabled()) {
+			WebInterfaceServerUtil.logMessageReceived(httpExchange, "");
 		}
 
 		String[] p = httpExchange.getRequestURI().getPath().split("/");
@@ -90,6 +91,7 @@ public class ControlHandler implements HttpHandler {
 		String uuid = p.length > 3 ? p[3] : null;
 		Logical player = uuid != null ? getPlayer(uuid) : null;
 
+		Headers headers = httpExchange.getResponseHeaders();
 		if (player != null) {
 			switch (p[2]) {
 				case "status":
@@ -138,11 +140,14 @@ public class ControlHandler implements HttpHandler {
 			json.add(getPlaylist(player));
 			selectedPlayers.put(httpExchange.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
-			response = parent.getResources().read("bump/bump.html")
-				.replace("http://127.0.0.1:9001", parent.getUrl());
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("serverUrl", parent.getUrl());
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+			response =  parent.getResources().getTemplate("util/bump/bump.html").execute(mustacheVars);
 		} else if (p[2].equals("bump.js")) {
 			response = getBumpJS();
 			mime = "text/javascript";
+			headers.add("Cache-Control", "public, max-age=604800");
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers(httpExchange.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
@@ -151,6 +156,7 @@ public class ControlHandler implements HttpHandler {
 		}
 
 		if (!json.isEmpty()) {
+			mime = "application/json";
 			if (player != null) {
 				json.add("\"uuid\":\"" + uuid + "\"");
 			}
@@ -161,16 +167,10 @@ public class ControlHandler implements HttpHandler {
 			LOGGER.debug("Received http player control request from {}: {}", httpExchange.getRemoteAddress().getAddress(), httpExchange.getRequestURI());
 		}
 
-		Headers headers = httpExchange.getResponseHeaders();
-		headers.add("Content-Type", mime);
 		// w/o this client may receive response status 0 and no content
 		headers.add("Access-Control-Allow-Origin", "*");
 
-		byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
-		httpExchange.sendResponseHeaders(200, bytes.length);
-		try (OutputStream o = httpExchange.getResponseBody()) {
-			o.write(bytes);
-		}
+		WebInterfaceServerUtil.respond(httpExchange, response, 200, mime);
 	}
 
 	public static Map<String, String> parseQuery(HttpExchange x) {
@@ -251,9 +251,9 @@ public class ControlHandler implements HttpHandler {
 
 	public String getBumpJS() {
 		WebInterfaceServerUtil.ResourceManager resources = parent.getResources();
-		return resources.read("bump/bump.js") +
+		return resources.read("util/bump/bump.js") +
 			"\nvar bumpskin = function() {\n" +
-			resources.read("bump/skin/skin.js") +
+			resources.read("util/bump/skin/skin.js") +
 			"\n}";
 	}
 

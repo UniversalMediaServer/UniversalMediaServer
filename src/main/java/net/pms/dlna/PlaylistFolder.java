@@ -17,14 +17,14 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PlaylistFolder extends DLNAResource {
+public final class PlaylistFolder extends DLNAResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
-	private String name;
-	private String uri;
+	private final String name;
+	private final String uri;
+	private final boolean isweb;
+	private final int defaultContent;
 	private boolean valid = true;
-	private boolean isweb = false;
-	private int defaultContent = Format.VIDEO;
 
 	public File getPlaylistfile() {
 		return isweb ? null : new File(uri);
@@ -34,7 +34,7 @@ public class PlaylistFolder extends DLNAResource {
 		this.name = name;
 		this.uri = uri;
 		isweb = FileUtil.isUrl(uri);
-		setLastModified(isweb ? 0 : getPlaylistfile().lastModified());
+		super.setLastModified(isweb ? 0 : new File(uri).lastModified());
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
 	}
 
@@ -42,7 +42,8 @@ public class PlaylistFolder extends DLNAResource {
 		name = f.getName();
 		uri = f.getAbsolutePath();
 		isweb = false;
-		setLastModified(f.lastModified());
+		super.setLastModified(f.lastModified());
+		defaultContent = Format.VIDEO;
 	}
 
 	@Override
@@ -79,9 +80,12 @@ public class PlaylistFolder extends DLNAResource {
 		String extension;
 		Charset charset;
 		if (FileUtil.isUrl(uri)) {
-			extension = FileUtil.getUrlExtension(uri).toLowerCase(PMS.getLocale());
+			extension = FileUtil.getUrlExtension(uri);
 		} else {
-			extension = FileUtil.getExtension(uri).toLowerCase(PMS.getLocale());
+			extension = FileUtil.getExtension(uri);
+		}
+		if (extension != null) {
+			extension = extension.toLowerCase(PMS.getLocale());
 		}
 		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
 			charset = StandardCharsets.UTF_8;
@@ -102,7 +106,7 @@ public class PlaylistFolder extends DLNAResource {
 
 	@Override
 	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		File thumbnailImage = null;
+		File thumbnailImage;
 		if (!isweb) {
 			thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");
 			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
@@ -164,15 +168,15 @@ public class PlaylistFolder extends DLNAResource {
 						int eq = line.indexOf('=');
 						if (eq != -1) {
 							String value = line.substring(eq + 1);
-							String var = line.substring(0, eq).toLowerCase();
+							String valueType = line.substring(0, eq).toLowerCase();
 							fileName = null;
 							title = null;
 							int index = 0;
-							if (var.startsWith("file")) {
-								index = Integer.parseInt(var.substring(4));
+							if (valueType.startsWith("file")) {
+								index = Integer.parseInt(valueType.substring(4));
 								fileName = value;
-							} else if (var.startsWith("title")) {
-								index = Integer.parseInt(var.substring(5));
+							} else if (valueType.startsWith("title")) {
+								index = Integer.parseInt(valueType.substring(5));
 								title = value;
 							}
 							if (index > 0) {

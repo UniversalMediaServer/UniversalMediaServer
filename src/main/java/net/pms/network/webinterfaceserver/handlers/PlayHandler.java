@@ -52,6 +52,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.util.PropertiesUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +76,10 @@ public class PlayHandler implements HttpHandler {
 			if (WebInterfaceServerUtil.deny(t)) {
 				throw new IOException("Access denied");
 			}
+			String body = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, body);
+			}
 			String p = t.getRequestURI().getPath();
 			if (p.contains("/play/")) {
 				LOGGER.debug("got a play request " + t.getRequestURI());
@@ -83,8 +88,7 @@ public class PlayHandler implements HttpHandler {
 				//LOGGER.trace("play page " + response);
 				WebInterfaceServerUtil.respond(t, response, 200, "text/html");
 			} else if (p.contains("/playerstatus/")) {
-				String json = IOUtils.toString(t.getRequestBody(), StandardCharsets.UTF_8);
-				LOGGER.trace("got player status: " + json);
+				LOGGER.trace("got player status: " + body);
 				WebInterfaceServerUtil.respond(t, "", 200, "text/html");
 
 				RootFolder root = parent.getRoot(WebInterfaceServerUtil.userName(t), t);
@@ -93,7 +97,7 @@ public class PlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setData(json);
+				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(body);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity
@@ -123,7 +127,7 @@ public class PlayHandler implements HttpHandler {
 					}
 				}
 				WebInterfaceServerUtil.respond(t, RETURN_PAGE, 200, "text/html");
-			}  else if (p.contains("/m3u8/")) {
+			} else if (p.contains("/m3u8/")) {
 				String id = StringUtils.substringBefore(StringUtils.substringAfter(p, "/m3u8/"), ".m3u8");
 				String response = mkM3u8(PMS.getGlobalRepo().get(id));
 				if (response != null) {
@@ -135,14 +139,14 @@ public class PlayHandler implements HttpHandler {
 			}
 		} catch (IOException e) {
 			throw e;
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in PlayHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
+			LOGGER.debug("", e);
 		}
 	}
 
-	private static void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
+	private static void addNextByType(DLNAResource d, HashMap<String, Object> mustacheVars) {
 		List<DLNAResource> children = d.getParent().getChildren();
 		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
 		int type = d.getType();
@@ -165,8 +169,8 @@ public class PlayHandler implements HttpHandler {
 				next = null;
 			}
 			String pos = step > 0 ? "next" : "prev";
-			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
+			mustacheVars.put(pos + "Id", next != null ? next.getResourceId() : null);
+			mustacheVars.put(pos + "Name", next != null ? (StringEscapeUtils.escapeHtml(next.resumeName())) : null);
 		}
 	}
 
@@ -175,6 +179,7 @@ public class PlayHandler implements HttpHandler {
 		try {
 			HashMap<String, Object> mustacheVars = new HashMap<>();
 			mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
+			mustacheVars.put("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 
 			LOGGER.debug("Make play page " + id);
 			String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
@@ -272,7 +277,9 @@ public class PlayHandler implements HttpHandler {
 						mustacheVars.put("isVideoWithAPIData", true);
 					}
 				}
-
+				if (rootResource.getMedia() != null && rootResource.getMedia().hasChapters()) {
+					mustacheVars.put("isVideoWithChapters", true);
+				}
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 					if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
 						mime = rootResource.getMedia().getMimeType();
@@ -282,6 +289,9 @@ public class PlayHandler implements HttpHandler {
 					if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 						WebRender render = (WebRender) rootResource.getDefaultRenderer();
 						mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
+					}
+					if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
+						mustacheVars.put("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
 					}
 				}
 			}
@@ -416,10 +426,10 @@ public class PlayHandler implements HttpHandler {
 		}
 
 		if (!items.isEmpty()) {
-			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
-			vars.put("items", items);
-			return parent.getResources().getTemplate("play.m3u8").execute(vars);
+			HashMap<String, Object> mustacheVars = new HashMap<>();
+			mustacheVars.put("targetDuration", targetDuration != 0 ? targetDuration : -1);
+			mustacheVars.put("items", items);
+			return parent.getResources().getTemplate("play.m3u8").execute(mustacheVars);
 		}
 		return null;
 	}

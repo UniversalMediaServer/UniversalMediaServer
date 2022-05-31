@@ -253,6 +253,10 @@ public class IpFilter {
 			}
 			return true;
 		}
+		//if it is loopback address, it come from server
+		if (addr.isLoopbackAddress()) {
+			return true;
+		}
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
 				if (log) {

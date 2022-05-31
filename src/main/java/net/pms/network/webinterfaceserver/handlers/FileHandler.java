@@ -60,8 +60,13 @@ public class FileHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		try {
+			if (WebInterfaceServerUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
 			LOGGER.debug("Handling web player server file request \"{}\"", t.getRequestURI());
-
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(t, "");
+			}
 			String path = t.getRequestURI().getPath();
 			String response = null;
 			String mime = null;
@@ -162,7 +167,9 @@ public class FileHandler implements HttpHandler {
 				hdr.add("Access-Control-Allow-Headers", "User-Agent");
 				hdr.add("Access-Control-Allow-Headers", "Content-Type");
 				t.sendResponseHeaders(200, in.available());
-
+				if (LOGGER.isTraceEnabled()) {
+					WebInterfaceServerUtil.logMessageSent(t, null, in);
+				}
 				OutputStream os = t.getResponseBody();
 				LOGGER.trace("input is {} output is {}", in, os);
 				WebInterfaceServerUtil.dump(in, os);

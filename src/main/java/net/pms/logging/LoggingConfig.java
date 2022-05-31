@@ -57,9 +57,9 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingConfig {
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
-	private static Object filepathLock = new Object();
+	private static final Object FILE_PATH_LOCK = new Object();
+	private static final Object LOG_FILE_PATHS_LOCK = new Object();
 	private static String filepath = null;
-	private static Object logFilePathsLock = new Object();
 	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
@@ -83,7 +83,7 @@ public class LoggingConfig {
 	 * @return pathname or <code>null</code>
 	 */
 	public static String getConfigFilePath() {
-		synchronized (filepathLock) {
+		synchronized (FILE_PATH_LOCK) {
 			if (filepath != null) {
 				return filepath;
 			}
@@ -181,7 +181,7 @@ public class LoggingConfig {
 				CacheLogger.initContext();
 			}
 			// Save the file path after loading the file
-			synchronized (filepathLock) {
+			synchronized (FILE_PATH_LOCK) {
 				filepath = file.getAbsolutePath();
 				LOGGER.debug("LogBack started with configuration file: {}", filepath);
 			}
@@ -240,7 +240,7 @@ public class LoggingConfig {
 		// Iterate
 
 		Iterator<Appender<ILoggingEvent>> it = iterators.combinedIterator();
-		synchronized (logFilePathsLock) {
+		synchronized (LOG_FILE_PATHS_LOCK) {
 			while (it.hasNext()) {
 				Appender<ILoggingEvent> appender = it.next();
 
@@ -638,7 +638,7 @@ public class LoggingConfig {
 	}
 
 	public static HashMap<String, String> getLogFilePaths() {
-		synchronized (logFilePathsLock) {
+		synchronized (LOG_FILE_PATHS_LOCK) {
 			return logFilePaths;
 		}
 	}
