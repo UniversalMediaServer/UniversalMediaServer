@@ -29,6 +29,7 @@ public class PlaylistManager {
 
 	private List<Path> availablePlaylists = new ArrayList<>();
 	private List<String> playlistsNames = new ArrayList<>();
+	private List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
 	private boolean serviceDisabled = true;
 	private MediaDatabase db = PMS.get().getMediaDatabase();
 
@@ -45,6 +46,7 @@ public class PlaylistManager {
 
 		availablePlaylists.clear();
 		playlistsNames.clear();
+		serverAccessiblePlaylists.clear();
 
 		try {
 			Path dir = Paths.get(PMS.getConfiguration().getManagedPlaylistFolder());
@@ -64,6 +66,19 @@ public class PlaylistManager {
 		return !serviceDisabled;
 	}
 
+	/**
+	 * Returns discovered playlists name and ID from folder
+	 * PMS.getConfiguration().getManagedPlaylistFolder() if playlist is cached
+	 * in UMS database.
+	 */
+	public List<PlaylistIdentVO> getServerAccessiblePlaylists() {
+		return serverAccessiblePlaylists;
+	}
+
+	/**
+	 * Returns all discovered playlists name from folder
+	 * PMS.getConfiguration().getManagedPlaylistFolder()
+	 */
 	public List<String> getAvailablePlaylistNames() {
 		return playlistsNames;
 	}
@@ -73,6 +88,36 @@ public class PlaylistManager {
 		String name = p.getName(p.getNameCount() - 1).toString();
 		name = name.substring(0, name.indexOf('.'));
 		playlistsNames.add(name.toLowerCase());
+		discoverInLocalDatabase(p, name);
+	}
+
+	/**
+	 * Discovers playlist in local database. If playlist is found it is marked
+	 * as server accessible and can later be browsed by objectid "$DBID$PLAYLIST$" + databaseId.
+	 */
+	private void discoverInLocalDatabase(Path p, String name) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("discover databaseid for file : " + p.toFile().getAbsolutePath());
+		}
+		Integer databaseId = getDatabaseId(p.toFile().getAbsolutePath());
+		if (databaseId != null) {
+			serverAccessiblePlaylists.add(new PlaylistIdentVO(name, databaseId));
+		}
+	}
+
+	private Integer getDatabaseId(String absolutePath) {
+		try (Connection connection = db.getConnection()) {
+			String sql = "select ID from FILES as F where (filename = ?)";
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ps.setString(1, absolutePath);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			LOGGER.debug("exception while reading playlist id", e);
+		}
+		return null;
 	}
 
 	private Path getPlaylistPathFromName(String playlistName) {
