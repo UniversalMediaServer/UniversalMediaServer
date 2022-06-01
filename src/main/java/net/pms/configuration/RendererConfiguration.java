@@ -3082,4 +3082,8 @@ public class RendererConfiguration extends Renderer {
 		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
 		return new PropertiesToJsonConverter().convertToJson(configurationAsProperties);
 	}
+
+	public Configuration getRawConfiguration() {
+		return configuration;
+	}
 }
