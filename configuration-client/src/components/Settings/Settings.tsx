@@ -1,6 +1,6 @@
 import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import _ from 'lodash';
 import { useEffect, useState } from "react";
 const axios = require('axios').default;
@@ -21,19 +21,60 @@ export default function Settings() {
 
   // Code here will run just like componentDidMount
   useEffect(() => {
+    showNotification({
+      id: 'data-loading',
+      color: 'indigo',
+      loading: true,
+      title: 'Loading',
+      message: 'Loading your configuration...',
+      autoClose: false,
+      disallowClose: true,
+    });
+
     axios.get('/configuration-api/')
       .then(function (response: { data: typeof initialValues }) {
+        showNotification({
+          id: 'data-loading',
+          color: 'teal',
+          title: 'Done',
+          message: 'Configuration was loaded',
+          autoClose: 3000,
+        });
+        // todo: fix notification updating
+        // updateNotification({
+        //   id: 'data-loading',
+        //   color: 'teal',
+        //   title: 'Done',
+        //   message: 'Configuration was loaded',
+        //   autoClose: 3000,
+        // });
+
         // merge defaults with what we receive, which are ONLY non-default values
         const userConfig = _.merge(initialValues, response.data);
         setConfiguration(userConfig);
         form.setValues(configuration);
       })
       .catch(function (error: Error) {
-        // handle error
         console.log(error);
+        showNotification({
+          id: 'data-loading',
+          color: 'red',
+          title: 'Error',
+          message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
+          onClick: () => { openGitHubNewIssue(); },
+          autoClose: 3000,
+        });
+        // todo: fix notification updating
+        // updateNotification({
+        //   id: 'data-loading',
+        //   color: 'red',
+        //   title: 'Error',
+        //   message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
+        //   onClick: () => { openGitHubNewIssue(); },
+        //   autoClose: 3000,
+        // });
       })
       .then(function () {
-        // always executed
         form.validate();
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -41,11 +82,7 @@ export default function Settings() {
 
   const handleSubmit = (values: typeof form.values) => {
     axios.post('/configuration-api/', values)
-      .then(function (response: { data: typeof initialValues }) {
-        // merge defaults with what we receive, which are ONLY non-default values
-        const userConfig = _.merge(initialValues, response.data);
-        setConfiguration(userConfig);
-        form.setValues(configuration);
+      .then(function () {
         showNotification({
           title: 'Saved',
           message: 'Your configuration changes were saved successfully',
@@ -53,15 +90,13 @@ export default function Settings() {
         })
       })
       .catch(function (error: Error) {
+        console.log(error);
         showNotification({
+          color: 'red',
           title: 'Error',
           message: 'Your configuration changes were not saved. Please click here to report the bug to us.',
           onClick: () => { openGitHubNewIssue(); },
         })
-      })
-      .then(function () {
-        // always executed
-        form.validate();
       });
   };
 
