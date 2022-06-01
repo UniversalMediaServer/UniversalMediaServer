@@ -37,3 +37,10 @@ docker/jre*
 
 # configuration client
 /configuration-client/node_modules
+/configuration-client/.pnp.*
+/configuration-client/.yarn/*
+/configuration-client/!.yarn/patches
+/configuration-client/!.yarn/plugins
+/configuration-client/!.yarn/releases
+/configuration-client/!.yarn/sdks
+/configuration-client/!.yarn/versions
