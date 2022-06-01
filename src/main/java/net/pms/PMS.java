@@ -1129,8 +1129,8 @@ public class PMS {
 
 	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings. The object provides getters for all
+	 * configurable settings.
 	 *
 	 * @return The configuration object
 	 */

@@ -39,6 +39,7 @@ import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -48,6 +49,7 @@ import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
@@ -3067,5 +3069,17 @@ public class RendererConfiguration extends Renderer {
 
 	public boolean getHlsMultiVideoQuality() {
 		return getBoolean(HLS_MULTI_VIDEO_QUALITY, false);
+	}
+
+	/**
+	 * Note: We do not save the configuration as JSON at
+	 * any point, this is just a convenience method for
+	 * our REST API.
+	 *
+	 * @return the current configuration in JSON format.
+	 */
+	public String getConfigurationAsJson() {
+		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
+		return new PropertiesToJsonConverter().convertToJson(configurationAsProperties);
 	}
 }
