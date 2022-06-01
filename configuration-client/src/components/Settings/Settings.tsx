@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 const axios = require('axios').default;
 
 export default function Settings() {
+  const [isLoading, setLoading] = useState(true);
+
   const initialValues = {
     server_name: 'Universal Media Server',
     append_profile_name: false,
@@ -32,11 +34,11 @@ export default function Settings() {
     });
 
     axios.get('/configuration-api/')
-      .then(function (response: { data: typeof initialValues }) {
+      .then(function (response: any) {
         showNotification({
           id: 'data-loading',
           color: 'teal',
-          title: 'Done',
+          title: 'Success',
           message: 'Configuration was loaded',
           autoClose: 3000,
         });
@@ -76,11 +78,13 @@ export default function Settings() {
       })
       .then(function () {
         form.validate();
+        setLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = (values: typeof form.values) => {
+    setLoading(true);
     axios.post('/configuration-api/', values)
       .then(function () {
         showNotification({
@@ -97,6 +101,9 @@ export default function Settings() {
           message: 'Your configuration changes were not saved. Please click here to report the bug to us.',
           onClick: () => { openGitHubNewIssue(); },
         })
+      })
+      .then(function () {
+        setLoading(false);
       });
   };
 
@@ -117,7 +124,7 @@ export default function Settings() {
         />
 
         <Group position="right" mt="md">
-          <Button type="submit">Submit</Button>
+          <Button type="submit" loading={isLoading}>Submit</Button>
         </Group>
       </form>
     </Box>
