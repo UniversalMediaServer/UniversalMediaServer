@@ -32,6 +32,11 @@ public class PlaylistService implements ApiResponseHandler {
 					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 					return playlists;
+				case "getserverplaylists":
+					LOGGER.trace("getserverplaylists");
+					String serverPlaylists = om.writeValueAsString(pm.getServerAccessiblePlaylists());
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
+					return serverPlaylists;
 				case "addsongtoplaylist":
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
