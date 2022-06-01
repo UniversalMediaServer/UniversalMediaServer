@@ -51,8 +51,26 @@ export default function Settings() {
         //   autoClose: 3000,
         // });
 
-        // merge defaults with what we receive, which are ONLY non-default values
+        // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(initialValues, response.data);
+
+        /**
+         * Work around a bug in the Java JSON conversion where
+         * booleans are parsed as strings.
+         *
+         * @see https://github.com/mikolajmitura/java-properties-to-json/issues/64
+         */
+        _.each(userConfig, (value, key: string) => {
+          if (
+            typeof value === 'string' &&
+            (
+              value.toLowerCase() === 'false' ||
+              value.toLowerCase() === 'true'
+            )
+          ) {
+            userConfig[key] = Boolean(value);
+          }
+        });
         setConfiguration(userConfig);
         form.setValues(configuration);
       })
