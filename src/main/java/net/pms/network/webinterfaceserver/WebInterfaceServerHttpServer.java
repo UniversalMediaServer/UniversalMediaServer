@@ -49,6 +49,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.javahttpserver.ConfigurationApiHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
+import net.pms.network.webinterfaceserver.handlers.ConfigurationClientHandler;
 import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
@@ -116,6 +117,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			// Add context handlers
 			addCtx("/", new StartHandler(this));
 			addCtx("/browse", new BrowseHandler(this));
+			addCtx("/configuration", new ConfigurationClientHandler(this));
 			addCtx("/configuration-api", new ConfigurationApiHandler());
 			PlayHandler playHandler = new PlayHandler(this);
 			addCtx("/play", playHandler);
