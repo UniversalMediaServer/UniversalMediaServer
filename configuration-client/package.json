@@ -2,7 +2,7 @@
   "name": "ums",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://192.168.1.136:9001",
+  "proxy": "http://localhost:9001",
   "dependencies": {
     "@mantine/core": "^4.2.7",
     "@mantine/form": "^4.2.7",
