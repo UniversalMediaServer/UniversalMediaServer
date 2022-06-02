@@ -1,6 +1,7 @@
 import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification, updateNotification } from '@mantine/notifications';
+import { showNotification } from '@mantine/notifications';
+// import { updateNotification } from '@mantine/notifications';
 import _ from 'lodash';
 import { useEffect, useState } from "react";
 const axios = require('axios').default;
