@@ -25,7 +25,6 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,7 +45,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	private final Gson gson = new Gson();
 
-	private final String[] validKeys = { "append_profile_name", "server_name" };
+	private final String[] validKeys = {"append_profile_name", "server_name"};
 
 	/**
 	 * Handle API calls.
