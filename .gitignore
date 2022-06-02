@@ -32,7 +32,6 @@ docker/ums.jar
 docker/logback.headless.xml
 docker/linux*
 docker/jre*
-/src/main/java/net/pms/Test.java
 .yarn-integrity
 
 # configuration client
@@ -44,3 +43,6 @@ docker/jre*
 /configuration-client/!.yarn/releases
 /configuration-client/!.yarn/sdks
 /configuration-client/!.yarn/versions
+/configuration-client/node/*
+# this is where the compiled client goes after "yarn build"
+/src/main/external-resources/web/react-app
