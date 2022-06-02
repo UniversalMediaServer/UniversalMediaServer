@@ -33,7 +33,8 @@ function changeMargins() {
 
 				// Normalize cell heights for current row
 				for (var c = row_start; c <= i; c++) {
-					$(cells[c]).find('.thumb').css({
+					var thumbnailImageElement = $(cells[c]).find('.thumb');
+					thumbnailImageElement.css({
 						width: 'auto',
 						height: row_h + 'px',
 						maxWidth: cell_w + 'px',
@@ -42,7 +43,7 @@ function changeMargins() {
 						borderBottomLeftRadius: '0px',
 						borderTopRightRadius: '3px',
 					});
-					$(cells[c]).find('.thumb').removeClass('pull-left');
+					thumbnailImageElement.removeClass('pull-left');
 					$(cells[c]).find('.box-meta').css({
 						borderBottomLeftRadius: '3px',
 						borderBottomRightRadius: '3px',
