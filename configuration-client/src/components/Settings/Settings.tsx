@@ -148,7 +148,9 @@ export default function Settings() {
         />
 
         <Group position="right" mt="md">
-          <Button type="submit" loading={isLoading}>Submit</Button>
+          <Button type="submit" loading={isLoading}>
+            {translationsRef.current['LooksFrame.9']}
+          </Button>
         </Group>
       </form>
     </Box>
