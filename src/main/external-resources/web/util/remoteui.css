@@ -681,11 +681,6 @@ ul#Media .playlist_add{
 	color: #fafafa;
 	font-weight: 300;
 }
-ul#Media li {
-	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
-	height: 100% !important;
-	border-radius: 3px;
-}
 ul#Media li:hover {
 	box-shadow: 0 6px 9px rgba(0,0,0,.53),0 6px 9px rgba(0,0,0,.53);
 	-webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);

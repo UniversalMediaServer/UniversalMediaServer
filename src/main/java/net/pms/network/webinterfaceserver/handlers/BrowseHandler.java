@@ -519,7 +519,7 @@ public class BrowseHandler implements HttpHandler {
 		DLNAResource recentlyPlayedFolder = videoFolderChildren.get(0);
 
 		ArrayList<HashMap<String, String>> recentlyPlayedVideosHTML = new ArrayList<>();
-		List<DLNAResource> recentlyPlayedVideos = root.getDLNAResources(recentlyPlayedFolder.getId(), true, 0, 6, root.getDefaultRenderer());
+		List<DLNAResource> recentlyPlayedVideos = root.getDLNAResources(recentlyPlayedFolder.getId(), true, 0, 11, root.getDefaultRenderer());
 
 		for (DLNAResource recentlyPlayedResource : recentlyPlayedVideos) {
 			String recentlyPlayedId = recentlyPlayedResource.getResourceId();

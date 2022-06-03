@@ -189,31 +189,39 @@ ul#Folders li span {
 #Media {
 	overflow-y: hidden;
 	padding-right: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 163px);
+    justify-content: space-between;
+}
+
+#Media:before {
+	display: none;
 }
 
 ul#Media li {
-	float: left;
-	margin-right: 20px;
 	margin-bottom: 20px;
 	position: relative;
 	display: block;
 	overflow: hidden;
+	border-radius: 3px;
+	width: 143px;
+}
 
-	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
-	width: 308px;
-	height: 173px;
+body.dynamic ul#Media li {
+	width: auto;
 }
 
 ul#Media .thumb {
-	/* Note: these are just defaults that fit well at 1080p. JavaScript math takes over when the page is loaded to fit the resolution */
-	max-width: 308px;
-	max-height: 173px;
-	height: 173px;
-	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
-	width: auto;
+	max-height: 214px;
+	height: 214px;
+	width: 143px;
 	display: block;
 	margin: 0 auto;
-	object-fit: contain;
+	object-fit: cover;
+}
+
+body.dynamic ul#Media .thumb {
+	width: auto;
 }
 
 ul#Media .caption {
