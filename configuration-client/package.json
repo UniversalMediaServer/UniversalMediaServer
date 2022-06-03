@@ -10,19 +10,10 @@
     "@mantine/modals": "^4.2.7",
     "@mantine/notifications": "^4.2.7",
     "@mantine/prism": "^4.2.7",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.1",
-    "@types/lodash": "^4.14.182",
-    "@types/node": "^16.11.36",
-    "@types/react": "^18.0.9",
-    "@types/react-dom": "^18.0.5",
     "axios": "^0.27.2",
     "lodash": "^4.17.21",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "react-scripts": "5.0.1",
     "typescript": "^4.7.2",
     "web-vitals": "^2.1.4"
   },
@@ -50,5 +41,16 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.1",
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.1",
+    "@types/lodash": "^4.14.182",
+    "@types/node": "^16.11.36",
+    "@types/react": "^18.0.10",
+    "@types/react-dom": "^18.0.5",
+    "react-scripts": "^5.0.1"
+  }
 }
