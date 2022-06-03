@@ -18,6 +18,7 @@
  */
 package net.pms;
 
+import com.google.gson.JsonObject;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -27,6 +28,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
@@ -39,6 +42,7 @@ public class Messages {
 	private static ReadWriteLock resourceBundleLock = new ReentrantReadWriteLock();
 	private static ResourceBundle resourceBundle;
 	private static final ResourceBundle ROOT_RESOURCE_BUNDLE;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Messages.class);
 
 	static {
 		/*
@@ -114,24 +118,19 @@ public class Messages {
 		resourceBundleLock.readLock().lock();
 		try {
 			Enumeration<String> i18nKeys = resourceBundle.getKeys();
-			StringBuilder sb = new StringBuilder();
-			sb.append("{");
-			boolean firstLoop = true;
+			JsonObject jsonObject = new JsonObject();
 			while (i18nKeys.hasMoreElements()) {
-				if (firstLoop) {
-					firstLoop = false;
-				} else {
-					sb.append(",");
-				}
-
 				String key = i18nKeys.nextElement();
 				String value = resourceBundle.getString(key);
-				sb.append("\"").append(key).append("\": \"").append(value).append("\"");
+				jsonObject.addProperty(key, value);
 			}
-			return sb.append("}").toString();
+			return jsonObject.toString();
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
 		} finally {
 			resourceBundleLock.readLock().unlock();
 		}
+		return null;
 	}
 
 	@Nonnull

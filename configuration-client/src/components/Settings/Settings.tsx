@@ -3,11 +3,14 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 // import { updateNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 const axios = require('axios').default;
 
 export default function Settings() {
   const [isLoading, setLoading] = useState(true);
+  // todo: get rid of these initial values
+  let translations = { 'NetworkTab.71': 'Server name', 'NetworkTab.72': 'Append profile name' };
+  const translationsRef = useRef(translations);
 
   const initialValues = {
     server_name: 'Universal Media Server',
@@ -57,6 +60,7 @@ export default function Settings() {
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(initialValues, response[0].data);
+        translationsRef.current = response[1].data;
         /**
          * Work around a bug in the Java JSON conversion where
          * booleans are parsed as strings.
@@ -133,14 +137,14 @@ export default function Settings() {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <TextInput
           required
-          label="Server name"
+          label={translationsRef.current['NetworkTab.71']}
           name="server_name"
           {...form.getInputProps('server_name')}
         />
 
         <Checkbox
           mt="md"
-          label="Append profile name"
+          label={translationsRef.current['NetworkTab.72']}
           {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
         />
 
