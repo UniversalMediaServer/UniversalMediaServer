@@ -19,6 +19,7 @@
 package net.pms;
 
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -104,6 +105,30 @@ public class Messages {
 		resourceBundleLock.readLock().lock();
 		try {
 			return getString(key, resourceBundle);
+		} finally {
+			resourceBundleLock.readLock().unlock();
+		}
+	}
+
+	public static String getStringsAsJson() {
+		resourceBundleLock.readLock().lock();
+		try {
+			Enumeration<String> i18nKeys = resourceBundle.getKeys();
+			StringBuilder sb = new StringBuilder();
+			sb.append("{");
+			boolean firstLoop = true;
+			while (i18nKeys.hasMoreElements()) {
+				if (firstLoop) {
+					firstLoop = false;
+				} else {
+					sb.append(",");
+				}
+
+				String key = i18nKeys.nextElement();
+				String value = resourceBundle.getString(key);
+				sb.append("\"").append(key).append("\": \"").append(value).append("\"");
+			}
+			return sb.append("}").toString();
 		} finally {
 			resourceBundleLock.readLock().unlock();
 		}

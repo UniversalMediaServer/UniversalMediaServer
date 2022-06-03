@@ -34,8 +34,11 @@ export default function Settings() {
       disallowClose: true,
     });
 
-    axios.get('/configuration-api/')
-      .then(function (response: any) {
+    Promise.all([
+      axios.get('/configuration-api/settings'),
+      axios.get('/configuration-api/i18n'),
+    ])
+      .then(function (response: any[]) {
         showNotification({
           id: 'data-loading',
           color: 'teal',
@@ -53,8 +56,7 @@ export default function Settings() {
         // });
 
         // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge(initialValues, response.data);
-
+        const userConfig = _.merge(initialValues, response[0].data);
         /**
          * Work around a bug in the Java JSON conversion where
          * booleans are parsed as strings.
