@@ -8,8 +8,7 @@ const axios = require('axios').default;
 
 export default function Settings() {
   const [isLoading, setLoading] = useState(true);
-  // todo: get rid of these initial values
-  let translations = { 'NetworkTab.71': 'Server name', 'NetworkTab.72': 'Append profile name' };
+  let translations: {[key: string]: string} = {};
   const translationsRef = useRef(translations);
 
   const initialValues = {
