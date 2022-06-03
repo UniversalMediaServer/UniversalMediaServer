@@ -101,7 +101,7 @@ public class AboutTab {
 		lCrowdinLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCrowdinLink.addMouseListener(crowdinLink);
 
-		final LinkMouseListener ffmpegLink = new LinkMouseListener("FFmpeg", "http://ffmpeg.mplayerhq.hu");
+		final LinkMouseListener ffmpegLink = new LinkMouseListener("FFmpeg", "https://ffmpeg.org/");
 		JLabel lFfmpegLink = builder.addLabel(ffmpegLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lFfmpegLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lFfmpegLink.addMouseListener(ffmpegLink);
@@ -111,37 +111,37 @@ public class AboutTab {
 		lMplayerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMplayerLink.addMouseListener(mplayerLink);
 
-		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "http://www.spirton.com");
+		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "https://www.spirton.com");
 		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lSpirtonLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSpirtonLink.addMouseListener(spirtonLink);
 
-		final LinkMouseListener mediaInfoLink = new LinkMouseListener("MediaInfo", "http://mediainfo.sourceforge.net/en");
+		final LinkMouseListener mediaInfoLink = new LinkMouseListener("MediaInfo", "https://mediaarea.net/en/MediaInfo");
 		JLabel lMediaInfoLink = builder.addLabel(mediaInfoLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lMediaInfoLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMediaInfoLink.addMouseListener(mediaInfoLink);
 
-		final LinkMouseListener avisynthMTLink = new LinkMouseListener("AviSynth MT", "http://forum.doom9.org/showthread.php?t=148782");
+		final LinkMouseListener avisynthMTLink = new LinkMouseListener("AviSynth MT", "https://forum.doom9.org/showthread.php?t=148782");
 		JLabel lAvisynthMTLink = builder.addLabel(avisynthMTLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lAvisynthMTLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lAvisynthMTLink.addMouseListener(avisynthMTLink);
 
-		final LinkMouseListener dryIconsLink = new LinkMouseListener("DryIcons", "http://dryicons.com");
+		final LinkMouseListener dryIconsLink = new LinkMouseListener("DryIcons", "https://dryicons.com/");
 		JLabel lDryIconsLink = builder.addLabel(dryIconsLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lDryIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lDryIconsLink.addMouseListener(dryIconsLink);
 
-		final LinkMouseListener jmgIconsLink = new LinkMouseListener("Jordan Michael Groll's Icons", "http://jrdng.deviantart.com/art/File-Icons-Version-3-68597653");
+		final LinkMouseListener jmgIconsLink = new LinkMouseListener("Jordan Michael Groll's Icons", "https://www.deviantart.com/jrdng");
 		JLabel lJmgIconsLink = builder.addLabel(jmgIconsLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lJmgIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lJmgIconsLink.addMouseListener(jmgIconsLink);
 
-		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "http://www.svp-team.com/");
+		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "https://www.svp-team.com/");
 		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSVPLink.addMouseListener(svpLink);
 
-		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "http://www.opensubtitles.org/");
+		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "https://www.opensubtitles.org/");
 		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
