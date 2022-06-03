@@ -69,7 +69,7 @@ export default function Settings() {
               value.toLowerCase() === 'true'
             )
           ) {
-            userConfig[key] = Boolean(value);
+            userConfig[key] = value.toLowerCase() === 'true';
           }
         });
         setConfiguration(userConfig);
