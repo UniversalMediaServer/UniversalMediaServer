@@ -1,9 +1,10 @@
 import React, { useState } from "react";
+import PropTypes from 'prop-types';
 import { login } from "../../services/auth.service";
 import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
-
-const Login = ({ }) => {
+// @ts-ignore
+const Login = ({ setToken }) => {
     const form = useForm({
         initialValues: {
           username: '',
@@ -14,8 +15,9 @@ const Login = ({ }) => {
       const handleLogin = (values: typeof form.values) => {
         const { username, password } = values;
         login(username, password).then(
-          () => {
-            window.location.href = '/';
+          ({token}) => {
+            setToken(token);
+            window.location.reload();
           },
           (error) => {
             const resMessage =
@@ -30,6 +32,7 @@ const Login = ({ }) => {
     return (
         <Box sx={{ maxWidth: 300 }} mx="auto">
           <form onSubmit={form.onSubmit(handleLogin)}>
+            <h1>Log In</h1>
             <TextInput
               required
               label="Username"
@@ -48,4 +51,8 @@ const Login = ({ }) => {
         </Box>
       );
 };
+
+Login.propTypes = {
+  setToken: PropTypes.func.isRequired
+}
 export default Login;
