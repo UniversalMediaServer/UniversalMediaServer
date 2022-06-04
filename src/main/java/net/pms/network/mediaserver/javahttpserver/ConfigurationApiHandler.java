@@ -19,6 +19,12 @@
  */
 package net.pms.network.mediaserver.javahttpserver;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -77,14 +83,23 @@ public class ConfigurationApiHandler implements HttpHandler {
 					if (exchange.getRequestMethod().equals("GET")) {
 						// this would be implemented higher in the stack, and on all the protected endpoints
 						final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-						// this is a dumb check, representing that we would verify the JWT has been signed by this UMS server
-						// for now it just matches the token sent by the dummy login endpoint
-						if (authHeader != null & authHeader.get(0).equals("Bearer XXYYXX")) {
+						final String token = authHeader.get(0).replace("Bearer ", "");
+						try {
+						    Algorithm algorithm = Algorithm.HMAC256("secret"); //use more secure key
+						    JWTVerifier verifier = JWT.require(algorithm)
+						        .withIssuer("UMS")
+						        .build(); //Reusable verifier instance
+						    DecodedJWT jwt = verifier.verify(token);
+						    String jwtUser = jwt.getClaim("username").asString();
 							String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
 							WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
-						} else {
+							LOGGER.info("Got token for {}", jwtUser);
+							LOGGER.info("token for {}", token);
+						} catch (JWTVerificationException exception){
+							LOGGER.error("Error verifying JWT: {}", exception.getMessage());
 							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 						}
+						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 
 					} else if (exchange.getRequestMethod().equals("POST")) {
 						// Here we possibly received some updates to config values

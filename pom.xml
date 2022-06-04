@@ -147,6 +147,11 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>${slf4j-api-version}</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.auth0</groupId>
+		    <artifactId>java-jwt</artifactId>
+		    <version>3.19.2</version>
+		</dependency>
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>

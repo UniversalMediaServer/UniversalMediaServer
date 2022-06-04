@@ -19,6 +19,9 @@
  */
 package net.pms.network.mediaserver.javahttpserver;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -52,9 +55,6 @@ public class LoginApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			PmsConfiguration pmsConfiguration = PMS.get().getConfiguration();
-			Configuration configuration = pmsConfiguration.getRawConfiguration();
-			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			try {
 				if (exchange.getRequestMethod().equals("POST")) {
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
@@ -63,7 +63,19 @@ public class LoginApiHandler implements HttpHandler {
 					// A real implementation will fetch the user from H2, then securely check password match
 					if (data.getUsername().equals("ums_user") && data.getPassword().equals("pass")) {
 						// If correct, sign a JWT and return it
-						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"XXYYXX\"}", 200, "application/json");
+						try {
+						    Algorithm algorithm = Algorithm.HMAC256("secret");
+						    String token = JWT.create()
+						        .withIssuer("UMS")
+						        .withClaim("username", data.getUsername())
+						        .withArrayClaim("roles", new String[]{"admin"})
+						        .sign(algorithm);
+						    WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token +"\"}", 200, "application/json");
+						} catch (JWTCreationException exception){
+						    //Invalid Signing configuration / Couldn't convert Claims.
+							exchange.sendResponseHeaders(500, 0); //Internal Server Error
+							LOGGER.error("Error signing JWT: {}", exception.getMessage());
+						}
 					} else {
 						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
