@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -74,8 +75,17 @@ public class ConfigurationApiHandler implements HttpHandler {
 				// this is called by the web interface settings React app on page load
 				if (call.equals("settings")) {
 					if (exchange.getRequestMethod().equals("GET")) {
-						String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
-						WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
+						// this would be implemented higher in the stack, and on all the protected endpoints
+						final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
+						// this is a dumb check, representing that we would verify the JWT has been signed by this UMS server
+						// for now it just matches the token sent by the dummy login endpoint
+						if (authHeader != null & authHeader.get(0).equals("Bearer XXYYXX")) {
+							String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
+							WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
+						} else {
+							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+						}
+
 					} else if (exchange.getRequestMethod().equals("POST")) {
 						// Here we possibly received some updates to config values
 						String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);

@@ -129,7 +129,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/fmedia", new MediaHandler(this, true));
 			addCtx("/thumb", new ThumbHandler(this));
 			addCtx("/raw", new RawHandler(this));
-			addCtx("/login", new LoginApiHandler());
+			addCtx("/v1/api/login", new LoginApiHandler());
 			addCtx("/files", new FileHandler(this));
 			addCtx("/doc", new DocHandler(this));
 			addCtx("/poll", new PollHandler(this));

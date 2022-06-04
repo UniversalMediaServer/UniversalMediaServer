@@ -55,27 +55,20 @@ public class LoginApiHandler implements HttpHandler {
 			PmsConfiguration pmsConfiguration = PMS.get().getConfiguration();
 			Configuration configuration = pmsConfiguration.getRawConfiguration();
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
-			String call = "";
-			int pos = exchange.getRequestURI().getPath().indexOf("login/");
-			if (pos != -1) {
-				call = exchange.getRequestURI().getPath().substring(pos + "login/".length());
-			}
 			try {
-				if (call == "") {
-					if (exchange.getRequestMethod().equals("POST")) {
+				if (exchange.getRequestMethod().equals("POST")) {
+					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
 
-						String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-						LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
-						LOGGER.info("/POST login {}, {}", data.getUsername(), data.getPassword());
-						// TODO a real implementation will do this securely via a database
-						if (data.getUsername().equals("ums_user") && data.getPassword().equals("pass")) {
-							// If correct, sign a JWT and return a real one
-							WebInterfaceServerUtil.respond(exchange, "{\"token\": \"XXYYXX\"}", 200, "application/json");
-						} else {
-							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
-						}
+					// A real implementation will fetch the user from H2, then securely check password match
+					if (data.getUsername().equals("ums_user") && data.getPassword().equals("pass")) {
+						// If correct, sign a JWT and return it
+						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"XXYYXX\"}", 200, "application/json");
+					} else {
+						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
 				}
+				
 			} catch (RuntimeException e) {
 				exchange.sendResponseHeaders(500, 0); //Internal Server Error
 			}

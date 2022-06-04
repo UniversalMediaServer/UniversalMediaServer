@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { login } from "../../services/auth.service";
+import { login } from '../../services/auth.service';
 import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
 // @ts-ignore
@@ -30,22 +30,22 @@ const Login = ({ setToken }) => {
         );
       };
     return (
-        <Box sx={{ maxWidth: 300 }} mx="auto">
+        <Box sx={{ maxWidth: 300 }} mx='auto'>
           <form onSubmit={form.onSubmit(handleLogin)}>
             <h1>Log In</h1>
             <TextInput
               required
-              label="Username"
+              label='Username'
               {...form.getInputProps('username')}
             />
             <TextInput
               required
-              label="Password"
-              type="password"
+              label='Password'
+              type='password'
               {...form.getInputProps('password')}
             />
-            <Group position="right" mt="md">
-              <Button type="submit">Submit</Button>
+            <Group position='right' mt='md'>
+              <Button type='submit'>Submit</Button>
             </Group>
           </form>
         </Box>
