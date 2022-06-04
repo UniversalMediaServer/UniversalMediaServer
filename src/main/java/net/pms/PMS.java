@@ -1381,8 +1381,8 @@ public class PMS {
 	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
-	 * sensitive operations.If <code>null</code> the default {@link Locale}
+	 * Gets the current {@link Locale} to be used in any {@link Locale}
+	 * sensitive operations. If <code>null</code> the default {@link Locale}
 	 * is returned.
 	 * @return current {@link Locale} or default {@link Locale}
 	 */

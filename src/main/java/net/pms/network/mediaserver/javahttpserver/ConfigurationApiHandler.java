@@ -33,6 +33,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
@@ -70,7 +72,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			}
 			try {
 				// this is called by the web interface settings React app on page load
-				if (call == "") {
+				if (call.equals("settings")) {
 					if (exchange.getRequestMethod().equals("GET")) {
 						String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
 						WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
@@ -101,6 +103,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 							}
 						}
 						WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
+					}
+				} else if (call.equals("i18n")) {
+					if (exchange.getRequestMethod().equals("GET")) {
+						String i18nAsJson = Messages.getStringsAsJson();
+						WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
 					}
 				}
 			} catch (RuntimeException e) {

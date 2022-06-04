@@ -18,7 +18,9 @@
  */
 package net.pms;
 
+import com.google.gson.JsonObject;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -26,6 +28,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
@@ -38,6 +42,7 @@ public class Messages {
 	private static ReadWriteLock resourceBundleLock = new ReentrantReadWriteLock();
 	private static ResourceBundle resourceBundle;
 	private static final ResourceBundle ROOT_RESOURCE_BUNDLE;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Messages.class);
 
 	static {
 		/*
@@ -107,6 +112,25 @@ public class Messages {
 		} finally {
 			resourceBundleLock.readLock().unlock();
 		}
+	}
+
+	public static String getStringsAsJson() {
+		resourceBundleLock.readLock().lock();
+		try {
+			Enumeration<String> i18nKeys = resourceBundle.getKeys();
+			JsonObject jsonObject = new JsonObject();
+			while (i18nKeys.hasMoreElements()) {
+				String key = i18nKeys.nextElement();
+				String value = resourceBundle.getString(key);
+				jsonObject.addProperty(key, value);
+			}
+			return jsonObject.toString();
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
+		} finally {
+			resourceBundleLock.readLock().unlock();
+		}
+		return null;
 	}
 
 	@Nonnull
