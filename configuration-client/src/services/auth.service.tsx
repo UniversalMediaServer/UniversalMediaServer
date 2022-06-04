@@ -7,7 +7,6 @@ export const login = (username: string, password: string) => {
       password,
     })
     .then((response) => {
-      console.log(response)
       if (response.data.token) {
         localStorage.setItem('user', response.data.token);
       }
