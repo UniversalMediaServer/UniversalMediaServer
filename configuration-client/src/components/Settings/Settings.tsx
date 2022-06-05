@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 // import { updateNotification } from '@mantine/notifications';
@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 const axios = require('axios').default;
 
 export default function Settings() {
+  const [activeTab, setActiveTab] = useState(1);
   const [isLoading, setLoading] = useState(true);
   let translations: {[key: string]: string} = {};
   const translationsRef = useRef(translations);
@@ -132,20 +133,30 @@ export default function Settings() {
   };
 
   return (
-    <Box sx={{ maxWidth: 300 }} mx="auto">
+    <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <TextInput
-          required
-          label={translationsRef.current['NetworkTab.71']}
-          name="server_name"
-          {...form.getInputProps('server_name')}
-        />
+        <Tabs active={activeTab} onTabChange={setActiveTab}>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>
+            <TextInput
+              required
+              label={translationsRef.current['NetworkTab.71']}
+              name="server_name"
+              {...form.getInputProps('server_name')}
+            />
 
-        <Checkbox
-          mt="md"
-          label={translationsRef.current['NetworkTab.72']}
-          {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
-        />
+            <Checkbox
+              mt="md"
+              label={translationsRef.current['NetworkTab.72']}
+              {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+            />
+          </Tabs.Tab>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabNavigationSettings']}>
+
+          </Tabs.Tab>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabSharedContent']}>
+            
+          </Tabs.Tab>
+        </Tabs>
 
         <Group position="right" mt="md">
           <Button type="submit" loading={isLoading}>
