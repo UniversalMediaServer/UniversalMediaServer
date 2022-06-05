@@ -33,9 +33,12 @@ const ChangePassword = ({ }) => {
                 message: 'Password updated successfully',
                 autoClose: 3000,
               });
+              setTimeout(()=> {
+
+              }, 3000);
               window.location.href = '/';
           },
-          (error) => {
+          () => {
             showNotification({
                 id: 'pwd-error',
                 color: 'red',

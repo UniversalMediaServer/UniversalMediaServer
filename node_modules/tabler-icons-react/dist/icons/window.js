@@ -1,0 +1,42 @@
+import { objectWithoutProperties as _objectWithoutProperties, extends as _extends } from '../_virtual/_rollupPluginBabelHelpers.js';
+import React from 'react';
+
+var _excluded = ["size", "color"];
+function Window(_ref) {
+  var _ref$size = _ref.size,
+      size = _ref$size === void 0 ? 24 : _ref$size,
+      _ref$color = _ref.color,
+      color = _ref$color === void 0 ? 'currentColor' : _ref$color,
+      restProps = _objectWithoutProperties(_ref, _excluded);
+
+  return /*#__PURE__*/React.createElement("svg", _extends({
+    xmlns: "http://www.w3.org/2000/svg",
+    className: "icon icon-tabler icon-tabler-window",
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    stroke: color,
+    strokeWidth: "2",
+    fill: "none",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, restProps), /*#__PURE__*/React.createElement("path", {
+    stroke: "none",
+    d: "M0 0h24v24H0z",
+    fill: "none"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 3c-3.866 0 -7 3.272 -7 7v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1 -1v-10c0 -3.728 -3.134 -7 -7 -7z"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "5",
+    y1: "13",
+    x2: "19",
+    y2: "13"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "3",
+    x2: "12",
+    y2: "21"
+  }));
+}
+
+export { Window as default };
