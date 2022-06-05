@@ -1,7 +1,6 @@
 import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
-// import { updateNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import UserMenu from '../UserMenu/UserMenu';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from "react";
@@ -40,18 +39,19 @@ export default function Settings() {
       disallowClose: true,
     });
 
+
     Promise.all([
       axios.get('/configuration-api/settings'),
       axios.get('/configuration-api/i18n'),
     ])
       .then(function (response: any[]) {
-        showNotification({
-          id: 'data-loading',
-          color: 'teal',
-          title: 'Success',
-          message: 'Configuration was loaded',
-          autoClose: 3000,
-        });
+        // showNotification({
+        //   id: 'data-loading',
+        //   color: 'teal',
+        //   title: 'Success',
+        //   message: 'Configuration was loaded',
+        //   autoClose: 3000,
+        // });
         // todo: fix notification updating
         // updateNotification({
         //   id: 'data-loading',

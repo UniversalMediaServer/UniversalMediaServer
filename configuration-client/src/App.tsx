@@ -26,7 +26,9 @@ function App() {
   if(!token) {
     return (
       <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles withNormalizeCSS>
-        <Login setToken={setToken} />
+        <NotificationsProvider>
+          <Login setToken={setToken} />
+        </NotificationsProvider>
       </MantineProvider>
       )
   }
