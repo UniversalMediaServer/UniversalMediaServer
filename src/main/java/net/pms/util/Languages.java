@@ -18,6 +18,8 @@
  */
 package net.pms.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
+import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -859,5 +862,26 @@ public final class Languages {
 
 			return languages;
 		}
+	}
+
+	/**
+	 * @return available languages as a JSON array
+	 */
+	public synchronized static JsonArray getLanguagesAsJsonArray() {
+		Locale locale = PMS.getLocale();
+		String[] values = getLanguageTags(locale);
+		String[] labels = getLanguageNames(locale);
+
+		JsonArray jsonArray = new JsonArray();
+		for (int i = 0; i < values.length; i++) {
+			JsonObject languageGroup = new JsonObject();
+			String value = values[i];
+			String label = labels[i];
+			languageGroup.addProperty("label", label);
+			languageGroup.addProperty("value", value);
+			jsonArray.add(languageGroup);
+		}
+
+		return jsonArray;
 	}
 }

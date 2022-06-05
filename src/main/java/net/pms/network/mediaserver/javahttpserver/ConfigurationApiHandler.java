@@ -20,6 +20,8 @@
 package net.pms.network.mediaserver.javahttpserver;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -39,6 +41,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.util.Languages;
 
 /**
  * This class handles calls to the internal API.
@@ -48,7 +51,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	private final Gson gson = new Gson();
 
-	private final String[] validKeys = {"append_profile_name", "server_name"};
+	private final String[] validKeys = {
+		"append_profile_name",
+		"language",
+		"server_name"
+	};
 
 	/**
 	 * Handle API calls.
@@ -103,8 +110,14 @@ public class ConfigurationApiHandler implements HttpHandler {
 				// this is a dumb check, representing that we would verify the JWT has been signed by this UMS server
 				// for now it just matches the token sent by the dummy login endpoint
 				if (authHeader != null & authHeader.get(0).equals("Bearer XXYYXX")) {
-					String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
-					WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
+					String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
+
+					JsonObject jsonResponse = new JsonObject();
+					jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
+					JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
+					jsonResponse.add("userSettings", configurationAsJson);
+
+					WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 				} else {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
