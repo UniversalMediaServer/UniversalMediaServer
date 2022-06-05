@@ -1,10 +1,10 @@
 import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
-// import { updateNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
+import UserMenu from '../UserMenu/UserMenu';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from "react";
-const axios = require('axios').default;
+import axios from 'axios';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -39,18 +39,19 @@ export default function Settings() {
       disallowClose: true,
     });
 
+
     Promise.all([
       axios.get('/configuration-api/settings'),
       axios.get('/configuration-api/i18n'),
     ])
       .then(function (response: any[]) {
-        showNotification({
-          id: 'data-loading',
-          color: 'teal',
-          title: 'Success',
-          message: 'Configuration was loaded',
-          autoClose: 3000,
-        });
+        // showNotification({
+        //   id: 'data-loading',
+        //   color: 'teal',
+        //   title: 'Success',
+        //   message: 'Configuration was loaded',
+        //   autoClose: 3000,
+        // });
         // todo: fix notification updating
         // updateNotification({
         //   id: 'data-loading',
@@ -138,6 +139,9 @@ export default function Settings() {
 
   return (
     <Box sx={{ maxWidth: 700 }} mx="auto">
+      <Group position="right" mt="md">
+        <UserMenu />
+      </Group>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>

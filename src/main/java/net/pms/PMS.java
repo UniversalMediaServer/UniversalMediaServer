@@ -52,6 +52,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
@@ -254,6 +255,10 @@ public class PMS {
 		return MediaDatabase.get();
 	}
 
+	public UserDatabase getUserDatabase() {
+		return UserDatabase.get();
+	}
+
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
 		LOGGER.info("Starting {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
@@ -427,6 +432,7 @@ public class PMS {
 		NetworkConfiguration.start();
 		// Initialize mediaDatabase
 		MediaDatabase.init();
+		UserDatabase.init();
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have
@@ -786,6 +792,12 @@ public class PMS {
 					MediaDatabase.shutdown();
 					if (configuration.getDatabaseLogging()) {
 						MediaDatabase.createReport();
+					}
+				}
+				if (UserDatabase.isInstantiated()) {
+					UserDatabase.shutdown();
+					if (configuration.getDatabaseLogging()) {
+						UserDatabase.createReport();
 					}
 				}
 			}

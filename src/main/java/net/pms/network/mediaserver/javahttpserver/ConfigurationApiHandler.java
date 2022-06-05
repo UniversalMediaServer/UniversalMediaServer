@@ -19,6 +19,7 @@
  */
 package net.pms.network.mediaserver.javahttpserver;
 
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -30,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -73,7 +73,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 				exchange.close();
 				return;
 			}
-
 			/**
 			 * Helpers for HTTP methods and paths.
 			 */
@@ -105,24 +104,21 @@ public class ConfigurationApiHandler implements HttpHandler {
 			 */
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
-				// this would be implemented higher in the stack, and on all the protected endpoints
-				final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-				// this is a dumb check, representing that we would verify the JWT has been signed by this UMS server
-				// for now it just matches the token sent by the dummy login endpoint
-				if (authHeader != null & authHeader.get(0).equals("Bearer XXYYXX")) {
-					String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
-
-					JsonObject jsonResponse = new JsonObject();
-					jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
-					JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-					jsonResponse.add("userSettings", configurationAsJson);
-
-					WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
-				} else {
+				if (!UserService.isLoggedIn(exchange)) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
+				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
+				JsonObject jsonResponse = new JsonObject();
+				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
+				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
+				jsonResponse.add("userSettings", configurationAsJson);
+
+				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			}
 			if (api.post("/settings")) {
+				if (!UserService.isLoggedIn(exchange)) {
+					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+				}
 				// Here we possibly received some updates to config values
 				String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
