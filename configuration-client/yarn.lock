@@ -11912,6 +11912,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tabler-icons-react@npm:^1.48.1":
+  version: 1.48.1
+  resolution: "tabler-icons-react@npm:1.48.1"
+  peerDependencies:
+    react: ">= 16.8.0"
+  checksum: 2d92fd25f3bae4acb9c440c3582af64b597c0d8c9f6aa30af80532dc28c32b80ff08c60c2611b0bb47a65e64f480874989173a48d91e3a54ecef6d151ae841bd
+  languageName: node
+  linkType: hard
+
 "tailwindcss@npm:^3.0.2":
   version: 3.0.24
   resolution: "tailwindcss@npm:3.0.24"
@@ -12283,6 +12292,7 @@ __metadata:
     react-dom: ^18.1.0
     react-router-dom: ^6.3.0
     react-scripts: ^5.0.1
+    tabler-icons-react: ^1.48.1
     typescript: ^4.7.2
     web-vitals: ^2.1.4
   languageName: unknown
