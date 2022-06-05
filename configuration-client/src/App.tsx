@@ -1,14 +1,34 @@
 import { MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
-import React from 'react';
+import './services/http-interceptor';
 
+import Login from './components/Login/Login'
 import Settings from './components/Settings/Settings';
 
+function setToken(userToken: string) {
+  localStorage.setItem('user', userToken);
+}
+
+function getToken() {
+  return localStorage.getItem('user');
+}
+
 function App() {
+
+  const token = getToken();
+
+  if(!token) {
+    return (
+      <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles withNormalizeCSS>
+        <Login setToken={setToken} />
+      </MantineProvider>
+      )
+  }
+
   return (
     <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles withNormalizeCSS>
       <NotificationsProvider>
-        <Settings></Settings>
+        <Settings />
       </NotificationsProvider>
     </MantineProvider>
   );
