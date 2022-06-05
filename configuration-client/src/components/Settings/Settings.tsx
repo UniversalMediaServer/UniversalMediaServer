@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 // import { updateNotification } from '@mantine/notifications';
@@ -7,22 +7,25 @@ import { useEffect, useRef, useState } from "react";
 const axios = require('axios').default;
 
 export default function Settings() {
+  const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
+  const languageSettingsRef = useRef([]);
   let translations: {[key: string]: string} = {};
   const translationsRef = useRef(translations);
 
-  const initialValues = {
-    server_name: 'Universal Media Server',
+  const defaultSettings = {
     append_profile_name: false,
+    language: 'en-US',
+    server_name: 'Universal Media Server',
   };
 
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
-  const [configuration, setConfiguration] = useState(initialValues);
+  const [configuration, setConfiguration] = useState(defaultSettings);
 
-  const form = useForm({ initialValues });
+  const form = useForm({ initialValues: defaultSettings });
 
   // Code here will run just like componentDidMount
   useEffect(() => {
@@ -56,9 +59,11 @@ export default function Settings() {
         //   message: 'Configuration was loaded',
         //   autoClose: 3000,
         // });
+        const settingsResponse = response[0].data;
+        languageSettingsRef.current = settingsResponse.languages;
 
         // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge(initialValues, response[0].data);
+        const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
         translationsRef.current = response[1].data;
         /**
          * Work around a bug in the Java JSON conversion where
@@ -109,7 +114,7 @@ export default function Settings() {
 
   const handleSubmit = (values: typeof form.values) => {
     setLoading(true);
-    axios.post('/configuration-api/', values)
+    axios.post('/configuration-api/settings', values)
       .then(function () {
         showNotification({
           title: 'Saved',
@@ -132,20 +137,35 @@ export default function Settings() {
   };
 
   return (
-    <Box sx={{ maxWidth: 300 }} mx="auto">
+    <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <TextInput
-          required
-          label={translationsRef.current['NetworkTab.71']}
-          name="server_name"
-          {...form.getInputProps('server_name')}
-        />
+        <Tabs active={activeTab} onTabChange={setActiveTab}>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>
+            <Select
+              label={translationsRef.current['LanguageSelection.Language']}
+              data={languageSettingsRef.current}
+              {...form.getInputProps('language')}
+            />
 
-        <Checkbox
-          mt="md"
-          label={translationsRef.current['NetworkTab.72']}
-          {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
-        />
+            <TextInput
+              label={translationsRef.current['NetworkTab.71']}
+              name="server_name"
+              {...form.getInputProps('server_name')}
+            />
+
+            <Checkbox
+              mt="md"
+              label={translationsRef.current['NetworkTab.72']}
+              {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+            />
+          </Tabs.Tab>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabNavigationSettings']}>
+
+          </Tabs.Tab>
+          <Tabs.Tab label={translationsRef.current['LooksFrame.TabSharedContent']}>
+            
+          </Tabs.Tab>
+        </Tabs>
 
         <Group position="right" mt="md">
           <Button type="submit" loading={isLoading}>

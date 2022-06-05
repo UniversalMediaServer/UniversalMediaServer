@@ -3072,13 +3072,18 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
+	 * Note: This is not guaranteed to contain ALL settings,
+	 * only the ones the user has changed from defaults. To
+	 * get the whole picture it needs to be combined with
+	 * the defaults.
+	 *
 	 * Note: We do not save the configuration as JSON at
 	 * any point, this is just a convenience method for
 	 * our REST API.
 	 *
-	 * @return the current configuration in JSON format.
+	 * @return the user settings as a JSON string.
 	 */
-	public String getConfigurationAsJson() {
+	public String getConfigurationAsJsonString() {
 		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
 		return new PropertiesToJsonConverter().convertToJson(configurationAsProperties);
 	}
