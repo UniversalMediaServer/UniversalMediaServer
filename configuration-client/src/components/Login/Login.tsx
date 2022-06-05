@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { showNotification } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import { login } from '../../services/auth.service';
 import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
@@ -15,17 +15,21 @@ const Login = ({ setToken }) => {
       const handleLogin = (values: typeof form.values) => {
         const { username, password } = values;
         login(username, password).then(
-          ({token}) => {
+          ({token, firstLogin}) => {
             setToken(token);
+            if (firstLogin === "true") {
+              return window.location.href = '/changepassword'
+            }
             window.location.reload();
           },
           (error) => {
-            const resMessage =
-              (error.response &&
-                error.response.data &&
-                error.response.data.message) ||
-              error.message ||
-              error.toString();
+            showNotification({
+              id: 'pwd-error',
+              color: 'red',
+              title: 'Error',
+              message: 'Error logging in',
+              autoClose: 3000,
+            });
           }
         );
       };

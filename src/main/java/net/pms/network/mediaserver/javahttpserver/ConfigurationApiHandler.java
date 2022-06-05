@@ -19,12 +19,7 @@
  */
 package net.pms.network.mediaserver.javahttpserver;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
+
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -34,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -81,27 +75,15 @@ public class ConfigurationApiHandler implements HttpHandler {
 				// this is called by the web interface settings React app on page load
 				if (call.equals("settings")) {
 					if (exchange.getRequestMethod().equals("GET")) {
-						// this would be implemented higher in the stack, and on all the protected endpoints
-						final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-						final String token = authHeader.get(0).replace("Bearer ", "");
-						try {
-						    Algorithm algorithm = Algorithm.HMAC256("secret"); //use more secure key
-						    JWTVerifier verifier = JWT.require(algorithm)
-						        .withIssuer("UMS")
-						        .build(); //Reusable verifier instance
-						    DecodedJWT jwt = verifier.verify(token);
-						    String jwtUser = jwt.getClaim("username").asString();
-							String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
-							WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
-							LOGGER.info("Got token for {}", jwtUser);
-							LOGGER.info("token for {}", token);
-						} catch (JWTVerificationException exception){
-							LOGGER.error("Error verifying JWT: {}", exception.getMessage());
+						if (!UserService.isLoggedIn(exchange)) {
 							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 						}
-						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
-
+						String configurationAsJson = pmsConfiguration.getConfigurationAsJson();
+						WebInterfaceServerUtil.respond(exchange, configurationAsJson, 200, "application/json");
 					} else if (exchange.getRequestMethod().equals("POST")) {
+						if (!UserService.isLoggedIn(exchange)) {
+							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+						}
 						// Here we possibly received some updates to config values
 						String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 						HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
