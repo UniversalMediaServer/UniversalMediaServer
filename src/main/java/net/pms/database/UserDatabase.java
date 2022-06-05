@@ -54,7 +54,6 @@ public class UserDatabase extends Database {
 	@Override
 	void onOpening(boolean force) {
 		try {
-			LOGGER.info("onOpening USER TABLE");
 			checkTables(force);
 		} catch (SQLException se) {
 			LOGGER.error("Error checking tables: " + se.getMessage());

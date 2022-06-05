@@ -59,7 +59,6 @@ public class LoginApiHandler implements HttpHandler {
 					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
 					Connection connection = null;
 					connection = UserDatabase.getConnectionIfAvailable();
-					//UserService.createUser(connection, data.getUsername(), data.getPassword());
 					LoginDetails dbUser = UserService.getUserByUsername(connection, data.getUsername());
 					if (dbUser != null) {
 						LOGGER.info("Got user from db: {}", dbUser.getUsername());
@@ -70,7 +69,7 @@ public class LoginApiHandler implements HttpHandler {
 								Algorithm algorithm = Algorithm.HMAC256("secret");
 								String token = JWT.create()
 									.withIssuer("UMS")
-									.withClaim("username", data.getUsername())
+									.withClaim("username", dbUser.getUsername())
 									.withArrayClaim("roles", new String[]{"admin"})
 									.sign(algorithm);
 								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token +"\"}", 200, "application/json");

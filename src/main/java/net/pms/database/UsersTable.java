@@ -20,15 +20,11 @@
 package net.pms.database;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Iterator;
-import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.pms.network.mediaserver.javahttpserver.UserService;
 
 public final class UsersTable extends UserTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UsersTable.class);
@@ -98,9 +94,11 @@ public final class UsersTable extends UserTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				INT PRIMARY KEY AUTO_INCREMENT, " +
-				"USERNAME		VARCHAR2(255), " +
+				"USERNAME		VARCHAR2(255) UNIQUE, " +
 				"PASSWORD		VARCHAR2(1024)" +
 			")"
 		);
+		// create an initial user in the table
+		UserService.createUser(connection, "ums", "initialpassword");
 	}
 }
