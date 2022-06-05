@@ -64,7 +64,7 @@ public class LoginApiHandler implements HttpHandler {
 					if (dbUser != null) {
 						LOGGER.info("Got user from db: {}", dbUser.getUsername());
 						// A real implementation will fetch the user from H2, then securely check password match
-						if (data.getUsername().equals(dbUser.getUsername()) && data.getPassword().equals(dbUser.getPassword())) {
+						if (UserService.validatePassword(data.getPassword(), dbUser.getPassword())) {
 							// If correct, sign a JWT and return it
 							try {
 								Algorithm algorithm = Algorithm.HMAC256("secret");

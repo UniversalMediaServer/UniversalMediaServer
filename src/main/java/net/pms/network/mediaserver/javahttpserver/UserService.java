@@ -7,6 +7,8 @@ import java.sql.Statement;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.pms.util.LoginDetails;
 
 public class UserService {
@@ -15,7 +17,7 @@ public class UserService {
 
 	public static LoginDetails getUserByUsername(final Connection connection, final String username) {
 		LoginDetails result;
-		LOGGER.info("Finding user: username: {} ", username);
+		LOGGER.info("Finding user: {} ", username);
 		try {
 			String sql = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
@@ -49,7 +51,7 @@ public class UserService {
 
 				insertStatement.clearParameters();
 				insertStatement.setString(1, left(username, 255));
-				insertStatement.setString(2, left(password, 255));
+				insertStatement.setString(2, left(hashPassword(password), 255));
 				insertStatement.executeUpdate();
 				try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
 					if (rs2.next()) {
@@ -61,4 +63,14 @@ public class UserService {
 		}
 		return;
 	}
+
+	public static boolean validatePassword(String password, String dbPasswordHash) {
+		BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), dbPasswordHash);
+		return result.verified;
+	}
+
+    public static String hashPassword(String passwordToHash) {
+		String bcryptHashString = BCrypt.withDefaults().hashToString(12, passwordToHash.toCharArray());
+		return bcryptHashString;
+    }
 }
