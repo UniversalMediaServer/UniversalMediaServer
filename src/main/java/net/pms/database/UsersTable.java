@@ -100,5 +100,6 @@ public final class UsersTable extends UserTable {
 		);
 		// create an initial user in the table
 		UserService.createUser(connection, "ums", "initialpassword");
+		LOGGER.info("Initial user for web UI has been created. Please login and change the password");
 	}
 }

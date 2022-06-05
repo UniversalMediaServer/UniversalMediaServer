@@ -55,6 +55,7 @@ public class LoginApiHandler implements HttpHandler {
 		try {
 			try {
 				if (exchange.getRequestMethod().equals("POST")) {
+					Boolean isFirstLogin = false;
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
 					Connection connection = null;
@@ -72,7 +73,11 @@ public class LoginApiHandler implements HttpHandler {
 									.withClaim("username", dbUser.getUsername())
 									.withArrayClaim("roles", new String[]{"admin"})
 									.sign(algorithm);
-								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token +"\"}", 200, "application/json");
+								
+								if (data.getPassword().equals("initialpassword")) {
+									isFirstLogin = true;
+								}
+								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token +"\", \"firstLogin\": \""+ isFirstLogin + "\"}", 200, "application/json");
 							} catch (JWTCreationException exception){
 								//Invalid Signing configuration / Couldn't convert Claims.
 								exchange.sendResponseHeaders(500, 0); //Internal Server Error
