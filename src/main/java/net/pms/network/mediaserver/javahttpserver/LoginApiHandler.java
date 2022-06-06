@@ -55,10 +55,10 @@ public class LoginApiHandler implements HttpHandler {
 			 */
 			var api = new Object(){
 				private String getEndpoint() {
-					String endpoint = "";
-					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/login");
+					String endpoint = "/";
+					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/login/");
 					if (pos != -1) {
-						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/login".length());
+						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/login/".length());
 					}
 					return endpoint;
 				}
@@ -76,7 +76,7 @@ public class LoginApiHandler implements HttpHandler {
 				}
 			};
 			try {
-				if (api.post("/login")) {
+				if (api.post("/")) {
 					Boolean isFirstLogin = false;
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);

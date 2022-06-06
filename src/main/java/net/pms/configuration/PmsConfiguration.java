@@ -215,6 +215,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
 	protected static final String KEY_IP_FILTER = "ip_filter";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
+	protected static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
 	protected static final String KEY_LANGUAGE = "language";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
@@ -633,6 +634,11 @@ public class PmsConfiguration extends RendererConfiguration {
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
 			maxMaxMemoryBufferSize = (int) usableMemory;
+		}
+
+		if (getJwtSecret().equals("")) {
+			String uuid = UUID.randomUUID().toString();
+			setJwtSecret(uuid.substring(0, uuid.indexOf("-")));
 		}
 	}
 
@@ -1243,6 +1249,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_API_KEY, "");
 	}
 
+	public String getJwtSecret() {
+		return getString(KEY_JWT_SIGNER_SECRET, "");
+	}
+
+	public void setJwtSecret(String value) {
+		configuration.setProperty(KEY_JWT_SIGNER_SECRET, value);
+	}
 	/**
 	 * If the framerate is not recognized correctly and the video runs too fast or too
 	 * slow, tsMuxeR can be forced to parse the fps from FFmpeg.
