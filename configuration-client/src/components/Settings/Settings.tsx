@@ -14,8 +14,10 @@ export default function Settings() {
 
   const defaultSettings = {
     append_profile_name: false,
+    minimized: false,
     language: 'en-US',
     server_name: 'Universal Media Server',
+    show_splash_screen: true,
   };
 
   const openGitHubNewIssue = () => {
@@ -96,9 +98,8 @@ export default function Settings() {
               {...form.getInputProps('language')}
             />
 
-            <Group mb="xs">
+            <Group mt="xs">
               <TextInput
-                mt="sm"
                 label={translationsRef.current['NetworkTab.71']}
                 name="server_name"
                 sx={{ flex: 1 }}
@@ -109,6 +110,19 @@ export default function Settings() {
                 mt="xl"
                 label={translationsRef.current['NetworkTab.72']}
                 {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+              />
+            </Group>
+
+            <Group mt="xs">
+              <Checkbox
+                mt="xl"
+                label={translationsRef.current['NetworkTab.3']}
+                {...form.getInputProps('minimized', { type: 'checkbox' })}
+              />
+              <Checkbox
+                mt="xl"
+                label={translationsRef.current['NetworkTab.74']}
+                {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
             </Group>
           </Tabs.Tab>
