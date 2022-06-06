@@ -5,9 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,29 +27,61 @@ public class UserApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
+			/**
+			 * Helpers for HTTP methods and paths.
+			 */
+			var api = new Object(){
+				private String getEndpoint() {
+					String endpoint = "";
+					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/user");
+					if (pos != -1) {
+						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/user".length());
+					}
+					return endpoint;
+				}
+				/**
+				 * @return whether this was a GET request for the specified path.
+				 */
+				public Boolean get(String path) {
+					return exchange.getRequestMethod().equals("GET") && getEndpoint().equals(path);
+				}
+				/**
+				 * @return whether this was a POST request for the specified path.
+				 */
+				public Boolean post(String path) {
+					return exchange.getRequestMethod().equals("POST") && getEndpoint().equals(path);
+				}
+			};
+
 			try {
-                // TODO check this is the right endpoint/path e.g. /changepassword
-				if (exchange.getRequestMethod().equals("POST")) {
-                    if (!UserService.isLoggedIn(exchange)) {
+				if (api.post("/changepassword")) {
+                    if (!AuthService.isLoggedIn(exchange)) {
                         WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
                     }
                     String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
                     LoginDetails data = gson.fromJson(reqBody, LoginDetails.class);
 					Connection connection = null;
 					connection = UserDatabase.getConnectionIfAvailable();
-                    String loggedInUsername = UserService.getUsernameFromRequestJWT(exchange);
-                    UserService.updatePassword(connection, data.getPassword(), loggedInUsername);
-					WebInterfaceServerUtil.respond(exchange, "Ok", 200, "application/json");
+					if (connection != null) {
+						String loggedInUsername = AuthService.getUsernameFromJWT(exchange);
+						UserService.updatePassword(connection, data.getPassword(), loggedInUsername);
+						WebInterfaceServerUtil.respond(exchange, "Ok", 200, "application/json");
+					} else {
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+					}
+				} else {
+					WebInterfaceServerUtil.respond(exchange, "Not found", 404, "application/json");
 				}
 			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException: {}", e.getMessage());
-				exchange.sendResponseHeaders(500, 0); //Internal Server Error
+				LOGGER.error("RuntimeException in LoginApiHandler: {}", e.getMessage());
+				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 			}
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConsoleHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in UserApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
     }

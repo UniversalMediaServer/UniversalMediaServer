@@ -7,15 +7,8 @@ import java.sql.Statement;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.net.httpserver.HttpExchange;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.pms.util.LoginDetails;
-import java.util.List;
 
 public class UserService {
 	public static final String TABLE_NAME = "USERS";
@@ -82,7 +75,7 @@ public class UserService {
 
 	public static void updatePassword(final Connection connection, final String newPassword, final String username) {
 		try {
-			LOGGER.info("Updating password for {} to: {}", username, newPassword);
+			LOGGER.info("Updating password for {}", username);
 			Statement statement = connection.createStatement();
 			String sql = "UPDATE " + TABLE_NAME + " " +
 			"SET PASSWORD='" + hashPassword(newPassword) + "' " +
@@ -91,38 +84,5 @@ public class UserService {
 		} catch (Exception e) {
 			LOGGER.error("Error updatePassword:{}", e.getMessage());
 		}
-	}
-
-	public static Boolean isLoggedIn(HttpExchange exchange) {
-		final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-		final String token = authHeader.get(0).replace("Bearer ", "");
-		try {
-			Algorithm algorithm = Algorithm.HMAC256("secret"); //use more secure key
-			JWTVerifier verifier = JWT.require(algorithm)
-				.withIssuer("UMS")
-				.build(); //Reusable verifier instance
-			DecodedJWT jwt = verifier.verify(token);
-			return true;
-		} catch (JWTVerificationException exception){
-			LOGGER.error("Error verifying JWT: {}", exception.getMessage());
-			return false;
-		}
-	}
-    // TODO this could potentially decode the JWT rather than verifying it, assuming HTTP exchange has already been checked
-	public static String getUsernameFromRequestJWT(HttpExchange exchange) {
-		final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-		final String token = authHeader.get(0).replace("Bearer ", "");
-		try {
-			Algorithm algorithm = Algorithm.HMAC256("secret"); //use more secure key
-			JWTVerifier verifier = JWT.require(algorithm)
-				.withIssuer("UMS")
-				.build(); //Reusable verifier instance
-			DecodedJWT jwt = verifier.verify(token);
-			String jwtUser = jwt.getClaim("username").asString();
-			return jwtUser;
-		} catch (JWTVerificationException exception){
-			LOGGER.error("Error verifying JWT: {}", exception.getMessage());
-		}
-		return null;
 	}
 }
