@@ -1,7 +1,6 @@
 import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { showNotification, updateNotification } from '@mantine/notifications';
-import UserMenu from '../UserMenu/UserMenu';
+import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
 import { useEffect, useRef, useState } from "react";
 import axios from 'axios';

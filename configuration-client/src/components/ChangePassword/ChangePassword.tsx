@@ -1,10 +1,9 @@
 import { showNotification } from '@mantine/notifications';
 import { changePassword } from '../../services/auth.service';
-import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
+import { TextInput, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { isReturnStatement } from 'typescript';
 
-const ChangePassword = ({ }) => {
+const ChangePassword = () => {
     const form = useForm({
         initialValues: {
             password: '',
@@ -14,7 +13,7 @@ const ChangePassword = ({ }) => {
 
       const handleChangePassword = (values: typeof form.values) => {
         const { password, confirmpassword } = values;
-        if (password != confirmpassword) {
+        if (password !== confirmpassword) {
             showNotification({
                 id: 'pwd-error',
                 color: 'red',

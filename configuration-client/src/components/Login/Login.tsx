@@ -1,7 +1,7 @@
 import { showNotification } from '@mantine/notifications';
 import PropTypes from 'prop-types';
 import { login } from '../../services/auth.service';
-import { TextInput, Checkbox, Button, Group, Box } from '@mantine/core';
+import { TextInput, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
 // @ts-ignore
 const Login = ({ setToken }) => {
