@@ -139,9 +139,6 @@ export default function Settings() {
 
   return (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <Group position="right" mt="md">
-        <UserMenu />
-      </Group>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>
@@ -151,17 +148,21 @@ export default function Settings() {
               {...form.getInputProps('language')}
             />
 
-            <TextInput
-              label={translationsRef.current['NetworkTab.71']}
-              name="server_name"
-              {...form.getInputProps('server_name')}
-            />
+            <Group mb="xs">
+              <TextInput
+                mt="sm"
+                label={translationsRef.current['NetworkTab.71']}
+                name="server_name"
+                sx={{ flex: 1 }}
+                {...form.getInputProps('server_name')}
+              />
 
-            <Checkbox
-              mt="md"
-              label={translationsRef.current['NetworkTab.72']}
-              {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
-            />
+              <Checkbox
+                mt="xl"
+                label={translationsRef.current['NetworkTab.72']}
+                {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+              />
+            </Group>
           </Tabs.Tab>
           <Tabs.Tab label={translationsRef.current['LooksFrame.TabNavigationSettings']}>
 

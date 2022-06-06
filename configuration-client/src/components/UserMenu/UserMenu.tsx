@@ -1,27 +1,31 @@
-import { Menu, Button } from '@mantine/core';
-import { Trash, ArrowsLeftRight, Settings, Lock } from 'tabler-icons-react';
+import { Menu, ActionIcon } from '@mantine/core';
+import React from 'react';
+import { Trash, Settings, Lock } from 'tabler-icons-react';
 
 function UserMenu() {
   return (
     <Menu
-        control={
-            <Button leftIcon={<Settings />} variant="subtle"></Button>
-        }>
+      control={
+        <ActionIcon variant="default" size={30}>
+          <Settings size={16} />
+        </ActionIcon>
+      }
+    >
       <Menu.Label>Settings</Menu.Label>
       <Menu.Item
         icon={<Lock size={14} />}
         onClick={() => {
-            window.location.href = '/changepassword';
-            }
+          window.location.href = '/changepassword';
+          }
         }
       >Change password</Menu.Item>
       <Menu.Item
         color="red"
         icon={<Trash size={14} />}
         onClick={() => {
-            localStorage.removeItem('user');
-            window.location.reload();
-            }
+          localStorage.removeItem('user');
+          window.location.reload();
+          }
         }
         >Log out</Menu.Item>
     </Menu>
