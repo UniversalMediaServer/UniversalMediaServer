@@ -31,23 +31,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.javahttpserver.ApiHandler;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.util.Languages;
-
 /**
  * This class handles calls to the internal API.
  */
 public class ConfigurationApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 
 	private final Gson gson = new Gson();
 
