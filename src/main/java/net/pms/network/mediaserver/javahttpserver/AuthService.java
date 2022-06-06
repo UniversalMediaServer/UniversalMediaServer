@@ -47,7 +47,7 @@ public class AuthService {
 
     public static String getUsernameFromJWT(HttpExchange exchange) {
         final List<String> authHeader = exchange.getRequestHeaders().get("Authorization");
-		final String token = authHeader.get(0).replace("Bearer ", "");
+        final String token = authHeader.get(0).replace("Bearer ", "");
         try {
             DecodedJWT jwt = decodeJwt(token);
             return jwt.getClaim("username").asString();
