@@ -65,23 +65,7 @@ export default function Settings() {
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
         translationsRef.current = response[1].data;
-        /**
-         * Work around a bug in the Java JSON conversion where
-         * booleans are parsed as strings.
-         *
-         * @see https://github.com/mikolajmitura/java-properties-to-json/issues/64
-         */
-        _.each(userConfig, (value, key: string) => {
-          if (
-            typeof value === 'string' &&
-            (
-              value.toLowerCase() === 'false' ||
-              value.toLowerCase() === 'true'
-            )
-          ) {
-            userConfig[key] = value.toLowerCase() === 'true';
-          }
-        });
+
         setConfiguration(userConfig);
         form.setValues(configuration);
       })

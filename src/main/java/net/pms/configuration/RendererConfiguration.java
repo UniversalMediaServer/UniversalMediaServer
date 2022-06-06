@@ -3085,7 +3085,13 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public String getConfigurationAsJsonString() {
 		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
-		return new PropertiesToJsonConverter().convertToJson(configurationAsProperties);
+
+		Map<String, String> propsAsStringMap = new HashMap<>();
+		configurationAsProperties.forEach(
+				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value))
+		);
+
+		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
 	}
 
 	public Configuration getRawConfiguration() {
