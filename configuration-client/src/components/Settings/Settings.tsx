@@ -28,37 +28,11 @@ export default function Settings() {
 
   // Code here will run just like componentDidMount
   useEffect(() => {
-    showNotification({
-      id: 'data-loading',
-      color: 'indigo',
-      loading: true,
-      title: 'Loading',
-      message: 'Loading your configuration...',
-      autoClose: false,
-      disallowClose: true,
-    });
-
-
     Promise.all([
       axios.get('/configuration-api/settings'),
       axios.get('/configuration-api/i18n'),
     ])
       .then(function (response: any[]) {
-        // showNotification({
-        //   id: 'data-loading',
-        //   color: 'teal',
-        //   title: 'Success',
-        //   message: 'Configuration was loaded',
-        //   autoClose: 3000,
-        // });
-        // todo: fix notification updating
-        // updateNotification({
-        //   id: 'data-loading',
-        //   color: 'teal',
-        //   title: 'Done',
-        //   message: 'Configuration was loaded',
-        //   autoClose: 3000,
-        // });
         const settingsResponse = response[0].data;
         languageSettingsRef.current = settingsResponse.languages;
 
@@ -79,15 +53,6 @@ export default function Settings() {
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
-        // todo: fix notification updating
-        // updateNotification({
-        //   id: 'data-loading',
-        //   color: 'red',
-        //   title: 'Error',
-        //   message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
-        //   onClick: () => { openGitHubNewIssue(); },
-        //   autoClose: 3000,
-        // });
       })
       .then(function () {
         form.validate();
