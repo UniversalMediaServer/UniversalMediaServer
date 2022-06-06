@@ -1,4 +1,4 @@
-package net.pms.network.mediaserver.javahttpserver;
+package net.pms.util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,10 +8,10 @@ import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import net.pms.util.LoginDetails;
+import java.sql.SQLException;
+import net.pms.database.UserTableUsers;
 
 public class UserService {
-	public static final String TABLE_NAME = "USERS";
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
 	public static LoginDetails getUserByUsername(final Connection connection, final String username) {
@@ -19,9 +19,9 @@ public class UserService {
 		LOGGER.info("Finding user: {} ", username);
 		try {
 			String sql = "SELECT * " +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE USERNAME" + "='" + username + "' " +
-				"LIMIT 1";
+					"FROM " + UserTableUsers.TABLE_NAME + " " +
+					"WHERE USERNAME" + "='" + username + "' " +
+					"LIMIT 1";
 			try (
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql);
@@ -34,10 +34,9 @@ public class UserService {
 					return result;
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error("Error finding user: " + e);
 		}
-
 		return null;
 	}
 
@@ -45,22 +44,21 @@ public class UserService {
 		try {
 			LOGGER.info("Creating user: {}", username);
 			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + "(USERNAME, PASSWORD) " + "VALUES(?, ?)",
-				Statement.RETURN_GENERATED_KEYS);
+					"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD) " + "VALUES(?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
 
-				insertStatement.clearParameters();
-				insertStatement.setString(1, left(username, 255));
-				insertStatement.setString(2, left(hashPassword(password), 255));
-				insertStatement.executeUpdate();
-				try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
-					if (rs2.next()) {
-						LOGGER.info("Created user successfully in " + TABLE_NAME);
-					}
+			insertStatement.clearParameters();
+			insertStatement.setString(1, left(username, 255));
+			insertStatement.setString(2, left(hashPassword(password), 255));
+			insertStatement.executeUpdate();
+			try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
+				if (rs2.next()) {
+					LOGGER.info("Created user successfully in " + UserTableUsers.TABLE_NAME);
 				}
-		} catch (Exception e) {
+			}
+		} catch (SQLException e) {
 			LOGGER.error("ERROR createUser" + e);
 		}
-		return;
 	}
 
 	public static boolean validatePassword(String password, String dbPasswordHash) {
@@ -68,20 +66,20 @@ public class UserService {
 		return result.verified;
 	}
 
-    public static String hashPassword(String passwordToHash) {
+	public static String hashPassword(String passwordToHash) {
 		String bcryptHashString = BCrypt.withDefaults().hashToString(12, passwordToHash.toCharArray());
 		return bcryptHashString;
-    }
+	}
 
 	public static void updatePassword(final Connection connection, final String newPassword, final String username) {
 		try {
 			LOGGER.info("Updating password for {}", username);
 			Statement statement = connection.createStatement();
-			String sql = "UPDATE " + TABLE_NAME + " " +
-			"SET PASSWORD='" + hashPassword(newPassword) + "' " +
-			"WHERE USERNAME='" + username + "'";
+			String sql = "UPDATE " + UserTableUsers.TABLE_NAME + " " +
+					"SET PASSWORD='" + hashPassword(newPassword) + "' " +
+					"WHERE USERNAME='" + username + "'";
 			statement.executeUpdate(sql);
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error("Error updatePassword:{}", e.getMessage());
 		}
 	}

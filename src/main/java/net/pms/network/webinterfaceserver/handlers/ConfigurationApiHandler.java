@@ -17,8 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.javahttpserver;
-
+package net.pms.network.webinterfaceserver.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.mediaserver.javahttpserver.ApiHandler;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.util.Languages;
 
@@ -76,7 +76,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			/**
 			 * Helpers for HTTP methods and paths.
 			 */
-			var api = new Object(){
+			var api = new Object() {
 				private String getEndpoint() {
 					String endpoint = "";
 					int pos = exchange.getRequestURI().getPath().indexOf("configuration-api");
@@ -104,7 +104,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			 */
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
-				if (!AuthService.isLoggedIn(exchange)) {
+				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
@@ -116,7 +116,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			}
 			if (api.post("/settings")) {
-				if (!AuthService.isLoggedIn(exchange)) {
+				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
 				// Here we possibly received some updates to config values
@@ -147,7 +147,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
 			}
 			if (api.get("/i18n")) {
-				if (!AuthService.isLoggedIn(exchange)) {
+				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
 				String i18nAsJson = Messages.getStringsAsJson();
