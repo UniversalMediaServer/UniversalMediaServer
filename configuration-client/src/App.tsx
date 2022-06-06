@@ -40,13 +40,13 @@ function App() {
         <MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
           <AppShell
             padding="md"
-            navbar={<Navbar width={{
-              // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
-              sm: 200,
+            // navbar={<Navbar width={{
+            //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
+            //   sm: 200,
 
-              // When other breakpoints do not match base width is used, defaults to 100%
-              base: 100,
-            }} height={500} p="xs">{/* Navbar content */}</Navbar>}
+            //   // When other breakpoints do not match base width is used, defaults to 100%
+            //   base: 100,
+            // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
             header={<Header height={50} p="xs">{
               <Group position="right">
                 <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
