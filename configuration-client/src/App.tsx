@@ -27,7 +27,6 @@ function App() {
     key: 'mantine-color-scheme',
     defaultValue: 'dark',
   });
-  console.log(2,colorScheme);
   const toggleColorScheme = (value?: ColorScheme) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
   }
@@ -35,9 +34,9 @@ function App() {
   const token = getToken();
 
   return (
-    <NotificationsProvider>
-      <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
-        <MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
+    <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
+      <MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
+        <NotificationsProvider>
           <AppShell
             padding="md"
             // navbar={<Navbar width={{
@@ -70,9 +69,9 @@ function App() {
               <Login setToken={setToken} />
             )}
           </AppShell>
-        </MantineProvider>
-      </ColorSchemeProvider>
-    </NotificationsProvider>
+        </NotificationsProvider>
+      </MantineProvider>
+    </ColorSchemeProvider>
   );
 }
 
