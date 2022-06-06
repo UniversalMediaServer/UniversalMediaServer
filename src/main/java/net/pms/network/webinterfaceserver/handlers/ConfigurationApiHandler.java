@@ -71,6 +71,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 				exchange.close();
 				return;
 			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(exchange, "");
+			}
 			/**
 			 * Helpers for HTTP methods and paths.
 			 */
@@ -103,19 +106,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
 				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+					WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+					return;
 				}
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);
-
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
-			}
-			if (api.post("/settings")) {
+			} else if (api.post("/settings")) {
 				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+					return;
 				}
 				// Here we possibly received some updates to config values
 				String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
@@ -143,17 +146,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
-			}
-			if (api.get("/i18n")) {
+			} else if (api.get("/i18n")) {
 				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+					WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+					return;
 				}
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
+			} else {
+				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 			}
-			WebInterfaceServerUtil.respond(exchange, "Not found", 404, "application/json");
 		} catch (RuntimeException e) {
-			exchange.sendResponseHeaders(500, 0); //Internal Server Error
+			LOGGER.trace("", e);
+			WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {

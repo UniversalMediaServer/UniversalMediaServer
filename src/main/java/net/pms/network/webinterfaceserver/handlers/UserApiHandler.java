@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
@@ -48,6 +49,14 @@ public class UserApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
+			InetAddress ia = exchange.getRemoteAddress().getAddress();
+			if (WebInterfaceServerUtil.deny(ia)) {
+				exchange.close();
+				return;
+			}
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageReceived(exchange, "");
+			}
 			/**
 			 * Helpers for HTTP methods and paths.
 			 */
