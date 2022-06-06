@@ -24,10 +24,10 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.pms.network.mediaserver.javahttpserver.UserService;
+import net.pms.util.UserService;
 
-public final class UsersTable extends UserTable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(UsersTable.class);
+public final class UserTableUsers extends UserTable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserTableUsers.class);
 	public static final String TABLE_NAME = "USERS";
 
 	/**

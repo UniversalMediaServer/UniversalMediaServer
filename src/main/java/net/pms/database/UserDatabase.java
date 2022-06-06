@@ -84,7 +84,7 @@ public class UserDatabase extends Database {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
 				UserTableTablesVersions.checkTable(connection);
-				UsersTable.checkTable(connection);
+				UserTableUsers.checkTable(connection);
 			}
 			tablesChecked = true;
 		}
