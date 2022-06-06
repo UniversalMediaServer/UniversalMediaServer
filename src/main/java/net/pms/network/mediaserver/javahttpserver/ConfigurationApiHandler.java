@@ -104,7 +104,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			 */
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
-				if (!UserService.isLoggedIn(exchange)) {
+				if (!AuthService.isLoggedIn(exchange)) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
@@ -116,7 +116,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			}
 			if (api.post("/settings")) {
-				if (!UserService.isLoggedIn(exchange)) {
+				if (!AuthService.isLoggedIn(exchange)) {
 					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 				}
 				// Here we possibly received some updates to config values
@@ -147,9 +147,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
 			}
 			if (api.get("/i18n")) {
+				if (!AuthService.isLoggedIn(exchange)) {
+					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+				}
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
 			}
+			WebInterfaceServerUtil.respond(exchange, "Not found", 404, "application/json");
 		} catch (RuntimeException e) {
 			exchange.sendResponseHeaders(500, 0); //Internal Server Error
 		} catch (IOException e) {

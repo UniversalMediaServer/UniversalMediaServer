@@ -430,7 +430,7 @@ public class PMS {
 
 		// Start network scanner
 		NetworkConfiguration.start();
-		// Initialize mediaDatabase
+		// Initialize databases
 		MediaDatabase.init();
 		UserDatabase.init();
 
