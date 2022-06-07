@@ -1,6 +1,5 @@
 package net.pms.network.webinterfaceserver.handlers;
 
-
 import com.google.gson.Gson;
 import java.util.HashMap;
 import com.sun.net.httpserver.HttpExchange;
