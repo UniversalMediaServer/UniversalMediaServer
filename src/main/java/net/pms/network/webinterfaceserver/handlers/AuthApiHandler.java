@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 /**
  * This class handles calls to the internal API.
  */
-public class LoginApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(LoginApiHandler.class);
+public class AuthApiHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiHandler.class);
 
 	private final Gson gson = new Gson();
 
@@ -65,9 +65,9 @@ public class LoginApiHandler implements HttpHandler {
 			var api = new Object() {
 				private String getEndpoint() {
 					String endpoint = "/";
-					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/login/");
+					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/auth");
 					if (pos != -1) {
-						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/login/".length());
+						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/auth".length());
 					}
 					return endpoint;
 				}
@@ -85,7 +85,7 @@ public class LoginApiHandler implements HttpHandler {
 				}
 			};
 			try {
-				if (api.post("/")) {
+				if (api.post("/login")) {
 					Boolean isFirstLogin = false;
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
@@ -110,16 +110,25 @@ public class LoginApiHandler implements HttpHandler {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 					}
+				} else if (api.post("/refresh")) {
+					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
+						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+					}
+					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					String token = AuthService.signJwt(loggedInUsername);
+					WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
+				} else {
+					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
 			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in LoginApiHandler: {}", e.getMessage());
+				LOGGER.error("RuntimeException in AuthApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 			}
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in LoginApiHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in AuthApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

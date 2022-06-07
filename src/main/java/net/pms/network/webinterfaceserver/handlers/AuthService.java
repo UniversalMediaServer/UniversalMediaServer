@@ -83,7 +83,7 @@ public class AuthService {
 		}
 		final String token = authHeader.get(0).replace("Bearer ", "");
 		try {
-			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET); //use more secure key
+			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
 					.withIssuer("UMS")
 					.build();

@@ -1,10 +1,9 @@
 import { showNotification } from '@mantine/notifications';
-import PropTypes from 'prop-types';
 import { login } from '../../services/auth.service';
 import { TextInput, Button, Group, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
-// @ts-ignore
-const Login = ({ setToken }) => {
+
+const Login = () => {
     const form = useForm({
         initialValues: {
           username: '',
@@ -15,8 +14,7 @@ const Login = ({ setToken }) => {
       const handleLogin = (values: typeof form.values) => {
         const { username, password } = values;
         login(username, password).then(
-          ({token, firstLogin}) => {
-            setToken(token);
+          ({firstLogin}) => {
             if (firstLogin === "true") {
               return window.location.href = '/changepassword'
             }
@@ -56,7 +54,4 @@ const Login = ({ setToken }) => {
       );
 };
 
-Login.propTypes = {
-  setToken: PropTypes.func.isRequired
-}
 export default Login;
