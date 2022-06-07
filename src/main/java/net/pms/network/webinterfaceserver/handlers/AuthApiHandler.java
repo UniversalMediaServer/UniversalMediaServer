@@ -27,9 +27,11 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
+import net.pms.iam.AuthService;
+import net.pms.iam.UsernamePassword;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.util.LoginDetails;
-import net.pms.util.UserService;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,33 +88,35 @@ public class AuthApiHandler implements HttpHandler {
 			};
 			try {
 				if (api.post("/login")) {
-					Boolean isFirstLogin = false;
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					LoginDetails data = gson.fromJson(loginDetails, LoginDetails.class);
+					UsernamePassword data = gson.fromJson(loginDetails, UsernamePassword.class);
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection != null) {
-						LoginDetails dbUser = UserService.getUserByUsername(connection, data.getUsername());
-						if (dbUser != null) {
-							LOGGER.info("Got user from db: {}", dbUser.getUsername());
-							if (UserService.validatePassword(data.getPassword(), dbUser.getPassword())) {
-								String token = AuthService.signJwt(dbUser.getUsername());
-								if (data.getPassword().equals("initialpassword")) {
-									isFirstLogin = true;
-								}
+						Account account = AccountService.getAccountByUsername(connection, data.getUsername());
+						if (account != null) {
+							LOGGER.info("Got user from db: {}", account.getUsername());
+							AccountService.checkUserUnlock(connection, account.getUser());
+							if (AccountService.isUserLocked(account.getUser())) {
+								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
+							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
+								AccountService.setUserLogged(connection, account.getUser());
+								String token = AuthService.signJwt(account.getUser().getUsername());
+								Boolean isFirstLogin = (account.getUser().getUsername().equals(AccountService.DEFAULT_ADMIN_USERNAME) && data.getPassword().equals(AccountService.DEFAULT_ADMIN_PASSWORD));
 								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\", \"firstLogin\": \"" + isFirstLogin + "\"}", 200, "application/json");
 							} else {
-								WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+								AccountService.setUserLoginFailed(connection, account.getUser());
+								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"" + (AccountService.MAX_LOGIN_FAIL_BEFORE_LOCK - account.getUser().getLoginFailedCount()) + "\", \"lockeduntil\": \"0\"}", 401, "application/json");
 							}
 						} else {
-							WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+							WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 						}
 					} else {
 						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 					}
 				} else if (api.post("/refresh")) {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
 					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
 					String token = AuthService.signJwt(loggedInUsername);
@@ -122,7 +126,7 @@ public class AuthApiHandler implements HttpHandler {
 				}
 			} catch (RuntimeException e) {
 				LOGGER.error("RuntimeException in AuthApiHandler: {}", e.getMessage());
-				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 			}
 		} catch (IOException e) {
 			throw e;

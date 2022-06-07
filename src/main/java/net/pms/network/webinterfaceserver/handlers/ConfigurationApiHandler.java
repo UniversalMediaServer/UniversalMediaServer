@@ -19,6 +19,7 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
+import net.pms.iam.AuthService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

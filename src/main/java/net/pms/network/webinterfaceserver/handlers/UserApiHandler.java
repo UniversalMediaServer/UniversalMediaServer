@@ -27,9 +27,11 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
+import net.pms.iam.Account;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.util.LoginDetails;
-import net.pms.util.UserService;
+import net.pms.iam.AccountService;
+import net.pms.iam.AuthService;
+import net.pms.iam.UsernamePassword;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,25 +92,31 @@ public class UserApiHandler implements HttpHandler {
 			try {
 				if (api.post("/changepassword")) {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
 					String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					LoginDetails data = gson.fromJson(reqBody, LoginDetails.class);
+					UsernamePassword data = gson.fromJson(reqBody, UsernamePassword.class);
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection != null) {
 						String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
-						UserService.updatePassword(connection, data.getPassword(), loggedInUsername);
-						WebInterfaceServerUtil.respond(exchange, "Ok", 200, "application/json");
+						Account account = AccountService.getAccountByUsername(connection, loggedInUsername);
+						/* check change password for others ?
+						Account account = AccountService.getAccountByUsername(connection, data.getUsername());
+						if (!account.getUsername().equals(loggedInUsername)) {
+						}
+						*/
+						AccountService.updatePassword(connection, data.getPassword(), account.getUser());
+						WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 					} else {
 						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 					}
 				} else {
-					WebInterfaceServerUtil.respond(exchange, "Not found", 404, "application/json");
+					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
 			} catch (RuntimeException e) {
 				LOGGER.error("RuntimeException in AuthApiHandler: {}", e.getMessage());
-				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 			}
 		} catch (IOException e) {
 			throw e;
