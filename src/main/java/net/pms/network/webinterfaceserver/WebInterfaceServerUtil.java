@@ -610,8 +610,17 @@ public class WebInterfaceServerUtil {
 						headers.add("Content-Type", mime);
 					}
 				}
-				//add cache for js and css versionned
-				if (filename.startsWith("util/") && t.getRequestURI() != null && t.getRequestURI().getQuery() != null && t.getRequestURI().getQuery().startsWith("v=")) {
+				//add cache for js and css versions
+				// todo: do a more global and robust way to detect development environments
+				String projectVersion = PropertiesUtil.getProjectProperties().get("project.version");
+				Boolean isDevelopmentVersion = projectVersion.indexOf("-SNAPSHOT") > -1;
+				if (
+					!isDevelopmentVersion &&
+					filename.startsWith("util/") &&
+					t.getRequestURI() != null &&
+					t.getRequestURI().getQuery() != null &&
+					t.getRequestURI().getQuery().startsWith("v=")
+				) {
 					headers.add("Cache-Control", "public, max-age=604800");
 				}
 				// Note: available() isn't officially guaranteed to return the full
