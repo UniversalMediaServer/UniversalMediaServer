@@ -14,9 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ActionsApiHandler implements HttpHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiHandler.class);
-    private final Gson gson = new Gson();
-    /**
+	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiHandler.class);
+	private final Gson gson = new Gson();
+	/**
 	 * Handle API calls.
 	 *
 	 * @param exchange
@@ -59,21 +59,21 @@ public class ActionsApiHandler implements HttpHandler {
 				}
 			};
 			try {
-                if (api.post("/")) {
+	if (api.post("/")) {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
-                    String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-                    HashMap<String,String> data = gson.fromJson(reqBody, HashMap.class);
-                    String operation = data.get("operation");
-                    switch (operation) {
-                        case "Server.restart":
-                            ProcessUtil.reboot();
-                            break;
-                        default:
-                            WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
-                    }
-                    ProcessUtil.reboot();
+					String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+					HashMap<String,String> data = gson.fromJson(reqBody, HashMap.class);
+					String operation = data.get("operation");
+					switch (operation) {
+						case "Server.restart":
+							ProcessUtil.reboot();
+								break;
+						default:
+							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
+					}
+					ProcessUtil.reboot();
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
