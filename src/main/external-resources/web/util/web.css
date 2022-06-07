@@ -186,12 +186,43 @@ ul#Folders li span {
 	position: relative;
 }
 
+#MediaContainer > h3 {
+	font-size: 20px;
+}
+
+#MediaContainer > h3 > a {
+	color: #ccc;
+}
+
 #Media {
 	overflow-y: hidden;
-	padding-right: 0;
+	padding-right: 20px;
 	display: grid;
-	grid-template-columns: repeat(auto-fill, 163px);
     justify-content: space-between;
+	justify-items: center;
+}
+
+body.grid #Media {
+	grid-template-columns: repeat(auto-fill, 163px);
+}
+
+body.grid-wide #Media {
+	grid-template-columns: repeat(auto-fill, 306px);
+}
+
+#Media.media-single-row {
+	height: 230px;
+    display: block;
+}
+
+body.grid #Media.media-single-row {
+	height: 269px;
+    display: block;
+}
+
+#Media.media-single-row > .column {
+	margin-right: 20px;
+	float: left;
 }
 
 #Media:before {
@@ -204,7 +235,15 @@ ul#Media li {
 	display: block;
 	overflow: hidden;
 	border-radius: 3px;
+}
+
+body.grid ul#Media li {
 	width: 143px;
+}
+
+body.grid-wide ul#Media li {
+	width: 306px;
+	height: auto;
 }
 
 body.dynamic ul#Media li {
@@ -212,11 +251,16 @@ body.dynamic ul#Media li {
 }
 
 ul#Media .thumb {
+	height: 173px;
+	width: 306px;
+	display: block;
+	margin: 0 auto;
+}
+
+body.grid ul#Media .thumb {
 	max-height: 214px;
 	height: 214px;
 	width: 143px;
-	display: block;
-	margin: 0 auto;
 	object-fit: cover;
 }
 

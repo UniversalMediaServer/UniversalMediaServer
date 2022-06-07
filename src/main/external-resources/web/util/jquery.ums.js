@@ -5,6 +5,22 @@ var viewType = 'grid';
 var fontSize = 'small';
 var isSingleRow;
 
+function changeFontSize() {
+	if (fontSize === 'small') {
+		$('.caption').css({fontSize: '12px', });
+		$('#settingsContainer ul li a').css({fontSize: '12px', });
+	} else if (fontSize === 'medium') {
+		$('.caption').css({fontSize: '16px', });
+		$('#settingsContainer ul li a').css({fontSize: '16px', });
+	} else if (fontSize === 'big') {
+		$('.caption').css({fontSize: '18px', });
+		$('#settingsContainer ul li a').css({fontSize: '18px', });
+	} else if (fontSize === 'extrabig') {
+		$('.caption').css({fontSize: '22px', });
+		$('#settingsContainer ul li a').css({fontSize: '22px', });
+	}
+}
+
 function scrollActions() {
 	if ($(window).width() > 1080) {
 		$("#Menu, #ContentPage #Menu #HomeButton, ul#Folders, ul#Media").stop();
@@ -125,16 +141,51 @@ function chooseView(view) {
 	Cookies.set('view', view, { sameSite: 'Strict', expires: 365, path: '/' });
 	viewType = view;
 
+	// reset classes before choosing which to apply
+	$('#ViewGrid').removeClass('active');
+	$('#ViewGridWide').removeClass('active');
+	$('#ViewDynamic').removeClass('active');
+	$('body').removeClass('grid');
+	$('body').removeClass('grid-wide');
+	$('body').removeClass('dynamic');
+
 	$('body').addClass(viewType);
 
 	if (view === 'grid') {
 		$('#ViewGrid').addClass('active');
-		$('#ViewDynamic').removeClass('active');
-		$('body').removeClass('dynamic');
+	} else if (view === 'grid-wide') {
+		$('#ViewGridWide').addClass('active');
 	} else if (view === 'dynamic') {
-		$('#ViewGrid').removeClass('active');
 		$('#ViewDynamic').addClass('active');
-		$('body').removeClass('grid');
+	}
+}
+
+function chooseFontSize(font) {
+    Cookies.remove('font', { sameSite: 'Strict' });
+    Cookies.set('font', font, { sameSite: 'Strict', expires: 365, path: '/' });
+    fontSize = font;
+    changeFontSize();
+
+	if (font === 'small') {
+		$('.dropdown-menu li .small').addClass('active');
+		$('.dropdown-menu li .medium').removeClass('active');
+		$('.dropdown-menu li .big').removeClass('active');
+		$('.dropdown-menu li .extrabig').removeClass('active');
+	} else if (font === 'medium') {
+		$('.dropdown-menu li .small').removeClass('active');
+		$('.dropdown-menu li .medium').addClass('active');
+		$('.dropdown-menu li .big').removeClass('active');
+		$('.dropdown-menu li .extrabig').removeClass('active');
+	} else if (font === 'big') {
+		$('.dropdown-menu li .small').removeClass('active');
+		$('.dropdown-menu li .medium').removeClass('active');
+		$('.dropdown-menu li .big').addClass('active');
+		$('.dropdown-menu li .extrabig').removeClass('active');
+	} else if (font === 'extrabig') {
+		$('.dropdown-menu li .small').removeClass('active');
+		$('.dropdown-menu li .medium').removeClass('active');
+		$('.dropdown-menu li .big').removeClass('active');
+		$('.dropdown-menu li .extrabig').addClass('active');
 	}
 }
 
@@ -401,11 +452,11 @@ $(document).ready(function () {
 	initSettings();
 	viewType = Cookies.get('view') || 'grid';
 	chooseView(viewType);
-	setPadColor();
 
-	if ($('#Media').length) {
-		$(window).bind('load resize', changeMargins);
-	}
+	fontSize = Cookies.get('font') || 'small';
+	chooseFontSize(fontSize);
+
+	setPadColor();
 
 	if ($('#Folders').length) {
 		$('#Folders li').bind('contextmenu', function () {
