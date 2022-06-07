@@ -65,8 +65,8 @@ public class ActionsApiHandler implements HttpHandler {
 					}
                     String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
                     HashMap<String,String> data = gson.fromJson(reqBody, HashMap.class);
-                    String method = data.get("operation");
-                    switch (method) {
+                    String operation = data.get("operation");
+                    switch (operation) {
                         case "Server.restart":
                             ProcessUtil.reboot();
                             break;
