@@ -52,7 +52,6 @@ export const refreshAuthTokenNearExpiry = () => {
   const now = Math.floor(new Date().getTime() / 1000);
   const refreshInterval = (exp - now) * 1000 - FIVE_SECONDS_IN_MS;
   setTimeout(async() => {
-    console.log('in settimeout');
-    await refreshToken()
+    await refreshToken();
   }, refreshInterval);
 }
