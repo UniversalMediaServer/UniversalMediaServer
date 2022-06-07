@@ -5069,6 +5069,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cssjanus@npm:^2.0.1":
+  version: 2.1.0
+  resolution: "cssjanus@npm:2.1.0"
+  checksum: 87d02bb8a54aeb046fab0c63e32bc73a6f776d33f07b1ead29cbdd65bc6f5078f28bae85653b0fcae528817e54a91fcc8cd9f4fcb98a3c4e229628d8a10439c3
+  languageName: node
+  linkType: hard
+
 "cssnano-preset-default@npm:^5.2.11":
   version: 5.2.11
   resolution: "cssnano-preset-default@npm:5.2.11"
@@ -11807,10 +11814,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stylis-plugin-rtl@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "stylis-plugin-rtl@npm:2.1.1"
+  dependencies:
+    cssjanus: ^2.0.1
+  peerDependencies:
+    stylis: 4.x
+  checksum: 262d2c762216556ed3dc8218ea5929ae24b4b0fae020eb41c217911e6628374009d1e1b24256ed6a2f39cbbf302a877f2efe912b628c71dd15fde90866ca54ca
+  languageName: node
+  linkType: hard
+
 "stylis@npm:4.0.13":
   version: 4.0.13
   resolution: "stylis@npm:4.0.13"
   checksum: 8ea7a87028b6383c6a982231c4b5b6150031ce028e0fdaf7b2ace82253d28a8af50cc5a9da8a421d3c7c4441592f393086e332795add672aa4a825f0fe3713a3
+  languageName: node
+  linkType: hard
+
+"stylis@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "stylis@npm:4.1.1"
+  checksum: e9b0a086996a94c44d45933287731313f6ecdbf9334410231d882d31a1890fb36e34a7b163487e2d7f992c2044e4cb37179810fc6f758f359a431343c2374ed2
   languageName: node
   linkType: hard
 
@@ -12292,6 +12317,8 @@ __metadata:
     react-dom: ^18.1.0
     react-router-dom: ^6.3.0
     react-scripts: ^5.0.1
+    stylis: ^4.1.1
+    stylis-plugin-rtl: ^2.1.1
     tabler-icons-react: ^1.48.1
     typescript: ^4.7.2
     web-vitals: ^2.1.4

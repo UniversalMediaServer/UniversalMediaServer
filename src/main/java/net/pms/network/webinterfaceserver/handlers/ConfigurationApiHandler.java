@@ -52,7 +52,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private final String[] validKeys = {
 		"append_profile_name",
 		"language",
-		"server_name"
+		"minimized",
+		"server_name",
+		"show_splash_screen"
 	};
 
 	/**
