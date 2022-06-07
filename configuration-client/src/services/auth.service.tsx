@@ -46,7 +46,6 @@ export const refreshAuthTokenNearExpiry = () => {
   if (!localStorage.getItem('tokenExpiry')) {
     return;
   }
-  console.log('refreshAuthTokenNearExpiry')
   const FIVE_SECONDS_IN_MS = 5000;
   const exp = Number(localStorage.getItem('tokenExpiry'));
 
