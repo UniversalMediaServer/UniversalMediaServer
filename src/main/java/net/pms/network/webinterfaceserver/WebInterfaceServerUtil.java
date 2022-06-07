@@ -53,6 +53,7 @@ import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.Languages;
+import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
