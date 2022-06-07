@@ -1,4 +1,4 @@
-import { AppShell, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme, Button } from '@mantine/core';
+import { AppShell, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import {
   BrowserRouter as Router,
