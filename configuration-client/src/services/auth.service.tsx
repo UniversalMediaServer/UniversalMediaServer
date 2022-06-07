@@ -17,7 +17,7 @@ export const login = (username: string, password: string) => {
 
 export const changePassword = (password: string) => {
   return axios
-    .post('/v1/api/user/changepassword', {
+    .post('/v1/api/auth/changepassword', {
       password,
     })
     .then((response) => {
