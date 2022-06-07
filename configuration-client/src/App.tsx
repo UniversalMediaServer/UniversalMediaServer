@@ -5,25 +5,28 @@ import {
   Route,
   Routes
 } from 'react-router-dom';
+import { useEffect } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
 import './services/http-interceptor';
 
 import Login from './components/Login/Login'
+import { refreshAuthTokenNearExpiry } from './services/auth.service';
 import ChangePassword from './components/ChangePassword/ChangePassword'
 import Settings from './components/Settings/Settings';
 import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 import { useLocalStorage } from '@mantine/hooks';
 
-function setToken(userToken: string) {
-  localStorage.setItem('user', userToken);
-}
-
 function getToken() {
   return localStorage.getItem('user');
 }
 
 function App() {
+
+  useEffect(() => {
+    refreshAuthTokenNearExpiry();
+  });
+
   const [rtl, setRtl] = useLocalStorage({
     key: 'mantine-rtl',
     defaultValue: false,
@@ -86,7 +89,7 @@ function App() {
                   </Routes>
                 </Router>
               ) : (
-                <Login setToken={setToken} />
+                <Login />
               )}
             </AppShell>
           </div>

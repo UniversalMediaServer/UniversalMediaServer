@@ -107,7 +107,7 @@ public class UserApiHandler implements HttpHandler {
 					WebInterfaceServerUtil.respond(exchange, "Not found", 404, "application/json");
 				}
 			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in LoginApiHandler: {}", e.getMessage());
+				LOGGER.error("RuntimeException in AuthApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 			}
 		} catch (IOException e) {

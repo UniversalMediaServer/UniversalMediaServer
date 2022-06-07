@@ -55,7 +55,7 @@ import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
 import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
 import net.pms.network.webinterfaceserver.handlers.FileHandler;
-import net.pms.network.webinterfaceserver.handlers.LoginApiHandler;
+import net.pms.network.webinterfaceserver.handlers.AuthApiHandler;
 import net.pms.network.webinterfaceserver.handlers.MediaHandler;
 import net.pms.network.webinterfaceserver.handlers.PlayHandler;
 import net.pms.network.webinterfaceserver.handlers.PollHandler;
@@ -130,7 +130,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/fmedia", new MediaHandler(this, true));
 			addCtx("/thumb", new ThumbHandler(this));
 			addCtx("/raw", new RawHandler(this));
-			addCtx("/v1/api/login", new LoginApiHandler());
+			addCtx("/v1/api/auth", new AuthApiHandler());
 			addCtx("/v1/api/user", new UserApiHandler());
 			addCtx("/files", new FileHandler(this));
 			addCtx("/doc", new DocHandler(this));
