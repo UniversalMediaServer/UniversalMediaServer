@@ -1,13 +1,14 @@
 package net.pms.network.webinterfaceserver.handlers;
 
 import com.google.gson.Gson;
-import java.util.HashMap;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import net.pms.PMS;
+import net.pms.iam.AuthService;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
