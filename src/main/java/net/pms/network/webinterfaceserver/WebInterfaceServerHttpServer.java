@@ -47,6 +47,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webinterfaceserver.handlers.ActionsApiHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
 import net.pms.network.webinterfaceserver.handlers.ConfigurationApiHandler;
 import net.pms.network.webinterfaceserver.handlers.ConfigurationClientHandler;
@@ -131,6 +132,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/thumb", new ThumbHandler(this));
 			addCtx("/raw", new RawHandler(this));
 			addCtx("/v1/api/auth", new AuthApiHandler());
+			addCtx("/v1/api/actions", new ActionsApiHandler());
 			addCtx("/v1/api/user", new UserApiHandler());
 			addCtx("/files", new FileHandler(this));
 			addCtx("/doc", new DocHandler(this));

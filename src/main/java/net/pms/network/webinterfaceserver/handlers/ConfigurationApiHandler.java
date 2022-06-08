@@ -52,6 +52,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	private final String[] validKeys = {
 		"append_profile_name",
+		"auto_update",
 		"language",
 		"minimized",
 		"server_name",
@@ -150,10 +151,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
 			} else if (api.get("/i18n")) {
-				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-					WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
-					return;
-				}
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
 			} else {
