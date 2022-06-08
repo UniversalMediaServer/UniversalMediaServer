@@ -10761,6 +10761,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-use-websocket@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "react-use-websocket@npm:4.2.0"
+  peerDependencies:
+    react: ">= 18.0.0"
+    react-dom: ">= 18.0.0"
+  checksum: f28b1e6f5ad604302003c7df5b0af7308c26f9d2d22d0681a7f120fd3066efa6525b1ccb21a44125ac6d27976eba20d892df75d106e12be73c68e29be497ffb6
+  languageName: node
+  linkType: hard
+
 "react@npm:^18.1.0":
   version: 18.1.0
   resolution: "react@npm:18.1.0"
@@ -12325,6 +12335,7 @@ __metadata:
     react-dom: ^18.1.0
     react-router-dom: ^6.3.0
     react-scripts: ^5.0.1
+    react-use-websocket: ^4.2.0
     stylis: ^4.1.1
     stylis-plugin-rtl: ^2.1.1
     tabler-icons-react: ^1.48.1

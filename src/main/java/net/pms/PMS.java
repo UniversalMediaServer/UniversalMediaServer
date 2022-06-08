@@ -70,6 +70,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.websocketserver.WebsocketServer;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
@@ -230,6 +231,8 @@ public class PMS {
 	 * Also handle utility and other stuff
 	 */
 	private WebInterfaceServer webInterfaceServer;
+
+	private WebsocketServer webSocketServer;
 
 	/**
 	 * User friendly name for the server.
@@ -599,6 +602,15 @@ public class PMS {
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		}
+
+		//if (configuration.useWebSockerServer()) {
+			try {
+				//webSocketServer = WebsocketServer.createServer(configuration.getWebSocketServerPort());
+				webSocketServer = WebsocketServer.createServer(8887);
+			} catch (BindException b) {
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			}
+		//}
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -1125,6 +1137,11 @@ public class PMS {
 	@Nullable
 	public WebInterfaceServer getWebInterfaceServer() {
 		return webInterfaceServer;
+	}
+
+	@Nullable
+	public WebsocketServer getWebSockerServer() {
+		return webSocketServer;
 	}
 
 	/**

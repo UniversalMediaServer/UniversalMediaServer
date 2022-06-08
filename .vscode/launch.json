@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch WebsocketServer",
+            "request": "launch",
+            "mainClass": "net.pms.network.websocketserver.WebsocketServer",
+            "projectName": "ums"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"
@@ -13,7 +20,6 @@
         {
             "type": "java",
             "name": "Launch UMS",
-            // Copy website files to web folder at root
             "preLaunchTask": "copy website",
             "request": "launch",
             "mainClass": "net.pms.PMS",

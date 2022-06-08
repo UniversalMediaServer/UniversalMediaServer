@@ -16,6 +16,7 @@
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-router-dom": "^6.3.0",
+    "react-use-websocket": "^4.2.0",
     "stylis": "^4.1.1",
     "stylis-plugin-rtl": "^2.1.1",
     "tabler-icons-react": "^1.48.1",

@@ -658,6 +658,11 @@
 			<artifactId>bcrypt</artifactId>
 			<version>0.9.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.5.3</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
