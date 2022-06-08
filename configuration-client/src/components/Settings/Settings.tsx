@@ -1,18 +1,17 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Space } from '@mantine/core';
-import { Refresh } from 'tabler-icons-react';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { sendAction } from '../../services/actions-service';
 import _ from 'lodash';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+
+import I18nContext from '../../contexts/i18n-context';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
   const languageSettingsRef = useRef([]);
-  let translations: {[key: string]: string} = {};
-  const translationsRef = useRef(translations);
+  const i18n = useContext(I18nContext);
 
   const defaultSettings = {
     append_profile_name: false,
@@ -26,27 +25,19 @@ export default function Settings() {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
-  const restartServer = async () => {
-    await sendAction('Server.Restart');
-  };
-
   const [configuration, setConfiguration] = useState(defaultSettings);
 
   const form = useForm({ initialValues: defaultSettings });
 
   // Code here will run just like componentDidMount
   useEffect(() => {
-    Promise.all([
-      axios.get('/configuration-api/settings'),
-      axios.get('/configuration-api/i18n'),
-    ])
-      .then(function (response: any[]) {
-        const settingsResponse = response[0].data;
+    axios.get('/configuration-api/settings')
+      .then(function (response: any) {
+        const settingsResponse = response.data;
         languageSettingsRef.current = settingsResponse.languages;
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
-        translationsRef.current = response[1].data;
 
         setConfiguration(userConfig);
         form.setValues(configuration);
@@ -96,24 +87,17 @@ export default function Settings() {
   return (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Button
-          leftIcon={<Refresh />}
-          onClick={restartServer}
-        >
-          {translationsRef.current['LooksFrame.12']}
-        </Button>
-        <Space h="lg" />
         <Tabs active={activeTab} onTabChange={setActiveTab}>
-          <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>
+          <Tabs.Tab label={i18n['LooksFrame.TabGeneralSettings']}>
             <Select
-              label={translationsRef.current['LanguageSelection.Language']}
+              label={i18n['LanguageSelection.Language']}
               data={languageSettingsRef.current}
               {...form.getInputProps('language')}
             />
 
             <Group mt="xs">
               <TextInput
-                label={translationsRef.current['NetworkTab.71']}
+                label={i18n['NetworkTab.71']}
                 name="server_name"
                 sx={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
@@ -121,7 +105,7 @@ export default function Settings() {
 
               <Checkbox
                 mt="xl"
-                label={translationsRef.current['NetworkTab.72']}
+                label={i18n['NetworkTab.72']}
                 {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
               />
             </Group>
@@ -129,27 +113,27 @@ export default function Settings() {
             <Group mt="xs">
               <Checkbox
                 mt="xl"
-                label={translationsRef.current['NetworkTab.3']}
+                label={i18n['NetworkTab.3']}
                 {...form.getInputProps('minimized', { type: 'checkbox' })}
               />
               <Checkbox
                 mt="xl"
-                label={translationsRef.current['NetworkTab.74']}
+                label={i18n['NetworkTab.74']}
                 {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
             </Group>
           </Tabs.Tab>
-          <Tabs.Tab label={translationsRef.current['LooksFrame.TabNavigationSettings']}>
+          <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
 
           </Tabs.Tab>
-          <Tabs.Tab label={translationsRef.current['LooksFrame.TabSharedContent']}>
+          <Tabs.Tab label={i18n['LooksFrame.TabSharedContent']}>
             
           </Tabs.Tab>
         </Tabs>
 
         <Group position="right" mt="md">
           <Button type="submit" loading={isLoading}>
-            {translationsRef.current['LooksFrame.9']}
+            {i18n['LooksFrame.9']}
           </Button>
         </Group>
       </form>
