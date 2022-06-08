@@ -15,6 +15,7 @@ export default function Settings() {
 
   const defaultSettings = {
     append_profile_name: false,
+    auto_update: true,
     minimized: false,
     language: 'en-US',
     server_name: 'Universal Media Server',
@@ -122,6 +123,12 @@ export default function Settings() {
                 {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
             </Group>
+
+            <Checkbox
+              mt="xl"
+              label={i18n['NetworkTab.9']}
+              {...form.getInputProps('auto_update', { type: 'checkbox' })}
+            />
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
 
