@@ -13,7 +13,7 @@ export default function Settings() {
   const languageSettingsRef = useRef([]);
   const i18n = useContext(I18nContext);
 
-  const defaultSettings = {
+  const defaultSettings: Record<string, any> = {
     append_profile_name: false,
     auto_update: true,
     minimized: false,
@@ -62,13 +62,30 @@ export default function Settings() {
   }, []);
 
   const handleSubmit = (values: typeof form.values) => {
+    const changedValues: Record<string, any> = {};
+
+    // construct an object of only changed values to send
+    for (let key in values) {
+      if (!_.isEqual(configuration[key], values[key])) {
+        changedValues[key] = values[key];
+      }
+    };
+
+    if (_.isEmpty(changedValues)) {
+      showNotification({
+        title: 'Saved',
+        message: 'Your configuration has no changes to save',
+      })
+      return;
+    }
+
     setLoading(true);
-    axios.post('/configuration-api/settings', values)
+    axios.post('/configuration-api/settings', changedValues)
       .then(function () {
+        setConfiguration(values);
         showNotification({
           title: 'Saved',
           message: 'Your configuration changes were saved successfully',
-          onClick: () => { openGitHubNewIssue(); },
         })
       })
       .catch(function (error: Error) {
