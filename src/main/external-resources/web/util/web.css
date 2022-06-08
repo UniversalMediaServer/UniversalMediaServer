@@ -218,6 +218,7 @@ body.grid-wide #Media {
 body.grid #Media.media-single-row {
 	height: 269px;
     display: block;
+	padding-right: 0;
 }
 
 #Media.media-single-row > .column {
@@ -255,6 +256,7 @@ ul#Media .thumb {
 	width: 306px;
 	display: block;
 	margin: 0 auto;
+	object-fit: contain;
 }
 
 body.grid ul#Media .thumb {
