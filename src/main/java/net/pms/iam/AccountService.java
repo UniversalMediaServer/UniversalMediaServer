@@ -47,12 +47,20 @@ public class AccountService {
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password) {
-		createUser(connection, username, password, -1);
+		createUser(connection, username, password, username, -1);
+	}
+
+	public static void createUser(final Connection connection, final String username, final String password, final String name) {
+		createUser(connection, username, password, name, -1);
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password, final int groupId) {
+		createUser(connection, username, password, username, groupId);
+	}
+
+	public static void createUser(final Connection connection, final String username, final String password, final String name, final int groupId) {
 		LOGGER.info("Creating user: {}", username);
-		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), groupId);
+		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(name, 255), groupId);
 	}
 
 	public static void updatePassword(final Connection connection, final String newPassword, final User user) {
