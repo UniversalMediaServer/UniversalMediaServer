@@ -11,13 +11,15 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
   const languageSettingsRef = useRef([]);
+  const networkInterfaceSettingsRef = useRef([]);
   const i18n = useContext(I18nContext);
 
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
     auto_update: true,
-    minimized: false,
     language: 'en-US',
+    minimized: false,
+    network_interface: '',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
   };
@@ -36,6 +38,7 @@ export default function Settings() {
       .then(function (response: any) {
         const settingsResponse = response.data;
         languageSettingsRef.current = settingsResponse.languages;
+        networkInterfaceSettingsRef.current = settingsResponse.networkInterfaces;
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
@@ -145,6 +148,13 @@ export default function Settings() {
               mt="xl"
               label={i18n['NetworkTab.9']}
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
+            />
+
+            <Select
+              mt="xl"
+              label={i18n['NetworkTab.20']}
+              data={networkInterfaceSettingsRef.current}
+              {...form.getInputProps('network_interface')}
             />
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
