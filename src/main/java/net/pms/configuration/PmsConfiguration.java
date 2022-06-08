@@ -4168,7 +4168,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isAutoUpdate() {
-		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, false);
+		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, true);
 	}
 
 	public void setAutoUpdate(boolean value) {
