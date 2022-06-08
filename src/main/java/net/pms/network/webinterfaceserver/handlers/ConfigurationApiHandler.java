@@ -51,6 +51,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	private final String[] validKeys = {
 		"append_profile_name",
+		"auto_update",
 		"language",
 		"minimized",
 		"server_name",
