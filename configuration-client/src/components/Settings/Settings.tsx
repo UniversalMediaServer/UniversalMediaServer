@@ -1,8 +1,10 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Space } from '@mantine/core';
+import { Refresh } from 'tabler-icons-react';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import { sendAction } from '../../services/actions-service';
 import _ from 'lodash';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 export default function Settings() {
@@ -22,6 +24,10 @@ export default function Settings() {
 
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
+  };
+
+  const restartServer = async () => {
+    await sendAction('Server.Restart');
   };
 
   const [configuration, setConfiguration] = useState(defaultSettings);
@@ -90,6 +96,13 @@ export default function Settings() {
   return (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
+        <Button
+          leftIcon={<Refresh />}
+          onClick={restartServer}
+        >
+          {translationsRef.current['LooksFrame.12']}
+        </Button>
+        <Space h="lg" />
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={translationsRef.current['LooksFrame.TabGeneralSettings']}>
             <Select
