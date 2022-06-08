@@ -747,6 +747,7 @@ public class PMS {
 
 					LOGGER.debug("Shutting down the media server");
 					MediaServer.stop();
+					webSocketServer.stop();
 					Thread.sleep(500);
 
 					if (configuration.getDatabaseLogging()) {

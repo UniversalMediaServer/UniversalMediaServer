@@ -70,6 +70,7 @@ public class WebsocketServer extends WebSocketServer {
         return null;
     }
   }
+
   private static void setup(WebsocketServer s) {
     try {
         BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
