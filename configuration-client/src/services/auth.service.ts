@@ -55,3 +55,8 @@ export const refreshAuthTokenNearExpiry = () => {
     await refreshToken();
   }, refreshInterval);
 }
+
+export const clearJwt = () => {
+  localStorage.removeItem('tokenExpiry');
+  localStorage.removeItem('user');
+}

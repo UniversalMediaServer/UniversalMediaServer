@@ -3,7 +3,8 @@ import { NotificationsProvider } from '@mantine/notifications';
 import {
   BrowserRouter as Router,
   Route,
-  Routes
+  Routes,
+  Navigate,
 } from 'react-router-dom';
 import { useEffect } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
@@ -86,7 +87,11 @@ function App() {
                   <Router>
                     <Routes>
                       <Route path='/changepassword' element={<ChangePassword />}></Route>
-                      <Route path='/*' element={ <Settings />}></Route>
+                      <Route index element={<Settings />} />
+                      <Route
+                        path="/*"
+                        element={<Navigate replace to="/" />}
+                      />
                     </Routes>
                   </Router>
                 ) : (
