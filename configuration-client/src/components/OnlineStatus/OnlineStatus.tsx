@@ -35,7 +35,7 @@ export const OnlineStatus = () => {
     hideNotification('connection-lost');
   };
 
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl + socketPort, {
+  const { readyState } = useWebSocket(socketUrl + socketPort, {
     onClose,
     onOpen,
     retryOnError: true,
