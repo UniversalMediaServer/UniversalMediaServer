@@ -1,8 +1,8 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -17,9 +17,14 @@ export default function Settings() {
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
     auto_update: true,
+    automatic_maximum_bitrate: true,
+    hostname: '',
+    ip_filter: '',
     language: 'en-US',
+    maximum_bitrate: '90',
     minimized: false,
     network_interface: '',
+    port: '',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
   };
@@ -131,14 +136,12 @@ export default function Settings() {
               />
             </Group>
 
-            <Group mt="xs">
+            <Group mt="xl">
               <Checkbox
-                mt="xl"
                 label={i18n['NetworkTab.3']}
                 {...form.getInputProps('minimized', { type: 'checkbox' })}
               />
               <Checkbox
-                mt="xl"
                 label={i18n['NetworkTab.74']}
                 {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
@@ -150,12 +153,50 @@ export default function Settings() {
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
             />
 
-            <Select
-              mt="xl"
-              label={i18n['NetworkTab.20']}
-              data={networkInterfaceSettingsRef.current}
-              {...form.getInputProps('network_interface')}
-            />
+            <Accordion mt="xl">
+              <Accordion.Item label={i18n['NetworkTab.22']}>
+                <Select
+                  label={i18n['NetworkTab.20']}
+                  data={networkInterfaceSettingsRef.current}
+                  {...form.getInputProps('network_interface')}
+                />
+
+                <TextInput
+                  mt="xl"
+                  label={i18n['NetworkTab.23']}
+                  {...form.getInputProps('hostname')}
+                />
+
+                <TextInput
+                  mt="xl"
+                  label={i18n['NetworkTab.24']}
+                  {...form.getInputProps('port')}
+                />
+
+                <TextInput
+                  mt="xl"
+                  label={i18n['NetworkTab.30']}
+                  {...form.getInputProps('ip_filter')}
+                />
+
+                <Group mt="xl">
+                  <TextInput
+                    sx={{ flex: 1 }}
+                    label={i18n['NetworkTab.35']}
+                    disabled={form.values['automatic_maximum_bitrate']}
+                    {...form.getInputProps('maximum_bitrate')}
+                  />
+
+                  <Checkbox
+                    mt="xl"
+                    label={i18n['GeneralTab.12']}
+                    {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
+                  />
+                </Group>
+              </Accordion.Item>
+              <Accordion.Item label={i18n['NetworkTab.31']}>
+              </Accordion.Item>
+            </Accordion>
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
 

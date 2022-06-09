@@ -53,8 +53,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private final String[] validKeys = {
 		"append_profile_name",
 		"auto_update",
+		"hostname",
+		"ip_filter",
 		"language",
+		"maximum_bitrate",
 		"minimized",
+		"network_interface",
+		"port",
 		"server_name",
 		"show_splash_screen"
 	};
