@@ -21,4 +21,5 @@ package net.pms.iam;
 
 public class Permissions {
 	public static final String ANY = "*";
+	public static final String SERVER_RESTART = "server_restart";
 }
