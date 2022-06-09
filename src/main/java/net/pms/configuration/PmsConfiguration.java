@@ -357,6 +357,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
+	protected static final String KEY_WEBSOCKETS_ENABLE = "websockets_enable";
+	protected static final String KEY_WEBSOCKETS_PORT = "websockets_port";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
@@ -4767,8 +4769,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getInt(KEY_WEB_PORT, 9001);
 	}
 
+	public int getWebSocketServerPort() {
+		return getInt(KEY_WEBSOCKETS_PORT, 8887);
+	}
+
 	public boolean useWebInterfaceServer() {
 		return getBoolean(KEY_WEB_ENABLE, true);
+	}
+
+	public boolean useWebSocketServer() {
+		return getBoolean(KEY_WEBSOCKETS_ENABLE, true);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {

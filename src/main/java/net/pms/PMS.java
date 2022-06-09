@@ -603,14 +603,9 @@ public class PMS {
 			}
 		}
 
-		//if (configuration.useWebSockerServer()) {
-			try {
-				//webSocketServer = WebsocketServer.createServer(configuration.getWebSocketServerPort());
-				webSocketServer = WebsocketServer.createServer(8887);
-			} catch (BindException b) {
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-			}
-		//}
+		if (configuration.useWebSocketServer()) {
+			webSocketServer = WebsocketServer.createServer(configuration.getWebSocketServerPort());
+		}
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -747,8 +742,10 @@ public class PMS {
 
 					LOGGER.debug("Shutting down the media server");
 					MediaServer.stop();
-					webSocketServer.stop();
 					Thread.sleep(500);
+					if (webSocketServer != null) {
+						webSocketServer.stop();
+					}
 
 					if (configuration.getDatabaseLogging()) {
 						LOGGER.trace("-------------------------------------------------------------");
@@ -1141,7 +1138,7 @@ public class PMS {
 	}
 
 	@Nullable
-	public WebsocketServer getWebSockerServer() {
+	public WebsocketServer getWebSocketServer() {
 		return webSocketServer;
 	}
 
