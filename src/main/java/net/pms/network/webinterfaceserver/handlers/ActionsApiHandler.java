@@ -1,13 +1,19 @@
 package net.pms.network.webinterfaceserver.handlers;
 
 import com.google.gson.Gson;
-import java.util.HashMap;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.util.HashMap;
 import net.pms.PMS;
+import net.pms.database.UserDatabase;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
+import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -59,20 +65,32 @@ public class ActionsApiHandler implements HttpHandler {
 				}
 			};
 			try {
-			if (api.post("/")) {
+				if (api.post("/")) {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
-					String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					HashMap<String, String> data = gson.fromJson(reqBody, HashMap.class);
-					String operation = data.get("operation");
-					switch (operation) {
-						case "Server.Restart":
-							PMS.get().reset();
-							WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
-							break;
-						default:
-							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
+					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					Connection connection = UserDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						Account account = AccountService.getAccountByUsername(connection, loggedInUsername);
+						String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+						HashMap<String, String> data = gson.fromJson(reqBody, HashMap.class);
+						String operation = data.get("operation");
+						switch (operation) {
+							case "Server.Restart":
+								if (account.havePermission(Permissions.SERVER_RESTART)) {
+									PMS.get().reset();
+									WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+								} else {
+									WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+								}
+								break;
+							default:
+								WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
+						}
+					} else {
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");

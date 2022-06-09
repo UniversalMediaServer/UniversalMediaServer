@@ -20,11 +20,15 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.pms.util.UserService;
+import net.pms.iam.AccountService;
+import net.pms.iam.User;
+import static org.apache.commons.lang3.StringUtils.left;
 
 public final class UserTableUsers extends UserTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserTableUsers.class);
@@ -35,7 +39,7 @@ public final class UserTableUsers extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -80,6 +84,16 @@ public final class UserTableUsers extends UserTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NAME VARCHAR2(255)");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD GROUP_ID INT DEFAULT -1");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LAST_LOGIN_TIME BIGINT DEFAULT 0");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_TIME BIGINT DEFAULT 0");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_COUNT INT DEFAULT 0");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=0");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=0 WHERE ID=0");
+					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -93,13 +107,137 @@ public final class UserTableUsers extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				INT PRIMARY KEY AUTO_INCREMENT, " +
-				"USERNAME		VARCHAR2(255) UNIQUE, " +
-				"PASSWORD		VARCHAR2(1024)" +
+				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
+				"USERNAME			VARCHAR2(255)	UNIQUE, " +
+				"PASSWORD			VARCHAR2(255)	NOT NULL, " +
+				"NAME				VARCHAR2(255), " +
+				"GROUP_ID			INT				DEFAULT -1, " +
+				"LAST_LOGIN_TIME	BIGINT			DEFAULT 0, " +
+				"LOGIN_FAIL_TIME	BIGINT			DEFAULT 0, " +
+				"LOGIN_FAIL_COUNT	INT				DEFAULT 0" +
 			")"
 		);
-		// create an initial user in the table
-		UserService.createUser(connection, "ums", "initialpassword");
+		// create an initial admin user in the table
+		AccountService.createUser(connection, AccountService.DEFAULT_ADMIN_USERNAME, AccountService.DEFAULT_ADMIN_PASSWORD, AccountService.DEFAULT_ADMIN_GROUP, 0);
 		LOGGER.info("Initial user for web UI has been created. Please login and change the password");
+	}
+
+	public static void addUser(final Connection connection, final String username, final String password, final String name, final int groupId) {
+		if (connection == null || username == null || "".equals(username) || password == null || "".equals(password)) {
+			return;
+		}
+		try {
+			LOGGER.info("Creating user: {}", username);
+			PreparedStatement insertStatement = connection.prepareStatement(
+					"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+
+			insertStatement.clearParameters();
+			insertStatement.setString(1, left(username, 255));
+			insertStatement.setString(2, left(password, 255));
+			insertStatement.setString(3, left(name, 255));
+			insertStatement.setInt(4, groupId);
+			insertStatement.executeUpdate();
+			try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
+				if (rs2.next()) {
+					LOGGER.info("Created user successfully in " + UserTableUsers.TABLE_NAME);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("ERROR createUser" + e);
+		}
+	}
+
+	public static void updatePassword(final Connection connection, final int id, final String password) {
+		if (connection == null || password == null || "".equals(password)) {
+			return;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + TABLE_NAME + " " +
+					"SET PASSWORD = " + sqlQuote(password) + " " +
+					"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			LOGGER.error("Error updatePassword:{}", e.getMessage());
+		}
+	}
+
+	public static void resetLoginFailCount(final Connection connection, final int id) {
+		if (connection == null) {
+			return;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + TABLE_NAME + " " +
+					"SET LOGIN_FAIL_COUNT='0' " +
+					"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			LOGGER.error("Error resetLoginFailCount:{}", e.getMessage());
+		}
+	}
+
+	public static void setLoginTime(final Connection connection, final int id, final long time) {
+		if (connection == null) {
+			return;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + TABLE_NAME + " " +
+				"SET LAST_LOGIN_TIME='" + time + "', " +
+				"LOGIN_FAIL_TIME='0', LOGIN_FAIL_COUNT='0' " +
+				"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			LOGGER.error("Error setLoginTime:{}", e.getMessage());
+		}
+	}
+
+	public static void setLoginFailed(final Connection connection, final int id, final long time) {
+		if (connection == null) {
+			return;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + UserTableUsers.TABLE_NAME + " " +
+					"SET LOGIN_FAIL_TIME='" + time + "', " +
+					"LOGIN_FAIL_COUNT=LOGIN_FAIL_COUNT+1 " +
+					"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			LOGGER.error("Error setLoginFailed:{}", e.getMessage());
+		}
+	}
+
+	public static User getUserByUsername(final Connection connection, final String username) {
+		User result;
+		LOGGER.info("Finding user: {} ", sqlEscape(username));
+		try {
+			String sql = "SELECT * " +
+					"FROM " + TABLE_NAME + " " +
+					"WHERE USERNAME=" + sqlQuote(username) + " " +
+					"LIMIT 1";
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql);
+			) {
+				while (resultSet.next()) {
+					result = new User();
+					result.setId(resultSet.getInt("ID"));
+					result.setUsername(resultSet.getString("USERNAME"));
+					result.setPassword(resultSet.getString("PASSWORD"));
+					result.setName(resultSet.getString("NAME"));
+					result.setGroupId(resultSet.getInt("GROUP_ID"));
+					result.setLastLoginTime(resultSet.getLong("LAST_LOGIN_TIME"));
+					result.setLoginFailedTime(resultSet.getLong("LOGIN_FAIL_TIME"));
+					result.setLoginFailedCount(resultSet.getInt("LOGIN_FAIL_COUNT"));
+					return result;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Error finding user: " + e);
+		}
+		return null;
 	}
 }

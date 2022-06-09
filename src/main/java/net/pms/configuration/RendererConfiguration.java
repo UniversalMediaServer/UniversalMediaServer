@@ -3088,7 +3088,8 @@ public class RendererConfiguration extends Renderer {
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
-				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value))
+				//escape "\" char with "\\" otherwise json will fail
+				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"))
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);

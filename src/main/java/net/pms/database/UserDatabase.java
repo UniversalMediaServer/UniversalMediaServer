@@ -21,9 +21,9 @@ package net.pms.database;
 
 import java.sql.*;
 import net.pms.PMS;
+import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.RootFolder;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -84,6 +84,8 @@ public class UserDatabase extends Database {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
 				UserTableTablesVersions.checkTable(connection);
+				UserTableGroups.checkTable(connection);
+				UserTablePermissions.checkTable(connection);
 				UserTableUsers.checkTable(connection);
 			}
 			tablesChecked = true;
