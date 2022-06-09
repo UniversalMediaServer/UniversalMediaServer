@@ -4699,6 +4699,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	protected static final String KEY_NO_FOLDERS = "no_shared";
 	protected static final String KEY_WEB_HTTPS = "web_https";
+	protected static final String KEY_WEBSOCKETS_HTTPS = "websockets_https";
 	protected static final String KEY_WEB_PORT = "web_port";
 	protected static final int WEB_MAX_THREADS = 100;
 
@@ -4713,6 +4714,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebHttps() {
 		return getBoolean(KEY_WEB_HTTPS, false);
+	}
+
+	public boolean getWebSocketHttps() {
+		return getBoolean(KEY_WEBSOCKETS_HTTPS, false);
 	}
 
 	public File getWebPath() {

@@ -1,9 +1,27 @@
-import React, { useState  } from 'react';
+import React, { useEffect, useState  } from 'react';
+import axios from 'axios';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { Text } from '@mantine/core';
 import { showNotification, hideNotification } from '@mantine/notifications';
 
 export const OnlineStatus = () => {
+  const [socketUrl, setSocketUrl] = useState('ws://localhost:');
+  const [socketPort, setSocketPort] = useState('8887');
+  useEffect(() => {
+    axios.get('/configuration-api/settings')
+      .then(function (response: any) {
+        const { userSettings } = response.data;
+        if (userSettings.websockets_https) {
+          setSocketUrl('wss://localhost:')
+        }
+        if (userSettings.websockets_port) {
+          setSocketPort(String(userSettings.websockets_port));
+        }
+      })
+      .catch(function (error: Error) {
+        console.log(error);
+      });
+  });
   const onClose = () => {
     showNotification({
       id: 'connection-lost',
@@ -16,9 +34,8 @@ export const OnlineStatus = () => {
   const onOpen = () => {
     hideNotification('connection-lost');
   };
-  const [socketUrl, setSocketUrl] = useState('ws://localhost:8887');
 
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl + socketPort, {
     onClose,
     onOpen,
     retryOnError: true,
