@@ -1,6 +1,28 @@
 # Changelog
 
-## [11.0.0 - since 10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...main)
+### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0)
+### General
+- Improved caching of web interface files
+- Added getServerPlaylists to playlist API
+- Fixed broken thumbnail-url for playlist folder resolved by DbIdResourceLocator
+- Added support for more language characters on web interface
+- Updated and removed old links on About tab
+- Fixed database fields truncating to less than the limit
+- Fixed rare and unpredictable bugs
+
+### Translation updates via Crowdin
+- Catalan (99%) (thanks, Toni Grau i Quellos!)
+- French (100%) (thanks, Archaos!)
+- Polish (100%) (thanks, Karol Szastok!)
+
+### Dependencies
+- Update dependency com.puppycrawl.tools:checkstyle to v10.3
+- Update dependency org.apache.maven.plugins:maven-pmd-plugin to v3.17.0
+- Update surefire-version to v3.0.0-M7
+- Bump com.sun.xml.bind-version from 3.0.2 to 4.0.0
+- Bump junrar from 7.5.1 to 7.5.2
+
+## [11.0.0 - since 10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...11.0.0)
 ### General
 - Uses image backgrounds and logos for movies, TV series and episodes on the web interface
 - Web interface switches between dark and light themes in Media Library based on background images
@@ -76,7 +98,7 @@
 - Bump Video.js from 7.13.3 to 7.19.2
 - Fixed support for latest Maven versions
 
-## [11.0.0 - since 11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...main)
+## [11.0.0 - since 11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...11.0.0)
 ### General
 - Added editable server-side playlist support
 - Prevent users from enabling startup scanning while the cache is disabled
