@@ -182,8 +182,12 @@ ul#Folders li span {
 
 #MediaContainer {
 	overflow-y: auto;
-	padding: 20px 0 20px 20px;
+	padding: 40px 0 20px 40px;
 	position: relative;
+}
+
+#MediaContainer > h3:nth-child(1) {
+	margin-top: 0;
 }
 
 #MediaContainer > h3 {
@@ -211,7 +215,7 @@ body.grid-wide #Media {
 }
 
 #Media.media-single-row {
-	height: 230px;
+	height: 225px;
     display: block;
 }
 
@@ -239,11 +243,11 @@ ul#Media li {
 }
 
 body.grid ul#Media li {
-	width: 143px;
+	width: 139px;
 }
 
 body.grid-wide ul#Media li {
-	width: 306px;
+	width: 298px;
 	height: auto;
 }
 
@@ -252,8 +256,8 @@ body.dynamic ul#Media li {
 }
 
 ul#Media .thumb {
-	height: 173px;
-	width: 306px;
+	height: 168px;
+	width: 298px;
 	display: block;
 	margin: 0 auto;
 	object-fit: contain;
@@ -261,8 +265,8 @@ ul#Media .thumb {
 
 body.grid ul#Media .thumb {
 	max-height: 214px;
-	height: 214px;
-	width: 143px;
+	height: 208px;
+	width: 139px;
 	object-fit: cover;
 }
 
