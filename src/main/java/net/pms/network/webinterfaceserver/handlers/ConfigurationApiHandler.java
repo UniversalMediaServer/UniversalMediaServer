@@ -34,6 +34,7 @@ import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
@@ -52,8 +53,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private final String[] validKeys = {
 		"append_profile_name",
 		"auto_update",
+		"hostname",
+		"ip_filter",
 		"language",
+		"maximum_bitrate",
 		"minimized",
+		"network_interface",
+		"port",
 		"server_name",
 		"show_splash_screen"
 	};
@@ -113,10 +119,15 @@ public class ConfigurationApiHandler implements HttpHandler {
 					return;
 				}
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
+
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
+
+				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
+
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);
+
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
 				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
