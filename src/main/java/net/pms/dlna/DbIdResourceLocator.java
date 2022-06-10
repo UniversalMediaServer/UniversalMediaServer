@@ -38,6 +38,9 @@ import net.pms.dlna.api.DoubleRecordFilter;
 import net.pms.dlna.api.MusicBrainzAlbum;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 
+/**
+ * This class resolves DLNA objects identified by databaseID's.
+ */
 public class DbIdResourceLocator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
@@ -101,6 +104,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
+									res.setId(String.format("$DBID$PLAYLIST$%s", typeAndIdent.ident));
 									res.resolve();
 									res.refreshChildren();
 								}

@@ -65,7 +65,7 @@ public class RendererConfiguration extends Renderer {
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
 
-	protected RootFolder rootFolder;
+	protected volatile RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
 	protected PmsConfiguration pmsConfiguration = pmsConfigurationStatic;
@@ -499,16 +499,16 @@ public class RendererConfiguration extends Renderer {
 
 	public static void resetAllRenderers() {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			r.rootFolder = null;
+			r.setRootFolder(null);
 		}
 		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since
 		// these are now for reference only and never actually populate their root folders.
 		for (RendererConfiguration r : enabledRendererConfs) {
-			r.rootFolder = null;
+			r.setRootFolder(null);
 		}
 	}
 
-	public RootFolder getRootFolder() {
+	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder();
 			if (pmsConfiguration.getUseCache()) {
@@ -525,7 +525,7 @@ public class RendererConfiguration extends Renderer {
 		}
 	}
 
-	public void setRootFolder(RootFolder r) {
+	public synchronized void setRootFolder(RootFolder r) {
 		rootFolder = r;
 	}
 
@@ -1001,7 +1001,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public void init(File f) throws ConfigurationException {
-		rootFolder = null;
+		setRootFolder(null);
 		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
