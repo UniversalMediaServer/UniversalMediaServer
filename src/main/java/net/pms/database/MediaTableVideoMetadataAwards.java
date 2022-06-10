@@ -131,8 +131,8 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 			)
 		) {
 			ps.setLong(1, tvSeriesID);
-			ps.setString(2, left(fullPathToFile, 255));
-			ps.setString(3, left(awards, 255));
+			ps.setString(2, left(fullPathToFile, 1024));
+			ps.setString(3, left(awards, 1024));
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fullPathToFile, awards);
@@ -149,8 +149,8 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 					) {
 						insertStatement.clearParameters();
 						insertStatement.setLong(1, tvSeriesID);
-						insertStatement.setString(2, left(fullPathToFile, 255));
-						insertStatement.setString(3, left(awards, 255));
+						insertStatement.setString(2, left(fullPathToFile, 1024));
+						insertStatement.setString(3, left(awards, 1024));
 
 						insertStatement.executeUpdate();
 						try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
