@@ -109,6 +109,7 @@ public final class Languages {
 		"nl",      // Dutch, Flemish
 		"en-GB",   // English, United Kingdom
 		"en-US",   // English, United States
+		"et",      // Estonian
 		"fi",      // Finnish
 		"fr",      // French
 		"de",      // German
