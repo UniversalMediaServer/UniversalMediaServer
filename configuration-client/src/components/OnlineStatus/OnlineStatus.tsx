@@ -1,5 +1,4 @@
-import React, { useEffect, useState  } from 'react';
-import axios from 'axios';
+import React from 'react';
 import { Text } from '@mantine/core';
 import { showNotification, hideNotification } from '@mantine/notifications';
 
@@ -29,9 +28,9 @@ export const OnlineStatus = () => {
   sse.onopen = () => { onOpen(); }
 
   const connectionStatus = {
-    [0]: 'Connecting',
-    [1]: 'Open',
-    [2]: 'Closed',
+    0: 'Connecting',
+    1: 'Open',
+    2: 'Closed',
   }[sse.readyState];
   return <Text size="xs">Connection status: {connectionStatus}</Text>;
 };
