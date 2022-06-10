@@ -81,11 +81,11 @@ public class SseApiHandler implements HttpHandler {
 				}
 			};
 			try {
-				if (api.post("/")) {
-					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
+				if (api.get("/")) {
+					if (!AuthService.isLoggedIn(exchange.getRequestURI().getQuery())) {
 						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
-					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestURI().getQuery());
 					WebInterfaceAccount account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
 					if (account != null) {
 						Headers hdr = exchange.getResponseHeaders();

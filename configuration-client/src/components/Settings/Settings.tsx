@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+import {OnlineStatus} from '../OnlineStatus/OnlineStatus'
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -112,6 +113,7 @@ export default function Settings() {
 
   return (
     <Box sx={{ maxWidth: 700 }} mx="auto">
+      <OnlineStatus></OnlineStatus>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={i18n['LooksFrame.TabGeneralSettings']}>

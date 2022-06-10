@@ -82,7 +82,11 @@ public class AuthService {
 		if (authHeader == null || authHeader.isEmpty()) {
 			return -1;
 		}
-		final String token = authHeader.get(0).replace("Bearer ", "");
+		return getUserIdFromJWT(authHeader.get(0));
+	}
+
+	public static Integer getUserIdFromJWT(String authHeader) {
+		final String token = authHeader.replace("Bearer ", "");
 		try {
 			DecodedJWT jwt = decodeJwt(token);
 			return jwt.getClaim("id").asInt();
@@ -96,7 +100,11 @@ public class AuthService {
 		if (authHeader == null || authHeader.isEmpty()) {
 			return false;
 		}
-		final String token = authHeader.get(0).replace("Bearer ", "");
+		return isLoggedIn(authHeader.get(0));
+	}
+
+	public static Boolean isLoggedIn(String authHeader) {
+		final String token = authHeader.replace("Bearer ", "");
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
