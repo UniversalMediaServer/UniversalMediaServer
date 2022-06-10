@@ -1,5 +1,11 @@
 # Changelog
 
+### [Unreleased]
+
+### Translations via Crowdin
+- Added Estonian (23%) (thanks, Junk Knuj and Tanel K!)
+
+
 ### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0)
 ### General
 - Improved caching of web interface files
