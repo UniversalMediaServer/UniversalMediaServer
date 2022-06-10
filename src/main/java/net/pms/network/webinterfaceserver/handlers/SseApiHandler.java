@@ -19,25 +19,21 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.google.gson.Gson;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import net.pms.database.UserDatabase;
-import net.pms.iam.Account;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.iam.AccountService;
+import net.pms.PMS;
 import net.pms.iam.AuthService;
-import net.pms.iam.UsernamePassword;
-import org.apache.commons.io.IOUtils;
+import net.pms.network.webinterfaceserver.ServerSentEvents;
+import net.pms.network.webinterfaceserver.WebInterfaceAccount;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UserApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(UserApiHandler.class);
-	private final Gson gson = new Gson();
+public class SseApiHandler implements HttpHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiHandler.class);
 
 	/**
 	 * Handle API calls.
@@ -61,9 +57,9 @@ public class UserApiHandler implements HttpHandler {
 			var api = new Object() {
 				private String getEndpoint() {
 					String endpoint = "";
-					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/user");
+					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/sse");
 					if (pos != -1) {
-						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/user".length());
+						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/sse".length());
 					}
 					return endpoint;
 				}
@@ -84,41 +80,35 @@ public class UserApiHandler implements HttpHandler {
 					return exchange.getRequestMethod().equals("POST") && getEndpoint().equals(path);
 				}
 			};
-
 			try {
-				if (api.post("/changepassword")) {
+				if (api.post("/")) {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
-					String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					UsernamePassword data = gson.fromJson(reqBody, UsernamePassword.class);
-					Connection connection = UserDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
-						Account account = AccountService.getAccountByUsername(connection, loggedInUsername);
-						/* check change password for others ?
-						Account account = AccountService.getAccountByUsername(connection, data.getUsername());
-						if (!account.getUsername().equals(loggedInUsername)) {
-						}
-						*/
-						AccountService.updatePassword(connection, data.getPassword(), account.getUser());
-						WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					WebInterfaceAccount account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
+					if (account != null) {
+						Headers hdr = exchange.getResponseHeaders();
+						hdr.add("Server", PMS.get().getServerName());
+						hdr.add("Content-Type", "text/event-stream");
+						hdr.add("Connection", "keep-alive");
+						hdr.add("Charset", "UTF-8");
+						exchange.sendResponseHeaders(200, 0);
+						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
+						account.addServerSentEvents(sse);
 					} else {
-						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
 			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in UserApiHandler: {}", e.getMessage());
-				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+				LOGGER.error("RuntimeException in SseApiHandler: {}", e.getMessage());
+				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 			}
-		} catch (IOException e) {
-			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in UserApiHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in SseApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

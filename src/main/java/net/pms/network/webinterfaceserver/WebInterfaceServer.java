@@ -34,9 +34,12 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
-	private WebInterfaceServerInterface webServer;
+	protected static final Map<Integer, WebInterfaceAccount> ACCOUNTS = new HashMap<>();
+
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
+
+	private WebInterfaceServerInterface webServer;
 
 	public WebInterfaceServer() throws IOException {
 		roots = new HashMap<>();
@@ -89,4 +92,40 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		LOGGER.debug("Using httpserver as web interface server");
 		return new WebInterfaceServerHttpServer(port);
 	}
+
+	public static WebInterfaceAccount getAccountByUserId(int id) {
+		if (ACCOUNTS.containsKey(id)) {
+			return ACCOUNTS.get(id);
+		}
+		return null;
+	}
+
+	public static void setAccount(WebInterfaceAccount account) {
+		ACCOUNTS.put(account.getUser().getId(), account);
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastMessage(String message) {
+		ACCOUNTS.forEach((id, account) -> {
+			account.broadcastMessage(message);
+		});
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams if account
+	 * have the requested permission.
+	 * @param message
+	 * @param permission
+	 */
+	public static void broadcastMessage(String message, String permission) {
+		ACCOUNTS.forEach((id, account) -> {
+			if (account.havePermission(permission)) {
+				account.broadcastMessage(message);
+			}
+		});
+	}
+
 }

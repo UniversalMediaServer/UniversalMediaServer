@@ -23,7 +23,6 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
@@ -31,6 +30,8 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
+import net.pms.network.webinterfaceserver.WebInterfaceAccount;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AuthApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiHandler.class);
-
 	private final Gson gson = new Gson();
 
 	/**
@@ -53,8 +53,7 @@ public class AuthApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			InetAddress ia = exchange.getRemoteAddress().getAddress();
-			if (WebInterfaceServerUtil.deny(ia)) {
+			if (WebInterfaceServerUtil.deny(exchange)) {
 				exchange.close();
 				return;
 			}
@@ -100,7 +99,10 @@ public class AuthApiHandler implements HttpHandler {
 								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
-								String token = AuthService.signJwt(account.getUser().getUsername());
+								String token = AuthService.signJwt(account.getUser().getId(), account.getUser().getUsername());
+								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
+									WebInterfaceServer.setAccount(new WebInterfaceAccount(account));
+								}
 								Boolean isFirstLogin = (account.getUser().getUsername().equals(AccountService.DEFAULT_ADMIN_USERNAME) && data.getPassword().equals(AccountService.DEFAULT_ADMIN_PASSWORD));
 								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\", \"firstLogin\": \"" + isFirstLogin + "\"}", 200, "application/json");
 							} else {
@@ -118,9 +120,14 @@ public class AuthApiHandler implements HttpHandler {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
-					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
-					String token = AuthService.signJwt(loggedInUsername);
-					WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
+					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					if (WebInterfaceServer.getAccountByUserId(loggedInUserId) == null) {
+						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+					} else {
+						String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
+						String token = AuthService.signJwt(loggedInUserId, loggedInUsername);
+						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
+					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}

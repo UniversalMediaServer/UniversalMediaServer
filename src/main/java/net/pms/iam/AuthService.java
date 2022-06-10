@@ -37,13 +37,14 @@ public class AuthService {
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 
-	public static String signJwt(String username) {
+	public static String signJwt(int id, String username) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			String token = JWT.create()
 					.withIssuer("UMS")
 					.withSubject(username)
 					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
+					.withClaim("id", id)
 					.withClaim("username", username)
 					.sign(algorithm);
 			return token;
@@ -75,6 +76,20 @@ public class AuthService {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
 		return null;
+	}
+
+	public static Integer getUserIdFromJWT(List<String> authHeader) {
+		if (authHeader == null || authHeader.isEmpty()) {
+			return -1;
+		}
+		final String token = authHeader.get(0).replace("Bearer ", "");
+		try {
+			DecodedJWT jwt = decodeJwt(token);
+			return jwt.getClaim("id").asInt();
+		} catch (JWTDecodeException e) {
+			LOGGER.error("Error decoding JWT: {}", e.getMessage());
+		}
+		return -1;
 	}
 
 	public static Boolean isLoggedIn(List<String> authHeader) {
