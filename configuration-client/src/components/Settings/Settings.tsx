@@ -18,18 +18,23 @@ export default function Settings() {
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
     audio_channels: 6,
+    audio_embed_dts_in_pcm: false,
+    audio_bitrate: '448',
+    audio_remux_ac3: true,
     auto_update: true,
     automatic_maximum_bitrate: true,
     chapter_interval: 5,
     chapter_support: false,
     disable_subtitles: false,
     disable_transcode_for_extensions: '',
+    encoded_audio_passthrough: false,
     force_transcode_for_extensions: '',
     gpu_acceleration: false,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
-    lossless_dvd_todo: true, // key for this one?
+    lossless_dvd_todo: true, //todo
+    lpcm_todo: false, //todo
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
@@ -342,9 +347,46 @@ export default function Settings() {
                       <Tabs.Tab label={i18n['TrTab2.68']}>
                         <Select
                           label={i18n['TrTab2.50']}
-                          data={['6', '2']} //TrTab2.56
+                          data={['6', '2']} // todo
                           size="xs"
                           {...form.getInputProps('audio_channels')}
+                        />
+                        <Space h="xs" />
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.27']}
+                          {...form.getInputProps('lpcm_todo', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.26']}
+                          {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.28']}
+                          {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.53']}
+                          {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <TextInput
+                          label={i18n['TrTab2.29']}
+                          sx={{ flex: 1 }}
+                          size="xs"
+                          {...form.getInputProps('audio_bitrate')}
+                        />
+                        <TextInput
+                          label={i18n['MEncoderVideo.7']}
+                          sx={{ flex: 1 }}
+                          size="xs"
+                          {...form.getInputProps('audio_languages')}
                         />
                       </Tabs.Tab>
                       <Tabs.Tab label={i18n['MEncoderVideo.8']}>
