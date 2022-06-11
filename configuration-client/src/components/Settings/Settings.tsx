@@ -1,14 +1,15 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Collapse, Navbar, Text, GroupedTransition } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
+  const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
   const languageSettingsRef = useRef([]);
   const networkInterfaceSettingsRef = useRef([]);
@@ -18,17 +19,35 @@ export default function Settings() {
     append_profile_name: false,
     auto_update: true,
     automatic_maximum_bitrate: true,
+    chapter_interval: 5,
+    chapter_support: false,
+    disable_subtitles: false,
+    disable_transcode_for_extensions: '',
+    force_transcode_for_extensions: '',
+    gpu_acceleration: false,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
+    lossless_dvd_todo: true, // key for this one?
+    maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
     network_interface: '',
+    number_of_cpu_cores: '4',
     port: '',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
+    transcoding_quality: 'Automatic', //todo
+    transcoding_quality_mp4: 'Automatic' //todo
   };
 
+  const cores = [...Array(16)].map((_, i) => {
+    return {
+      value: String(i+1),
+      label: String(i+1)
+    }
+  });
+  
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
@@ -69,6 +88,7 @@ export default function Settings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [content, setContent] = useState('common');
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
 
@@ -204,8 +224,162 @@ export default function Settings() {
           <Tabs.Tab label={i18n['LooksFrame.TabSharedContent']}>
             
           </Tabs.Tab>
+          <Tabs.Tab label={i18n['LooksFrame.21']}>
+          <Grid>
+            <Grid.Col span={5}>
+              <Navbar width={{ }} height={500} p="xs">
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('common')}>
+                  Common transcode settings
+                  </Button>
+                </Navbar.Section>
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('video')}>
+                    Video Files engines
+                  </Button>
+                </Navbar.Section>
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('audio')}>
+                    Audio files engines
+                  </Button>
+                </Navbar.Section>
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('webvideo')}>
+                    Web video streaming engines
+                  </Button>
+                </Navbar.Section>
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('webaudio')}>
+                    Web audio streaming engines
+                  </Button>
+                </Navbar.Section>
+                <Navbar.Section>
+                  <Button variant="subtle" size="xs" compact onClick={() => setContent('misc')}>
+                    Misc engines
+                  </Button>
+                </Navbar.Section>
+              </Navbar>
+            </Grid.Col>
+            <Grid.Col span={7}>
+              <h3>{i18n['LooksFrame.TabGeneralSettings']}</h3>
+              {content == 'common' ? (
+                [
+                  <Grid key='1'>
+                    <Grid.Col span={8}>
+                      <Text size='xs'>{i18n['TrTab2.23']}</Text>
+                    </Grid.Col>
+                    <Grid.Col span={4}>
+                      <TextInput
+                        aria-label={i18n['TrTab2.23']}
+                        name="maximum_video_buffer_size"
+                        sx={{ flex: 1 }}
+                        size="xs"
+                        {...form.getInputProps('maximum_video_buffer_size')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={8}><Text size='xs'>{i18n['TrTab2.24']}</Text></Grid.Col>
+                    <Grid.Col span={4}>
+                      <Select
+                        aria-label={i18n['TrTab2.24']}
+                        name="number_of_cpu_cores"
+                        data={cores}
+                        size="xs"
+                        {...form.getInputProps('number_of_cpu_cores')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={10}>
+                      <Checkbox
+                         size="xs"
+                        label={i18n['TrTab2.52']}
+                        {...form.getInputProps('chapter_support', { type: 'checkbox' })}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={2}>
+                      <TextInput
+                        sx={{ flex: 1 }}
+                        disabled={!form.values['chapter_support']}
+                        {...form.getInputProps('chapter_interval')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['TrTab2.51']}
+                        {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={12}>
+                      <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
+                        <Tabs.Tab label={i18n['TrTab2.67']}>
+                          <Checkbox
+                            size="xs"
+                            label={i18n['TrTab2.70']}
+                            {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
+                          />
+                          <Space h="xs" />
+                          <Checkbox
+                            size="xs"
+                            label={i18n['MEncoderVideo.39']}
+                            {...form.getInputProps('lossless_dvd_todo', { type: 'checkbox' })}
+                          />
+                          <Space h="xs" />
+                          <Text size='sm'>{i18n['TrTab2.7']}</Text>
+                          <Grid >
+                            <Grid.Col span={6}>
+                              <Text size='xs'>{i18n['TrTab2.32']}</Text>
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <TextInput
+                                sx={{ flex: 1 }}
+                                disabled={true} // disable when use auto bandwidth is selected
+                                {...form.getInputProps('transcoding_quality')}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <Text size='xs'>{i18n['TrTab2.79']}</Text>
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <TextInput
+                                sx={{ flex: 1 }}
+                                disabled={true} // disable when use auto bandwidth is selected
+                                {...form.getInputProps('transcoding_quality_mp4')}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <Text size='xs'>{i18n['TrTab2.8']}</Text>
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <TextInput
+                                sx={{ flex: 1 }}
+                                {...form.getInputProps('disable_transcode_for_extensions')}
+                              />
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <Text size='xs'>{i18n['TrTab2.9']}</Text>
+                            </Grid.Col>
+                            <Grid.Col span={6}>
+                              <TextInput
+                                sx={{ flex: 1 }}
+                                {...form.getInputProps('force_transcode_for_extensions')}
+                              />
+                            </Grid.Col>
+                          </Grid>
+                        </Tabs.Tab>
+                        <Tabs.Tab label={i18n['TrTab2.68']}>
+                          Audio settings
+                        </Tabs.Tab>
+                        <Tabs.Tab label={i18n['MEncoderVideo.8']}>
+                          Subtitles settings
+                        </Tabs.Tab>
+                      </Tabs>
+                    </Grid.Col>
+                  </Grid>
+                ]
+              ) : (<p>{content}</p>) }
+            </Grid.Col>
+          </Grid>
+          </Tabs.Tab>
         </Tabs>
-
         <Group position="right" mt="md">
           <Button type="submit" loading={isLoading}>
             {i18n['LooksFrame.9']}
@@ -214,4 +388,4 @@ export default function Settings() {
       </form>
     </Box>
   );
-}
+ }
