@@ -17,6 +17,7 @@ export default function Settings() {
 
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
+    audio_channels: 6,
     auto_update: true,
     automatic_maximum_bitrate: true,
     chapter_interval: 5,
@@ -263,30 +264,23 @@ export default function Settings() {
             <Grid.Col span={7}>
               <h3>{i18n['LooksFrame.TabGeneralSettings']}</h3>
               {content == 'common' ? (
-                [
+                [<>
+                  <TextInput
+                    label={i18n['TrTab2.23']}
+                    name="maximum_video_buffer_size"
+                    sx={{ flex: 1 }}
+                    size="xs"
+                    {...form.getInputProps('maximum_video_buffer_size')}
+                  />
+                  <Select
+                    label={i18n['TrTab2.24']}
+                    name="number_of_cpu_cores"
+                    data={cores}
+                    size="xs"
+                    {...form.getInputProps('number_of_cpu_cores')}
+                  />
+                  <Space h="xs"/>
                   <Grid key='1'>
-                    <Grid.Col span={8}>
-                      <Text size='xs'>{i18n['TrTab2.23']}</Text>
-                    </Grid.Col>
-                    <Grid.Col span={4}>
-                      <TextInput
-                        aria-label={i18n['TrTab2.23']}
-                        name="maximum_video_buffer_size"
-                        sx={{ flex: 1 }}
-                        size="xs"
-                        {...form.getInputProps('maximum_video_buffer_size')}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={8}><Text size='xs'>{i18n['TrTab2.24']}</Text></Grid.Col>
-                    <Grid.Col span={4}>
-                      <Select
-                        aria-label={i18n['TrTab2.24']}
-                        name="number_of_cpu_cores"
-                        data={cores}
-                        size="xs"
-                        {...form.getInputProps('number_of_cpu_cores')}
-                      />
-                    </Grid.Col>
                     <Grid.Col span={10}>
                       <Checkbox
                          size="xs"
@@ -301,79 +295,63 @@ export default function Settings() {
                         {...form.getInputProps('chapter_interval')}
                       />
                     </Grid.Col>
-                    <Grid.Col>
-                      <Checkbox
-                        size="xs"
-                        label={i18n['TrTab2.51']}
-                        {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={12}>
-                      <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
-                        <Tabs.Tab label={i18n['TrTab2.67']}>
-                          <Checkbox
-                            size="xs"
-                            label={i18n['TrTab2.70']}
-                            {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
-                          />
-                          <Space h="xs" />
-                          <Checkbox
-                            size="xs"
-                            label={i18n['MEncoderVideo.39']}
-                            {...form.getInputProps('lossless_dvd_todo', { type: 'checkbox' })}
-                          />
-                          <Space h="xs" />
-                          <Text size='sm'>{i18n['TrTab2.7']}</Text>
-                          <Grid >
-                            <Grid.Col span={6}>
-                              <Text size='xs'>{i18n['TrTab2.32']}</Text>
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <TextInput
-                                sx={{ flex: 1 }}
-                                disabled={true} // disable when use auto bandwidth is selected
-                                {...form.getInputProps('transcoding_quality')}
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <Text size='xs'>{i18n['TrTab2.79']}</Text>
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <TextInput
-                                sx={{ flex: 1 }}
-                                disabled={true} // disable when use auto bandwidth is selected
-                                {...form.getInputProps('transcoding_quality_mp4')}
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <Text size='xs'>{i18n['TrTab2.8']}</Text>
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <TextInput
-                                sx={{ flex: 1 }}
-                                {...form.getInputProps('disable_transcode_for_extensions')}
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <Text size='xs'>{i18n['TrTab2.9']}</Text>
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <TextInput
-                                sx={{ flex: 1 }}
-                                {...form.getInputProps('force_transcode_for_extensions')}
-                              />
-                            </Grid.Col>
-                          </Grid>
-                        </Tabs.Tab>
-                        <Tabs.Tab label={i18n['TrTab2.68']}>
-                          Audio settings
-                        </Tabs.Tab>
-                        <Tabs.Tab label={i18n['MEncoderVideo.8']}>
-                          Subtitles settings
-                        </Tabs.Tab>
-                      </Tabs>
-                    </Grid.Col>
                   </Grid>
+                  <Checkbox
+                    size="xs"
+                    label={i18n['TrTab2.51']}
+                    {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+                  />
+                  <Space h="md"/>
+                    <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
+                      <Tabs.Tab label={i18n['TrTab2.67']}>
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.70']}
+                          {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <Checkbox
+                          size="xs"
+                          label={i18n['MEncoderVideo.39']}
+                          {...form.getInputProps('lossless_dvd_todo', { type: 'checkbox' })}
+                        />
+                        <Space h="xs" />
+                        <TextInput
+                          label={i18n['TrTab2.32']}
+                          sx={{ flex: 1 }}
+                          disabled={true} // disable when use auto bandwidth is selected
+                          {...form.getInputProps('transcoding_quality')}
+                        />
+                        <TextInput
+                          label={i18n['TrTab2.79']}
+                          sx={{ flex: 1 }}
+                          disabled={true} // disable when use auto bandwidth is selected
+                          {...form.getInputProps('transcoding_quality_mp4')}
+                        />
+                        <TextInput
+                          label={i18n['TrTab2.8']}
+                          sx={{ flex: 1 }}
+                          {...form.getInputProps('disable_transcode_for_extensions')}
+                        />
+                        <TextInput
+                          label={i18n['TrTab2.9']}
+                          sx={{ flex: 1 }}
+                          {...form.getInputProps('force_transcode_for_extensions')}
+                        />
+                      </Tabs.Tab>
+                      <Tabs.Tab label={i18n['TrTab2.68']}>
+                        <Select
+                          label={i18n['TrTab2.50']}
+                          data={['6', '2']} //TrTab2.56
+                          size="xs"
+                          {...form.getInputProps('audio_channels')}
+                        />
+                      </Tabs.Tab>
+                      <Tabs.Tab label={i18n['MEncoderVideo.8']}>
+                        Subtitles settings
+                      </Tabs.Tab>
+                    </Tabs>
+                </>
                 ]
               ) : (<p>{content}</p>) }
             </Grid.Col>
