@@ -1,9 +1,8 @@
 import { showNotification } from '@mantine/notifications';
 import { changePassword } from '../../services/auth.service';
 import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
-import { Lock, LockOpen, Check, ExclamationMark } from 'tabler-icons-react';
+import { Lock, LockOpen } from 'tabler-icons-react';
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
 
 const ChangePassword = () => {
   const form = useForm({
