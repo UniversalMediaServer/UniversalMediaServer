@@ -105,8 +105,12 @@ public class UserApiHandler implements HttpHandler {
 						if (!account.getUsername().equals(loggedInUsername)) {
 						}
 						*/
-						AccountService.updatePassword(connection, data.getPassword(), account.getUser());
-						WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+						if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
+							AccountService.updatePassword(connection, data.getNewPassword(), account.getUser());
+							WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+						} else {
+							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Current password is not correct\"}", 400, "application/json");
+						}
 					} else {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
