@@ -15,13 +15,21 @@ export const login = (username: string, password: string) => {
     });
 };
 
-export const changePassword = (password: string) => {
+export const changePassword = (currentPassword: string, newPassword: string) => {
   return axios
-    .post('/v1/api/auth/changepassword', {
-      password,
+    .post('/v1/api/user/changepassword', {
+      password: currentPassword,
+      newPassword,
     })
     .then((response) => {
       return response.data;
+    })
+    .catch((e) => {
+      const { error } = e.response.data
+      if (error) {
+        return {error};
+      }
+      throw e;
     });
 }
 
