@@ -35,7 +35,9 @@ import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
@@ -54,6 +56,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private final String[] validKeys = {
 		"append_profile_name",
 		"auto_update",
+		"automatic_maximum_bitrate",
+		"external_network",
 		"hostname",
 		"ip_filter",
 		"language",
@@ -61,6 +65,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"minimized",
 		"network_interface",
 		"port",
+		"renderer_default",
+		"renderer_force_default",
+		"selected_renderers",
+		"server_engine",
 		"server_name",
 		"show_splash_screen"
 	};
@@ -122,9 +130,12 @@ public class ConfigurationApiHandler implements HttpHandler {
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 
 				JsonObject jsonResponse = new JsonObject();
-				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 
+				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
+				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
+				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
+				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);

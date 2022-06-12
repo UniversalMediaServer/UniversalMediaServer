@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
@@ -40,6 +43,9 @@ import org.jupnp.model.types.DeviceType;
 import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
@@ -61,7 +67,6 @@ public class MediaServer {
 	protected static String hostname;
 	protected static InetAddress inetAddress;
 	protected static NetworkInterface networkInterface;
-
 
 	private static boolean init() {
 		//get config ip port
@@ -276,4 +281,25 @@ public class MediaServer {
 	}
 
 	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
+
+	/**
+	 * @return available server engines as a JSON array
+	 */
+	public synchronized static JsonArray getServerEnginesAsJsonArray() {
+		JsonArray jsonArray = new JsonArray();
+
+		JsonObject defaultOption = new JsonObject();
+		defaultOption.addProperty("value", "0");
+		defaultOption.addProperty("label", Messages.getString("Generic.Default"));
+		jsonArray.add(defaultOption);
+
+		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {
+			JsonObject version = new JsonObject();
+			version.addProperty("value", upnpEngineVersion.getKey().toString());
+			version.addProperty("label", upnpEngineVersion.getValue());
+			jsonArray.add(version);
+		}
+
+		return jsonArray;
+	}
 }

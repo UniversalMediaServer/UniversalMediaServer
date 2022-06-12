@@ -643,7 +643,7 @@ public class GeneralTab {
 		});
 	}
 
-	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations) {
+	public static void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations) {
 		Collections.sort(rendererConfigurations, (RendererConfiguration o1, RendererConfiguration o2) -> {
 			if (o1 == null && o2 == null) {
 				return 0;

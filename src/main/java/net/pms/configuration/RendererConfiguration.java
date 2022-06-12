@@ -2,6 +2,9 @@ package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -31,6 +34,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
+import net.pms.newgui.GeneralTab;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
@@ -2379,6 +2383,38 @@ public class RendererConfiguration extends Renderer {
 
 	public static ArrayList<String> getAllRenderersNames() {
 		return ALL_RENDERERS_NAMES;
+	}
+
+	/**
+	 * @return all renderer names as a JSON array
+	 */
+	public synchronized static JsonArray getAllRendererNamesAsJsonArray() {
+		ArrayList<String> values = getAllRenderersNames();
+
+		JsonArray jsonArray = new JsonArray();
+		jsonArray.add(pmsConfigurationStatic.allRenderers);
+		jsonArray.add("None");
+		for (int i = 0; i < values.size(); i++) {
+			jsonArray.add(values.get(i));
+		}
+		return jsonArray;
+	}
+
+	/**
+	 * This builds the dropdown for setting the default renderer.
+	 *
+	 * @return all default renderers as a JSON array
+	 */
+	public synchronized static JsonArray getEnabledRendererNamesAsJsonArray() {
+		ArrayList<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
+		GeneralTab.sortRendererConfigurationsByName(values);
+
+		JsonArray jsonArray = new JsonArray();
+		jsonArray.add(Messages.getString("NetworkTab.37"));
+		for (int i = 0; i < values.size(); i++) {
+			jsonArray.add(values.get(i).getConfName());
+		}
+		return jsonArray;
 	}
 
 	public int getTranscodedVideoAudioSampleRate() {
