@@ -33,32 +33,28 @@ const Login = () => {
         );
       };
     return (
-      <>
-        <Box sx={{ maxWidth: 300 }} mx='auto'>
-          <form onSubmit={form.onSubmit(handleLogin)}>
-            <Text size="xl">Log in</Text>
-            <Space h="md" />
-            <>
-              <TextInput
-                required
-                label='Username'
-                icon={<User size={14} />}
-                {...form.getInputProps('username')}
-              />
-              <TextInput
-                required
-                label='Password'
-                type='password'
-                icon={<Lock size={14} />}
-                {...form.getInputProps('password')}
-              />
-            </>
-            <Group position='right' mt='md'>
-              <Button type='submit'>Submit</Button>
-            </Group>
-          </form>
-        </Box>
-      </>
+      <Box sx={{ maxWidth: 300 }} mx='auto'>
+        <form onSubmit={form.onSubmit(handleLogin)}>
+          <Text size="xl">Log in</Text>
+          <Space h="md" />
+          <TextInput
+            required
+            label='Username'
+            icon={<User size={14} />}
+            {...form.getInputProps('username')}
+          />
+          <TextInput
+            required
+            label='Password'
+            type='password'
+            icon={<Lock size={14} />}
+            {...form.getInputProps('password')}
+          />
+          <Group position='right' mt='md'>
+            <Button type='submit'>Submit</Button>
+          </Group>
+        </form>
+      </Box>
     );
 };
 
