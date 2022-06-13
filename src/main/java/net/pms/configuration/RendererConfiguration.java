@@ -1700,7 +1700,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getConfName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		return getString(RENDERER_NAME, Messages.getString("NetworkTab.37"));
 	}
 
 	/**
@@ -2409,7 +2409,6 @@ public class RendererConfiguration extends Renderer {
 		GeneralTab.sortRendererConfigurationsByName(values);
 
 		JsonArray jsonArray = new JsonArray();
-		jsonArray.add(Messages.getString("NetworkTab.37"));
 		for (int i = 0; i < values.size(); i++) {
 			jsonArray.add(values.get(i).getConfName());
 		}
