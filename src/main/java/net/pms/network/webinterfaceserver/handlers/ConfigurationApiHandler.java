@@ -28,6 +28,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -167,8 +168,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 					} else if (configurationSetting.getValue() instanceof Integer) {
 						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
 						configuration.setProperty(key, (Integer) configurationSetting.getValue());
+					} else if (configurationSetting.getValue() instanceof ArrayList) {
+						ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
+						LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());
+						String arrayAsCommaDelimitedString = "";
+						for (int i = 0; i < incomingArrayList.size(); i++) {
+							if (i != 0) {
+								arrayAsCommaDelimitedString += ",";
+							}
+							arrayAsCommaDelimitedString += incomingArrayList.get(i);
+						}
+						configuration.setProperty(key, arrayAsCommaDelimitedString);
 					} else {
-						LOGGER.trace("Invalid value passed from client: {}, {}", key, configurationSetting.getValue());
+						LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 					}
 				}
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
