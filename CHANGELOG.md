@@ -1,6 +1,6 @@
 # Changelog
 
-### [11.1.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1) (2022-06-14)
+### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
 
 ### General
 - Fixed failed database update for some users (#3051) (thanks, vrtlspd!)
