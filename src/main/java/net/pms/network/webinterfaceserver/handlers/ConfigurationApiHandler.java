@@ -28,6 +28,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,7 +36,9 @@ import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
@@ -54,6 +57,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private final String[] validKeys = {
 		"append_profile_name",
 		"auto_update",
+		"automatic_maximum_bitrate",
+		"external_network",
 		"hostname",
 		"ip_filter",
 		"language",
@@ -61,6 +66,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"minimized",
 		"network_interface",
 		"port",
+		"renderer_default",
+		"renderer_force_default",
+		"selected_renderers",
+		"server_engine",
 		"server_name",
 		"show_splash_screen"
 	};
@@ -122,9 +131,12 @@ public class ConfigurationApiHandler implements HttpHandler {
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 
 				JsonObject jsonResponse = new JsonObject();
-				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 
+				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
+				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
+				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
+				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);
@@ -156,8 +168,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 					} else if (configurationSetting.getValue() instanceof Integer) {
 						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
 						configuration.setProperty(key, (Integer) configurationSetting.getValue());
+					} else if (configurationSetting.getValue() instanceof ArrayList) {
+						ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
+						LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());
+						String arrayAsCommaDelimitedString = "";
+						for (int i = 0; i < incomingArrayList.size(); i++) {
+							if (i != 0) {
+								arrayAsCommaDelimitedString += ",";
+							}
+							arrayAsCommaDelimitedString += incomingArrayList.get(i);
+						}
+						configuration.setProperty(key, arrayAsCommaDelimitedString);
 					} else {
-						LOGGER.trace("Invalid value passed from client: {}, {}", key, configurationSetting.getValue());
+						LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 					}
 				}
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");

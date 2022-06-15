@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion, MultiSelect } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -10,14 +10,21 @@ import I18nContext from '../../contexts/i18n-context';
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
+
+  // key/value pairs for dropdowns
   const languageSettingsRef = useRef([]);
   const networkInterfaceSettingsRef = useRef([]);
+  const serverEnginesSettingsRef = useRef([]);
+  const allRendererNamesSettingsRef = useRef([]);
+  const enabledRendererNamesSettingsRef = useRef([]);
+
   const i18n = useContext(I18nContext);
 
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
     auto_update: true,
     automatic_maximum_bitrate: true,
+    external_network: true,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
@@ -25,6 +32,10 @@ export default function Settings() {
     minimized: false,
     network_interface: '',
     port: '',
+    renderer_default: '',
+    renderer_force_default: false,
+    selected_renderers: ['All renderers'],
+    server_engine: '0',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
   };
@@ -44,6 +55,9 @@ export default function Settings() {
         const settingsResponse = response.data;
         languageSettingsRef.current = settingsResponse.languages;
         networkInterfaceSettingsRef.current = settingsResponse.networkInterfaces;
+        serverEnginesSettingsRef.current = settingsResponse.serverEngines;
+        allRendererNamesSettingsRef.current = settingsResponse.allRendererNames;
+        enabledRendererNamesSettingsRef.current = settingsResponse.enabledRendererNames;
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
@@ -136,7 +150,7 @@ export default function Settings() {
               />
             </Group>
 
-            <Group mt="xl">
+            <Group mt="md">
               <Checkbox
                 label={i18n['NetworkTab.3']}
                 {...form.getInputProps('minimized', { type: 'checkbox' })}
@@ -148,7 +162,7 @@ export default function Settings() {
             </Group>
 
             <Checkbox
-              mt="xl"
+              mt="xs"
               label={i18n['NetworkTab.9']}
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
             />
@@ -162,24 +176,24 @@ export default function Settings() {
                 />
 
                 <TextInput
-                  mt="xl"
+                  mt="xs"
                   label={i18n['NetworkTab.23']}
                   {...form.getInputProps('hostname')}
                 />
 
                 <TextInput
-                  mt="xl"
+                  mt="xs"
                   label={i18n['NetworkTab.24']}
                   {...form.getInputProps('port')}
                 />
 
                 <TextInput
-                  mt="xl"
+                  mt="xs"
                   label={i18n['NetworkTab.30']}
                   {...form.getInputProps('ip_filter')}
                 />
 
-                <Group mt="xl">
+                <Group mt="xs">
                   <TextInput
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.35']}
@@ -195,6 +209,40 @@ export default function Settings() {
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n['NetworkTab.31']}>
+                <Select
+                  label={i18n['NetworkTab.MediaServerEngine']}
+                  data={serverEnginesSettingsRef.current}
+                  value={String(form.getInputProps('server_engine').value)}
+                />
+
+                <MultiSelect
+                  mt="xs"
+                  data={allRendererNamesSettingsRef.current}
+                  label={i18n['NetworkTab.62']}
+                  {...form.getInputProps('selected_renderers')}
+                />
+
+                <Group mt="xs">
+                  <Select
+                    sx={{ flex: 1 }}
+                    label={i18n['NetworkTab.36']}
+                    data={enabledRendererNamesSettingsRef.current}
+                    {...form.getInputProps('renderer_default')}
+                    searchable
+                  />
+
+                  <Checkbox
+                    mt="xl"
+                    label={i18n['GeneralTab.ForceDefaultRenderer']}
+                    {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
+                  />
+                </Group>
+
+                <Checkbox
+                  mt="xs"
+                  label={i18n['NetworkTab.56']}
+                  {...form.getInputProps('external_network', { type: 'checkbox' })}
+                />
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
