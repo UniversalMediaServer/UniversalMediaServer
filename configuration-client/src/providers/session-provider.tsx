@@ -8,12 +8,19 @@ interface Props {
 }
 
 export const SessionProvider = ({ ...props }: Props) =>{
-  const [session, setSession] = useState({loggedin:false,firstlogin:false} as Session)
+  const [session, setSession] = useState(
+    {
+      loggedin: false,
+      firstLogin: false,
+    } as Session
+  );
 
   useEffect(() => {
     axios.get('/v1/api/auth/session')
       .then(function (response: any) {
+        console.log('session response was', response.data);
         setSession(response.data);
+        console.log('session set to', session);
       })
       .catch(function (error: Error) {
         console.log(error);

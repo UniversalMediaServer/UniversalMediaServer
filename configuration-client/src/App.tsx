@@ -6,7 +6,7 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useEffect } from 'react'; 
+import React, { useContext, useEffect } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
 import './services/http-interceptor';
 
@@ -18,6 +18,7 @@ import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 import { useLocalStorage } from '@mantine/hooks';
 import { I18nProvider } from './providers/i18n-provider';
+import { SessionProvider } from './providers/session-provider';
 
 function getToken() {
   return localStorage.getItem('user');
@@ -58,6 +59,7 @@ function App() {
       >
         <NotificationsProvider>
           <I18nProvider>
+            <SessionProvider>
               <div dir={rtl ? 'rtl' : 'ltr'}>
                 <AppShell
                   padding="md"
@@ -96,12 +98,11 @@ function App() {
                     </Routes>
                   </Router>
                 ) : (
-                  // if session.firstlogin === true -> <FirstLogin />
-                  // else -> <Login />
                   <Login />
                 )}
                 </AppShell>
               </div>
+            </SessionProvider>
           </I18nProvider>
         </NotificationsProvider>
       </MantineProvider>
