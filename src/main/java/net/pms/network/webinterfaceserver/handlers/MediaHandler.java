@@ -154,7 +154,7 @@ public class MediaHandler implements HttpHandler {
 				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
-			if (HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+			if (resource.getFormat().isVideo() && render != null && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
 				String uri = WebInterfaceServerUtil.getId(path, httpExchange);
 				Headers headers = httpExchange.getResponseHeaders();
 				headers.add("Server", PMS.get().getServerName());
