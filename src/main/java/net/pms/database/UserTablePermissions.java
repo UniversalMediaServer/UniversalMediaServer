@@ -99,13 +99,14 @@ public final class UserTablePermissions extends UserTable {
 				"ALLOW				BOOLEAN" +
 			")"
 		);
-		// allow full access to admin group
-		insertOrUpdate(connection, 0, "*", true);
+		// allow full access to admin group (1)
+		String query = "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME, ALLOW) VALUES (1, '*', TRUE)";
+		execute(connection, query);
 	}
 
 	public static void insertOrUpdate(Connection connection, int groupId, String name, boolean allow) {
 		//group id < 1 to prevent no group (-1) and admin group (0) to be changed
-		if (connection == null || groupId < 1 || name == null || "".equals(name)) {
+		if (connection == null || groupId < 2 || name == null || "".equals(name)) {
 			return;
 		}
 		String query = "SELECT * FROM " + TABLE_NAME + " WHERE GROUP_ID = " + groupId + " AND NAME = " + sqlQuote(name) + " LIMIT 1";
