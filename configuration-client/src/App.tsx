@@ -58,32 +58,33 @@ function App() {
       >
         <NotificationsProvider>
           <I18nProvider>
-            <div dir={rtl ? 'rtl' : 'ltr'}>
-              <AppShell
-                padding="md"
-                // navbar={<Navbar width={{
-                //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
-                //   sm: 200,
+              <div dir={rtl ? 'rtl' : 'ltr'}>
+                <AppShell
+                  padding="md"
+                  // navbar={<Navbar width={{
+                  //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
+                  //   sm: 200,
 
-                //   // When other breakpoints do not match base width is used, defaults to 100%
-                //   base: 100,
-                // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
-                header={<Header height={50} p="xs">{
-                  <Group position="right">
-                    <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
-                      {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                    </ActionIcon>
-                    <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
-                      {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
-                    </ActionIcon>
-                    <UserMenu />
-                  </Group>
-                }</Header>}
-                styles={(theme) => ({
-                  main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
-                })}
-              >
+                  //   // When other breakpoints do not match base width is used, defaults to 100%
+                  //   base: 100,
+                  // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
+                  header={<Header height={50} p="xs">{
+                    <Group position="right">
+                      <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
+                        {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                      </ActionIcon>
+                      <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
+                        {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
+                      </ActionIcon>
+                      <UserMenu />
+                    </Group>
+                  }</Header>}
+                  styles={(theme) => ({
+                    main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
+                  })}
+                >
                 {token ? (
+                  // should be if session.account not undefined
                   <Router>
                     <Routes>
                       <Route path='/changepassword' element={<ChangePassword />}></Route>
@@ -95,10 +96,12 @@ function App() {
                     </Routes>
                   </Router>
                 ) : (
+                  // if session.firstlogin === true -> <FirstLogin />
+                  // else -> <Login />
                   <Login />
                 )}
-              </AppShell>
-            </div>
+                </AppShell>
+              </div>
           </I18nProvider>
         </NotificationsProvider>
       </MantineProvider>
