@@ -20,10 +20,12 @@
 package net.pms.network.webinterfaceserver.handlers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
@@ -31,6 +33,7 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -53,8 +56,7 @@ public class AuthApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			InetAddress ia = exchange.getRemoteAddress().getAddress();
-			if (WebInterfaceServerUtil.deny(ia)) {
+			if (WebInterfaceServerUtil.deny(exchange)) {
 				exchange.close();
 				return;
 			}
@@ -100,9 +102,17 @@ public class AuthApiHandler implements HttpHandler {
 								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
-								String token = AuthService.signJwt(account.getUser().getUsername());
-								Boolean isFirstLogin = (account.getUser().getUsername().equals(AccountService.DEFAULT_ADMIN_USERNAME) && data.getPassword().equals(AccountService.DEFAULT_ADMIN_PASSWORD));
-								WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\", \"firstLogin\": \"" + isFirstLogin + "\"}", 200, "application/json");
+								String token = AuthService.signJwt(account.getUser().getId());
+								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
+									WebInterfaceServer.setAccount(account);
+								}
+								JsonObject jObject = new JsonObject();
+								jObject.add("token", new JsonPrimitive(token));
+								JsonElement jElement = gson.toJsonTree(account);
+								JsonObject jAccount = jElement.getAsJsonObject();
+								jAccount.getAsJsonObject("user").remove("password");
+								jObject.add("account", jAccount);
+								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
 							} else {
 								AccountService.setUserLoginFailed(connection, account.getUser());
 								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"" + (AccountService.MAX_LOGIN_FAIL_BEFORE_LOCK - account.getUser().getLoginFailedCount()) + "\", \"lockeduntil\": \"0\"}", 401, "application/json");
@@ -118,10 +128,76 @@ public class AuthApiHandler implements HttpHandler {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
-					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
-					String token = AuthService.signJwt(loggedInUsername);
-					WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
+					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
+					if (account != null) {
+						String token = AuthService.signJwt(loggedInUserId);
+						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
+					} else {
+						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+					}
+				} else if (api.get("/session")) {
+					JsonObject jObject = new JsonObject();
+					if (AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
+						int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
+						Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
+						if (account != null) {
+							jObject.add("firstLogin", new JsonPrimitive(false));
+							JsonElement jElement = gson.toJsonTree(account);
+							JsonObject jAccount = jElement.getAsJsonObject();
+							jAccount.getAsJsonObject("user").remove("password");
+							jObject.add("account", jAccount);
+						}
+					}
+					if (!jObject.has("firstLogin")) {
+						Connection connection = UserDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
+						} else {
+							LOGGER.error("User database not available");
+							WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+							return;
+						}
+					}
+					WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
+				} else if (api.post("/create")) {
+					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+					UsernamePassword data = gson.fromJson(loginDetails, UsernamePassword.class);
+					Connection connection = UserDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						//for security, always check if no admin account is already in db
+						if (AccountService.hasNoAdmin(connection)) {
+							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 0);
+							//now login and check created user
+							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
+							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
+								AccountService.setUserLogged(connection, account.getUser());
+								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
+									WebInterfaceServer.setAccount(account);
+								}
+								JsonObject jObject = new JsonObject();
+								jObject.add("firstLogin", new JsonPrimitive(false));
+								String token = AuthService.signJwt(account.getUser().getId());
+								jObject.add("token", new JsonPrimitive(token));
+								JsonElement jElement = gson.toJsonTree(account);
+								JsonObject jAccount = jElement.getAsJsonObject();
+								jAccount.getAsJsonObject("user").remove("password");
+								jObject.add("account", jAccount);
+								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
+							} else {
+								LOGGER.error("Error in admin user creation");
+								WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
+							}
+						} else {
+							LOGGER.error("An admin user is already in database");
+							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
+						}
+					} else {
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+					}
 				} else {
+					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
 			} catch (RuntimeException e) {

@@ -86,7 +86,7 @@ public final class UserTableUsers extends UserTable {
 			switch (version) {
 				case 1:
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NAME VARCHAR2(255)");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD GROUP_ID INT DEFAULT -1");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD GROUP_ID INT DEFAULT 0");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LAST_LOGIN_TIME BIGINT DEFAULT 0");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_TIME BIGINT DEFAULT 0");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_COUNT INT DEFAULT 0");
@@ -111,14 +111,15 @@ public final class UserTableUsers extends UserTable {
 				"USERNAME			VARCHAR2(255)	UNIQUE, " +
 				"PASSWORD			VARCHAR2(255)	NOT NULL, " +
 				"NAME				VARCHAR2(255), " +
-				"GROUP_ID			INT				DEFAULT -1, " +
+				"GROUP_ID			INT				DEFAULT 0, " +
 				"LAST_LOGIN_TIME	BIGINT			DEFAULT 0, " +
 				"LOGIN_FAIL_TIME	BIGINT			DEFAULT 0, " +
 				"LOGIN_FAIL_COUNT	INT				DEFAULT 0" +
 			")"
 		);
 		// create an initial admin user in the table
-		AccountService.createUser(connection, AccountService.DEFAULT_ADMIN_USERNAME, AccountService.DEFAULT_ADMIN_PASSWORD, AccountService.DEFAULT_ADMIN_GROUP, 0);
+		// should be removed after no admin impl
+		AccountService.createUser(connection, AccountService.DEFAULT_ADMIN_USERNAME, AccountService.DEFAULT_ADMIN_PASSWORD, AccountService.DEFAULT_ADMIN_GROUP, 1);
 		LOGGER.info("Initial user for web UI has been created. Please login and change the password");
 	}
 
@@ -239,5 +240,25 @@ public final class UserTableUsers extends UserTable {
 			LOGGER.error("Error finding user: " + e);
 		}
 		return null;
+	}
+
+	public static boolean hasNoAdmin(final Connection connection) {
+		try {
+			String sql = "SELECT * " +
+					"FROM " + TABLE_NAME + " " +
+					"WHERE GROUP_ID = 1 " +
+					"LIMIT 1";
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql);
+			) {
+				while (resultSet.next()) {
+					return false;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Error finding user: " + e);
+		}
+		return true;
 	}
 }
