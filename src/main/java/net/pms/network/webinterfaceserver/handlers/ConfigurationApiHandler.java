@@ -54,11 +54,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	private final Gson gson = new Gson();
 
-	private final String[] validKeys = {
+	public static final String[] VALID_KEYS = {
 		"append_profile_name",
+		"audio_thumbnails_method",
 		"auto_update",
 		"automatic_maximum_bitrate",
 		"external_network",
+		"generate_thumbnails",
 		"hostname",
 		"ip_filter",
 		"language",
@@ -71,7 +73,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"selected_renderers",
 		"server_engine",
 		"server_name",
-		"show_splash_screen"
+		"show_splash_screen",
+		"thumbnail_seek_position"
 	};
 
 	/**
@@ -137,6 +140,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
+				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
 
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);
@@ -154,7 +158,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				while (iterator.hasNext()) {
 					Map.Entry configurationSetting = (Map.Entry) iterator.next();
 					String key = (String) configurationSetting.getKey();
-					if (!Arrays.asList(validKeys).contains(key)) {
+					if (!Arrays.asList(VALID_KEYS).contains(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
 						continue;
 					}

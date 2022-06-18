@@ -20,6 +20,9 @@ package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -5153,5 +5156,24 @@ public class PmsConfiguration extends RendererConfiguration {
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}
+	}
+
+	/**
+	 * @return all audio cover suppliers as a JSON array
+	 */
+	public synchronized static JsonArray getAudioCoverSuppliersAsJsonArray() {
+		JsonArray jsonArray = new JsonArray();
+
+		JsonObject noneObject = new JsonObject();
+		noneObject.addProperty("label", Messages.getString("FoldTab.35"));
+		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
+		jsonArray.add(noneObject);
+
+		JsonObject coverArtArchiveObject = new JsonObject();
+		coverArtArchiveObject.addProperty("label", Messages.getString("FoldTab.73"));
+		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
+		jsonArray.add(coverArtArchiveObject);
+
+		return jsonArray;
 	}
 }
