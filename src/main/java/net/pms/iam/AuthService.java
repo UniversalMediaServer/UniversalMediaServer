@@ -37,12 +37,12 @@ public class AuthService {
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 
-	public static String signJwt(int id) {
+	public static String signJwt(int id, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			String token = JWT.create()
 					.withIssuer("UMS")
-					.withSubject(String.valueOf(id))
+					.withSubject(host)
 					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
 					.withClaim("id", id)
 					.sign(algorithm);
@@ -53,7 +53,7 @@ public class AuthService {
 		return null;
 	}
 
-	public static DecodedJWT decodeJwt(String token) {
+	private static DecodedJWT decodeJwt(String token) {
 		try {
 			DecodedJWT jwt = JWT.decode(token);
 			return jwt;
@@ -63,8 +63,7 @@ public class AuthService {
 		return null;
 	}
 
-	public static int getUserIdFromJWT(String authHeader) {
-		final String token = authHeader.replace("Bearer ", "");
+	private static int getUserIdFromJWT(String token) {
 		try {
 			DecodedJWT jwt = decodeJwt(token);
 			return jwt.getClaim("id").asInt();
@@ -72,24 +71,15 @@ public class AuthService {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
 		return 0;
+
 	}
 
-	public static int getUserIdFromJWT(List<String> authHeaders) {
-		if (authHeaders == null || authHeaders.isEmpty()) {
-			return 0;
-		}
-		return getUserIdFromJWT(authHeaders.get(0));
-	}
-
-	public static Boolean isLoggedIn(List<String> authHeader) {
-		if (authHeader == null || authHeader.isEmpty()) {
-			return false;
-		}
-		final String token = authHeader.get(0).replace("Bearer ", "");
+	public static Boolean isValidToken(String token, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
 					.withIssuer("UMS")
+					.withSubject(host)
 					.build();
 			verifier.verify(token);
 			return true;
@@ -98,4 +88,21 @@ public class AuthService {
 			return false;
 		}
 	}
+
+	public static Account getAccountLoggedIn(String authHeader, String host) {
+		final String token = authHeader.replace("Bearer ", "");
+		if (isValidToken(token, host)) {
+			int userId = getUserIdFromJWT(token);
+			return AccountService.getAccountByUserId(userId);
+		}
+		return null;
+	}
+
+	public static Account getAccountLoggedIn(List<String> authHeaders, String host) {
+		if (authHeaders == null || authHeaders.isEmpty()) {
+			return null;
+		}
+		return getAccountLoggedIn(authHeaders.get(0), host);
+	}
+
 }

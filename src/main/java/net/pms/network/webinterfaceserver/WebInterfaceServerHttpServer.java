@@ -47,23 +47,23 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webinterfaceserver.handlers.ActionsApiHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.AccountApiHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.ActionsApiHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.AuthApiHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
-import net.pms.network.webinterfaceserver.handlers.ConfigurationApiHandler;
-import net.pms.network.webinterfaceserver.handlers.ConfigurationClientHandler;
 import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
 import net.pms.network.webinterfaceserver.handlers.DocHandler;
 import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
 import net.pms.network.webinterfaceserver.handlers.FileHandler;
-import net.pms.network.webinterfaceserver.handlers.AuthApiHandler;
 import net.pms.network.webinterfaceserver.handlers.MediaHandler;
 import net.pms.network.webinterfaceserver.handlers.PlayHandler;
 import net.pms.network.webinterfaceserver.handlers.PollHandler;
 import net.pms.network.webinterfaceserver.handlers.RawHandler;
 import net.pms.network.webinterfaceserver.handlers.StartHandler;
 import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
-import net.pms.network.webinterfaceserver.handlers.UserApiHandler;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -120,8 +120,6 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			// Add context handlers
 			addCtx("/", new StartHandler(this));
 			addCtx("/browse", new BrowseHandler(this));
-			addCtx("/configuration", new ConfigurationClientHandler(this));
-			addCtx("/configuration-api", new ConfigurationApiHandler());
 			PlayHandler playHandler = new PlayHandler(this);
 			addCtx("/play", playHandler);
 			addCtx("/playstatus", playHandler);
@@ -131,15 +129,19 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/fmedia", new MediaHandler(this, true));
 			addCtx("/thumb", new ThumbHandler(this));
 			addCtx("/raw", new RawHandler(this));
-			addCtx("/v1/api/auth", new AuthApiHandler());
-			addCtx("/v1/api/actions", new ActionsApiHandler());
-			addCtx("/v1/api/user", new UserApiHandler());
 			addCtx("/files", new FileHandler(this));
 			addCtx("/doc", new DocHandler(this));
 			addCtx("/poll", new PollHandler(this));
 			addCtx("/event-stream", new EventStreamHandler(this));
 			addCtx("/bump", new ControlHandler(this));
 			addCtx("/console", new ConsoleHandler(this));
+
+			//configuration v1 api handlers
+			addCtx(AccountApiHandler.BASE_PATH, new AccountApiHandler());
+			addCtx(ActionsApiHandler.BASE_PATH, new ActionsApiHandler());
+			addCtx(AuthApiHandler.BASE_PATH, new AuthApiHandler());
+			addCtx(ConfigurationApiHandler.BASE_PATH, new ConfigurationApiHandler());
+			addCtx(ConfigurationClientHandler.BASE_PATH, new ConfigurationClientHandler(this));
 
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();

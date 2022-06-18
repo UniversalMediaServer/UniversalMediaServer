@@ -19,9 +19,12 @@
  */
 package net.pms.iam;
 
+import java.util.List;
+
 public class Group {
 	private int id;
 	private String name;
+	private List<String> permissions;
 
 	public int getId() {
 		return id;
@@ -37,5 +40,20 @@ public class Group {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public List<String> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(List<String> permissions) {
+		this.permissions = permissions;
+	}
+
+	public boolean havePermission(String name) {
+		return (this.permissions != null &&
+				((this.permissions.contains(Permissions.ANY)) ||
+				(this.permissions.contains(name))
+				));
 	}
 }

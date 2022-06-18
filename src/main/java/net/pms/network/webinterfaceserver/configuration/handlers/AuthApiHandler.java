@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.handlers;
+package net.pms.network.webinterfaceserver.configuration.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -35,6 +35,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
  */
 public class AuthApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiHandler.class);
+
+	public static final String BASE_PATH = "/v1/api/auth";
 
 	private final Gson gson = new Gson();
 
@@ -63,31 +66,7 @@ public class AuthApiHandler implements HttpHandler {
 			if (LOGGER.isTraceEnabled()) {
 				WebInterfaceServerUtil.logMessageReceived(exchange, "");
 			}
-			/**
-			 * Helpers for HTTP methods and paths.
-			 */
-			var api = new Object() {
-				private String getEndpoint() {
-					String endpoint = "/";
-					int pos = exchange.getRequestURI().getPath().indexOf("/v1/api/auth");
-					if (pos != -1) {
-						endpoint = exchange.getRequestURI().getPath().substring(pos + "/v1/api/auth".length());
-					}
-					return endpoint;
-				}
-				/**
-				 * @return whether this was a GET request for the specified path.
-				 */
-				public Boolean get(String path) {
-					return exchange.getRequestMethod().equals("GET") && getEndpoint().equals(path);
-				}
-				/**
-				 * @return whether this was a POST request for the specified path.
-				 */
-				public Boolean post(String path) {
-					return exchange.getRequestMethod().equals("POST") && getEndpoint().equals(path);
-				}
-			};
+			var api = new ApiHelper(exchange, BASE_PATH);
 			try {
 				if (api.post("/login")) {
 					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
@@ -102,7 +81,8 @@ public class AuthApiHandler implements HttpHandler {
 								WebInterfaceServerUtil.respond(exchange, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
-								String token = AuthService.signJwt(account.getUser().getId());
+								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
+//should be replaced to handle only sse
 								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
 									WebInterfaceServer.setAccount(account);
 								}
@@ -125,29 +105,22 @@ public class AuthApiHandler implements HttpHandler {
 						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 					}
 				} else if (api.post("/refresh")) {
-					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
-					}
-					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
-					Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
-						String token = AuthService.signJwt(loggedInUserId);
+						String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
 						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
 					} else {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
 				} else if (api.get("/session")) {
 					JsonObject jObject = new JsonObject();
-					if (AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-						int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
-						Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
-						if (account != null) {
-							jObject.add("firstLogin", new JsonPrimitive(false));
-							JsonElement jElement = gson.toJsonTree(account);
-							JsonObject jAccount = jElement.getAsJsonObject();
-							jAccount.getAsJsonObject("user").remove("password");
-							jObject.add("account", jAccount);
-						}
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					if (account != null) {
+						jObject.add("firstLogin", new JsonPrimitive(false));
+						JsonElement jElement = gson.toJsonTree(account);
+						JsonObject jAccount = jElement.getAsJsonObject();
+						jAccount.getAsJsonObject("user").remove("password");
+						jObject.add("account", jAccount);
 					}
 					if (!jObject.has("firstLogin")) {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
@@ -160,42 +133,7 @@ public class AuthApiHandler implements HttpHandler {
 						}
 					}
 					WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
-				} else if (api.post("/create")) {
-					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					UsernamePassword data = gson.fromJson(loginDetails, UsernamePassword.class);
-					Connection connection = UserDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						//for security, always check if no admin account is already in db
-						if (AccountService.hasNoAdmin(connection)) {
-							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 0);
-							//now login and check created user
-							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
-							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
-								AccountService.setUserLogged(connection, account.getUser());
-								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
-								JsonObject jObject = new JsonObject();
-								jObject.add("firstLogin", new JsonPrimitive(false));
-								String token = AuthService.signJwt(account.getUser().getId());
-								jObject.add("token", new JsonPrimitive(token));
-								JsonElement jElement = gson.toJsonTree(account);
-								JsonObject jAccount = jElement.getAsJsonObject();
-								jAccount.getAsJsonObject("user").remove("password");
-								jObject.add("account", jAccount);
-								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
-							} else {
-								LOGGER.error("Error in admin user creation");
-								WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
-							}
-						} else {
-							LOGGER.error("An admin user is already in database");
-							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
-						}
-					} else {
-						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
-					}
+
 				} else {
 					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
