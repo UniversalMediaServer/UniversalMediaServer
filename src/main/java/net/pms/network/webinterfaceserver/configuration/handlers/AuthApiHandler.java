@@ -117,10 +117,7 @@ public class AuthApiHandler implements HttpHandler {
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
 						jObject.add("firstLogin", new JsonPrimitive(false));
-						JsonElement jElement = gson.toJsonTree(account);
-						JsonObject jAccount = jElement.getAsJsonObject();
-						jAccount.getAsJsonObject("user").remove("password");
-						jObject.add("account", jAccount);
+						jObject.add("account", AccountApiHandler.accountToJsonObject(account));
 					}
 					if (!jObject.has("firstLogin")) {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
@@ -133,7 +130,40 @@ public class AuthApiHandler implements HttpHandler {
 						}
 					}
 					WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
-
+				} else if (api.post("/create")) {
+					//create the first admin user
+					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+					UsernamePassword data = gson.fromJson(loginDetails, UsernamePassword.class);
+					Connection connection = UserDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						//for security, always check if no admin account is already in db
+						if (AccountService.hasNoAdmin(connection)) {
+							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 0);
+							//now login and check created user
+							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
+							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
+								AccountService.setUserLogged(connection, account.getUser());
+								if (AccountService.getAccountByUserId(account.getUser().getId()) == null) {
+									WebInterfaceServer.setAccount(account);
+								}
+								JsonObject jObject = new JsonObject();
+								jObject.add("firstLogin", new JsonPrimitive(false));
+								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
+								jObject.add("token", new JsonPrimitive(token));
+								jObject.add("account", AccountApiHandler.accountToJsonObject(account));
+								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
+							} else {
+								LOGGER.error("Error in admin user creation");
+								WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+							}
+						} else {
+							LOGGER.error("An admin user is already in database");
+							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
+						}
+					} else {
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+					}
 				} else {
 					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
