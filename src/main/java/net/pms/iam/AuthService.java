@@ -71,6 +71,7 @@ public class AuthService {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
 		return 0;
+
 	}
 
 	public static Boolean isValidToken(String token, String host) {
