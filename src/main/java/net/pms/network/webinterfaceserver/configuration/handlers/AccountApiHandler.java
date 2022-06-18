@@ -39,8 +39,6 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
 import net.pms.iam.User;
-import net.pms.iam.UsernamePassword;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.apache.commons.io.IOUtils;
@@ -108,41 +106,6 @@ public class AccountApiHandler implements HttpHandler {
 						jObject.add("groups", jGroups);
 					} else {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
-					}
-				} else if (api.post("/create")) {
-					//create the first admin user
-					String loginDetails = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-					UsernamePassword data = GSON.fromJson(loginDetails, UsernamePassword.class);
-					Connection connection = UserDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						//for security, always check if no admin account is already in db
-						if (AccountService.hasNoAdmin(connection)) {
-							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 0);
-							//now login and check created user
-							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
-							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
-								AccountService.setUserLogged(connection, account.getUser());
-								if (AccountService.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
-								JsonObject jObject = new JsonObject();
-								jObject.add("firstLogin", new JsonPrimitive(false));
-								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-								jObject.add("token", new JsonPrimitive(token));
-								JsonObject jAccount = accountToJsonObject(account);
-								jObject.add("account", jAccount);
-								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
-							} else {
-								LOGGER.error("Error in admin user creation");
-								WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
-							}
-						} else {
-							LOGGER.error("An admin user is already in database");
-							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
-						}
-					} else {
-						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 					}
 				} else if (api.post("/action")) {
 					//action requested on account (create/modify)
@@ -391,7 +354,7 @@ public class AccountApiHandler implements HttpHandler {
 		return jObject;
 	}
 
-	private static JsonObject accountToJsonObject(Account account) {
+	public static JsonObject accountToJsonObject(Account account) {
 		JsonElement jElement = GSON.toJsonTree(account);
 		JsonObject jAccount = jElement.getAsJsonObject();
 		jAccount.getAsJsonObject("user").remove("password");
