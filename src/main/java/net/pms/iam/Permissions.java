@@ -22,4 +22,8 @@ package net.pms.iam;
 public class Permissions {
 	public static final String ANY = "*";
 	public static final String SERVER_RESTART = "server_restart";
+	public static final String USERS_MANAGE = "users_manage";
+	public static final String GROUPS_MANAGE = "groups_manage";
+	public static final String SETTINGS_VIEW = "settings_view";
+	public static final String SETTINGS_MODIFY = "settings_modify";
 }

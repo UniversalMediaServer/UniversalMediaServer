@@ -17,20 +17,22 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.handlers;
+package net.pms.network.webinterfaceserver.configuration.handlers;
 
-import com.samskivert.mustache.MustacheException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
-import org.apache.commons.lang.StringUtils;
+import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ConfigurationClientHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
+
+	public static final String BASE_PATH = "/configuration";
 
 	private final WebInterfaceServerHttpServer parent;
 
@@ -39,43 +41,30 @@ public class ConfigurationClientHandler implements HttpHandler {
 	}
 
 	@Override
-	public void handle(HttpExchange t) throws IOException {
+	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			if (WebInterfaceServerUtil.deny(t)) {
+			if (WebInterfaceServerUtil.deny(exchange)) {
 				throw new IOException("Access denied");
 			}
-			LOGGER.debug("Handling web player server file request \"{}\"", t.getRequestURI());
+			LOGGER.debug("Handling web configuration server file request \"{}\"", exchange.getRequestURI());
 			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageReceived(t, "");
+				WebInterfaceServerUtil.logMessageReceived(exchange, "");
 			}
-			String basePath = "/configuration/";
-			String path = t.getRequestURI().getPath();
-			String relativePath = path.substring(basePath.length());
-			String response = null;
-			String mime = null;
-			int status = 200;
-			if (StringUtils.isEmpty(relativePath)) {
-				relativePath = "/index.html";
+			var api = new ApiHelper(exchange, BASE_PATH);
+			String endpoint = api.getEndpoint();
+			if ("/".equals(endpoint) || "".equals(endpoint)) {
+				endpoint = "/index.html";
 			}
 
-			if (parent.getResources().write("react-app/" + relativePath, t)) {
-				// The resource manager found and sent the file, all done.
-				return;
-			} else {
-				status = 404;
+			if (!parent.getResources().write("react-app/" + endpoint, exchange)) {
+				// The resource manager can't found or send the file, we need to send a response.
+				LOGGER.trace("ConfigurationClientHandler request not available : {}", api.getEndpoint());
+				WebInterfaceServerUtil.respond(exchange, "<html><body>404 - File Not Found: " + exchange.getRequestURI().getPath() + "</body></html>", 404, "text/html");
 			}
-
-			if (status == 404 && response == null) {
-				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
-				mime = "text/html";
-			}
-
-			WebInterfaceServerUtil.respond(t, response, status, mime);
 		} catch (IOException e) {
 			throw e;
-		} catch (MustacheException e) {
-			// Nothing should get here, this is just to avoid crashing the
-			// thread
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in ConfigurationClientHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}

@@ -24,6 +24,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.iam.AccountService;
@@ -39,7 +41,7 @@ public final class UserTableUsers extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -91,7 +93,13 @@ public final class UserTableUsers extends UserTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_TIME BIGINT DEFAULT 0");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LOGIN_FAIL_COUNT INT DEFAULT 0");
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=0");
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=0 WHERE ID=0");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
+					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					break;
+				case 2:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN GROUP_ID SET DEFAULT 0");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=1");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				default:
@@ -149,18 +157,53 @@ public final class UserTableUsers extends UserTable {
 		}
 	}
 
-	public static void updatePassword(final Connection connection, final int id, final String password) {
-		if (connection == null || password == null || "".equals(password)) {
+	public static void deleteUser(final Connection connection, int id) {
+		if (connection == null || id < 1) {
 			return;
 		}
 		try {
 			Statement statement = connection.createStatement();
-			String sql = "UPDATE " + TABLE_NAME + " " +
-					"SET PASSWORD = " + sqlQuote(password) + " " +
+			String sql = "DELETE " + TABLE_NAME + " " +
 					"WHERE ID='" + id + "'";
 			statement.executeUpdate(sql);
 		} catch (SQLException e) {
-			LOGGER.error("Error updatePassword:{}", e.getMessage());
+			LOGGER.error("Error deleteUser:{}", e.getMessage());
+		}
+	}
+
+	public static boolean updateUser(final Connection connection, final int id, final String name, final int groupId) {
+		if (connection == null || name == null || "".equals(name)) {
+			return false;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + TABLE_NAME + " " +
+					"SET NAME = " + sqlQuote(name) + ", " +
+					"SET GROUP_ID = " + groupId + " " +
+					"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+			return true;
+		} catch (SQLException e) {
+			LOGGER.error("Error updateLogin:{}", e.getMessage());
+			return false;
+		}
+	}
+
+	public static boolean updateLogin(final Connection connection, final int id, final String username, final String password) {
+		if (connection == null || username == null || "".equals(username) || password == null || "".equals(password)) {
+			return false;
+		}
+		try {
+			Statement statement = connection.createStatement();
+			String sql = "UPDATE " + TABLE_NAME + " " +
+					"SET USERNAME = " + sqlQuote(username) + ", " +
+					"SET PASSWORD = " + sqlQuote(password) + " " +
+					"WHERE ID='" + id + "'";
+			statement.executeUpdate(sql);
+			return true;
+		} catch (SQLException e) {
+			LOGGER.error("Error updateLogin:{}", e.getMessage());
+			return false;
 		}
 	}
 
@@ -224,15 +267,7 @@ public final class UserTableUsers extends UserTable {
 				ResultSet resultSet = statement.executeQuery(sql);
 			) {
 				while (resultSet.next()) {
-					result = new User();
-					result.setId(resultSet.getInt("ID"));
-					result.setUsername(resultSet.getString("USERNAME"));
-					result.setPassword(resultSet.getString("PASSWORD"));
-					result.setName(resultSet.getString("NAME"));
-					result.setGroupId(resultSet.getInt("GROUP_ID"));
-					result.setLastLoginTime(resultSet.getLong("LAST_LOGIN_TIME"));
-					result.setLoginFailedTime(resultSet.getLong("LOGIN_FAIL_TIME"));
-					result.setLoginFailedCount(resultSet.getInt("LOGIN_FAIL_COUNT"));
+					result = resultSetToUser(resultSet);
 					return result;
 				}
 			}
@@ -240,6 +275,62 @@ public final class UserTableUsers extends UserTable {
 			LOGGER.error("Error finding user: " + e);
 		}
 		return null;
+	}
+
+	public static User getUserByUserId(final Connection connection, final int id) {
+		User result;
+		LOGGER.info("Finding user id: {} ", id);
+		try {
+			String sql = "SELECT * " +
+					"FROM " + TABLE_NAME + " " +
+					"WHERE ID=" + id + " " +
+					"LIMIT 1";
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql);
+			) {
+				while (resultSet.next()) {
+					result = resultSetToUser(resultSet);
+					return result;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Error finding user: " + e);
+		}
+		return null;
+	}
+
+	public static List<User> getAllUsers(final Connection connection) {
+		List<User> result = new ArrayList<>();
+		LOGGER.info("Listing all users");
+		try {
+			String sql = "SELECT * " +
+					"FROM " + TABLE_NAME;
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql);
+			) {
+				while (resultSet.next()) {
+					result.add(resultSetToUser(resultSet));
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Error finding user: " + e);
+		}
+		return result;
+	}
+
+	private static User resultSetToUser(ResultSet resultSet) throws SQLException {
+		User result = new User();
+		result.setId(resultSet.getInt("ID"));
+		result.setUsername(resultSet.getString("USERNAME"));
+		result.setPassword(resultSet.getString("PASSWORD"));
+		result.setName(resultSet.getString("NAME"));
+		result.setGroupId(resultSet.getInt("GROUP_ID"));
+		result.setLastLoginTime(resultSet.getLong("LAST_LOGIN_TIME"));
+		result.setLoginFailedTime(resultSet.getLong("LOGIN_FAIL_TIME"));
+		result.setLoginFailedCount(resultSet.getInt("LOGIN_FAIL_COUNT"));
+		return result;
 	}
 
 	public static boolean hasNoAdmin(final Connection connection) {

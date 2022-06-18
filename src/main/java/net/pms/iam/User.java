@@ -75,4 +75,8 @@ public class User extends UsernamePassword {
 		this.loginFailedCount = loginFailedCount;
 	}
 
+	@Override
+	public String toString() {
+		return name != null && !"".equals(name) ? name : getUsername();
+	}
 }

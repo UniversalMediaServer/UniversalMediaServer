@@ -23,6 +23,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.iam.AccountService;
 import net.pms.iam.Group;
 import org.slf4j.Logger;
@@ -116,30 +118,35 @@ public final class UserTableGroups extends UserTable {
 		}
 	}
 
-	public static void updateGroupName(Connection connection, int id, String name) {
+	public static boolean updateGroup(Connection connection, int id, String name) {
 		if (connection == null || id < 1 || name == null || "".equals(name)) {
-			return;
+			return false;
 		}
 		String query = "UPDATE " + TABLE_NAME + " SET NAME = " + sqlQuote(name) + " WHERE GROUP_ID = " + id;
 		try {
 			execute(connection, query);
+			return true;
 		} catch (SQLException se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "updating value", sqlEscape(name), TABLE_NAME, se.getMessage());
 			LOGGER.trace("", se);
+			return false;
 		}
 	}
 
-	public static void removeGroup(Connection connection, int id) {
+	public static boolean removeGroup(Connection connection, int id) {
 		//group id < 2 to prevent admin group (1) to be deleted
 		if (connection == null || id < 2) {
-			return;
+			return false;
 		}
 		String query = "DELETE FROM " + TABLE_NAME + " WHERE ID = " + id;
 		try {
 			execute(connection, query);
+			UserTablePermissions.removeGroup(connection, id);
+			return true;
 		} catch (SQLException se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting value", id, TABLE_NAME, se.getMessage());
 			LOGGER.trace("", se);
+			return false;
 		}
 	}
 
@@ -165,6 +172,28 @@ public final class UserTableGroups extends UserTable {
 		}
 		result.setId(0);
 		result.setName("");
+		return result;
+	}
+
+	public static List<Group> getAllGroups(final Connection connection) {
+		List<Group> result = new ArrayList<>();
+		try {
+			String sql = "SELECT * " +
+					"FROM " + TABLE_NAME;
+			try (
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(sql);
+			) {
+				while (resultSet.next()) {
+					Group group = new Group();
+					group.setId(resultSet.getInt("ID"));
+					group.setName(resultSet.getString("NAME"));
+					result.add(group);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Error listing groups: " + e);
+		}
 		return result;
 	}
 

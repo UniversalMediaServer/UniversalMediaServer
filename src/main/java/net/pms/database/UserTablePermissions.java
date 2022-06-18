@@ -23,7 +23,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public final class UserTablePermissions extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -81,6 +82,13 @@ public final class UserTablePermissions extends UserTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN ALLOW");
+					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE ID=0");
+					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE ID=1");
+					executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME) VALUES (1, '*')");
+					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -95,41 +103,34 @@ public final class UserTablePermissions extends UserTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"GROUP_ID			INT, " +
-				"NAME				VARCHAR2(255)," +
-				"ALLOW				BOOLEAN" +
+				"NAME				VARCHAR2(255)" +
 			")"
 		);
 		// allow full access to admin group (1)
-		String query = "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME, ALLOW) VALUES (1, '*', TRUE)";
-		execute(connection, query);
+		execute(connection,
+				"INSERT INTO " + TABLE_NAME + " " +
+				"(GROUP_ID, NAME) " +
+				"VALUES (1, '*')" +
+			")"
+		);
 	}
 
-	public static void insertOrUpdate(Connection connection, int groupId, String name, boolean allow) {
-		//group id < 1 to prevent no group (-1) and admin group (0) to be changed
+	public static void insert(Connection connection, int groupId, String name) {
+		//group id < 2 to prevent no group (0) and admin group (1) permissions to be changed
 		if (connection == null || groupId < 2 || name == null || "".equals(name)) {
 			return;
 		}
 		String query = "SELECT * FROM " + TABLE_NAME + " WHERE GROUP_ID = " + groupId + " AND NAME = " + sqlQuote(name) + " LIMIT 1";
-		LOGGER.trace("Searching for value in {} with \"{}\" before update", TABLE_NAME, query);
+		LOGGER.trace("Searching for value in {} with \"{}\" before insert", TABLE_NAME, query);
 		try (
 			Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			ResultSet result = statement.executeQuery(query)
 		) {
-			boolean isCreatingNewRecord = false;
-
 			if (!result.next()) {
-				isCreatingNewRecord = true;
 				result.moveToInsertRow();
-			}
-
-			result.updateInt("GROUP_ID", groupId);
-			result.updateString("NAME", sqlEscape(name));
-			result.updateBoolean("ALLOW", allow);
-
-			if (isCreatingNewRecord) {
+				result.updateInt("GROUP_ID", groupId);
+				result.updateString("NAME", sqlEscape(name));
 				result.insertRow();
-			} else {
-				result.updateRow();
 			}
 		} catch (SQLException se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing value", sqlQuote(name), TABLE_NAME, se.getMessage());
@@ -137,8 +138,52 @@ public final class UserTablePermissions extends UserTable {
 		}
 	}
 
-	public static HashMap<String, Boolean> getPermissionsForGroupId(final Connection connection, final int groupId) {
-		HashMap<String, Boolean> result = new HashMap<>();
+	public static void remove(Connection connection, int groupId, String name) {
+		//group id < 2 to prevent no group (0) and admin group (1) permissions to be changed
+		if (connection == null || groupId < 2 || name == null || "".equals(name)) {
+			return;
+		}
+		String query = "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID = " + groupId + " AND NAME = " + sqlQuote(name);
+		try {
+			execute(connection, query);
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting value", sqlQuote(name), TABLE_NAME, se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
+	public static boolean removeGroup(Connection connection, int groupId) {
+		//group id < 2 to prevent admin group (1) permissions to be removed
+		if (connection == null || groupId < 2) {
+			return false;
+		}
+		String query = "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID = " + groupId;
+		try {
+			execute(connection, query);
+			return true;
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting group id", groupId, TABLE_NAME, se.getMessage());
+			LOGGER.trace("", se);
+			return false;
+		}
+	}
+
+	public static boolean updateGroup(Connection connection, int groupId, List<String> permissions) {
+		//group id < 2 to prevent admin group (1) permissions to be removed
+		if (connection == null || groupId < 2) {
+			return false;
+		}
+		if (removeGroup(connection, groupId)) {
+			for (String permission : permissions) {
+				insert(connection, groupId, permission);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public static List<String> getPermissionsForGroupId(final Connection connection, final int groupId) {
+		List<String> result = new ArrayList<>();
 		try {
 			String sql = "SELECT * " +
 					"FROM " + TABLE_NAME + " " +
@@ -148,7 +193,7 @@ public final class UserTablePermissions extends UserTable {
 				ResultSet resultSet = statement.executeQuery(sql);
 			) {
 				while (resultSet.next()) {
-					result.put(resultSet.getString("NAME"), resultSet.getBoolean("ALLOW"));
+					result.add(resultSet.getString("NAME"));
 				}
 			}
 		} catch (SQLException e) {
