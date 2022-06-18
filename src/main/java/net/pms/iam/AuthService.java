@@ -37,14 +37,14 @@ public class AuthService {
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 
-	public static String signJwt(int id) {
+	public static String signJwt(String username) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			String token = JWT.create()
 					.withIssuer("UMS")
-					.withSubject(String.valueOf(id))
+					.withSubject(username)
 					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
-					.withClaim("id", id)
+					.withClaim("username", username)
 					.sign(algorithm);
 			return token;
 		} catch (JWTCreationException e) {
@@ -63,22 +63,18 @@ public class AuthService {
 		return null;
 	}
 
-	public static int getUserIdFromJWT(String authHeader) {
-		final String token = authHeader.replace("Bearer ", "");
+	public static String getUsernameFromJWT(List<String> authHeader) {
+		if (authHeader == null || authHeader.isEmpty()) {
+			return null;
+		}
+		final String token = authHeader.get(0).replace("Bearer ", "");
 		try {
 			DecodedJWT jwt = decodeJwt(token);
-			return jwt.getClaim("id").asInt();
+			return jwt.getClaim("username").asString();
 		} catch (JWTDecodeException e) {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
-		return 0;
-	}
-
-	public static int getUserIdFromJWT(List<String> authHeaders) {
-		if (authHeaders == null || authHeaders.isEmpty()) {
-			return 0;
-		}
-		return getUserIdFromJWT(authHeaders.get(0));
+		return null;
 	}
 
 	public static Boolean isLoggedIn(List<String> authHeader) {

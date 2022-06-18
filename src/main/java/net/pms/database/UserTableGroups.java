@@ -117,7 +117,7 @@ public final class UserTableGroups extends UserTable {
 	}
 
 	public static void updateGroupName(Connection connection, int id, String name) {
-		if (connection == null || id < 1 || name == null || "".equals(name)) {
+		if (connection == null || id < 0 || name == null || "".equals(name)) {
 			return;
 		}
 		String query = "UPDATE " + TABLE_NAME + " SET NAME = " + sqlQuote(name) + " WHERE GROUP_ID = " + id;
@@ -130,8 +130,8 @@ public final class UserTableGroups extends UserTable {
 	}
 
 	public static void removeGroup(Connection connection, int id) {
-		//group id < 2 to prevent admin group (1) to be deleted
-		if (connection == null || id < 2) {
+		//group id < 1 to prevent admin group (0) to be deleted
+		if (connection == null || id < 1) {
 			return;
 		}
 		String query = "DELETE FROM " + TABLE_NAME + " WHERE ID = " + id;
@@ -148,7 +148,7 @@ public final class UserTableGroups extends UserTable {
 		try {
 			String sql = "SELECT * " +
 					"FROM " + TABLE_NAME + " " +
-					"WHERE ID='" + id + "' " +
+					"WHERE ID" + "='" + id + "' " +
 					"LIMIT 1";
 			try (
 				Statement statement = connection.createStatement();
@@ -163,7 +163,7 @@ public final class UserTableGroups extends UserTable {
 		} catch (SQLException e) {
 			LOGGER.error("Error finding group: " + e);
 		}
-		result.setId(0);
+		result.setId(-1);
 		result.setName("");
 		return result;
 	}

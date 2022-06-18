@@ -19,19 +19,19 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
-import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.google.gson.Gson;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,8 @@ public class UserApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			if (WebInterfaceServerUtil.deny(exchange)) {
+			InetAddress ia = exchange.getRemoteAddress().getAddress();
+			if (WebInterfaceServerUtil.deny(ia)) {
 				exchange.close();
 				return;
 			}
@@ -97,8 +98,8 @@ public class UserApiHandler implements HttpHandler {
 					UsernamePassword data = gson.fromJson(reqBody, UsernamePassword.class);
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection != null) {
-						int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
-						Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
+						String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
+						Account account = AccountService.getAccountByUsername(connection, loggedInUsername);
 						/* check change password for others ?
 						Account account = AccountService.getAccountByUsername(connection, data.getUsername());
 						if (!account.getUsername().equals(loggedInUsername)) {
@@ -118,7 +119,7 @@ public class UserApiHandler implements HttpHandler {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
 			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in UserApiHandler: {}", e.getMessage());
+				LOGGER.error("RuntimeException in AuthApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 			}
 		} catch (IOException e) {

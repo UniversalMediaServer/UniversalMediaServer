@@ -47,11 +47,11 @@ public class AccountService {
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password) {
-		createUser(connection, username, password, username, 0);
+		createUser(connection, username, password, username, -1);
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password, final String name) {
-		createUser(connection, username, password, name, 0);
+		createUser(connection, username, password, name, -1);
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password, final int groupId) {
@@ -109,8 +109,4 @@ public class AccountService {
 		UserTablePermissions.insertOrUpdate(connection, account.getGroup().getId(), name, false);
 	}
 
-	public static boolean hasNoAdmin(final Connection connection) {
-		LOGGER.info("Checking user table have admin");
-		return UserTableUsers.hasNoAdmin(connection);
-	}
 }

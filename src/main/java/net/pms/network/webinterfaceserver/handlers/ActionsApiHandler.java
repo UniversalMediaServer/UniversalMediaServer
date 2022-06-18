@@ -4,13 +4,16 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.HashMap;
 import net.pms.PMS;
+import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -28,7 +31,8 @@ public class ActionsApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			if (WebInterfaceServerUtil.deny(exchange)) {
+			InetAddress ia = exchange.getRemoteAddress().getAddress();
+			if (WebInterfaceServerUtil.deny(ia)) {
 				exchange.close();
 				return;
 			}
@@ -65,9 +69,10 @@ public class ActionsApiHandler implements HttpHandler {
 					if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
 						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
-					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestHeaders().get("Authorization"));
-					Account account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
-					if (account != null) {
+					String loggedInUsername = AuthService.getUsernameFromJWT(exchange.getRequestHeaders().get("Authorization"));
+					Connection connection = UserDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						Account account = AccountService.getAccountByUsername(connection, loggedInUsername);
 						String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 						HashMap<String, String> data = gson.fromJson(reqBody, HashMap.class);
 						String operation = data.get("operation");
@@ -84,7 +89,8 @@ public class ActionsApiHandler implements HttpHandler {
 								WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
 						}
 					} else {
-						WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
@@ -95,7 +101,7 @@ public class ActionsApiHandler implements HttpHandler {
 			}
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ActionsApiHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in AuthApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
