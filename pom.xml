@@ -1950,6 +1950,7 @@
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2151,6 +2152,8 @@
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
