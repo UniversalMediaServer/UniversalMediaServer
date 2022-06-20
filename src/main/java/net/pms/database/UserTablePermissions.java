@@ -83,9 +83,9 @@ public final class UserTablePermissions extends UserTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN ALLOW");
-					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE ID=0");
-					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE ID=1");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN IF EXISTS ALLOW");
+					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID=0");
+					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID=1");
 					executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME) VALUES (1, '*')");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;

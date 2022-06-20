@@ -1,16 +1,17 @@
 import { AppShell, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme } from '@mantine/core';
-import { NotificationsProvider } from '@mantine/notifications';
+import { NotificationsProvider, showNotification } from '@mantine/notifications';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useEffect } from 'react'; 
+import { useEffect, useState } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
 import './services/http-interceptor';
 
 import Login from './components/Login/Login'
+import FirstLogin from './components/FirstLogin/FirstLogin'
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
 import ChangePassword from './components/ChangePassword/ChangePassword'
 import Settings from './components/Settings/Settings';
@@ -18,13 +19,31 @@ import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 import { useLocalStorage } from '@mantine/hooks';
 import { I18nProvider } from './providers/i18n-provider';
+import { Session } from './contexts/session-context';
+import axios from 'axios';
 
 function getToken() {
   return localStorage.getItem('user');
 }
 
 function App() {
+  const [session, setSession] = useState({firstlogin:false} as Session)
+
   useEffect(() => {
+    axios.get('/v1/api/auth/session')
+      .then(function (response: any) {
+        setSession(response.data);
+      })
+      .catch(function (error: Error) {
+        console.log(error);
+        showNotification({
+          id: 'data-loading',
+          color: 'red',
+          title: 'Error',
+          message: 'Session was not received from the server.',
+          autoClose: 3000,
+        });
+      });
     refreshAuthTokenNearExpiry();
   });
 
@@ -83,7 +102,7 @@ function App() {
                     main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
                   })}
                 >
-                {token ? (
+                {session.account ? (
                   // should be if session.account not undefined
                   <Router>
                     <Routes>
@@ -95,9 +114,9 @@ function App() {
                       />
                     </Routes>
                   </Router>
+                ) : session.firstlogin ? (
+                  <FirstLogin />
                 ) : (
-                  // if session.firstlogin === true -> <FirstLogin />
-                  // else -> <Login />
                   <Login />
                 )}
                 </AppShell>

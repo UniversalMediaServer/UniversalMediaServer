@@ -1,6 +1,6 @@
 import { Context, createContext } from "react";
 
-export const sessionContext: Context<Session> = createContext({loggedin:false,firstlogin:false} as Session);
+export const sessionContext: Context<Session> = createContext({firstlogin:false} as Session);
 
 export default sessionContext;
 
@@ -17,12 +17,12 @@ export interface User {
 export interface Group {
     id : number,
     name : string,
+	permissions : string[],
 }
 
 export interface Account {
   user : User,
   group : Group,
-  permissions : {[Key: string]: [Value: boolean]},
 }
 
 export interface Session {

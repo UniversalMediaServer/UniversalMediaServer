@@ -125,7 +125,7 @@ public class AuthApiHandler implements HttpHandler {
 							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
 						} else {
 							LOGGER.error("User database not available");
-							WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 							return;
 						}
 					}
@@ -162,7 +162,7 @@ public class AuthApiHandler implements HttpHandler {
 						}
 					} else {
 						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 					}
 				} else {
 					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());
