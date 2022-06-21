@@ -142,7 +142,7 @@ public class AccountService {
 	public static void updateUser(final Connection connection, final int userId, final String name, final int groupId) {
 		LOGGER.info("Updating user id : {}", userId);
 		if (UserTableUsers.updateUser(connection, userId, name, groupId) && USERS.containsKey(userId)) {
-			USERS.get(userId).setName(name);
+			USERS.get(userId).setDisplayName(name);
 			USERS.get(userId).setGroupId(groupId);
 		}
 	}
@@ -194,7 +194,7 @@ public class AccountService {
 	public static void updateGroup(final Connection connection, final int groupId, final String name) {
 		LOGGER.info("Updating group: {}", groupId);
 		if (UserTableGroups.updateGroup(connection, groupId, name) && GROUPS.containsKey(groupId)) {
-			GROUPS.get(groupId).setName(name);
+			GROUPS.get(groupId).setDisplayName(name);
 		}
 	}
 
@@ -213,26 +213,26 @@ public class AccountService {
 	}
 
 	public static void grantPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Granting permission '{}' to group '{}'", name, account.getGroup().getName());
+		LOGGER.info("Granting permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
 		if (!account.havePermission(name)) {
 			account.getGroup().getPermissions().add(name);
 			UserTablePermissions.insert(connection, account.getGroup().getId(), name);
 		} else {
-			LOGGER.info("Permission '{}' already granted to group '{}'", name, account.getGroup().getName());
+			LOGGER.info("Permission '{}' already granted to group '{}'", name, account.getGroup().getDisplayName());
 		}
 	}
 
 	public static void denyPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Denying permission '{}' to group '{}'", name, account.getGroup().getName());
+		LOGGER.info("Denying permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
 		if (account.havePermission(name)) {
-			if (account.havePermission(Permissions.ANY)) {
-				LOGGER.info("Permission '{}' could not be denied to group '{}' with full permissions", name, account.getGroup().getName());
+			if (account.havePermission(Permissions.ALL)) {
+				LOGGER.info("Permission '{}' could not be denied to group '{}' with full permissions", name, account.getGroup().getDisplayName());
 			} else {
 				account.getGroup().getPermissions().remove(name);
 				UserTablePermissions.remove(connection, account.getGroup().getId(), name);
 			}
 		} else {
-			LOGGER.info("Permission '{}' already denied to group '{}'", name, account.getGroup().getName());
+			LOGGER.info("Permission '{}' already denied to group '{}'", name, account.getGroup().getDisplayName());
 		}
 	}
 

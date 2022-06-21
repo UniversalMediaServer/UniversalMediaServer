@@ -9,7 +9,7 @@
  * of the License only.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ALL WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -203,7 +203,7 @@ public class AccountApiHandler implements HttpHandler {
 										if (action.has("name")) {
 											muName = action.get("name").getAsString();
 										} else {
-											muName = muUser.getName();
+											muName = muUser.getDisplayName();
 										}
 										int muGroupId;
 										if (action.has("groupid")) {
@@ -213,7 +213,7 @@ public class AccountApiHandler implements HttpHandler {
 										}
 										//if no granted to manage groups, only allow current group
 										if (!account.havePermission(Permissions.GROUPS_MANAGE) && muGroupId != muUser.getGroupId()) {
-											if (!muName.equals(muUser.getName())) {
+											if (!muName.equals(muUser.getDisplayName())) {
 												//the user had changed more field than group, revert back the group id change
 												muGroupId = muUser.getGroupId();
 											} else {

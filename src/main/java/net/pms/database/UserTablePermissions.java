@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.iam.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public final class UserTablePermissions extends UserTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN IF EXISTS ALLOW");
 					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID=0");
 					executeUpdate(connection, "DELETE FROM " + TABLE_NAME + " WHERE GROUP_ID=1");
-					executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME) VALUES (1, '*')");
+					executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " (GROUP_ID, NAME) VALUES (1, '" + Permissions.ALL + "')");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				default:
@@ -108,10 +109,9 @@ public final class UserTablePermissions extends UserTable {
 		);
 		// allow full access to admin group (1)
 		execute(connection,
-				"INSERT INTO " + TABLE_NAME + " " +
+			"INSERT INTO " + TABLE_NAME + " " +
 				"(GROUP_ID, NAME) " +
-				"VALUES (1, '*')" +
-			")"
+				"VALUES (1, '" + Permissions.ALL + "')"
 		);
 	}
 

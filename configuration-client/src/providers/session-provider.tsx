@@ -7,8 +7,8 @@ interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ ...props }: Props) =>{
-  const [session, setSession] = useState({firstlogin:false} as Session)
+export const SessionProvider = ({ children, ...props }: Props) =>{
+  const [session, setSession] = useState({firstLogin:false} as Session)
 
   useEffect(() => {
     axios.get('/v1/api/auth/session')
@@ -31,6 +31,7 @@ export const SessionProvider = ({ ...props }: Props) =>{
   const { Provider } = sessionContext;
   return(
     <Provider value={session}>
+      {children}
     </Provider>
   )
 }

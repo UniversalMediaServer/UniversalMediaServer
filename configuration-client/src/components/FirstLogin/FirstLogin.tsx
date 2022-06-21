@@ -32,7 +32,8 @@ const FirstLogin = () => {
     return (
       <Box sx={{ maxWidth: 300 }} mx='auto'>
         <form onSubmit={form.onSubmit(handleUserCreation)}>
-          <Text size="xl">Create admin user</Text>
+          <Text size="xl">Welcome to Universal Media Server</Text>
+          <Text size="lg">Create your first admin user</Text>
           <Space h="md" />
           <TextInput
             required

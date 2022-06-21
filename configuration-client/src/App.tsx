@@ -6,7 +6,7 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useEffect, useState } from 'react'; 
+import { useContext, useEffect, useState } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
 import './services/http-interceptor';
 
@@ -19,31 +19,15 @@ import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 import { useLocalStorage } from '@mantine/hooks';
 import { I18nProvider } from './providers/i18n-provider';
-import { Session } from './contexts/session-context';
-import axios from 'axios';
+import { SessionProvider } from './providers/session-provider';
+import SessionContext from './contexts/session-context';
 
 function getToken() {
   return localStorage.getItem('user');
 }
 
 function App() {
-  const [session, setSession] = useState({firstlogin:false} as Session)
-
   useEffect(() => {
-    axios.get('/v1/api/auth/session')
-      .then(function (response: any) {
-        setSession(response.data);
-      })
-      .catch(function (error: Error) {
-        console.log(error);
-        showNotification({
-          id: 'data-loading',
-          color: 'red',
-          title: 'Error',
-          message: 'Session was not received from the server.',
-          autoClose: 3000,
-        });
-      });
     refreshAuthTokenNearExpiry();
   });
 
@@ -77,50 +61,56 @@ function App() {
       >
         <NotificationsProvider>
           <I18nProvider>
-              <div dir={rtl ? 'rtl' : 'ltr'}>
-                <AppShell
-                  padding="md"
-                  // navbar={<Navbar width={{
-                  //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
-                  //   sm: 200,
+            <SessionProvider>
+              <SessionContext.Consumer>
+                {session => (
+                  <div dir={rtl ? 'rtl' : 'ltr'}>
+                    <AppShell
+                      padding="md"
+                      // navbar={<Navbar width={{
+                      //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
+                      //   sm: 200,
 
-                  //   // When other breakpoints do not match base width is used, defaults to 100%
-                  //   base: 100,
-                  // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
-                  header={<Header height={50} p="xs">{
-                    <Group position="right">
-                      <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
-                        {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                      </ActionIcon>
-                      <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
-                        {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
-                      </ActionIcon>
-                      <UserMenu />
-                    </Group>
-                  }</Header>}
-                  styles={(theme) => ({
-                    main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
-                  })}
-                >
-                {session.account ? (
-                  // should be if session.account not undefined
-                  <Router>
-                    <Routes>
-                      <Route path='/changepassword' element={<ChangePassword />}></Route>
-                      <Route index element={<Settings />} />
-                      <Route
-                        path="/*"
-                        element={<Navigate replace to="/" />}
-                      />
-                    </Routes>
-                  </Router>
-                ) : session.firstlogin ? (
-                  <FirstLogin />
-                ) : (
-                  <Login />
+                      //   // When other breakpoints do not match base width is used, defaults to 100%
+                      //   base: 100,
+                      // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
+                      header={<Header height={50} p="xs">{
+                        <Group position="right">
+                          <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
+                            {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                          </ActionIcon>
+                          <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
+                            {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
+                          </ActionIcon>
+                          {session.account && <UserMenu />}
+                        </Group>
+                      }</Header>}
+                      styles={(theme) => ({
+                        main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
+                      })}
+                    >
+                      {session.account ? (
+                        <Router>
+                          <Routes>
+                            <Route path='/changepassword' element={<ChangePassword />}></Route>
+                            <Route path='accounts' element={<FirstLogin />}></Route>
+                            <Route index element={<Settings />} />
+                            <Route
+                              path="/*"
+                              element={<Navigate replace to="/" />}
+                            />
+                          </Routes>
+                        </Router>
+                      ) : session.firstLogin ? (
+                        <FirstLogin />
+                      ) : (
+                        <Login />
+                      )}
+                    </AppShell>
+                  </div>
                 )}
-                </AppShell>
-              </div>
+              </SessionContext.Consumer>
+            </SessionProvider>
           </I18nProvider>
         </NotificationsProvider>
       </MantineProvider>

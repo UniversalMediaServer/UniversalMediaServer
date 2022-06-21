@@ -49,6 +49,6 @@ public class Account {
 
 	@Override
 	public String toString() {
-		return user.toString() + (!"".equals(group.getName()) ? (" (" + group.getName() + ")") : "");
+		return user.toString() + (!"".equals(group.getDisplayName()) ? (" (" + group.getDisplayName() + ")") : "");
 	}
 }
