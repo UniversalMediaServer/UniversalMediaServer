@@ -41,7 +41,7 @@ public final class UserTableUsers extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 4;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -102,6 +102,10 @@ public final class UserTableUsers extends UserTable {
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
+				case 3:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN NAME RENAME TO DISPLAY_NAME");
+					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -118,33 +122,29 @@ public final class UserTableUsers extends UserTable {
 				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
 				"USERNAME			VARCHAR2(255)	UNIQUE, " +
 				"PASSWORD			VARCHAR2(255)	NOT NULL, " +
-				"NAME				VARCHAR2(255), " +
+				"DISPLAY_NAME		VARCHAR2(255), " +
 				"GROUP_ID			INT				DEFAULT 0, " +
 				"LAST_LOGIN_TIME	BIGINT			DEFAULT 0, " +
 				"LOGIN_FAIL_TIME	BIGINT			DEFAULT 0, " +
 				"LOGIN_FAIL_COUNT	INT				DEFAULT 0" +
 			")"
 		);
-		// create an initial admin user in the table
-		// should be removed after no admin impl
-		AccountService.createUser(connection, AccountService.DEFAULT_ADMIN_USERNAME, AccountService.DEFAULT_ADMIN_PASSWORD, AccountService.DEFAULT_ADMIN_GROUP, 1);
-		LOGGER.info("Initial user for web UI has been created. Please login and change the password");
 	}
 
-	public static void addUser(final Connection connection, final String username, final String password, final String name, final int groupId) {
+	public static void addUser(final Connection connection, final String username, final String password, final String displayName, final int groupId) {
 		if (connection == null || username == null || "".equals(username) || password == null || "".equals(password)) {
 			return;
 		}
 		try {
 			LOGGER.info("Creating user: {}", username);
 			PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
+					"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
 					Statement.RETURN_GENERATED_KEYS);
 
 			insertStatement.clearParameters();
 			insertStatement.setString(1, left(username, 255));
 			insertStatement.setString(2, left(password, 255));
-			insertStatement.setString(3, left(name, 255));
+			insertStatement.setString(3, left(displayName, 255));
 			insertStatement.setInt(4, groupId);
 			insertStatement.executeUpdate();
 			try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
@@ -325,7 +325,7 @@ public final class UserTableUsers extends UserTable {
 		result.setId(resultSet.getInt("ID"));
 		result.setUsername(resultSet.getString("USERNAME"));
 		result.setPassword(resultSet.getString("PASSWORD"));
-		result.setName(resultSet.getString("NAME"));
+		result.setDisplayName(resultSet.getString("DISPLAY_NAME"));
 		result.setGroupId(resultSet.getInt("GROUP_ID"));
 		result.setLastLoginTime(resultSet.getLong("LAST_LOGIN_TIME"));
 		result.setLoginFailedTime(resultSet.getLong("LOGIN_FAIL_TIME"));
@@ -343,9 +343,7 @@ public final class UserTableUsers extends UserTable {
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(sql);
 			) {
-				while (resultSet.next()) {
-					return false;
-				}
+				return !resultSet.next();
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Error finding user: " + e);

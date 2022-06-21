@@ -100,6 +100,7 @@ public class AuthApiHandler implements HttpHandler {
 						} else {
 							WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 						}
+						connection.close();
 					} else {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
@@ -123,9 +124,10 @@ public class AuthApiHandler implements HttpHandler {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
 							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
+							connection.close();
 						} else {
 							LOGGER.error("User database not available");
-							WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 							return;
 						}
 					}
@@ -138,7 +140,7 @@ public class AuthApiHandler implements HttpHandler {
 					if (connection != null) {
 						//for security, always check if no admin account is already in db
 						if (AccountService.hasNoAdmin(connection)) {
-							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 0);
+							AccountService.createUser(connection, data.getUsername(), data.getPassword(), 1);
 							//now login and check created user
 							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
 							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
@@ -160,9 +162,10 @@ public class AuthApiHandler implements HttpHandler {
 							LOGGER.error("An admin user is already in database");
 							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
 						}
+						connection.close();
 					} else {
 						LOGGER.error("User database not available");
-						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
 					}
 				} else {
 					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());

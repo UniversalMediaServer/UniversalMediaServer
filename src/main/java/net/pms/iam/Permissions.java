@@ -9,7 +9,7 @@
  * of the License only.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ALL WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -20,7 +20,7 @@
 package net.pms.iam;
 
 public class Permissions {
-	public static final String ANY = "*";
+	public static final String ALL = "*";
 	public static final String SERVER_RESTART = "server_restart";
 	public static final String USERS_MANAGE = "users_manage";
 	public static final String GROUPS_MANAGE = "groups_manage";

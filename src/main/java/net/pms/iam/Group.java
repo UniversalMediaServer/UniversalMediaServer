@@ -9,7 +9,7 @@
  * of the License only.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ALL WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -23,7 +23,7 @@ import java.util.List;
 
 public class Group {
 	private int id;
-	private String name;
+	private String displayName;
 	private List<String> permissions;
 
 	public int getId() {
@@ -34,12 +34,12 @@ public class Group {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getDisplayName() {
+		return displayName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setDisplayName(String name) {
+		this.displayName = name;
 	}
 
 	public List<String> getPermissions() {
@@ -52,7 +52,7 @@ public class Group {
 
 	public boolean havePermission(String name) {
 		return (this.permissions != null &&
-				((this.permissions.contains(Permissions.ANY)) ||
+				((this.permissions.contains(Permissions.ALL)) ||
 				(this.permissions.contains(name))
 				));
 	}

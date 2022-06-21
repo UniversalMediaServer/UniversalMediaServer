@@ -21,7 +21,7 @@ package net.pms.iam;
 
 public class User extends UsernamePassword {
 	private int id;
-	private String name;
+	private String displayName;
 	private int groupId;
 	private long lastLoginTime;
 	private long loginFailedTime;
@@ -35,12 +35,12 @@ public class User extends UsernamePassword {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getDisplayName() {
+		return displayName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setDisplayName(String name) {
+		this.displayName = name;
 	}
 
 	public int getGroupId() {
@@ -77,6 +77,6 @@ public class User extends UsernamePassword {
 
 	@Override
 	public String toString() {
-		return name != null && !"".equals(name) ? name : getUsername();
+		return displayName != null && !"".equals(displayName) ? displayName : getUsername();
 	}
 }

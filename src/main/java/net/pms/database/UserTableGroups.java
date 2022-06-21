@@ -39,7 +39,7 @@ public final class UserTableGroups extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -84,6 +84,10 @@ public final class UserTableGroups extends UserTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN NAME RENAME TO DISPLAY_NAME");
+					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -98,22 +102,22 @@ public final class UserTableGroups extends UserTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
-				"NAME				VARCHAR2(255)	UNIQUE" +
+				"DISPLAY_NAME		VARCHAR2(255)	UNIQUE" +
 			")"
 		);
 		// create an initial group for admin in the table
 		addGroup(connection, AccountService.DEFAULT_ADMIN_GROUP);
 	}
 
-	public static void addGroup(Connection connection, String name) {
-		if (connection == null || name == null || "".equals(name)) {
+	public static void addGroup(Connection connection, String displayName) {
+		if (connection == null || displayName == null || "".equals(displayName)) {
 			return;
 		}
-		String query = "INSERT INTO " + TABLE_NAME + " SET NAME = " + sqlQuote(name);
+		String query = "INSERT INTO " + TABLE_NAME + " SET DISPLAY_NAME = " + sqlQuote(displayName);
 		try {
 			execute(connection, query);
 		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(name), TABLE_NAME, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(displayName), TABLE_NAME, se.getMessage());
 			LOGGER.trace("", se);
 		}
 	}
@@ -122,7 +126,7 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || id < 1 || name == null || "".equals(name)) {
 			return false;
 		}
-		String query = "UPDATE " + TABLE_NAME + " SET NAME = " + sqlQuote(name) + " WHERE GROUP_ID = " + id;
+		String query = "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME = " + sqlQuote(name) + " WHERE GROUP_ID = " + id;
 		try {
 			execute(connection, query);
 			return true;
@@ -163,7 +167,7 @@ public final class UserTableGroups extends UserTable {
 			) {
 				while (resultSet.next()) {
 					result.setId(resultSet.getInt("ID"));
-					result.setName(resultSet.getString("NAME"));
+					result.setDisplayName(resultSet.getString("DISPLAY_NAME"));
 					return result;
 				}
 			}
@@ -171,7 +175,7 @@ public final class UserTableGroups extends UserTable {
 			LOGGER.error("Error finding group: " + e);
 		}
 		result.setId(0);
-		result.setName("");
+		result.setDisplayName("");
 		return result;
 	}
 
@@ -187,7 +191,7 @@ public final class UserTableGroups extends UserTable {
 				while (resultSet.next()) {
 					Group group = new Group();
 					group.setId(resultSet.getInt("ID"));
-					group.setName(resultSet.getString("NAME"));
+					group.setDisplayName(resultSet.getString("DISPLAY_NAME"));
 					result.add(group);
 				}
 			}
