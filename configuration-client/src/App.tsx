@@ -1,12 +1,12 @@
 import { AppShell, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme } from '@mantine/core';
-import { NotificationsProvider, showNotification } from '@mantine/notifications';
+import { NotificationsProvider } from '@mantine/notifications';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react'; 
+import { useEffect } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
 import './services/http-interceptor';
 
@@ -21,10 +21,6 @@ import { useLocalStorage } from '@mantine/hooks';
 import { I18nProvider } from './providers/i18n-provider';
 import { SessionProvider } from './providers/session-provider';
 import SessionContext from './contexts/session-context';
-
-function getToken() {
-  return localStorage.getItem('user');
-}
 
 function App() {
   useEffect(() => {
@@ -42,8 +38,6 @@ function App() {
   const toggleColorScheme = (value?: ColorScheme) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
   }
-
-  const token = getToken();
 
   return (
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
