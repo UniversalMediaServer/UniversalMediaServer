@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -252,7 +253,7 @@ export default function Settings() {
             </Accordion>
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
-            <Accordion mt="xl">
+            <Accordion mt="xl" initialItem={0}>
               <Accordion.Item label={i18n['FoldTab.13']}>
                 <Group mt="xs">
                   <Checkbox
@@ -268,10 +269,17 @@ export default function Settings() {
                   />
                 </Group>
                 <Select
+                  mt="xs"
                   label={i18n['FoldTab.26']}
                   data={audioCoverSuppliersSettingsRef.current}
                   value={String(form.getInputProps('audio_thumbnails_method').value)}
                 />
+                <DirectoryChooser
+                  path={form.getInputProps('alternate_thumb_folder').value}
+                  callback={form.setFieldValue}
+                  label={i18n['FoldTab.27']}
+                  formKey="alternate_thumb_folder"
+                ></DirectoryChooser>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
