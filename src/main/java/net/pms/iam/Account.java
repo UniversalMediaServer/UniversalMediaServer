@@ -19,12 +19,9 @@
  */
 package net.pms.iam;
 
-import java.util.HashMap;
-
 public class Account {
 	private User user;
 	private Group group;
-	private HashMap<String, Boolean> permissions;
 
 	public User getUser() {
 		return user;
@@ -42,23 +39,16 @@ public class Account {
 		this.group = group;
 	}
 
-	public HashMap<String, Boolean> getPermissions() {
-		return permissions;
-	}
-
-	public void setPermissions(HashMap<String, Boolean> permissions) {
-		this.permissions = permissions;
-	}
-
 	public String getUsername() {
 		return user.getUsername();
 	}
 
 	public boolean havePermission(String name) {
-		return (this.permissions != null &&
-				((this.permissions.containsKey(Permissions.ANY) && this.permissions.get(Permissions.ANY)) ||
-				(this.permissions.containsKey(name) && this.permissions.get(name))
-				));
+		return (this.group != null && this.group.havePermission(name));
 	}
 
+	@Override
+	public String toString() {
+		return user.toString() + (!"".equals(group.getDisplayName()) ? (" (" + group.getDisplayName() + ")") : "");
+	}
 }

@@ -2,10 +2,13 @@ import { Menu, ActionIcon } from '@mantine/core';
 import React, { useContext } from 'react';
 import { Trash, Settings, Lock, Refresh } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
+import SessionContext from '../../contexts/session-context';
 import { sendAction } from '../../services/actions-service';
+import { havePermission } from '../../services/account-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
+  const session = useContext(SessionContext);
 
   const restartServer = async () => {
     await sendAction('Server.Restart');
@@ -20,18 +23,25 @@ function UserMenu() {
       }
     >
       <Menu.Label>Settings</Menu.Label>
+      {havePermission(session, "server_restart")  && (
+        <Menu.Item
+          icon={<Refresh size={14} />}
+          onClick={restartServer}
+        >
+          {i18n['LooksFrame.12']}
+        </Menu.Item>
+      )}
       <Menu.Item
-        icon={<Refresh size={14} />}
-        onClick={restartServer}
-      >
-        {i18n['LooksFrame.12']}
-      </Menu.Item>
+        icon={<Lock size={14} />}
+        onClick={() => {
+          window.location.href = '/accounts';
+        }}
+      >{havePermission(session, "users_manage") ? 'Manage accounts' : 'My account'}</Menu.Item>
       <Menu.Item
         icon={<Lock size={14} />}
         onClick={() => {
           window.location.href = '/changepassword';
-          }
-        }
+        }}
       >Change password</Menu.Item>
       <Menu.Item
         color="red"

@@ -87,8 +87,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 27: Added many columns for TMDB information
 	 * - 28: No db changes, clear database metadata to populate new columns
 	 * - 29-30: No db changes, improved filename parsing
+	 * - 31: Redo the changes from version 27 because the versioning got muddled
 	 */
-	private static final int TABLE_VERSION = 30;
+	private static final int TABLE_VERSION = 31;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -257,16 +258,16 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 26:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD BUDGET DOUBLE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
@@ -302,6 +303,20 @@ public class MediaTableFiles extends MediaTable {
 									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
+					case 30:
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
+
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					default:
