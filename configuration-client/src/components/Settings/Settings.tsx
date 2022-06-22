@@ -40,8 +40,8 @@ export default function Settings() {
     hostname: '',
     ip_filter: '',
     language: 'en-US',
-    lossless_dvd_todo: true, //todo
-    lpcm_todo: false, //todo
+    mencoder_remux_mpeg2: true,
+    audio_use_pcm: false,
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
@@ -54,8 +54,8 @@ export default function Settings() {
     server_engine: '0',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
-    transcoding_quality: 'Automatic', //todo
-    transcoding_quality_mp4: 'Automatic' //todo
+    mpeg2_main_settings: 'Automatic (Wired)',
+    x264_constant_rate_factor: 'Automatic (Wired)'
   };
 
   const cores = [...Array(16)].map((_, i) => {
@@ -394,20 +394,20 @@ export default function Settings() {
                         <Checkbox
                           size="xs"
                           label={i18n['MEncoderVideo.39']}
-                          {...form.getInputProps('lossless_dvd_todo', { type: 'checkbox' })}
+                          {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
                         />
                         <Space h="xs" />
                         <TextInput
                           label={i18n['TrTab2.32']}
                           sx={{ flex: 1 }}
-                          disabled={true} // disable when use auto bandwidth is selected
-                          {...form.getInputProps('transcoding_quality')}
+                          disabled={form.values['automatic_maximum_bitrate']}
+                          {...form.getInputProps('mpeg2_main_settings')}
                         />
                         <TextInput
                           label={i18n['TrTab2.79']}
                           sx={{ flex: 1 }}
-                          disabled={true} // disable when use auto bandwidth is selected
-                          {...form.getInputProps('transcoding_quality_mp4')}
+                          disabled={form.values['automatic_maximum_bitrate']}
+                          {...form.getInputProps('x264_constant_rate_factor')}
                         />
                         <TextInput
                           label={i18n['TrTab2.8']}
@@ -431,7 +431,7 @@ export default function Settings() {
                         <Checkbox
                           size="xs"
                           label={i18n['TrTab2.27']}
-                          {...form.getInputProps('lpcm_todo', { type: 'checkbox' })}
+                          {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
                         />
                         <Space h="xs" />
                         <Checkbox
