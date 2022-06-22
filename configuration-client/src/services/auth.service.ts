@@ -11,6 +11,26 @@ export const login = (username: string, password: string) => {
       if (response.data.token) {
         storeJwtInLocalStorage(response.data.token);
       }
+      if (response.data.account) {
+        //refresh session.account 
+      }
+      return response.data;
+    });
+};
+
+export const create = (username: string, password: string) => {
+  return axios
+    .post('/v1/api/auth/create', {
+      username,
+      password,
+    })
+    .then((response) => {
+      if (response.data.token) {
+        storeJwtInLocalStorage(response.data.token);
+      }
+      if (response.data.account) {
+        //refresh session.account 
+      }
       return response.data;
     });
 };
