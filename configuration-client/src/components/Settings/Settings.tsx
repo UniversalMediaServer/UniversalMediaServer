@@ -23,6 +23,7 @@ export default function Settings() {
   const i18n = useContext(I18nContext);
 
   const defaultSettings: Record<string, any> = {
+    alternate_thumb_folder: '',
     append_profile_name: false,
     audio_thumbnails_method: '1',
     auto_update: true,

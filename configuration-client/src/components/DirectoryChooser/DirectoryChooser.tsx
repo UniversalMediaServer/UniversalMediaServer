@@ -1,4 +1,4 @@
-import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper, RadioGroup, Radio } from '@mantine/core';
+import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
 import React, { useState } from 'react';
@@ -70,12 +70,7 @@ export default function DirectoryChooser(props: {
         title={
           <Group>
             <Folders />
-            <Button
-              loading={isLoading}
-              onClick={() => selectAndCloseModal()}
-            >
-              Choose selected directory
-            </Button>
+            Selected directory:
           </Group>
         }
         overflow="inside"
@@ -87,7 +82,7 @@ export default function DirectoryChooser(props: {
                 <Button
                   loading={isLoading}
                   onClick={() => getSubdirectories(child.value)}
-                  key={child.label}
+                  key={"breadcrumb" + child.label}
                   variant="default"
                   compact
                 >
@@ -97,26 +92,32 @@ export default function DirectoryChooser(props: {
             </Breadcrumbs>
           </Paper>
           <Stack spacing="xs" align="flex-start" justify="flex-start" mt="xl">
-            <RadioGroup
-              orientation="vertical"
-              value={selectedDirectory}
-              onChange={setSelectedDirectory}
-            >
-              {directories.map(directory => (
-                <Radio key={directory.label} value={directory.value} label={
+            {directories.map(directory => (
+              <Group key={"group" + directory.label}>
+                <Button
+                  leftIcon={<Folder size={18} />}
+                  variant={(selectedDirectory === directory.value) ? "light" : "subtle"}
+                  loading={isLoading}
+                  onClick={() => setSelectedDirectory(directory.value)}
+                  onDoubleClick={() => getSubdirectories(directory.value)}
+                  key={directory.label}
+                  compact
+                >
+                  {directory.label}
+                </Button>
+                {selectedDirectory === directory.value &&
                   <Button
-                    leftIcon={<Folder size={18} />}
-                    variant="subtle"
+                    variant="filled"
                     loading={isLoading}
-                    onClick={() => getSubdirectories(directory.value)}
-                    key={directory.label}
+                    onClick={() => selectAndCloseModal()}
+                    key={"select" + directory.label}
                     compact
                   >
-                    {directory.label}
+                    Select
                   </Button>
-                } />
-              ))}
-            </RadioGroup>
+                }
+              </Group>
+            ))}
           </Stack>
         </Box>
       </Modal>
