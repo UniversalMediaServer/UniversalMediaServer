@@ -58,13 +58,6 @@ export default function Settings() {
     x264_constant_rate_factor: 'Automatic (Wired)'
   };
 
-  const cores = [...Array(16)].map((_, i) => {
-    return {
-      value: String(i+1),
-      label: String(i+1)
-    }
-  });
-  
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
