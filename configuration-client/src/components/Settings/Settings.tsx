@@ -23,7 +23,7 @@ export default function Settings() {
 
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
-    audio_channels: 6,
+    audio_channels: '6',
     audio_embed_dts_in_pcm: false,
     audio_bitrate: '448',
     audio_remux_ac3: true,
@@ -417,7 +417,7 @@ export default function Settings() {
                       <Tabs.Tab label={i18n['TrTab2.68']}>
                         <Select
                           label={i18n['TrTab2.50']}
-                          data={['6', '2']} // todo
+                          data={[{value: '6', label: '6 channels (5.1)'}, {value: '2', label: '2 channels (Stereo)'}]}
                           size="xs"
                           {...form.getInputProps('audio_channels')}
                         />
