@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, MultiSelect, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Title, Navbar } from '@mantine/core';
+import { TextInput, Checkbox, MultiSelect, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -344,7 +344,7 @@ export default function Settings() {
               </Navbar>
             </Grid.Col>
             <Grid.Col span={7}>
-              {content == 'common' ? (
+              {content === 'common' ? (
                 [<>
                   <TextInput
                     label={i18n['TrTab2.23']}
