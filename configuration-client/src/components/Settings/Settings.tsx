@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, MultiSelect, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar } from '@mantine/core';
+import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -46,7 +46,7 @@ export default function Settings() {
     maximum_bitrate: '90',
     minimized: false,
     network_interface: '',
-    number_of_cpu_cores: '4',
+    number_of_cpu_cores: 4,
     port: '',
     renderer_default: '',
     renderer_force_default: false,
@@ -353,11 +353,12 @@ export default function Settings() {
                     size="xs"
                     {...form.getInputProps('maximum_video_buffer_size')}
                   />
-                  <Select
+                  <NumberInput
                     label={i18n['TrTab2.24']}
-                    name="number_of_cpu_cores"
-                    data={cores}
                     size="xs"
+                    max={64}
+                    min={0}
+                    disabled={false}
                     {...form.getInputProps('number_of_cpu_cores')}
                   />
                   <Space h="xs"/>
