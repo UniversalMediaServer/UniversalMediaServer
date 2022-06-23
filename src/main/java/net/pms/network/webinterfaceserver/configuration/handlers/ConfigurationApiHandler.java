@@ -267,13 +267,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 	 * @see https://stackoverflow.com/a/41610845/2049714
 	 */
 	private static Map<String, String> parseQueryString(String qs) {
-    Map<String, String> result = new HashMap<>();
-    if (qs == null) {
+		Map<String, String> result = new HashMap<>();
+		if (qs == null) {
 			return result;
 		}
 
-    int last = 0, next, l = qs.length();
-    while (last < l) {
+		int last = 0, next, l = qs.length();
+		while (last < l) {
 			next = qs.indexOf('&', last);
 			if (next == -1) {
 				next = l;
@@ -292,7 +292,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 			}
 			last = next + 1;
-    }
-    return result;
+		}
+		return result;
 	}
 }

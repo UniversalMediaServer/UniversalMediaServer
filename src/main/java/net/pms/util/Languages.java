@@ -19,7 +19,6 @@
 package net.pms.util;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
