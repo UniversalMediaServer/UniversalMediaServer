@@ -58,8 +58,10 @@ public class AccountService {
 				User user = UserTableUsers.getUserByUserId(connection, userId);
 				if (user != null) {
 					USERS.put(userId, user);
+					UserDatabase.close(connection);
 					return user;
 				}
+				UserDatabase.close(connection);
 			}
 		}
 		return null;
@@ -77,6 +79,7 @@ public class AccountService {
 				if (group.getId() == groupId) {
 					GROUPS.put(group.getId(), group);
 				}
+				UserDatabase.close(connection);
 				return group;
 			}
 		}
@@ -270,6 +273,7 @@ public class AccountService {
 					USERS.put(user.getId(), user);
 				}
 			}
+			UserDatabase.close(connection);
 		}
 		return USERS.values();
 	}
@@ -286,6 +290,7 @@ public class AccountService {
 					GROUPS.put(group.getId(), group);
 				}
 			}
+			UserDatabase.close(connection);
 		}
 		return GROUPS.values();
 	}

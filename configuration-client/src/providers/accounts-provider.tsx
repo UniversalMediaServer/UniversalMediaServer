@@ -1,19 +1,19 @@
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
-import { sessionContext, UmsSession } from '../contexts/session-context';
+import { accountsContext, UmsAccounts } from '../contexts/accounts-context';
 
 interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({firstLogin:false} as UmsSession)
+export const AccountsProvider = ({ children, ...props }: Props) =>{
+  const [accounts, setAccounts] = useState({usersManage:false,groupsManage:false,users:[],groups:[]} as UmsAccounts)
 
   useEffect(() => {
-    axios.get('/v1/api/auth/session')
+    axios.get('/v1/api/account/accounts')
       .then(function (response: any) {
-        setSession(response.data);
+        setAccounts(response.data);
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -21,16 +21,15 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
           id: 'data-loading',
           color: 'red',
           title: 'Error',
-          message: 'Session was not received from the server.',
+          message: 'Accounts was not received from the server.',
           autoClose: 3000,
         });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  const { Provider } = sessionContext;
+  const { Provider } = accountsContext;
   return(
-    <Provider value={session}>
+    <Provider value={accounts}>
       {children}
     </Provider>
   )

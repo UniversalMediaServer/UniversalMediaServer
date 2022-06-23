@@ -1,10 +1,10 @@
 import { Context, createContext } from "react";
 
-export const sessionContext: Context<Session> = createContext({firstLogin:false} as Session);
+export const sessionContext: Context<UmsSession> = createContext({firstLogin:false} as UmsSession);
 
 export default sessionContext;
 
-export interface User {
+export interface UmsUser {
   id : number,
   username : string,
   displayName : string,
@@ -14,18 +14,18 @@ export interface User {
   loginFailedCount : number,
 }
 
-export interface Group {
+export interface UmsGroup {
     id : number,
     displayName : string,
 	permissions : string[],
 }
 
-export interface Account {
-  user : User,
-  group : Group,
+export interface UmsAccount {
+  user : UmsUser,
+  group : UmsGroup,
 }
 
-export interface Session {
+export interface UmsSession {
     firstLogin : boolean,
-	account? : Account,
+	account? : UmsAccount,
 }
