@@ -100,7 +100,7 @@ public class AuthApiHandler implements HttpHandler {
 						} else {
 							WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 						}
-						connection.close();
+						UserDatabase.close(connection);
 					} else {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
@@ -124,7 +124,7 @@ public class AuthApiHandler implements HttpHandler {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
 							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
-							connection.close();
+							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
 							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
@@ -162,7 +162,7 @@ public class AuthApiHandler implements HttpHandler {
 							LOGGER.error("An admin user is already in database");
 							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
 						}
-						connection.close();
+						UserDatabase.close(connection);
 					} else {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");

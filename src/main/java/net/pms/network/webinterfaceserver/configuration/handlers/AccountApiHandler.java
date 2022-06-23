@@ -104,6 +104,7 @@ public class AccountApiHandler implements HttpHandler {
 							}
 						}
 						jObject.add("groups", jGroups);
+						WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
 					} else {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
@@ -125,197 +126,200 @@ public class AccountApiHandler implements HttpHandler {
 									case "changelogin":
 										//we need username, password
 										//optional userid
-										if (!action.has("username") || !action.has("password")) {
+										if (action.has("username") && action.has("password")) {
+												int clUserId;
+											// without userid member, we fall back to self user
+											if (action.has("userid")) {
+												clUserId = action.get("userid").getAsInt();
+											} else {
+												clUserId = account.getUser().getId();
+											}
+											String clUsername = action.get("username").getAsString();
+											String clPassword = action.get("password").getAsString();
+											//user changing his own password or have permissions to
+											if (clUserId == account.getUser().getId() || account.havePermission(Permissions.USERS_MANAGE)) {
+												AccountService.updateLogin(connection, clUserId, clUsername, clPassword);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												LOGGER.trace("User '{}' try to change password for user id: {}", account.toString(), clUserId);
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+											}
+										} else {
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										int clUserId;
-										// without userid member, we fall back to self user
-										if (action.has("userid")) {
-											clUserId = action.get("userid").getAsInt();
-										} else {
-											clUserId = account.getUser().getId();
-										}
-										String clUsername = action.get("username").getAsString();
-										String clPassword = action.get("password").getAsString();
-										//user changing his own password or have permissions to
-										if (clUserId == account.getUser().getId() || account.havePermission(Permissions.USERS_MANAGE)) {
-											AccountService.updateLogin(connection, clUserId, clUsername, clPassword);
-											WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
-										} else {
-											LOGGER.trace("User '{}' try to change password for user id: {}", account.toString(), clUserId);
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 										}
 										break;
 									case "createuser":
-										if (!account.havePermission(Permissions.USERS_MANAGE)) {
+										if (account.havePermission(Permissions.USERS_MANAGE)) {
+											//we need at least user, password
+											//optional : name, groupid
+											if (action.has("username") && action.has("password")) {
+												String cuUsername = action.get("username").getAsString();
+												String cuPassword = action.get("password").getAsString();
+												String cuName;
+												if (action.has("name")) {
+													cuName = action.get("name").getAsString();
+												} else {
+													cuName = cuUsername;
+												}
+												int cuGroupId;
+												if (action.has("groupid")) {
+													cuGroupId = action.get("groupid").getAsInt();
+												} else {
+													cuGroupId = 0;
+												}
+												//if no granted to manage groups, only allow self group or none
+												if (cuGroupId != 0 && !account.havePermission(Permissions.GROUPS_MANAGE) && cuGroupId != account.getGroup().getId()) {
+													cuGroupId = 0;
+												}
+												AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+											}
+										} else {
 											LOGGER.trace("User '{}' try to create a user", account.toString());
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
 										}
-										//we need at least user, password
-										//optional : name, groupid
-										if (!action.has("username") || !action.has("password")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										String cuUsername = action.get("username").getAsString();
-										String cuPassword = action.get("password").getAsString();
-										String cuName;
-										if (action.has("name")) {
-											cuName = action.get("name").getAsString();
-										} else {
-											cuName = cuUsername;
-										}
-										int cuGroupId;
-										if (action.has("groupid")) {
-											cuGroupId = action.get("groupid").getAsInt();
-										} else {
-											cuGroupId = 0;
-										}
-										//if no granted to manage groups, only allow self group or none
-										if (cuGroupId != 0 && !account.havePermission(Permissions.GROUPS_MANAGE) && cuGroupId != account.getGroup().getId()) {
-											cuGroupId = 0;
-										}
-										AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "modifyuser":
 										//we need userid
 										//optional : name, groupid
-										if (!action.has("userid")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										int muUserId = action.get("userid").getAsInt();
-										if (muUserId != account.getUser().getId() && !account.havePermission(Permissions.USERS_MANAGE)) {
-											LOGGER.trace("User '{}' try to modify account of user id {}", account.toString(), muUserId);
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
-										}
-										User muUser = AccountService.getUserById(muUserId);
-										if (muUser == null) {
-											//user does not exists
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										String muName;
-										if (action.has("name")) {
-											muName = action.get("name").getAsString();
-										} else {
-											muName = muUser.getDisplayName();
-										}
-										int muGroupId;
-										if (action.has("groupid")) {
-											muGroupId = action.get("groupid").getAsInt();
-										} else {
-											muGroupId = muUser.getGroupId();
-										}
-										//if no granted to manage groups, only allow current group
-										if (!account.havePermission(Permissions.GROUPS_MANAGE) && muGroupId != muUser.getGroupId()) {
-											if (!muName.equals(muUser.getDisplayName())) {
-												//the user had changed more field than group, revert back the group id change
-												muGroupId = muUser.getGroupId();
+										if (action.has("userid")) {
+											int muUserId = action.get("userid").getAsInt();
+											if (muUserId == account.getUser().getId() || account.havePermission(Permissions.USERS_MANAGE)) {
+												User muUser = AccountService.getUserById(muUserId);
+												if (muUser != null) {
+													String muName;
+													if (action.has("name")) {
+														muName = action.get("name").getAsString();
+													} else {
+														muName = muUser.getDisplayName();
+													}
+													int muGroupId;
+													if (action.has("groupid")) {
+														muGroupId = action.get("groupid").getAsInt();
+													} else {
+														muGroupId = muUser.getGroupId();
+													}
+													//if no granted to manage groups, only allow current group
+													if (!account.havePermission(Permissions.GROUPS_MANAGE) && muGroupId != muUser.getGroupId()) {
+														if (!muName.equals(muUser.getDisplayName())) {
+															//the user had changed more field than group, revert back the group id change
+															muGroupId = muUser.getGroupId();
+														} else {
+															//request only a group change, send a 403
+															LOGGER.trace("User '{}' try to modify group of user id: {}", account.toString(), muUserId);
+															WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+															//don't forget to close the db
+															UserDatabase.close(connection);
+															return;
+														}
+													}
+													AccountService.updateUser(connection, muUserId, muName, muGroupId);
+													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												} else {
+													//user does not exists
+													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+												}
 											} else {
-												//request only a group change, send a 403
-												LOGGER.trace("User '{}' try to modify group of user id: {}", account.toString(), muUserId);
+												LOGGER.trace("User '{}' try to modify account of user id {}", account.toString(), muUserId);
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-												return;
 											}
+										} else {
+											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 										}
-										AccountService.updateUser(connection, muUserId, muName, muGroupId);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "deleteuser":
 										//we need only userid
-										if (!action.has("userid")) {
+										if (action.has("userid")) {
+											int duUserId = action.get("userid").getAsInt();
+											if (account.havePermission(Permissions.USERS_MANAGE)) {
+												AccountService.deleteUser(connection, duUserId);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+											}
+										} else {
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
 										}
-										int duUserId = action.get("userid").getAsInt();
-										if (!account.havePermission(Permissions.USERS_MANAGE)) {
-											LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
-										}
-										AccountService.deleteUser(connection, duUserId);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "creategroup":
-										if (!account.havePermission(Permissions.GROUPS_MANAGE)) {
+										if (account.havePermission(Permissions.GROUPS_MANAGE)) {
+											//we need name
+											if (action.has("name")) {
+												String cgName = action.get("name").getAsString();
+												AccountService.createGroup(connection, cgName);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+											}
+										} else {
 											LOGGER.trace("User '{}' try to create a group", account.toString());
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
 										}
-										//we need name
-										if (!action.has("name")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										String cgName = action.get("name").getAsString();
-										AccountService.createGroup(connection, cgName);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "modifygroup":
-										if (!account.havePermission(Permissions.GROUPS_MANAGE)) {
+										if (account.havePermission(Permissions.GROUPS_MANAGE)) {
+											//we need groupid, name
+											if (action.has("groupid") && action.has("name")) {
+												int mgGroupId = action.get("groupid").getAsInt();
+												String mgName = action.get("name").getAsString();
+												AccountService.updateGroup(connection, mgGroupId, mgName);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+											}
+										} else {
 											LOGGER.trace("User '{}' try to modify a group", account.toString());
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
 										}
-										//we need groupid, name
-										if (!action.has("groupid") || !action.has("name")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										int mgGroupId = action.get("groupid").getAsInt();
-										String mgName = action.get("name").getAsString();
-										AccountService.updateGroup(connection, mgGroupId, mgName);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "deletegroup":
-										if (!account.havePermission(Permissions.GROUPS_MANAGE)) {
+										if (account.havePermission(Permissions.GROUPS_MANAGE)) {
+											//we need groupid
+											if (action.has("groupid")) {
+												int dgGroupId = action.get("groupid").getAsInt();
+												AccountService.deleteGroup(connection, dgGroupId);
+												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+											} else {
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+											}
+										} else {
 											LOGGER.trace("User '{}' try to delete a group", account.toString());
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
 										}
-										//we need groupid
-										if (!action.has("groupid")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										int dgGroupId = action.get("groupid").getAsInt();
-										AccountService.deleteGroup(connection, dgGroupId);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 										break;
 									case "updatepermission":
-										if (!account.havePermission(Permissions.GROUPS_MANAGE)) {
+										if (account.havePermission(Permissions.GROUPS_MANAGE)) {
+											//we need groupid, permissions
+											if (action.has("groupid") && action.has("permissions")) {
+												int upGroupId = action.get("groupid").getAsInt();
+												List<String> upPermissions = null;
+												if (action.get("permissions").isJsonArray()) {
+													upPermissions = new ArrayList<>();
+													JsonArray jPermissions = action.get("permissions").getAsJsonArray();
+													for (JsonElement jPermission : jPermissions) {
+														upPermissions.add(jPermission.getAsString());
+													}
+												}
+												if (upPermissions != null) {
+													AccountService.updatePermission(connection, upGroupId, upPermissions);
+													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												} else {
+													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+												}
+											} else {
+												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+											}
+										} else {
 											LOGGER.trace("User '{}' try to update permissions", account.toString());
 											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-											return;
 										}
-										//we need groupid, permissions
-										if (!action.has("groupid") || !action.has("permissions")) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										int upGroupId = action.get("groupid").getAsInt();
-										List<String> upPermissions = null;
-										if (action.get("permissions").isJsonArray()) {
-											upPermissions = new ArrayList<>();
-											JsonArray jPermissions = action.get("permissions").getAsJsonArray();
-											for (JsonElement jPermission : jPermissions) {
-												upPermissions.add(jPermission.getAsString());
-											}
-										}
-										if (upPermissions == null) {
-											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-											return;
-										}
-										AccountService.updatePermission(connection, upGroupId, upPermissions);
-										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 									default:
 										WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");
 								}
+								UserDatabase.close(connection);
 							} else {
 								LOGGER.error("User database not available");
 								WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
