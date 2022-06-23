@@ -5176,4 +5176,30 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return jsonArray;
 	}
+
+	/**
+	 * @return sort method as a JSON array
+	 */
+	public synchronized static JsonArray getSortMethodsAsJsonArray() {
+		String[] values = new String[]{
+			"" + UMSUtils.SORT_LOC_SENS,  // alphabetical
+			"" + UMSUtils.SORT_LOC_NAT,   // natural sort
+			"" + UMSUtils.SORT_INS_ASCII, // ASCIIbetical
+			"" + UMSUtils.SORT_MOD_NEW,   // newest first
+			"" + UMSUtils.SORT_MOD_OLD,   // oldest first
+			"" + UMSUtils.SORT_RANDOM,    // random
+			"" + UMSUtils.SORT_NO_SORT    // no sorting
+		};
+		String[] labels = new String[]{
+			Messages.getString("FoldTab.15"),
+			Messages.getString("FoldTab.22"),
+			Messages.getString("FoldTab.20"),
+			Messages.getString("FoldTab.16"),
+			Messages.getString("FoldTab.17"),
+			Messages.getString("FoldTab.58"),
+			Messages.getString("FoldTab.62")
+		};
+
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
 }

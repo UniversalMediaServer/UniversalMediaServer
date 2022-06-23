@@ -148,6 +148,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
+				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
 
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 				jsonResponse.add("userSettings", configurationAsJson);
@@ -199,58 +200,12 @@ public class ConfigurationApiHandler implements HttpHandler {
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
 			} else if (api.get("/directories")) {
-				JsonObject jsonResponse = new JsonObject();
-
-				Map<String, String> queryParameters = parseQueryString(exchange.getRequestURI().getQuery());
-				String requestedDirectory = queryParameters.get("path");
-				if (StringUtils.isEmpty(requestedDirectory)) {
-					// todo: support all OS'
-					requestedDirectory = System.getProperty("user.home");
+				String directoryResponse = getDirectoryResponse(exchange);
+				if (directoryResponse == null) {
+					WebInterfaceServerUtil.respond(exchange, "Directory does not exist", 404, "application/json");
+					return;
 				}
-
-				File requestedDirectoryFile = new File(requestedDirectory);
-				if (!requestedDirectoryFile.exists()) {
-					WebInterfaceServerUtil.respond(exchange, "Directory " + requestedDirectory + " does not exist", 404, "application/json");
-				} else {
-					File[] directories = new File(requestedDirectory).listFiles(new FileFilter() {
-						@Override
-						public boolean accept(File file) {
-							return file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".");
-						}
-					});
-					Arrays.sort(directories);
-					JsonArray jsonArray = new JsonArray();
-					for (File file : directories) {
-						JsonObject directoryGroup = new JsonObject();
-						String value = file.toString();
-						String label = file.getName();
-						directoryGroup.addProperty("label", label);
-						directoryGroup.addProperty("value", value);
-						jsonArray.add(directoryGroup);
-					}
-					jsonResponse.add("parents", jsonArray);
-
-					jsonArray = new JsonArray();
-					JsonObject directoryGroup = new JsonObject();
-					directoryGroup.addProperty("label", requestedDirectoryFile.getName());
-					directoryGroup.addProperty("value", requestedDirectoryFile.toString());
-					jsonArray.add(directoryGroup);
-
-					while (requestedDirectoryFile.getParentFile() != null && requestedDirectoryFile.getParentFile().isDirectory()) {
-						directoryGroup = new JsonObject();
-						requestedDirectoryFile = requestedDirectoryFile.getParentFile();
-						String name = requestedDirectoryFile.getName();
-						if (StringUtils.isEmpty(name) && requestedDirectoryFile.toString().equals("/")) {
-							name = "/";
-						}
-						directoryGroup.addProperty("label", name);
-						directoryGroup.addProperty("value", requestedDirectoryFile.toString());
-						jsonArray.add(directoryGroup);
-					}
-					jsonResponse.add("children", jsonArray);
-
-					WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
-				}
+				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
 			} else {
 				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 			}
@@ -266,33 +221,90 @@ public class ConfigurationApiHandler implements HttpHandler {
 		}
 	}
 
+	private String getDirectoryResponse(HttpExchange exchange) {
+		JsonObject jsonResponse = new JsonObject();
+
+		Map<String, String> queryParameters = parseQueryString(exchange.getRequestURI().getQuery());
+		String requestedDirectory = queryParameters.get("path");
+		if (StringUtils.isEmpty(requestedDirectory)) {
+			// todo: support all OS'
+			requestedDirectory = System.getProperty("user.home");
+		}
+
+		File requestedDirectoryFile = new File(requestedDirectory);
+		if (!requestedDirectoryFile.exists()) {
+			return null;
+		}
+		File[] directories = requestedDirectoryFile.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".");
+			}
+		});
+		Arrays.sort(directories);
+		JsonArray jsonArray = new JsonArray();
+		for (File file : directories) {
+			JsonObject directoryGroup = new JsonObject();
+			String value = file.toString();
+			String label = file.getName();
+			directoryGroup.addProperty("label", label);
+			directoryGroup.addProperty("value", value);
+			jsonArray.add(directoryGroup);
+		}
+		jsonResponse.add("parents", jsonArray);
+
+		jsonArray = new JsonArray();
+		JsonObject directoryGroup = new JsonObject();
+		directoryGroup.addProperty("label", requestedDirectoryFile.getName());
+		directoryGroup.addProperty("value", requestedDirectoryFile.toString());
+		jsonArray.add(directoryGroup);
+
+		while (requestedDirectoryFile.getParentFile() != null && requestedDirectoryFile.getParentFile().isDirectory()) {
+			directoryGroup = new JsonObject();
+			requestedDirectoryFile = requestedDirectoryFile.getParentFile();
+			String name = requestedDirectoryFile.getName();
+			if (StringUtils.isEmpty(name) && requestedDirectoryFile.toString().equals("/")) {
+				name = "/";
+			}
+			directoryGroup.addProperty("label", name);
+			directoryGroup.addProperty("value", requestedDirectoryFile.toString());
+			jsonArray.add(directoryGroup);
+		}
+		jsonResponse.add("children", jsonArray);
+
+		return jsonResponse.toString();
+	}
+
 	/**
 	 * @see https://stackoverflow.com/a/41610845/2049714
 	 */
-	public static Map<String, String> parseQueryString(String qs) {
+	private static Map<String, String> parseQueryString(String qs) {
     Map<String, String> result = new HashMap<>();
-    if (qs == null)
-        return result;
+    if (qs == null) {
+			return result;
+		}
 
     int last = 0, next, l = qs.length();
     while (last < l) {
-        next = qs.indexOf('&', last);
-        if (next == -1)
-            next = l;
+			next = qs.indexOf('&', last);
+			if (next == -1) {
+				next = l;
+			}
 
-        if (next > last) {
-            int eqPos = qs.indexOf('=', last);
-            try {
-                if (eqPos < 0 || eqPos > next)
-                    result.put(URLDecoder.decode(qs.substring(last, next), "utf-8"), "");
-                else
-                    result.put(URLDecoder.decode(qs.substring(last, eqPos), "utf-8"), URLDecoder.decode(qs.substring(eqPos + 1, next), "utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e); // will never happen, utf-8 support is mandatory for java
-            }
-        }
-        last = next + 1;
+			if (next > last) {
+				int eqPos = qs.indexOf('=', last);
+				try {
+					if (eqPos < 0 || eqPos > next) {
+						result.put(URLDecoder.decode(qs.substring(last, next), "utf-8"), "");
+					} else {
+						result.put(URLDecoder.decode(qs.substring(last, eqPos), "utf-8"), URLDecoder.decode(qs.substring(eqPos + 1, next), "utf-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e); // will never happen, utf-8 support is mandatory for java
+				}
+			}
+			last = next + 1;
     }
     return result;
-}
+	}
 }

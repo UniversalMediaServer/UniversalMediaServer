@@ -503,17 +503,7 @@ public class NetworkConfiguration {
 		List<String> values = getDisplayNames();
 		List<String> labels = getDisplayNamesWithAddress();
 
-		JsonArray jsonArray = new JsonArray();
-		for (int i = 0; i < values.size(); i++) {
-			JsonObject languageGroup = new JsonObject();
-			String value = values.get(i);
-			String label = labels.get(i);
-			languageGroup.addProperty("label", label);
-			languageGroup.addProperty("value", value);
-			jsonArray.add(languageGroup);
-		}
-
-		return jsonArray;
+		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
 	}
 
 	/**
