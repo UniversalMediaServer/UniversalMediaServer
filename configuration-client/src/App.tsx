@@ -12,6 +12,7 @@ import './services/http-interceptor';
 
 import Login from './components/Login/Login'
 import FirstLogin from './components/FirstLogin/FirstLogin'
+import Accounts from './components/Accounts/Accounts'
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
 import ChangePassword from './components/ChangePassword/ChangePassword'
 import Settings from './components/Settings/Settings';
@@ -87,7 +88,8 @@ function App() {
                         <Router>
                           <Routes>
                             <Route path='/changepassword' element={<ChangePassword />}></Route>
-                            <Route path='accounts' element={<FirstLogin />}></Route>
+                            <Route path='/accounts' element={<Accounts />}></Route>
+                            <Route path='/settings' element={<Settings />}></Route>
                             <Route index element={<Settings />} />
                             <Route
                               path="/*"
