@@ -1,6 +1,5 @@
 import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
-import _ from 'lodash';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Folder, Folders } from 'tabler-icons-react';
