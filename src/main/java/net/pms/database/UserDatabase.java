@@ -20,8 +20,6 @@
 package net.pms.database;
 
 import java.sql.*;
-import net.pms.PMS;
-import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +62,6 @@ public class UserDatabase extends Database {
 
 	@Override
 	void onOpeningFail(boolean force) {
-		RootFolder rootFolder = PMS.get().getRootFolder(null);
-		if (rootFolder != null) {
-			rootFolder.stopScan();
-		}
 	}
 
 	/**

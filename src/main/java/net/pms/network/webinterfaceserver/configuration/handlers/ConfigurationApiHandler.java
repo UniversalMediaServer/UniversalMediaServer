@@ -17,9 +17,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.handlers;
+package net.pms.network.webinterfaceserver.configuration.handlers;
 
-import net.pms.iam.AuthService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -37,15 +36,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.iam.Account;
+import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -58,8 +60,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
-
-	private final Gson gson = new Gson();
 
 	public static final String[] VALID_KEYS = {
 		"append_profile_name",
@@ -84,6 +84,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"thumbnail_seek_position"
 	};
 
+	public static final String BASE_PATH = "/configuration-api";
+
+	private final Gson gson = new Gson();
+
 	/**
 	 * Handle API calls.
 	 *
@@ -103,39 +107,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 			if (LOGGER.isTraceEnabled()) {
 				WebInterfaceServerUtil.logMessageReceived(exchange, "");
 			}
-			/**
-			 * Helpers for HTTP methods and paths.
-			 */
-			var api = new Object() {
-				private String getEndpoint() {
-					String endpoint = "";
-					int pos = exchange.getRequestURI().getPath().indexOf("configuration-api");
-					if (pos != -1) {
-						endpoint = exchange.getRequestURI().getPath().substring(pos + "configuration-api".length());
-					}
-					return endpoint;
-				}
-				/**
-				 * @return whether this was a GET request for the specified path.
-				 */
-				public Boolean get(String path) {
-					return exchange.getRequestMethod().equals("GET") && getEndpoint().equals(path);
-				}
-				/**
-				 * @return whether this was a POST request for the specified path.
-				 */
-				public Boolean post(String path) {
-					return exchange.getRequestMethod().equals("POST") && getEndpoint().equals(path);
-				}
-			};
-
+			var api = new ApiHelper(exchange, BASE_PATH);
 			/**
 			 * API endpoints
 			 */
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
-				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-					WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				if (account == null) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					return;
+				}
+				if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					return;
 				}
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
@@ -155,16 +139,19 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
-				if (!AuthService.isLoggedIn(exchange.getRequestHeaders().get("Authorization"))) {
-					WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				if (account == null) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					return;
+				}
+				if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					return;
 				}
 				// Here we possibly received some updates to config values
 				String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
-				Iterator iterator = data.entrySet().iterator();
-				while (iterator.hasNext()) {
-					Map.Entry configurationSetting = (Map.Entry) iterator.next();
+				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
 					if (!Arrays.asList(VALID_KEYS).contains(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
@@ -207,6 +194,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
 			} else {
+				LOGGER.trace("ConfigurationApiHandler request not available : {}", api.getEndpoint());
 				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 			}
 		} catch (RuntimeException e) {
@@ -216,7 +204,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConsoleHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
