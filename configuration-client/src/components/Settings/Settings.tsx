@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -17,14 +18,19 @@ export default function Settings() {
   const serverEnginesSettingsRef = useRef([]);
   const allRendererNamesSettingsRef = useRef([]);
   const enabledRendererNamesSettingsRef = useRef([]);
+  const audioCoverSuppliersSettingsRef = useRef([]);
+  const sortMethodsSettingsRef = useRef([]);
 
   const i18n = useContext(I18nContext);
 
   const defaultSettings: Record<string, any> = {
+    alternate_thumb_folder: '',
     append_profile_name: false,
+    audio_thumbnails_method: '1',
     auto_update: true,
     automatic_maximum_bitrate: true,
     external_network: true,
+    generate_thumbnails: true,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
@@ -38,6 +44,8 @@ export default function Settings() {
     server_engine: '0',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
+    sort_method: '4',
+    thumbnail_seek_position: '4',
   };
 
   const openGitHubNewIssue = () => {
@@ -58,6 +66,8 @@ export default function Settings() {
         serverEnginesSettingsRef.current = settingsResponse.serverEngines;
         allRendererNamesSettingsRef.current = settingsResponse.allRendererNames;
         enabledRendererNamesSettingsRef.current = settingsResponse.enabledRendererNames;
+        audioCoverSuppliersSettingsRef.current = settingsResponse.audioCoverSuppliers;
+        sortMethodsSettingsRef.current = settingsResponse.sortMethods;
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
@@ -247,7 +257,41 @@ export default function Settings() {
             </Accordion>
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabNavigationSettings']}>
-
+            <Group mt="xs">
+              <Checkbox
+                mt="xl"
+                label={i18n['NetworkTab.2']}
+                {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
+              />
+              <TextInput
+                sx={{ flex: 1 }}
+                label={i18n['NetworkTab.16']}
+                disabled={!form.values['generate_thumbnails']}
+                {...form.getInputProps('thumbnail_seek_position')}
+              />
+            </Group>
+            <Select
+              mt="xs"
+              label={i18n['FoldTab.26']}
+              data={audioCoverSuppliersSettingsRef.current}
+              value={String(form.getInputProps('audio_thumbnails_method').value)}
+            />
+            <DirectoryChooser
+              path={form.getInputProps('alternate_thumb_folder').value}
+              callback={form.setFieldValue}
+              label={i18n['FoldTab.27']}
+              formKey="alternate_thumb_folder"
+            ></DirectoryChooser>
+            <Accordion mt="xl">
+              <Accordion.Item label={i18n['NetworkTab.59']}>
+                <Select
+                  mt="xs"
+                  label={i18n['FoldTab.26']}
+                  data={sortMethodsSettingsRef.current}
+                  value={String(form.getInputProps('sort_method').value)}
+                />
+              </Accordion.Item>
+            </Accordion>
           </Tabs.Tab>
           <Tabs.Tab label={i18n['LooksFrame.TabSharedContent']}>
             

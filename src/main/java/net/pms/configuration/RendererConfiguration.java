@@ -33,6 +33,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
@@ -3133,7 +3134,11 @@ public class RendererConfiguration extends Renderer {
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
 				//escape "\" char with "\\" otherwise json will fail
-				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"))
+				(key, value) -> {
+					if (Arrays.asList(ConfigurationApiHandler.VALID_KEYS).contains(key)) {
+						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
+					}
+				}
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
