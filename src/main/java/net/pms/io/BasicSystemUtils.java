@@ -180,6 +180,15 @@ public class BasicSystemUtils implements SystemUtils {
 				});
 				popup.add(webInterfaceItem);
 			}
+
+			MenuItem settingsItem = new MenuItem(Messages.getString("Settings"));
+			settingsItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					browseURI(PMS.get().getWebInterfaceServer().getUrl() + "/configuration");
+				}
+			});
+			popup.add(settingsItem);
 			popup.add(traceItem);
 			popup.add(defaultItem);
 
