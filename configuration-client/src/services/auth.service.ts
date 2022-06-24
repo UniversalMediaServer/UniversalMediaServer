@@ -88,3 +88,11 @@ export const clearJwt = () => {
   localStorage.removeItem('tokenExpiry');
   localStorage.removeItem('user');
 }
+
+export const getJwt = () => {
+  return localStorage.getItem('user');
+}
+
+export const getJwtPayload = () => {
+  return localStorage.getItem('user')?.split('.')[1];
+}

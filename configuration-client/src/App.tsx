@@ -14,7 +14,6 @@ import Login from './components/Login/Login'
 import FirstLogin from './components/FirstLogin/FirstLogin'
 import Accounts from './components/Accounts/Accounts'
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
-import ChangePassword from './components/ChangePassword/ChangePassword'
 import Settings from './components/Settings/Settings';
 import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
@@ -87,7 +86,6 @@ function App() {
                       {session.account ? (
                         <Router>
                           <Routes>
-                            <Route path='/changepassword' element={<ChangePassword />}></Route>
                             <Route path='/accounts' element={<Accounts />}></Route>
                             <Route path='/settings' element={<Settings />}></Route>
                             <Route index element={<Settings />} />

@@ -4,7 +4,7 @@ import { Trash, Settings, Lock, Refresh } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { sendAction } from '../../services/actions-service';
-import { havePermission } from '../../services/account-service';
+import { havePermission } from '../../services/accounts-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
@@ -37,12 +37,6 @@ function UserMenu() {
           window.location.href = '/accounts';
         }}
       >{havePermission(session, "users_manage") ? 'Manage accounts' : 'My account'}</Menu.Item>
-      <Menu.Item
-        icon={<Lock size={14} />}
-        onClick={() => {
-          window.location.href = '/changepassword';
-        }}
-      >Change password</Menu.Item>
       <Menu.Item
         color="red"
         icon={<Trash size={14} />}
