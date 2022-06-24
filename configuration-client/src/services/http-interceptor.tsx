@@ -2,14 +2,19 @@ import axios from 'axios';
 import { showNotification } from '@mantine/notifications';
 import { clearJwt } from './auth.service';
 
+const redirectToLogin = () => {
+  clearJwt();
+  window.location.href = '/login';
+};
+
 axios.interceptors.request.use(function (request) {
-    // @ts-ignore
-    request.headers.common.Authorization = `Bearer ${localStorage.getItem('user')}`;
-    return request;
-  }, function (error) {
-    // Do something with request error
-    return Promise.reject(error);
-  });
+  // @ts-ignore
+  request.headers.common.Authorization = `Bearer ${localStorage.getItem('user')}`;
+  return request;
+}, function (error) {
+  // Do something with request error
+  return Promise.reject(error);
+});
 
 axios.interceptors.response.use(function (response) {
   return response;
@@ -26,8 +31,3 @@ axios.interceptors.response.use(function (response) {
   }
   return Promise.reject(error);
 });
-
-const redirectToLogin = () => {
-  clearJwt();
-  window.location.href = '/login';
-};

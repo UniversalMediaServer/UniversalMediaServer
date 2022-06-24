@@ -1,6 +1,13 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 
+const storeJwtInLocalStorage = (jwt: string) => {
+  localStorage.setItem('user', jwt);
+  // @ts-ignore
+  const {exp} = jwt_decode(jwt);
+  localStorage.setItem('tokenExpiry', exp);
+}
+
 export const login = (username: string, password: string) => {
   return axios
     .post('/v1/api/auth/login', {
@@ -61,13 +68,6 @@ export const refreshToken = () => {
         storeJwtInLocalStorage(response.data.token);
       }
     });
-}
-
-const storeJwtInLocalStorage = (jwt: string) => {
-  localStorage.setItem('user', jwt);
-  // @ts-ignore
-  const {exp} = jwt_decode(jwt);
-  localStorage.setItem('tokenExpiry', exp);
 }
 
 export const refreshAuthTokenNearExpiry = () => {

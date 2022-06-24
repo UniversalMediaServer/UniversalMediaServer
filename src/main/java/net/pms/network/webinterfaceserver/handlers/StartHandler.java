@@ -57,7 +57,7 @@ public class StartHandler implements HttpHandler {
 			if (t.getRequestURI().getPath().contains("favicon")) {
 				WebInterfaceServerUtil.sendLogo(t);
 				return;
-			}			
+			}
 
 			//react app
 			if (ConfigurationClientHandler.handleApp(parent, t)) {

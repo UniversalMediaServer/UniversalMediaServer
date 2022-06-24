@@ -159,7 +159,7 @@ const Accounts = () => {
 
   function UserDeleteForm(user: UmsUser) {
     const userDeleteForm = useForm({ initialValues: {id:user.id} });
-    const handleUserDeleteSubmit = (values: typeof userDeleteForm.values) => {
+    const handleUserDeleteSubmit = () => {
       const data = {operation:'deleteuser', userid:user.id};
       postAccountAction(data, 'User delete', 'User was deleted successfully', 'User was not deleted.');
     }
@@ -267,7 +267,7 @@ const Accounts = () => {
 
   function GroupDeleteForm(group: UmsGroup) {
     const groupDeleteForm = useForm({ initialValues: {id:group.id} });
-    const handleGroupDeleteSubmit = (values: typeof groupDeleteForm.values) => {
+    const handleGroupDeleteSubmit = () => {
       const data = {operation:'deletegroup', groupid:group.id};
       postAccountAction(data, 'Group delete', 'Group was deleted successfully', 'Group was not deleted.');
     }

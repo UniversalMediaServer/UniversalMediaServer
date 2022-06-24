@@ -3,12 +3,6 @@ import { UmsAccounts } from '../contexts/accounts-context';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 
-export const havePermission = (session: UmsSession, permission: string) => {
-  return (typeof session.account !== "undefined"
-    && accountHavePermission(session.account, permission)
-  );
-}
-
 export const accountHavePermission = (account: UmsAccount, permission: string) => {
   return (typeof account.group !== "undefined"
 	&& typeof account.group.permissions !== "undefined"
@@ -17,17 +11,23 @@ export const accountHavePermission = (account: UmsAccount, permission: string) =
   );
 }
 
+export const havePermission = (session: UmsSession, permission: string) => {
+  return (typeof session.account !== "undefined"
+    && accountHavePermission(session.account, permission)
+  );
+}
+
 export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
   accounts.groups.forEach((group) => {
     if (group.id === user.groupId) {
-      return group as UmsGroup;
+      return group;
     }
   });
   return {id:0,displayName:"",permissions:[]} as UmsGroup;
 };
 
 export const getUserGroupsSelection = (accounts: UmsAccounts) => {
-  var result = [];
+  let result = [];
   result.push({ value: '0', label: 'None' });
   accounts.groups.forEach((group) => {
     if (group.id > 0) {

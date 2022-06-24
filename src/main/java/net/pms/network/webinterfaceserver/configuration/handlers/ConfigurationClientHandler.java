@@ -35,7 +35,7 @@ public class ConfigurationClientHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
 	public static final String BASE_PATH = "/configuration";
-    public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
+	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
 		"/accounts",
 		"/settings"
 	));
@@ -76,7 +76,7 @@ public class ConfigurationClientHandler implements HttpHandler {
 		}
 	}
 
-    public static boolean handleApp(WebInterfaceServerHttpServer parent, HttpExchange exchange) throws IOException {
+	public static boolean handleApp(WebInterfaceServerHttpServer parent, HttpExchange exchange) throws IOException {
 		if (ROUTES.contains(exchange.getRequestURI().getPath())) {
 			if (!parent.getResources().write("react-app/index.html", exchange)) {
 				// The resource manager can't found or send the file, we need to send a response.
