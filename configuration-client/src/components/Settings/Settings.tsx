@@ -136,6 +136,7 @@ export default function Settings() {
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={i18n['LooksFrame.TabGeneralSettings']}>
             <Select
+              disabled={!canModify}
               label={i18n['LanguageSelection.Language']}
               data={languageSettingsRef.current}
               {...form.getInputProps('language')}
@@ -143,6 +144,7 @@ export default function Settings() {
 
             <Group mt="xs">
               <TextInput
+                disabled={!canModify}
                 label={i18n['NetworkTab.71']}
                 name="server_name"
                 sx={{ flex: 1 }}
@@ -150,6 +152,7 @@ export default function Settings() {
               />
 
               <Checkbox
+                disabled={!canModify}
                 mt="xl"
                 label={i18n['NetworkTab.72']}
                 {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
@@ -158,16 +161,19 @@ export default function Settings() {
 
             <Group mt="md">
               <Checkbox
+                disabled={!canModify}
                 label={i18n['NetworkTab.3']}
                 {...form.getInputProps('minimized', { type: 'checkbox' })}
               />
               <Checkbox
+                disabled={!canModify}
                 label={i18n['NetworkTab.74']}
                 {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
             </Group>
 
             <Checkbox
+              disabled={!canModify}
               mt="xs"
               label={i18n['NetworkTab.9']}
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
@@ -176,24 +182,28 @@ export default function Settings() {
             <Accordion mt="xl">
               <Accordion.Item label={i18n['NetworkTab.22']}>
                 <Select
+                  disabled={!canModify}
                   label={i18n['NetworkTab.20']}
                   data={networkInterfaceSettingsRef.current}
                   {...form.getInputProps('network_interface')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.23']}
                   {...form.getInputProps('hostname')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.24']}
                   {...form.getInputProps('port')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.30']}
                   {...form.getInputProps('ip_filter')}
@@ -203,11 +213,12 @@ export default function Settings() {
                   <TextInput
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.35']}
-                    disabled={form.values['automatic_maximum_bitrate']}
+                    disabled={!canModify || form.values['automatic_maximum_bitrate']}
                     {...form.getInputProps('maximum_bitrate')}
                   />
 
                   <Checkbox
+                    disabled={!canModify}
                     mt="xl"
                     label={i18n['GeneralTab.12']}
                     {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
@@ -216,12 +227,14 @@ export default function Settings() {
               </Accordion.Item>
               <Accordion.Item label={i18n['NetworkTab.31']}>
                 <Select
+                  disabled={!canModify}
                   label={i18n['NetworkTab.MediaServerEngine']}
                   data={serverEnginesSettingsRef.current}
                   value={String(form.getInputProps('server_engine').value)}
                 />
 
                 <MultiSelect
+                  disabled={!canModify}
                   mt="xs"
                   data={allRendererNamesSettingsRef.current}
                   label={i18n['NetworkTab.62']}
@@ -230,6 +243,7 @@ export default function Settings() {
 
                 <Group mt="xs">
                   <Select
+                    disabled={!canModify}
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.36']}
                     data={enabledRendererNamesSettingsRef.current}
@@ -238,6 +252,7 @@ export default function Settings() {
                   />
 
                   <Checkbox
+                    disabled={!canModify}
                     mt="xl"
                     label={i18n['GeneralTab.ForceDefaultRenderer']}
                     {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
@@ -245,6 +260,7 @@ export default function Settings() {
                 </Group>
 
                 <Checkbox
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.56']}
                   {...form.getInputProps('external_network', { type: 'checkbox' })}
