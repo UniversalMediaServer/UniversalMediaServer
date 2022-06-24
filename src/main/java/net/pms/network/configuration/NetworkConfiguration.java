@@ -19,6 +19,7 @@
  */
 package net.pms.network.configuration;
 
+import com.google.gson.JsonArray;
 import java.net.*;
 import java.util.*;
 import net.pms.PMS;
@@ -28,9 +29,6 @@ import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 /**
  * This class stores the network configuration information: which network
@@ -503,17 +501,7 @@ public class NetworkConfiguration {
 		List<String> values = getDisplayNames();
 		List<String> labels = getDisplayNamesWithAddress();
 
-		JsonArray jsonArray = new JsonArray();
-		for (int i = 0; i < values.size(); i++) {
-			JsonObject languageGroup = new JsonObject();
-			String value = values.get(i);
-			String label = labels.get(i);
-			languageGroup.addProperty("label", label);
-			languageGroup.addProperty("value", value);
-			jsonArray.add(languageGroup);
-		}
-
-		return jsonArray;
+		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
 	}
 
 	/**
