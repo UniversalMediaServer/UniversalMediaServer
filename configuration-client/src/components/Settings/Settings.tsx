@@ -101,7 +101,7 @@ export default function Settings() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [content, setContent] = useState('common');
+  const [setContent] = useState('common');
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
 
