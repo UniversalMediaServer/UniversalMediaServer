@@ -86,8 +86,8 @@ function App() {
                       {session.account ? (
                         <Router>
                           <Routes>
-                            <Route path='/accounts' element={<Accounts />}></Route>
-                            <Route path='/settings' element={<Settings />}></Route>
+                            <Route path='accounts' element={<Accounts />}></Route>
+                            <Route path='settings' element={<Settings />}></Route>
                             <Route index element={<Settings />} />
                             <Route
                               path="/*"
@@ -97,7 +97,7 @@ function App() {
                         </Router>
                       ) : session.firstLogin ? (
                         <FirstLogin />
-                      ) : (
+                      ) : session && (
                         <Login />
                       )}
                     </AppShell>
