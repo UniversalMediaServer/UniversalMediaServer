@@ -276,11 +276,13 @@ export default function Settings() {
           </Tabs.Tab>
         </Tabs>
 
-        <Group position="right" mt="md">
-          <Button type="submit" loading={isLoading}>
-            {i18n['LooksFrame.9']}
-          </Button>
-        </Group>
+        {canModify && (
+          <Group position="right" mt="md">
+            <Button type="submit" loading={isLoading}>
+              {i18n['LooksFrame.9']}
+            </Button>
+          </Group>
+        )}
       </form>
     </Box>
   ) : (
