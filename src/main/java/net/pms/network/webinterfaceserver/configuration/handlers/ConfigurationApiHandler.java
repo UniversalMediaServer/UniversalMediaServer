@@ -21,7 +21,7 @@ package net.pms.network.webinterfaceserver.configuration.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -60,26 +60,44 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final String[] VALID_KEYS = {
 		"append_profile_name",
 		"auto_update",
+		"audio_bitrate",
+		"audio_channels",
+		"audio_embed_dts_in_pcm",
+		"audio_remux_ac3",
+		"audio_use_pcm",
 		"automatic_maximum_bitrate",
+		"chapter_interval",
+		"chapter_support",
+		"disable_subtitles",
+		"disable_transcode_for_extensions",
+		"encoded_audio_passthrough",
 		"external_network",
+		"force_transcode_for_extensions",
+		"gpu_acceleration",
 		"hostname",
 		"ip_filter",
 		"language",
 		"maximum_bitrate",
+		"mencoder_remux_mpeg2",
+		"maximum_bitrate",
+		"maximum_video_buffer_size",
 		"minimized",
+		"mpeg2_main_settings",
 		"network_interface",
+		"number_of_cpu_cores",
 		"port",
 		"renderer_default",
 		"renderer_force_default",
 		"selected_renderers",
 		"server_engine",
 		"server_name",
-		"show_splash_screen"
+		"show_splash_screen",
+		"x264_constant_rate_factor"
 	};
 
 	public static final String BASE_PATH = "/configuration-api";
 
-	private final Gson gson = new Gson();
+	private final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
 	/**
 	 * Handle API calls.
@@ -161,6 +179,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 					} else if (configurationSetting.getValue() instanceof Integer) {
 						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
 						configuration.setProperty(key, (Integer) configurationSetting.getValue());
+					} else if (configurationSetting.getValue() instanceof Long) {
+						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
+						configuration.setProperty(key, (Long) configurationSetting.getValue());
 					} else if (configurationSetting.getValue() instanceof ArrayList) {
 						ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
 						LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());

@@ -27,6 +27,7 @@ export default function Settings() {
     audio_embed_dts_in_pcm: false,
     audio_bitrate: '448',
     audio_remux_ac3: true,
+    audio_use_pcm: false,
     auto_update: true,
     automatic_maximum_bitrate: true,
     chapter_interval: 5,
@@ -41,10 +42,10 @@ export default function Settings() {
     ip_filter: '',
     language: 'en-US',
     mencoder_remux_mpeg2: true,
-    audio_use_pcm: false,
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
+    mpeg2_main_settings: 'Automatic (Wired)',
     network_interface: '',
     number_of_cpu_cores: 4,
     port: '',
@@ -54,7 +55,6 @@ export default function Settings() {
     server_engine: '0',
     server_name: 'Universal Media Server',
     show_splash_screen: true,
-    mpeg2_main_settings: 'Automatic (Wired)',
     x264_constant_rate_factor: 'Automatic (Wired)'
   };
 
@@ -345,7 +345,7 @@ export default function Settings() {
                   {...form.getInputProps('maximum_video_buffer_size')}
                 />
                 <NumberInput
-                  label={i18n['TrTab2.24']}
+                  label={i18n['TrTab2.24']?.replace('%d', defaultSettings.number_of_cpu_cores)}
                   size="xs"
                   max={64}
                   min={0}
