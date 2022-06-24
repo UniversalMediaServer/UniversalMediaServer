@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion, MultiSelect } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Text, Accordion, MultiSelect } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -6,6 +6,8 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+import SessionContext from '../../contexts/session-context';
+import { havePermission } from '../../services/accounts-service';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -19,6 +21,7 @@ export default function Settings() {
   const enabledRendererNamesSettingsRef = useRef([]);
 
   const i18n = useContext(I18nContext);
+  const session = useContext(SessionContext);
 
   const defaultSettings: Record<string, any> = {
     append_profile_name: false,
@@ -48,9 +51,12 @@ export default function Settings() {
 
   const form = useForm({ initialValues: defaultSettings });
 
+  const canModify = havePermission(session, "settings_modify");
+  const canView = canModify || havePermission(session, "settings_view");
+
   // Code here will run just like componentDidMount
   useEffect(() => {
-    axios.get('/configuration-api/settings')
+    canView && axios.get('/configuration-api/settings')
       .then(function (response: any) {
         const settingsResponse = response.data;
         languageSettingsRef.current = settingsResponse.languages;
@@ -124,7 +130,7 @@ export default function Settings() {
       });
   };
 
-  return (
+  return canView ? (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
@@ -260,6 +266,10 @@ export default function Settings() {
           </Button>
         </Group>
       </form>
+    </Box>
+  ) : (
+    <Box sx={{ maxWidth: 700 }} mx="auto">
+      <Text color="red">You don't have access to this area.</Text>
     </Box>
   );
 }
