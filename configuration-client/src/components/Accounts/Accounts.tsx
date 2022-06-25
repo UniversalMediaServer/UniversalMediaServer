@@ -33,7 +33,7 @@ const Accounts = () => {
 
   function AccountsAccordion(accounts: UmsAccounts) {
     const usersAccordions = accounts.users.map((user) => (
-        <UserAccordion {...user} />
+        <UserAccordion {...user} key={user.id} />
     ));
     return (
       <Accordion initialItem={-1} iconPosition="right">
