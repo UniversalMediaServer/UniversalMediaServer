@@ -2,7 +2,7 @@ import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper } from 
 import { showNotification } from '@mantine/notifications';
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Folder, Folders } from 'tabler-icons-react';
+import { Devices2, Folder, Folders } from 'tabler-icons-react';
 
 export default function DirectoryChooser(props: {
   path: string,
@@ -14,8 +14,9 @@ export default function DirectoryChooser(props: {
   const [opened, setOpened] = useState(false);
 
   const [directories, setDirectories] = useState([] as { value: string, label: string }[]);
-  const [children, setChildren] = useState([] as { value: string, label: string }[]);
+  const [parents, setParents] = useState([] as { value: string, label: string }[]);
   const [selectedDirectory, setSelectedDirectory] = useState('');
+  const [separator, setSeparator] = useState('/');
 
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
@@ -35,15 +36,12 @@ export default function DirectoryChooser(props: {
   };
 
   const getSubdirectories = (path: string) => {
-    let apiUri = '/configuration-api/directories';
-    if (path) {
-      apiUri += '?path=' + path;
-    }
-    axios.get(apiUri)
+    axios.post('/configuration-api/directories', {path:(path)?path:''})
       .then(function (response: any) {
         const directoriesResponse = response.data;
-        setDirectories(directoriesResponse.parents);
-        setChildren(directoriesResponse.children.reverse());
+        setSeparator(directoriesResponse.separator);
+        setDirectories(directoriesResponse.childrens);
+        setParents(directoriesResponse.parents.reverse());
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -76,19 +74,29 @@ export default function DirectoryChooser(props: {
       >
         <Box sx={{ maxWidth: 700 }} mx="auto">
           <Paper shadow="md" p="xs" withBorder>
-            <Breadcrumbs>
-              {children.map(child => (
-                <Button
-                  loading={isLoading}
-                  onClick={() => getSubdirectories(child.value)}
-                  key={"breadcrumb" + child.label}
-                  variant="default"
-                  compact
-                >
-                  {child.label}
-                </Button>
-              ))}
-            </Breadcrumbs>
+            <Group>
+              <Button
+                loading={isLoading}
+                onClick={() => getSubdirectories('roots')}
+                variant="default"
+                compact
+              >
+                <Devices2 />
+              </Button>
+              <Breadcrumbs separator={separator}>
+                {parents.map(parent => (
+                  <Button
+                    loading={isLoading}
+                    onClick={() => getSubdirectories(parent.value)}
+                    key={"breadcrumb" + parent.label}
+                    variant="default"
+                    compact
+                  >
+                    {parent.label}
+                  </Button>
+                ))}
+              </Breadcrumbs>
+            </Group>
           </Paper>
           <Stack spacing="xs" align="flex-start" justify="flex-start" mt="xl">
             {directories.map(directory => (

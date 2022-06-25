@@ -27,7 +27,7 @@ export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
 };
 
 export const getUserGroupsSelection = (accounts: UmsAccounts) => {
-  let result = [];
+  const result = [];
   result.push({ value: '0', label: 'None' });
   accounts.groups.forEach((group) => {
     if (group.id > 0) {

@@ -27,15 +27,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -50,7 +47,6 @@ import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +164,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 					return;
 				}
 				// Here we possibly received some updates to config values
-				String configToSave = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+				String configToSave = WebInterfaceServerUtil.getPostString(exchange);
 				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
@@ -208,7 +204,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 			} else if (api.get("/i18n")) {
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
-			} else if (api.get("/directories")) {
+			} else if (api.post("/directories")) {
+				//only logged users for security concerns
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				if (account == null) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					return;
+				}
 				String directoryResponse = getDirectoryResponse(exchange);
 				if (directoryResponse == null) {
 					WebInterfaceServerUtil.respond(exchange, "Directory does not exist", 404, "application/json");
@@ -222,8 +224,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
 			WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
-		} catch (IOException e) {
-			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
@@ -231,26 +231,33 @@ public class ConfigurationApiHandler implements HttpHandler {
 		}
 	}
 
-	private String getDirectoryResponse(HttpExchange exchange) {
-		JsonObject jsonResponse = new JsonObject();
-
-		Map<String, String> queryParameters = parseQueryString(exchange.getRequestURI().getQuery());
-		String requestedDirectory = queryParameters.get("path");
-		if (StringUtils.isEmpty(requestedDirectory)) {
-			// todo: support all OS'
-			requestedDirectory = System.getProperty("user.home");
+	private static String getDirectoryResponse(HttpExchange exchange) {
+		JsonObject data = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+		String requestedDirectory;
+		if (data != null && data.has("path")) {
+			requestedDirectory = data.get("path").getAsString();
+		} else {
+			requestedDirectory = "";
 		}
-
-		File requestedDirectoryFile = new File(requestedDirectory);
+		return getDirectoryResponse(requestedDirectory);
+	}
+	private static String getDirectoryResponse(String path) {
+		if (StringUtils.isEmpty(path)) {
+			// todo: support all OS'
+			path = System.getProperty("user.home");
+		}
+		if ("roots".equals(path)) {
+			return getRootsDirectoryResponse();
+		}
+		List<File> roots = Arrays.asList(File.listRoots());
+		JsonObject jsonResponse = new JsonObject();
+		File requestedDirectoryFile = new File(path);
 		if (!requestedDirectoryFile.exists()) {
 			return null;
 		}
-		File[] directories = requestedDirectoryFile.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File file) {
-				return file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".");
-			}
-		});
+		File[] directories = requestedDirectoryFile.listFiles(
+			(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
+		);
 		Arrays.sort(directories);
 		JsonArray jsonArray = new JsonArray();
 		for (File file : directories) {
@@ -261,60 +268,43 @@ public class ConfigurationApiHandler implements HttpHandler {
 			directoryGroup.addProperty("value", value);
 			jsonArray.add(directoryGroup);
 		}
-		jsonResponse.add("parents", jsonArray);
-
+		jsonResponse.add("childrens", jsonArray);
+		String name = requestedDirectoryFile.getName();
+		if (StringUtils.isEmpty(name) && roots.contains(requestedDirectoryFile)) {
+			name = requestedDirectoryFile.toString().replace("\\", "");
+		}
 		jsonArray = new JsonArray();
 		JsonObject directoryGroup = new JsonObject();
-		directoryGroup.addProperty("label", requestedDirectoryFile.getName());
+		directoryGroup.addProperty("label", name);
 		directoryGroup.addProperty("value", requestedDirectoryFile.toString());
 		jsonArray.add(directoryGroup);
-
 		while (requestedDirectoryFile.getParentFile() != null && requestedDirectoryFile.getParentFile().isDirectory()) {
 			directoryGroup = new JsonObject();
 			requestedDirectoryFile = requestedDirectoryFile.getParentFile();
-			String name = requestedDirectoryFile.getName();
-			if (StringUtils.isEmpty(name) && requestedDirectoryFile.toString().equals("/")) {
-				name = "/";
+			name = requestedDirectoryFile.getName();
+			if (StringUtils.isEmpty(name) && roots.contains(requestedDirectoryFile)) {
+				name = requestedDirectoryFile.toString().replace("\\", "");
 			}
 			directoryGroup.addProperty("label", name);
 			directoryGroup.addProperty("value", requestedDirectoryFile.toString());
 			jsonArray.add(directoryGroup);
 		}
-		jsonResponse.add("children", jsonArray);
-
+		jsonResponse.add("parents", jsonArray);
+		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
 	}
-
-	/**
-	 * @see https://stackoverflow.com/a/41610845/2049714
-	 */
-	private static Map<String, String> parseQueryString(String qs) {
-		Map<String, String> result = new HashMap<>();
-		if (qs == null) {
-			return result;
+	private static String getRootsDirectoryResponse() {
+		JsonObject jsonResponse = new JsonObject();
+		JsonArray jsonArray = new JsonArray();
+		for (File file : File.listRoots()) {
+			JsonObject directoryGroup = new JsonObject();
+			directoryGroup.addProperty("label", file.toString().replace("\\", ""));
+			directoryGroup.addProperty("value", file.toString());
+			jsonArray.add(directoryGroup);
 		}
-
-		int last = 0, next, l = qs.length();
-		while (last < l) {
-			next = qs.indexOf('&', last);
-			if (next == -1) {
-				next = l;
-			}
-
-			if (next > last) {
-				int eqPos = qs.indexOf('=', last);
-				try {
-					if (eqPos < 0 || eqPos > next) {
-						result.put(URLDecoder.decode(qs.substring(last, next), "utf-8"), "");
-					} else {
-						result.put(URLDecoder.decode(qs.substring(last, eqPos), "utf-8"), URLDecoder.decode(qs.substring(eqPos + 1, next), "utf-8"));
-					}
-				} catch (UnsupportedEncodingException e) {
-					throw new RuntimeException(e); // will never happen, utf-8 support is mandatory for java
-				}
-			}
-			last = next + 1;
-		}
-		return result;
+		jsonResponse.add("childrens", jsonArray);
+		jsonResponse.add("parents", new JsonArray());
+		jsonResponse.add("separator", new JsonPrimitive(File.separator));
+		return jsonResponse.toString();
 	}
 }
