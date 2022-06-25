@@ -1,8 +1,8 @@
-import { TextInput, Checkbox, Button, Group, Box, Select, Tabs, Accordion, MultiSelect } from '@mantine/core';
+import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -10,6 +10,7 @@ import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
+  const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
 
   // key/value pairs for dropdowns
@@ -26,17 +27,33 @@ export default function Settings() {
   const defaultSettings: Record<string, any> = {
     alternate_thumb_folder: '',
     append_profile_name: false,
+    audio_channels: '6',
+    audio_embed_dts_in_pcm: false,
+    audio_bitrate: '448',
+    audio_remux_ac3: true,
+    audio_use_pcm: false,
     audio_thumbnails_method: '1',
     auto_update: true,
     automatic_maximum_bitrate: true,
+    chapter_interval: 5,
+    chapter_support: false,
+    disable_subtitles: false,
+    disable_transcode_for_extensions: '',
+    encoded_audio_passthrough: false,
+    force_transcode_for_extensions: '',
+    gpu_acceleration: false,
     external_network: true,
     generate_thumbnails: true,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
+    mencoder_remux_mpeg2: true,
+    maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
+    mpeg2_main_settings: 'Automatic (Wired)',
     network_interface: '',
+    number_of_cpu_cores: 4,
     port: '',
     renderer_default: '',
     renderer_force_default: false,
@@ -46,6 +63,7 @@ export default function Settings() {
     show_splash_screen: true,
     sort_method: '4',
     thumbnail_seek_position: '4',
+    x264_constant_rate_factor: 'Automatic (Wired)',
   };
 
   const openGitHubNewIssue = () => {
@@ -92,7 +110,8 @@ export default function Settings() {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  // eslint-disable-next-line
+  const [content, setContent] = useState('common');
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
 
@@ -296,8 +315,200 @@ export default function Settings() {
           <Tabs.Tab label={i18n['LooksFrame.TabSharedContent']}>
             
           </Tabs.Tab>
-        </Tabs>
+          <Tabs.Tab label={i18n['LooksFrame.21']}>
+            <Grid>
+              <Grid.Col span={5}>
+                <Navbar width={{ }} p="xs">
+                  <Navbar.Section>
+                    <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('common')}>
+                      Common transcode settings
+                    </Button>
+                  </Navbar.Section>
+                  <Navbar.Section>
+                  <Accordion>
+                    <Accordion.Item label="Video Files Engines">
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
+                        FFmpeg Video
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
+                        MEncoder Video
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
+                        tsMuxeR Video
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
+                        VLC Video
+                      </Button>
+                    </Accordion.Item>
+                    <Accordion.Item label="Audio Files Engines">
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
+                        FFmpeg Audio
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
+                        tsMuxeR Video
+                      </Button>
+                    </Accordion.Item>
+                    <Accordion.Item label="Web video streaming engines">
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
+                        FFmpeg Web Video
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
+                        youtube-dl
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
+                        VLC Web Video
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
+                        VLC Web Video (legacy)
+                      </Button>
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
+                        Mencoder Web Video
+                      </Button>
+                    </Accordion.Item>
+                    <Accordion.Item label="Web audio streaming engines">
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebaudio')}>
+                        VLC Web Audio (Legacy)
+                      </Button>
+                    </Accordion.Item>
+                    <Accordion.Item label="Misc engines">
+                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('dcraw')}>
+                        DCRaw
+                      </Button>
+                    </Accordion.Item>
+                  </Accordion>
+                  </Navbar.Section>
 
+                </Navbar>
+              </Grid.Col>
+              <Grid.Col span={7}>
+                <TextInput
+                  label={i18n['TrTab2.23']}
+                  name="maximum_video_buffer_size"
+                  sx={{ flex: 1 }}
+                  size="xs"
+                  {...form.getInputProps('maximum_video_buffer_size')}
+                />
+                <NumberInput
+                  label={i18n['TrTab2.24']?.replace('%d', defaultSettings.number_of_cpu_cores)}
+                  size="xs"
+                  max={64}
+                  min={0}
+                  disabled={false}
+                  {...form.getInputProps('number_of_cpu_cores')}
+                />
+                <Space h="xs"/>
+                <Grid>
+                  <Grid.Col span={10}>
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.52']}
+                      {...form.getInputProps('chapter_support', { type: 'checkbox' })}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={2}>
+                    <TextInput
+                      sx={{ flex: 1 }}
+                      disabled={!form.values['chapter_support']}
+                      {...form.getInputProps('chapter_interval')}
+                    />
+                  </Grid.Col>
+                </Grid>
+                <Checkbox
+                  size="xs"
+                  label={i18n['TrTab2.51']}
+                  {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+                />
+                <Space h="md"/>
+                <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
+                  <Tabs.Tab label={i18n['TrTab2.67']}>
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.70']}
+                      {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <Checkbox
+                      size="xs"
+                      label={i18n['MEncoderVideo.39']}
+                      {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <TextInput
+                      label={i18n['TrTab2.32']}
+                      sx={{ flex: 1 }}
+                      disabled={form.values['automatic_maximum_bitrate']}
+                      {...form.getInputProps('mpeg2_main_settings')}
+                    />
+                    <TextInput
+                      label={i18n['TrTab2.79']}
+                      sx={{ flex: 1 }}
+                      disabled={form.values['automatic_maximum_bitrate']}
+                      {...form.getInputProps('x264_constant_rate_factor')}
+                    />
+                    <TextInput
+                      label={i18n['TrTab2.8']}
+                      sx={{ flex: 1 }}
+                      {...form.getInputProps('disable_transcode_for_extensions')}
+                    />
+                    <TextInput
+                      label={i18n['TrTab2.9']}
+                      sx={{ flex: 1 }}
+                      {...form.getInputProps('force_transcode_for_extensions')}
+                    />
+                  </Tabs.Tab>
+                  <Tabs.Tab label={i18n['TrTab2.68']}>
+                    <Select
+                      label={i18n['TrTab2.50']}
+                      data={[{value: '6', label: '6 channels (5.1)'}, {value: '2', label: '2 channels (Stereo)'}]}
+                      size="xs"
+                      {...form.getInputProps('audio_channels')}
+                    />
+                    <Space h="xs" />
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.27']}
+                      {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.26']}
+                      {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.28']}
+                      {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <Checkbox
+                      size="xs"
+                      label={i18n['TrTab2.53']}
+                      {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
+                    />
+                    <Space h="xs" />
+                    <TextInput
+                      label={i18n['TrTab2.29']}
+                      sx={{ flex: 1 }}
+                      size="xs"
+                      {...form.getInputProps('audio_bitrate')}
+                    />
+                    <TextInput
+                      label={i18n['MEncoderVideo.7']}
+                      sx={{ flex: 1 }}
+                      size="xs"
+                      {...form.getInputProps('audio_languages')}
+                    />
+                  </Tabs.Tab>
+                    <Tabs.Tab label={i18n['MEncoderVideo.8']}>
+                      Subtitles settings
+                    </Tabs.Tab>
+                  </Tabs>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Tab>
+        </Tabs>
         <Group position="right" mt="md">
           <Button type="submit" loading={isLoading}>
             {i18n['LooksFrame.9']}
@@ -306,4 +517,4 @@ export default function Settings() {
       </form>
     </Box>
   );
-}
+ }
