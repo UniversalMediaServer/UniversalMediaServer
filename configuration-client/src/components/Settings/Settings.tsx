@@ -59,6 +59,8 @@ export default function Settings() {
     hostname: '',
     ip_filter: '',
     language: 'en-US',
+    live_subtitles_keep: false,
+    live_subtitles_limit: 20,
     mencoder_remux_mpeg2: true,
     mencoder_subfribidi: false,
     maximum_video_buffer_size: 200,
@@ -725,6 +727,24 @@ export default function Settings() {
                         </Grid.Col>
                         <Grid.Col span={8}> <Text>{subtitleColor}</Text></Grid.Col>
                       </Grid>
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.DeleteLiveSubtitles']}
+                          {...form.getInputProps('live_subtitles_keep', { type: 'checkbox' })}
+                        />
+                      </Tooltip>
+                      <Space h="xs" />
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.LiveSubtitlesLimitTooltip'])} {...defaultTooltipSettings}>
+                        <NumberInput
+                          label={i18n['TrTab2.LiveSubtitlesLimit']}
+                          size="xs"
+                          max={5}
+                          min={-5}
+                          disabled={false}
+                          {...form.getInputProps('live_subtitles_limit')}
+                        />
+                        </Tooltip>
                     </Tabs.Tab>
                   </Tabs>
               </Grid.Col>
