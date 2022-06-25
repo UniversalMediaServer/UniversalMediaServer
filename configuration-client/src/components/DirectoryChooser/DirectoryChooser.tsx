@@ -71,19 +71,20 @@ export default function DirectoryChooser(props: {
           </Group>
         }
         overflow="inside"
+        size="lg"
       >
-        <Box sx={{ maxWidth: 700 }} mx="auto">
+        <Box mx="auto">
           <Paper shadow="md" p="xs" withBorder>
             <Group>
-              <Button
-                loading={isLoading}
-                onClick={() => getSubdirectories('roots')}
-                variant="default"
-                compact
-              >
-                <Devices2 />
-              </Button>
               <Breadcrumbs separator={separator}>
+                <Button
+                  loading={isLoading}
+                  onClick={() => getSubdirectories('roots')}
+                  variant="default"
+                  compact
+                >
+                  <Devices2 />
+                </Button>
                 {parents.map(parent => (
                   <Button
                     loading={isLoading}
