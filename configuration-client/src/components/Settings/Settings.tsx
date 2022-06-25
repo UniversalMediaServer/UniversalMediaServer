@@ -67,6 +67,13 @@ export default function Settings() {
     x264_constant_rate_factor: 'Automatic (Wired)',
   };
 
+  const defaultTooltipSettings = {
+    width: 350,
+    color: "blue",
+    wrapLines: true,
+    withArrow: true,
+  }
+
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
@@ -231,7 +238,7 @@ export default function Settings() {
                     {...form.getInputProps('maximum_bitrate')}
                   />
                   
-                  <Tooltip label={getToolTipContent(i18n['GeneralTab.12.Tooltip'])} width={350} color="blue" wrapLines withArrow>
+                  <Tooltip label={getToolTipContent(i18n['GeneralTab.12.Tooltip'])} {...defaultTooltipSettings}>
                     <Checkbox
                       mt="xl"
                       label={i18n['GeneralTab.12']}
@@ -242,7 +249,7 @@ export default function Settings() {
               </Accordion.Item>
               <Accordion.Item label={i18n['NetworkTab.31']}>
               
-                <Tooltip label={getToolTipContent(i18n['NetworkTab.MediaServerEngineTooltip'])} width={350} color="blue" wrapLines withArrow>
+                <Tooltip label={getToolTipContent(i18n['NetworkTab.MediaServerEngineTooltip'])} {...defaultTooltipSettings}>
                   <Select
                     label={i18n['NetworkTab.MediaServerEngine']}
                     data={serverEnginesSettingsRef.current}
@@ -266,7 +273,7 @@ export default function Settings() {
                     searchable
                   />
 
-                  <Tooltip label={getToolTipContent(i18n['GeneralTab.ForceDefaultRendererTooltip'])} width={350} color="blue" wrapLines withArrow>
+                  <Tooltip label={getToolTipContent(i18n['GeneralTab.ForceDefaultRendererTooltip'])} {...defaultTooltipSettings}>
                     <Checkbox
                       mt="xl"
                       label={i18n['GeneralTab.ForceDefaultRenderer']}
@@ -275,7 +282,7 @@ export default function Settings() {
                   </Tooltip>
                 </Group>
                 
-                <Tooltip label={getToolTipContent(i18n['NetworkTab.67'])} width={350} color="blue" wrapLines withArrow>
+                <Tooltip label={getToolTipContent(i18n['NetworkTab.67'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xs"
                     label={i18n['NetworkTab.56']}
@@ -437,7 +444,7 @@ export default function Settings() {
                       {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
                     />
                     <Space h="xs" />
-                    <Tooltip label={getToolTipContent(i18n['TrTab2.82'])} width={350} color="blue" wrapLines withArrow>
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.82'])} {...defaultTooltipSettings}>
                       <Checkbox
                         size="xs"
                         label={i18n['MEncoderVideo.39']}
@@ -445,7 +452,7 @@ export default function Settings() {
                       />
                     </Tooltip>
                     <Space h="xs" />
-                    <Tooltip label={getToolTipContent(i18n['TrTab2.74'])} width={350} color="blue" wrapLines withArrow>
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.74'])} {...defaultTooltipSettings}>
                       <TextInput
                         label={i18n['TrTab2.32']}
                         sx={{ flex: 1 }}
@@ -454,7 +461,7 @@ export default function Settings() {
                       />
                     </Tooltip>
                     <Space h="xs" />
-                    <Tooltip label={getToolTipContent(i18n['TrTab2.81'])} width={350} color="blue" wrapLines withArrow>
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.81'])} {...defaultTooltipSettings}>
                       <TextInput
                         label={i18n['TrTab2.79']}
                         sx={{ flex: 1 }}
