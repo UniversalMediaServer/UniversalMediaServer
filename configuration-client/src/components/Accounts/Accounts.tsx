@@ -1,4 +1,4 @@
-import { Accordion, Avatar, Box, Button, Divider, Group, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, CheckboxGroup, Divider, Group, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
@@ -266,6 +266,37 @@ const Accounts = () => {
     )
   };
 
+  function GroupPermissionsForm(group: UmsGroup, accounts: UmsAccounts) {
+    const [permissions, setPermissions] = useState<string[]>(group.permissions);
+    const groupPermissionsForm = useForm({ initialValues: {id:group.id} });
+    const handleGroupPermissionsSubmit = (values: typeof groupPermissionsForm.values) => {
+      const data = {operation:'updatepermission', groupid:group.id, permissions:permissions};
+      postAccountAction(data, 'Group permissions', 'Group permissions was changed successfully', 'Group permissions was not changed.');
+    }
+    return (
+      <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
+        <Divider my="sm" label="Permissions" />
+        <CheckboxGroup
+          value={permissions}
+          onChange={setPermissions}
+          orientation="vertical"
+        >
+          <Checkbox value="*" label="All permissions" />
+          <Checkbox value="server_restart" label="Restart Server" />
+          <Checkbox value="users_manage" label="Manage users" />
+          <Checkbox value="groups_manage" label="Manage groups" />
+          <Checkbox value="settings_view" label="View Settings" />
+          <Checkbox value="settings_modify" label="Modify Settings" />
+        </CheckboxGroup>
+        <Group position="right" mt="md">
+          <Button type="submit">
+            Change
+          </Button>
+        </Group>
+      </form>
+    )
+  };
+
   function GroupDeleteForm(group: UmsGroup) {
     const groupDeleteForm = useForm({ initialValues: {id:group.id} });
     const handleGroupDeleteSubmit = () => {
@@ -301,11 +332,13 @@ const Accounts = () => {
   function GroupAccordion(group: UmsGroup, accounts: UmsAccounts) {
     const groupAccordionLabel = GroupAccordionLabel(group);
     const groupDisplayNameForm = GroupDisplayNameForm(group);
+    const groupPermissionsForm = GroupPermissionsForm(group, accounts);
     const groupDeleteForm = GroupDeleteForm(group);
     //perms
     return group.id > 0 ? (
       <Accordion.Item label={groupAccordionLabel} key={group.id}>
         {groupDisplayNameForm}
+        {groupPermissionsForm}
         {groupDeleteForm}
       </Accordion.Item>
     ) : null;
