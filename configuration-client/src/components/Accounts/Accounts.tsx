@@ -1,11 +1,12 @@
 import { Accordion, Avatar, Box, Button, Divider, Group, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { useState } from 'react';
+import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
+
 import { UmsGroup, UmsUser } from '../../contexts/session-context';
 import AccountsContext, { UmsAccounts } from '../../contexts/accounts-context';
 import { AccountsProvider } from '../../providers/accounts-provider';
 import { getUserGroup, getUserGroupsSelection, postAccountAction } from '../../services/accounts-service';
-import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
-import { useForm } from '@mantine/form';
-import { useState } from 'react';
 
 const Accounts = () => {
   const [activeTab, setActiveTab] = useState(0);

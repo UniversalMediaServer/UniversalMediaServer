@@ -1,5 +1,6 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
+import _ from 'lodash';
 
 const storeJwtInLocalStorage = (jwt: string) => {
   localStorage.setItem('user', jwt);
@@ -9,65 +10,58 @@ const storeJwtInLocalStorage = (jwt: string) => {
 }
 
 export const login = (username: string, password: string) => {
-  return axios
+  const response = await axios
     .post('/v1/api/auth/login', {
       username,
       password,
-    })
-    .then((response) => {
-      if (response.data.token) {
-        storeJwtInLocalStorage(response.data.token);
-      }
-      if (response.data.account) {
-        //refresh session.account 
-      }
-      return response.data;
     });
+  if (response.data.token) {
+    storeJwtInLocalStorage(response.data.token);
+  }
+  if (response.data.account) {
+    //refresh session.account 
+  }
+  return response.data;
 };
 
-export const create = (username: string, password: string) => {
-  return axios
+export const create = async (username: string, password: string) => {
+  const response = await axios
     .post('/v1/api/auth/create', {
       username,
       password,
-    })
-    .then((response) => {
-      if (response.data.token) {
-        storeJwtInLocalStorage(response.data.token);
-      }
-      if (response.data.account) {
-        //refresh session.account 
-      }
-      return response.data;
     });
+  if (response.data.token) {
+    storeJwtInLocalStorage(response.data.token);
+  }
+  if (response.data.account) {
+    //refresh session.account 
+  }
+  return response.data;
 };
 
-export const changePassword = (currentPassword: string, newPassword: string) => {
-  return axios
-    .post('/v1/api/user/changepassword', {
-      password: currentPassword,
-      newPassword,
-    })
-    .then((response) => {
-      return response.data;
-    })
-    .catch((e) => {
-      const { error } = e.response.data
-      if (error) {
-        return {error};
-      }
-      throw e;
-    });
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  try {
+    const response = await axios
+      .post('/v1/api/user/changepassword', {
+        password: currentPassword,
+        newPassword,
+      });
+    return response.data;
+  } catch (e: unknown) {
+    const { error } = _.get(e, 'response.data');
+    if (error) {
+      return { error };
+    }
+    throw e;
+  }
 }
 
-export const refreshToken = () => {
-  return axios
-    .post('/v1/api/auth/refresh', {})
-    .then((response) => {
-      if (response.data.token) {
-        storeJwtInLocalStorage(response.data.token);
-      }
-    });
+export const refreshToken = async () => {
+  const response = await axios
+    .post('/v1/api/auth/refresh', {});
+  if (response.data.token) {
+    storeJwtInLocalStorage(response.data.token);
+  }
 }
 
 export const refreshAuthTokenNearExpiry = () => {
