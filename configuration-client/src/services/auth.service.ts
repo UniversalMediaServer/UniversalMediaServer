@@ -9,7 +9,7 @@ const storeJwtInLocalStorage = (jwt: string) => {
   localStorage.setItem('tokenExpiry', exp);
 }
 
-export const login = (username: string, password: string) => {
+export const login = async (username: string, password: string) => {
   const response = await axios
     .post('/v1/api/auth/login', {
       username,
