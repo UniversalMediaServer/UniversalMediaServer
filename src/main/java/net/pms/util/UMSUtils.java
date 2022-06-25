@@ -40,6 +40,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 public class UMSUtils {
 
 	private static final Collator COLLATOR;
@@ -691,5 +694,73 @@ public class UMSUtils {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 		}
+	}
+
+	/**
+	 * The keys are in the format Mantine expects, which can
+	 * be confusing - "value" in Mantine is what is usually
+	 * referred to as the "key".
+	 *
+	 * @param values
+	 * @param labels
+	 * @param jsonArray optional array to add to
+	 * @return an array of objects in the format:
+	 * [
+	 *   {
+	 *     "value": "bar",
+	 *     "label": "foo"
+	 *   },
+	 *   ...
+	 * ]
+	 */
+	public static JsonArray getArraysAsJsonArrayOfObjects(String[] values, String[] labels, JsonArray jsonArray) {
+		if (jsonArray == null) {
+			jsonArray = new JsonArray();
+		}
+
+		for (int i = 0; i < values.length; i++) {
+			JsonObject objectGroup = new JsonObject();
+			String value = values[i];
+			String label = labels[i];
+			objectGroup.addProperty("value", value);
+			objectGroup.addProperty("label", label);
+			jsonArray.add(objectGroup);
+		}
+
+		return jsonArray;
+	}
+
+	/**
+	 * The keys are in the format Mantine expects, which can
+	 * be confusing - "value" in Mantine is what is usually
+	 * referred to as the "key".
+	 *
+	 * @param values
+	 * @param labels
+	 * @param jsonArray optional array to add to
+	 * @return an array of objects in the format:
+	 * [
+	 *   {
+	 *     "value": "bar",
+	 *     "label": "foo"
+	 *   },
+	 *   ...
+	 * ]
+	 */
+	public synchronized static JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
+		if (jsonArray == null) {
+			jsonArray = new JsonArray();
+		}
+
+		for (int i = 0; i < values.size(); i++) {
+			JsonObject objectGroup = new JsonObject();
+			String value = values.get(i);
+			String label = labels.get(i);
+			objectGroup.addProperty("label", label);
+			objectGroup.addProperty("value", value);
+			jsonArray.add(objectGroup);
+		}
+
+		return jsonArray;
 	}
 }

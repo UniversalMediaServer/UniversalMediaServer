@@ -33,6 +33,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
@@ -190,6 +191,7 @@ public class RendererConfiguration extends Renderer {
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS = "SendDateMetadataYearForAudioTags";
 	protected static final String SEND_DLNA_ORG_FLAGS = "SendDLNAOrgFlags";
 	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
@@ -2192,6 +2194,15 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
+	 * Note: This can break browsing on some renderers, even though it is valid.
+	 *
+	 * @return whether to send the release year as the `dc:date` tag for audio tracks
+	 */
+	public boolean isSendDateMetadataYearForAudioTags() {
+		return getBoolean(SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS, false);
+	}
+
+	/**
 	 * Whether to send folder thumbnails.
 	 *
 	 * @return whether to send folder thumbnails
@@ -3123,7 +3134,11 @@ public class RendererConfiguration extends Renderer {
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
 				//escape "\" char with "\\" otherwise json will fail
-				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"))
+				(key, value) -> {
+					if (Arrays.asList(ConfigurationApiHandler.VALID_KEYS).contains(key)) {
+						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
+					}
+				}
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);

@@ -20,12 +20,18 @@
 package net.pms.network.webinterfaceserver.configuration.handlers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +51,7 @@ import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +60,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
-	//keys to never expose to the internet
-	private static final String[] CRITICAL_KEYS = {
-		"jwt_secret"
-	};
-	private static final String[] VALID_KEYS = {
+
+	public static final String[] VALID_KEYS = {
 		"append_profile_name",
+		"audio_thumbnails_method",
 		"auto_update",
 		"audio_bitrate",
 		"audio_channels",
@@ -74,6 +79,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"external_network",
 		"force_transcode_for_extensions",
 		"gpu_acceleration",
+		"generate_thumbnails",
 		"hostname",
 		"ip_filter",
 		"language",
@@ -92,6 +98,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"server_engine",
 		"server_name",
 		"show_splash_screen",
+		"thumbnail_seek_position",
 		"x264_constant_rate_factor"
 	};
 
@@ -142,11 +149,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
+				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
+				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
 
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-				for (String criticalKey : CRITICAL_KEYS) {
-					configurationAsJson.remove(criticalKey);
-				}
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
@@ -201,6 +207,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 			} else if (api.get("/i18n")) {
 				String i18nAsJson = Messages.getStringsAsJson();
 				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
+			} else if (api.get("/directories")) {
+				String directoryResponse = getDirectoryResponse(exchange);
+				if (directoryResponse == null) {
+					WebInterfaceServerUtil.respond(exchange, "Directory does not exist", 404, "application/json");
+					return;
+				}
+				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
 			} else {
 				LOGGER.trace("ConfigurationApiHandler request not available : {}", api.getEndpoint());
 				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
@@ -215,5 +228,92 @@ public class ConfigurationApiHandler implements HttpHandler {
 			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	private String getDirectoryResponse(HttpExchange exchange) {
+		JsonObject jsonResponse = new JsonObject();
+
+		Map<String, String> queryParameters = parseQueryString(exchange.getRequestURI().getQuery());
+		String requestedDirectory = queryParameters.get("path");
+		if (StringUtils.isEmpty(requestedDirectory)) {
+			// todo: support all OS'
+			requestedDirectory = System.getProperty("user.home");
+		}
+
+		File requestedDirectoryFile = new File(requestedDirectory);
+		if (!requestedDirectoryFile.exists()) {
+			return null;
+		}
+		File[] directories = requestedDirectoryFile.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".");
+			}
+		});
+		Arrays.sort(directories);
+		JsonArray jsonArray = new JsonArray();
+		for (File file : directories) {
+			JsonObject directoryGroup = new JsonObject();
+			String value = file.toString();
+			String label = file.getName();
+			directoryGroup.addProperty("label", label);
+			directoryGroup.addProperty("value", value);
+			jsonArray.add(directoryGroup);
+		}
+		jsonResponse.add("parents", jsonArray);
+
+		jsonArray = new JsonArray();
+		JsonObject directoryGroup = new JsonObject();
+		directoryGroup.addProperty("label", requestedDirectoryFile.getName());
+		directoryGroup.addProperty("value", requestedDirectoryFile.toString());
+		jsonArray.add(directoryGroup);
+
+		while (requestedDirectoryFile.getParentFile() != null && requestedDirectoryFile.getParentFile().isDirectory()) {
+			directoryGroup = new JsonObject();
+			requestedDirectoryFile = requestedDirectoryFile.getParentFile();
+			String name = requestedDirectoryFile.getName();
+			if (StringUtils.isEmpty(name) && requestedDirectoryFile.toString().equals("/")) {
+				name = "/";
+			}
+			directoryGroup.addProperty("label", name);
+			directoryGroup.addProperty("value", requestedDirectoryFile.toString());
+			jsonArray.add(directoryGroup);
+		}
+		jsonResponse.add("children", jsonArray);
+
+		return jsonResponse.toString();
+	}
+
+	/**
+	 * @see https://stackoverflow.com/a/41610845/2049714
+	 */
+	private static Map<String, String> parseQueryString(String qs) {
+		Map<String, String> result = new HashMap<>();
+		if (qs == null) {
+			return result;
+		}
+
+		int last = 0, next, l = qs.length();
+		while (last < l) {
+			next = qs.indexOf('&', last);
+			if (next == -1) {
+				next = l;
+			}
+
+			if (next > last) {
+				int eqPos = qs.indexOf('=', last);
+				try {
+					if (eqPos < 0 || eqPos > next) {
+						result.put(URLDecoder.decode(qs.substring(last, next), "utf-8"), "");
+					} else {
+						result.put(URLDecoder.decode(qs.substring(last, eqPos), "utf-8"), URLDecoder.decode(qs.substring(eqPos + 1, next), "utf-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e); // will never happen, utf-8 support is mandatory for java
+				}
+			}
+			last = next + 1;
+		}
+		return result;
 	}
 }
