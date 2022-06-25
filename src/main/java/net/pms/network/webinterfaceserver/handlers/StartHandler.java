@@ -29,7 +29,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
-import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,8 @@ import org.slf4j.LoggerFactory;
 public class StartHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	@SuppressWarnings("unused")
+	private static final String CRLF = "\r\n";
 
 	private final WebInterfaceServerHttpServer parent;
 
@@ -56,11 +57,6 @@ public class StartHandler implements HttpHandler {
 			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
 				WebInterfaceServerUtil.sendLogo(t);
-				return;
-			}
-
-			//react app
-			if (ConfigurationClientHandler.handleApp(parent, t)) {
 				return;
 			}
 

@@ -148,23 +148,23 @@ public class AccountService {
 		createUser(connection, username, password, username, 0);
 	}
 
-	public static void createUser(final Connection connection, final String username, final String password, final String displayName) {
-		createUser(connection, username, password, displayName, 0);
+	public static void createUser(final Connection connection, final String username, final String password, final String name) {
+		createUser(connection, username, password, name, 0);
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password, final int groupId) {
 		createUser(connection, username, password, username, groupId);
 	}
 
-	public static void createUser(final Connection connection, final String username, final String password, final String displayName, final int groupId) {
+	public static void createUser(final Connection connection, final String username, final String password, final String name, final int groupId) {
 		LOGGER.info("Creating user: {}", username);
-		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(displayName, 255), groupId);
+		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(name, 255), groupId);
 	}
 
-	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId) {
+	public static void updateUser(final Connection connection, final int userId, final String name, final int groupId) {
 		LOGGER.info("Updating user id : {}", userId);
-		if (UserTableUsers.updateUser(connection, userId, displayName, groupId) && USERS.containsKey(userId)) {
-			USERS.get(userId).setDisplayName(displayName);
+		if (UserTableUsers.updateUser(connection, userId, name, groupId) && USERS.containsKey(userId)) {
+			USERS.get(userId).setDisplayName(name);
 			USERS.get(userId).setGroupId(groupId);
 		}
 	}

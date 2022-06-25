@@ -2,14 +2,7 @@ import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import _ from 'lodash';
 
-const storeJwtInLocalStorage = (jwt: string) => {
-  localStorage.setItem('user', jwt);
-  // @ts-ignore
-  const {exp} = jwt_decode(jwt);
-  localStorage.setItem('tokenExpiry', exp);
-}
-
-export const login = (username: string, password: string) => {
+export const login = async (username: string, password: string) => {
   const response = await axios
     .post('/v1/api/auth/login', {
       username,
@@ -64,6 +57,13 @@ export const refreshToken = async () => {
   }
 }
 
+const storeJwtInLocalStorage = (jwt: string) => {
+  localStorage.setItem('user', jwt);
+  // @ts-ignore
+  const {exp} = jwt_decode(jwt);
+  localStorage.setItem('tokenExpiry', exp);
+}
+
 export const refreshAuthTokenNearExpiry = () => {
   if (!localStorage.getItem('tokenExpiry')) {
     return;
@@ -81,12 +81,4 @@ export const refreshAuthTokenNearExpiry = () => {
 export const clearJwt = () => {
   localStorage.removeItem('tokenExpiry');
   localStorage.removeItem('user');
-}
-
-export const getJwt = () => {
-  return localStorage.getItem('user');
-}
-
-export const getJwtPayload = () => {
-  return localStorage.getItem('user')?.split('.')[1];
 }
