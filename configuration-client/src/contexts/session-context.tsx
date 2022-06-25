@@ -15,9 +15,9 @@ export interface UmsUser {
 }
 
 export interface UmsGroup {
-    id : number,
-    displayName : string,
-	permissions : string[],
+  id : number,
+  displayName : string,
+  permissions : string[],
 }
 
 export interface UmsAccount {
@@ -26,6 +26,7 @@ export interface UmsAccount {
 }
 
 export interface UmsSession {
-    firstLogin : boolean,
-	account? : UmsAccount,
+  firstLogin : boolean,
+  account? : UmsAccount,
+  initialized: boolean,
 }

@@ -1,4 +1,4 @@
-import { AppShell, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme } from '@mantine/core';
+import { AppShell, Box, Center, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme, Loader } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import {
   BrowserRouter as Router,
@@ -99,8 +99,14 @@ function App() {
                         </Router>
                       ) : session.firstLogin ? (
                         <FirstLogin />
-                      ) : (
+                      ) : session.initialized ? (
                         <Login />
+                      ): (
+                        <Center>
+                          <Box sx={{ maxWidth: 700 }} mx="auto">
+                            <Loader size="xl" variant="dots" sx={{marginTop: '150px'}}/>
+                          </Box>
+                        </Center>
                       )}
                     </AppShell>
                   </div>
