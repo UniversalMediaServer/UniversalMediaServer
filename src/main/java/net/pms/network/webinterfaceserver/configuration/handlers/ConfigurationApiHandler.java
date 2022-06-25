@@ -62,6 +62,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 
 	public static final String[] VALID_KEYS = {
+		"alternate_thumb_folder",
 		"append_profile_name",
 		"audio_thumbnails_method",
 		"auto_update",

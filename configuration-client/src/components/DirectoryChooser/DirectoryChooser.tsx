@@ -125,6 +125,7 @@ export default function DirectoryChooser(props: {
         label={props.label}
         sx={{ flex: 1 }}
         value={props.path}
+        readOnly
       />
       <Button
         mt="xl"
