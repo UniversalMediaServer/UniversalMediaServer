@@ -177,7 +177,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				//select need string, not number
-				String[] needConvertToString = {"server_engine", "number_of_cpu_cores", "audio_thumbnails_method", "sort_method"};
+				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
 				for (String key : needConvertToString) {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						String value = configurationAsJson.get(key).getAsString();
