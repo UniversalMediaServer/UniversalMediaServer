@@ -33,7 +33,7 @@ const Accounts = () => {
   };
 
   function NewUserForm(accounts: UmsAccounts) {
-    const newUserForm = useForm({ initialValues: {username:null,password:null,groupid:0,displayname:null} });
+    const newUserForm = useForm({ initialValues: {username:null,password:null,groupid:"0",displayname:null} });
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = {operation:'createuser', username:values.username, password:values.password, groupid:values.groupid, displayname:values.displayname};
       postAccountAction(data, 'User creation', 'New user was created successfully', 'New user was not created.');
@@ -49,9 +49,9 @@ const Accounts = () => {
         />
         <PasswordInput
           required
-          label='Password'
+          label="Password"
           name="username"
-          type='password'
+          type="password"
           {...newUserForm.getInputProps('password')}
         />
         <TextInput
@@ -62,10 +62,10 @@ const Accounts = () => {
         />
         <Select
           required
-          label='Group'
+          label="Group"
           name="groupId"
           data={groupDatas2}
-          value='0'
+          {...newUserForm.getInputProps('groupid')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
@@ -93,9 +93,9 @@ const Accounts = () => {
         />
         <PasswordInput
           required
-          label='Password'
+          label="Password"
           name="username"
-          type='password'
+          type="password"
           {...userIdentityForm.getInputProps('password')}
         />
         <Group position="right" mt="md">
@@ -131,7 +131,7 @@ const Accounts = () => {
   };
 
   function UserGroupForm(user: UmsUser, accounts: UmsAccounts) {
-    const userGroupForm = useForm({ initialValues: {id:user.id,groupId:user.groupId} });
+    const userGroupForm = useForm({ initialValues: {id:user.id,groupId:user.groupId.toString()} });
     const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {
       const data = {operation:'modifyuser', userid:user.id, groupid:values.groupId};
       postAccountAction(data, 'User group change', 'User group was changed successfully', 'User group was not changed.');
@@ -141,11 +141,11 @@ const Accounts = () => {
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
         <Divider my="sm" label="Group" />
         <Select
-          label='Group'
+          label="Group"
           name="groupId"
           disabled={!accounts.groupsManage}
           data={groupDatas}
-          value={user.groupId.toString()}
+          {...userGroupForm.getInputProps('groupId')}
         />
         {accounts.groupsManage && (
           <Group position="right" mt="md">
