@@ -25,6 +25,7 @@ export default function Settings() {
   const enabledRendererNamesSettingsRef = useRef([]);
   const audioCoverSuppliersSettingsRef = useRef([]);
   const sortMethodsSettingsRef = useRef([]);
+  const numberOfCpuCoresSettingsRef = useRef(1);
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -58,7 +59,7 @@ export default function Settings() {
     minimized: false,
     mpeg2_main_settings: 'Automatic (Wired)',
     network_interface: '',
-    number_of_cpu_cores: 4,
+    number_of_cpu_cores: numberOfCpuCoresSettingsRef.current,
     port: '',
     renderer_default: '',
     renderer_force_default: false,
@@ -101,6 +102,10 @@ export default function Settings() {
         enabledRendererNamesSettingsRef.current = settingsResponse.enabledRendererNames;
         audioCoverSuppliersSettingsRef.current = settingsResponse.audioCoverSuppliers;
         sortMethodsSettingsRef.current = settingsResponse.sortMethods;
+        numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
+
+        //update default settings
+        defaultSettings.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
@@ -272,7 +277,7 @@ export default function Settings() {
                     disabled={!canModify}
                     label={i18n['NetworkTab.MediaServerEngine']}
                     data={serverEnginesSettingsRef.current}
-                    value={String(form.getInputProps('server_engine').value)}
+                    {...form.getInputProps('server_engine')}
                   />
                 </Tooltip>
 
@@ -334,7 +339,7 @@ export default function Settings() {
               mt="xs"
               label={i18n['FoldTab.26']}
               data={audioCoverSuppliersSettingsRef.current}
-              value={String(form.getInputProps('audio_thumbnails_method').value)}
+              {...form.getInputProps('audio_thumbnails_method')}
             />
             <DirectoryChooser
               path={form.getInputProps('alternate_thumb_folder').value}
@@ -348,7 +353,7 @@ export default function Settings() {
                   mt="xs"
                   label={i18n['FoldTab.26']}
                   data={sortMethodsSettingsRef.current}
-                  value={String(form.getInputProps('sort_method').value)}
+                  {...form.getInputProps('sort_method')}
                 />
               </Accordion.Item>
             </Accordion>
@@ -429,10 +434,10 @@ export default function Settings() {
                   {...form.getInputProps('maximum_video_buffer_size')}
                 />
                 <NumberInput
-                  label={i18n['TrTab2.24']?.replace('%d', defaultSettings.number_of_cpu_cores)}
+                  label={i18n['TrTab2.24']?.replace('%d', numberOfCpuCoresSettingsRef.current.toString())}
                   size="xs"
-                  max={64}
-                  min={0}
+                  max={numberOfCpuCoresSettingsRef.current}
+                  min={1}
                   disabled={false}
                   {...form.getInputProps('number_of_cpu_cores')}
                 />
