@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar, Tooltip } from '@mantine/core';
+import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -6,7 +6,10 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+
 import {getToolTipContent} from '../../utils';
+import SessionContext from '../../contexts/session-context';
+import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
@@ -24,6 +27,7 @@ export default function Settings() {
   const sortMethodsSettingsRef = useRef([]);
 
   const i18n = useContext(I18nContext);
+  const session = useContext(SessionContext);
 
   const defaultSettings: Record<string, any> = {
     alternate_thumb_folder: '',
@@ -82,9 +86,12 @@ export default function Settings() {
 
   const form = useForm({ initialValues: defaultSettings });
 
+  const canModify = havePermission(session, "settings_modify");
+  const canView = canModify || havePermission(session, "settings_view");
+
   // Code here will run just like componentDidMount
   useEffect(() => {
-    axios.get('/configuration-api/settings')
+    canView && axios.get('/configuration-api/settings')
       .then(function (response: any) {
         const settingsResponse = response.data;
         languageSettingsRef.current = settingsResponse.languages;
@@ -161,12 +168,13 @@ export default function Settings() {
       });
   };
 
-  return (
+  return canView ? (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={i18n['LooksFrame.TabGeneralSettings']}>
             <Select
+              disabled={!canModify}
               label={i18n['LanguageSelection.Language']}
               data={languageSettingsRef.current}
               {...form.getInputProps('language')}
@@ -174,6 +182,7 @@ export default function Settings() {
 
             <Group mt="xs">
               <TextInput
+                disabled={!canModify}
                 label={i18n['NetworkTab.71']}
                 name="server_name"
                 sx={{ flex: 1 }}
@@ -181,6 +190,7 @@ export default function Settings() {
               />
               <Tooltip label={getToolTipContent(i18n['NetworkTab.73'])} width={350} color="blue" wrapLines withArrow>
                 <Checkbox
+                  disabled={!canModify}
                   mt="xl"
                   label={i18n['NetworkTab.72']}
                   {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
@@ -189,16 +199,19 @@ export default function Settings() {
             </Group>
             <Group mt="md">
               <Checkbox
+                disabled={!canModify}
                 label={i18n['NetworkTab.3']}
                 {...form.getInputProps('minimized', { type: 'checkbox' })}
               />
               <Checkbox
+                disabled={!canModify}
                 label={i18n['NetworkTab.74']}
                 {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
               />
             </Group>
 
             <Checkbox
+              disabled={!canModify}
               mt="xs"
               label={i18n['NetworkTab.9']}
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
@@ -207,24 +220,28 @@ export default function Settings() {
             <Accordion mt="xl">
               <Accordion.Item label={i18n['NetworkTab.22']}>
                 <Select
+                  disabled={!canModify}
                   label={i18n['NetworkTab.20']}
                   data={networkInterfaceSettingsRef.current}
                   {...form.getInputProps('network_interface')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.23']}
                   {...form.getInputProps('hostname')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.24']}
                   {...form.getInputProps('port')}
                 />
 
                 <TextInput
+                  disabled={!canModify}
                   mt="xs"
                   label={i18n['NetworkTab.30']}
                   {...form.getInputProps('ip_filter')}
@@ -234,12 +251,13 @@ export default function Settings() {
                   <TextInput
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.35']}
-                    disabled={form.values['automatic_maximum_bitrate']}
+                    disabled={!canModify || form.values['automatic_maximum_bitrate']}
                     {...form.getInputProps('maximum_bitrate')}
                   />
                   
                   <Tooltip label={getToolTipContent(i18n['GeneralTab.12.Tooltip'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       mt="xl"
                       label={i18n['GeneralTab.12']}
                       {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
@@ -251,6 +269,7 @@ export default function Settings() {
               
                 <Tooltip label={getToolTipContent(i18n['NetworkTab.MediaServerEngineTooltip'])} {...defaultTooltipSettings}>
                   <Select
+                    disabled={!canModify}
                     label={i18n['NetworkTab.MediaServerEngine']}
                     data={serverEnginesSettingsRef.current}
                     value={String(form.getInputProps('server_engine').value)}
@@ -258,6 +277,7 @@ export default function Settings() {
                 </Tooltip>
 
                 <MultiSelect
+                  disabled={!canModify}
                   mt="xs"
                   data={allRendererNamesSettingsRef.current}
                   label={i18n['NetworkTab.62']}
@@ -266,6 +286,7 @@ export default function Settings() {
 
                 <Group mt="xs">
                   <Select
+                    disabled={!canModify}
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.36']}
                     data={enabledRendererNamesSettingsRef.current}
@@ -275,20 +296,23 @@ export default function Settings() {
 
                   <Tooltip label={getToolTipContent(i18n['GeneralTab.ForceDefaultRendererTooltip'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       mt="xl"
                       label={i18n['GeneralTab.ForceDefaultRenderer']}
                       {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
                     />
                   </Tooltip>
                 </Group>
-                
+
                 <Tooltip label={getToolTipContent(i18n['NetworkTab.67'])} {...defaultTooltipSettings}>
                   <Checkbox
+                    disabled={!canModify}
                     mt="xs"
                     label={i18n['NetworkTab.56']}
                     {...form.getInputProps('external_network', { type: 'checkbox' })}
                   />
                 </Tooltip>
+
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
@@ -394,7 +418,6 @@ export default function Settings() {
                     </Accordion.Item>
                   </Accordion>
                   </Navbar.Section>
-
                 </Navbar>
               </Grid.Col>
               <Grid.Col span={7}>
@@ -533,12 +556,18 @@ export default function Settings() {
             </Grid>
           </Tabs.Tab>
         </Tabs>
-        <Group position="right" mt="md">
-          <Button type="submit" loading={isLoading}>
-            {i18n['LooksFrame.9']}
-          </Button>
-        </Group>
+        {canModify && (
+          <Group position="right" mt="md">
+            <Button type="submit" loading={isLoading}>
+              {i18n['LooksFrame.9']}
+            </Button>
+          </Group>
+        )}
       </form>
     </Box>
+  ) : (
+    <Box sx={{ maxWidth: 700 }} mx="auto">
+      <Text color="red">You don't have access to this area.</Text>
+    </Box>
   );
- }
+}

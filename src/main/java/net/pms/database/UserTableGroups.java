@@ -85,7 +85,7 @@ public final class UserTableGroups extends UserTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN NAME RENAME TO DISPLAY_NAME");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS NAME RENAME TO DISPLAY_NAME");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				default:
@@ -126,7 +126,7 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || id < 1 || name == null || "".equals(name)) {
 			return false;
 		}
-		String query = "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME = " + sqlQuote(name) + " WHERE GROUP_ID = " + id;
+		String query = "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME = " + sqlQuote(name) + " WHERE ID = " + id;
 		try {
 			execute(connection, query);
 			return true;
