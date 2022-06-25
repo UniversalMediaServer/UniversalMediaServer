@@ -97,14 +97,13 @@ public final class UserTableUsers extends UserTable {
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				case 2:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN GROUP_ID SET DEFAULT 0");
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=1");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS GROUP_ID SET DEFAULT 0");
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				case 3:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN NAME RENAME TO DISPLAY_NAME");
-					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS NAME RENAME TO DISPLAY_NAME");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=1");					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					break;
 				default:
 					throw new IllegalStateException(
@@ -171,15 +170,15 @@ public final class UserTableUsers extends UserTable {
 		}
 	}
 
-	public static boolean updateUser(final Connection connection, final int id, final String name, final int groupId) {
-		if (connection == null || name == null || "".equals(name)) {
+	public static boolean updateUser(final Connection connection, final int id, final String displayName, final int groupId) {
+		if (connection == null || displayName == null) {
 			return false;
 		}
 		try {
 			Statement statement = connection.createStatement();
 			String sql = "UPDATE " + TABLE_NAME + " " +
-					"SET NAME = " + sqlQuote(name) + ", " +
-					"SET GROUP_ID = " + groupId + " " +
+					"SET DISPLAY_NAME = " + sqlQuote(displayName) + ", " +
+					"GROUP_ID = " + groupId + " " +
 					"WHERE ID='" + id + "'";
 			statement.executeUpdate(sql);
 			return true;
@@ -197,7 +196,7 @@ public final class UserTableUsers extends UserTable {
 			Statement statement = connection.createStatement();
 			String sql = "UPDATE " + TABLE_NAME + " " +
 					"SET USERNAME = " + sqlQuote(username) + ", " +
-					"SET PASSWORD = " + sqlQuote(password) + " " +
+					"PASSWORD = " + sqlQuote(password) + " " +
 					"WHERE ID='" + id + "'";
 			statement.executeUpdate(sql);
 			return true;

@@ -156,8 +156,8 @@ public class AccountApiHandler implements HttpHandler {
 												String cuUsername = action.get("username").getAsString();
 												String cuPassword = action.get("password").getAsString();
 												String cuName;
-												if (action.has("name")) {
-													cuName = action.get("name").getAsString();
+												if (action.has("displayname")) {
+													cuName = action.get("displayname").getAsString();
 												} else {
 													cuName = cuUsername;
 												}
