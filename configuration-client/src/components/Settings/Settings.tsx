@@ -1,8 +1,9 @@
-import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar, Tooltip } from '@mantine/core';
+import { TextInput, Paper, Checkbox, MultiSelect, Modal, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar, Tooltip, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
 import { useContext, useEffect, useRef, useState } from 'react';
+import { SketchPicker } from 'react-color';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -26,6 +27,7 @@ export default function Settings() {
   const i18n = useContext(I18nContext);
 
   const defaultSettings: Record<string, any> = {
+    alternate_subtitles_folder: '',
     alternate_thumb_folder: '',
     append_profile_name: false,
     audio_channels: '6',
@@ -33,8 +35,10 @@ export default function Settings() {
     audio_bitrate: '448',
     audio_remux_ac3: true,
     audio_use_pcm: false,
+    audio_subtitles_languages: 'eng,off;*,eng;*,und',
     audio_thumbnails_method: '1',
     auto_update: true,
+    autoload_external_subtitles: true,
     automatic_maximum_bitrate: true,
     chapter_interval: 5,
     chapter_support: false,
@@ -44,11 +48,15 @@ export default function Settings() {
     force_transcode_for_extensions: '',
     gpu_acceleration: false,
     external_network: true,
+    force_external_subtitles: true,
+    forced_subtitle_language: 'en',
+    forced_subtitle_tags: 'forced',
     generate_thumbnails: true,
     hostname: '',
     ip_filter: '',
     language: 'en-US',
     mencoder_remux_mpeg2: true,
+    mencoder_subfribidi: false,
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
     minimized: false,
@@ -63,13 +71,63 @@ export default function Settings() {
     server_name: 'Universal Media Server',
     show_splash_screen: true,
     sort_method: '4',
+    subtitles_codepage: '',
+    subtitles_color: '0xFFFFFFFF',
+    subtitles_font: '',
+    subtitles_languages: 'eng,fre,jpn,ger,und',
     thumbnail_seek_position: '4',
+    use_embedded_subtitles_style: true,
     x264_constant_rate_factor: 'Automatic (Wired)',
   };
 
+  const subtitlesCodepage = [
+    { label: i18n['Generic.AutoDetect'], value: ''},
+    { label: i18n['CharacterSet.874'], value: 'cp874'},
+    { label: i18n['CharacterSet.932'], value: 'cp932'},
+    { label: i18n['CharacterSet.936'], value: 'cp936'},
+    { label: i18n['CharacterSet.949'], value: 'cp949'},
+    { label: i18n['CharacterSet.950'], value: 'cp950'},
+    { label: i18n['CharacterSet.1250'], value: 'cp1250'},
+    { label: i18n['CharacterSet.1251'], value: 'cp1251'},
+    { label: i18n['CharacterSet.1252'], value: 'cp1252'},
+    { label: i18n['CharacterSet.1253'], value: 'cp1253'},
+    { label: i18n['CharacterSet.1254'], value: 'cp1254'},
+    { label: i18n['CharacterSet.1255'], value: 'cp1255'},
+    { label: i18n['CharacterSet.1256'], value: 'cp1256'},
+    { label: i18n['CharacterSet.1257'], value: 'cp1257'},
+    { label: i18n['CharacterSet.1258'], value: 'cp1258'},
+    { label: i18n['CharacterSet.2022-CN'], value: 'ISO-2022-CN'},
+    { label: i18n['CharacterSet.2022-JP'], value: 'ISO-2022-JP'},
+    { label: i18n['CharacterSet.2022-KR'], value: 'ISO-2022-KR'},
+    { label: i18n['CharacterSet.8859-1'], value: 'ISO-8859-1'},
+    { label: i18n['CharacterSet.8859-2'], value: 'ISO-8859-2'},
+    { label: i18n['CharacterSet.8859-3'], value: 'ISO-8859-3'},
+    { label: i18n['CharacterSet.8859-4'], value: 'ISO-8859-4'},
+    { label: i18n['CharacterSet.8859-5'], value: 'ISO-8859-5'},
+    { label: i18n['CharacterSet.8859-6'], value: 'ISO-8859-6'},
+    { label: i18n['CharacterSet.8859-7'], value: 'ISO-8859-7'},
+    { label: i18n['CharacterSet.8859-8'], value: 'ISO-8859-8'},
+    { label: i18n['CharacterSet.8859-9'], value: 'ISO-8859-9'},
+    { label: i18n['CharacterSet.8859-10'], value: 'ISO-8859-10'},
+    { label: i18n['CharacterSet.8859-11'], value: 'ISO-8859-11'},
+    { label: i18n['CharacterSet.8859-13'], value: 'ISO-8859-13'},
+    { label: i18n['CharacterSet.8859-14'], value: 'ISO-8859-14'},
+    { label: i18n['CharacterSet.8859-15'], value: 'ISO-8859-15'},
+    { label: i18n['CharacterSet.8859-16'], value: 'ISO-8859-16'},
+    { label: i18n['CharacterSet.Big5'], value: 'Big5'},
+    { label: i18n['CharacterSet.EUC-JP'], value: 'EUC-JP'},
+    { label: i18n['CharacterSet.EUC-KR'], value: 'EUC-KR'},
+    { label: i18n['CharacterSet.GB18030'], value: 'GB18030'},
+    { label: i18n['CharacterSet.IBM420'], value: 'IBM420'},
+    { label: i18n['CharacterSet.IBM424'], value: 'IBM424'},
+    { label: i18n['CharacterSet.KOI8-R'], value: 'KOI8-R'},
+    { label: i18n['CharacterSet.ShiftJIS]'], value: 'Shift_JIS'},
+    { label: i18n['CharacterSet.TIS-620'], value: 'TIS-620'},
+  ];
+
   const defaultTooltipSettings = {
     width: 350,
-    color: "blue",
+    color: 'blue',
     wrapLines: true,
     withArrow: true,
   }
@@ -120,6 +178,8 @@ export default function Settings() {
   }, []);
   // eslint-disable-next-line
   const [content, setContent] = useState('common');
+  const [opened, setOpened] = useState(false);
+  const [subtitleColor, setSubtitleColor] = useState(defaultSettings.subtitles_color);
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
 
@@ -398,13 +458,15 @@ export default function Settings() {
                 </Navbar>
               </Grid.Col>
               <Grid.Col span={7}>
-                <TextInput
-                  label={i18n['TrTab2.23']}
-                  name="maximum_video_buffer_size"
-                  sx={{ flex: 1 }}
-                  size="xs"
-                  {...form.getInputProps('maximum_video_buffer_size')}
-                />
+                <Tooltip label={getToolTipContent(i18n['TrTab2.73'])} {...defaultTooltipSettings}>
+                  <TextInput
+                    label={i18n['TrTab2.23']}
+                    name="maximum_video_buffer_size"
+                    sx={{ flex: 1 }}
+                    size="xs"
+                    {...form.getInputProps('maximum_video_buffer_size')}
+                  />
+                </Tooltip>
                 <NumberInput
                   label={i18n['TrTab2.24']?.replace('%d', defaultSettings.number_of_cpu_cores)}
                   size="xs"
@@ -469,48 +531,60 @@ export default function Settings() {
                         {...form.getInputProps('x264_constant_rate_factor')}
                       />
                     </Tooltip>
-                    <TextInput
-                      label={i18n['TrTab2.8']}
-                      sx={{ flex: 1 }}
-                      {...form.getInputProps('disable_transcode_for_extensions')}
-                    />
-                    <TextInput
-                      label={i18n['TrTab2.9']}
-                      sx={{ flex: 1 }}
-                      {...form.getInputProps('force_transcode_for_extensions')}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.96'])} {...defaultTooltipSettings}>
+                      <TextInput
+                        label={i18n['TrTab2.8']}
+                        sx={{ flex: 1 }}
+                        {...form.getInputProps('disable_transcode_for_extensions')}
+                      />
+                    </Tooltip>
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.96'])} {...defaultTooltipSettings}>
+                      <TextInput
+                        label={i18n['TrTab2.9']}
+                        sx={{ flex: 1 }}
+                        {...form.getInputProps('force_transcode_for_extensions')}
+                      />
+                    </Tooltip>
                   </Tabs.Tab>
                   <Tabs.Tab label={i18n['TrTab2.68']}>
                     <Select
                       label={i18n['TrTab2.50']}
-                      data={[{value: '6', label: '6 channels (5.1)'}, {value: '2', label: '2 channels (Stereo)'}]}
+                      data={[{value: '6', label: i18n['TrTab2.56']}, {value: '2', label: i18n['TrTab2.55']}]}
                       size="xs"
                       {...form.getInputProps('audio_channels')}
                     />
                     <Space h="xs" />
-                    <Checkbox
-                      size="xs"
-                      label={i18n['TrTab2.27']}
-                      {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.83'])} {...defaultTooltipSettings}>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['TrTab2.27']}
+                        {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
+                      />
+                    </Tooltip>
                     <Space h="xs" />
-                    <Checkbox
-                      size="xs"
-                      label={i18n['TrTab2.26']}
-                      {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.84'])} {...defaultTooltipSettings}>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['TrTab2.26']}
+                        {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
+                      />
+                    </Tooltip>
                     <Space h="xs" />
-                    <Checkbox
-                      size="xs"
-                      label={i18n['TrTab2.28']}
-                      {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.85'])} {...defaultTooltipSettings}>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['TrTab2.28']}
+                        {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
+                      />
+                    </Tooltip>
                     <Space h="xs" />
-                    <Checkbox
-                      size="xs"
-                      label={i18n['TrTab2.53']}
-                      {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.86'])} {...defaultTooltipSettings}>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['TrTab2.53']}
+                        {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
+                      />
+                    </Tooltip>
                     <Space h="xs" />
                     <TextInput
                       label={i18n['TrTab2.29']}
@@ -518,15 +592,116 @@ export default function Settings() {
                       size="xs"
                       {...form.getInputProps('audio_bitrate')}
                     />
-                    <TextInput
-                      label={i18n['MEncoderVideo.7']}
-                      sx={{ flex: 1 }}
-                      size="xs"
-                      {...form.getInputProps('audio_languages')}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.75'])} {...defaultTooltipSettings}>
+                      <TextInput
+                        label={i18n['MEncoderVideo.7']}
+                        sx={{ flex: 1 }}
+                        size="xs"
+                        {...form.getInputProps('audio_languages')}
+                      />
+                    </Tooltip>
                   </Tabs.Tab>
                     <Tabs.Tab label={i18n['MEncoderVideo.8']}>
-                      Subtitles settings
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.76'])} {...defaultTooltipSettings}>
+                        <TextInput
+                          label={i18n['MEncoderVideo.9']}
+                          sx={{ flex: 1 }}
+                          size="xs"
+                          {...form.getInputProps('subtitles_languages')}
+                        />
+                      </Tooltip>
+                      <TextInput
+                        label={i18n['MEncoderVideo.94']}
+                        sx={{ flex: 1 }}
+                        size="xs"
+                        {...form.getInputProps('forced_subtitle_language')}
+                      />
+                      <TextInput
+                        label={i18n['MEncoderVideo.95']}
+                        sx={{ flex: 1 }}
+                        size="xs"
+                        {...form.getInputProps('forced_subtitle_tags')}
+                      />
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.77'])} {...defaultTooltipSettings}>
+                        <TextInput
+                          label={i18n['MEncoderVideo.10']}
+                          sx={{ flex: 1 }}
+                          size="xs"
+                          {...form.getInputProps('audio_subtitles_languages')}
+                        />
+                      </Tooltip>
+                      <DirectoryChooser
+                        path={form.getInputProps('alternate_subtitles_folder').value}
+                        callback={form.setFieldValue}
+                        label={i18n['MEncoderVideo.37']}
+                        formKey="alternate_subtitles_folder"
+                      ></DirectoryChooser>
+                      <Select
+                        label={i18n['TrTab2.95']}
+                        data={subtitlesCodepage}
+                        {...form.getInputProps('subtitles_codepage')}
+                      />
+                      <Space h="xs" />
+                      <Checkbox
+                        size="xs"
+                        label={i18n['MEncoderVideo.23']}
+                        {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
+                      />
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.97'])} {...defaultTooltipSettings}>
+                        <DirectoryChooser
+                          path={form.getInputProps('subtitles_font').value}
+                          callback={form.setFieldValue}
+                          label={i18n['MEncoderVideo.24']}
+                          formKey="subtitles_font"
+                        ></DirectoryChooser>
+                      </Tooltip>
+                      Styled TODO
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.78'])} {...defaultTooltipSettings}>
+                        <Checkbox
+                          size="xs"
+                          label={i18n['MEncoderVideo.22']}
+                          {...form.getInputProps('autoload_external_subtitles', { type: 'checkbox' })}
+                        />
+                      </Tooltip>
+                      <Space h="xs" />
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.88'])} {...defaultTooltipSettings}>
+                        <Checkbox
+                          size="xs"
+                          label={i18n['TrTab2.87']}
+                          {...form.getInputProps('force_external_subtitles', { type: 'checkbox' })}
+                        />
+                      </Tooltip>
+                      <Space h="xs" />
+                      <Tooltip label={getToolTipContent(i18n['TrTab2.89'])} {...defaultTooltipSettings}>
+                        <Checkbox
+                          size="xs"
+                          label={i18n['MEncoderVideo.36']}
+                          {...form.getInputProps('use_embedded_subtitles_style', { type: 'checkbox' })}
+                        />
+                      </Tooltip>
+                      <Space h="xs" />
+                      <Modal size="sm"
+                        title={i18n['MEncoderVideo.31']}
+                        opened={opened}
+                        onClose={() => setOpened(false)}
+                      >
+                         <Group position="center" direction="column">
+                          <SketchPicker
+                            color={subtitleColor}
+                            onChange={(color)=> {setSubtitleColor(color.hex); form.setFieldValue('subtitles_color', color.hex)}}
+                          ></SketchPicker>
+                          <Text>{subtitleColor}</Text>
+                        </Group>
+                      </Modal>
+                      <Grid>
+                        <Grid.Col span={4}>
+                        <Button
+                          size="xs"
+                          onClick={() => { setOpened(true); }}
+                        >{i18n['MEncoderVideo.31']}</Button>
+                        </Grid.Col>
+                        <Grid.Col span={8}> <Text>{subtitleColor}</Text></Grid.Col>
+                      </Grid>
                     </Tabs.Tab>
                   </Tabs>
               </Grid.Col>

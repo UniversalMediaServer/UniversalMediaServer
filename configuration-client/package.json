@@ -14,6 +14,7 @@
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
+    "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
     "stylis": "^4.1.1",
@@ -55,6 +56,7 @@
     "@types/lodash": "^4.14.182",
     "@types/node": "^16.11.36",
     "@types/react": "^18.0.14",
+    "@types/react-color": "^3.0.6",
     "@types/react-dom": "^18.0.5",
     "react-scripts": "^5.0.1"
   }
