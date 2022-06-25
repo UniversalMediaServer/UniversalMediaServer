@@ -22,6 +22,7 @@ package net.pms.network.webinterfaceserver.configuration.handlers;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -36,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -103,6 +105,15 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"x264_constant_rate_factor"
 	};
 
+	public static final String[] VALID_EMPTY_KEYS = {
+		"alternate_thumb_folder",
+		"hostname",
+		"ip_filter",
+		"network_interface",
+		"port",
+		"renderer_default"
+	};
+
 	public static final String BASE_PATH = "/configuration-api";
 
 	private final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
@@ -141,8 +152,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					return;
 				}
-				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
-
 				JsonObject jsonResponse = new JsonObject();
 
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
@@ -152,8 +161,29 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
 				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
+				int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
+				if (numberOfCpuCores < 1) {
+					numberOfCpuCores = 1;
+				}
+				jsonResponse.add("numberOfCpuCores", new JsonPrimitive(numberOfCpuCores));
 
+				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
+				//back to default value if empty
+				List<String> validEmptyKeys = Arrays.asList(VALID_EMPTY_KEYS);
+				for (String key : VALID_KEYS) {
+					if (!validEmptyKeys.contains(key) && configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive() && "".equals(configurationAsJson.get(key).getAsString())) {
+						configurationAsJson.remove(key);
+					}
+				}
+				//select need string, not number
+				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
+				for (String key : needConvertToString) {
+					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
+						String value = configurationAsJson.get(key).getAsString();
+						configurationAsJson.add(key, new JsonPrimitive(value));
+					}
+				}
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
