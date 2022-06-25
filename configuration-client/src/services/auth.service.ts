@@ -90,3 +90,8 @@ export const getJwt = () => {
 export const getJwtPayload = () => {
   return localStorage.getItem('user')?.split('.')[1];
 }
+
+export const redirectToLogin = () => {
+  clearJwt();
+  window.location.reload();
+}
