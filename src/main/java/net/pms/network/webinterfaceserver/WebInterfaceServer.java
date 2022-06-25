@@ -100,7 +100,8 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		ACCOUNTS.put(account.getUser().getId(), account);
 	}
 
-	public static WebInterfaceServer createServer(int port) throws IOException {		LOGGER.debug("Using httpserver as web interface server");
+	public static WebInterfaceServer createServer(int port) throws IOException {
+		LOGGER.debug("Using httpserver as web interface server");
 		return new WebInterfaceServerHttpServer(port);
 	}
 }
