@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar } from '@mantine/core';
+import { TextInput, Checkbox, MultiSelect, NumberInput, Button, Group, Space, Box, Select, Tabs, Accordion, Grid, Navbar, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -6,6 +6,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
+import {getToolTipContent} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
@@ -65,6 +66,13 @@ export default function Settings() {
     thumbnail_seek_position: '4',
     x264_constant_rate_factor: 'Automatic (Wired)',
   };
+
+  const defaultTooltipSettings = {
+    width: 350,
+    color: "blue",
+    wrapLines: true,
+    withArrow: true,
+  }
 
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
@@ -171,14 +179,14 @@ export default function Settings() {
                 sx={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
-
-              <Checkbox
-                mt="xl"
-                label={i18n['NetworkTab.72']}
-                {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
-              />
+              <Tooltip label={getToolTipContent(i18n['NetworkTab.73'])} width={350} color="blue" wrapLines withArrow>
+                <Checkbox
+                  mt="xl"
+                  label={i18n['NetworkTab.72']}
+                  {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+                />
+                </Tooltip>
             </Group>
-
             <Group mt="md">
               <Checkbox
                 label={i18n['NetworkTab.3']}
@@ -229,20 +237,25 @@ export default function Settings() {
                     disabled={form.values['automatic_maximum_bitrate']}
                     {...form.getInputProps('maximum_bitrate')}
                   />
-
-                  <Checkbox
-                    mt="xl"
-                    label={i18n['GeneralTab.12']}
-                    {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
-                  />
+                  
+                  <Tooltip label={getToolTipContent(i18n['GeneralTab.12.Tooltip'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      mt="xl"
+                      label={i18n['GeneralTab.12']}
+                      {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n['NetworkTab.31']}>
-                <Select
-                  label={i18n['NetworkTab.MediaServerEngine']}
-                  data={serverEnginesSettingsRef.current}
-                  value={String(form.getInputProps('server_engine').value)}
-                />
+              
+                <Tooltip label={getToolTipContent(i18n['NetworkTab.MediaServerEngineTooltip'])} {...defaultTooltipSettings}>
+                  <Select
+                    label={i18n['NetworkTab.MediaServerEngine']}
+                    data={serverEnginesSettingsRef.current}
+                    value={String(form.getInputProps('server_engine').value)}
+                  />
+                </Tooltip>
 
                 <MultiSelect
                   mt="xs"
@@ -260,18 +273,22 @@ export default function Settings() {
                     searchable
                   />
 
-                  <Checkbox
-                    mt="xl"
-                    label={i18n['GeneralTab.ForceDefaultRenderer']}
-                    {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
-                  />
+                  <Tooltip label={getToolTipContent(i18n['GeneralTab.ForceDefaultRendererTooltip'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      mt="xl"
+                      label={i18n['GeneralTab.ForceDefaultRenderer']}
+                      {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
                 </Group>
-
-                <Checkbox
-                  mt="xs"
-                  label={i18n['NetworkTab.56']}
-                  {...form.getInputProps('external_network', { type: 'checkbox' })}
-                />
+                
+                <Tooltip label={getToolTipContent(i18n['NetworkTab.67'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="xs"
+                    label={i18n['NetworkTab.56']}
+                    {...form.getInputProps('external_network', { type: 'checkbox' })}
+                  />
+                </Tooltip>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
@@ -427,24 +444,31 @@ export default function Settings() {
                       {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
                     />
                     <Space h="xs" />
-                    <Checkbox
-                      size="xs"
-                      label={i18n['MEncoderVideo.39']}
-                      {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.82'])} {...defaultTooltipSettings}>
+                      <Checkbox
+                        size="xs"
+                        label={i18n['MEncoderVideo.39']}
+                        {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
+                      />
+                    </Tooltip>
                     <Space h="xs" />
-                    <TextInput
-                      label={i18n['TrTab2.32']}
-                      sx={{ flex: 1 }}
-                      disabled={form.values['automatic_maximum_bitrate']}
-                      {...form.getInputProps('mpeg2_main_settings')}
-                    />
-                    <TextInput
-                      label={i18n['TrTab2.79']}
-                      sx={{ flex: 1 }}
-                      disabled={form.values['automatic_maximum_bitrate']}
-                      {...form.getInputProps('x264_constant_rate_factor')}
-                    />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.74'])} {...defaultTooltipSettings}>
+                      <TextInput
+                        label={i18n['TrTab2.32']}
+                        sx={{ flex: 1 }}
+                        disabled={form.values['automatic_maximum_bitrate']}
+                        {...form.getInputProps('mpeg2_main_settings')}
+                      />
+                    </Tooltip>
+                    <Space h="xs" />
+                    <Tooltip label={getToolTipContent(i18n['TrTab2.81'])} {...defaultTooltipSettings}>
+                      <TextInput
+                        label={i18n['TrTab2.79']}
+                        sx={{ flex: 1 }}
+                        disabled={form.values['automatic_maximum_bitrate']}
+                        {...form.getInputProps('x264_constant_rate_factor')}
+                      />
+                    </Tooltip>
                     <TextInput
                       label={i18n['TrTab2.8']}
                       sx={{ flex: 1 }}
