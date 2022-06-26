@@ -1,26 +1,25 @@
 import { AppShell, Box, Center, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme, Loader } from '@mantine/core';
+import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
+import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { useEffect } from 'react'; 
 import rtlPlugin from 'stylis-plugin-rtl';
-import './services/http-interceptor';
+import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 
-import Login from './components/Login/Login'
-import FirstLogin from './components/FirstLogin/FirstLogin'
+import './services/http-interceptor';
 import Accounts from './components/Accounts/Accounts'
-import { refreshAuthTokenNearExpiry } from './services/auth.service';
+import Login from './components/Login/Login'
 import Settings from './components/Settings/Settings';
 import UserMenu from './components/UserMenu/UserMenu';
-import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
-import { useLocalStorage } from '@mantine/hooks';
+import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
 import { SessionProvider } from './providers/session-provider';
-import SessionContext from './contexts/session-context';
+import { refreshAuthTokenNearExpiry } from './services/auth.service';
 
 function App() {
   useEffect(() => {
@@ -95,8 +94,6 @@ function App() {
                             />
                           </Routes>
                         </Router>
-                      ) : session.firstLogin ? (
-                        <FirstLogin />
                       ) : session.initialized ? (
                         <Login />
                       ) : (
