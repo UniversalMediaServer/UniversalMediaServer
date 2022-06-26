@@ -1,6 +1,6 @@
 import { Context, createContext } from "react";
 
-export const sessionContext: Context<UmsSession> = createContext({firstLogin:false} as UmsSession);
+export const sessionContext: Context<UmsSession> = createContext({noAdminFound:false} as UmsSession);
 
 export default sessionContext;
 
@@ -26,7 +26,7 @@ export interface UmsAccount {
 }
 
 export interface UmsSession {
-  firstLogin : boolean,
+  noAdminFound : boolean,
   account? : UmsAccount,
   initialized: boolean,
 }

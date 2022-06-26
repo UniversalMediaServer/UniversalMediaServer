@@ -117,13 +117,13 @@ public class AuthApiHandler implements HttpHandler {
 					JsonObject jObject = new JsonObject();
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
-						jObject.add("firstLogin", new JsonPrimitive(false));
+						jObject.add("noAdminFound", new JsonPrimitive(false));
 						jObject.add("account", AccountApiHandler.accountToJsonObject(account));
 					}
-					if (!jObject.has("firstLogin")) {
+					if (!jObject.has("noAdminFound")) {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
+							jObject.add("noAdminFound", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
 							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
@@ -149,7 +149,7 @@ public class AuthApiHandler implements HttpHandler {
 									WebInterfaceServer.setAccount(account);
 								}
 								JsonObject jObject = new JsonObject();
-								jObject.add("firstLogin", new JsonPrimitive(false));
+								jObject.add("noAdminFound", new JsonPrimitive(false));
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
 								jObject.add("token", new JsonPrimitive(token));
 								jObject.add("account", AccountApiHandler.accountToJsonObject(account));
