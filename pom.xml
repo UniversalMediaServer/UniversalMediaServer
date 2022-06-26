@@ -606,6 +606,11 @@
 			and add "-add-modules java.xml.bind" as a app command line argument
 		-->
 		<dependency>
+			<groupId>com.sun.xml.messaging.saaj</groupId>
+			<artifactId>saaj-impl</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
 			<version>${com.sun.xml.bind-version}</version>
