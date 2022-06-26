@@ -56,7 +56,7 @@ const FirstLogin = () => {
         />
         <Group position='right' mt='md'>
           <Button type="submit">
-            {i18n['LooksFrame.9']}
+            {i18n.get['LooksFrame.9']}
           </Button>
         </Group>
       </form>

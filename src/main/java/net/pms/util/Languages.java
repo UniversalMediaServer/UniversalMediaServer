@@ -19,6 +19,7 @@
 package net.pms.util;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -873,5 +874,36 @@ public final class Languages {
 		String[] labels = getLanguageNames(locale);
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	/**
+	 * Returns a sorted jsonned string of localized UMS supported language names
+	 * with country.
+	 *
+	 * @param locale the language to be seen as preferred when
+	 *            sorting the array, and used when localizing language names.
+	 * @return The sorted jsonned string of localized language names.
+	 */
+	public static JsonArray getLanguageWithCountry(Locale locale) {
+		Locale preferredLocale = toLocale(locale);
+		if (preferredLocale == null) {
+			preferredLocale = PMS.getLocale();
+		}
+		synchronized (TRANSLATIONS_STATISTICS) {
+			createSortedList(preferredLocale);
+			JsonArray jsonArray = new JsonArray();
+			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
+				JsonObject objectGroup = new JsonObject();
+				objectGroup.addProperty("id", SORTED_LANGUAGES.get(i).tag);
+				objectGroup.addProperty("name", SORTED_LANGUAGES.get(i).name);
+				String country = SORTED_LANGUAGES.get(i).locale.getCountry();
+				if ("".equals(country)) {
+					country = SORTED_LANGUAGES.get(i).locale.getLanguage();
+				}
+				objectGroup.addProperty("country", country);
+				jsonArray.add(objectGroup);
+			}
+			return jsonArray;
+		}
 	}
 }

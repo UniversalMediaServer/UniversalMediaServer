@@ -30,7 +30,7 @@ function UserMenu() {
           icon={<Refresh size={14} />}
           onClick={restartServer}
         >
-          {i18n['LooksFrame.12']}
+          {i18n.get['LooksFrame.12']}
         </Menu.Item>
       )}
       {havePermission(session, "settings_view")  && (
@@ -38,7 +38,7 @@ function UserMenu() {
           icon={<Settings size={14} />}
           onClick={() => { window.location.href = '/settings'; }}
         >
-          {i18n['PMS.131']}
+          {i18n.get['PMS.131']}
         </Menu.Item>
       )}
       <Menu.Item

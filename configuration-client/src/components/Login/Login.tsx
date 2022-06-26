@@ -57,7 +57,7 @@ const Login = () => {
           {...form.getInputProps('password')}
         />
         <Group position='right' mt='md'>
-          <Button type='submit'>{i18n['LooksFrame.9']}</Button>
+          <Button type='submit'>{i18n.get['LooksFrame.9']}</Button>
         </Group>
       </form>
     </Box>

@@ -15,6 +15,7 @@ import FirstLogin from './components/FirstLogin/FirstLogin'
 import Accounts from './components/Accounts/Accounts'
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
 import Settings from './components/Settings/Settings';
+import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
 import { useLocalStorage } from '@mantine/hooks';
@@ -76,6 +77,7 @@ function App() {
                           <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
                             {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
                           </ActionIcon>
+                          <LanguagesMenu />
                           {session.account && <UserMenu />}
                         </Group>
                       }</Header>}

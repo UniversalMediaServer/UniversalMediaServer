@@ -133,6 +133,25 @@ public class Messages {
 		return null;
 	}
 
+	public static JsonObject getStringsAsJsonObject(Locale locale) {
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		if (rb == null) {
+			rb = ROOT_RESOURCE_BUNDLE;
+		}
+		JsonObject jsonObject = new JsonObject();
+		try {
+			Enumeration<String> i18nKeys = rb.getKeys();
+			while (i18nKeys.hasMoreElements()) {
+				String key = i18nKeys.nextElement();
+				String value = rb.getString(key);
+				jsonObject.addProperty(key, value);
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
+		}
+		return jsonObject;
+	}
+
 	@Nonnull
 	public static String getString(String key, Locale locale) {
 		if (locale == null) {
