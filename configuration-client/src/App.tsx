@@ -9,7 +9,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import rtlPlugin from 'stylis-plugin-rtl';
-import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
+import { MoonStars, Sun } from 'tabler-icons-react';
 
 import './services/http-interceptor';
 import Accounts from './components/Accounts/Accounts'
@@ -27,7 +27,7 @@ function App() {
     refreshAuthTokenNearExpiry();
   });
 
-  const [rtl, setRtl] = useLocalStorage({
+  const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
     defaultValue: false,
   });
