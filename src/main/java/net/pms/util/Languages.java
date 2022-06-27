@@ -894,11 +894,23 @@ public final class Languages {
 			JsonArray jsonArray = new JsonArray();
 			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
 				JsonObject objectGroup = new JsonObject();
-				objectGroup.addProperty("id", SORTED_LANGUAGES.get(i).tag);
-				objectGroup.addProperty("name", SORTED_LANGUAGES.get(i).name);
+				LanguageEntry entry = SORTED_LANGUAGES.get(i);
+				objectGroup.addProperty("id", entry.tag);
+				objectGroup.addProperty("name", entry.name);
 				String country = SORTED_LANGUAGES.get(i).locale.getCountry();
 				if ("".equals(country)) {
-					country = SORTED_LANGUAGES.get(i).locale.getLanguage();
+					country = switch (entry.locale.getLanguage()) {
+						case "ca" -> "es​";
+						case "cs" -> "CZ";
+						case "da" -> "DK";
+						case "el" -> "GR";
+						case "fa" -> "IR";
+						case "ja" -> "JP";
+						case "ko" -> "KR";
+						case "uk" -> "UA";
+						case "zh" -> "cn​";
+						default -> entry.locale.getLanguage();
+					};
 				}
 				objectGroup.addProperty("country", country);
 				jsonArray.add(objectGroup);

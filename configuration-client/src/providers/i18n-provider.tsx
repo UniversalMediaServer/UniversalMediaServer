@@ -10,9 +10,19 @@ interface Props {
 export const I18nProvider = ({ children, ...props }: Props) =>{
   const [i18n, setI18n] = useState({})
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
-  const [language, setLanguage] = useState<string>('');
+
+  const storeLanguageInLocalStorage = (language: string) => {
+    localStorage.setItem('i18n', language);
+  }
+
+  const getLanguage = () => {
+    return localStorage.getItem('i18n') || navigator.languages
+    ? navigator.languages[0]
+    : (navigator.language || 'en-US');
+  }
+
   const updateLanguage = (language : string) => {
-    setLanguage(language);
+    storeLanguageInLocalStorage(language);
     axios.post('/configuration-api/i18n', {language:language})
       .then(function (response: any) {
         setLanguages(response.data.languages);
@@ -29,8 +39,10 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
         });
       });
   }
+
   useEffect(() => {
-    updateLanguage(language);
+    updateLanguage(getLanguage());
+	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { Provider } = i18nContext;

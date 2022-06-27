@@ -1,4 +1,4 @@
-import { Menu, ActionIcon } from '@mantine/core';
+import { ActionIcon, Menu } from '@mantine/core';
 import React, { useContext } from 'react';
 import { Language } from 'tabler-icons-react';
 import ReactCountryFlag from "react-country-flag";
@@ -11,7 +11,7 @@ function LanguagesMenu() {
         <Menu.Item
           onClick={() => { setLanguage(language.id); }}
         >
-          <ReactCountryFlag countryCode={language.country} /> {language.name}
+          <ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em',padding: '0 0.1em 0.17em 0.1em'}}/>{language.name}
         </Menu.Item>
     );
   }
