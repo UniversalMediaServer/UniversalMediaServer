@@ -19,6 +19,10 @@
  */
 package net.pms.network.webinterfaceserver;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.Headers;
@@ -31,6 +35,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -64,6 +69,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 public class WebInterfaceServerUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerUtil.class);
+	private static final Gson GSON = new Gson();
 
 	//public static final String MIME_TRANS = MIME_MP4;
 	public static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
@@ -364,6 +370,74 @@ public class WebInterfaceServerUtil {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * @param exchange the HTTP exchange
+	 * @return Array of query parameters
+	 */
+	public static Map<String, String> parseQueryString(HttpExchange exchange) {
+		return parseQueryString(exchange.getRequestURI().getQuery());
+	}
+
+	/**
+	 * @param qs the query string
+	 * @return Array of query parameters
+	 * @see https://stackoverflow.com/a/41610845/2049714
+	 */
+	public static Map<String, String> parseQueryString(String qs) {
+		Map<String, String> result = new HashMap<>();
+		if (qs == null) {
+			return result;
+		}
+
+		int last = 0, next, l = qs.length();
+		while (last < l) {
+			next = qs.indexOf('&', last);
+			if (next == -1) {
+				next = l;
+			}
+
+			if (next > last) {
+				int eqPos = qs.indexOf('=', last);
+				try {
+					if (eqPos < 0 || eqPos > next) {
+						result.put(URLDecoder.decode(qs.substring(last, next), "utf-8"), "");
+					} else {
+						result.put(URLDecoder.decode(qs.substring(last, eqPos), "utf-8"), URLDecoder.decode(qs.substring(eqPos + 1, next), "utf-8"));
+					}
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e); // will never happen, utf-8 support is mandatory for java
+				}
+			}
+			last = next + 1;
+		}
+		return result;
+	}
+
+	public static String getPostString(HttpExchange exchange) {
+		try {
+			return IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
+		} catch (IOException ex) {
+			return null;
+		}
+	}
+
+	public static JsonObject getJsonObjectFromPost(HttpExchange exchange) {
+		String reqBody = getPostString(exchange);
+		return jsonObjectFromString(reqBody);
+	}
+
+	private static JsonObject jsonObjectFromString(String str) {
+		JsonObject jObject = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem.isJsonObject()) {
+				jObject = jElem.getAsJsonObject();
+			}
+		} catch (JsonSyntaxException je) {
+		}
+		return jObject;
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {

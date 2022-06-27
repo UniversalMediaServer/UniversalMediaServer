@@ -3486,6 +3486,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
 	}
 
+	/**
+	 * @return available subtitles info levels as a JSON array
+	 */
+	public synchronized static JsonArray getSubtitlesInfoLevelsAsJsonArray() {
+		String[] values = new String[] {
+			SubtitlesInfoLevel.NONE.toString(),
+			SubtitlesInfoLevel.BASIC.toString(),
+			SubtitlesInfoLevel.FULL.toString()
+		};
+		String[] labels = new String[] {
+			Messages.getString("Generic.None"),
+			Messages.getString("Generic.Basic"),
+			Messages.getString("Generic.Full")
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public boolean isHideExtensions() {
 		return getBoolean(KEY_HIDE_EXTENSIONS, true);
 	}

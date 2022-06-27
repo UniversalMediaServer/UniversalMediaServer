@@ -19,13 +19,16 @@ export default function Settings() {
   const [isLoading, setLoading] = useState(true);
 
   // key/value pairs for dropdowns
-  const languageSettingsRef = useRef([]);
-  const networkInterfaceSettingsRef = useRef([]);
-  const serverEnginesSettingsRef = useRef([]);
-  const allRendererNamesSettingsRef = useRef([]);
-  const enabledRendererNamesSettingsRef = useRef([]);
-  const audioCoverSuppliersSettingsRef = useRef([]);
-  const sortMethodsSettingsRef = useRef([]);
+  const [selectionSettings, setSelectionSettings] = useState({
+    allRendererNames: [],
+    audioCoverSuppliers: [],
+    enabledRendererNames: [],
+    languages: [],
+    networkInterfaces: [],
+    serverEngines: [],
+    sortMethods: [],
+    subtitlesInfoLevels: [],
+  });
   const numberOfCpuCoresSettingsRef = useRef(1);
 
   const i18n = useContext(I18nContext);
@@ -57,7 +60,10 @@ export default function Settings() {
     forced_subtitle_language: 'en',
     forced_subtitle_tags: 'forced',
     generate_thumbnails: true,
+    hide_enginenames: true,
+    hide_extensions: true,
     hostname: '',
+    ignore_the_word_a_and_the: true,
     ip_filter: '',
     language: 'en-US',
     live_subtitles_keep: false,
@@ -73,6 +79,7 @@ export default function Settings() {
     network_interface: '',
     number_of_cpu_cores: numberOfCpuCoresSettingsRef.current,
     port: '',
+    prettify_filenames: false,
     renderer_default: '',
     renderer_force_default: false,
     selected_renderers: ['All renderers'],
@@ -88,6 +95,8 @@ export default function Settings() {
     subtitles_languages: 'eng,fre,jpn,ger,und',
     thumbnail_seek_position: '4',
     use_embedded_subtitles_style: true,
+    subs_info_level: 'basic',
+    use_imdb_info: true,
     x264_constant_rate_factor: 'Automatic (Wired)',
     '3d_subtitles_depth': '0',
   };
@@ -162,13 +171,8 @@ export default function Settings() {
     canView && axios.get('/configuration-api/settings')
       .then(function (response: any) {
         const settingsResponse = response.data;
-        languageSettingsRef.current = settingsResponse.languages;
-        networkInterfaceSettingsRef.current = settingsResponse.networkInterfaces;
-        serverEnginesSettingsRef.current = settingsResponse.serverEngines;
-        allRendererNamesSettingsRef.current = settingsResponse.allRendererNames;
-        enabledRendererNamesSettingsRef.current = settingsResponse.enabledRendererNames;
-        audioCoverSuppliersSettingsRef.current = settingsResponse.audioCoverSuppliers;
-        sortMethodsSettingsRef.current = settingsResponse.sortMethods;
+        setSelectionSettings(settingsResponse);
+
         numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
 
         //update default settings
@@ -250,7 +254,7 @@ export default function Settings() {
             <Select
               disabled={!canModify}
               label={i18n['LanguageSelection.Language']}
-              data={languageSettingsRef.current}
+              data={selectionSettings.languages}
               {...form.getInputProps('language')}
             />
 
@@ -296,7 +300,7 @@ export default function Settings() {
                 <Select
                   disabled={!canModify}
                   label={i18n['NetworkTab.20']}
-                  data={networkInterfaceSettingsRef.current}
+                  data={selectionSettings.networkInterfaces}
                   {...form.getInputProps('network_interface')}
                 />
 
@@ -345,7 +349,7 @@ export default function Settings() {
                   <Select
                     disabled={!canModify}
                     label={i18n['NetworkTab.MediaServerEngine']}
-                    data={serverEnginesSettingsRef.current}
+                    data={selectionSettings.serverEngines}
                     {...form.getInputProps('server_engine')}
                   />
                 </Tooltip>
@@ -353,7 +357,7 @@ export default function Settings() {
                 <MultiSelect
                   disabled={!canModify}
                   mt="xs"
-                  data={allRendererNamesSettingsRef.current}
+                  data={selectionSettings.allRendererNames}
                   label={i18n['NetworkTab.62']}
                   {...form.getInputProps('selected_renderers')}
                 />
@@ -363,7 +367,7 @@ export default function Settings() {
                     disabled={!canModify}
                     sx={{ flex: 1 }}
                     label={i18n['NetworkTab.36']}
-                    data={enabledRendererNamesSettingsRef.current}
+                    data={selectionSettings.enabledRendererNames}
                     {...form.getInputProps('renderer_default')}
                     searchable
                   />
@@ -407,7 +411,7 @@ export default function Settings() {
             <Select
               mt="xs"
               label={i18n['FoldTab.26']}
-              data={audioCoverSuppliersSettingsRef.current}
+              data={selectionSettings.audioCoverSuppliers}
               {...form.getInputProps('audio_thumbnails_method')}
             />
             <DirectoryChooser
@@ -418,12 +422,57 @@ export default function Settings() {
             ></DirectoryChooser>
             <Accordion mt="xl">
               <Accordion.Item label={i18n['NetworkTab.59']}>
-                <Select
-                  mt="xs"
-                  label={i18n['FoldTab.26']}
-                  data={sortMethodsSettingsRef.current}
-                  {...form.getInputProps('sort_method')}
+                <Group mt="xs">
+                  <Select
+                    label={i18n['FoldTab.26']}
+                    data={selectionSettings.sortMethods}
+                    {...form.getInputProps('sort_method')}
+                  />
+                  <Checkbox
+                    mt="xl"
+                    label={i18n['FoldTab.39']}
+                    {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
+                  />
+                </Group>
+                <Tooltip label={getToolTipContent(i18n['FoldTab.45'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="md"
+                    label={i18n['FoldTab.43']}
+                    {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Checkbox
+                  mt="md"
+                  label={i18n['FoldTab.5']}
+                  disabled={form.values['prettify_filenames']}
+                  {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                 />
+                <Tooltip label={getToolTipContent(i18n['FoldTab.UseInfoFromAPITooltip'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="md"
+                    label={i18n['FoldTab.UseInfoFromAPI']}
+                    {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Group mt="xs">
+                  <Tooltip label={getToolTipContent(i18n['FoldTab.addSubtitlesInfoToolTip'])} {...defaultTooltipSettings}>
+                    <Select
+                      label={i18n['FoldTab.addSubtitlesInfo']}
+                      data={selectionSettings.subtitlesInfoLevels}
+                      {...form.getInputProps('subs_info_level')}
+                    />
+                  </Tooltip>
+                  <Tooltip label={getToolTipContent(i18n['FoldTab.showEngineNamesAfterFilenamesToolTip'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      mt="xl"
+                      label={i18n['FoldTab.showEngineNamesAfterFilenames']}
+                      checked={!form.values['hide_enginenames']}
+                      onChange={(event) => {
+                        form.setFieldValue('hide_enginenames', !event.currentTarget.checked);
+                      }}
+                    />
+                  </Tooltip>
+                </Group>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>

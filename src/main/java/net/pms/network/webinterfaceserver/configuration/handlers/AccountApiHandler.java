@@ -24,11 +24,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +39,6 @@ import net.pms.iam.Permissions;
 import net.pms.iam.User;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,8 +109,7 @@ public class AccountApiHandler implements HttpHandler {
 					//action requested on account (create/modify)
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
-						String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-						JsonObject action = jsonObjectFromString(reqBody);
+						JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
 						if (action == null || !action.has("operation") || !action.get("operation").isJsonPrimitive()) {
 							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 							return;
@@ -337,25 +333,11 @@ public class AccountApiHandler implements HttpHandler {
 				LOGGER.error("RuntimeException in UserApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 			}
-		} catch (IOException e) {
-			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in UserApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
-	}
-
-	private static JsonObject jsonObjectFromString(String str) {
-		JsonObject jObject = null;
-		try {
-			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
-			if (jElem.isJsonObject()) {
-				jObject = jElem.getAsJsonObject();
-			}
-		} catch (JsonSyntaxException je) {
-		}
-		return jObject;
 	}
 
 	public static JsonObject accountToJsonObject(Account account) {
