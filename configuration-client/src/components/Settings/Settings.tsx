@@ -30,7 +30,7 @@ export default function Settings() {
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
+    
   const defaultSettings: Record<string, any> = {
     alternate_subtitles_folder: '',
     alternate_thumb_folder: '',
@@ -62,10 +62,12 @@ export default function Settings() {
     language: 'en-US',
     live_subtitles_keep: false,
     live_subtitles_limit: 20,
-    mencoder_remux_mpeg2: true,
-    mencoder_subfribidi: false,
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
+    mencoder_noass_scale: 'todo',
+    mencoder_noass_outline: 'todo',
+    mencoder_remux_mpeg2: true,
+    mencoder_subfribidi: false,
     minimized: false,
     mpeg2_main_settings: 'Automatic (Wired)',
     network_interface: '',
@@ -78,6 +80,8 @@ export default function Settings() {
     server_name: 'Universal Media Server',
     show_splash_screen: true,
     sort_method: '4',
+    subtitles_ass_margin: 'tod',
+    subtitles_ass_shadow: 'tod',
     subtitles_codepage: '',
     subtitles_color: '0xFFFFFFFF',
     subtitles_font: '',
@@ -85,6 +89,7 @@ export default function Settings() {
     thumbnail_seek_position: '4',
     use_embedded_subtitles_style: true,
     x264_constant_rate_factor: 'Automatic (Wired)',
+    '3d_subtitles_depth': '0',
   };
 
   const subtitlesCodepage = [
@@ -131,6 +136,8 @@ export default function Settings() {
     { label: i18n['CharacterSet.ShiftJIS]'], value: 'Shift_JIS'},
     { label: i18n['CharacterSet.TIS-620'], value: 'TIS-620'},
   ];
+
+  const threeDSubs = ['-5', '-4', '-3', '-2', '-1', '0', '1', '2', '3', '4', '5']
 
   const defaultTooltipSettings = {
     width: 350,
@@ -685,7 +692,42 @@ export default function Settings() {
                           formKey="subtitles_font"
                         ></DirectoryChooser>
                       </Tooltip>
-                      Styled TODO
+                      <Text>{i18n['MEncoderVideo.12']}</Text>
+                      <Space h="xs" />
+                      <Grid>
+                        <Grid.Col span={3}>
+                          <TextInput
+                            label={i18n['MEncoderVideo.133']}
+                            sx={{ flex: 1 }}
+                            size="xs"
+                            {...form.getInputProps('mencoder_noass_scale')}
+                          />
+                        </Grid.Col>
+                        <Grid.Col span={3}>
+                          <NumberInput
+                            label={i18n['MEncoderVideo.13']}
+                            size="xs"
+                            disabled={!canModify}
+                            {...form.getInputProps('mencoder_noass_outline')}
+                          />
+                        </Grid.Col>
+                        <Grid.Col span={3}>
+                          <NumberInput
+                              label={i18n['MEncoderVideo.14']}
+                              size="xs"
+                              disabled={!canModify}
+                              {...form.getInputProps('subtitles_ass_shadow')}
+                          />
+                        </Grid.Col>
+                        <Grid.Col span={3}>
+                          <NumberInput
+                              label={i18n['MEncoderVideo.15']}
+                              size="xs"
+                              disabled={!canModify}
+                              {...form.getInputProps('subtitles_ass_margin')}
+                          />
+                        </Grid.Col>
+                      </Grid>
                       <Tooltip label={getToolTipContent(i18n['TrTab2.78'])} {...defaultTooltipSettings}>
                         <Checkbox
                           size="xs"
@@ -726,6 +768,7 @@ export default function Settings() {
                       <Grid>
                         <Grid.Col span={4}>
                         <Button
+                          disabled={!canModify}
                           size="xs"
                           onClick={() => { setOpened(true); }}
                         >{i18n['MEncoderVideo.31']}</Button>
@@ -734,6 +777,7 @@ export default function Settings() {
                       </Grid>
                       <Tooltip label={getToolTipContent(i18n['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
                         <Checkbox
+                          disabled={!canModify}
                           size="xs"
                           label={i18n['TrTab2.DeleteLiveSubtitles']}
                           {...form.getInputProps('live_subtitles_keep', { type: 'checkbox' })}
@@ -744,12 +788,16 @@ export default function Settings() {
                         <NumberInput
                           label={i18n['TrTab2.LiveSubtitlesLimit']}
                           size="xs"
-                          max={5}
-                          min={-5}
-                          disabled={false}
+                          disabled={!canModify}
                           {...form.getInputProps('live_subtitles_limit')}
                         />
                         </Tooltip>
+                        <Select
+                          disabled={!canModify}
+                          label={i18n['TrTab2.90']}
+                          data={threeDSubs}
+                          {...form.getInputProps('3d_subtitles_depth')}
+                        />
                     </Tabs.Tab>
                   </Tabs>
               </Grid.Col>
