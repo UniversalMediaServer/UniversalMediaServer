@@ -77,6 +77,7 @@ export default function Settings() {
     sort_method: '4',
     subs_info_level: 'basic',
     thumbnail_seek_position: '4',
+    use_cache: true,
     use_imdb_info: true,
     x264_constant_rate_factor: 'Automatic (Wired)',
   };
@@ -404,6 +405,15 @@ export default function Settings() {
                     />
                   </Tooltip>
                 </Group>
+              </Accordion.Item>
+              <Accordion.Item label={i18n['NetworkTab.60']}>
+                <Tooltip label={getToolTipContent(i18n['NavigationSettingsTab.EnableCacheTooltip'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="xl"
+                    label={i18n['NavigationSettingsTab.EnableCache']}
+                    {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                  />
+                </Tooltip>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
