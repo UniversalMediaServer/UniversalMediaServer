@@ -252,6 +252,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				JsonObject i18n = new JsonObject();
 				i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
 				i18n.add("languages", Languages.getLanguageWithCountry(locale));
+				i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
 				WebInterfaceServerUtil.respond(exchange, i18n.toString(), 200, "application/json");
 			} else if (api.post("/directories")) {
 				//only logged users for security concerns

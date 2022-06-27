@@ -918,4 +918,13 @@ public final class Languages {
 			return jsonArray;
 		}
 	}
+
+	public static boolean getLanguageIsRtl(Locale locale) {
+		return switch (locale.getLanguage()) {
+			case "ar" -> true; //arab
+			case "fa" -> true; //persian
+			default -> false;
+		};
+	}
+
 }

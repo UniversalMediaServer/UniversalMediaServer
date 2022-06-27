@@ -73,9 +73,6 @@ function App() {
                           <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
                             {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
                           </ActionIcon>
-                          <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
-                            {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
-                          </ActionIcon>
                           <LanguagesMenu />
                           {session.account && <UserMenu />}
                         </Group>

@@ -7,12 +7,14 @@ import I18nContext, { LanguageValue } from '../../contexts/i18n-context';
 
 function LanguagesMenu() {
   const i18n = useContext(I18nContext);
-  const LanguageMenu = (language : LanguageValue) => { return (
-        <Menu.Item
-          onClick={() => { setLanguage(language.id); }}
-        >
-          <ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em',padding: '0 0.1em 0.17em 0.1em'}}/>{language.name}
-        </Menu.Item>
+  const LanguageMenu = (language : LanguageValue) => {
+    const padding = i18n.rtl ? '0 0 0.17em 0.3em' : '0 0.3em 0.17em 0';
+    return (
+      <Menu.Item
+        onClick={() => { setLanguage(language.id); }}
+      >
+        <ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em',padding: padding}}/>{language.name}
+      </Menu.Item>
     );
   }
 
@@ -32,7 +34,7 @@ function LanguagesMenu() {
         </ActionIcon>
       }
     >
-      <Menu.Label>{i18n.get['LanguageSelection.Language']}</Menu.Label>
+      <Menu.Label>{i18n.get['GeneralTab.14']}</Menu.Label>
       {languagesMenus}
     </Menu>
   );

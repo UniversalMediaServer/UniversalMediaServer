@@ -1,3 +1,4 @@
+import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
@@ -10,23 +11,24 @@ interface Props {
 export const I18nProvider = ({ children, ...props }: Props) =>{
   const [i18n, setI18n] = useState({})
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
-
-  const storeLanguageInLocalStorage = (language: string) => {
-    localStorage.setItem('i18n', language);
-  }
-
-  const getLanguage = () => {
-    return localStorage.getItem('i18n') || navigator.languages
+  const [language, setLanguage] = useLocalStorage<string>({
+    key: 'language',
+    defaultValue: navigator.languages
     ? navigator.languages[0]
-    : (navigator.language || 'en-US');
-  }
+    : (navigator.language || 'en-US'),
+  });
+  const [rtl, setRtl] = useLocalStorage<boolean>({
+    key: 'mantine-rtl',
+    defaultValue: false,
+  });
 
-  const updateLanguage = (language : string) => {
-    storeLanguageInLocalStorage(language);
-    axios.post('/configuration-api/i18n', {language:language})
+  const updateLanguage = (askedLanguage : string) => {
+    setLanguage(askedLanguage);
+    axios.post('/configuration-api/i18n', {language:askedLanguage})
       .then(function (response: any) {
         setLanguages(response.data.languages);
-		setI18n(response.data.i18n);
+        setI18n(response.data.i18n);
+        setRtl(response.data.isRtl);
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -41,17 +43,19 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
   }
 
   useEffect(() => {
-    updateLanguage(getLanguage());
+    updateLanguage(language);
 	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { Provider } = i18nContext;
   return(
     <Provider value={{
-         get: i18n,
-         languages: languages,
-         updateLanguage: updateLanguage
-       }}>
+      get: i18n,
+      language: language,
+      rtl: rtl,
+      languages: languages,
+      updateLanguage: updateLanguage
+    }}>
       {children}
     </Provider>
   )
