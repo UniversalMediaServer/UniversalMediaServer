@@ -406,11 +406,11 @@ export default function Settings() {
                   </Tooltip>
                 </Group>
               </Accordion.Item>
-              <Accordion.Item label={i18n['NetworkTab.60']}>
-                <Tooltip label={getToolTipContent(i18n['NavigationSettingsTab.EnableCacheTooltip'])} {...defaultTooltipSettings}>
+              <Accordion.Item label={i18n.get['NetworkTab.60']}>
+                <Tooltip label={getToolTipContent(i18n.get['NavigationSettingsTab.EnableCacheTooltip'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xl"
-                    label={i18n['NavigationSettingsTab.EnableCache']}
+                    label={i18n.get['NavigationSettingsTab.EnableCache']}
                     {...form.getInputProps('use_cache', { type: 'checkbox' })}
                   />
                 </Tooltip>
