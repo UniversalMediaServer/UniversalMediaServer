@@ -1,8 +1,10 @@
 import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { Devices2, Folder, Folders } from 'tabler-icons-react';
+
+import I18nContext from '../../contexts/i18n-context';
 
 export default function DirectoryChooser(props: {
   path: string,
@@ -12,6 +14,7 @@ export default function DirectoryChooser(props: {
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
+  const i18n = useContext(I18nContext);
 
   const [directories, setDirectories] = useState([] as { value: string, label: string }[]);
   const [parents, setParents] = useState([] as { value: string, label: string }[]);
@@ -29,8 +32,8 @@ export default function DirectoryChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: 'Error',
-      message: 'No directory was selected, please click on the far left to select.',
+      title: i18n.get['Dialog.Error'],
+      message: i18n.get['WebGui.DirectoryChooserSelectError'],
       autoClose: 3000,
     });
   };
@@ -48,8 +51,8 @@ export default function DirectoryChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: 'Error',
-          message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
+          title: i18n.get['Dialog.Error'],
+          message: i18n.get['WebGui.DirectoryChooserGetError'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -67,7 +70,7 @@ export default function DirectoryChooser(props: {
         title={
           <Group>
             <Folders />
-            Selected directory:
+            {i18n.get['WebGui.DirectoryChooserSelectedDirectory']}
           </Group>
         }
         overflow="inside"

@@ -29,8 +29,8 @@ const Login = () => {
         showNotification({
           id: 'pwd-error',
           color: 'red',
-          title: 'Error',
-          message: 'Error logging in',
+          title: i18n.get['Dialog.Error'],
+          message: i18n.get['WebGui.LoginError'],
           autoClose: 3000,
         });
       }
@@ -47,8 +47,8 @@ const Login = () => {
         showNotification({
           id: 'user-creation-error',
           color: 'red',
-          title: 'Error',
-          message: 'Error on user creation',
+          title: i18n.get['Dialog.Error'],
+          message: i18n.get['WebGui.AccountsUserCreationError'],
           autoClose: 3000,
         });
       }
@@ -59,23 +59,23 @@ const Login = () => {
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
           <Text size="xl">Universal Media Server</Text>
-          <Text size="lg">{ session.noAdminFound ? 'Create your first admin user' : 'Log in' }</Text>
+          <Text size="lg">{ session.noAdminFound ? i18n.get['WebGui.LoginCreateFirstAdmin'] : i18n.get['WebGui.Login'] }</Text>
         <Space h="md" />
         <TextInput
           required
-          label='Username'
+          label={i18n.get['WebGui.AccountsUsername']}
           icon={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
-          label='Password'
+          label={i18n.get['WebGui.AccountsPassword']}
           type='password'
           icon={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group position='right' mt='md'>
-          <Button type='submit'>{i18n.get['LooksFrame.9']}</Button>
+          <Button type='submit'>{session.noAdminFound ? i18n.get['WebGui.ButtonCreate'] : i18n.get['WebGui.ButtonLogin']}</Button>
         </Group>
       </form>
     </Box>
