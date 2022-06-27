@@ -103,6 +103,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"show_splash_screen",
 		"subs_info_level",
 		"thumbnail_seek_position",
+		"use_cache",
 		"use_imdb_info",
 		"x264_constant_rate_factor"
 	};
