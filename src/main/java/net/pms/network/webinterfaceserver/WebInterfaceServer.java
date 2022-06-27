@@ -22,6 +22,7 @@ package net.pms.network.webinterfaceserver;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -34,7 +35,7 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
-	protected static final Map<Integer, WebInterfaceAccount> ACCOUNTS = new HashMap<>();
+	protected static final Map<String, ArrayList<UserServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
@@ -93,15 +94,20 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		return new WebInterfaceServerHttpServer(port);
 	}
 
-	public static WebInterfaceAccount getAccountByUserId(int id) {
-		if (ACCOUNTS.containsKey(id)) {
-			return ACCOUNTS.get(id);
+	public static void enableServerSentEventsFor(String id) {
+		if (id != null && !SSE_INSTANCES.containsKey(id)) {
+			SSE_INSTANCES.put(id, new ArrayList<>());
 		}
-		return null;
 	}
 
-	public static void setAccount(WebInterfaceAccount account) {
-		ACCOUNTS.put(account.getUser().getId(), account);
+	public static boolean isServerSentEventsEnabledFor(String id) {
+		return id != null && SSE_INSTANCES.containsKey(id);
+	}
+
+	public static void addServerSentEventsFor(String id, UserServerSentEvents sse) {
+		if (id != null && SSE_INSTANCES.containsKey(id)) {
+			SSE_INSTANCES.get(id).add(sse);
+		}
 	}
 
 	/**
@@ -109,8 +115,10 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	 * @param message
 	 */
 	public static void broadcastMessage(String message) {
-		ACCOUNTS.forEach((id, account) -> {
-			account.broadcastMessage(message);
+		SSE_INSTANCES.forEach((id, sses) -> {
+			sses.forEach((sse) -> {
+				sse.sendMessage(message);
+			});
 		});
 	}
 
@@ -121,10 +129,10 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	 * @param permission
 	 */
 	public static void broadcastMessage(String message, String permission) {
-		ACCOUNTS.forEach((id, account) -> {
-			if (account.havePermission(permission)) {
-				account.broadcastMessage(message);
-			}
+		SSE_INSTANCES.forEach((id, sses) -> {
+			sses.forEach((sse) -> {
+				sse.sendMessage(message, permission);
+			});
 		});
 	}
 

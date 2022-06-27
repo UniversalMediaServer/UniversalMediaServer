@@ -19,7 +19,6 @@
 package net.pms.util;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -873,16 +872,6 @@ public final class Languages {
 		String[] values = getLanguageTags(locale);
 		String[] labels = getLanguageNames(locale);
 
-		JsonArray jsonArray = new JsonArray();
-		for (int i = 0; i < values.length; i++) {
-			JsonObject languageGroup = new JsonObject();
-			String value = values[i];
-			String label = labels[i];
-			languageGroup.addProperty("label", label);
-			languageGroup.addProperty("value", value);
-			jsonArray.add(languageGroup);
-		}
-
-		return jsonArray;
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 }

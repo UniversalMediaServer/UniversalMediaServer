@@ -17,16 +17,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.handlers;
+package net.pms.network.webinterfaceserver.configuration.handlers;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import net.pms.PMS;
-import net.pms.iam.AuthService;
-import net.pms.network.webinterfaceserver.ServerSentEvents;
-import net.pms.network.webinterfaceserver.WebInterfaceAccount;
+import net.pms.network.webinterfaceserver.UserServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.slf4j.Logger;
@@ -35,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public class SseApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiHandler.class);
 
+	public static final String BASE_PATH = "/v1/api/sse";
 	/**
 	 * Handle API calls.
 	 *
@@ -82,22 +81,23 @@ public class SseApiHandler implements HttpHandler {
 			};
 			try {
 				if (api.get("/")) {
-					if (!AuthService.isLoggedIn(exchange.getRequestURI().getQuery())) {
-						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
-					}
-					int loggedInUserId = AuthService.getUserIdFromJWT(exchange.getRequestURI().getQuery());
-					WebInterfaceAccount account = WebInterfaceServer.getAccountByUserId(loggedInUserId);
-					if (account != null) {
-						Headers hdr = exchange.getResponseHeaders();
-						hdr.add("Server", PMS.get().getServerName());
-						hdr.add("Content-Type", "text/event-stream");
-						hdr.add("Connection", "keep-alive");
-						hdr.add("Charset", "UTF-8");
-						exchange.sendResponseHeaders(200, 0);
-						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
-						account.addServerSentEvents(sse);
+					String payload = exchange.getRequestURI().getQuery();
+					if (WebInterfaceServer.isServerSentEventsEnabledFor(payload)) {
+						int loggedInUserId = WebInterfaceServerUtil.getUserIdFromPayload(exchange.getRequestURI().getQuery());
+						if (loggedInUserId > 0) {
+							Headers hdr = exchange.getResponseHeaders();
+							hdr.add("Server", PMS.get().getServerName());
+							hdr.add("Content-Type", "text/event-stream");
+							hdr.add("Connection", "keep-alive");
+							hdr.add("Charset", "UTF-8");
+							exchange.sendResponseHeaders(200, 0);
+							UserServerSentEvents sse = new UserServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange), loggedInUserId);
+							WebInterfaceServer.addServerSentEventsFor(payload, sse);
+						} else {
+							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+						}
 					} else {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
 					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");

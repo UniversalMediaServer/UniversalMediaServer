@@ -2,6 +2,8 @@ package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import com.google.gson.JsonArray;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -31,6 +33,8 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
+import net.pms.newgui.GeneralTab;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
@@ -187,6 +191,7 @@ public class RendererConfiguration extends Renderer {
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
 	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
+	protected static final String SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS = "SendDateMetadataYearForAudioTags";
 	protected static final String SEND_DLNA_ORG_FLAGS = "SendDLNAOrgFlags";
 	protected static final String SEND_FOLDER_THUMBNAILS = "SendFolderThumbnails";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
@@ -1697,7 +1702,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getConfName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		return getString(RENDERER_NAME, Messages.getString("NetworkTab.37"));
 	}
 
 	/**
@@ -2189,6 +2194,15 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
+	 * Note: This can break browsing on some renderers, even though it is valid.
+	 *
+	 * @return whether to send the release year as the `dc:date` tag for audio tracks
+	 */
+	public boolean isSendDateMetadataYearForAudioTags() {
+		return getBoolean(SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS, false);
+	}
+
+	/**
 	 * Whether to send folder thumbnails.
 	 *
 	 * @return whether to send folder thumbnails
@@ -2379,6 +2393,37 @@ public class RendererConfiguration extends Renderer {
 
 	public static ArrayList<String> getAllRenderersNames() {
 		return ALL_RENDERERS_NAMES;
+	}
+
+	/**
+	 * @return all renderer names as a JSON array
+	 */
+	public synchronized static JsonArray getAllRendererNamesAsJsonArray() {
+		ArrayList<String> values = getAllRenderersNames();
+
+		JsonArray jsonArray = new JsonArray();
+		jsonArray.add(pmsConfigurationStatic.allRenderers);
+		jsonArray.add("None");
+		for (int i = 0; i < values.size(); i++) {
+			jsonArray.add(values.get(i));
+		}
+		return jsonArray;
+	}
+
+	/**
+	 * This builds the dropdown for setting the default renderer.
+	 *
+	 * @return all default renderers as a JSON array
+	 */
+	public synchronized static JsonArray getEnabledRendererNamesAsJsonArray() {
+		ArrayList<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
+		GeneralTab.sortRendererConfigurationsByName(values);
+
+		JsonArray jsonArray = new JsonArray();
+		for (int i = 0; i < values.size(); i++) {
+			jsonArray.add(values.get(i).getConfName());
+		}
+		return jsonArray;
 	}
 
 	public int getTranscodedVideoAudioSampleRate() {
@@ -3089,7 +3134,11 @@ public class RendererConfiguration extends Renderer {
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
 				//escape "\" char with "\\" otherwise json will fail
-				(key, value) -> propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"))
+				(key, value) -> {
+					if (Arrays.asList(ConfigurationApiHandler.VALID_KEYS).contains(key)) {
+						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
+					}
+				}
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);

@@ -17,34 +17,24 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.iam;
+package net.pms.network.webinterfaceserver;
 
-public class UsernamePassword {
-	private String username;
-	private String password;
-	private String newPassword;
+import java.io.OutputStream;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 
-	public String getUsername() {
-		return username;
+public class UserServerSentEvents extends ServerSentEvents {
+	private final int userId;
+	public UserServerSentEvents(OutputStream os, String language, int userId) {
+		super(os, language);
+		this.userId = userId;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getNewPassword() {
-		return newPassword;
-	}
-
-	public void setNewPassword(String newPassword) {
-		this.newPassword = newPassword;
+	public boolean sendMessage(String message, String permission) {
+		Account account = AccountService.getAccountByUserId(userId);
+		if (account.havePermission(permission)) {
+			return sendMessage(message);
+		}
+		return false;
 	}
 }

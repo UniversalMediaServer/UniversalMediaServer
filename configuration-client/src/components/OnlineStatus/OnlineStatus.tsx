@@ -2,10 +2,9 @@ import React from 'react';
 import { Text } from '@mantine/core';
 import { showNotification, hideNotification } from '@mantine/notifications';
 
+import { getJwtPayload } from '../../services/auth.service';
+
 export const OnlineStatus = () => {
-  function getToken() {
-    return localStorage.getItem('user');
-  }
   const onClose = () => {
     showNotification({
       id: 'connection-lost',
@@ -22,7 +21,7 @@ export const OnlineStatus = () => {
     // process the data here
     
   }
-  const sse = new EventSource('/v1/api/sse/' + (getToken() !== null ? encodeURI('?' + getToken()) : ''));
+  const sse = new EventSource('/v1/api/sse/' + (getJwtPayload() !== null ? encodeURI('?' + getJwtPayload()) : ''));
   sse.onmessage = e => onMessage(JSON.parse(e.data));
   sse.onerror = () => { onClose(); }
   sse.onopen = () => { onOpen(); }

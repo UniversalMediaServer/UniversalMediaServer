@@ -20,6 +20,9 @@ package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -3483,6 +3486,23 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
 	}
 
+	/**
+	 * @return available subtitles info levels as a JSON array
+	 */
+	public synchronized static JsonArray getSubtitlesInfoLevelsAsJsonArray() {
+		String[] values = new String[] {
+			SubtitlesInfoLevel.NONE.toString(),
+			SubtitlesInfoLevel.BASIC.toString(),
+			SubtitlesInfoLevel.FULL.toString()
+		};
+		String[] labels = new String[] {
+			Messages.getString("Generic.None"),
+			Messages.getString("Generic.Basic"),
+			Messages.getString("Generic.Full")
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public boolean isHideExtensions() {
 		return getBoolean(KEY_HIDE_EXTENSIONS, true);
 	}
@@ -5153,5 +5173,50 @@ public class PmsConfiguration extends RendererConfiguration {
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}
+	}
+
+	/**
+	 * @return all audio cover suppliers as a JSON array
+	 */
+	public synchronized static JsonArray getAudioCoverSuppliersAsJsonArray() {
+		JsonArray jsonArray = new JsonArray();
+
+		JsonObject noneObject = new JsonObject();
+		noneObject.addProperty("label", Messages.getString("FoldTab.35"));
+		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
+		jsonArray.add(noneObject);
+
+		JsonObject coverArtArchiveObject = new JsonObject();
+		coverArtArchiveObject.addProperty("label", Messages.getString("FoldTab.73"));
+		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
+		jsonArray.add(coverArtArchiveObject);
+
+		return jsonArray;
+	}
+
+	/**
+	 * @return sort method as a JSON array
+	 */
+	public synchronized static JsonArray getSortMethodsAsJsonArray() {
+		String[] values = new String[]{
+			"" + UMSUtils.SORT_LOC_SENS,  // alphabetical
+			"" + UMSUtils.SORT_LOC_NAT,   // natural sort
+			"" + UMSUtils.SORT_INS_ASCII, // ASCIIbetical
+			"" + UMSUtils.SORT_MOD_NEW,   // newest first
+			"" + UMSUtils.SORT_MOD_OLD,   // oldest first
+			"" + UMSUtils.SORT_RANDOM,    // random
+			"" + UMSUtils.SORT_NO_SORT    // no sorting
+		};
+		String[] labels = new String[]{
+			Messages.getString("FoldTab.15"),
+			Messages.getString("FoldTab.22"),
+			Messages.getString("FoldTab.20"),
+			Messages.getString("FoldTab.16"),
+			Messages.getString("FoldTab.17"),
+			Messages.getString("FoldTab.58"),
+			Messages.getString("FoldTab.62")
+		};
+
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 }
