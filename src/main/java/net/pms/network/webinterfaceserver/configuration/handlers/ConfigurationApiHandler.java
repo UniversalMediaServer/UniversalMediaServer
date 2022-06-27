@@ -78,7 +78,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"force_transcode_for_extensions",
 		"gpu_acceleration",
 		"generate_thumbnails",
+		"hide_enginenames",
+		"hide_extensions",
 		"hostname",
+		"ignore_the_word_a_and_the",
 		"ip_filter",
 		"language",
 		"maximum_bitrate",
@@ -90,13 +93,16 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"network_interface",
 		"number_of_cpu_cores",
 		"port",
+		"prettify_filenames",
 		"renderer_default",
 		"renderer_force_default",
 		"selected_renderers",
 		"server_engine",
 		"server_name",
 		"show_splash_screen",
+		"subs_info_level",
 		"thumbnail_seek_position",
+		"use_imdb_info",
 		"x264_constant_rate_factor"
 	};
 
@@ -156,6 +162,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
 				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
+				jsonResponse.add("subtitlesInfoLevels", PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray());
 				int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
 				if (numberOfCpuCores < 1) {
 					numberOfCpuCores = 1;
@@ -270,6 +277,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		}
 		return getDirectoryResponse(requestedDirectory);
 	}
+
 	private static String getDirectoryResponse(String path) {
 		if (StringUtils.isEmpty(path)) {
 			// todo: support all OS'
@@ -322,6 +330,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
 	}
+
 	private static String getRootsDirectoryResponse() {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray jsonArray = new JsonArray();

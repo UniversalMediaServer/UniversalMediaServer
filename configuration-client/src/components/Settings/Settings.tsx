@@ -26,6 +26,7 @@ export default function Settings() {
   const audioCoverSuppliersSettingsRef = useRef([]);
   const sortMethodsSettingsRef = useRef([]);
   const numberOfCpuCoresSettingsRef = useRef(1);
+  const subtitlesInfoLevelsSettingsRef = useRef([]);
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -50,7 +51,10 @@ export default function Settings() {
     gpu_acceleration: false,
     external_network: true,
     generate_thumbnails: true,
+    hide_enginenames: true,
+    hide_extensions: true,
     hostname: '',
+    ignore_the_word_a_and_the: true,
     ip_filter: '',
     language: 'en-US',
     mencoder_remux_mpeg2: true,
@@ -61,6 +65,7 @@ export default function Settings() {
     network_interface: '',
     number_of_cpu_cores: numberOfCpuCoresSettingsRef.current,
     port: '',
+    prettify_filenames: false,
     renderer_default: '',
     renderer_force_default: false,
     selected_renderers: ['All renderers'],
@@ -68,7 +73,9 @@ export default function Settings() {
     server_name: 'Universal Media Server',
     show_splash_screen: true,
     sort_method: '4',
+    subs_info_level: 'basic',
     thumbnail_seek_position: '4',
+    use_imdb_info: true,
     x264_constant_rate_factor: 'Automatic (Wired)',
   };
 
@@ -103,6 +110,7 @@ export default function Settings() {
         audioCoverSuppliersSettingsRef.current = settingsResponse.audioCoverSuppliers;
         sortMethodsSettingsRef.current = settingsResponse.sortMethods;
         numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
+        subtitlesInfoLevelsSettingsRef.current = settingsResponse.subtitlesInfoLevels;
 
         //update default settings
         defaultSettings.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
@@ -349,12 +357,57 @@ export default function Settings() {
             ></DirectoryChooser>
             <Accordion mt="xl">
               <Accordion.Item label={i18n['NetworkTab.59']}>
-                <Select
-                  mt="xs"
-                  label={i18n['FoldTab.26']}
-                  data={sortMethodsSettingsRef.current}
-                  {...form.getInputProps('sort_method')}
+                <Group mt="xs">
+                  <Select
+                    label={i18n['FoldTab.26']}
+                    data={sortMethodsSettingsRef.current}
+                    {...form.getInputProps('sort_method')}
+                  />
+                  <Checkbox
+                    mt="xl"
+                    label={i18n['FoldTab.39']}
+                    {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
+                  />
+                </Group>
+                <Tooltip label={getToolTipContent(i18n['FoldTab.45'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="md"
+                    label={i18n['FoldTab.43']}
+                    {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Checkbox
+                  mt="md"
+                  label={i18n['FoldTab.5']}
+                  disabled={form.values['prettify_filenames']}
+                  {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                 />
+                <Tooltip label={getToolTipContent(i18n['FoldTab.UseInfoFromAPITooltip'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="md"
+                    label={i18n['FoldTab.UseInfoFromAPI']}
+                    {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Group mt="xs">
+                  <Tooltip label={getToolTipContent(i18n['FoldTab.addSubtitlesInfoToolTip'])} {...defaultTooltipSettings}>
+                    <Select
+                      label={i18n['FoldTab.addSubtitlesInfo']}
+                      data={subtitlesInfoLevelsSettingsRef.current}
+                      {...form.getInputProps('subs_info_level')}
+                    />
+                  </Tooltip>
+                  <Tooltip label={getToolTipContent(i18n['FoldTab.showEngineNamesAfterFilenamesToolTip'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      mt="xl"
+                      label={i18n['FoldTab.showEngineNamesAfterFilenames']}
+                      checked={!form.values['hide_enginenames']}
+                      onChange={(event) => {
+                        form.setFieldValue('hide_enginenames', !event.currentTarget.checked);
+                      }}
+                    />
+                  </Tooltip>
+                </Group>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
