@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({firstLogin:false, initialized: false} as UmsSession)
+  const [session, setSession] = useState({noAdminFound:false, initialized: false} as UmsSession)
 
   useEffect(() => {
     axios.get('/v1/api/auth/session')
