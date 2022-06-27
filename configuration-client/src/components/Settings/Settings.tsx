@@ -33,55 +33,6 @@ export default function Settings() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
 
-  const defaultSettings: Record<string, any> = {
-    alternate_thumb_folder: '',
-    append_profile_name: false,
-    audio_channels: '6',
-    audio_embed_dts_in_pcm: false,
-    audio_bitrate: '448',
-    audio_remux_ac3: true,
-    audio_use_pcm: false,
-    audio_thumbnails_method: '1',
-    auto_update: true,
-    automatic_maximum_bitrate: true,
-    chapter_interval: 5,
-    chapter_support: false,
-    disable_subtitles: false,
-    disable_transcode_for_extensions: '',
-    encoded_audio_passthrough: false,
-    force_transcode_for_extensions: '',
-    gpu_acceleration: false,
-    external_network: true,
-    generate_thumbnails: true,
-    hide_enginenames: true,
-    hide_extensions: true,
-    hostname: '',
-    ignore_the_word_a_and_the: true,
-    ip_filter: '',
-    language: 'en-US',
-    mencoder_remux_mpeg2: true,
-    maximum_video_buffer_size: 200,
-    maximum_bitrate: '90',
-    minimized: false,
-    mpeg2_main_settings: 'Automatic (Wired)',
-    network_interface: '',
-    number_of_cpu_cores: numberOfCpuCoresSettingsRef.current,
-    port: '',
-    prettify_filenames: false,
-    renderer_default: '',
-    renderer_force_default: false,
-    selected_renderers: ['All renderers'],
-    server_engine: '0',
-    server_name: 'Universal Media Server',
-    show_splash_screen: true,
-    sort_method: '4',
-    subs_info_level: 'basic',
-    thumbnail_seek_position: '4',
-    use_cache: true,
-    use_imdb_info: true,
-    x264_constant_rate_factor: 'Automatic (Wired)',
-  };
-
   const defaultTooltipSettings = {
     width: 350,
     color: "blue",
@@ -93,9 +44,9 @@ export default function Settings() {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
-  const [configuration, setConfiguration] = useState(defaultSettings);
+  const [configuration, setConfiguration] = useState({} as any);
 
-  const form = useForm({ initialValues: defaultSettings });
+  const form = useForm({ initialValues: {} as any });
 
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
@@ -110,11 +61,11 @@ export default function Settings() {
         numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
 
         //update default settings
-        defaultSettings.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
+        settingsResponse.userSettingsDefaults.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
 
         // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
-
+        const userConfig = _.merge(settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
+console.log(111,userConfig);
         setConfiguration(userConfig);
         form.setValues(configuration);
       })

@@ -3135,7 +3135,7 @@ public class RendererConfiguration extends Renderer {
 		configurationAsProperties.forEach(
 				//escape "\" char with "\\" otherwise json will fail
 				(key, value) -> {
-					if (Arrays.asList(ConfigurationApiHandler.VALID_KEYS).contains(key)) {
+					if (ConfigurationApiHandler.getWebSettingsWithDefaults().has(Objects.toString(key))) {
 						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
 					}
 				}
