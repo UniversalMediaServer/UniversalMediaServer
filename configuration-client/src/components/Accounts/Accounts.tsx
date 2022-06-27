@@ -40,7 +40,7 @@ const Accounts = () => {
       const data = {operation:'createuser', username:values.username, password:values.password, groupid:values.groupid, displayname:values.displayname};
       postAccountAction(data, i18n['WebGui.AccountsUserCreationTitle'], i18n['WebGui.AccountsUserCreationSuccess'], i18n['WebGui.AccountsUserCreationError']);
     }
-    const groupDatas2 = getUserGroupsSelection(accounts);
+    const groupDatas2 = getUserGroupsSelection(accounts, i18n['Generic.None']);
     return (
       <form onSubmit={newUserForm.onSubmit(handleNewUserSubmit)}>
         <TextInput
@@ -138,7 +138,7 @@ const Accounts = () => {
       const data = {operation:'modifyuser', userid:user.id, groupid:values.groupId};
       postAccountAction(data, i18n['WebGui.AccountsUserGroupChangeTitle'], i18n['WebGui.AccountsUserGroupChangeSuccess'], i18n['WebGui.AccountsUserGroupChangeError']);
     };
-    const groupDatas = getUserGroupsSelection(accounts);
+    const groupDatas = getUserGroupsSelection(accounts, i18n['Generic.None']);
     return (
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
         <Divider my="sm" label={i18n['WebGui.AccountsGroup']} />

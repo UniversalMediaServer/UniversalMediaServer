@@ -26,9 +26,9 @@ export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
   return {id:0,displayName:"",permissions:[]} as UmsGroup;
 };
 
-export const getUserGroupsSelection = (accounts: UmsAccounts) => {
+export const getUserGroupsSelection = (accounts: UmsAccounts, none: string) => {
   const result = [];
-  result.push({ value: '0', label: 'None' });
+  result.push({ value: '0', label: none });
   accounts.groups.forEach((group) => {
     if (group.id > 0) {
       result.push({ value: group.id.toString(), label: group.displayName });
