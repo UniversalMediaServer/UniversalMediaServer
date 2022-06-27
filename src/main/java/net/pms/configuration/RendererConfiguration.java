@@ -2403,7 +2403,7 @@ public class RendererConfiguration extends Renderer {
 
 		JsonArray jsonArray = new JsonArray();
 		jsonArray.add(pmsConfigurationStatic.allRenderers);
-		jsonArray.add("None");
+		jsonArray.add("i18n@Generic.None");
 		for (int i = 0; i < values.size(); i++) {
 			jsonArray.add(values.get(i));
 		}

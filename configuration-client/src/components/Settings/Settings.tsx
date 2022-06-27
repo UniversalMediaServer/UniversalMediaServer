@@ -178,6 +178,12 @@ export default function Settings() {
       });
   };
 
+  const getI18nSelectData = (values: [{value:string;label:string}]) => {
+    return values.map((value : {value:string;label:string}) => {
+      return {value : value.value, label: i18n.getI18nString(value.label)};
+    });
+  }
+
   return canView ? (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -281,7 +287,7 @@ export default function Settings() {
                   <Select
                     disabled={!canModify}
                     label={i18n.get['NetworkTab.MediaServerEngine']}
-                    data={selectionSettings.serverEngines}
+                    data={getI18nSelectData(selectionSettings.serverEngines as unknown as [{value:string;label:string}])}
                     {...form.getInputProps('server_engine')}
                   />
                 </Tooltip>
@@ -343,7 +349,7 @@ export default function Settings() {
             <Select
               mt="xs"
               label={i18n.get['FoldTab.26']}
-              data={selectionSettings.audioCoverSuppliers}
+              data={getI18nSelectData(selectionSettings.audioCoverSuppliers as unknown as [{value:string;label:string}])}
               {...form.getInputProps('audio_thumbnails_method')}
             />
             <DirectoryChooser
@@ -357,7 +363,7 @@ export default function Settings() {
                 <Group mt="xs">
                   <Select
                     label={i18n.get['FoldTab.26']}
-                    data={selectionSettings.sortMethods}
+                    data={getI18nSelectData(selectionSettings.sortMethods as unknown as [{value:string;label:string}])}
                     {...form.getInputProps('sort_method')}
                   />
                   <Checkbox
@@ -390,7 +396,7 @@ export default function Settings() {
                   <Tooltip label={getToolTipContent(i18n.get['FoldTab.addSubtitlesInfoToolTip'])} {...defaultTooltipSettings}>
                     <Select
                       label={i18n.get['FoldTab.addSubtitlesInfo']}
-                      data={selectionSettings.subtitlesInfoLevels}
+                      data={getI18nSelectData(selectionSettings.subtitlesInfoLevels as unknown as [{value:string;label:string}])}
                       {...form.getInputProps('subs_info_level')}
                     />
                   </Tooltip>

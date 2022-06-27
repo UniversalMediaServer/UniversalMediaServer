@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const I18nProvider = ({ children, ...props }: Props) =>{
-  const [i18n, setI18n] = useState({})
+  const [i18n, setI18n] = useState<{[key: string]: string}>({})
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
@@ -21,6 +21,14 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
     key: 'mantine-rtl',
     defaultValue: false,
   });
+
+  const getI18nString = (value: string) => {
+    if (value.startsWith('i18n@')) {
+      return i18n[value.substring(5)];
+    } else {
+      return value;
+    }
+  }
 
   const updateLanguage = (askedLanguage : string) => {
     setLanguage(askedLanguage);
@@ -51,6 +59,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
   return(
     <Provider value={{
       get: i18n,
+	  getI18nString: getI18nString,
       language: language,
       rtl: rtl,
       languages: languages,
