@@ -58,78 +58,71 @@ import org.slf4j.LoggerFactory;
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 
-	private static JsonObject webSettingsWithDefaults = new JsonObject();
+	// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
+	public static final Map<String, Object> WEB_SETTINGS_WITH_DEFAULTS = Map.ofEntries(
+		Map.entry("alternate_thumb_folder", ""),
+		Map.entry("append_profile_name", false),
+		Map.entry("audio_channels", "6"),
+		Map.entry("audio_embed_dts_in_pcm", false),
+		Map.entry("audio_bitrate", "448"),
+		Map.entry("audio_remux_ac3", true),
+		Map.entry("audio_use_pcm", false),
+		Map.entry("audio_thumbnails_method", "1"),
+		Map.entry("auto_update", true),
+		Map.entry("automatic_maximum_bitrate", true),
+		Map.entry("chapter_interval", 5),
+		Map.entry("chapter_support", false),
+		Map.entry("disable_subtitles", false),
+		Map.entry("disable_transcode_for_extensions", ""),
+		Map.entry("encoded_audio_passthrough", false),
+		Map.entry("force_transcode_for_extensions", ""),
+		Map.entry("gpu_acceleration", false),
+		Map.entry("external_network", true),
+		Map.entry("generate_thumbnails", true),
+		Map.entry("hide_enginenames", true),
+		Map.entry("hide_extensions", true),
+		Map.entry("hostname", ""),
+		Map.entry("ignore_the_word_a_and_the", true),
+		Map.entry("ip_filter", ""),
+		Map.entry("language", "en-US"),
+		Map.entry("mencoder_remux_mpeg2", true),
+		Map.entry("maximum_video_buffer_size", 200),
+		Map.entry("maximum_bitrate", "90"),
+		Map.entry("minimized", false),
+		Map.entry("mpeg2_main_settings", "Automatic (Wired)"),
+		Map.entry("network_interface", ""),
+		Map.entry("number_of_cpu_cores", Runtime.getRuntime().availableProcessors() > 0 ? Runtime.getRuntime().availableProcessors() : 1),
+		Map.entry("port", ""),
+		Map.entry("prettify_filenames", false),
+		Map.entry("renderer_default", ""),
+		Map.entry("renderer_force_default", false),
+		Map.entry("selected_renderers", new String[] {"All renderers"}),
+		Map.entry("server_engine", "0"),
+		Map.entry("server_name", "Universal Media Server"),
+		Map.entry("show_splash_screen", true),
+		Map.entry("sort_method", "4"),
+		Map.entry("subs_info_level", "basic"),
+		Map.entry("thumbnail_seek_position", "4"),
+		Map.entry("use_cache", true),
+		Map.entry("use_imdb_info", true),
+		Map.entry("x264_constant_rate_factor", "Automatic (Wired)")
+	);
 
-	public static synchronized JsonObject getWebSettingsWithDefaults() {
-		if (webSettingsWithDefaults.size() != 0) {
-			return webSettingsWithDefaults;
-		}
-
-		// populate webSettingsWithDefaults with all defaults
-		webSettingsWithDefaults.addProperty("alternate_thumb_folder", "");
-		webSettingsWithDefaults.addProperty("append_profile_name", false);
-		webSettingsWithDefaults.addProperty("audio_channels", "6");
-		webSettingsWithDefaults.addProperty("audio_embed_dts_in_pcm", false);
-		webSettingsWithDefaults.addProperty("audio_bitrate", "448");
-		webSettingsWithDefaults.addProperty("audio_remux_ac3", true);
-		webSettingsWithDefaults.addProperty("audio_use_pcm", false);
-		webSettingsWithDefaults.addProperty("audio_thumbnails_method", "1");
-		webSettingsWithDefaults.addProperty("auto_update", true);
-		webSettingsWithDefaults.addProperty("automatic_maximum_bitrate", true);
-		webSettingsWithDefaults.addProperty("chapter_interval", 5);
-		webSettingsWithDefaults.addProperty("chapter_support", false);
-		webSettingsWithDefaults.addProperty("disable_subtitles", false);
-		webSettingsWithDefaults.addProperty("disable_transcode_for_extensions", "");
-		webSettingsWithDefaults.addProperty("encoded_audio_passthrough", false);
-		webSettingsWithDefaults.addProperty("force_transcode_for_extensions", "");
-		webSettingsWithDefaults.addProperty("gpu_acceleration", false);
-		webSettingsWithDefaults.addProperty("external_network", true);
-		webSettingsWithDefaults.addProperty("generate_thumbnails", true);
-		webSettingsWithDefaults.addProperty("hide_enginenames", true);
-		webSettingsWithDefaults.addProperty("hide_extensions", true);
-		webSettingsWithDefaults.addProperty("hostname", "");
-		webSettingsWithDefaults.addProperty("ignore_the_word_a_and_the", true);
-		webSettingsWithDefaults.addProperty("ip_filter", "");
-		webSettingsWithDefaults.addProperty("language", "en-US");
-		webSettingsWithDefaults.addProperty("mencoder_remux_mpeg2", true);
-		webSettingsWithDefaults.addProperty("maximum_video_buffer_size", 200);
-		webSettingsWithDefaults.addProperty("maximum_bitrate", "90");
-		webSettingsWithDefaults.addProperty("minimized", false);
-		webSettingsWithDefaults.addProperty("mpeg2_main_settings", "Automatic (Wired)");
-		webSettingsWithDefaults.addProperty("network_interface", "");
-		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-		if (numberOfCpuCores < 1) {
-			numberOfCpuCores = 1;
-		}
-		webSettingsWithDefaults.addProperty("number_of_cpu_cores", numberOfCpuCores);
-		webSettingsWithDefaults.addProperty("port", "");
-		webSettingsWithDefaults.addProperty("prettify_filenames", false);
-		webSettingsWithDefaults.addProperty("renderer_default", "");
-		webSettingsWithDefaults.addProperty("renderer_force_default", false);
-		JsonArray allRenderers = new JsonArray();
-		allRenderers.add("All renderers");
-		webSettingsWithDefaults.add("selected_renderers", allRenderers);
-		webSettingsWithDefaults.addProperty("server_engine", "0");
-		webSettingsWithDefaults.addProperty("server_name", "Universal Media Server");
-		webSettingsWithDefaults.addProperty("show_splash_screen", true);
-		webSettingsWithDefaults.addProperty("sort_method", "4");
-		webSettingsWithDefaults.addProperty("subs_info_level", "basic");
-		webSettingsWithDefaults.addProperty("thumbnail_seek_position", "4");
-		webSettingsWithDefaults.addProperty("use_cache", true);
-		webSettingsWithDefaults.addProperty("use_imdb_info", true);
-		webSettingsWithDefaults.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
-
-		return webSettingsWithDefaults;
-	}
-
-	public static final String[] VALID_EMPTY_KEYS = {
+	public static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
 		"hostname",
 		"ip_filter",
 		"network_interface",
 		"port",
 		"renderer_default"
-	};
+	);
+
+	private static JsonElement webSettingsWithDefaults;
+
+	public ConfigurationApiHandler() {
+		//set elements that will never change
+		webSettingsWithDefaults = gson.toJsonTree(WEB_SETTINGS_WITH_DEFAULTS);
+	}
 
 	public static final String BASE_PATH = "/configuration-api";
 
@@ -182,13 +175,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-				//back to default value if empty
-				List<String> validEmptyKeys = Arrays.asList(VALID_EMPTY_KEYS);
-				for (String key : getWebSettingsWithDefaults().keySet()) {
-					if (!validEmptyKeys.contains(key) && configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive() && "".equals(configurationAsJson.get(key).getAsString())) {
-						configurationAsJson.remove(key);
-					}
-				}
+
 				//select need string, not number
 				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
 				for (String key : needConvertToString) {
@@ -198,7 +185,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
-				jsonResponse.add("userSettingsDefaults", getWebSettingsWithDefaults());
+				jsonResponse.add("userSettingsDefaults", webSettingsWithDefaults);
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
@@ -216,7 +203,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
-					if (!getWebSettingsWithDefaults().has(key)) {
+					if (!WEB_SETTINGS_WITH_DEFAULTS.containsKey(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
 						continue;
 					}
