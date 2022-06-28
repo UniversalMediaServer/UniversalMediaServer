@@ -70,8 +70,8 @@ export default function Settings() {
     live_subtitles_limit: 20,
     maximum_video_buffer_size: 200,
     maximum_bitrate: '90',
-    mencoder_noass_scale: 'todo',
-    mencoder_noass_outline: 'todo',
+    subtitles_ass_scale: 1.4,
+    mencoder_noass_outline: 1,
     mencoder_remux_mpeg2: true,
     mencoder_subfribidi: false,
     minimized: false,
@@ -87,8 +87,8 @@ export default function Settings() {
     server_name: 'Universal Media Server',
     show_splash_screen: true,
     sort_method: '4',
-    subtitles_ass_margin: 'tod',
-    subtitles_ass_shadow: 'tod',
+    subtitles_ass_margin: 10,
+    subtitles_ass_shadow: 1,
     subtitles_codepage: '',
     subtitles_color: '0xFFFFFFFF',
     subtitles_font: '',
@@ -749,7 +749,7 @@ export default function Settings() {
                             label={i18n['MEncoderVideo.133']}
                             sx={{ flex: 1 }}
                             size="xs"
-                            {...form.getInputProps('mencoder_noass_scale')}
+                            {...form.getInputProps('subtitles_ass_scale')}
                           />
                         </Grid.Col>
                         <Grid.Col span={3}>
