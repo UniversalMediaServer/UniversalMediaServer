@@ -24,7 +24,9 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.network.webinterfaceserver.UserServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
@@ -35,6 +37,15 @@ public class SseApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiHandler.class);
 
 	public static final String BASE_PATH = "/v1/api/sse";
+
+	private final Thread memoryThread;
+
+	public SseApiHandler() {
+		//let start a thread to update memory usage
+		this.memoryThread = new Thread(rUpdateMemoryUsage);
+		memoryThread.start();
+	}
+
 	/**
 	 * Handle API calls.
 	 *
@@ -105,9 +116,9 @@ public class SseApiHandler implements HttpHandler {
 					String message = broadcast.get("message").getAsString();
 					if (broadcast.has("permission") && broadcast.get("permission").isJsonPrimitive()) {
 						String permission = broadcast.get("permission").getAsString();
-						WebInterfaceServer.broadcastMessage(message, permission);
+						WebInterfaceServer.broadcastMessage("{\"action\":\"show_message\",\"message\":\"" + message + "\"}", permission);
 					} else {
-						WebInterfaceServer.broadcastMessage(message);
+						WebInterfaceServer.broadcastMessage("{\"action\":\"show_message\",\"message\":\"" + message + "\"}");
 					}
 					WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 				} else {
@@ -123,4 +134,29 @@ public class SseApiHandler implements HttpHandler {
 			LOGGER.trace("", e);
 		}
 	}
+
+	public void updateMemoryUsage() {
+		final long max = Runtime.getRuntime().maxMemory() / 1048576;
+		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+		long buffer = 0;
+		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		synchronized (foundRenderers) {
+			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+				buffer += (r.getBuffer());
+			}
+		}
+		String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
+		WebInterfaceServer.broadcastMessage(json);
+	}
+
+	Runnable rUpdateMemoryUsage = () -> {
+		while (true) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				return;
+			}
+			updateMemoryUsage();
+		}
+	};
 }

@@ -15,6 +15,7 @@ export const OnlineStatus = () => {
 
 //THIS IS ADDED FOR TEST ONLY
   const [message, setMessage] = useState<string>('');
+  const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
   const handleAskMsg = () => {
     axios.post('/v1/api/sse/broadcast', {message:"This message was sent by the server"});
   };
@@ -55,8 +56,15 @@ export const OnlineStatus = () => {
     const onMessage = (event: MessageEvent) => {
       // process the data here
       //THIS IS ADDED FOR TEST ONLY
-      setMessage(event.data);
-	  //here can be JSON.parse(event.data) etc
+      const datas = JSON.parse(event.data);
+      switch (datas.action) {
+        case 'update_memory':
+          setMemory(datas);
+          break;
+        case 'show_message':
+          setMessage(datas.message);
+          break;
+      }
     }
     const createSse = () => {
       const newsse = new EventSource('/v1/api/sse/' + (getJwtPayload() !== null ? encodeURI('?' + getJwtPayload()) : ''));
@@ -71,8 +79,10 @@ export const OnlineStatus = () => {
   return (
     <Paper shadow="xs" p="md">
       <Text size="xs">Connection status: {connectionStatusStr[connectionStatus]}</Text>
-      <Button onClick={handleAskMsg}>Ask server to send a message</Button>
-      <Button onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
+	  <Text size="xs">Memory status: {memory.used}/{memory.max}({memory.buffer} for buffer)</Text>
+      <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>
+      <Text size="xs"> </Text>
+      <Button size="xs" onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
       <Text size="xs">Message: {message}</Text>
     </Paper>
   );
