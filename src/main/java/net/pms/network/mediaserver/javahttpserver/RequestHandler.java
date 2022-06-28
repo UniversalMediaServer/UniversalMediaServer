@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -581,8 +579,7 @@ public class RequestHandler implements HttpHandler {
 				exchange.getResponseHeaders().set("Expires", getFutureDate() + " GMT");
 				DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 				if (sub != null) {
-					// XXX external file is null if the first subtitle track is embedded:
-					// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+					// XXX external file is null if the first subtitle track is embedded
 					if (sub.isExternal()) {
 						if (sub.getExternalFile() == null && sub instanceof DLNAMediaOnDemandSubtitle) {
 							// Try to fetch subtitles

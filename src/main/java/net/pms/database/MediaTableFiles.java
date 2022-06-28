@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -258,16 +256,16 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 26:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD BUDGET DOUBLE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
@@ -306,16 +304,16 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 30:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD BUDGET DOUBLE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CREDITS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD EXTERNALIDS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD HOMEPAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IMAGES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALLANGUAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD ORIGINALTITLE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOMPANIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD PRODUCTIONCOUNTRIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD REVENUE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;

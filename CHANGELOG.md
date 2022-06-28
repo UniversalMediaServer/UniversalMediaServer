@@ -1,12 +1,20 @@
 # Changelog
 
-### [Unreleased]
+### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
+
+### General
+- Fixed failed database update for some users (#3051) (thanks, vrtlspd!)
+- Fixed Docker startup crash (#3050) (thanks, vrtlspd!)
+- Document HLS-MPEGTS-H264-AAC transcoding option
 
 ### Translations via Crowdin
 - Added Estonian (23%) (thanks, Junk Knuj and Tanel K!)
 
+### Dependencies
+- Update dependency maven-enforcer-plugin to v3.1.0
 
-### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0)
+
+### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0) (2022-06-10)
 ### General
 - Improved caching of web interface files
 - Added getServerPlaylists to playlist API
@@ -28,7 +36,7 @@
 - Bump com.sun.xml.bind-version from 3.0.2 to 4.0.0
 - Bump junrar from 7.5.1 to 7.5.2
 
-## [11.0.0 - since 10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...11.0.0)
+## [11.0.0 - since 10.21.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/10.21.1...11.0.0) (2022-05-27)
 ### General
 - Uses image backgrounds and logos for movies, TV series and episodes on the web interface
 - Web interface switches between dark and light themes in Media Library based on background images
@@ -104,7 +112,7 @@
 - Bump Video.js from 7.13.3 to 7.19.2
 - Fixed support for latest Maven versions
 
-## [11.0.0 - since 11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...11.0.0)
+## [11.0.0 - since 11.0.0-a2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0-a2...11.0.0) (2022-05-27)
 ### General
 - Added editable server-side playlist support
 - Prevent users from enabling startup scanning while the cache is disabled
