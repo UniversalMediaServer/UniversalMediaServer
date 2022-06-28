@@ -1,8 +1,8 @@
-import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -28,7 +28,6 @@ export default function Settings() {
     sortMethods: [],
     subtitlesInfoLevels: [],
   });
-  const numberOfCpuCoresSettingsRef = useRef(1);
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -44,6 +43,7 @@ export default function Settings() {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
+  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
 
   const form = useForm({ initialValues: {} as any });
@@ -57,17 +57,13 @@ export default function Settings() {
       .then(function (response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
-
-        numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
-
-        //update default settings
-        settingsResponse.userSettingsDefaults.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
+        setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
-console.log(111,userConfig);
+
         setConfiguration(userConfig);
-        form.setValues(configuration);
+        form.setValues(userConfig);
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -383,43 +379,49 @@ console.log(111,userConfig);
                   <Navbar.Section>
                   <Accordion>
                     <Accordion.Item label="Video Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
-                        FFmpeg Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
-                        MEncoder Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
-                        tsMuxeR Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
-                        VLC Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
+                          FFmpeg Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
+                          MEncoder Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
+                          tsMuxeR Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
+                          VLC Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Audio Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
-                        FFmpeg Audio
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
-                        tsMuxeR Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
+                          FFmpeg Audio
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
+                          tsMuxeR Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web video streaming engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
-                        FFmpeg Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
-                        youtube-dl
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
-                        VLC Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
-                        VLC Web Video (legacy)
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
-                        Mencoder Web Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
+                          FFmpeg Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
+                          youtube-dl
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
+                          VLC Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
+                          VLC Web Video (legacy)
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
+                          Mencoder Web Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web audio streaming engines">
                       <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebaudio')}>
@@ -444,9 +446,9 @@ console.log(111,userConfig);
                   {...form.getInputProps('maximum_video_buffer_size')}
                 />
                 <NumberInput
-                  label={i18n['TrTab2.24']?.replace('%d', numberOfCpuCoresSettingsRef.current.toString())}
+                  label={i18n['TrTab2.24']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
                   size="xs"
-                  max={numberOfCpuCoresSettingsRef.current}
+                  max={defaultConfiguration.number_of_cpu_cores}
                   min={1}
                   disabled={false}
                   {...form.getInputProps('number_of_cpu_cores')}

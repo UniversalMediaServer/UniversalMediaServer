@@ -3133,12 +3133,17 @@ public class RendererConfiguration extends Renderer {
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
-				//escape "\" char with "\\" otherwise json will fail
-				(key, value) -> {
-					if (ConfigurationApiHandler.WEB_SETTINGS_WITH_DEFAULTS.containsKey(Objects.toString(key))) {
-						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
+			(key, value) -> {
+				String strKey = Objects.toString(key);
+				if (ConfigurationApiHandler.WEB_SETTINGS_WITH_DEFAULTS.containsKey(strKey)) {
+					String strValue = Objects.toString(value);
+					//do not add valid empty key then it back to default
+					if (ConfigurationApiHandler.VALID_EMPTY_KEYS.contains(strKey) || !StringUtils.isEmpty(strValue)) {
+						//escape "\" char with "\\" otherwise json will fail
+						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 					}
 				}
+			}
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);

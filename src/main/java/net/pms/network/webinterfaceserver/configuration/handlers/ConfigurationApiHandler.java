@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static java.util.Map.entry;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -60,66 +59,73 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 
 	public static final Map<String, Object> WEB_SETTINGS_WITH_DEFAULTS = Map.ofEntries(
-		entry("alternate_thumb_folder", ""),
-		entry("append_profile_name", false),
-		entry("audio_channels", "6"),
-		entry("audio_embed_dts_in_pcm", false),
-		entry("audio_bitrate", "448"),
-		entry("audio_remux_ac3", true),
-		entry("audio_use_pcm", false),
-		entry("audio_thumbnails_method", "1"),
-		entry("auto_update", true),
-		entry("automatic_maximum_bitrate", true),
-		entry("chapter_interval", 5),
-		entry("chapter_support", false),
-		entry("disable_subtitles", false),
-		entry("disable_transcode_for_extensions", ""),
-		entry("encoded_audio_passthrough", false),
-		entry("force_transcode_for_extensions", ""),
-		entry("gpu_acceleration", false),
-		entry("external_network", true),
-		entry("generate_thumbnails", true),
-		entry("hide_enginenames", true),
-		entry("hide_extensions", true),
-		entry("hostname", ""),
-		entry("ignore_the_word_a_and_the", true),
-		entry("ip_filter", ""),
-		entry("language", "en-US"),
-		entry("mencoder_remux_mpeg2", true),
-		entry("maximum_video_buffer_size", 200),
-		entry("maximum_bitrate", "90"),
-		entry("minimized", false),
-		entry("mpeg2_main_settings", "Automatic (Wired)"),
-		entry("network_interface", ""),
-		entry("number_of_cpu_cores", "1"),
-		entry("port", ""),
-		entry("prettify_filenames", false),
-		entry("renderer_default", ""),
-		entry("renderer_force_default", false),
-		entry("selected_renderers", new String[] { "All renderers" }),
-		entry("server_engine", "0"),
-		entry("server_name", "Universal Media Server"),
-		entry("show_splash_screen", true),
-		entry("sort_method", "4"),
-		entry("subs_info_level", "basic"),
-		entry("thumbnail_seek_position", "4"),
-		entry("use_cache", true),
-		entry("use_imdb_info", true),
-		entry("x264_constant_rate_factor", "Automatic (Wired)")
+		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
+		Map.entry("alternate_thumb_folder", ""),
+		Map.entry("append_profile_name", false),
+		Map.entry("audio_channels", "6"),
+		Map.entry("audio_embed_dts_in_pcm", false),
+		Map.entry("audio_bitrate", "448"),
+		Map.entry("audio_remux_ac3", true),
+		Map.entry("audio_use_pcm", false),
+		Map.entry("audio_thumbnails_method", "1"),
+		Map.entry("auto_update", true),
+		Map.entry("automatic_maximum_bitrate", true),
+		Map.entry("chapter_interval", 5),
+		Map.entry("chapter_support", false),
+		Map.entry("disable_subtitles", false),
+		Map.entry("disable_transcode_for_extensions", ""),
+		Map.entry("encoded_audio_passthrough", false),
+		Map.entry("force_transcode_for_extensions", ""),
+		Map.entry("gpu_acceleration", false),
+		Map.entry("external_network", true),
+		Map.entry("generate_thumbnails", true),
+		Map.entry("hide_enginenames", true),
+		Map.entry("hide_extensions", true),
+		Map.entry("hostname", ""),
+		Map.entry("ignore_the_word_a_and_the", true),
+		Map.entry("ip_filter", ""),
+		Map.entry("language", "en-US"),
+		Map.entry("mencoder_remux_mpeg2", true),
+		Map.entry("maximum_video_buffer_size", 200),
+		Map.entry("maximum_bitrate", "90"),
+		Map.entry("minimized", false),
+		Map.entry("mpeg2_main_settings", "Automatic (Wired)"),
+		Map.entry("network_interface", ""),
+		Map.entry("number_of_cpu_cores", Runtime.getRuntime().availableProcessors() > 0 ? Runtime.getRuntime().availableProcessors() : 1),
+		Map.entry("port", ""),
+		Map.entry("prettify_filenames", false),
+		Map.entry("renderer_default", ""),
+		Map.entry("renderer_force_default", false),
+		Map.entry("selected_renderers", new String[] {"All renderers"}),
+		Map.entry("server_engine", "0"),
+		Map.entry("server_name", "Universal Media Server"),
+		Map.entry("show_splash_screen", true),
+		Map.entry("sort_method", "4"),
+		Map.entry("subs_info_level", "basic"),
+		Map.entry("thumbnail_seek_position", "4"),
+		Map.entry("use_cache", true),
+		Map.entry("use_imdb_info", true),
+		Map.entry("x264_constant_rate_factor", "Automatic (Wired)")
 	);
 
-	public static final String[] VALID_EMPTY_KEYS = {
+	public static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
 		"hostname",
 		"ip_filter",
 		"network_interface",
 		"port",
 		"renderer_default"
-	};
+	);
 
 	public static final String BASE_PATH = "/configuration-api";
 
 	private final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
+	public final JsonElement userSettingsDefaults;
+
+	public ConfigurationApiHandler() {
+		//set elements that will never change
+		userSettingsDefaults = gson.toJsonTree(WEB_SETTINGS_WITH_DEFAULTS);
+	}
 
 	/**
 	 * Handle API calls.
@@ -165,21 +171,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
 				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
 				jsonResponse.add("subtitlesInfoLevels", PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray());
-				int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-				if (numberOfCpuCores < 1) {
-					numberOfCpuCores = 1;
-				}
-				jsonResponse.add("numberOfCpuCores", new JsonPrimitive(numberOfCpuCores));
 
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-				//back to default value if empty
-				List<String> validEmptyKeys = Arrays.asList(VALID_EMPTY_KEYS);
-				for (String key : WEB_SETTINGS_WITH_DEFAULTS.keySet()) {
-					if (!validEmptyKeys.contains(key) && configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive() && "".equals(configurationAsJson.get(key).getAsString())) {
-						configurationAsJson.remove(key);
-					}
-				}
 				//select need string, not number
 				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
 				for (String key : needConvertToString) {
@@ -189,7 +183,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
-				jsonResponse.add("userSettingsDefaults", gson.toJsonTree(WEB_SETTINGS_WITH_DEFAULTS));
+				jsonResponse.add("userSettingsDefaults", userSettingsDefaults);
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
