@@ -33,7 +33,6 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.apache.commons.io.IOUtils;
@@ -82,8 +81,6 @@ public class AuthApiHandler implements HttpHandler {
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-								String payload = token.split("\\.")[1];
-								WebInterfaceServer.enableServerSentEventsFor(payload);
 								JsonObject jObject = new JsonObject();
 								jObject.add("token", new JsonPrimitive(token));
 								JsonElement jElement = gson.toJsonTree(account);
@@ -107,8 +104,6 @@ public class AuthApiHandler implements HttpHandler {
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
 						String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-						String payload = token.split("\\.")[1];
-						WebInterfaceServer.enableServerSentEventsFor(payload);
 						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
 					} else {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
@@ -148,8 +143,6 @@ public class AuthApiHandler implements HttpHandler {
 								JsonObject jObject = new JsonObject();
 								jObject.add("noAdminFound", new JsonPrimitive(false));
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-								String payload = token.split("\\.")[1];
-								WebInterfaceServer.enableServerSentEventsFor(payload);
 								jObject.add("token", new JsonPrimitive(token));
 								jObject.add("account", AccountApiHandler.accountToJsonObject(account));
 								WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");

@@ -81,23 +81,18 @@ public class SseApiHandler implements HttpHandler {
 			};
 			try {
 				if (api.get("/")) {
-					String payload = exchange.getRequestURI().getQuery();
-					if (WebInterfaceServer.isServerSentEventsEnabledFor(payload)) {
-						int loggedInUserId = WebInterfaceServerUtil.getUserIdFromPayload(exchange.getRequestURI().getQuery());
-						if (loggedInUserId > 0) {
-							Headers hdr = exchange.getResponseHeaders();
-							hdr.add("Server", PMS.get().getServerName());
-							hdr.add("Content-Type", "text/event-stream");
-							hdr.add("Connection", "keep-alive");
-							hdr.add("Charset", "UTF-8");
-							exchange.sendResponseHeaders(200, 0);
-							UserServerSentEvents sse = new UserServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange), loggedInUserId);
-							WebInterfaceServer.addServerSentEventsFor(payload, sse);
-						} else {
-							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-						}
+					int userId = WebInterfaceServerUtil.getValidUserIdFromPayload(exchange.getRequestURI().getQuery(), exchange.getRemoteAddress().getHostName());
+					if (userId > 0) {
+						Headers hdr = exchange.getResponseHeaders();
+						hdr.add("Server", PMS.get().getServerName());
+						hdr.add("Content-Type", "text/event-stream");
+						hdr.add("Connection", "keep-alive");
+						hdr.add("Charset", "UTF-8");
+						exchange.sendResponseHeaders(200, 0);
+						UserServerSentEvents sse = new UserServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange), userId);
+						WebInterfaceServer.addServerSentEventsFor(userId, sse);
 					} else {
-						WebInterfaceServerUtil.respond(exchange, "Unauthorized", 401, "application/json");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					}
 				} else {
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");

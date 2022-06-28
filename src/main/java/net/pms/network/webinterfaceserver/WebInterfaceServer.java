@@ -35,7 +35,7 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
-	protected static final Map<String, ArrayList<UserServerSentEvents>> SSE_INSTANCES = new HashMap<>();
+	protected static final Map<Integer, ArrayList<UserServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
@@ -94,18 +94,11 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		return new WebInterfaceServerHttpServer(port);
 	}
 
-	public static void enableServerSentEventsFor(String id) {
-		if (id != null && !SSE_INSTANCES.containsKey(id)) {
-			SSE_INSTANCES.put(id, new ArrayList<>());
-		}
-	}
-
-	public static boolean isServerSentEventsEnabledFor(String id) {
-		return id != null && SSE_INSTANCES.containsKey(id);
-	}
-
-	public static void addServerSentEventsFor(String id, UserServerSentEvents sse) {
-		if (id != null && SSE_INSTANCES.containsKey(id)) {
+	public static void addServerSentEventsFor(int id, UserServerSentEvents sse) {
+		if (id > 0) {
+			if (!SSE_INSTANCES.containsKey(id)) {
+				SSE_INSTANCES.put(id, new ArrayList<>());
+			}
 			SSE_INSTANCES.get(id).add(sse);
 		}
 	}

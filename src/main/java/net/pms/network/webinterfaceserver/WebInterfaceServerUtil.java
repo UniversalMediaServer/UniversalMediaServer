@@ -53,6 +53,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
+import net.pms.iam.AuthService;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.APIUtils;
@@ -1173,15 +1174,27 @@ public class WebInterfaceServerUtil {
 		return javascriptVarsScript;
 	}
 
-	public static int getUserIdFromPayload(String payload) {
-		try {
-			byte[] decodedURLBytes = Base64.getUrlDecoder().decode(payload);
-			String actualPayload = new String(decodedURLBytes);
-			JsonObject payloadAsJson = JsonParser.parseString(actualPayload).getAsJsonObject();
-			if (payloadAsJson.has("id") && payloadAsJson.get("id").isJsonPrimitive()) {
-				return payloadAsJson.get("id").getAsInt();
+	public static JsonObject getJsonObjectFromPayload(String payload) {
+		if (!StringUtils.isEmpty(payload)) {
+			try {
+				String payloadJson = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+				return jsonObjectFromString(payloadJson);
+			} catch (NullPointerException | IllegalArgumentException e) {
 			}
-		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	public static int getValidUserIdFromPayload(String payload, String hostname) {
+		JsonObject payloadJson = getJsonObjectFromPayload(payload);
+		if (payloadJson != null && payloadJson.has("id") && payloadJson.has("iss") && payloadJson.has("sub") && payloadJson.has("exp")) {
+			int id = payloadJson.get("id").getAsInt();
+			String subject = payloadJson.get("sub").getAsString();
+			String issuer = payloadJson.get("iss").getAsString();
+			int expire = payloadJson.get("exp").getAsInt();
+			if (AuthService.validatePayload(expire, issuer, subject, hostname)) {
+				return id;
+			}
 		}
 		return 0;
 	}

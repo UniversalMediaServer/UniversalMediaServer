@@ -36,12 +36,13 @@ public class AuthService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
+	private static final String JWT_ISSUER = "UMS";
 
 	public static String signJwt(int id, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			String token = JWT.create()
-					.withIssuer("UMS")
+					.withIssuer(JWT_ISSUER)
 					.withSubject(host)
 					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
 					.withClaim("id", id)
@@ -77,7 +78,7 @@ public class AuthService {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
-					.withIssuer("UMS")
+					.withIssuer(JWT_ISSUER)
 					.withSubject(host)
 					.build();
 			verifier.verify(token);
@@ -88,7 +89,7 @@ public class AuthService {
 		}
 	}
 
-	public static Account getAccountLoggedIn(String authHeader, String host) {
+	private static Account getAccountLoggedIn(String authHeader, String host) {
 		final String token = authHeader.replace("Bearer ", "");
 		if (isValidToken(token, host)) {
 			int userId = getUserIdFromJWT(token);
@@ -102,6 +103,16 @@ public class AuthService {
 			return null;
 		}
 		return getAccountLoggedIn(authHeaders.get(0), host);
+	}
+
+	public static boolean validatePayload(int expire, String issuer, String subject, String host) {
+		if (subject == null || host == null || !host.equals(subject)
+				|| issuer == null || !issuer.equals(JWT_ISSUER)) {
+			return false;
+		}
+		long currentTime = System.currentTimeMillis() / 1000L;
+		long issuedTime = expire - (TWO_HOURS_IN_MS / 1000L);
+		return expire > currentTime && issuedTime < currentTime;
 	}
 
 }
