@@ -58,68 +58,68 @@ import org.slf4j.LoggerFactory;
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 
-	private static JsonObject WEB_SETTINGS_WITH_DEFAULTS = new JsonObject();
+	private static JsonObject webSettingsWithDefaults = new JsonObject();
 
 	public static synchronized JsonObject getWebSettingsWithDefaults() {
-		if (WEB_SETTINGS_WITH_DEFAULTS.size() != 0) {
-			return WEB_SETTINGS_WITH_DEFAULTS;
+		if (webSettingsWithDefaults.size() != 0) {
+			return webSettingsWithDefaults;
 		}
 
-		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("alternate_thumb_folder", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("append_profile_name", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_channels", "6");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_embed_dts_in_pcm", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_bitrate", "448");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_remux_ac3", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_use_pcm", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("audio_thumbnails_method", "1");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("auto_update", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("automatic_maximum_bitrate", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("chapter_interval", 5);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("chapter_support", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("disable_subtitles", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("disable_transcode_for_extensions", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("encoded_audio_passthrough", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("force_transcode_for_extensions", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("gpu_acceleration", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("external_network", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("generate_thumbnails", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("hide_enginenames", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("hide_extensions", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("hostname", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("ignore_the_word_a_and_the", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("ip_filter", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("language", "en-US");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("mencoder_remux_mpeg2", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("maximum_video_buffer_size", 200);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("maximum_bitrate", "90");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("minimized", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("mpeg2_main_settings", "Automatic (Wired)");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("network_interface", "");
+		// populate webSettingsWithDefaults with all defaults
+		webSettingsWithDefaults.addProperty("alternate_thumb_folder", "");
+		webSettingsWithDefaults.addProperty("append_profile_name", false);
+		webSettingsWithDefaults.addProperty("audio_channels", "6");
+		webSettingsWithDefaults.addProperty("audio_embed_dts_in_pcm", false);
+		webSettingsWithDefaults.addProperty("audio_bitrate", "448");
+		webSettingsWithDefaults.addProperty("audio_remux_ac3", true);
+		webSettingsWithDefaults.addProperty("audio_use_pcm", false);
+		webSettingsWithDefaults.addProperty("audio_thumbnails_method", "1");
+		webSettingsWithDefaults.addProperty("auto_update", true);
+		webSettingsWithDefaults.addProperty("automatic_maximum_bitrate", true);
+		webSettingsWithDefaults.addProperty("chapter_interval", 5);
+		webSettingsWithDefaults.addProperty("chapter_support", false);
+		webSettingsWithDefaults.addProperty("disable_subtitles", false);
+		webSettingsWithDefaults.addProperty("disable_transcode_for_extensions", "");
+		webSettingsWithDefaults.addProperty("encoded_audio_passthrough", false);
+		webSettingsWithDefaults.addProperty("force_transcode_for_extensions", "");
+		webSettingsWithDefaults.addProperty("gpu_acceleration", false);
+		webSettingsWithDefaults.addProperty("external_network", true);
+		webSettingsWithDefaults.addProperty("generate_thumbnails", true);
+		webSettingsWithDefaults.addProperty("hide_enginenames", true);
+		webSettingsWithDefaults.addProperty("hide_extensions", true);
+		webSettingsWithDefaults.addProperty("hostname", "");
+		webSettingsWithDefaults.addProperty("ignore_the_word_a_and_the", true);
+		webSettingsWithDefaults.addProperty("ip_filter", "");
+		webSettingsWithDefaults.addProperty("language", "en-US");
+		webSettingsWithDefaults.addProperty("mencoder_remux_mpeg2", true);
+		webSettingsWithDefaults.addProperty("maximum_video_buffer_size", 200);
+		webSettingsWithDefaults.addProperty("maximum_bitrate", "90");
+		webSettingsWithDefaults.addProperty("minimized", false);
+		webSettingsWithDefaults.addProperty("mpeg2_main_settings", "Automatic (Wired)");
+		webSettingsWithDefaults.addProperty("network_interface", "");
 		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
 		if (numberOfCpuCores < 1) {
 			numberOfCpuCores = 1;
 		}
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("number_of_cpu_cores", numberOfCpuCores);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("port", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("prettify_filenames", false);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("renderer_default", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("renderer_force_default", false);
+		webSettingsWithDefaults.addProperty("number_of_cpu_cores", numberOfCpuCores);
+		webSettingsWithDefaults.addProperty("port", "");
+		webSettingsWithDefaults.addProperty("prettify_filenames", false);
+		webSettingsWithDefaults.addProperty("renderer_default", "");
+		webSettingsWithDefaults.addProperty("renderer_force_default", false);
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add("All renderers");
-		WEB_SETTINGS_WITH_DEFAULTS.add("selected_renderers", allRenderers);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("server_engine", "0");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("server_name", "Universal Media Server");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("show_splash_screen", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("sort_method", "4");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("subs_info_level", "basic");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("thumbnail_seek_position", "4");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("use_cache", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("use_imdb_info", true);
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
+		webSettingsWithDefaults.add("selected_renderers", allRenderers);
+		webSettingsWithDefaults.addProperty("server_engine", "0");
+		webSettingsWithDefaults.addProperty("server_name", "Universal Media Server");
+		webSettingsWithDefaults.addProperty("show_splash_screen", true);
+		webSettingsWithDefaults.addProperty("sort_method", "4");
+		webSettingsWithDefaults.addProperty("subs_info_level", "basic");
+		webSettingsWithDefaults.addProperty("thumbnail_seek_position", "4");
+		webSettingsWithDefaults.addProperty("use_cache", true);
+		webSettingsWithDefaults.addProperty("use_imdb_info", true);
+		webSettingsWithDefaults.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 
-		return WEB_SETTINGS_WITH_DEFAULTS;
+		return webSettingsWithDefaults;
 	}
 
 	public static final String[] VALID_EMPTY_KEYS = {
