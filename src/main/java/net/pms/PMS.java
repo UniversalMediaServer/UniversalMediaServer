@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -855,8 +854,7 @@ public class PMS {
 	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
-	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
 	public String usn() {
 		return "uuid:" + udn();
 	}
