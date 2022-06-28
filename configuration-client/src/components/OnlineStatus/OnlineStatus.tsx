@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Group, Paper, Text } from '@mantine/core';
+import { Button, Paper, Text } from '@mantine/core';
 import { showNotification, hideNotification } from '@mantine/notifications';
 
 import { getJwtPayload } from '../../services/auth.service';
