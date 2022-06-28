@@ -30,7 +30,8 @@ public class HTTPXMLHelper {
 	public static final String SEARCHRESPONSE_FOOTER = "</u:SearchResponse>";
 	public static final String SETBOOKMARK_RESPONSE = "<u:X_SetBookmarkResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"></u:X_SetBookmarkResponse>";
 	public static final String SORTCAPS_RESPONSE = "<u:GetSortCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SortCaps></SortCaps></u:GetSortCapabilitiesResponse>";
-	public static final String SEARCHCAPS_RESPONSE = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps></SearchCaps></u:GetSearchCapabilitiesResponse>";
+	public static final String SEARCHCAPS_RESPONSE = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps>dc:title,dc:creator,upnp:class,upnp:artist,upnp:genre,upnp:album,upnp:rating</SearchCaps></u:GetSearchCapabilitiesResponse>";
+	public static final String SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED = "<u:GetSearchCapabilitiesResponse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\"><SearchCaps></SearchCaps></u:GetSearchCapabilitiesResponse>";
 	public static final String PROTOCOLINFO_RESPONSE =
 		"<u:GetProtocolInfoResponse xmlns:u=\"urn:schemas-upnp-org:service:ConnectionManager:1\"><Source>" +
 		"http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN," +
