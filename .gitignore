@@ -33,6 +33,8 @@ docker/logback.headless.xml
 docker/linux*
 docker/jre*
 .yarn-integrity
+/nb-*
+/nbactions-*
 
 # configuration client
 /configuration-client/node_modules
