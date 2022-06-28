@@ -28,7 +28,6 @@ export default function Settings() {
     sortMethods: [],
     subtitlesInfoLevels: [],
   });
-  const numberOfCpuCoresSettingsRef = useRef(1);
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -44,6 +43,7 @@ export default function Settings() {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
+  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
 
   const form = useForm({ initialValues: {} as any });
@@ -57,15 +57,11 @@ export default function Settings() {
       .then(function (response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
-
-        numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
-
-        //update default settings
-        settingsResponse.userSettingsDefaults.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
+        setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge(settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
-console.log(111,userConfig);
+
         setConfiguration(userConfig);
         form.setValues(userConfig);
       })
@@ -444,9 +440,9 @@ console.log(111,userConfig);
                   {...form.getInputProps('maximum_video_buffer_size')}
                 />
                 <NumberInput
-                  label={i18n['TrTab2.24']?.replace('%d', numberOfCpuCoresSettingsRef.current.toString())}
+                  label={i18n['TrTab2.24']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
                   size="xs"
-                  max={numberOfCpuCoresSettingsRef.current}
+                  max={defaultConfiguration.number_of_cpu_cores}
                   min={1}
                   disabled={false}
                   {...form.getInputProps('number_of_cpu_cores')}

@@ -97,7 +97,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("minimized", false);
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("mpeg2_main_settings", "Automatic (Wired)");
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("network_interface", "");
-		WEB_SETTINGS_WITH_DEFAULTS.addProperty("number_of_cpu_cores", "1");
+		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
+		if (numberOfCpuCores < 1) {
+			numberOfCpuCores = 1;
+		}
+		WEB_SETTINGS_WITH_DEFAULTS.addProperty("number_of_cpu_cores", numberOfCpuCores);
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("port", "");
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("prettify_filenames", false);
 		WEB_SETTINGS_WITH_DEFAULTS.addProperty("renderer_default", "");
@@ -175,11 +179,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
 				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
 				jsonResponse.add("subtitlesInfoLevels", PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray());
-				int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-				if (numberOfCpuCores < 1) {
-					numberOfCpuCores = 1;
-				}
-				jsonResponse.add("numberOfCpuCores", new JsonPrimitive(numberOfCpuCores));
 
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -217,7 +216,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
-					if (getWebSettingsWithDefaults().has(key)) {
+					if (!getWebSettingsWithDefaults().has(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
 						continue;
 					}
