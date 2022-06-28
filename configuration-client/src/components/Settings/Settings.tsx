@@ -1,8 +1,8 @@
-import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -379,43 +379,49 @@ export default function Settings() {
                   <Navbar.Section>
                   <Accordion>
                     <Accordion.Item label="Video Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
-                        FFmpeg Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
-                        MEncoder Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
-                        tsMuxeR Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
-                        VLC Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
+                          FFmpeg Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
+                          MEncoder Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
+                          tsMuxeR Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
+                          VLC Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Audio Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
-                        FFmpeg Audio
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
-                        tsMuxeR Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
+                          FFmpeg Audio
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
+                          tsMuxeR Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web video streaming engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
-                        FFmpeg Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
-                        youtube-dl
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
-                        VLC Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
-                        VLC Web Video (legacy)
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
-                        Mencoder Web Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
+                          FFmpeg Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
+                          youtube-dl
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
+                          VLC Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
+                          VLC Web Video (legacy)
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
+                          Mencoder Web Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web audio streaming engines">
                       <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebaudio')}>
