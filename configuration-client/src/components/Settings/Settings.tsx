@@ -67,7 +67,7 @@ export default function Settings() {
         const userConfig = _.merge(settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 console.log(111,userConfig);
         setConfiguration(userConfig);
-        form.setValues(configuration);
+        form.setValues(userConfig);
       })
       .catch(function (error: Error) {
         console.log(error);
