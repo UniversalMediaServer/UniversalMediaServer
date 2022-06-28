@@ -106,8 +106,8 @@ public class AuthService {
 	}
 
 	public static boolean validatePayload(int expire, String issuer, String subject, String host) {
-		if (subject == null || host == null || !host.equals(subject)
-				|| issuer == null || !issuer.equals(JWT_ISSUER)) {
+		if (subject == null || host == null || !host.equals(subject) ||
+				issuer == null || !issuer.equals(JWT_ISSUER)) {
 			return false;
 		}
 		long currentTime = System.currentTimeMillis() / 1000L;

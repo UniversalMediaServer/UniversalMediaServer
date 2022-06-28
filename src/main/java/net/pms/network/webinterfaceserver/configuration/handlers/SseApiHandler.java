@@ -19,6 +19,7 @@
  */
 package net.pms.network.webinterfaceserver.configuration.handlers;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -94,8 +95,23 @@ public class SseApiHandler implements HttpHandler {
 					} else {
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					}
+				//THIS IS ADDED FOR TEST ONLY
+				} else if (api.post("/broadcast")) {
+					JsonObject broadcast = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+					if (broadcast == null || !broadcast.has("message") || !broadcast.get("message").isJsonPrimitive()) {
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+						return;
+					}
+					String message = broadcast.get("message").getAsString();
+					if (broadcast.has("permission") && broadcast.get("permission").isJsonPrimitive()) {
+						String permission = broadcast.get("permission").getAsString();
+						WebInterfaceServer.broadcastMessage(message, permission);
+					} else {
+						WebInterfaceServer.broadcastMessage(message);
+					}
+					WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 				} else {
-					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
+					WebInterfaceServerUtil.respond(exchange, "{}", 404, "application/json");
 				}
 			} catch (RuntimeException e) {
 				LOGGER.error("RuntimeException in SseApiHandler: {}", e.getMessage());
