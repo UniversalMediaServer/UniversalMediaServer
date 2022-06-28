@@ -1,6 +1,6 @@
 	/*
 	 * Digital Media Server, for streaming digital media to DLNA compatible devices
-	 * based on www.ps3mediaserver.org and www.universalmediaserver.com.
+	 * based on PS3 Media Server and www.universalmediaserver.com.
 	 * Copyright (C) 2016 Digital Media Server developers.
 	 *
 	 * This program is a free software; you can redistribute it and/or

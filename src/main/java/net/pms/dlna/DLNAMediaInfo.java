@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -346,8 +345,6 @@ public class DLNAMediaInfo implements Cloneable {
 			muxable = false;
 		}
 
-		// Temporary fix: MediaInfo support will take care of this in the future
-		// For now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
 		// Bravia does not support AVC video at less than 288px high
 		if (mediaRenderer.isBRAVIA() && height < 288) {
 			muxable = false;

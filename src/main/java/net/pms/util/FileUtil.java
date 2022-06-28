@@ -110,8 +110,7 @@ public class FileUtil {
 	 * paths.
 	 *
 	 * This determines the directory and file path of a file according to the
-	 * rules outlined here:
-	 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=49895#p49895
+	 * profile rules.
 	 *
 	 * @param customPath an optional user-defined path for the resource
 	 * @param defaultDirectory a default directory path used if no custom path
@@ -2087,8 +2086,7 @@ public class FileUtil {
 			/*
 			 * listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
 			 * in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
-			 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
-			 * http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			 * https://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
 			 */
 			if (children == null) {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());

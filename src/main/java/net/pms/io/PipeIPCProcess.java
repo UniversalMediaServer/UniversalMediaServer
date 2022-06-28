@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,8 +97,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			LOGGER.trace("", e);
 		} finally {
 			try {
-				// in and out may not have been initialized:
-				// http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=9885&view=unread#p45142
+				// in and out may not have been initialized
 				if (in != null) {
 					in.close();
 				}
