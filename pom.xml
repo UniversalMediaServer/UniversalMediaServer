@@ -117,7 +117,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.11.0</jna-version>
+		<jna-version>5.12.1</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -584,7 +584,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.1.6</version>
+			<version>6.2.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -2916,7 +2916,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.3</version>
+								<version>10.3.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>
