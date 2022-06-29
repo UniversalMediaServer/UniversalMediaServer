@@ -882,7 +882,7 @@ public final class Languages {
 	 *            sorting the array, and used when localizing language names.
 	 * @return The sorted jsonned string of localized language names.
 	 */
-	public static JsonArray getLanguageWithCountry(Locale locale) {
+	public static JsonArray getLanguagesWithCountry(Locale locale) {
 		Locale preferredLocale = toLocale(locale);
 		if (preferredLocale == null) {
 			preferredLocale = PMS.getLocale();
