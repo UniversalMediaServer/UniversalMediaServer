@@ -57,72 +57,13 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
-
-	private static JsonObject webSettingsWithDefaults;
-
-	public static synchronized JsonObject getWebSettingsWithDefaults() {
-		if (webSettingsWithDefaults.size() != 0) {
-			return webSettingsWithDefaults;
-		}
-
-		// populate webSettingsWithDefaults with all defaults
-		webSettingsWithDefaults.addProperty("alternate_thumb_folder", "");
-		webSettingsWithDefaults.addProperty("append_profile_name", false);
-		webSettingsWithDefaults.addProperty("audio_channels", "6");
-		webSettingsWithDefaults.addProperty("audio_embed_dts_in_pcm", false);
-		webSettingsWithDefaults.addProperty("audio_bitrate", "448");
-		webSettingsWithDefaults.addProperty("audio_remux_ac3", true);
-		webSettingsWithDefaults.addProperty("audio_use_pcm", false);
-		webSettingsWithDefaults.addProperty("audio_thumbnails_method", "1");
-		webSettingsWithDefaults.addProperty("auto_update", true);
-		webSettingsWithDefaults.addProperty("automatic_maximum_bitrate", true);
-		webSettingsWithDefaults.addProperty("chapter_interval", 5);
-		webSettingsWithDefaults.addProperty("chapter_support", false);
-		webSettingsWithDefaults.addProperty("disable_subtitles", false);
-		webSettingsWithDefaults.addProperty("disable_transcode_for_extensions", "");
-		webSettingsWithDefaults.addProperty("encoded_audio_passthrough", false);
-		webSettingsWithDefaults.addProperty("force_transcode_for_extensions", "");
-		webSettingsWithDefaults.addProperty("gpu_acceleration", false);
-		webSettingsWithDefaults.addProperty("external_network", true);
-		webSettingsWithDefaults.addProperty("generate_thumbnails", true);
-		webSettingsWithDefaults.addProperty("hide_enginenames", true);
-		webSettingsWithDefaults.addProperty("hide_extensions", true);
-		webSettingsWithDefaults.addProperty("hostname", "");
-		webSettingsWithDefaults.addProperty("ignore_the_word_a_and_the", true);
-		webSettingsWithDefaults.addProperty("ip_filter", "");
-		webSettingsWithDefaults.addProperty("language", "en-US");
-		webSettingsWithDefaults.addProperty("mencoder_remux_mpeg2", true);
-		webSettingsWithDefaults.addProperty("maximum_video_buffer_size", 200);
-		webSettingsWithDefaults.addProperty("maximum_bitrate", "90");
-		webSettingsWithDefaults.addProperty("minimized", false);
-		webSettingsWithDefaults.addProperty("mpeg2_main_settings", "Automatic (Wired)");
-		webSettingsWithDefaults.addProperty("network_interface", "");
-		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-		if (numberOfCpuCores < 1) {
-			numberOfCpuCores = 1;
-		}
-		webSettingsWithDefaults.addProperty("number_of_cpu_cores", numberOfCpuCores);
-		webSettingsWithDefaults.addProperty("port", "");
-		webSettingsWithDefaults.addProperty("prettify_filenames", false);
-		webSettingsWithDefaults.addProperty("renderer_default", "");
-		webSettingsWithDefaults.addProperty("renderer_force_default", false);
-		JsonArray allRenderers = new JsonArray();
-		allRenderers.add("All renderers");
-		webSettingsWithDefaults.add("selected_renderers", allRenderers);
-		webSettingsWithDefaults.addProperty("server_engine", "0");
-		webSettingsWithDefaults.addProperty("server_name", "Universal Media Server");
-		webSettingsWithDefaults.addProperty("show_splash_screen", true);
-		webSettingsWithDefaults.addProperty("sort_method", "4");
-		webSettingsWithDefaults.addProperty("subs_info_level", "basic");
-		webSettingsWithDefaults.addProperty("thumbnail_seek_position", "4");
-		webSettingsWithDefaults.addProperty("use_cache", true);
-		webSettingsWithDefaults.addProperty("use_imdb_info", true);
-		webSettingsWithDefaults.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
-
-		return webSettingsWithDefaults;
-	}
-
-	public static final List<String> VALID_EMPTY_KEYS = List.of(
+	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
+	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
+	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
+	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
+	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
 		"hostname",
 		"ip_filter",
@@ -133,8 +74,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 	public static final String BASE_PATH = "/configuration-api";
 
-	private final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
-
 	/**
 	 * Handle API calls.
 	 *
@@ -144,7 +83,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			PmsConfiguration pmsConfiguration = PMS.get().getConfiguration();
+			PmsConfiguration pmsConfiguration = PMS.getConfiguration();
 			Configuration configuration = pmsConfiguration.getRawConfiguration();
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			if (WebInterfaceServerUtil.deny(ia)) {
@@ -171,14 +110,17 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				JsonObject jsonResponse = new JsonObject();
 
+				//immutable datas
+				jsonResponse.add("userSettingsDefaults", WEB_SETTINGS_WITH_DEFAULTS);
+				jsonResponse.add("serverEngines", SERVER_ENGINES);
+				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
+				jsonResponse.add("sortMethods", SORT_METHODS);
+				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
+
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
-				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
-				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
-				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
-				jsonResponse.add("subtitlesInfoLevels", PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray());
 
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -192,7 +134,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
-				jsonResponse.add("userSettingsDefaults", getWebSettingsWithDefaults());
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
@@ -207,10 +148,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				// Here we possibly received some updates to config values
 				String configToSave = WebInterfaceServerUtil.getPostString(exchange);
-				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
+				HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
-					if (!getWebSettingsWithDefaults().has(key)) {
+					if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
 						continue;
 					}
@@ -271,6 +212,73 @@ public class ConfigurationApiHandler implements HttpHandler {
 			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	public static boolean haveKey(String key) {
+		return WEB_SETTINGS_WITH_DEFAULTS.has(key);
+	}
+
+	public static boolean acceptEmptyValueForKey(String key) {
+		return VALID_EMPTY_KEYS.contains(key);
+	}
+
+	private static JsonObject getWebSettingsWithDefaults() {
+		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
+		JsonObject jObj = new JsonObject();
+		jObj.addProperty("alternate_thumb_folder", "");
+		jObj.addProperty("append_profile_name", false);
+		jObj.addProperty("audio_channels", "6");
+		jObj.addProperty("audio_embed_dts_in_pcm", false);
+		jObj.addProperty("audio_bitrate", "448");
+		jObj.addProperty("audio_remux_ac3", true);
+		jObj.addProperty("audio_use_pcm", false);
+		jObj.addProperty("audio_thumbnails_method", "1");
+		jObj.addProperty("auto_update", true);
+		jObj.addProperty("automatic_maximum_bitrate", true);
+		jObj.addProperty("chapter_interval", 5);
+		jObj.addProperty("chapter_support", false);
+		jObj.addProperty("disable_subtitles", false);
+		jObj.addProperty("disable_transcode_for_extensions", "");
+		jObj.addProperty("encoded_audio_passthrough", false);
+		jObj.addProperty("force_transcode_for_extensions", "");
+		jObj.addProperty("gpu_acceleration", false);
+		jObj.addProperty("external_network", true);
+		jObj.addProperty("generate_thumbnails", true);
+		jObj.addProperty("hide_enginenames", true);
+		jObj.addProperty("hide_extensions", true);
+		jObj.addProperty("hostname", "");
+		jObj.addProperty("ignore_the_word_a_and_the", true);
+		jObj.addProperty("ip_filter", "");
+		jObj.addProperty("language", "en-US");
+		jObj.addProperty("mencoder_remux_mpeg2", true);
+		jObj.addProperty("maximum_video_buffer_size", 200);
+		jObj.addProperty("maximum_bitrate", "90");
+		jObj.addProperty("minimized", false);
+		jObj.addProperty("mpeg2_main_settings", "Automatic (Wired)");
+		jObj.addProperty("network_interface", "");
+		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
+		if (numberOfCpuCores < 1) {
+			numberOfCpuCores = 1;
+		}
+		jObj.addProperty("number_of_cpu_cores", numberOfCpuCores);
+		jObj.addProperty("port", "");
+		jObj.addProperty("prettify_filenames", false);
+		jObj.addProperty("renderer_default", "");
+		jObj.addProperty("renderer_force_default", false);
+		JsonArray allRenderers = new JsonArray();
+		allRenderers.add("All renderers");
+		jObj.add("selected_renderers", allRenderers);
+		jObj.addProperty("server_engine", "0");
+		jObj.addProperty("server_name", "Universal Media Server");
+		jObj.addProperty("show_splash_screen", true);
+		jObj.addProperty("sort_method", "4");
+		jObj.addProperty("subs_info_level", "basic");
+		jObj.addProperty("thumbnail_seek_position", "4");
+		jObj.addProperty("use_cache", true);
+		jObj.addProperty("use_imdb_info", true);
+		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
+
+		return jObj;
 	}
 
 	private static String getDirectoryResponse(HttpExchange exchange) {

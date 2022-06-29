@@ -3135,10 +3135,10 @@ public class RendererConfiguration extends Renderer {
 		configurationAsProperties.forEach(
 			(key, value) -> {
 				String strKey = Objects.toString(key);
-				if (ConfigurationApiHandler.getWebSettingsWithDefaults().has(strKey)) {
+				if (ConfigurationApiHandler.haveKey(strKey)) {
 					String strValue = Objects.toString(value);
-					//do not add valid empty key then it back to default
-					if (ConfigurationApiHandler.VALID_EMPTY_KEYS.contains(strKey) || !StringUtils.isEmpty(strValue)) {
+					//do not add non acceptable empty key then it back to default
+					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(strKey)) {
 						//escape "\" char with "\\" otherwise json will fail
 						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 					}
