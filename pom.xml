@@ -126,7 +126,6 @@
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.8.2</junit5.version>
-		<com.sun.xml.bind-version>4.0.0</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
 		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
 	</properties>
@@ -611,27 +610,16 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!-- start of JAXB dependencies -->
-		<!--
-			Those dependencies could be removed as soon as we drop support for Java 8,
-			and add "-add-modules java.xml.bind" as a app command line argument
-		-->
 		<dependency>
-			<groupId>com.sun.xml.messaging.saaj</groupId>
-			<artifactId>saaj-impl</artifactId>
-			<version>2.0.1</version>
+			<groupId>jakarta.xml.soap</groupId>
+			<artifactId>jakarta.xml.soap-api</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-core</artifactId>
-			<version>${com.sun.xml.bind-version}</version>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>4.0.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>${com.sun.xml.bind-version}</version>
-		</dependency>
-		<!-- end of JAXB dependencies -->
 		<dependency>
 			<groupId>pl.jalokim.propertiestojson</groupId>
 			<artifactId>java-properties-to-json</artifactId>
