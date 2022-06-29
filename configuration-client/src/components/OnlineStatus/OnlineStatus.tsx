@@ -25,7 +25,7 @@ export const OnlineStatus = () => {
 
   useEffect(() => {
     let connectionStatus = 0;
-	const startSse = () => {
+    const startSse = () => {
       setConnectionStatus(connectionStatus);
       fetchEventSource('/v1/api/sse/', {
         headers: {
@@ -37,8 +37,8 @@ export const OnlineStatus = () => {
         },
         onerror(event: Response) { onError(event); },
         onclose() { onClose(); },
-	  });
-	};
+      });
+    };
 
     const showErrorNotification = () => {
       showNotification({
@@ -51,18 +51,17 @@ export const OnlineStatus = () => {
     }
 
     const onOpen = (event: Response) => {
-      setConnectionStatus(1);
       hideNotification('connection-lost');
-	  if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
-            console.log('EventSource::onopen');
-			}
+      if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
+        connectionStatus = 1;
+        setConnectionStatus(1);
+      }
     };
 
     const onMessage = (event: EventSourceMessage) => {
       // process the data here
       //THIS IS ADDED FOR TEST ONLY
-	  console.log('EventSource::onMessage');
-	  if (event.event === "message") {
+      if (event.event === "message") {
         const datas = JSON.parse(event.data);
         switch (datas.action) {
           case 'update_memory':
@@ -75,20 +74,22 @@ export const OnlineStatus = () => {
       }
     }
     const onError = (event: Response) => {
-      console.log('EventSource::onError');
-      setConnectionStatus(0);
+      if (connectionStatus !== 2) {
+        showErrorNotification();
+      }
+      connectionStatus = 2;
+      setConnectionStatus(2);
     };
     const onClose = () => {
-      console.log('EventSource::onClose');
-      setConnectionStatus(2);
-      showErrorNotification();
+      connectionStatus = 0;
+      setConnectionStatus(0);
     };
     startSse();
   }, []);
   return (
     <Paper shadow="xs" p="md">
       <Text size="xs">Connection status: {connectionStatusStr[connectionStatus]}</Text>
-	  <Text size="xs">Memory status: {memory.used}/{memory.max}({memory.buffer} for buffer)</Text>
+      <Text size="xs">Memory status: {memory.used}/{memory.max}({memory.buffer} for buffer)</Text>
       <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>
       <Text size="xs"> </Text>
       <Button size="xs" onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
