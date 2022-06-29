@@ -3135,7 +3135,7 @@ public class RendererConfiguration extends Renderer {
 		configurationAsProperties.forEach(
 			(key, value) -> {
 				String strKey = Objects.toString(key);
-				if (ConfigurationApiHandler.WEB_SETTINGS_WITH_DEFAULTS.containsKey(strKey)) {
+				if (ConfigurationApiHandler.getWebSettingsWithDefaults().has(strKey)) {
 					String strValue = Objects.toString(value);
 					//do not add valid empty key then it back to default
 					if (ConfigurationApiHandler.VALID_EMPTY_KEYS.contains(strKey) || !StringUtils.isEmpty(strValue)) {
