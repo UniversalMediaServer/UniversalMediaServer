@@ -60,7 +60,7 @@ export default function Settings() {
         setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
         // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge(settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
+        const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 
         setConfiguration(userConfig);
         form.setValues(userConfig);
