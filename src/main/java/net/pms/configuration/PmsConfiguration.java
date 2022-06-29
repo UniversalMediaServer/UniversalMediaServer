@@ -329,6 +329,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_UPNP_DEBUG = "upnp_debug";
 	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
+	protected static final String KEY_UPNP_SEARCHCAPS_ENABLED = "upnp_search_caps_enabled";
 	protected static final String KEY_USE_CACHE = "use_cache";
 	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
@@ -4163,6 +4164,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getUpnpPort() {
 		return getInt(KEY_UPNP_PORT, 1900);
+	}
+
+	public boolean getUpnpSearchCapsEnabled() {
+		return getBoolean(KEY_UPNP_SEARCHCAPS_ENABLED, true);
 	}
 
 	public String getUuid() {

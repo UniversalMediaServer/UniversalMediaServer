@@ -886,7 +886,11 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	private String getSearchCapabilitiesHandler() {
-		return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+		if (PMS.getConfiguration().getUpnpSearchCapsEnabled()) {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+		} else {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED).toString();
+		}
 	}
 
 	private String getProtocolInfoHandler() {
