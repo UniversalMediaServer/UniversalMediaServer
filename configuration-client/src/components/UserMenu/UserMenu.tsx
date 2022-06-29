@@ -30,7 +30,7 @@ function UserMenu() {
           icon={<Refresh size={14} />}
           onClick={restartServer}
         >
-          {i18n['LooksFrame.12']}
+          {i18n.get['LooksFrame.12']}
         </Menu.Item>
       )}
       {havePermission(session, "settings_view")  && (
@@ -38,14 +38,14 @@ function UserMenu() {
           icon={<Settings size={14} />}
           onClick={() => { window.location.href = '/settings'; }}
         >
-          {i18n['PMS.131']}
+          {i18n.get['PMS.131']}
         </Menu.Item>
       )}
       <Menu.Item
         icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
         onClick={() => { window.location.href = '/accounts'; }}
       >
-        {havePermission(session, "users_manage") ? i18n['WebGui.UserMenuManageAccounts'] : i18n['WebGui.UserMenuManageAccount']}
+        {havePermission(session, "users_manage") ? i18n.get['WebGui.UserMenuManageAccounts'] : i18n.get['WebGui.UserMenuManageAccount']}
       </Menu.Item>
       <Menu.Item
         color="red"
@@ -54,7 +54,7 @@ function UserMenu() {
           redirectToLogin();
         }}
       >
-        {i18n['WebGui.ButtonLogout']}
+        {i18n.get['WebGui.ButtonLogout']}
       </Menu.Item>
     </Menu>
   );

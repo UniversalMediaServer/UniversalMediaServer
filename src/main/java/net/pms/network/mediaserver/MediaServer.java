@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
@@ -290,7 +287,7 @@ public class MediaServer {
 
 		JsonObject defaultOption = new JsonObject();
 		defaultOption.addProperty("value", "0");
-		defaultOption.addProperty("label", Messages.getString("Generic.Default"));
+		defaultOption.addProperty("label", "i18n@Generic.Default");
 		jsonArray.add(defaultOption);
 
 		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {

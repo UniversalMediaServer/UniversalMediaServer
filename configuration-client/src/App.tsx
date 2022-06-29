@@ -9,12 +9,13 @@ import {
   Navigate,
 } from 'react-router-dom';
 import rtlPlugin from 'stylis-plugin-rtl';
-import { MoonStars, Sun, TextDirectionLtr, TextDirectionRtl } from 'tabler-icons-react';
+import { MoonStars, Sun } from 'tabler-icons-react';
 
 import './services/http-interceptor';
 import Accounts from './components/Accounts/Accounts'
 import Login from './components/Login/Login'
 import Settings from './components/Settings/Settings';
+import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
@@ -26,7 +27,7 @@ function App() {
     refreshAuthTokenNearExpiry();
   });
 
-  const [rtl, setRtl] = useLocalStorage({
+  const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
     defaultValue: false,
   });
@@ -72,9 +73,7 @@ function App() {
                           <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
                             {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
                           </ActionIcon>
-                          <ActionIcon variant="default" onClick={() => setRtl((c) => !c)} size={30}>
-                            {rtl ? <TextDirectionLtr size={16} /> : <TextDirectionRtl size={16} />}
-                          </ActionIcon>
+                          <LanguagesMenu />
                           {session.account && <UserMenu />}
                         </Group>
                       }</Header>}
