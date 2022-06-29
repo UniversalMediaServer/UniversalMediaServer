@@ -58,68 +58,22 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
-
-	public static final String[] VALID_KEYS = {
-		"alternate_thumb_folder",
-		"append_profile_name",
-		"audio_thumbnails_method",
-		"auto_update",
-		"audio_bitrate",
-		"audio_channels",
-		"audio_embed_dts_in_pcm",
-		"audio_remux_ac3",
-		"audio_use_pcm",
-		"automatic_maximum_bitrate",
-		"chapter_interval",
-		"chapter_support",
-		"disable_subtitles",
-		"disable_transcode_for_extensions",
-		"encoded_audio_passthrough",
-		"external_network",
-		"force_transcode_for_extensions",
-		"gpu_acceleration",
-		"generate_thumbnails",
-		"hide_enginenames",
-		"hide_extensions",
-		"hostname",
-		"ignore_the_word_a_and_the",
-		"ip_filter",
-		"language",
-		"maximum_bitrate",
-		"mencoder_remux_mpeg2",
-		"maximum_bitrate",
-		"maximum_video_buffer_size",
-		"minimized",
-		"mpeg2_main_settings",
-		"network_interface",
-		"number_of_cpu_cores",
-		"port",
-		"prettify_filenames",
-		"renderer_default",
-		"renderer_force_default",
-		"selected_renderers",
-		"server_engine",
-		"server_name",
-		"show_splash_screen",
-		"subs_info_level",
-		"thumbnail_seek_position",
-		"use_cache",
-		"use_imdb_info",
-		"x264_constant_rate_factor"
-	};
-
-	public static final String[] VALID_EMPTY_KEYS = {
+	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
+	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
+	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
+	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
+	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
 		"hostname",
 		"ip_filter",
 		"network_interface",
 		"port",
 		"renderer_default"
-	};
+	);
 
 	public static final String BASE_PATH = "/configuration-api";
-
-	private final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
 	/**
 	 * Handle API calls.
@@ -130,7 +84,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			PmsConfiguration pmsConfiguration = PMS.get().getConfiguration();
+			PmsConfiguration pmsConfiguration = PMS.getConfiguration();
 			Configuration configuration = pmsConfiguration.getRawConfiguration();
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			if (WebInterfaceServerUtil.deny(ia)) {
@@ -157,29 +111,21 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				JsonObject jsonResponse = new JsonObject();
 
+				//immutable datas
+				jsonResponse.add("userSettingsDefaults", WEB_SETTINGS_WITH_DEFAULTS);
+				jsonResponse.add("serverEngines", SERVER_ENGINES);
+				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
+				jsonResponse.add("sortMethods", SORT_METHODS);
+				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
+
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
-				jsonResponse.add("serverEngines", MediaServer.getServerEnginesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
-				jsonResponse.add("audioCoverSuppliers", PmsConfiguration.getAudioCoverSuppliersAsJsonArray());
-				jsonResponse.add("sortMethods", PmsConfiguration.getSortMethodsAsJsonArray());
-				jsonResponse.add("subtitlesInfoLevels", PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray());
-				int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-				if (numberOfCpuCores < 1) {
-					numberOfCpuCores = 1;
-				}
-				jsonResponse.add("numberOfCpuCores", new JsonPrimitive(numberOfCpuCores));
 
 				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-				//back to default value if empty
-				List<String> validEmptyKeys = Arrays.asList(VALID_EMPTY_KEYS);
-				for (String key : VALID_KEYS) {
-					if (!validEmptyKeys.contains(key) && configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive() && "".equals(configurationAsJson.get(key).getAsString())) {
-						configurationAsJson.remove(key);
-					}
-				}
+
 				//select need string, not number
 				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
 				for (String key : needConvertToString) {
@@ -203,10 +149,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				// Here we possibly received some updates to config values
 				String configToSave = WebInterfaceServerUtil.getPostString(exchange);
-				HashMap<String, ?> data = gson.fromJson(configToSave, HashMap.class);
+				HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
-					if (!Arrays.asList(VALID_KEYS).contains(key)) {
+					if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
 						LOGGER.trace("The key {} is not allowed", key);
 						continue;
 					}
@@ -279,6 +225,73 @@ public class ConfigurationApiHandler implements HttpHandler {
 			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	public static boolean haveKey(String key) {
+		return WEB_SETTINGS_WITH_DEFAULTS.has(key);
+	}
+
+	public static boolean acceptEmptyValueForKey(String key) {
+		return VALID_EMPTY_KEYS.contains(key);
+	}
+
+	private static JsonObject getWebSettingsWithDefaults() {
+		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
+		JsonObject jObj = new JsonObject();
+		jObj.addProperty("alternate_thumb_folder", "");
+		jObj.addProperty("append_profile_name", false);
+		jObj.addProperty("audio_channels", "6");
+		jObj.addProperty("audio_embed_dts_in_pcm", false);
+		jObj.addProperty("audio_bitrate", "448");
+		jObj.addProperty("audio_remux_ac3", true);
+		jObj.addProperty("audio_use_pcm", false);
+		jObj.addProperty("audio_thumbnails_method", "1");
+		jObj.addProperty("auto_update", true);
+		jObj.addProperty("automatic_maximum_bitrate", true);
+		jObj.addProperty("chapter_interval", 5);
+		jObj.addProperty("chapter_support", false);
+		jObj.addProperty("disable_subtitles", false);
+		jObj.addProperty("disable_transcode_for_extensions", "");
+		jObj.addProperty("encoded_audio_passthrough", false);
+		jObj.addProperty("force_transcode_for_extensions", "");
+		jObj.addProperty("gpu_acceleration", false);
+		jObj.addProperty("external_network", true);
+		jObj.addProperty("generate_thumbnails", true);
+		jObj.addProperty("hide_enginenames", true);
+		jObj.addProperty("hide_extensions", true);
+		jObj.addProperty("hostname", "");
+		jObj.addProperty("ignore_the_word_a_and_the", true);
+		jObj.addProperty("ip_filter", "");
+		jObj.addProperty("language", "en-US");
+		jObj.addProperty("mencoder_remux_mpeg2", true);
+		jObj.addProperty("maximum_video_buffer_size", 200);
+		jObj.addProperty("maximum_bitrate", "90");
+		jObj.addProperty("minimized", false);
+		jObj.addProperty("mpeg2_main_settings", "Automatic (Wired)");
+		jObj.addProperty("network_interface", "");
+		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
+		if (numberOfCpuCores < 1) {
+			numberOfCpuCores = 1;
+		}
+		jObj.addProperty("number_of_cpu_cores", numberOfCpuCores);
+		jObj.addProperty("port", "");
+		jObj.addProperty("prettify_filenames", false);
+		jObj.addProperty("renderer_default", "");
+		jObj.addProperty("renderer_force_default", false);
+		JsonArray allRenderers = new JsonArray();
+		allRenderers.add("All renderers");
+		jObj.add("selected_renderers", allRenderers);
+		jObj.addProperty("server_engine", "0");
+		jObj.addProperty("server_name", "Universal Media Server");
+		jObj.addProperty("show_splash_screen", true);
+		jObj.addProperty("sort_method", "4");
+		jObj.addProperty("subs_info_level", "basic");
+		jObj.addProperty("thumbnail_seek_position", "4");
+		jObj.addProperty("use_cache", true);
+		jObj.addProperty("use_imdb_info", true);
+		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
+
+		return jObj;
 	}
 
 	private static String getDirectoryResponse(HttpExchange exchange) {
