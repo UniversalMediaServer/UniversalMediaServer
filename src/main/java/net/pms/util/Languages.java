@@ -898,7 +898,7 @@ public final class Languages {
 				String country = SORTED_LANGUAGES.get(i).locale.getCountry();
 				if ("".equals(country)) {
 					country = switch (entry.locale.getLanguage()) {
-						case "ca" -> "es​";
+						case "ca" -> "es";
 						case "cs" -> "CZ";
 						case "da" -> "DK";
 						case "el" -> "GR";
@@ -906,7 +906,7 @@ public final class Languages {
 						case "ja" -> "JP";
 						case "ko" -> "KR";
 						case "uk" -> "UA";
-						case "zh" -> "cn​";
+						case "zh" -> "cn";
 						default -> entry.locale.getLanguage();
 					};
 				}
