@@ -3217,7 +3217,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (low > 0) {
 					fis.skip(low);
 				}
-				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
 
 				lastStartSystemTime = System.currentTimeMillis();
 				return wrap(fis, high, low);
@@ -3230,7 +3229,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					fis.skip(low);
 				}
 
-				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
 				fis = wrap(fis, high, low);
 				if (timeRange.getStartOrZero() > 0 && this instanceof RealFile) {
 					fis.skip(MpegUtil.getPositionForTimeInMpeg(((RealFile) this).getFile(), (int) timeRange.getStartOrZero()));

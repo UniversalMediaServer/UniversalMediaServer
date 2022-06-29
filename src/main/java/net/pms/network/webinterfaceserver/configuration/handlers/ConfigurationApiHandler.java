@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -249,9 +250,21 @@ public class ConfigurationApiHandler implements HttpHandler {
 					}
 				}
 				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
-			} else if (api.get("/i18n")) {
-				String i18nAsJson = Messages.getStringsAsJson();
-				WebInterfaceServerUtil.respond(exchange, i18nAsJson, 200, "application/json");
+			} else if (api.post("/i18n")) {
+				JsonObject post = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+				if (post == null || !post.has("language") || !post.get("language").isJsonPrimitive()) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+					return;
+				}
+				Locale locale = Languages.toLocale(post.get("language").getAsString());
+				if (locale == null) {
+					locale = PMS.getLocale();
+				}
+				JsonObject i18n = new JsonObject();
+				i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
+				i18n.add("languages", Languages.getLanguagesWithCountry(locale));
+				i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
+				WebInterfaceServerUtil.respond(exchange, i18n.toString(), 200, "application/json");
 			} else if (api.post("/directories")) {
 				//only logged users for security concerns
 				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
