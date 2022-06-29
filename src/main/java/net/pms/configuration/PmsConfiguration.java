@@ -3495,9 +3495,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			SubtitlesInfoLevel.FULL.toString()
 		};
 		String[] labels = new String[] {
-			Messages.getString("Generic.None"),
-			Messages.getString("Generic.Basic"),
-			Messages.getString("Generic.Full")
+			"i18n@Generic.None",
+			"i18n@Generic.Basic",
+			"i18n@Generic.Full"
 		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
@@ -5181,13 +5181,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		JsonArray jsonArray = new JsonArray();
 
 		JsonObject noneObject = new JsonObject();
-		noneObject.addProperty("label", Messages.getString("FoldTab.35"));
 		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
+		noneObject.addProperty("label", "i18n@Generic.None");
 		jsonArray.add(noneObject);
 
 		JsonObject coverArtArchiveObject = new JsonObject();
-		coverArtArchiveObject.addProperty("label", Messages.getString("FoldTab.73"));
 		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
+		coverArtArchiveObject.addProperty("label", "i18n@FoldTab.73");
 		jsonArray.add(coverArtArchiveObject);
 
 		return jsonArray;
@@ -5207,13 +5207,13 @@ public class PmsConfiguration extends RendererConfiguration {
 			"" + UMSUtils.SORT_NO_SORT    // no sorting
 		};
 		String[] labels = new String[]{
-			Messages.getString("FoldTab.15"),
-			Messages.getString("FoldTab.22"),
-			Messages.getString("FoldTab.20"),
-			Messages.getString("FoldTab.16"),
-			Messages.getString("FoldTab.17"),
-			Messages.getString("FoldTab.58"),
-			Messages.getString("FoldTab.62")
+			"i18n@FoldTab.15",
+			"i18n@FoldTab.22",
+			"i18n@FoldTab.20",
+			"i18n@FoldTab.16",
+			"i18n@FoldTab.17",
+			"i18n@FoldTab.58",
+			"i18n@FoldTab.62"
 		};
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);

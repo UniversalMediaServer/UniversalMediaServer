@@ -32,8 +32,8 @@ export default function DirectoryChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: i18n['Dialog.Error'],
-      message: i18n['WebGui.DirectoryChooserSelectError'],
+      title: i18n.get['Dialog.Error'],
+      message: i18n.get['WebGui.DirectoryChooserSelectError'],
       autoClose: 3000,
     });
   };
@@ -51,8 +51,8 @@ export default function DirectoryChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n['Dialog.Error'],
-          message: i18n['WebGui.DirectoryChooserGetError'],
+          title: i18n.get['Dialog.Error'],
+          message: i18n.get['WebGui.DirectoryChooserGetError'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -70,7 +70,7 @@ export default function DirectoryChooser(props: {
         title={
           <Group>
             <Folders />
-            {i18n['WebGui.DirectoryChooserSelectedDirectory']}
+            {i18n.get['WebGui.DirectoryChooserSelectedDirectory']}
           </Group>
         }
         overflow="inside"

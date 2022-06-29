@@ -17,6 +17,7 @@
 package net.pms.util;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -872,4 +873,56 @@ public final class Languages {
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
+
+	/**
+	 * Returns a sorted jsonned string of localized UMS supported language names
+	 * with country.
+	 *
+	 * @param locale the language to be seen as preferred when
+	 *            sorting the array, and used when localizing language names.
+	 * @return The sorted jsonned string of localized language names.
+	 */
+	public static JsonArray getLanguageWithCountry(Locale locale) {
+		Locale preferredLocale = toLocale(locale);
+		if (preferredLocale == null) {
+			preferredLocale = PMS.getLocale();
+		}
+		synchronized (TRANSLATIONS_STATISTICS) {
+			createSortedList(preferredLocale);
+			JsonArray jsonArray = new JsonArray();
+			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
+				JsonObject objectGroup = new JsonObject();
+				LanguageEntry entry = SORTED_LANGUAGES.get(i);
+				objectGroup.addProperty("id", entry.tag);
+				objectGroup.addProperty("name", entry.name);
+				String country = SORTED_LANGUAGES.get(i).locale.getCountry();
+				if ("".equals(country)) {
+					country = switch (entry.locale.getLanguage()) {
+						case "ca" -> "es​";
+						case "cs" -> "CZ";
+						case "da" -> "DK";
+						case "el" -> "GR";
+						case "fa" -> "IR";
+						case "ja" -> "JP";
+						case "ko" -> "KR";
+						case "uk" -> "UA";
+						case "zh" -> "cn​";
+						default -> entry.locale.getLanguage();
+					};
+				}
+				objectGroup.addProperty("country", country);
+				jsonArray.add(objectGroup);
+			}
+			return jsonArray;
+		}
+	}
+
+	public static boolean getLanguageIsRtl(Locale locale) {
+		return switch (locale.getLanguage()) {
+			case "ar" -> true; //arab
+			case "fa" -> true; //persian
+			default -> false;
+		};
+	}
+
 }

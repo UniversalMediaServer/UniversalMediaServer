@@ -38,40 +38,40 @@ const Accounts = () => {
     const newUserForm = useForm({ initialValues: {username:null,password:null,groupid:"0",displayname:null} });
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = {operation:'createuser', username:values.username, password:values.password, groupid:values.groupid, displayname:values.displayname};
-      postAccountAction(data, i18n['WebGui.AccountsUserCreationTitle'], i18n['WebGui.AccountsUserCreationSuccess'], i18n['WebGui.AccountsUserCreationError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsUserCreationTitle'], i18n.get['WebGui.AccountsUserCreationSuccess'], i18n.get['WebGui.AccountsUserCreationError']);
     }
-    const groupDatas2 = getUserGroupsSelection(accounts, i18n['Generic.None']);
+    const groupDatas2 = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
     return (
       <form onSubmit={newUserForm.onSubmit(handleNewUserSubmit)}>
         <TextInput
           required
-          label={i18n['WebGui.AccountsUsername']}
+          label={i18n.get['WebGui.AccountsUsername']}
           name="username"
           {...newUserForm.getInputProps('username')}
         />
         <PasswordInput
           required
-          label={i18n['WebGui.AccountsPassword']}
+          label={i18n.get['WebGui.AccountsPassword']}
           name="username"
           type="password"
           {...newUserForm.getInputProps('password')}
         />
         <TextInput
           required
-          label={i18n['WebGui.AccountsDisplayName']}
+          label={i18n.get['WebGui.AccountsDisplayName']}
           name="displayname"
           {...newUserForm.getInputProps('displayname')}
         />
         <Select
           required
-          label={i18n['WebGui.AccountsGroup']}
+          label={i18n.get['WebGui.AccountsGroup']}
           name="groupId"
           data={groupDatas2}
           {...newUserForm.getInputProps('groupid')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonCreate']}
+            {i18n.get['WebGui.ButtonCreate']}
           </Button>
         </Group>
       </form>
@@ -82,27 +82,27 @@ const Accounts = () => {
     const userIdentityForm = useForm({ initialValues: {id:user.id,username:user.username,password:''} });
     const handleUserIdentitySubmit = (values: typeof userIdentityForm.values) => {
       const data = {operation:'changelogin', userid:user.id, username:values.username, password:values.password};
-      postAccountAction(data, i18n['WebGui.AccountsCredentialsUpdateTitle'], i18n['WebGui.AccountsCredentialsUpdateSuccess'], i18n['WebGui.AccountsCredentialsUpdateError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsCredentialsUpdateTitle'], i18n.get['WebGui.AccountsCredentialsUpdateSuccess'], i18n.get['WebGui.AccountsCredentialsUpdateError']);
     }
     return (
       <form onSubmit={userIdentityForm.onSubmit(handleUserIdentitySubmit)}>
-        <Divider my="sm" label={i18n['WebGui.AccountsCredentials']} />
+        <Divider my="sm" label={i18n.get['WebGui.AccountsCredentials']} />
         <TextInput
           required
-          label={i18n['WebGui.AccountsUsername']}
+          label={i18n.get['WebGui.AccountsUsername']}
           name="username"
           {...userIdentityForm.getInputProps('username')}
         />
         <PasswordInput
           required
-          label={i18n['WebGui.AccountsPassword']}
+          label={i18n.get['WebGui.AccountsPassword']}
           name="username"
           type="password"
           {...userIdentityForm.getInputProps('password')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonUpdate']}
+            {i18n.get['WebGui.ButtonUpdate']}
           </Button>
         </Group>
       </form>
@@ -113,19 +113,19 @@ const Accounts = () => {
     const userDisplayNameForm = useForm({ initialValues: {id:user.id,displayName:user.displayName} });
     const handleUserDisplayNameSubmit = (values: typeof userDisplayNameForm.values) => {
       const data = {operation:'modifyuser', userid:user.id, name:values.displayName};
-      postAccountAction(data, i18n['WebGui.AccountsDisplayNameUpdateTitle'], i18n['WebGui.AccountsDisplayNameUpdateSuccess'], i18n['WebGui.AccountsDisplayNameUpdateError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsDisplayNameUpdateTitle'], i18n.get['WebGui.AccountsDisplayNameUpdateSuccess'], i18n.get['WebGui.AccountsDisplayNameUpdateError']);
     }
     return (
       <form onSubmit={userDisplayNameForm.onSubmit(handleUserDisplayNameSubmit)}>
-        <Divider my="sm" label={i18n['WebGui.AccountsDisplayName']} />
+        <Divider my="sm" label={i18n.get['WebGui.AccountsDisplayName']} />
         <TextInput
-          label={i18n['WebGui.AccountsDisplayName']}
+          label={i18n.get['WebGui.AccountsDisplayName']}
           name="displayName"
           {...userDisplayNameForm.getInputProps('displayName')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonUpdate']}
+            {i18n.get['WebGui.ButtonUpdate']}
           </Button>
         </Group>
       </form>
@@ -136,14 +136,14 @@ const Accounts = () => {
     const userGroupForm = useForm({ initialValues: {id:user.id,groupId:user.groupId.toString()} });
     const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {
       const data = {operation:'modifyuser', userid:user.id, groupid:values.groupId};
-      postAccountAction(data, i18n['WebGui.AccountsUserGroupChangeTitle'], i18n['WebGui.AccountsUserGroupChangeSuccess'], i18n['WebGui.AccountsUserGroupChangeError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsUserGroupChangeTitle'], i18n.get['WebGui.AccountsUserGroupChangeSuccess'], i18n.get['WebGui.AccountsUserGroupChangeError']);
     };
-    const groupDatas = getUserGroupsSelection(accounts, i18n['Generic.None']);
+    const groupDatas = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
     return (
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
-        <Divider my="sm" label={i18n['WebGui.AccountsGroup']} />
+        <Divider my="sm" label={i18n.get['WebGui.AccountsGroup']} />
         <Select
-          label={i18n['WebGui.AccountsGroup']}
+          label={i18n.get['WebGui.AccountsGroup']}
           name="groupId"
           disabled={!accounts.groupsManage}
           data={groupDatas}
@@ -152,7 +152,7 @@ const Accounts = () => {
         {accounts.groupsManage && (
           <Group position="right" mt="md">
             <Button type="submit">
-              {i18n['WebGui.ButtonUpdate']}
+              {i18n.get['WebGui.ButtonUpdate']}
             </Button>
           </Group>
         )}
@@ -164,7 +164,7 @@ const Accounts = () => {
     const userDeleteForm = useForm({ initialValues: {id:user.id} });
     const handleUserDeleteSubmit = () => {
       const data = {operation:'deleteuser', userid:user.id};
-      postAccountAction(data, i18n['WebGui.AccountsUserDeleteTitle'], i18n['WebGui.AccountsUserDeleteSuccess'], i18n['WebGui.AccountsUserDeleteError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsUserDeleteTitle'], i18n.get['WebGui.AccountsUserDeleteSuccess'], i18n.get['WebGui.AccountsUserDeleteError']);
     }
     const [opened, setOpened] = useState(false);
     return (
@@ -172,19 +172,19 @@ const Accounts = () => {
         <Divider my="sm" />
         { opened ? (
           <Group position="right" mt="md">
-            <Text color="red">{i18n['WebGui.AccountsUserDeleteWarning']}</Text>
+            <Text color="red">{i18n.get['WebGui.AccountsUserDeleteWarning']}</Text>
             <Button onClick={() => setOpened(false)}>
-              {i18n['WebGui.ButtonCancel']}
+              {i18n.get['WebGui.ButtonCancel']}
             </Button>
             <Button type="submit" color="red" leftIcon={<ExclamationMark />} rightIcon={<ExclamationMark />}>
-              {i18n['WebGui.ButtonConfirm']}
+              {i18n.get['WebGui.ButtonConfirm']}
             </Button>
           </Group>
         ) : (
           <Group position="right" mt="md">
-            <Text color="red">{i18n['WebGui.AccountsUserDelete']}</Text>
+            <Text color="red">{i18n.get['WebGui.AccountsUserDelete']}</Text>
             <Button onClick={() => setOpened(true)} color="red" leftIcon={<X />}>
-              {i18n['WebGui.ButtonDelete']}
+              {i18n.get['WebGui.ButtonDelete']}
             </Button>
           </Group>
         )}
@@ -210,7 +210,7 @@ const Accounts = () => {
   };
 
   function NewUserAccordion(accounts: UmsAccounts) {
-    const user = {id:0,username:i18n['WebGui.AccountsNewUser']} as UmsUser;
+    const user = {id:0,username:i18n.get['WebGui.AccountsNewUser']} as UmsUser;
     const userGroup = {id:0,displayName:''} as UmsGroup;
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
     const newUserForm = NewUserForm(accounts);
@@ -249,19 +249,19 @@ const Accounts = () => {
     const groupDisplayNameForm = useForm({ initialValues: {id:group.id,displayName:group.displayName} });
     const handleGroupDisplayNameSubmit = (values: typeof groupDisplayNameForm.values) => {
       const data = {operation:'modifygroup', groupid:group.id, name:values.displayName};
-      postAccountAction(data, i18n['WebGui.AccountsDisplayNameUpdateTitle'], i18n['WebGui.AccountsDisplayNameUpdateSuccess'], i18n['WebGui.AccountsDisplayNameUpdateError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsDisplayNameUpdateTitle'], i18n.get['WebGui.AccountsDisplayNameUpdateSuccess'], i18n.get['WebGui.AccountsDisplayNameUpdateError']);
     }
     return (
       <form onSubmit={groupDisplayNameForm.onSubmit(handleGroupDisplayNameSubmit)}>
-        <Divider my="sm" label={i18n['WebGui.AccountsDisplayName']} />
+        <Divider my="sm" label={i18n.get['WebGui.AccountsDisplayName']} />
         <TextInput
-          label={i18n['WebGui.AccountsDisplayName']}
+          label={i18n.get['WebGui.AccountsDisplayName']}
           name="displayName"
           {...groupDisplayNameForm.getInputProps('displayName')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonUpdate']}
+            {i18n.get['WebGui.ButtonUpdate']}
           </Button>
         </Group>
       </form>
@@ -273,26 +273,26 @@ const Accounts = () => {
     const groupPermissionsForm = useForm({ initialValues: {id:group.id} });
     const handleGroupPermissionsSubmit = (values: typeof groupPermissionsForm.values) => {
       const data = {operation:'updatepermission', groupid:group.id, permissions:permissions};
-      postAccountAction(data, i18n['WebGui.AccountsPermissionsUpdateTitle'], i18n['WebGui.AccountsPermissionsUpdateSuccess'], i18n['WebGui.AccountsPermissionsUpdateError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsPermissionsUpdateTitle'], i18n.get['WebGui.AccountsPermissionsUpdateSuccess'], i18n.get['WebGui.AccountsPermissionsUpdateError']);
     }
     return (
       <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
-        <Divider my="sm" label={i18n['WebGui.AccountsPermissions']} />
+        <Divider my="sm" label={i18n.get['WebGui.AccountsPermissions']} />
         <CheckboxGroup
           value={permissions}
           onChange={setPermissions}
           orientation="vertical"
         >
-          <Checkbox value="*" label={i18n['WebGui.AccountsPermissionAllPermissions']} />
-          <Checkbox value="server_restart" label={i18n['WebGui.AccountsPermissionServerRestart']} />
-          <Checkbox value="users_manage" label={i18n['WebGui.AccountsPermissionUsersManage']} />
-          <Checkbox value="groups_manage" label={i18n['WebGui.AccountsPermissionGroupsManage']} />
-          <Checkbox value="settings_view" label={i18n['WebGui.AccountsPermissionSettingsView']} />
-          <Checkbox value="settings_modify" label={i18n['WebGui.AccountsPermissionSettingsModify']} />
+          <Checkbox value="*" label={i18n.get['WebGui.AccountsPermissionAllPermissions']} />
+          <Checkbox value="server_restart" label={i18n.get['WebGui.AccountsPermissionServerRestart']} />
+          <Checkbox value="users_manage" label={i18n.get['WebGui.AccountsPermissionUsersManage']} />
+          <Checkbox value="groups_manage" label={i18n.get['WebGui.AccountsPermissionGroupsManage']} />
+          <Checkbox value="settings_view" label={i18n.get['WebGui.AccountsPermissionSettingsView']} />
+          <Checkbox value="settings_modify" label={i18n.get['WebGui.AccountsPermissionSettingsModify']} />
         </CheckboxGroup>
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonUpdate']}
+            {i18n.get['WebGui.ButtonUpdate']}
           </Button>
         </Group>
       </form>
@@ -303,7 +303,7 @@ const Accounts = () => {
     const groupDeleteForm = useForm({ initialValues: {id:group.id} });
     const handleGroupDeleteSubmit = () => {
       const data = {operation:'deletegroup', groupid:group.id};
-      postAccountAction(data, i18n['WebGui.AccountsGroupDeleteTitle'], i18n['WebGui.AccountsGroupDeleteSuccess'], i18n['WebGui.AccountsGroupDeleteError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsGroupDeleteTitle'], i18n.get['WebGui.AccountsGroupDeleteSuccess'], i18n.get['WebGui.AccountsGroupDeleteError']);
     }
     const [opened, setOpened] = useState(false);
     return group.id > 1 ? (
@@ -311,19 +311,19 @@ const Accounts = () => {
         <Divider my="sm" />
         { opened ? (
           <Group position="right" mt="md">
-            <Text color="red">{i18n['WebGui.AccountsGroupDeleteWarning']}</Text>
+            <Text color="red">{i18n.get['WebGui.AccountsGroupDeleteWarning']}</Text>
             <Button onClick={() => setOpened(false)}>
-              {i18n['WebGui.ButtonCancel']}
+              {i18n.get['WebGui.ButtonCancel']}
             </Button>
             <Button type="submit" color="red" leftIcon={<ExclamationMark />} rightIcon={<ExclamationMark />}>
-              {i18n['WebGui.ButtonConfirm']}
+              {i18n.get['WebGui.ButtonConfirm']}
             </Button>
           </Group>
         ) : (
           <Group position="right" mt="md">
-            <Text color="red">{i18n['WebGui.AccountsGroupDelete']}</Text>
+            <Text color="red">{i18n.get['WebGui.AccountsGroupDelete']}</Text>
             <Button onClick={() => setOpened(true)} color="red" leftIcon={<X />}>
-              {i18n['WebGui.ButtonDelete']}
+              {i18n.get['WebGui.ButtonDelete']}
             </Button>
           </Group>
         )}
@@ -350,19 +350,19 @@ const Accounts = () => {
     const newGroupForm = useForm({ initialValues: {displayName:''} });
     const handleNewGroupSubmit = (values: typeof newGroupForm.values) => {
       const data = {operation:'creategroup', name:values.displayName};
-      postAccountAction(data, i18n['WebGui.AccountsGroupCreationTitle'], i18n['WebGui.AccountsGroupCreationSuccess'], i18n['WebGui.AccountsGroupCreationError']);
+      postAccountAction(data, i18n.get['WebGui.AccountsGroupCreationTitle'], i18n.get['WebGui.AccountsGroupCreationSuccess'], i18n.get['WebGui.AccountsGroupCreationError']);
     }
     return (
       <form onSubmit={newGroupForm.onSubmit(handleNewGroupSubmit)}>
         <TextInput
           required
-          label={i18n['WebGui.AccountsDisplayName']}
+          label={i18n.get['WebGui.AccountsDisplayName']}
           name="displayName"
           {...newGroupForm.getInputProps('displayName')}
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n['WebGui.ButtonCreate']}
+            {i18n.get['WebGui.ButtonCreate']}
           </Button>
         </Group>
       </form>
@@ -370,7 +370,7 @@ const Accounts = () => {
   };
 
   function NewGroupAccordion() {
-    const group = {id:0,displayName:i18n['WebGui.AccountsNewGroup']} as UmsGroup;
+    const group = {id:0,displayName:i18n.get['WebGui.AccountsNewGroup']} as UmsGroup;
     const groupAccordionLabel = GroupAccordionLabel(group);
     const newGroupForm = NewGroupForm();
     return (
@@ -400,10 +400,10 @@ const Accounts = () => {
 	    { accounts => (
           {...accounts.groupsManage ? (
             <Tabs active={activeTab} onTabChange={setActiveTab}>
-	          <Tabs.Tab label={i18n['WebGui.AccountsUsers']}>
+	          <Tabs.Tab label={i18n.get['WebGui.AccountsUsers']}>
 	            <UsersAccordions {...accounts} />
               </Tabs.Tab>
-	          <Tabs.Tab label={i18n['WebGui.AccountsGroups']}>
+	          <Tabs.Tab label={i18n.get['WebGui.AccountsGroups']}>
 	            <GroupsAccordions {...accounts} />
               </Tabs.Tab>
             </Tabs>

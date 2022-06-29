@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
@@ -288,7 +287,7 @@ public class MediaServer {
 
 		JsonObject defaultOption = new JsonObject();
 		defaultOption.addProperty("value", "0");
-		defaultOption.addProperty("label", Messages.getString("Generic.Default"));
+		defaultOption.addProperty("label", "i18n@Generic.Default");
 		jsonArray.add(defaultOption);
 
 		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {
