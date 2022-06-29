@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
 import { Button, Paper, Text } from '@mantine/core';
 import { showNotification, hideNotification } from '@mantine/notifications';
-
-import { getJwtPayload } from '../../services/auth.service';
+import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { getJwt } from '../../services/auth.service';
 
 export const OnlineStatus = () => {
   const connectionStatusStr = [
@@ -25,56 +25,65 @@ export const OnlineStatus = () => {
 
   useEffect(() => {
     let connectionStatus = 0;
+	const startSse = () => {
+      setConnectionStatus(connectionStatus);
+      fetchEventSource('/v1/api/sse/', {
+        headers: {
+          'Authorization': 'Bearer ' + getJwt()
+        },
+        async onopen(event: Response) { onOpen(event); },
+        onmessage(event: EventSourceMessage) {
+          onMessage(event);
+        },
+        onerror(event: Response) { onError(event); },
+        onclose() { onClose(); },
+	  });
+	};
 
-    const updateConnectionStatus = (event: Event) => {
-      if (connectionStatus !== sse.readyState) {
-        if (connectionStatus === 1) {
-          showNotification({
-            id: 'connection-lost',
-            color: 'orange',
-            title: 'Warning',
-            message: 'Connectivity to Universal Media Server unavailable',
-            autoClose: false
-          });
-        } else if (sse.readyState === 1) {
-            hideNotification('connection-lost');
-	    }
-        connectionStatus = sse.readyState;
-        setConnectionStatus(connectionStatus);
-	  }
+    const showErrorNotification = () => {
+      showNotification({
+        id: 'connection-lost',
+        color: 'orange',
+        title: 'Warning',
+        message: 'Connectivity to Universal Media Server unavailable',
+        autoClose: false
+      });
     }
 
-    const onOpen = (event: Event) => {
-      updateConnectionStatus(event);
+    const onOpen = (event: Response) => {
+      setConnectionStatus(1);
+      hideNotification('connection-lost');
+	  if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
+            console.log('EventSource::onopen');
+			}
     };
-    const onError = (event: Event) => {
-      updateConnectionStatus(event);
-	  if (connectionStatus === 2) {
-        setTimeout(() => { sse = createSse(); }, 5000);
-      }
-    };
-    const onMessage = (event: MessageEvent) => {
+
+    const onMessage = (event: EventSourceMessage) => {
       // process the data here
       //THIS IS ADDED FOR TEST ONLY
-      const datas = JSON.parse(event.data);
-      switch (datas.action) {
-        case 'update_memory':
-          setMemory(datas);
-          break;
-        case 'show_message':
-          setMessage(datas.message);
-          break;
+	  console.log('EventSource::onMessage');
+	  if (event.event === "message") {
+        const datas = JSON.parse(event.data);
+        switch (datas.action) {
+          case 'update_memory':
+            setMemory(datas);
+            break;
+          case 'show_message':
+            setMessage(datas.message);
+            break;
+        }
       }
     }
-    const createSse = () => {
-      const newsse = new EventSource('/v1/api/sse/' + (getJwtPayload() !== null ? encodeURI('?' + getJwtPayload()) : ''));
-      newsse.onmessage = e => onMessage(e);
-      newsse.onerror = e => { onError(e); }
-      newsse.onopen = e => { onOpen(e); }
-      return newsse;
+    const onError = (event: Response) => {
+      console.log('EventSource::onError');
+      setConnectionStatus(0);
     };
-    let sse = createSse();
-    return () => sse.close();
+    const onClose = () => {
+      console.log('EventSource::onClose');
+      setConnectionStatus(2);
+      showErrorNotification();
+    };
+    startSse();
   }, []);
   return (
     <Paper shadow="xs" p="md">
