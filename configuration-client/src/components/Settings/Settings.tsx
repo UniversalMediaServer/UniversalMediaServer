@@ -1,8 +1,8 @@
-import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -29,59 +29,9 @@ export default function Settings() {
     sortMethods: [],
     subtitlesInfoLevels: [],
   });
-  const numberOfCpuCoresSettingsRef = useRef(1);
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
-  const defaultSettings: Record<string, any> = {
-    alternate_thumb_folder: '',
-    append_profile_name: false,
-    audio_channels: '6',
-    audio_embed_dts_in_pcm: false,
-    audio_bitrate: '448',
-    audio_remux_ac3: true,
-    audio_use_pcm: false,
-    audio_thumbnails_method: '1',
-    auto_update: true,
-    automatic_maximum_bitrate: true,
-    chapter_interval: 5,
-    chapter_support: false,
-    disable_subtitles: false,
-    disable_transcode_for_extensions: '',
-    encoded_audio_passthrough: false,
-    force_transcode_for_extensions: '',
-    gpu_acceleration: false,
-    external_network: true,
-    generate_thumbnails: true,
-    hide_enginenames: true,
-    hide_extensions: true,
-    hostname: '',
-    ignore_the_word_a_and_the: true,
-    ip_filter: '',
-    language: 'en-US',
-    mencoder_remux_mpeg2: true,
-    maximum_video_buffer_size: 200,
-    maximum_bitrate: '90',
-    minimized: false,
-    mpeg2_main_settings: 'Automatic (Wired)',
-    network_interface: '',
-    number_of_cpu_cores: numberOfCpuCoresSettingsRef.current,
-    port: '',
-    prettify_filenames: false,
-    renderer_default: '',
-    renderer_force_default: false,
-    selected_renderers: ['All renderers'],
-    server_engine: '0',
-    server_name: 'Universal Media Server',
-    show_splash_screen: true,
-    sort_method: '4',
-    subs_info_level: 'basic',
-    thumbnail_seek_position: '4',
-    use_cache: true,
-    use_imdb_info: true,
-    x264_constant_rate_factor: 'Automatic (Wired)',
-  };
 
   const defaultTooltipSettings = {
     width: 350,
@@ -94,9 +44,10 @@ export default function Settings() {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
 
-  const [configuration, setConfiguration] = useState(defaultSettings);
+  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
+  const [configuration, setConfiguration] = useState({} as any);
 
-  const form = useForm({ initialValues: defaultSettings });
+  const form = useForm({ initialValues: {} as any });
 
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
@@ -107,17 +58,13 @@ export default function Settings() {
       .then(function (response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
-
-        numberOfCpuCoresSettingsRef.current = settingsResponse.numberOfCpuCores;
-
-        //update default settings
-        defaultSettings.number_of_cpu_cores = settingsResponse.numberOfCpuCores;
+        setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
         // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge(defaultSettings, settingsResponse.userSettings);
+        const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 
         setConfiguration(userConfig);
-        form.setValues(configuration);
+        form.setValues(userConfig);
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -440,43 +387,49 @@ export default function Settings() {
                   <Navbar.Section>
                   <Accordion>
                     <Accordion.Item label="Video Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
-                        FFmpeg Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
-                        MEncoder Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
-                        tsMuxeR Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
-                        VLC Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpeg')}>
+                          FFmpeg Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoder')}>
+                          MEncoder Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tsmuxer')}>
+                          tsMuxeR Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlc')}>
+                          VLC Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Audio Files Engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
-                        FFmpeg Audio
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
-                        tsMuxeR Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegaudio')}>
+                          FFmpeg Audio
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('tmuxeraudio')}>
+                          tsMuxeR Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web video streaming engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
-                        FFmpeg Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
-                        youtube-dl
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
-                        VLC Web Video
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
-                        VLC Web Video (legacy)
-                      </Button>
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
-                        Mencoder Web Video
-                      </Button>
+                      <Stack justify="flex-start" align="flex-start" spacing="xs">
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('ffmpegweb')}>
+                          FFmpeg Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('youtube-dl')}>
+                          youtube-dl
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideo')}>
+                          VLC Web Video
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebvideolegacy')}>
+                          VLC Web Video (legacy)
+                        </Button>
+                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('mencoderwebvideo')}>
+                          Mencoder Web Video
+                        </Button>
+                      </Stack>
                     </Accordion.Item>
                     <Accordion.Item label="Web audio streaming engines">
                       <Button variant="subtle" color="dark" size="xs" compact onClick={() => setContent('vlcwebaudio')}>
@@ -501,9 +454,9 @@ export default function Settings() {
                   {...form.getInputProps('maximum_video_buffer_size')}
                 />
                 <NumberInput
-                  label={i18n.get['TrTab2.24']?.replace('%d', numberOfCpuCoresSettingsRef.current.toString())}
+                  label={i18n.get['TrTab2.24']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
                   size="xs"
-                  max={numberOfCpuCoresSettingsRef.current}
+                  max={defaultConfiguration.number_of_cpu_cores}
                   min={1}
                   disabled={false}
                   {...form.getInputProps('number_of_cpu_cores')}
