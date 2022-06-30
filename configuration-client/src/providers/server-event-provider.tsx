@@ -12,6 +12,7 @@ interface Props {
 }
 
 export const ServerEventProvider = ({ children, ...props }: Props) =>{
+  const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
   const [message, setMessage] = useState<string>('');
@@ -19,9 +20,10 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const i18n = useContext(I18nContext);
 
   useEffect(() => {
-    if (session.account === undefined) {
+    if (started || session.account === undefined) {
       return;
     }
+    setStarted(true);
     let notified = false;
     const startSse = () => {
       setConnectionStatus(0);
@@ -96,8 +98,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     startSse();
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [started, session, i18n]);
 
   const { Provider } = serverEventContext;
   return(
