@@ -22,10 +22,13 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.RootFolder;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +36,7 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
-	protected static final Map<Integer, ArrayList<UserServerSentEvents>> SSE_INSTANCES = new HashMap<>();
+	protected static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
@@ -92,12 +95,20 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		return new WebInterfaceServerHttpServer(port);
 	}
 
-	public static void addServerSentEventsFor(int id, UserServerSentEvents sse) {
+	public static boolean hasServerSentEvents() {
+		synchronized (SSE_INSTANCES) {
+			return !SSE_INSTANCES.isEmpty();
+		}
+	}
+
+	public static void addServerSentEventsFor(int id, ServerSentEvents sse) {
 		if (id > 0) {
-			if (!SSE_INSTANCES.containsKey(id)) {
-				SSE_INSTANCES.put(id, new ArrayList<>());
+			synchronized (SSE_INSTANCES) {
+				if (!SSE_INSTANCES.containsKey(id)) {
+					SSE_INSTANCES.put(id, new ArrayList<>());
+				}
+				SSE_INSTANCES.get(id).add(sse);
 			}
-			SSE_INSTANCES.get(id).add(sse);
 		}
 	}
 
@@ -106,11 +117,22 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	 * @param message
 	 */
 	public static void broadcastMessage(String message) {
-		SSE_INSTANCES.forEach((id, sses) -> {
-			sses.forEach((sse) -> {
-				sse.sendMessage(message);
-			});
-		});
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+				for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+					ServerSentEvents sse = sseIterator.next();
+					if (!sse.isOpened()) {
+						sseIterator.remove();
+					} else {
+						sse.sendMessage(message);
+					}
+				}
+				if (entry.getValue().isEmpty()) {
+					ssesIterator.remove();
+				}
+			}
+		}
 	}
 
 	/**
@@ -120,11 +142,49 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	 * @param permission
 	 */
 	public static void broadcastMessage(String message, String permission) {
-		SSE_INSTANCES.forEach((id, sses) -> {
-			sses.forEach((sse) -> {
-				sse.sendMessage(message, permission);
-			});
-		});
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+				Account account = AccountService.getAccountByUserId(entry.getKey());
+				if (account.havePermission(permission)) {
+					for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+						ServerSentEvents sse = sseIterator.next();
+						if (!sse.isOpened()) {
+							sseIterator.remove();
+						} else {
+							sse.sendMessage(message);
+						}
+					}
+				}
+				if (entry.getValue().isEmpty()) {
+					ssesIterator.remove();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams to a specific
+	 * account.
+	 * @param message
+	 * @param id
+	 */
+	public static void broadcastMessage(String message, int id) {
+		synchronized (SSE_INSTANCES) {
+			if (SSE_INSTANCES.containsKey(id)) {
+				for (Iterator<ServerSentEvents> sseIterator = SSE_INSTANCES.get(id).iterator(); sseIterator.hasNext();) {
+					ServerSentEvents sse = sseIterator.next();
+					if (!sse.isOpened()) {
+						sseIterator.remove();
+					} else {
+						sse.sendMessage(message);
+					}
+				}
+				if (SSE_INSTANCES.get(id).isEmpty()) {
+					SSE_INSTANCES.remove(id);
+				}
+			}
+		}
 	}
 
 }

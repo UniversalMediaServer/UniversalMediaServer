@@ -50,7 +50,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
-import net.pms.iam.AuthService;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.APIUtils;

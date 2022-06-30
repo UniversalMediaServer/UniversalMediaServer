@@ -27,7 +27,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
-import net.pms.network.webinterfaceserver.UserServerSentEvents;
+import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
@@ -74,7 +74,7 @@ public class SseApiHandler implements HttpHandler {
 						hdr.add("Connection", "keep-alive");
 						hdr.add("Charset", "UTF-8");
 						exchange.sendResponseHeaders(200, 0);
-						UserServerSentEvents sse = new UserServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange), account.getUser().getId());
+						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
 						WebInterfaceServer.addServerSentEventsFor(account.getUser().getId(), sse);
 					} else {
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
@@ -109,17 +109,19 @@ public class SseApiHandler implements HttpHandler {
 	}
 
 	public void updateMemoryUsage() {
-		final long max = Runtime.getRuntime().maxMemory() / 1048576;
-		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-		long buffer = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-				buffer += (r.getBuffer());
+		if (WebInterfaceServer.hasServerSentEvents()) {
+			final long max = Runtime.getRuntime().maxMemory() / 1048576;
+			final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+			long buffer = 0;
+			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			synchronized (foundRenderers) {
+				for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+					buffer += (r.getBuffer());
+				}
 			}
+			String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
+			WebInterfaceServer.broadcastMessage(json);
 		}
-		String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
-		WebInterfaceServer.broadcastMessage(json);
 	}
 
 	Runnable rUpdateMemoryUsage = () -> {
