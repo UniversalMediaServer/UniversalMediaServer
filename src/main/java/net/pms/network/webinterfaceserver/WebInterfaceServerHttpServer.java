@@ -50,6 +50,7 @@ import net.pms.network.webinterfaceserver.configuration.handlers.ActionsApiHandl
 import net.pms.network.webinterfaceserver.configuration.handlers.AuthApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
 import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
@@ -60,7 +61,6 @@ import net.pms.network.webinterfaceserver.handlers.MediaHandler;
 import net.pms.network.webinterfaceserver.handlers.PlayHandler;
 import net.pms.network.webinterfaceserver.handlers.PollHandler;
 import net.pms.network.webinterfaceserver.handlers.RawHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.network.webinterfaceserver.handlers.StartHandler;
 import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
 import net.pms.util.FileUtil;

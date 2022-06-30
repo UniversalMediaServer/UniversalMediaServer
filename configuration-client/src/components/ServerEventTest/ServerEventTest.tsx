@@ -27,8 +27,8 @@ export const ServerEventTest = () => {
   return (
         <Paper shadow="xs" p="md">
           <Text size="xs">Connection status: {connectionStatusStr[sse.connectionStatus]}</Text>
-		  <MemoryBar />
-		  <ServerEventStatus />
+          <MemoryBar />
+          <ServerEventStatus />
           <Text size="xs">Memory status: {sse.memory.used}/{sse.memory.max}({sse.memory.buffer} for buffer)</Text>
           <Group>
             <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>

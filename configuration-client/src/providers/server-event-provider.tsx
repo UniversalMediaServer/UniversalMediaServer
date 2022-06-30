@@ -47,8 +47,6 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     const onMessage = (event: EventSourceMessage) => {
-      // process the data here
-      //THIS IS ADDED FOR TEST ONLY
       if (event.event === "message") {
         const datas = JSON.parse(event.data);
         switch (datas.action) {
@@ -105,7 +103,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   return(
     <Provider value={{
       connectionStatus: connectionStatus,
-	  memory: memory,
+      memory: memory,
       message: message,
     }}>
       {children}
