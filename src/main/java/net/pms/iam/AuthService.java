@@ -103,14 +103,4 @@ public class AuthService {
 		return getAccountLoggedIn(authHeaders.get(0), host);
 	}
 
-	public static boolean validatePayload(int expire, String issuer, String subject, String host) {
-		if (subject == null || host == null || !host.equals(subject) ||
-				issuer == null || !issuer.equals(JWT_ISSUER)) {
-			return false;
-		}
-		long currentTime = System.currentTimeMillis() / 1000L;
-		long issuedTime = expire - (TWO_HOURS_IN_MS / 1000L);
-		return expire > currentTime && issuedTime < currentTime;
-	}
-
 }

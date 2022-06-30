@@ -1171,28 +1171,4 @@ public class WebInterfaceServerUtil {
 		return javascriptVarsScript;
 	}
 
-	public static JsonObject getJsonObjectFromPayload(String payload) {
-		if (!StringUtils.isEmpty(payload)) {
-			try {
-				String payloadJson = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
-				return jsonObjectFromString(payloadJson);
-			} catch (NullPointerException | IllegalArgumentException e) {
-			}
-		}
-		return null;
-	}
-
-	public static int getValidUserIdFromPayload(String payload, String hostname) {
-		JsonObject payloadJson = getJsonObjectFromPayload(payload);
-		if (payloadJson != null && payloadJson.has("id") && payloadJson.has("iss") && payloadJson.has("sub") && payloadJson.has("exp")) {
-			int id = payloadJson.get("id").getAsInt();
-			String subject = payloadJson.get("sub").getAsString();
-			String issuer = payloadJson.get("iss").getAsString();
-			int expire = payloadJson.get("exp").getAsInt();
-			if (AuthService.validatePayload(expire, issuer, subject, hostname)) {
-				return id;
-			}
-		}
-		return 0;
-	}
 }
