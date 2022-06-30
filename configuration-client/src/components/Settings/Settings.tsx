@@ -6,12 +6,12 @@ import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
-import {OnlineStatus} from '../OnlineStatus/OnlineStatus'
-
 import {getToolTipContent} from '../../utils';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+
+import {ServerEventTest} from '../ServerEventTest/ServerEventTest'
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -134,7 +134,7 @@ export default function Settings() {
 
   return canView ? (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <OnlineStatus></OnlineStatus>
+      <ServerEventTest />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs active={activeTab} onTabChange={setActiveTab}>
           <Tabs.Tab label={i18n.get['LooksFrame.TabGeneralSettings']}>
