@@ -1,4 +1,4 @@
-import { Button, Paper, Text } from '@mantine/core';
+import { Button, Group, Paper, Text } from '@mantine/core';
 import React, { useContext } from 'react';
 import axios from 'axios';
 
@@ -15,10 +15,13 @@ export const ServerEventTest = () => {
   ];
 
   const handleAskMsg = () => {
-    axios.post('/v1/api/sse/broadcast', {message:"This message was sent by the server"});
+    axios.post('/v1/api/sse/broadcast', {message:"This message was sent from the server"});
   };
   const handleAskMsgWithPerms = () => {
     axios.post('/v1/api/sse/broadcast', {message:"This message is received only by admins",permission:"*"});
+  };
+  const handleAskNotification = () => {
+    axios.post('/v1/api/sse/notify', {message:"This notication was sent from the server"});
   };
 
   return (
@@ -27,10 +30,12 @@ export const ServerEventTest = () => {
 		  <MemoryBar />
 		  <ServerEventStatus />
           <Text size="xs">Memory status: {sse.memory.used}/{sse.memory.max}({sse.memory.buffer} for buffer)</Text>
-          <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>
-          <Text size="xs"> </Text>
-          <Button size="xs" onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
+          <Group>
+            <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>
+            <Button size="xs" onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
+          </Group>
           <Text size="xs">Message: {sse.message}</Text>
+          <Button size="xs" onClick={handleAskNotification}>Ask server to send a notification</Button>
         </Paper>
       );
 };

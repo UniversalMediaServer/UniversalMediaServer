@@ -1,6 +1,8 @@
-import { showNotification } from '@mantine/notifications';
+import { hideNotification, showNotification } from '@mantine/notifications';
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
 import { ReactNode, useContext, useEffect, useState } from 'react';
+
+import I18nContext from '../contexts/i18n-context';
 import { serverEventContext } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth.service';
@@ -14,6 +16,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
   const [message, setMessage] = useState<string>('');
   const session = useContext(SessionContext);
+  const i18n = useContext(I18nContext);
 
   useEffect(() => {
     if (session.account === undefined) {
@@ -37,6 +40,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
 
     const onOpen = (event: Response) => {
       if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
+        hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
       }
@@ -53,6 +57,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
             break;
           case 'show_message':
             setMessage(datas.message);
+            break;
+          case 'notify':
+            addNotification(datas);
             break;
         }
       }
@@ -79,7 +86,19 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       });
     }
 
+    const addNotification = (datas: any) => {
+      showNotification({
+        id: datas.id ? datas.id : 'sse-notification',
+        color: datas.color,
+        title: datas.title,
+        message: datas.message ? i18n.getI18nString(datas.message) : '',
+        autoClose: datas.autoClose ? datas.autoClose : true
+      });
+	  
+    };
+
     startSse();
+	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const { Provider } = serverEventContext;
