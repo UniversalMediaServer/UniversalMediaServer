@@ -17,7 +17,6 @@
  */
 package net.pms.network.webinterfaceserver.configuration.handlers;
 
-import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -79,39 +78,6 @@ public class SseApiHandler implements HttpHandler {
 					} else {
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					}
-//THIS IS ADDED FOR TEST ONLY
-//broadcast message / notify should be done by UMS itself, not from react
-				} else if (api.post("/broadcast")) {
-					JsonObject broadcast = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
-					if (broadcast == null || !broadcast.has("message") || !broadcast.get("message").isJsonPrimitive()) {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-						return;
-					}
-					String message = broadcast.get("message").getAsString();
-					String json = "{\"action\":\"show_message\",\"message\":\"" + message + "\"}";
-					if (broadcast.has("permission") && broadcast.get("permission").isJsonPrimitive()) {
-						String permission = broadcast.get("permission").getAsString();
-						WebInterfaceServer.broadcastMessage(json, permission);
-					} else {
-						WebInterfaceServer.broadcastMessage(json);
-					}
-					WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
-				} else if (api.post("/notify")) {
-					JsonObject broadcast = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
-					if (broadcast == null || !broadcast.has("message") || !broadcast.get("message").isJsonPrimitive()) {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-						return;
-					}
-					String message = broadcast.get("message").getAsString();
-					String json = "{\"action\":\"notify\",\"message\":\"" + message + "\"}";
-					if (broadcast.has("permission") && broadcast.get("permission").isJsonPrimitive()) {
-						String permission = broadcast.get("permission").getAsString();
-						WebInterfaceServer.broadcastMessage(json, permission);
-					} else {
-						WebInterfaceServer.broadcastMessage(json);
-					}
-					WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
-//END OF THIS IS ADDED FOR TEST ONLY
 				} else {
 					WebInterfaceServerUtil.respond(exchange, "{}", 404, "application/json");
 				}
