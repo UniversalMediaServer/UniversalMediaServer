@@ -1,6 +1,5 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
-import _ from 'lodash';
 
 const storeJwtInLocalStorage = (jwt: string) => {
   localStorage.setItem('user', jwt);
@@ -39,23 +38,6 @@ export const create = async (username: string, password: string) => {
   return response.data;
 };
 
-export const changePassword = async (currentPassword: string, newPassword: string) => {
-  try {
-    const response = await axios
-      .post('/v1/api/user/changepassword', {
-        password: currentPassword,
-        newPassword,
-      });
-    return response.data;
-  } catch (e: unknown) {
-    const { error } = _.get(e, 'response.data');
-    if (error) {
-      return { error };
-    }
-    throw e;
-  }
-}
-
 export const refreshToken = async () => {
   const response = await axios
     .post('/v1/api/auth/refresh', {});
@@ -85,10 +67,6 @@ export const clearJwt = () => {
 
 export const getJwt = () => {
   return localStorage.getItem('user');
-}
-
-export const getJwtPayload = () => {
-  return localStorage.getItem('user')?.split('.')[1];
 }
 
 export const redirectToLogin = () => {
