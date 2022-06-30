@@ -4,6 +4,7 @@ import axios from 'axios';
 
 import ServerEventContext from '../../contexts/server-event-context';
 import MemoryBar from '../MemoryBar/MemoryBar';
+import ServerEventStatus from '../ServerEventStatus/ServerEventStatus';
 
 export const ServerEventTest = () => {
   const sse = useContext(ServerEventContext);
@@ -24,6 +25,7 @@ export const ServerEventTest = () => {
         <Paper shadow="xs" p="md">
           <Text size="xs">Connection status: {connectionStatusStr[sse.connectionStatus]}</Text>
 		  <MemoryBar />
+		  <ServerEventStatus />
           <Text size="xs">Memory status: {sse.memory.used}/{sse.memory.max}({sse.memory.buffer} for buffer)</Text>
           <Button size="xs" onClick={handleAskMsg}>Ask server to send a message</Button>
           <Text size="xs"> </Text>
