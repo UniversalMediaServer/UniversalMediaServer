@@ -1,7 +1,7 @@
 import { AppShell, Box, Center, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme, Loader } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { useEffect } from 'react'; 
+import React, { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
@@ -19,6 +19,7 @@ import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
+import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
 
@@ -58,6 +59,7 @@ function App() {
             <SessionProvider>
               <SessionContext.Consumer>
                 {session => (
+				<ServerEventProvider>
                   <div dir={rtl ? 'rtl' : 'ltr'}>
                     <AppShell
                       padding="md"
@@ -82,7 +84,7 @@ function App() {
                       })}
                     >
                       {session.account ? (
-                        <Router>
+						<Router>
                           <Routes>
                             <Route path='accounts' element={<Accounts />}></Route>
                             <Route path='settings' element={<Settings />}></Route>
@@ -104,6 +106,7 @@ function App() {
                       )}
                     </AppShell>
                   </div>
+				  </ServerEventProvider>
                 )}
               </SessionContext.Consumer>
             </SessionProvider>

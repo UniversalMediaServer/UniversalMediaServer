@@ -1,10 +1,11 @@
 import { Button, Paper, Text } from '@mantine/core';
+import { useContext } from 'react';
 import axios from 'axios';
 
 import ServerEventContext from '../../contexts/server-event-context';
-import { ServerEventProvider } from '../../providers/server-event-provider';
 
 export const OnlineStatus = () => {
+  const sse = useContext(ServerEventContext);
   const connectionStatusStr = [
     'Connecting',
     'Open',
@@ -19,9 +20,6 @@ export const OnlineStatus = () => {
   };
 
   return (
-    <ServerEventProvider>
-      <ServerEventContext.Consumer>
-	  { sse => (
         <Paper shadow="xs" p="md">
           <Text size="xs">Connection status: {connectionStatusStr[sse.connectionStatus]}</Text>
           <Text size="xs">Memory status: {sse.memory.used}/{sse.memory.max}({sse.memory.buffer} for buffer)</Text>
@@ -30,10 +28,7 @@ export const OnlineStatus = () => {
           <Button size="xs" onClick={handleAskMsgWithPerms}>Ask server to send a message for admins</Button>
           <Text size="xs">Message: {sse.message}</Text>
         </Paper>
-      )}
-      </ServerEventContext.Consumer>
-    </ServerEventProvider>
-  );
+      );
 };
 
 export default OnlineStatus;

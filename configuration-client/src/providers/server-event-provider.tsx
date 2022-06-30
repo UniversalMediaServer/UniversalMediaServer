@@ -1,7 +1,8 @@
 import { showNotification } from '@mantine/notifications';
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 import { serverEventContext } from '../contexts/server-event-context';
+import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth.service';
 
 interface Props {
@@ -12,8 +13,12 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
   const [message, setMessage] = useState<string>('');
+  const session = useContext(SessionContext);
 
   useEffect(() => {
+    if (session.account === undefined) {
+      return;
+    }
     let notified = false;
     const startSse = () => {
       setConnectionStatus(0);
@@ -75,7 +80,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     }
 
     startSse();
-  }, []);
+  }, [session]);
 
   const { Provider } = serverEventContext;
   return(
