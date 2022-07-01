@@ -586,6 +586,13 @@ public class PMS {
 				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
 				}
+				if (!event.isBeforeUpdate()) {
+					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+						SseApiHandler.setReloadable(true);
+						frame.setReloadable(true);
+					}
+					SseApiHandler.setConfigurationChanged(event.getPropertyName());
+				}
 			}
 		});
 
@@ -846,7 +853,7 @@ public class PMS {
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
-
+			SseApiHandler.setReloadable(false);
 			frame.setReloadable(false);
 		});
 	}
