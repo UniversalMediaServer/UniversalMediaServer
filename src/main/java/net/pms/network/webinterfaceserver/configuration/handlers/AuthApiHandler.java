@@ -31,7 +31,6 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.apache.commons.io.IOUtils;
@@ -80,10 +79,6 @@ public class AuthApiHandler implements HttpHandler {
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-//should be replaced to handle only sse
-								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
 								JsonObject jObject = new JsonObject();
 								jObject.add("token", new JsonPrimitive(token));
 								JsonElement jElement = gson.toJsonTree(account);
@@ -143,9 +138,6 @@ public class AuthApiHandler implements HttpHandler {
 							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
 							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
-								if (AccountService.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
 								JsonObject jObject = new JsonObject();
 								jObject.add("noAdminFound", new JsonPrimitive(false));
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());

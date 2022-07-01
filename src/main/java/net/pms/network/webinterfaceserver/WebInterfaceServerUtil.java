@@ -1169,4 +1169,5 @@ public class WebInterfaceServerUtil {
 
 		return javascriptVarsScript;
 	}
+
 }
