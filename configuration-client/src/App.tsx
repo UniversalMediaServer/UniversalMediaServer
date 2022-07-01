@@ -22,7 +22,7 @@ import { I18nProvider } from './providers/i18n-provider';
 import { AccountsProvider } from './providers/accounts-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
-import { refreshAuthTokenNearExpiry } from './services/auth.service';
+import { refreshAuthTokenNearExpiry } from './services/auth-service';
 
 function App() {
   useEffect(() => {
