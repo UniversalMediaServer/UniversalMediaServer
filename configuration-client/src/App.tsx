@@ -19,6 +19,7 @@ import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
+import { AccountsProvider } from './providers/accounts-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth.service';
@@ -86,7 +87,7 @@ function App() {
                         {session.account ? (
                           <Router>
                             <Routes>
-                              <Route path='accounts' element={<Accounts />}></Route>
+                              <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
                               <Route path='settings' element={<Settings />}></Route>
                               <Route index element={<Settings />} />
                               <Route

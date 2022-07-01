@@ -169,6 +169,7 @@ public class AccountApiHandler implements HttpHandler {
 												}
 												AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -213,6 +214,8 @@ public class AccountApiHandler implements HttpHandler {
 													}
 													AccountService.updateUser(connection, muUserId, muName, muGroupId);
 													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+													SseApiHandler.setRefreshSession(muUserId);
+													SseApiHandler.setUpdateAccounts();
 												} else {
 													//user does not exists
 													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
@@ -232,6 +235,8 @@ public class AccountApiHandler implements HttpHandler {
 											if (account.havePermission(Permissions.USERS_MANAGE)) {
 												AccountService.deleteUser(connection, duUserId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSession(duUserId);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
@@ -247,6 +252,7 @@ public class AccountApiHandler implements HttpHandler {
 												String cgName = action.get("name").getAsString();
 												AccountService.createGroup(connection, cgName);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -261,8 +267,11 @@ public class AccountApiHandler implements HttpHandler {
 											if (action.has("groupid") && action.has("name")) {
 												int mgGroupId = action.get("groupid").getAsInt();
 												String mgName = action.get("name").getAsString();
+												List<Integer> userIds = AccountService.getUserIdsForGroup(mgGroupId);
 												AccountService.updateGroup(connection, mgGroupId, mgName);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSessions(userIds);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -276,8 +285,11 @@ public class AccountApiHandler implements HttpHandler {
 											//we need groupid
 											if (action.has("groupid")) {
 												int dgGroupId = action.get("groupid").getAsInt();
+												List<Integer> userIds = AccountService.getUserIdsForGroup(dgGroupId);
 												AccountService.deleteGroup(connection, dgGroupId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSessions(userIds);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -300,8 +312,11 @@ public class AccountApiHandler implements HttpHandler {
 													}
 												}
 												if (upPermissions != null) {
-													AccountService.updatePermission(connection, upGroupId, upPermissions);
+													List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
+													AccountService.updatePermissions(connection, upGroupId, upPermissions);
 													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+													SseApiHandler.setRefreshSessions(userIds);
+													SseApiHandler.setUpdateAccounts();
 												} else {
 													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 												}

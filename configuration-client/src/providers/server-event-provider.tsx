@@ -16,6 +16,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
   const [message, setMessage] = useState<string>('');
+  const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
 
@@ -57,6 +58,12 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
             break;
           case 'show_message':
             setMessage(datas.message);
+            break;
+          case 'update_accounts':
+            setUpdateAccounts(true);
+            break;
+          case 'refresh_session':
+            session.refresh();
             break;
           case 'notify':
             addNotification(datas);
@@ -106,6 +113,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       connectionStatus: connectionStatus,
       memory: memory,
       message: message,
+	  updateAccounts:updateAccounts,
+	  setUpdateAccounts:setUpdateAccounts,
     }}>
       {children}
     </Provider>

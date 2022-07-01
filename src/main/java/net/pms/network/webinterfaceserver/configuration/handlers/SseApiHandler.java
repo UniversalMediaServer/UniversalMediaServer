@@ -236,4 +236,18 @@ public class SseApiHandler implements HttpHandler {
 		datas.addProperty("autoClose", autoClose);
 		broadcastMessage(datas.toString());
 	}
+
+	public static void setRefreshSessions(List<Integer> ids) {
+		for (int id : ids) {
+			setRefreshSession(id);
+		}
+	}
+
+	public static void setRefreshSession(int id) {
+		broadcastMessage("{\"action\":\"refresh_session\"}", id);
+	}
+
+	public static void setUpdateAccounts() {
+		broadcastMessage("{\"action\":\"update_accounts\"}");
+	}
 }

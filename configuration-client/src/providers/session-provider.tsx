@@ -11,9 +11,10 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
   const [session, setSession] = useState({noAdminFound:false, initialized: false} as UmsSession)
 
   useEffect(() => {
+  const refresh = () => {
     axios.get('/v1/api/auth/session')
       .then(function (response: any) {
-        setSession({...response.data, initialized: true});
+        setSession({...response.data, initialized: true, refresh: refresh});
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -25,9 +26,10 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
           autoClose: 3000,
         });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }
+    refresh();
   }, []);
-  
+
   const { Provider } = sessionContext;
   return(
     <Provider value={session}>
