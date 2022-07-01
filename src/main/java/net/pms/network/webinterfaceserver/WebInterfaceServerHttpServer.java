@@ -50,6 +50,7 @@ import net.pms.network.webinterfaceserver.configuration.handlers.ActionsApiHandl
 import net.pms.network.webinterfaceserver.configuration.handlers.AuthApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
+import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
 import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
@@ -140,6 +141,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx(AuthApiHandler.BASE_PATH, new AuthApiHandler());
 			addCtx(ConfigurationApiHandler.BASE_PATH, new ConfigurationApiHandler());
 			addCtx(ConfigurationClientHandler.BASE_PATH, new ConfigurationClientHandler(this));
+			addCtx(SseApiHandler.BASE_PATH, new SseApiHandler());
 
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();

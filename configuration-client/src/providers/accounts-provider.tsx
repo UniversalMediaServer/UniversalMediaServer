@@ -1,17 +1,25 @@
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import { accountsContext, UmsAccounts } from '../contexts/accounts-context';
+import I18nContext from '../contexts/i18n-context';
+import ServerEventContext from '../contexts/server-event-context';
 
 interface Props {
   children?: ReactNode
 }
 
 export const AccountsProvider = ({ children, ...props }: Props) => {
-  const [accounts, setAccounts] = useState({usersManage:false,groupsManage:false,users:[],groups:[]} as UmsAccounts)
+  const [accounts, setAccounts] = useState({users:[],groups:[]} as UmsAccounts)
+  const sse = useContext(ServerEventContext);
+  const i18n = useContext(I18nContext);
 
   useEffect(() => {
+    if (!sse.updateAccounts) {
+      return;
+    }
+	sse.setUpdateAccounts(false);
     axios.get('/v1/api/account/accounts')
       .then(function (response: any) {
         setAccounts(response.data);
@@ -19,14 +27,14 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
       .catch(function (error: Error) {
         console.log(error);
         showNotification({
-          id: 'data-loading',
+          id: 'accounts-data-loading',
           color: 'red',
-          title: 'Error',
-          message: 'Accounts was not received from the server.',
+          title: i18n.get['Dialog.Error'],
+          message: i18n.getI18nString('Accounts was not received from the server.'),
           autoClose: 3000,
         });
       });
-  }, []);
+  }, [i18n, sse]);
 
   const { Provider } = accountsContext;
   return(

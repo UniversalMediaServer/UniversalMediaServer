@@ -3,15 +3,19 @@ import { useForm } from '@mantine/form';
 import { useContext, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
 
-import { UmsGroup, UmsUser } from '../../contexts/session-context';
-import AccountsContext, { UmsAccounts } from '../../contexts/accounts-context';
-import { AccountsProvider } from '../../providers/accounts-provider';
-import { getUserGroup, getUserGroupsSelection, postAccountAction } from '../../services/accounts-service';
+import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
+import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
+import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction } from '../../services/accounts-service';
 
 const Accounts = () => {
   const [activeTab, setActiveTab] = useState(0);
   const i18n = useContext(I18nContext);
+  const session = useContext(SessionContext);
+  const accounts = useContext(AccountsContext);
+  const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
+  const canManageUsers = havePermission(session, "users_manage");
+  const canManageGroups = havePermission(session, "groups_manage");
 
   function UserAccordionLabel(user: UmsUser, group: UmsGroup) {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -34,13 +38,12 @@ const Accounts = () => {
     );
   };
 
-  function NewUserForm(accounts: UmsAccounts) {
+  function NewUserForm() {
     const newUserForm = useForm({ initialValues: {username:null,password:null,groupid:"0",displayname:null} });
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = {operation:'createuser', username:values.username, password:values.password, groupid:values.groupid, displayname:values.displayname};
       postAccountAction(data, i18n.get['WebGui.AccountsUserCreationTitle'], i18n.get['WebGui.AccountsUserCreationSuccess'], i18n.get['WebGui.AccountsUserCreationError']);
     }
-    const groupDatas2 = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
     return (
       <form onSubmit={newUserForm.onSubmit(handleNewUserSubmit)}>
         <TextInput
@@ -66,7 +69,7 @@ const Accounts = () => {
           required
           label={i18n.get['WebGui.AccountsGroup']}
           name="groupId"
-          data={groupDatas2}
+          data={groupSelectionDatas}
           {...newUserForm.getInputProps('groupid')}
         />
         <Group position="right" mt="md">
@@ -132,24 +135,23 @@ const Accounts = () => {
     )
   };
 
-  function UserGroupForm(user: UmsUser, accounts: UmsAccounts) {
+  function UserGroupForm(user: UmsUser) {
     const userGroupForm = useForm({ initialValues: {id:user.id,groupId:user.groupId.toString()} });
     const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {
       const data = {operation:'modifyuser', userid:user.id, groupid:values.groupId};
       postAccountAction(data, i18n.get['WebGui.AccountsUserGroupChangeTitle'], i18n.get['WebGui.AccountsUserGroupChangeSuccess'], i18n.get['WebGui.AccountsUserGroupChangeError']);
     };
-    const groupDatas = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
     return (
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
         <Divider my="sm" label={i18n.get['WebGui.AccountsGroup']} />
         <Select
           label={i18n.get['WebGui.AccountsGroup']}
           name="groupId"
-          disabled={!accounts.groupsManage}
-          data={groupDatas}
+          disabled={!canManageGroups}
+          data={groupSelectionDatas}
           {...userGroupForm.getInputProps('groupId')}
         />
-        {accounts.groupsManage && (
+        {canManageGroups && (
           <Group position="right" mt="md">
             <Button type="submit">
               {i18n.get['WebGui.ButtonUpdate']}
@@ -192,12 +194,12 @@ const Accounts = () => {
     ); 
   };
 
-  function UserAccordion(user: UmsUser, accounts: UmsAccounts) {
+  function UserAccordion(user: UmsUser) {
     const userGroup = getUserGroup(user, accounts);
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
     const userIdentityForm = UserIdentityForm(user);
     const userDisplayNameForm = UserDisplayNameForm(user);
-    const userGroupForm = UserGroupForm(user, accounts);
+    const userGroupForm = UserGroupForm(user);
     const userDeleteForm = UserDeleteForm(user);
     return (
       <Accordion.Item label={userAccordionLabel} key={user.id}>
@@ -209,22 +211,22 @@ const Accounts = () => {
     )
   };
 
-  function NewUserAccordion(accounts: UmsAccounts) {
+  function NewUserAccordion() {
     const user = {id:0,username:i18n.get['WebGui.AccountsNewUser']} as UmsUser;
     const userGroup = {id:0,displayName:''} as UmsGroup;
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
-    const newUserForm = NewUserForm(accounts);
-    return accounts.usersManage ? (
+    const newUserForm = NewUserForm();
+    return canManageUsers ? (
         <Accordion.Item label={userAccordionLabel} key={user.id}>
           {newUserForm}
         </Accordion.Item>
     ) : null;
   };
 
-  function UsersAccordions(accounts: UmsAccounts) {
-    const newUserAccordion = accounts.usersManage ? NewUserAccordion(accounts) : null;
+  function UsersAccordions() {
+    const newUserAccordion = canManageUsers ? NewUserAccordion() : null;
     const usersAccordions = accounts.users.map((user) => {
-      return UserAccordion(user, accounts);
+      return UserAccordion(user);
     });
     return (
       <Accordion initialItem={-1} iconPosition="right">
@@ -268,7 +270,7 @@ const Accounts = () => {
     )
   };
 
-  function GroupPermissionsForm(group: UmsGroup, accounts: UmsAccounts) {
+  function GroupPermissionsForm(group: UmsGroup) {
     const [permissions, setPermissions] = useState<string[]>(group.permissions);
     const groupPermissionsForm = useForm({ initialValues: {id:group.id} });
     const handleGroupPermissionsSubmit = (values: typeof groupPermissionsForm.values) => {
@@ -331,10 +333,10 @@ const Accounts = () => {
     ) : null;
   };
 
-  function GroupAccordion(group: UmsGroup, accounts: UmsAccounts) {
+  function GroupAccordion(group: UmsGroup) {
     const groupAccordionLabel = GroupAccordionLabel(group);
     const groupDisplayNameForm = GroupDisplayNameForm(group);
-    const groupPermissionsForm = GroupPermissionsForm(group, accounts);
+    const groupPermissionsForm = GroupPermissionsForm(group);
     const groupDeleteForm = GroupDeleteForm(group);
     //perms
     return group.id > 0 ? (
@@ -380,10 +382,10 @@ const Accounts = () => {
     );
   };
 
-  function GroupsAccordions(accounts: UmsAccounts) {
+  function GroupsAccordions() {
     const newGroupAccordion = NewGroupAccordion();
     const groupsAccordions = accounts.groups.map((group) => {
-      return GroupAccordion(group, accounts);
+      return GroupAccordion(group);
     });
     return (
       <Accordion initialItem={-1} iconPosition="right">
@@ -394,26 +396,20 @@ const Accounts = () => {
   };
 
   return (
-    <AccountsProvider>
       <Box sx={{ maxWidth: 700 }} mx="auto">
-        <AccountsContext.Consumer>
-	    { accounts => (
-          {...accounts.groupsManage ? (
+          {canManageGroups ? (
             <Tabs active={activeTab} onTabChange={setActiveTab}>
 	          <Tabs.Tab label={i18n.get['WebGui.AccountsUsers']}>
-	            <UsersAccordions {...accounts} />
+	            <UsersAccordions />
               </Tabs.Tab>
 	          <Tabs.Tab label={i18n.get['WebGui.AccountsGroups']}>
-	            <GroupsAccordions {...accounts} />
+	            <GroupsAccordions />
               </Tabs.Tab>
             </Tabs>
           ) : (
-            <UsersAccordions {...accounts} />
+            <UsersAccordions />
           )}
-        )}
-        </AccountsContext.Consumer>
       </Box>
-    </AccountsProvider>
   );
 };
 

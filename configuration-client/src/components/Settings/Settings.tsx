@@ -6,7 +6,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
-
 import {getToolTipContent} from '../../utils';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
