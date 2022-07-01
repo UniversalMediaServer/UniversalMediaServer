@@ -17,6 +17,7 @@
  */
 package net.pms.network.webinterfaceserver.configuration.handlers;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -34,6 +35,7 @@ import net.pms.iam.AuthService;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,5 +216,24 @@ public class SseApiHandler implements HttpHandler {
 				}
 			}
 		}
+	}
+
+	public static void notify(String id, String message, String title, String color, boolean autoClose) {
+		JsonObject datas = new JsonObject();
+		datas.addProperty("action", "notify");
+		if (!StringUtils.isEmpty(id) && !StringUtils.isBlank(id)) {
+			datas.addProperty("id", id);
+		}
+		if (!StringUtils.isEmpty(message)) {
+			datas.addProperty("message", message);
+		}
+		if (!StringUtils.isEmpty(title)) {
+			datas.addProperty("title", title);
+		}
+		if (!StringUtils.isEmpty(color)) {
+			datas.addProperty("color", color);
+		}
+		datas.addProperty("autoClose", autoClose);
+		broadcastMessage(datas.toString());
 	}
 }

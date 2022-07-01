@@ -69,6 +69,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
@@ -832,6 +833,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			SseApiHandler.notify("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			RendererConfiguration.loadRendererConfigurations(configuration);
 
