@@ -16,6 +16,6 @@ public class FontFileFilter extends FileFilter {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("FontFileFilter.3");
+		return Messages.getString("TruetypeFonts");
 	}
 }

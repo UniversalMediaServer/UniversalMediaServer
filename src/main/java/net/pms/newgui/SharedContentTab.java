@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
 
 public class SharedContentTab {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
-		Arrays.asList(new String[] {Messages.getString("Generic.Folder"), Messages.getString("FoldTab.65")})
+		Arrays.asList(new String[] {Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles")})
 	);
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
@@ -245,7 +245,7 @@ public class SharedContentTab {
 		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
 		builderFolder.opaque(true);
 
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("FoldTab.7"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
+		JComponent cmp = builderFolder.addSeparator(Messages.getString("SharedFolders"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -253,8 +253,8 @@ public class SharedContentTab {
 		sharedFolders = new JTable(folderTableModel);
 
 		JPopupMenu popupMenu = new JPopupMenu();
-		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("FoldTab.75"));
-		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("FoldTab.76"));
+		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("MarkContentsFullyPlayed"));
+		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("MarkContentsUnplayed"));
 
 		menuItemMarkPlayed.addActionListener((ActionEvent e) -> {
 			Connection connection = null;
@@ -297,7 +297,7 @@ public class SharedContentTab {
 
 		final JPanel tmpsharedPanel = sharedPanel;
 
-		ADD_BUTTON.setToolTipText(Messages.getString("FoldTab.9"));
+		ADD_BUTTON.setToolTipText(Messages.getString("AddFolder"));
 		ADD_BUTTON.addActionListener((ActionEvent e) -> {
 			JFileChooser chooser;
 			try {
@@ -327,7 +327,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(ADD_BUTTON, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		REMOVE_BUTTON.setToolTipText(Messages.getString("FoldTab.36"));
+		REMOVE_BUTTON.setToolTipText(Messages.getString("RemoveSelectedFolders"));
 		REMOVE_BUTTON.addActionListener((ActionEvent e) -> {
 			int[] rows = sharedFolders.getSelectedRows();
 			if (rows.length > 0) {
@@ -336,7 +336,7 @@ public class SharedContentTab {
 						JOptionPane.showConfirmDialog(
 							tmpsharedPanel,
 							String.format(Messages.getString("SharedFolders.ConfirmRemove"), rows.length),
-							Messages.getString("Dialog.Confirm"),
+							Messages.getString("Confirm"),
 							JOptionPane.YES_NO_OPTION,
 							JOptionPane.WARNING_MESSAGE
 						) != JOptionPane.YES_OPTION
@@ -399,7 +399,7 @@ public class SharedContentTab {
 		});
 		builderFolder.add(ARROW_UP_BUTTON, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 
-		SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.2"));
+		SCAN_BUTTON.setToolTipText(Messages.getString("ScanAllSharedFolders"));
 		SCAN_BUSY_ICON.start();
 		SCAN_BUSY_DISABLED_ICON.start();
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
@@ -407,14 +407,14 @@ public class SharedContentTab {
 				if (LibraryScanner.isScanLibraryRunning()) {
 					int option = JOptionPane.showConfirmDialog(
 						looksFrame,
-						Messages.getString("FoldTab.10"),
-						Messages.getString("Dialog.Question"),
+						Messages.getString("DoYouWantStopScan"),
+						Messages.getString("Question"),
 						JOptionPane.YES_NO_OPTION);
 					if (option == JOptionPane.YES_OPTION) {
 						LibraryScanner.stopScanLibrary();
-						looksFrame.setStatusLine(Messages.getString("FoldTab.41"));
+						looksFrame.setStatusLine(Messages.getString("CancelingScan"));
 						SCAN_BUTTON.setEnabled(false);
-						SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.41"));
+						SCAN_BUTTON.setToolTipText(Messages.getString("CancelingScan"));
 					}
 				} else {
 					LibraryScanner.scanLibrary();
@@ -422,7 +422,7 @@ public class SharedContentTab {
 					SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
 					SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
 					SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
-					SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.40"));
+					SCAN_BUTTON.setToolTipText(Messages.getString("CancelScanningSharedFolders"));
 				}
 			}
 		});
@@ -725,14 +725,14 @@ public class SharedContentTab {
 		SCAN_BUTTON.setRolloverIcon(SCAN_ROLLOVER_ICON);
 		SCAN_BUTTON.setPressedIcon(SCAN_PRESSED_ICON);
 		SCAN_BUTTON.setDisabledIcon(SCAN_DISABLED_ICON);
-		SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.2"));
+		SCAN_BUTTON.setToolTipText(Messages.getString("ScanAllSharedFolders"));
 
 		if (enabled) {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltipEnabled"));
 		} else {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(false);
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("General.ThisFeatureRequiresTheCache"));
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));
 		}
 	}
 
@@ -744,7 +744,7 @@ public class SharedContentTab {
 		SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
 		SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
 		SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
-		SCAN_BUTTON.setToolTipText(Messages.getString("FoldTab.40"));
+		SCAN_BUTTON.setToolTipText(Messages.getString("CancelScanningSharedFolders"));
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {

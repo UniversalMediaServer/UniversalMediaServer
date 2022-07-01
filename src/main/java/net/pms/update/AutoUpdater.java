@@ -127,7 +127,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			desktop.open(exe);
 		} catch (IOException e) {
 			LOGGER.debug("Failed to run update after downloading: {}", e);
-			wrapException(Messages.getString("AutoUpdate.UnableToRunUpdate"), e);
+			wrapException(Messages.getString("UnableToRunUpdate"), e);
 		}
 	}
 

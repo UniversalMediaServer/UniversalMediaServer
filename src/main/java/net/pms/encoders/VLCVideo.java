@@ -742,7 +742,7 @@ public class VLCVideo extends Player {
 				);
 				if (output.getError() != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 					result.available(Boolean.FALSE);
 					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 					return result.build();
@@ -758,7 +758,7 @@ public class VLCVideo extends Player {
 					result.available(Boolean.TRUE);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.errorText(String.format(Messages.getString("TranscodingEngineNotAvailableExitCode"), this, output.getExitCode()));
 					result.available(Boolean.FALSE);
 				}
 			} catch (InterruptedException e) {
@@ -769,9 +769,9 @@ public class VLCVideo extends Player {
 			Version requiredVersion = new Version("2.0.2");
 			if (result.version().compareTo(requiredVersion) <= 0) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.errorText(String.format(Messages.getString("OnlyVersionXAboveSupported"), requiredVersion, this));
 				result.available(Boolean.FALSE);
-				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+				LOGGER.warn(String.format(Messages.getRootString("OnlyVersionXAboveSupported"), requiredVersion, this));
 			}
 		} else if (result.available() != null && result.available().booleanValue()) {
 			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");

@@ -264,7 +264,7 @@ public class MEncoderVideo extends Player {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							errorMessage,
-							Messages.getString("Dialog.Error"),
+							Messages.getString("Error"),
 							JOptionPane.ERROR_MESSAGE
 						);
 					} else {
@@ -2701,7 +2701,7 @@ public class MEncoderVideo extends Player {
 			);
 			if (output.getError() != null) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 				result.available(Boolean.FALSE);
 				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 				return result.build();
@@ -2719,7 +2719,7 @@ public class MEncoderVideo extends Player {
 				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
 				if (ntStatus != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
 					if (output.getOutput() != null &&
 						output.getOutput().size() > 3 &&
@@ -2729,12 +2729,12 @@ public class MEncoderVideo extends Player {
 					) {
 						result.errorType(ExecutableErrorType.GENERAL);
 						result.errorText(
-							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" +
 							output.getOutput().get(output.getOutput().size() - 3)
 						);
 					} else {
 						result.errorType(ExecutableErrorType.GENERAL);
-						result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+						result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + Messages.getString("UnknownError"));
 					}
 				}
 				result.available(Boolean.FALSE);

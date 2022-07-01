@@ -97,7 +97,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");;
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);
@@ -513,7 +513,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 						error = Messages.getString("LooksFrame.URIError");
 					}
 					if (error != null) {
-						JOptionPane.showMessageDialog(null, error, Messages.getString("Dialog.Error"), JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			});
@@ -537,7 +537,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
+		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener(new ActionListener() {
 			@Override
@@ -583,8 +583,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
-		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
+		tabbedPane.addTab(Messages.getString("Status"), st.build());
+		tabbedPane.addTab(Messages.getString("Logs"), tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.TabGeneralSettings"), generalSettingsTab.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.TabNavigationSettings"), navigationSettingsTab.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.TabSharedContent"), sharedContentTab.build());
@@ -701,7 +701,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			if (required) {
 				if (reload.getIcon() == restartIcon) {
 					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
-					reload.setToolTipText(Messages.getString("LooksFrame.13"));
+					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
 				}
 			} else {
 				reload.setEnabled(true);

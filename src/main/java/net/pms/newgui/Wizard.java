@@ -50,12 +50,12 @@ public class Wizard {
 			.toString();
 
 		Object[] okOptions = {
-				Messages.getString("Dialog.OK")
+				Messages.getString("OK")
 			};
 
 		Object[] yesNoOptions = {
-				Messages.getString("Dialog.YES"),
-				Messages.getString("Dialog.NO")
+				Messages.getString("Yes"),
+				Messages.getString("No")
 			};
 
 		Object[] networkTypeOptions = {
@@ -65,8 +65,8 @@ public class Wizard {
 			};
 
 		Object[] defaultOptions = {
-				Messages.getString("Wizard.DefaultsYes"),
-				Messages.getString("Wizard.DefaultsNo")
+				Messages.getString("YesRunTheWizard"),
+				Messages.getString("NoUseTheDefaults")
 			};
 
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(

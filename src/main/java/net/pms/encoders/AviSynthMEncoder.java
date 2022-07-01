@@ -89,7 +89,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
+		interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), configuration.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener(new ActionListener() {
 			@Override
@@ -98,8 +98,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				if (configuration.getAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-						Messages.getString("AviSynthMEncoder.16"),
-						Messages.getString("Dialog.Information"),
+						Messages.getString("ThisFeatureVeryCpuintensive"),
+						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
 				}
@@ -107,7 +107,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
+		interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), configuration.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
@@ -117,7 +117,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
+		convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), configuration.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener(new ItemListener() {
 			@Override
@@ -127,11 +127,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
 
-		String aviSynthScriptInstructions = Messages.getString("AviSynthMEncoder.4") +
-			Messages.getString("AviSynthMEncoder.5") +
-			Messages.getString("AviSynthMEncoder.6") +
-			Messages.getString("AviSynthMEncoder.7") +
-			Messages.getString("AviSynthMEncoder.8");
+		String aviSynthScriptInstructions = Messages.getString("AvisynthScriptFullyCustomizable") +
+			Messages.getString("TheFollowingVariablesAvailable") +
+			Messages.getString("MovieCompleteDirectshowsource") +
+			Messages.getString("SubCompleteSubtitlesInstruction") +
+			Messages.getString("MoviefilenameVideoFilename");
 		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
 		aviSynthScriptInstructionsContainer.setEditable(false);
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());

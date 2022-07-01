@@ -485,15 +485,15 @@ public class PMS {
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
 			if (!configuration.isAutomaticMaximumBitrate()) {
 				Object[] yesNoOptions = {
-						Messages.getString("Dialog.YES"),
-						Messages.getString("Dialog.NO")
+						Messages.getString("Yes"),
+						Messages.getString("No")
 				};
 
 				// Ask if user wants to use automatic maximum bitrate
 				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
 					null,
-					Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
-					Messages.getString("ImprovedFeatureOptIn.Title"),
+					Messages.getString("WeImprovedAutomaticVideoQuality"),
+					Messages.getString("ImprovedFeature"),
 					JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE,
 					null,

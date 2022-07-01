@@ -153,8 +153,8 @@ public class BasicSystemUtils implements SystemUtils {
 			Image trayIconImage = resolveTrayIcon();
 
 			PopupMenu popup = new PopupMenu();
-			MenuItem defaultItem = new MenuItem(Messages.getString("LooksFrame.5"));
-			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
+			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
+			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
 
 			defaultItem.addActionListener(new ActionListener() {
 				@Override

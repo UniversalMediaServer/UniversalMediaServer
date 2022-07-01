@@ -2314,7 +2314,7 @@ public class PmsConfiguration extends RendererConfiguration {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 							Messages.getString("NetworkTab.58"),
-							Messages.getString("Dialog.PermissionsError"),
+							Messages.getString("PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
 
@@ -2589,7 +2589,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"));
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2605,7 +2605,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled")).split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {

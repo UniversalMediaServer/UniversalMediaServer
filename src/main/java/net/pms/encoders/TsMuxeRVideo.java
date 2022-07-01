@@ -848,7 +848,7 @@ public class TsMuxeRVideo extends Player {
 			);
 			if (output.getError() != null) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 				result.available(Boolean.FALSE);
 				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 				return result.build();
@@ -866,13 +866,13 @@ public class TsMuxeRVideo extends Player {
 				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
 				if (ntStatus != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.errorText(String.format(Messages.getString("TranscodingEngineNotAvailableExitCode"), this, output.getExitCode()));
 					if (Platform.isLinux() && Platform.is64Bit()) {
 						result.errorType(ExecutableErrorType.GENERAL);
-						result.errorText(result.errorText() + ". \n" + Messages.getString("Engine.tsMuxerErrorLinux"));
+						result.errorText(result.errorText() + ". \n" + Messages.getString("MakeSureNecessary32bitLibraries"));
 					}
 					result.available(Boolean.FALSE);
 				}

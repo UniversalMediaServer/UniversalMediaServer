@@ -1374,7 +1374,7 @@ public class MediaTableFiles extends MediaTable {
 
 			rs.close();
 			ps.close();
-			PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + " 0%");
+			PMS.get().getFrame().setStatusLine(Messages.getString("CleaningUpDatabase") + " 0%");
 			int i = 0;
 			int oldpercent = 0;
 
@@ -1410,7 +1410,7 @@ public class MediaTableFiles extends MediaTable {
 					i++;
 					int newpercent = i * 100 / dbCount;
 					if (newpercent > oldpercent) {
-						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + newpercent + "%");
+						PMS.get().getFrame().setStatusLine(Messages.getString("CleaningUpDatabase") + newpercent + "%");
 						oldpercent = newpercent;
 					}
 				}

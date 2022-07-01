@@ -106,7 +106,7 @@ public class GeneralTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		ypos = 7; // we hardcode here (promise last time)
-		builder.addLabel(Messages.getString("GeneralTab.14"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+		builder.addLabel(Messages.getString("Language"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		JPanel languagePanel = new JPanel();
 		languagePanel.setLayout(new BoxLayout(languagePanel, BoxLayout.LINE_AXIS));
@@ -153,7 +153,7 @@ public class GeneralTab {
 		xpos += 2;
 
 		if (Platform.isWindows()) {
-			autoStart = new JCheckBox(Messages.getString("GeneralTab.StartWithWindows"), configuration.isAutoStart());
+			autoStart = new JCheckBox(Messages.getString("StartWithWindows"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
 			autoStart.addItemListener((ItemEvent e) -> {
 				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
@@ -210,7 +210,7 @@ public class GeneralTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
-		runWizardOnProgramStartup = new JCheckBox(Messages.getString("GeneralTab.9"), configuration.isRunWizard());
+		runWizardOnProgramStartup = new JCheckBox(Messages.getString("RunTheConfigurationWizard"), configuration.isRunWizard());
 		runWizardOnProgramStartup.setContentAreaFilled(false);
 		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> {
 			configuration.setRunWizard(runWizardOnProgramStartup.isSelected());
@@ -219,9 +219,9 @@ public class GeneralTab {
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.isRunSingleInstance());
+			singleInstance = new JCheckBox(Messages.getString("OnlyRunSingleInstance"), configuration.isRunSingleInstance());
 			singleInstance.setContentAreaFilled(false);
-			singleInstance.setToolTipText(Messages.getString("GeneralTab.11"));
+			singleInstance.setToolTipText(Messages.getString("UmsRunAdministratorSingleInstance"));
 			singleInstance.addActionListener((ActionEvent e) -> {
 				configuration.setRunSingleInstance(singleInstance.isSelected());
 			});
@@ -285,7 +285,7 @@ public class GeneralTab {
 				}
 
 				tPanel.add(scrollPane, BorderLayout.NORTH);
-				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+				Object[] options = {Messages.getString("Save"), Messages.getString("NetworkTab.45")};
 
 				if (JOptionPane.showOptionDialog(looksFrame,
 					tPanel, Messages.getString("NetworkTab.51"),
@@ -373,8 +373,8 @@ public class GeneralTab {
 				maxbitrate.setEnabled(true);
 			}
 
-			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
-			adaptBitrate.setToolTipText(Messages.getString("GeneralTab.12.Tooltip"));
+			adaptBitrate = new JCheckBox(Messages.getString("UseAutomaticMaximumBandwidth"), configuration.isAutomaticMaximumBitrate());
+			adaptBitrate.setToolTipText(Messages.getString("ItSetsOptimalBandwidth"));
 			adaptBitrate.setContentAreaFilled(false);
 			adaptBitrate.addActionListener((ActionEvent e) -> {
 				configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
@@ -406,7 +406,7 @@ public class GeneralTab {
 
 			builder.addLabel(Messages.getString("NetworkTab.MediaServerEngine"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final KeyedComboBoxModel<Integer, String> mediaServerEngineKcbm = new KeyedComboBoxModel<>();
-			mediaServerEngineKcbm.add(0, Messages.getString("Generic.Default"));
+			mediaServerEngineKcbm.add(0, Messages.getString("Default"));
 			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
@@ -448,7 +448,7 @@ public class GeneralTab {
 			final SelectRenderers selectRenderers = new SelectRenderers();
 
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
+			final CustomJButton setRenderers = new CustomJButton(Messages.getString("SelectRenderers"));
 			setRenderers.addActionListener((ActionEvent e) -> {
 				selectRenderers.showDialog();
 			});
@@ -460,8 +460,8 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			forceDefaultRenderer = new JCheckBox(Messages.getString("GeneralTab.ForceDefaultRenderer"), configuration.isRendererForceDefault());
-			forceDefaultRenderer.setToolTipText(Messages.getString("GeneralTab.ForceDefaultRendererTooltip"));
+			forceDefaultRenderer = new JCheckBox(Messages.getString("ForceDefaultRenderer"), configuration.isRendererForceDefault());
+			forceDefaultRenderer.setToolTipText(Messages.getString("DisablesAutomaticDetection"));
 			forceDefaultRenderer.setContentAreaFilled(false);
 			forceDefaultRenderer.addItemListener((ItemEvent e) -> {
 				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
@@ -512,7 +512,7 @@ public class GeneralTab {
 
 			if (isUmsServiceInstalled) {
 				// Update button text and tooltip
-				installService.setText(Messages.getString("GeneralTab.2"));
+				installService.setText(Messages.getString("UninstallWindowsService"));
 				installService.setToolTipText(null);
 
 				// Remove all attached action listeners
@@ -530,8 +530,8 @@ public class GeneralTab {
 
 					JOptionPane.showMessageDialog(
 						looksFrame,
-						Messages.getString("GeneralTab.3"),
-						Messages.getString("Dialog.Information"),
+						Messages.getString("UninstalledWindowsService"),
+						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
 				});
@@ -557,14 +557,14 @@ public class GeneralTab {
 							looksFrame,
 							Messages.getString("NetworkTab.11") +
 								Messages.getString("NetworkTab.12"),
-							Messages.getString("Dialog.Information"),
+							Messages.getString("Information"),
 							JOptionPane.INFORMATION_MESSAGE
 						);
 					} else {
 						JOptionPane.showMessageDialog(
 							looksFrame,
 							Messages.getString("NetworkTab.14"),
-							Messages.getString("Dialog.Error"),
+							Messages.getString("Error"),
 							JOptionPane.ERROR_MESSAGE
 						);
 					}

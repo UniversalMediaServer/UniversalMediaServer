@@ -1562,7 +1562,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				engineName = "[" + player.name() + (isAvisynth() ? " + AviSynth]" : "]");
 			}
 		} else if (isNoName()) {
-			engineName = Messages.getString("DLNAResource.0");
+			engineName = Messages.getString("NoTranscoding");
 		}
 		return engineName;
 	}
@@ -1639,14 +1639,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					String subtitleLanguage = mediaSubtitle.getLangFullName();
 					if (subsInfoLevel == SubtitlesInfoLevel.BASIC) {
 						if ("Undetermined".equals(subtitleLanguage)) {
-							nameSuffixBuilder.append(Messages.getString("Generic.Unknown"));
+							nameSuffixBuilder.append(Messages.getString("Unknown"));
 						} else {
 							nameSuffixBuilder.append(subtitleLanguage);
 						}
 						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles.LowerCase"));
 					} else if (subsInfoLevel == SubtitlesInfoLevel.FULL) {
 						if (subsAreValidForStreaming) {
-							nameSuffixBuilder.append(Messages.getString("DLNAResource.3")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("Stream")).append(" ");
 						}
 
 						if (mediaSubtitle.isExternal()) {
@@ -1654,7 +1654,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else if (mediaSubtitle.isEmbedded()) {
 							nameSuffixBuilder.append(Messages.getString("Subtitles.InternalShort")).append(" ");
 						}
-						nameSuffixBuilder.append(Messages.getString("DLNAResource.2"));
+						nameSuffixBuilder.append(Messages.getString("Sub"));
 						nameSuffixBuilder.append(mediaSubtitle.getType().getShortName()).append("/");
 
 						if ("Undetermined".equals(subtitleLanguage)) {

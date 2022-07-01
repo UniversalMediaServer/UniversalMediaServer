@@ -1570,7 +1570,7 @@ public class FFMpegVideo extends Player {
 		} else if (
 			configuration.isGPUAcceleration() &&
 			!avisynth &&
-			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"))
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("None_lowercase"))
 		) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuda|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
@@ -1703,10 +1703,10 @@ public class FFMpegVideo extends Player {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		y += 2;
-		builder.addLabel(Messages.getString("FFmpeg.LoggingLevel"), cc.xy(1, y));
+		builder.addLabel(Messages.getString("LogLevel"), cc.xy(1, y));
 		fFmpegLoggingLevel = new JComboBox<>(FFmpegLogLevels.getLabels());
 		fFmpegLoggingLevel.setSelectedItem(configuration.getFFmpegLoggingLevel());
-		fFmpegLoggingLevel.setToolTipText(Messages.getString("FFmpeg.LoggingLevelTooltip"));
+		fFmpegLoggingLevel.setToolTipText(Messages.getString("SetFfmpegLoggingLevelDecides"));
 		fFmpegLoggingLevel.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1741,9 +1741,9 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(videoRemuxTsMuxer), cc.xy(1, y));
 
 		y += 2;
-		fc = new JCheckBox(Messages.getString("FFmpeg.3"), configuration.isFFmpegFontConfig());
+		fc = new JCheckBox(Messages.getString("UseFontSettings"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
-		fc.setToolTipText(Messages.getString("FFmpeg.0"));
+		fc.setToolTipText(Messages.getString("FontSettingAppliedEmbeddedExternal"));
 		fc.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1755,7 +1755,7 @@ public class FFMpegVideo extends Player {
 		y += 2;
 		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
-		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("FFmpeg.2"));
+		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("MencoderMoreStableFfmpegTranscoding"));
 		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1765,9 +1765,9 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(1, y));
 
 		y += 2;
-		isFFmpegSoX = new JCheckBox(Messages.getString("FFmpeg.Sox"), configuration.isFFmpegSoX());
+		isFFmpegSoX = new JCheckBox(Messages.getString("UseSoxHigherQualityAudio"), configuration.isFFmpegSoX());
 		isFFmpegSoX.setContentAreaFilled(false);
-		isFFmpegSoX.setToolTipText(Messages.getString("FFmpeg.SoxTooltip"));
+		isFFmpegSoX.setToolTipText(Messages.getString("ThisMayIncreaseAudioQuality"));
 		isFFmpegSoX.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1777,13 +1777,13 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(1, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("FFmpeg.GPUDecodingAccelerationMethod")), cc.xy(1, y));
+		builder.add(new JLabel(Messages.getString("GPUDecodingAccelerationMethod")), cc.xy(1, y));
 
 		String[] keys = configuration.getFFmpegAvailableGPUDecodingAccelerationMethods();
 
 		fFmpegGPUDecodingAccelerationMethod = new JComboBox<>(keys);
 		fFmpegGPUDecodingAccelerationMethod.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationMethod());
-		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("FFmpeg.GPUDecodingAccelerationMethodTooltip"));
+		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("RecommendationIsAuto"));
 		fFmpegGPUDecodingAccelerationMethod.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1796,12 +1796,12 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationMethod), cc.xy(3, y));
 
 		y += 2;
-		builder.addLabel(Messages.getString("FFmpeg.GPUDecodingThreadCount"), cc.xy(1, y));
+		builder.addLabel(Messages.getString("GpuDecodingThreadCount"), cc.xy(1, y));
 		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
 
 		fFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
 		fFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationThreadNumber());
-		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("FFmpeg.GPUDecodingThreadCountTooltip"));
+		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("TheNumberGpuThreads"));
 
 		fFmpegGPUDecodingAccelerationThreadNumber.addItemListener(new ItemListener() {
 			@Override
@@ -1938,7 +1938,7 @@ public class FFMpegVideo extends Player {
 			);
 			if (output.getError() != null) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 				result.available(Boolean.FALSE);
 				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 				return result.build();
@@ -1968,24 +1968,24 @@ public class FFMpegVideo extends Player {
 				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
 				if (ntStatus != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
 					if (output.getOutput().size() > 2) {
 						result.errorType(ExecutableErrorType.GENERAL);
 						result.errorText(
-							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" +
 							output.getOutput().get(output.getOutput().size() - 2) + " " +
 							output.getOutput().get(output.getOutput().size() - 1)
 						);
 					} else if (output.getOutput().size() > 1) {
 						result.errorType(ExecutableErrorType.GENERAL);
 						result.errorText(
-							String.format(Messages.getString("Engine.Error"), this) + " \n" +
+							String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" +
 							output.getOutput().get(output.getOutput().size() - 1)
 						);
 					} else {
 						result.errorType(ExecutableErrorType.GENERAL);
-						result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+						result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + Messages.getString("UnknownError"));
 					}
 				}
 				result.available(Boolean.FALSE);

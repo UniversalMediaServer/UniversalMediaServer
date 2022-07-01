@@ -837,7 +837,7 @@ public class TranscodingTab {
 					chooser = new JFileChooser(new RestrictedFileSystemView());
 				}
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
+				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					alternateSubFolder.setText(chooser.getSelectedFile().getAbsolutePath());
 					configuration.setAlternateSubtitlesFolder(chooser.getSelectedFile().getAbsolutePath());
@@ -858,7 +858,7 @@ public class TranscodingTab {
 			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] values = new String[]{
-			Messages.getString("Generic.AutoDetect"),
+			Messages.getString("AutoDetect"),
 			Messages.getString("CharacterSet.874"),
 			Messages.getString("CharacterSet.932"),
 			Messages.getString("CharacterSet.936"),

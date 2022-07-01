@@ -87,7 +87,7 @@ public class RootFolder extends DLNAResource {
 
 	private void addVirtualMyMusicFolder() {
 		DbIdTypeAndIdent2 myAlbums = new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("Audio.Like.MyAlbum"), myAlbums, "");
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("MyAlbums"), myAlbums, "");
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (!getChildren().contains(myMusicFolder)) {
 				myMusicFolder.setFakeParentId("0");
@@ -312,7 +312,7 @@ public class RootFolder extends DLNAResource {
 					String childName = child.getName();
 					if (child instanceof RealFile) {
 						LOGGER.debug("Scanning folder: " + childName);
-						frame.setStatusLine(Messages.getString("DLNAMediaDatabase.4") + " " + childName);
+						frame.setStatusLine(Messages.getString("ScanningFolder") + " " + childName);
 					}
 
 					if (child.isDiscovered()) {
@@ -1071,9 +1071,9 @@ public class RootFolder extends DLNAResource {
 							VirtualFolder musicFolder = new VirtualFolder(playlist.get("Name").toString(), null);
 							res.addChild(musicFolder);
 
-							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("FoldTab.50"), null);
-							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("FoldTab.51"), null);
-							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("FoldTab.52"), null);
+							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("BrowseByArtist"), null);
+							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("BrowseByAlbum"), null);
+							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("BrowseByGenre"), null);
 							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("PMS.11"), null);
 							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
@@ -1517,7 +1517,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("LooksFrame.12"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("RestartServer"), true) {
 				@Override
 				public boolean enable() {
 					PMS.get().reset();
@@ -1525,7 +1525,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder()) {
 				@Override
 				public boolean enable() {
 					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());

@@ -56,7 +56,7 @@ public class SelectRenderers extends JPanel {
 		JPanel checkPanel = new JPanel();
 		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(PMS.getLocale()));
 		add(checkPanel, BorderLayout.LINE_START);
-		allRenderers = new SearchableMutableTreeNode(Messages.getString("GeneralTab.13"));
+		allRenderers = new SearchableMutableTreeNode(Messages.getString("SelectDeselectAllRenderers"));
 
 		Pattern pattern = Pattern.compile("^\\s*([^\\s]*) ?([^\\s].*?)?\\s*$");
 		for (String renderer : RendererConfiguration.getAllRenderersNames()) {
@@ -138,7 +138,7 @@ public class SelectRenderers extends JPanel {
 		int selectRenderers = JOptionPane.showOptionDialog(
 			(Component) PMS.get().getFrame(),
 			this,
-			Messages.getString("GeneralTab.5"),
+			Messages.getString("SelectRenderers"),
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
 			null,

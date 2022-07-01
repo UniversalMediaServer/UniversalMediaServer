@@ -395,7 +395,7 @@ public class TracesTab {
 		final JPopupMenu popup = new JPopupMenu();
 		Action copy = jList.getActionMap().get("copy-to-clipboard");
 		JMenuItem copyItem = new JMenuItem(copy);
-		copyItem.setText(Messages.getString("Generic.Copy"));
+		copyItem.setText(Messages.getString("Copy"));
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("TracesTab.3"));
@@ -674,9 +674,9 @@ public class TracesTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {Messages.getString("Dialog.Close")};
+				String[] cancelStr = {Messages.getString("Close")};
 				JOptionPane.showOptionDialog(looksFrame,
-					comp, Messages.getString("Dialog.Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
+					comp, Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}
 		});
 		pLogPackButtons.add(packDbg);

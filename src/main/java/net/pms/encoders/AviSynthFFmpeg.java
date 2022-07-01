@@ -273,7 +273,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getFfmpegAvisynthInterFrame());
+		interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), configuration.getFfmpegAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener(new ActionListener() {
 			@Override
@@ -282,8 +282,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				if (configuration.getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-						Messages.getString("AviSynthMEncoder.16"),
-						Messages.getString("Dialog.Information"),
+						Messages.getString("ThisFeatureVeryCpuintensive"),
+						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
 				}
@@ -291,7 +291,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getFfmpegAvisynthInterFrameGPU());
+		interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), configuration.getFfmpegAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
@@ -301,7 +301,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getFfmpegAvisynthConvertFps());
+		convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), configuration.getFfmpegAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener(new ItemListener() {
 			@Override

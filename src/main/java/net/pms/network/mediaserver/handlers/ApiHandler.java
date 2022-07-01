@@ -42,7 +42,7 @@ public class ApiHandler {
 		if (serverApiKey.length() < 12) {
 			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 characters.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return Messages.getString("Api.Error.ApiKeyNotAvail");
+			return Messages.getString("WeakOrNoServerApiKey");
 		}
 
 		try {

@@ -99,7 +99,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 			final Playlist self = this;
 			// Save
 			if (!isMode(AUTOSAVE)) {
-				addChild(new VirtualVideoAction(Messages.getString("LooksFrame.9"), true) {
+				addChild(new VirtualVideoAction(Messages.getString("Save"), true) {
 					@Override
 					public boolean enable() {
 						self.save();
