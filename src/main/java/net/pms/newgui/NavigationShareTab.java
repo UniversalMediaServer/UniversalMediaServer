@@ -597,7 +597,7 @@ public class NavigationShareTab {
 			new String[]{
 				Messages.getString("DoNothing"),
 				Messages.getString("MarkMedia"),
-				Messages.$HideMedia"),
+				Messages.getString("HideMedia"),
 				Messages.getString("MoveFileToDifferentFolder"),
 				Messages.getString("MoveFileDifferentFolderMark"),
 				Messages.getString("MoveFileRecycleTrashBin")
