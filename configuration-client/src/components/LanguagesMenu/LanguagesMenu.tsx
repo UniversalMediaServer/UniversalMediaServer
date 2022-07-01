@@ -11,17 +11,13 @@ function LanguagesMenu() {
     const padding = i18n.rtl ? '0 0 0.17em 0.3em' : '0 0.3em 0.17em 0';
     return (
       <Menu.Item
-        onClick={() => { setLanguage(language.id); }}
+        onClick={() => { i18n.setLanguage(language.id); }}
         key={language.id}
       >
         <ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em', padding: padding}}/>{language.name}
       </Menu.Item>
     );
   }
-
-  const setLanguage = (language: string) => {
-    i18n.updateLanguage(language);
-  };
 
   const languagesMenus = i18n.languages.map((language) => {
     return LanguageMenu(language);

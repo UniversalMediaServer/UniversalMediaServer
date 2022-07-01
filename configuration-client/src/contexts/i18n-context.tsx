@@ -6,14 +6,14 @@ export const i18nContext: Context<{
   language:string;
   rtl:boolean;
   languages:LanguageValue[];
-  updateLanguage: (newlang: string) => void;
+  setLanguage: (language: string) => void;
 }> = createContext({
   get:{},
   getI18nString: (value: string) => {return value},
   language:"en-US",
   rtl:false as boolean,
   languages:[] as LanguageValue[],
-  updateLanguage: (newlang: string) => {}
+  setLanguage: (language: string) => {}
 });
 
 export default i18nContext;
