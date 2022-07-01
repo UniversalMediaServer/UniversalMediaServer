@@ -9,17 +9,17 @@ interface Props {
 }
 
 export const I18nProvider = ({ children, ...props }: Props) =>{
-  const [i18n, setI18n] = useState<{[key: string]: string}>({})
+  const [i18n, setI18n] = useState<{[key: string]: string}>({});
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
+  const [rtl, setRtl] = useLocalStorage<boolean>({
+    key: 'mantine-rtl',
+    defaultValue: false,
+  });
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
     defaultValue: navigator.languages
     ? navigator.languages[0]
     : (navigator.language || 'en-US'),
-  });
-  const [rtl, setRtl] = useLocalStorage<boolean>({
-    key: 'mantine-rtl',
-    defaultValue: false,
   });
 
   const getI18nString = (value: string) => {
@@ -30,9 +30,8 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
     }
   }
 
-  const updateLanguage = (askedLanguage : string) => {
-    setLanguage(askedLanguage);
-    axios.post('/configuration-api/i18n', {language:askedLanguage})
+  useEffect(() => {
+    axios.post('/configuration-api/i18n', {language:language})
       .then(function (response: any) {
         setLanguages(response.data.languages);
         setI18n(response.data.i18n);
@@ -47,13 +46,8 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
           message: 'Languages were not received from the server.',
           autoClose: 3000,
         });
-      });
-  }
-
-  useEffect(() => {
-    updateLanguage(language);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    });
+  }, [language, setRtl]);
 
   const { Provider } = i18nContext;
   return(
@@ -63,7 +57,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
       language: language,
       rtl: rtl,
       languages: languages,
-      updateLanguage: updateLanguage
+      setLanguage: setLanguage
     }}>
       {children}
     </Provider>
