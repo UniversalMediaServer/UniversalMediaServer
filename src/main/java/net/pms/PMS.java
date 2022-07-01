@@ -580,16 +580,13 @@ public class PMS {
 		 */
 		FrameAppender.setFrame(frame);
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if (!event.isBeforeUpdate()) {
-					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-						SseApiHandler.setReloadable(true);
-						frame.setReloadable(true);
-					}
-					SseApiHandler.setConfigurationChanged(event.getPropertyName());
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					SseApiHandler.setReloadable(true);
+					frame.setReloadable(true);
 				}
+				SseApiHandler.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
