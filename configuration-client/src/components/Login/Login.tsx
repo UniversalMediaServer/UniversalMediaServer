@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import { User, Lock } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import { create, login } from '../../services/auth.service';
+import { create, login } from '../../services/auth-service';
 import SessionContext from '../../contexts/session-context';
 
 const Login = () => {

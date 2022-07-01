@@ -5,7 +5,7 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 import I18nContext from '../contexts/i18n-context';
 import { serverEventContext } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
-import { getJwt } from '../services/auth.service';
+import { getJwt } from '../services/auth-service';
 
 interface Props {
   children?: ReactNode

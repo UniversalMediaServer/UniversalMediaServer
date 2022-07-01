@@ -6,7 +6,7 @@ import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { sendAction } from '../../services/actions-service';
 import { havePermission } from '../../services/accounts-service';
-import { redirectToLogin } from '../../services/auth.service';
+import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
