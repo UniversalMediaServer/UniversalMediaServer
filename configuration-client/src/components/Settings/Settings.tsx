@@ -58,10 +58,11 @@ export default function Settings() {
     if (sse.userConfiguration === null) {
       return;
     }
-	const userConfig = _.merge({}, configuration, sse.userConfiguration);
-	sse.setUserConfiguration(null);
-	setConfiguration(userConfig);
-  }, [configuration, sse]);
+    const userConfig = _.merge({}, configuration, sse.userConfiguration);
+    sse.setUserConfiguration(null);
+    setConfiguration(userConfig);
+    formSetValues(userConfig);
+  }, [configuration, sse, formSetValues]);
 
   // Code here will run just like componentDidMount
   useEffect(() => {

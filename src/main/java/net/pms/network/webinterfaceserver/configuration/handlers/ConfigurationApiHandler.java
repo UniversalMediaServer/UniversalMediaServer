@@ -379,7 +379,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			JsonObject datas = new JsonObject();
 			datas.addProperty("action", "set_configuration_changed");
 			Configuration configuration = CONFIGURATION.getRawConfiguration();
-			JsonArray userConfiguration = new JsonArray();
+			JsonObject userConfiguration = new JsonObject();
 			if (configuration.containsKey(key)) {
 				String strValue = Objects.toString(configuration.getProperty(key));
 				if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(key)) {
@@ -391,20 +391,17 @@ public class ConfigurationApiHandler implements HttpHandler {
 					//select need string, not number
 					if (SELECT_KEYS.contains(key)) {
 						String value = configurationAsJson.get(key).getAsString();
-						configurationAsJson.add(key, new JsonPrimitive(value));
+						userConfiguration.add(key, new JsonPrimitive(value));
+					} else {
+						userConfiguration.add(key, configurationAsJson.get(key));
 					}
-					userConfiguration.add(configurationAsJson);
 				} else {
 					//back to default value
-					JsonObject configurationAsJson = new JsonObject();
-					configurationAsJson.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
-					userConfiguration.add(configurationAsJson);
+					userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
 				}
 			} else {
 				//back to default value
-				JsonObject configurationAsJson = new JsonObject();
-				configurationAsJson.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
-				userConfiguration.add(configurationAsJson);
+				userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
 			}
 			datas.add("value", userConfiguration);
 			return datas.toString();
