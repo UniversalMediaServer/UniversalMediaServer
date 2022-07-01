@@ -1,11 +1,12 @@
 import axios from 'axios';
-import jwt_decode from 'jwt-decode';
+import jwtDecode, { JwtPayload } from 'jwt-decode';
 
 const storeJwtInLocalStorage = (jwt: string) => {
   localStorage.setItem('user', jwt);
-  // @ts-ignore
-  const {exp} = jwt_decode(jwt);
-  localStorage.setItem('tokenExpiry', exp);
+  const decoded = jwtDecode<JwtPayload>(jwt);
+  if (decoded.exp) {
+    localStorage.setItem('tokenExpiry', decoded.exp.toString());
+  }
 }
 
 export const login = async (username: string, password: string) => {
@@ -46,23 +47,26 @@ export const refreshToken = async () => {
   }
 }
 
+export const clearJwt = () => {
+  localStorage.removeItem('tokenExpiry');
+  localStorage.removeItem('user');
+}
+
 export const refreshAuthTokenNearExpiry = () => {
   if (!localStorage.getItem('tokenExpiry')) {
     return;
   }
-  const FIVE_SECONDS_IN_MS = 5000;
   const exp = Number(localStorage.getItem('tokenExpiry'));
-
   const now = Math.floor(new Date().getTime() / 1000);
+  const FIVE_SECONDS_IN_MS = 5000;
   const refreshInterval = (exp - now) * 1000 - FIVE_SECONDS_IN_MS;
-  setTimeout(async() => {
-    await refreshToken();
-  }, refreshInterval);
-}
-
-export const clearJwt = () => {
-  localStorage.removeItem('tokenExpiry');
-  localStorage.removeItem('user');
+  if (refreshInterval > 0) {
+    setTimeout(async() => {
+      await refreshToken();
+    }, refreshInterval);
+  } else {
+    clearJwt();
+  }
 }
 
 export const getJwt = () => {
