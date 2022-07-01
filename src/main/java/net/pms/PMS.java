@@ -583,9 +583,6 @@ public class PMS {
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
-				}
 				if (!event.isBeforeUpdate()) {
 					if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
 						SseApiHandler.setReloadable(true);
