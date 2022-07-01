@@ -46,6 +46,7 @@ export default function Settings() {
   const [configuration, setConfiguration] = useState({} as any);
 
   const form = useForm({ initialValues: {} as any });
+  const formSetValues = form.setValues;
 
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
@@ -62,7 +63,7 @@ export default function Settings() {
         const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 
         setConfiguration(userConfig);
-        form.setValues(userConfig);
+        formSetValues(userConfig);
       })
       .catch(function (error: Error) {
         console.log(error);
@@ -76,11 +77,10 @@ export default function Settings() {
         });
       })
       .then(function () {
-        form.validate();
         setLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canView, formSetValues]);
+
   // eslint-disable-next-line
   const [content, setContent] = useState('common');
   const handleSubmit = (values: typeof form.values) => {
