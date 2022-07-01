@@ -21,13 +21,17 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.slf4j.Logger;
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 public class SseApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiHandler.class);
+	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
 
@@ -74,7 +79,7 @@ public class SseApiHandler implements HttpHandler {
 						hdr.add("Charset", "UTF-8");
 						exchange.sendResponseHeaders(200, 0);
 						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
-						WebInterfaceServer.addServerSentEventsFor(account.getUser().getId(), sse);
+						addServerSentEventsFor(account.getUser().getId(), sse);
 					} else {
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					}
@@ -92,22 +97,6 @@ public class SseApiHandler implements HttpHandler {
 		}
 	}
 
-	public void updateMemoryUsage() {
-		if (WebInterfaceServer.hasServerSentEvents()) {
-			final long max = Runtime.getRuntime().maxMemory() / 1048576;
-			final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-			long buffer = 0;
-			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-			synchronized (foundRenderers) {
-				for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-					buffer += (r.getBuffer());
-				}
-			}
-			String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
-			WebInterfaceServer.broadcastMessage(json);
-		}
-	}
-
 	Runnable rUpdateMemoryUsage = () -> {
 		while (true) {
 			try {
@@ -118,4 +107,112 @@ public class SseApiHandler implements HttpHandler {
 			updateMemoryUsage();
 		}
 	};
+
+	private static void updateMemoryUsage() {
+		if (hasServerSentEvents()) {
+			final long max = Runtime.getRuntime().maxMemory() / 1048576;
+			final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+			long buffer = 0;
+			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			synchronized (foundRenderers) {
+				for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
+					buffer += (r.getBuffer());
+				}
+			}
+			String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
+			broadcastMessage(json);
+		}
+	}
+
+	private static void addServerSentEventsFor(int id, ServerSentEvents sse) {
+		if (id > 0) {
+			synchronized (SSE_INSTANCES) {
+				if (!SSE_INSTANCES.containsKey(id)) {
+					SSE_INSTANCES.put(id, new ArrayList<>());
+				}
+				SSE_INSTANCES.get(id).add(sse);
+			}
+		}
+	}
+
+	public static boolean hasServerSentEvents() {
+		synchronized (SSE_INSTANCES) {
+			return !SSE_INSTANCES.isEmpty();
+		}
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+				for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+					ServerSentEvents sse = sseIterator.next();
+					if (!sse.isOpened()) {
+						sseIterator.remove();
+					} else {
+						sse.sendMessage(message);
+					}
+				}
+				if (entry.getValue().isEmpty()) {
+					ssesIterator.remove();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams if account
+	 * have the requested permission.
+	 * @param message
+	 * @param permission
+	 */
+	public static void broadcastMessage(String message, String permission) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+				Account account = AccountService.getAccountByUserId(entry.getKey());
+				if (account.havePermission(permission)) {
+					for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+						ServerSentEvents sse = sseIterator.next();
+						if (!sse.isOpened()) {
+							sseIterator.remove();
+						} else {
+							sse.sendMessage(message);
+						}
+					}
+				}
+				if (entry.getValue().isEmpty()) {
+					ssesIterator.remove();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to all Server Sent Events Streams to a specific
+	 * account.
+	 * @param message
+	 * @param id
+	 */
+	public static void broadcastMessage(String message, int id) {
+		synchronized (SSE_INSTANCES) {
+			if (SSE_INSTANCES.containsKey(id)) {
+				for (Iterator<ServerSentEvents> sseIterator = SSE_INSTANCES.get(id).iterator(); sseIterator.hasNext();) {
+					ServerSentEvents sse = sseIterator.next();
+					if (!sse.isOpened()) {
+						sseIterator.remove();
+					} else {
+						sse.sendMessage(message);
+					}
+				}
+				if (SSE_INSTANCES.get(id).isEmpty()) {
+					SSE_INSTANCES.remove(id);
+				}
+			}
+		}
+	}
 }
