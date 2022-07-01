@@ -1,13 +1,14 @@
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
+
 import { accountsContext, UmsAccounts } from '../contexts/accounts-context';
 
 interface Props {
   children?: ReactNode
 }
 
-export const AccountsProvider = ({ children, ...props }: Props) =>{
+export const AccountsProvider = ({ children, ...props }: Props) => {
   const [accounts, setAccounts] = useState({usersManage:false,groupsManage:false,users:[],groups:[]} as UmsAccounts)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export const AccountsProvider = ({ children, ...props }: Props) =>{
         });
       });
   }, []);
-  
+
   const { Provider } = accountsContext;
   return(
     <Provider value={accounts}>

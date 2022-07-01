@@ -25,9 +25,8 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
           autoClose: 3000,
         });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   const { Provider } = sessionContext;
   return(
     <Provider value={session}>
