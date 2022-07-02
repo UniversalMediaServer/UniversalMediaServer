@@ -2,7 +2,7 @@ import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, Num
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -27,6 +27,8 @@ export default function Settings() {
     serverEngines: [],
     sortMethods: [],
     subtitlesInfoLevels: [],
+	transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
+	transcodingEnginesPurposes: [],
   });
 
   const i18n = useContext(I18nContext);
@@ -127,6 +129,172 @@ export default function Settings() {
     return values.map((value : {value:string;label:string}) => {
       return {value : value.value, label: i18n.getI18nString(value.label)};
     });
+  }
+
+  const getTranscodingEnginesAccordionItems = () => {
+	return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
+      return (
+        <Accordion.Item label={i18n.getI18nString(value)}>
+          <Stack justify="flex-start" align="flex-start" spacing="xs">
+            {getTranscodingEnginesButtons(index)}
+          </Stack>
+        </Accordion.Item>);
+    });
+  }
+ 
+  const getTranscodingEnginesButtons = (purpose:number) => {
+    return configuration['engines_priority']?.map((value: string) => {
+      const trengine = selectionSettings.transcodingEngines[value];
+      return (trengine && trengine.purpose === purpose) ?
+		<Button variant="subtle" color="gray" size="xs" compact onClick={() => setTranscodingContent(trengine.id)}>
+		  {trengine.name}
+		</Button>
+	  : null;
+    });
+  }
+
+  const getTranscodingCommon = () => { return (<>
+      <TextInput
+      label={i18n.get['TrTab2.23']}
+      name="maximum_video_buffer_size"
+      sx={{ flex: 1 }}
+      size="xs"
+      {...form.getInputProps('maximum_video_buffer_size')}
+    />
+    <NumberInput
+      label={i18n.get['TrTab2.24']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
+      size="xs"
+      max={defaultConfiguration.number_of_cpu_cores}
+      min={1}
+      disabled={false}
+      {...form.getInputProps('number_of_cpu_cores')}
+    />
+    <Space h="xs"/>
+    <Grid>
+      <Grid.Col span={10}>
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.52']}
+          {...form.getInputProps('chapter_support', { type: 'checkbox' })}
+        />
+      </Grid.Col>
+      <Grid.Col span={2}>
+        <TextInput
+          sx={{ flex: 1 }}
+          disabled={!form.values['chapter_support']}
+          {...form.getInputProps('chapter_interval')}
+        />
+      </Grid.Col>
+     </Grid>
+    <Checkbox
+      size="xs"
+      label={i18n.get['TrTab2.51']}
+      {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+    />
+    <Space h="md"/>
+    <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
+      <Tabs.Tab label={i18n.get['TrTab2.67']}>
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.70']}
+          {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
+        />
+        <Space h="xs" />
+        <Tooltip label={getToolTipContent(i18n.get['TrTab2.82'])} {...defaultTooltipSettings}>
+          <Checkbox
+            size="xs"
+            label={i18n.get['MEncoderVideo.39']}
+            {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
+          />
+        </Tooltip>
+        <Space h="xs" />
+        <Tooltip label={getToolTipContent(i18n.get['TrTab2.74'])} {...defaultTooltipSettings}>
+          <TextInput
+            label={i18n.get['TrTab2.32']}
+            sx={{ flex: 1 }}
+            disabled={form.values['automatic_maximum_bitrate']}
+            {...form.getInputProps('mpeg2_main_settings')}
+          />
+        </Tooltip>
+        <Space h="xs" />
+        <Tooltip label={getToolTipContent(i18n.get['TrTab2.81'])} {...defaultTooltipSettings}>
+          <TextInput
+            label={i18n.get['TrTab2.79']}
+            sx={{ flex: 1 }}
+            disabled={form.values['automatic_maximum_bitrate']}
+            {...form.getInputProps('x264_constant_rate_factor')}
+          />
+        </Tooltip>
+        <TextInput
+          label={i18n.get['TrTab2.8']}
+          sx={{ flex: 1 }}
+          {...form.getInputProps('disable_transcode_for_extensions')}
+        />
+        <TextInput
+          label={i18n.get['TrTab2.9']}
+          sx={{ flex: 1 }}
+          {...form.getInputProps('force_transcode_for_extensions')}
+        />
+      </Tabs.Tab>
+      <Tabs.Tab label={i18n.get['TrTab2.68']}>
+        <Select
+          label={i18n.get['TrTab2.50']}
+          data={[{value: '6', label: '6 channels (5.1)'}, {value: '2', label: '2 channels (Stereo)'}]}
+          size="xs"
+          {...form.getInputProps('audio_channels')}
+        />
+        <Space h="xs" />
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.27']}
+          {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
+        />
+        <Space h="xs" />
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.26']}
+          {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
+        />
+        <Space h="xs" />
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.28']}
+          {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
+        />
+        <Space h="xs" />
+        <Checkbox
+          size="xs"
+          label={i18n.get['TrTab2.53']}
+          {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
+        />
+        <Space h="xs" />
+        <TextInput
+          label={i18n.get['TrTab2.29']}
+          sx={{ flex: 1 }}
+          size="xs"
+          {...form.getInputProps('audio_bitrate')}
+        />
+        <TextInput
+          label={i18n.get['MEncoderVideo.7']}
+          sx={{ flex: 1 }}
+          size="xs"
+          {...form.getInputProps('audio_languages')}
+        />
+        </Tabs.Tab>
+        <Tabs.Tab label={i18n.get['MEncoderVideo.8']}>
+          Subtitles settings
+        </Tabs.Tab>
+      </Tabs>
+    </>);
+  }
+
+  const getTranscodingContent = () => {
+    switch(transcodingContent) {
+      case 'common':
+        return getTranscodingCommon();
+      default:
+      return null;
+    }
   }
 
   return canView ? (
@@ -376,212 +544,20 @@ export default function Settings() {
               <Grid.Col span={5}>
                 <Navbar width={{ }} p="xs">
                   <Navbar.Section>
-                    <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('common')}>
-                      Common transcode settings
+                    <Button variant="subtle" color="gray" size="xs" compact onClick={() => setTranscodingContent('common')}>
+                      {i18n.get['TrTab2.5']}
                     </Button>
                   </Navbar.Section>
                   <Navbar.Section>
                   <Accordion>
-                    <Accordion.Item label="Video Files Engines">
-                      <Stack justify="flex-start" align="flex-start" spacing="xs">
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('ffmpeg')}>
-                          FFmpeg Video
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('mencoder')}>
-                          MEncoder Video
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('tsmuxer')}>
-                          tsMuxeR Video
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('vlc')}>
-                          VLC Video
-                        </Button>
-                      </Stack>
-                    </Accordion.Item>
-                    <Accordion.Item label="Audio Files Engines">
-                      <Stack justify="flex-start" align="flex-start" spacing="xs">
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('ffmpegaudio')}>
-                          FFmpeg Audio
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('tmuxeraudio')}>
-                          tsMuxeR Video
-                        </Button>
-                      </Stack>
-                    </Accordion.Item>
-                    <Accordion.Item label="Web video streaming engines">
-                      <Stack justify="flex-start" align="flex-start" spacing="xs">
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('ffmpegweb')}>
-                          FFmpeg Web Video
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('youtube-dl')}>
-                          youtube-dl
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('vlcwebvideo')}>
-                          VLC Web Video
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('vlcwebvideolegacy')}>
-                          VLC Web Video (legacy)
-                        </Button>
-                        <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('mencoderwebvideo')}>
-                          Mencoder Web Video
-                        </Button>
-                      </Stack>
-                    </Accordion.Item>
-                    <Accordion.Item label="Web audio streaming engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('vlcwebaudio')}>
-                        VLC Web Audio (Legacy)
-                      </Button>
-                    </Accordion.Item>
-                    <Accordion.Item label="Misc engines">
-                      <Button variant="subtle" color="dark" size="xs" compact onClick={() => setTranscodingContent('dcraw')}>
-                        DCRaw
-                      </Button>
-                    </Accordion.Item>
+                    {getTranscodingEnginesAccordionItems()}
                   </Accordion>
                   </Navbar.Section>
                 </Navbar>
               </Grid.Col>
-              {
-                {'common':
-                  <Grid.Col span={7}>
-                    <TextInput
-                      label={i18n.get['TrTab2.23']}
-                      name="maximum_video_buffer_size"
-                      sx={{ flex: 1 }}
-                      size="xs"
-                      {...form.getInputProps('maximum_video_buffer_size')}
-                    />
-                    <NumberInput
-                      label={i18n.get['TrTab2.24']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
-                      size="xs"
-                      max={defaultConfiguration.number_of_cpu_cores}
-                      min={1}
-                      disabled={false}
-                      {...form.getInputProps('number_of_cpu_cores')}
-                    />
-                    <Space h="xs"/>
-                    <Grid>
-                      <Grid.Col span={10}>
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.52']}
-                          {...form.getInputProps('chapter_support', { type: 'checkbox' })}
-                        />
-                      </Grid.Col>
-                      <Grid.Col span={2}>
-                        <TextInput
-                          sx={{ flex: 1 }}
-                          disabled={!form.values['chapter_support']}
-                          {...form.getInputProps('chapter_interval')}
-                        />
-                      </Grid.Col>
-                    </Grid>
-                    <Checkbox
-                      size="xs"
-                      label={i18n.get['TrTab2.51']}
-                      {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
-                    />
-                    <Space h="md"/>
-                    <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
-                      <Tabs.Tab label={i18n.get['TrTab2.67']}>
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.70']}
-                          {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
-                        />
-                        <Space h="xs" />
-                        <Tooltip label={getToolTipContent(i18n.get['TrTab2.82'])} {...defaultTooltipSettings}>
-                          <Checkbox
-                            size="xs"
-                            label={i18n.get['MEncoderVideo.39']}
-                            {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
-                          />
-                        </Tooltip>
-                        <Space h="xs" />
-                        <Tooltip label={getToolTipContent(i18n.get['TrTab2.74'])} {...defaultTooltipSettings}>
-                          <TextInput
-                            label={i18n.get['TrTab2.32']}
-                            sx={{ flex: 1 }}
-                            disabled={form.values['automatic_maximum_bitrate']}
-                            {...form.getInputProps('mpeg2_main_settings')}
-                          />
-                        </Tooltip>
-                        <Space h="xs" />
-                        <Tooltip label={getToolTipContent(i18n.get['TrTab2.81'])} {...defaultTooltipSettings}>
-                          <TextInput
-                            label={i18n.get['TrTab2.79']}
-                            sx={{ flex: 1 }}
-                            disabled={form.values['automatic_maximum_bitrate']}
-                            {...form.getInputProps('x264_constant_rate_factor')}
-                          />
-                        </Tooltip>
-                        <TextInput
-                          label={i18n.get['TrTab2.8']}
-                          sx={{ flex: 1 }}
-                          {...form.getInputProps('disable_transcode_for_extensions')}
-                        />
-                        <TextInput
-                          label={i18n.get['TrTab2.9']}
-                          sx={{ flex: 1 }}
-                          {...form.getInputProps('force_transcode_for_extensions')}
-                        />
-                      </Tabs.Tab>
-                      <Tabs.Tab label={i18n.get['TrTab2.68']}>
-                        <Select
-                          label={i18n.get['TrTab2.50']}
-                          data={[{value: '6', label: '6 channels (5.1)'}, {value: '2', label: '2 channels (Stereo)'}]}
-                          size="xs"
-                          {...form.getInputProps('audio_channels')}
-                        />
-                        <Space h="xs" />
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.27']}
-                          {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
-                        />
-                        <Space h="xs" />
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.26']}
-                          {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
-                        />
-                        <Space h="xs" />
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.28']}
-                          {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
-                        />
-                        <Space h="xs" />
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.53']}
-                          {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
-                        />
-                        <Space h="xs" />
-                        <TextInput
-                          label={i18n.get['TrTab2.29']}
-                          sx={{ flex: 1 }}
-                          size="xs"
-                          {...form.getInputProps('audio_bitrate')}
-                        />
-                        <TextInput
-                          label={i18n.get['MEncoderVideo.7']}
-                          sx={{ flex: 1 }}
-                          size="xs"
-                          {...form.getInputProps('audio_languages')}
-                        />
-                      </Tabs.Tab>
-                        <Tabs.Tab label={i18n.get['MEncoderVideo.8']}>
-                          Subtitles settings
-                        </Tabs.Tab>
-                      </Tabs>
-                  </Grid.Col>
-           	    //ffmpeg added as an example
-           	    ,'ffmpeg':
-                  <Grid.Col span={7}>
-                  </Grid.Col>
-                }[transcodingContent] || <Grid.Col span={7} />
-              }
+              <Grid.Col span={7}>
+                {getTranscodingContent()}
+              </Grid.Col>
             </Grid>
           </Tabs.Tab>
         </Tabs>
