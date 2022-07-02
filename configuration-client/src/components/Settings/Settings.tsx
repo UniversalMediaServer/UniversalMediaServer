@@ -10,6 +10,7 @@ import {getToolTipContent} from '../../utils';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -141,16 +142,26 @@ export default function Settings() {
         </Accordion.Item>);
     });
   }
- 
+
+  const getTranscodingEnginesPriority = (purpose:number) => {
+    return configuration['engines_priority'].filter((value: string) => 
+      selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose
+    );
+  }
+
+  const getTranscodingEnginesButtonsArrow = (index:number, tePriority:Array<string>) => {
+    const isFirst = index===0;
+    const isLast = index===tePriority.length - 1;
+    return isFirst ? isLast ? null : (<ArrowNarrowDown size={10} color={'grey'} />) : isLast ? (<ArrowNarrowUp size={10} color='grey' />) : (<ArrowsVertical size={10} color={'grey'} />);
+  }
+
   const getTranscodingEnginesButtons = (purpose:number) => {
-    return configuration['engines_priority']?.map((value: string) => {
-      const trengine = selectionSettings.transcodingEngines[value];
-      return (trengine && trengine.purpose === purpose) ?
-		<Button variant="subtle" color="gray" size="xs" compact onClick={() => setTranscodingContent(trengine.id)}>
-		  {trengine.name}
-		</Button>
-	  : null;
-    });
+    const tePriority = getTranscodingEnginesPriority(purpose);
+    return tePriority.map((value: string, index: number) => (
+      <Button variant="subtle" color='gray' leftIcon={getTranscodingEnginesButtonsArrow(index, tePriority)} size="xs" compact onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}>
+        {selectionSettings.transcodingEngines[value].name}
+      </Button>
+    ));
   }
 
   const getTranscodingCommon = () => { return (<>
