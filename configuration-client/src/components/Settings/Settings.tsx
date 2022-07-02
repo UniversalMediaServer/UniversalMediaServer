@@ -18,6 +18,8 @@ export default function Settings() {
   const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
   const [transcodingContent, setTranscodingContent] = useState('common');
+  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
+  const [configuration, setConfiguration] = useState({} as any);
 
   // key/value pairs for dropdowns
   const [selectionSettings, setSelectionSettings] = useState({
@@ -37,6 +39,11 @@ export default function Settings() {
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
 
+  const form = useForm({ initialValues: {} as any });
+  const formSetValues = form.setValues;
+
+  const canModify = havePermission(session, "settings_modify");
+  const canView = canModify || havePermission(session, "settings_view");
   const defaultTooltipSettings = {
     width: 350,
     color: "blue",
@@ -47,15 +54,6 @@ export default function Settings() {
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
-
-  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
-  const [configuration, setConfiguration] = useState({} as any);
-
-  const form = useForm({ initialValues: {} as any });
-  const formSetValues = form.setValues;
-
-  const canModify = havePermission(session, "settings_modify");
-  const canView = canModify || havePermission(session, "settings_view");
 
   useEffect(() => {
     if (sse.userConfiguration === null) {
@@ -595,7 +593,7 @@ export default function Settings() {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <Text color="red">You don't have access to this area.</Text>
+      <Text color="red">{i18n.getI18nString("You don't have access to this area.")}</Text>
     </Box>
   );
 }
