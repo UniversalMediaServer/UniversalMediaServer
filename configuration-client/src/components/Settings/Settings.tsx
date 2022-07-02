@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import I18nContext from '../../contexts/i18n-context';
 import {getToolTipContent} from '../../utils';
+import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
@@ -34,6 +35,7 @@ export default function Settings() {
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
+  const sse = useContext(ServerEventContext);
 
   const defaultTooltipSettings = {
     width: 350,
@@ -54,6 +56,16 @@ export default function Settings() {
 
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
+
+  useEffect(() => {
+    if (sse.userConfiguration === null) {
+      return;
+    }
+    const userConfig = _.merge({}, configuration, sse.userConfiguration);
+    sse.setUserConfiguration(null);
+    setConfiguration(userConfig);
+    formSetValues(userConfig);
+  }, [configuration, sse, formSetValues]);
 
   // Code here will run just like componentDidMount
   useEffect(() => {

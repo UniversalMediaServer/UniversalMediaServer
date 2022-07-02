@@ -15,8 +15,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
-  const [message, setMessage] = useState<string>('');
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
+  const [reloadable, setReloadable] = useState<boolean>(false);
+  const [userConfiguration, setUserConfiguration] = useState(null);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
 
@@ -56,8 +57,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'update_memory':
             setMemory(datas);
             break;
-          case 'show_message':
-            setMessage(datas.message);
+          case 'notify':
+            addNotification(datas);
             break;
           case 'update_accounts':
             setUpdateAccounts(true);
@@ -65,8 +66,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'refresh_session':
             session.refresh();
             break;
-          case 'notify':
-            addNotification(datas);
+          case 'set_reloadable':
+            setReloadable(datas.value);
+            break;
+          case 'set_configuration_changed':
+            setUserConfiguration(datas.value);
             break;
         }
       }
@@ -112,9 +116,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     <Provider value={{
       connectionStatus: connectionStatus,
       memory: memory,
-      message: message,
-	  updateAccounts:updateAccounts,
-	  setUpdateAccounts:setUpdateAccounts,
+      updateAccounts:updateAccounts,
+      setUpdateAccounts:setUpdateAccounts,
+      reloadable:reloadable,
+      userConfiguration:userConfiguration,
+      setUserConfiguration:setUserConfiguration,
     }}>
       {children}
     </Provider>

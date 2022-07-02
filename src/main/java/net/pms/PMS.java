@@ -79,7 +79,6 @@ import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -580,12 +579,13 @@ public class PMS {
 		 */
 		FrameAppender.setFrame(frame);
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					SseApiHandler.setReloadable(true);
 					frame.setReloadable(true);
 				}
+				SseApiHandler.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
@@ -846,7 +846,7 @@ public class PMS {
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
-
+			SseApiHandler.setReloadable(false);
 			frame.setReloadable(false);
 		});
 	}

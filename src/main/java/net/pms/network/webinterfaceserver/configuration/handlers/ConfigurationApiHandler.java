@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -50,12 +51,14 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
  * This class handles calls to the internal API.
  */
 public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
@@ -72,7 +75,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		"port",
 		"renderer_default"
 	);
-
+	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
 	public static final String BASE_PATH = "/configuration-api";
 
 	/**
@@ -84,8 +87,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
-			PmsConfiguration pmsConfiguration = PMS.getConfiguration();
-			Configuration configuration = pmsConfiguration.getRawConfiguration();
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			if (WebInterfaceServerUtil.deny(ia)) {
 				exchange.close();
@@ -125,12 +126,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
 
-				String configurationAsJsonString = pmsConfiguration.getConfigurationAsJsonString();
+				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 
 				//select need string, not number
-				String[] needConvertToString = {"server_engine", "audio_thumbnails_method", "sort_method"};
-				for (String key : needConvertToString) {
+				for (String key : SELECT_KEYS) {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						String value = configurationAsJson.get(key).getAsString();
 						configurationAsJson.add(key, new JsonPrimitive(value));
@@ -140,6 +140,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
+				Configuration configuration = CONFIGURATION.getRawConfiguration();
 				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 				if (account == null) {
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
@@ -376,5 +377,40 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jsonResponse.add("parents", new JsonArray());
 		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
+	}
+
+	public static String getConfigurationUpdate(String key) {
+		if (haveKey(key)) {
+			JsonObject datas = new JsonObject();
+			datas.addProperty("action", "set_configuration_changed");
+			Configuration configuration = CONFIGURATION.getRawConfiguration();
+			JsonObject userConfiguration = new JsonObject();
+			if (configuration.containsKey(key)) {
+				String strValue = Objects.toString(configuration.getProperty(key));
+				if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(key)) {
+					//escape "\" char with "\\" otherwise json will fail
+					Map<String, String> propsAsStringMap = new HashMap<>();
+					propsAsStringMap.put(key, strValue.replace("\\", "\\\\"));
+					String configurationAsJsonString = new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
+					JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
+					//select need string, not number
+					if (SELECT_KEYS.contains(key)) {
+						String value = configurationAsJson.get(key).getAsString();
+						userConfiguration.add(key, new JsonPrimitive(value));
+					} else {
+						userConfiguration.add(key, configurationAsJson.get(key));
+					}
+				} else {
+					//back to default value
+					userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
+				}
+			} else {
+				//back to default value
+				userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
+			}
+			datas.add("value", userConfiguration);
+			return datas.toString();
+		}
+		return "";
 	}
 }
