@@ -79,6 +79,7 @@ public class SseApiHandler implements HttpHandler {
 						hdr.add("Content-Type", "text/event-stream");
 						hdr.add("Connection", "keep-alive");
 						hdr.add("Charset", "UTF-8");
+						hdr.add("Cache-Control", "no-transform");
 						exchange.sendResponseHeaders(200, 0);
 						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
 						addServerSentEventsFor(account.getUser().getId(), sse);
