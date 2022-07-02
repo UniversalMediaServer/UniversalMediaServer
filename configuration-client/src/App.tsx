@@ -12,6 +12,7 @@ import rtlPlugin from 'stylis-plugin-rtl';
 import { MoonStars, Sun } from 'tabler-icons-react';
 
 import './services/http-interceptor';
+import About from './components/About/About'
 import Accounts from './components/Accounts/Accounts'
 import Login from './components/Login/Login'
 import Settings from './components/Settings/Settings';
@@ -87,6 +88,7 @@ function App() {
                         {session.account ? (
                           <Router>
                             <Routes>
+                              <Route path='about' element={<About />}></Route>
                               <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
                               <Route path='settings' element={<Settings />}></Route>
                               <Route index element={<Settings />} />

@@ -36,6 +36,7 @@ public class ConfigurationClientHandler implements HttpHandler {
 
 	public static final String BASE_PATH = "/configuration";
 	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
+		"/about",
 		"/accounts",
 		"/settings"
 	));
