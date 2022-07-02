@@ -45,6 +45,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webinterfaceserver.configuration.handlers.AboutApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.AccountApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.ActionsApiHandler;
 import net.pms.network.webinterfaceserver.configuration.handlers.AuthApiHandler;
@@ -136,6 +137,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/console", new ConsoleHandler(this));
 
 			//configuration v1 api handlers
+			addCtx(AboutApiHandler.BASE_PATH, new AboutApiHandler());
 			addCtx(AccountApiHandler.BASE_PATH, new AccountApiHandler());
 			addCtx(ActionsApiHandler.BASE_PATH, new ActionsApiHandler());
 			addCtx(AuthApiHandler.BASE_PATH, new AuthApiHandler());
