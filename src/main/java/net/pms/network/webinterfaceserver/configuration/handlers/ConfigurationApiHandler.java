@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -62,11 +60,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
-	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
 	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
+	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = PmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
 		"hostname",
@@ -118,11 +118,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
 				jsonResponse.add("sortMethods", SORT_METHODS);
 				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
+				jsonResponse.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
 
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
+				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -254,6 +256,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("disable_subtitles", false);
 		jObj.addProperty("disable_transcode_for_extensions", "");
 		jObj.addProperty("encoded_audio_passthrough", false);
+		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
+		jObj.add("engines", transcodingEngines);
+		jObj.add("engines_priority", transcodingEngines);
 		jObj.addProperty("force_transcode_for_extensions", "");
 		jObj.addProperty("gpu_acceleration", false);
 		jObj.addProperty("external_network", true);

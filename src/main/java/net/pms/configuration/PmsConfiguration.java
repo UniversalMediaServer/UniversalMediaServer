@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -5218,4 +5219,39 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
+
+	public synchronized static JsonObject getAllEnginesAsJsonObject() {
+		JsonObject result = new JsonObject();
+		for (PlayerId playerId : StandardPlayerId.ALL) {
+			Player player = PlayerFactory.getPlayer(playerId, false, false);
+			if (player != null) {
+				JsonObject jsonPlayer = new JsonObject();
+				jsonPlayer.add("id", new JsonPrimitive(playerId.getName()));
+				jsonPlayer.add("name", new JsonPrimitive(player.name()));
+				jsonPlayer.add("isAvailable", new JsonPrimitive(player.isAvailable()));
+				jsonPlayer.add("purpose", new JsonPrimitive(player.purpose()));
+				result.add(playerId.getName(), jsonPlayer);
+			}
+		}
+		return result;
+	}
+
+	public synchronized static JsonArray getAllEnginesAsJsonArray() {
+		JsonArray result = new JsonArray();
+		for (PlayerId playerId : StandardPlayerId.ALL) {
+			result.add(playerId.getName());
+		}
+		return result;
+	}
+
+	public synchronized static JsonArray getEnginesPurposesAsJsonArray() {
+		JsonArray result = new JsonArray();
+		result.add("i18n@TrTab2.14"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
+		result.add("i18n@TrTab2.15"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
+		result.add("i18n@TrTab2.16"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
+		result.add("i18n@TrTab2.17"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
+		result.add("i18n@TrTab2.18"); //Player.MISC_PLAYER = 4
+		return result;
+	}
+
 }
