@@ -237,7 +237,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					Messages.getString(descriptionMessage, locale),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale)
+					Messages.getString("GeneralSettings", locale)
 				));
 			}
 		} else {
@@ -251,7 +251,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					buildString(descriptionMessage, true),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale),
+					Messages.getString("GeneralSettings", locale),
 					PMS.NAME,
 					Messages.getRootString("LooksFrame.TabGeneralSettings")
 				));

@@ -1719,7 +1719,7 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegLoggingLevel), cc.xy(3, y));
 
 		y += 2;
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegMultithreading());
+		multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), configuration.isFfmpegMultithreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener(new ItemListener() {
 			@Override
@@ -1730,7 +1730,7 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(1, y));
 
 		y += 2;
-		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
+		videoRemuxTsMuxer = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
 		videoRemuxTsMuxer.addItemListener(new ItemListener() {
 			@Override

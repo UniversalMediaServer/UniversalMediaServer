@@ -151,7 +151,7 @@ public class NavigationShareTab {
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 			builder.add(GuiUtil.getPreferredSizeComponent(generateThumbnails),             FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("NetworkTab.16"),                        FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("ThumbnailSeekingPosition"),                        FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 			builder.add(seekPosition,                                                         FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(imageThumbnails),                  FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
@@ -230,7 +230,7 @@ public class NavigationShareTab {
 	public static void toggleSettingsThatRelyOnCache(boolean enabled) {
 		isShowFolderMediaLibrary.setEnabled(enabled);
 		if (enabled) {
-			isShowFolderMediaLibrary.setToolTipText(Messages.getString("NavigationSettingsTab.ShowMediaLibraryFolderTooltip"));
+			isShowFolderMediaLibrary.setToolTipText(Messages.getString("MediaLibraryFolderWillAvailable"));
 		} else {
 			isShowFolderMediaLibrary.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));
 		}
@@ -263,7 +263,7 @@ public class NavigationShareTab {
 		}
 
 		// Generate thumbnails
-		generateThumbnails = new JCheckBox(Messages.getString("NetworkTab.2"), configuration.isThumbnailGenerationEnabled());
+		generateThumbnails = new JCheckBox(Messages.getString("GenerateThumbnails"), configuration.isThumbnailGenerationEnabled());
 		generateThumbnails.setContentAreaFilled(false);
 		generateThumbnails.addItemListener((ItemEvent e) -> {
 			configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
@@ -363,15 +363,15 @@ public class NavigationShareTab {
 		});
 
 		// Browse compressed archives
-		archive = new JCheckBox(Messages.getString("NetworkTab.1"), configuration.isArchiveBrowsing());
+		archive = new JCheckBox(Messages.getString("BrowseCompressedArchives"), configuration.isArchiveBrowsing());
 		archive.setContentAreaFilled(false);
 		archive.addItemListener((ItemEvent e) -> {
 			configuration.setArchiveBrowsing(e.getStateChange() == ItemEvent.SELECTED);
 		});
 
 		// Enable the cache
-		cacheEnable = new JCheckBox(Messages.getString("NavigationSettingsTab.EnableCache"), configuration.getUseCache());
-		cacheEnable.setToolTipText(Messages.getString("NavigationSettingsTab.EnableCacheTooltip"));
+		cacheEnable = new JCheckBox(Messages.getString("EnableCache"), configuration.getUseCache());
+		cacheEnable.setToolTipText(Messages.getString("DisablingWillDisableFullyPlayed"));
 		cacheEnable.setContentAreaFilled(false);
 		cacheEnable.addItemListener((ItemEvent e) -> {
 			configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
@@ -379,12 +379,12 @@ public class NavigationShareTab {
 		});
 
 		// Reset cache
-		cacheReset = new CustomJButton(Messages.getString("NavigationSettingsTab.ResetCache"));
-		cacheReset.setToolTipText(Messages.getString("NavigationSettingsTab.CacheEmptiedExceptFullyPlayed"));
+		cacheReset = new CustomJButton(Messages.getString("ResetCache"));
+		cacheReset.setToolTipText(Messages.getString("CacheEmptiedExceptFullyPlayed"));
 		cacheReset.addActionListener((ActionEvent e) -> {
 			int option = JOptionPane.showConfirmDialog(
 				looksFrame,
-				Messages.getString("NavigationSettingsTab.CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getString("NetworkTab.19"),
+				Messages.getString("CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getString("AreYouSure"),
 				Messages.getString("Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {

@@ -171,7 +171,7 @@ public class BasicSystemUtils implements SystemUtils {
 			});
 
 			if (PMS.getConfiguration().useWebInterfaceServer()) {
-				MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
+				MenuItem webInterfaceItem = new MenuItem(Messages.getString("WebInterface"));
 				webInterfaceItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {

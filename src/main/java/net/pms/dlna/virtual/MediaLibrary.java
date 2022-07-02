@@ -55,7 +55,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("MediaLibrary.RecentlyAdded"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
+		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("RecentlyAdded"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
 			Messages.getString("PMS.12"),
@@ -99,17 +99,17 @@ public class MediaLibrary extends VirtualFolder {
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.RecentlyAdded"),
+			Messages.getString("RecentlyAdded"),
 			new String[]{"SELECT * FROM FILES WHERE FORMAT_TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100"},
 			new int[]{MediaLibraryFolder.FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.InProgress"),
+			Messages.getString("InProgress"),
 			sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND " + MediaTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL" + unwatchedCondition + " ORDER BY " + MediaTableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mostPlayedVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.MostPlayed"),
+			Messages.getString("MostPlayed"),
 			sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND " + MediaTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + MediaTableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);

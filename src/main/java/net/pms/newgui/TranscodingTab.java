@@ -409,7 +409,7 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 3), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, 1, 3), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -498,7 +498,7 @@ public class TranscodingTab {
 
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.67"), buildVideoSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
-		setupTabbedPanel.addTab(Messages.getString("MEncoderVideo.8"), buildSubtitlesSetupPanel());
+		setupTabbedPanel.addTab(Messages.getString("SubtitlesSettings"), buildSubtitlesSetupPanel());
 
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
@@ -527,7 +527,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(videoHWacceleration), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
 
-		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39"), configuration.isMencoderRemuxMPEG2());
+		mpeg2remux = new JCheckBox(Messages.getString("LosslessDvdVideoPlayback"), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setToolTipText(Messages.getString("TrTab2.82") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener(new ItemListener() {
@@ -750,7 +750,7 @@ public class TranscodingTab {
 		});
 		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("AudioLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.setToolTipText(Messages.getString("TrTab2.75"));
 		langs.addKeyListener(new KeyAdapter() {
@@ -774,7 +774,7 @@ public class TranscodingTab {
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder.addLabel(Messages.getString("SubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
@@ -785,7 +785,7 @@ public class TranscodingTab {
 		});
 		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 2, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("ForcedLanguage"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
@@ -795,7 +795,7 @@ public class TranscodingTab {
 		});
 		builder.add(forcedsub, FormLayoutUtil.flip(cc.xyw(3, 4, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xyw(7, 4, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("ForcedTags"), FormLayoutUtil.flip(cc.xyw(7, 4, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
@@ -805,7 +805,7 @@ public class TranscodingTab {
 		});
 		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(13, 4, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.addLabel(Messages.getString("AudioSubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
 		defaultaudiosubs.setToolTipText(Messages.getString("TrTab2.77"));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
@@ -816,7 +816,7 @@ public class TranscodingTab {
 		});
 		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 6, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.addLabel(Messages.getString("AlternateSubtitlesFolder"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubtitlesFolder());
 		alternateSubFolder.addKeyListener(new KeyAdapter() {
 			@Override
@@ -919,7 +919,7 @@ public class TranscodingTab {
 		subtitleCodePage.setEditable(false);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 10, 7), colSpec, orientation));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
+		fribidi = new JCheckBox(Messages.getString("FribidiMode"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
 		fribidi.addItemListener(new ItemListener() {
 			@Override
@@ -930,7 +930,7 @@ public class TranscodingTab {
 
 		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 10, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("SpecifyTruetypeFont"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
 		defaultfont.setToolTipText(Messages.getString("TrTab2.97"));
 		defaultfont.addKeyListener(new KeyAdapter() {
@@ -947,7 +947,7 @@ public class TranscodingTab {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
 				chooser.setFileFilter(new FontFileFilter());
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
+				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("SelectTruetypeFont"));
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
 					configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
@@ -957,11 +957,11 @@ public class TranscodingTab {
 
 		builder.add(fontselect, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("StyledSubtitles"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 
 		JPanel flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		flowPanel.setComponentOrientation(orientation);
-		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("FontScale"), FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		assScale = new JTextField(configuration.getAssScale());
 		assScale.addKeyListener(new KeyAdapter() {
 			@Override
@@ -971,7 +971,7 @@ public class TranscodingTab {
 		});
 		flowPanel.add(assScale);
 
-		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.13")));
+		flowPanel.add(new JLabel(Messages.getString("FontOutline")));
 
 		int assOutlineValue;
 		try {
@@ -989,7 +989,7 @@ public class TranscodingTab {
 		});
 		flowPanel.add(assOutline);
 
-		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.14")));
+		flowPanel.add(new JLabel(Messages.getString("FontShadow")));
 
 		int assShadowValue;
 		try {
@@ -1007,7 +1007,7 @@ public class TranscodingTab {
 		});
 		flowPanel.add(assShadow);
 
-		flowPanel.add(new JLabel(Messages.getString("MEncoderVideo.15")));
+		flowPanel.add(new JLabel(Messages.getString("MarginPx")));
 
 		int assMarginValue;
 		try {
@@ -1027,7 +1027,7 @@ public class TranscodingTab {
 		flowPanel.add(assMargin);
 		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
 
-		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
+		autoloadExternalSubtitles = new JCheckBox(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
@@ -1040,7 +1040,7 @@ public class TranscodingTab {
 		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 10), colSpec, orientation));
 
 		subColor = new JButton();
-		subColor.setText(Messages.getString("MEncoderVideo.31"));
+		subColor.setText(Messages.getString("Color"));
 		subColor.setBackground(configuration.getSubsColor());
 		subColor.addActionListener(new ActionListener() {
 			@Override
@@ -1049,7 +1049,7 @@ public class TranscodingTab {
 				Locale locale = PMS.getLocale();
 				jColorChooser.setLocale(locale);
 				jColorChooser.setComponentOrientation(ComponentOrientation.getOrientation(locale));
-				JDialog dialog = JColorChooser.createDialog(looksFrame, Messages.getString("MEncoderVideo.125"), true, jColorChooser, new ActionListener() {
+				JDialog dialog = JColorChooser.createDialog(looksFrame, Messages.getString("ChooseSubtitlesColor"), true, jColorChooser, new ActionListener() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1096,7 +1096,7 @@ public class TranscodingTab {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
+		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener(new ItemListener() {

@@ -594,7 +594,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		// Recommendations for TV series, episodes and movies
 		if (expectedOutput == EPISODES) {
 			VirtualFolder recommendations = new MediaLibraryFolder(
-				Messages.getString("MediaLibrary.Recommendations"),
+				Messages.getString("Recommendations"),
 				new String[]{
 					"WITH ratedSubquery AS (" +
 						"SELECT RATING FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
@@ -636,7 +636,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				}
 
 				VirtualFolder recommendations = new MediaLibraryFolder(
-					Messages.getString("MediaLibrary.Recommendations"),
+					Messages.getString("Recommendations"),
 					new String[]{
 						firstSql,
 						"WITH ratedSubquery AS (" +

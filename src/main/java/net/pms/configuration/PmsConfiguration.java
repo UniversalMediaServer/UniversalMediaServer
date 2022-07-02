@@ -1707,7 +1707,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_LANGUAGES,
-				Messages.getString("MEncoderVideo.126")
+				Messages.getString("AudioLanguages")
 		);
 	}
 
@@ -1723,7 +1723,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_SUBTITLES_LANGUAGES,
-				Messages.getString("MEncoderVideo.127")
+				Messages.getString("SubtitlesLanguages")
 		);
 	}
 
@@ -1762,7 +1762,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_SUB_LANGS,
-				Messages.getString("MEncoderVideo.128")
+				Messages.getString("AudioSubtitlesPairs")
 		);
 	}
 
@@ -3299,7 +3299,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
 							"list on the \"{}\" tab or in the configuration file.",
 							folder,
-							Messages.getString("LooksFrame.TabSharedContent")
+							Messages.getString("SharedContent")
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -3310,7 +3310,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					"\"{}\" does not exist. Please remove it from your shared folders " +
 					"list on the \"{}\" tab or in the configuration file.",
 					folder,
-					Messages.getString("LooksFrame.TabSharedContent")
+					Messages.getString("SharedContent")
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);

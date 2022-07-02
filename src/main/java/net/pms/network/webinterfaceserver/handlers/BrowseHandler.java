@@ -267,7 +267,7 @@ public class BrowseHandler implements HttpHandler {
 					*/
 					if (
 						resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-						resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+						resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
 						(
 							resource.getParent().getParent() != null &&
 							resource.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
@@ -360,7 +360,7 @@ public class BrowseHandler implements HttpHandler {
 				// Check whether this resource is expected to contain folders that display as big thumbnails
 				if (
 					folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-					folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+					folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
 					(
 						folder.getParent() != null &&
 						folder.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
