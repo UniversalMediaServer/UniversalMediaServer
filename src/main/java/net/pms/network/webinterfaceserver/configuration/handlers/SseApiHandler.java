@@ -219,27 +219,31 @@ public class SseApiHandler implements HttpHandler {
 	}
 
 	public static void notify(String id, String message, String title, String color, boolean autoClose) {
-		JsonObject datas = new JsonObject();
-		datas.addProperty("action", "notify");
-		if (!StringUtils.isEmpty(id) && !StringUtils.isBlank(id)) {
-			datas.addProperty("id", id);
+		if (hasServerSentEvents()) {
+			JsonObject datas = new JsonObject();
+			datas.addProperty("action", "notify");
+			if (!StringUtils.isEmpty(id) && !StringUtils.isBlank(id)) {
+				datas.addProperty("id", id);
+			}
+			if (!StringUtils.isEmpty(message)) {
+				datas.addProperty("message", message);
+			}
+			if (!StringUtils.isEmpty(title)) {
+				datas.addProperty("title", title);
+			}
+			if (!StringUtils.isEmpty(color)) {
+				datas.addProperty("color", color);
+			}
+			datas.addProperty("autoClose", autoClose);
+			broadcastMessage(datas.toString());
 		}
-		if (!StringUtils.isEmpty(message)) {
-			datas.addProperty("message", message);
-		}
-		if (!StringUtils.isEmpty(title)) {
-			datas.addProperty("title", title);
-		}
-		if (!StringUtils.isEmpty(color)) {
-			datas.addProperty("color", color);
-		}
-		datas.addProperty("autoClose", autoClose);
-		broadcastMessage(datas.toString());
 	}
 
 	public static void setRefreshSessions(List<Integer> ids) {
-		for (int id : ids) {
-			setRefreshSession(id);
+		if (hasServerSentEvents()) {
+			for (int id : ids) {
+				setRefreshSession(id);
+			}
 		}
 	}
 
@@ -249,5 +253,15 @@ public class SseApiHandler implements HttpHandler {
 
 	public static void setUpdateAccounts() {
 		broadcastMessage("{\"action\":\"update_accounts\"}");
+	}
+
+	public static void setReloadable(boolean value) {
+		broadcastMessage("{\"action\":\"set_reloadable\",\"value\":" + (value ? "true" : "false") + "}");
+	}
+
+	public static void setConfigurationChanged(String key) {
+		if (ConfigurationApiHandler.haveKey(key)) { //hasServerSentEvents() &&
+			broadcastMessage(ConfigurationApiHandler.getConfigurationUpdate(key), "settings_view");
+		}
 	}
 }
