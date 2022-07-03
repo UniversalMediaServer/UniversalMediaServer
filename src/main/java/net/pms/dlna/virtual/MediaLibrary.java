@@ -9,7 +9,15 @@ import net.pms.util.FullyPlayedAction;
  * by the SQL (h2) database.
  */
 public class MediaLibrary extends VirtualFolder {
-	private static final Double ONE_HOUR_IN_SECONDS = 3600.0;
+	/**
+	 * According to the Academy of Motion Picture Arts and Sciences, the American
+	 * Film Institute, and the British Film Institute, a feature film runs for
+	 * more than 40 minutes.
+	 *
+	 * @see https://www.oscars.org/sites/oscars/files/93aa_rules.pdf
+	 * @see https://www.bfi.org.uk/bfi-national-archive/research-bfi-archive/bfi-filmography/bfi-filmography-faq
+	 */
+	private static final Double FORTY_MINUTES_IN_SECONDS = 2400.0;
 	private MediaLibraryFolder allFolder;
 
 	public MediaLibraryFolder getAllFolder() {
@@ -43,7 +51,7 @@ public class MediaLibrary extends VirtualFolder {
 		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 
 		// All videos that are unwatched
-		String movieCondition = " AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND DURATION > " + ONE_HOUR_IN_SECONDS;
+		String movieCondition = " AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND DURATION > " + FORTY_MINUTES_IN_SECONDS;
 		String unwatchedCondition = " AND " + MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
