@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,6 +69,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
@@ -79,7 +79,6 @@ import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -580,12 +579,13 @@ public class PMS {
 		 */
 		FrameAppender.setFrame(frame);
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					SseApiHandler.setReloadable(true);
 					frame.setReloadable(true);
 				}
+				SseApiHandler.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
@@ -833,6 +833,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			SseApiHandler.notify("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -845,7 +846,7 @@ public class PMS {
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
-
+			SseApiHandler.setReloadable(false);
 			frame.setReloadable(false);
 		});
 	}
@@ -855,8 +856,7 @@ public class PMS {
 	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
-	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
 	public String usn() {
 		return "uuid:" + udn();
 	}

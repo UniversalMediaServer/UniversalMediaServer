@@ -2403,7 +2403,7 @@ public class RendererConfiguration extends Renderer {
 
 		JsonArray jsonArray = new JsonArray();
 		jsonArray.add(pmsConfigurationStatic.allRenderers);
-		jsonArray.add("None");
+		jsonArray.add("i18n@Generic.None");
 		for (int i = 0; i < values.size(); i++) {
 			jsonArray.add(values.get(i));
 		}
@@ -3133,12 +3133,17 @@ public class RendererConfiguration extends Renderer {
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach(
-				//escape "\" char with "\\" otherwise json will fail
-				(key, value) -> {
-					if (Arrays.asList(ConfigurationApiHandler.VALID_KEYS).contains(key)) {
-						propsAsStringMap.put(Objects.toString(key), Objects.toString(value).replace("\\", "\\\\"));
+			(key, value) -> {
+				String strKey = Objects.toString(key);
+				if (ConfigurationApiHandler.haveKey(strKey)) {
+					String strValue = Objects.toString(value);
+					//do not add non acceptable empty key then it back to default
+					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(strKey)) {
+						//escape "\" char with "\\" otherwise json will fail
+						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 					}
 				}
+			}
 		);
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);

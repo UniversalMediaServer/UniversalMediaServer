@@ -1,12 +1,12 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import React, { useContext } from 'react';
-import { Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
+import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { sendAction } from '../../services/actions-service';
 import { havePermission } from '../../services/accounts-service';
-import { redirectToLogin } from '../../services/auth.service';
+import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
@@ -30,7 +30,7 @@ function UserMenu() {
           icon={<Refresh size={14} />}
           onClick={restartServer}
         >
-          {i18n['LooksFrame.12']}
+          {i18n.get['LooksFrame.12']}
         </Menu.Item>
       )}
       {havePermission(session, "settings_view")  && (
@@ -38,14 +38,21 @@ function UserMenu() {
           icon={<Settings size={14} />}
           onClick={() => { window.location.href = '/settings'; }}
         >
-          {i18n['PMS.131']}
+          {i18n.get['PMS.131']}
         </Menu.Item>
       )}
       <Menu.Item
         icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
         onClick={() => { window.location.href = '/accounts'; }}
       >
-        {havePermission(session, "users_manage") ? 'Manage accounts' : 'My account'}
+        {havePermission(session, "users_manage") ? i18n.get['WebGui.UserMenuManageAccounts'] : i18n.get['WebGui.UserMenuManageAccount']}
+      </Menu.Item>
+      <Menu.Item
+        color="yellow"
+        icon={<InfoCircle size={14} />}
+        onClick={() => { window.location.href = '/about'; }}
+      >
+        {i18n.getI18nString("About")}
       </Menu.Item>
       <Menu.Item
         color="red"
@@ -54,7 +61,7 @@ function UserMenu() {
           redirectToLogin();
         }}
       >
-        Log out
+        {i18n.get['WebGui.ButtonLogout']}
       </Menu.Item>
     </Menu>
   );

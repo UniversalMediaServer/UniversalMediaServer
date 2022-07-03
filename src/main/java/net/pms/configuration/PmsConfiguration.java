@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +22,7 @@ import ch.qos.logback.classic.Level;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Component;
@@ -3496,9 +3496,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			SubtitlesInfoLevel.FULL.toString()
 		};
 		String[] labels = new String[] {
-			Messages.getString("Generic.None"),
-			Messages.getString("Generic.Basic"),
-			Messages.getString("Generic.Full")
+			"i18n@Generic.None",
+			"i18n@Generic.Basic",
+			"i18n@Generic.Full"
 		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
@@ -5182,13 +5182,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		JsonArray jsonArray = new JsonArray();
 
 		JsonObject noneObject = new JsonObject();
-		noneObject.addProperty("label", Messages.getString("FoldTab.35"));
 		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
+		noneObject.addProperty("label", "i18n@Generic.None");
 		jsonArray.add(noneObject);
 
 		JsonObject coverArtArchiveObject = new JsonObject();
-		coverArtArchiveObject.addProperty("label", Messages.getString("FoldTab.73"));
 		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
+		coverArtArchiveObject.addProperty("label", "i18n@FoldTab.73");
 		jsonArray.add(coverArtArchiveObject);
 
 		return jsonArray;
@@ -5208,15 +5208,50 @@ public class PmsConfiguration extends RendererConfiguration {
 			"" + UMSUtils.SORT_NO_SORT    // no sorting
 		};
 		String[] labels = new String[]{
-			Messages.getString("FoldTab.15"),
-			Messages.getString("FoldTab.22"),
-			Messages.getString("FoldTab.20"),
-			Messages.getString("FoldTab.16"),
-			Messages.getString("FoldTab.17"),
-			Messages.getString("FoldTab.58"),
-			Messages.getString("FoldTab.62")
+			"i18n@FoldTab.15",
+			"i18n@FoldTab.22",
+			"i18n@FoldTab.20",
+			"i18n@FoldTab.16",
+			"i18n@FoldTab.17",
+			"i18n@FoldTab.58",
+			"i18n@FoldTab.62"
 		};
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
+
+	public synchronized static JsonObject getAllEnginesAsJsonObject() {
+		JsonObject result = new JsonObject();
+		for (PlayerId playerId : StandardPlayerId.ALL) {
+			Player player = PlayerFactory.getPlayer(playerId, false, false);
+			if (player != null) {
+				JsonObject jsonPlayer = new JsonObject();
+				jsonPlayer.add("id", new JsonPrimitive(playerId.getName()));
+				jsonPlayer.add("name", new JsonPrimitive(player.name()));
+				jsonPlayer.add("isAvailable", new JsonPrimitive(player.isAvailable()));
+				jsonPlayer.add("purpose", new JsonPrimitive(player.purpose()));
+				result.add(playerId.getName(), jsonPlayer);
+			}
+		}
+		return result;
+	}
+
+	public synchronized static JsonArray getAllEnginesAsJsonArray() {
+		JsonArray result = new JsonArray();
+		for (PlayerId playerId : StandardPlayerId.ALL) {
+			result.add(playerId.getName());
+		}
+		return result;
+	}
+
+	public synchronized static JsonArray getEnginesPurposesAsJsonArray() {
+		JsonArray result = new JsonArray();
+		result.add("i18n@TrTab2.14"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
+		result.add("i18n@TrTab2.15"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
+		result.add("i18n@TrTab2.16"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
+		result.add("i18n@TrTab2.17"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
+		result.add("i18n@TrTab2.18"); //Player.MISC_PLAYER = 4
+		return result;
+	}
+
 }

@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -131,6 +130,25 @@ public class Messages {
 			resourceBundleLock.readLock().unlock();
 		}
 		return null;
+	}
+
+	public static JsonObject getStringsAsJsonObject(Locale locale) {
+		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		if (rb == null) {
+			rb = ROOT_RESOURCE_BUNDLE;
+		}
+		JsonObject jsonObject = new JsonObject();
+		try {
+			Enumeration<String> i18nKeys = rb.getKeys();
+			while (i18nKeys.hasMoreElements()) {
+				String key = i18nKeys.nextElement();
+				String value = rb.getString(key);
+				jsonObject.addProperty(key, value);
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
+		}
+		return jsonObject;
 	}
 
 	@Nonnull

@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -21,6 +19,7 @@ package net.pms.iam;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -227,34 +226,10 @@ public class AccountService {
 		}
 	}
 
-	public static void updatePermission(final Connection connection, final int groupId, final List<String> permissions) {
+	public static void updatePermissions(final Connection connection, final int groupId, final List<String> permissions) {
 		LOGGER.info("Updating permissions to group id {}", groupId);
 		if (UserTablePermissions.updateGroup(connection, groupId, permissions) && GROUPS.containsKey(groupId)) {
 			GROUPS.get(groupId).setPermissions(permissions);
-		}
-	}
-
-	public static void grantPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Granting permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
-		if (!account.havePermission(name)) {
-			account.getGroup().getPermissions().add(name);
-			UserTablePermissions.insert(connection, account.getGroup().getId(), name);
-		} else {
-			LOGGER.info("Permission '{}' already granted to group '{}'", name, account.getGroup().getDisplayName());
-		}
-	}
-
-	public static void denyPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Denying permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
-		if (account.havePermission(name)) {
-			if (account.havePermission(Permissions.ALL)) {
-				LOGGER.info("Permission '{}' could not be denied to group '{}' with full permissions", name, account.getGroup().getDisplayName());
-			} else {
-				account.getGroup().getPermissions().remove(name);
-				UserTablePermissions.remove(connection, account.getGroup().getId(), name);
-			}
-		} else {
-			LOGGER.info("Permission '{}' already denied to group '{}'", name, account.getGroup().getDisplayName());
 		}
 	}
 
@@ -293,5 +268,15 @@ public class AccountService {
 			UserDatabase.close(connection);
 		}
 		return GROUPS.values();
+	}
+
+	public static List<Integer> getUserIdsForGroup(int groupId) {
+		List<Integer> userIds = new ArrayList<>();
+		for (User user : USERS.values()) {
+			if (user.getGroupId() == groupId) {
+				userIds.add(user.getId());
+			}
+		}
+		return userIds;
 	}
 }
