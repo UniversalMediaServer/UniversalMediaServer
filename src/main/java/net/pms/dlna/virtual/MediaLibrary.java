@@ -9,6 +9,15 @@ import net.pms.util.FullyPlayedAction;
  * by the SQL (h2) database.
  */
 public class MediaLibrary extends VirtualFolder {
+	/**
+	 * According to the Academy of Motion Picture Arts and Sciences, the American
+	 * Film Institute, and the British Film Institute, a feature film runs for
+	 * more than 40 minutes.
+	 *
+	 * @see https://www.oscars.org/sites/oscars/files/93aa_rules.pdf
+	 * @see https://www.bfi.org.uk/bfi-national-archive/research-bfi-archive/bfi-filmography/bfi-filmography-faq
+	 */
+	private static final Double FORTY_MINUTES_IN_SECONDS = 2400.0;
 	private MediaLibraryFolder allFolder;
 
 	public MediaLibraryFolder getAllFolder() {
@@ -42,6 +51,7 @@ public class MediaLibrary extends VirtualFolder {
 		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 
 		// All videos that are unwatched
+		String movieCondition = " AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND DURATION > " + FORTY_MINUTES_IN_SECONDS;
 		String unwatchedCondition = " AND " + MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.4"),
@@ -52,8 +62,8 @@ public class MediaLibrary extends VirtualFolder {
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 
-		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 " + movieCondition + " AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 " + movieCondition + " AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("MediaLibrary.RecentlyAdded"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
@@ -80,12 +90,12 @@ public class MediaLibrary extends VirtualFolder {
 		);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.5"),
-			"FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC",
+			"FORMAT_TYPE = 4 " + movieCondition + " AND STEREOSCOPY = '' ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
 			Messages.getString("VirtualFolder.7"),
-			"FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != '' ORDER BY FILENAME ASC",
+			"FORMAT_TYPE = 4 " + movieCondition + " AND STEREOSCOPY != '' ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(
