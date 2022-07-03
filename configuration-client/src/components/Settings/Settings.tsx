@@ -1,9 +1,11 @@
-import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import { arrayMove, List } from 'react-movable';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import {getToolTipContent} from '../../utils';
@@ -17,6 +19,8 @@ export default function Settings() {
   const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
   const [transcodingContent, setTranscodingContent] = useState('common');
+  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
+  const [configuration, setConfiguration] = useState({} as any);
 
   // key/value pairs for dropdowns
   const [selectionSettings, setSelectionSettings] = useState({
@@ -28,14 +32,19 @@ export default function Settings() {
     serverEngines: [],
     sortMethods: [],
     subtitlesInfoLevels: [],
-	transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
-	transcodingEnginesPurposes: [],
+    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
+    transcodingEnginesPurposes: [],
   });
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
 
+  const form = useForm({ initialValues: {} as any });
+  const formSetValues = form.setValues;
+
+  const canModify = havePermission(session, "settings_modify");
+  const canView = canModify || havePermission(session, "settings_view");
   const defaultTooltipSettings = {
     width: 350,
     color: "blue",
@@ -46,15 +55,6 @@ export default function Settings() {
   const openGitHubNewIssue = () => {
     window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
   };
-
-  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
-  const [configuration, setConfiguration] = useState({} as any);
-
-  const form = useForm({ initialValues: {} as any });
-  const formSetValues = form.setValues;
-
-  const canModify = havePermission(session, "settings_modify");
-  const canView = canModify || havePermission(session, "settings_view");
 
   useEffect(() => {
     if (sse.userConfiguration === null) {
@@ -143,25 +143,68 @@ export default function Settings() {
     });
   }
 
+  const getTranscodingEnginesPriority = (purpose:number) => {
+    return form.getInputProps('engines_priority').value !== undefined ? form.getInputProps('engines_priority').value.filter((value: string) => 
+      selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose
+    ) : [];
+  }
+
+  const moveTranscodingEnginesPriority = (purpose:number, oldIndex:number, newIndex:number) => {
+    if (form.getInputProps('engines_priority').value instanceof Array<string>) {
+      var items = form.getInputProps('engines_priority').value as Array<string>;
+      let index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
+      let moveTo = index - oldIndex + newIndex;
+      form.setFieldValue('engines_priority', arrayMove(items, index, moveTo));
+    }
+  }
+
+  const getTranscodingEnginesList = (purpose:number) => {
+    const engines = getTranscodingEnginesPriority(purpose);
+    return engines.length > 1 ? (
+      <List
+        lockVertically
+        values={getTranscodingEnginesPriority(purpose)}
+        onChange={({ oldIndex, newIndex }) => {
+          moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
+        }}
+        renderList={({ children, props, isDragged }) => (
+          <Stack justify="flex-start" align="flex-start" spacing="xs" {...props}>
+            {children}
+          </Stack>
+        )}
+        renderItem={({ value, props, isDragged, isSelected }) => (
+          <Button {...props} color='gray' size="xs" compact
+            variant={isDragged || isSelected ? 'outline' : 'subtle'}
+            leftIcon={
+              <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+              </ActionIcon>
+            }
+            onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
+          >
+            {selectionSettings.transcodingEngines[value].name}
+          </Button>
+        )}
+      />
+    ) : (
+      <Stack justify="flex-start" align="flex-start" spacing="xs">
+        {engines.map((value: string) => (
+          <Button variant="subtle" color='gray' size="xs" compact
+            onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
+          >
+            {selectionSettings.transcodingEngines[value].name}
+          </Button>
+        ))}
+      </Stack>
+    );
+  }
+
   const getTranscodingEnginesAccordionItems = () => {
-	return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
+    return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
       return (
         <Accordion.Item label={i18n.getI18nString(value)}>
-          <Stack justify="flex-start" align="flex-start" spacing="xs">
-            {getTranscodingEnginesButtons(index)}
-          </Stack>
+          {getTranscodingEnginesList(index)}
         </Accordion.Item>);
-    });
-  }
- 
-  const getTranscodingEnginesButtons = (purpose:number) => {
-    return configuration['engines_priority']?.map((value: string) => {
-      const trengine = selectionSettings.transcodingEngines[value];
-      return (trengine && trengine.purpose === purpose) ?
-		<Button variant="subtle" color="gray" size="xs" compact onClick={() => setTranscodingContent(trengine.id)}>
-		  {trengine.name}
-		</Button>
-	  : null;
     });
   }
 
@@ -584,7 +627,7 @@ export default function Settings() {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <Text color="red">You don't have access to this area.</Text>
+      <Text color="red">{i18n.getI18nString("You don't have access to this area.")}</Text>
     </Box>
   );
 }
