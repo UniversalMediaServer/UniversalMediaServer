@@ -181,7 +181,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				cancelButton.setVisible(true);
 				break;
 			case DOWNLOAD_IN_PROGRESS:
-				cancelButton.setText(Messages.getString("NetworkTab.45"));
+				cancelButton.setText(Messages.getString("Cancel"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;

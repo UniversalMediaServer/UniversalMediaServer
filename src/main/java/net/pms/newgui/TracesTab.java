@@ -297,7 +297,7 @@ public class TracesTab {
 		jSearchPanel.add(jSearchBox);
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
-		JButton jSearchButton = new JButton(Messages.getString("PMS.144"));
+		JButton jSearchButton = new JButton(Messages.getString("Search"));
 		jSearchButton.setMnemonic(KeyEvent.VK_S);
 		jSearchButton.setToolTipText(Messages.getString("TracesTab.34"));
 		jSearchPanel.add(jSearchButton);

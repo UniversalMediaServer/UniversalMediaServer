@@ -207,7 +207,7 @@ public class StatusTab {
 			AnimatedIcon oldIcon = (AnimatedIcon) connectionStatus.getIcon();
 			switch (connectionState) {
 				case SEARCHING:
-					connectionStatus.setToolTipText(Messages.getString("PMS.130"));
+					connectionStatus.setToolTipText(Messages.getString("SearchingForRenderers"));
 					searchingIcon.restartArm();
 					if (oldIcon != null) {
 						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, searchingIcon, false));
@@ -216,7 +216,7 @@ public class StatusTab {
 					}
 					break;
 				case CONNECTED:
-					connectionStatus.setToolTipText(Messages.getString("PMS.18"));
+					connectionStatus.setToolTipText(Messages.getString("Connected"));
 					connectedIcon.restartArm();
 					if (oldIcon != null) {
 						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, connectedIcon, false));
@@ -225,7 +225,7 @@ public class StatusTab {
 					}
 					break;
 				case DISCONNECTED:
-					connectionStatus.setToolTipText(Messages.getString("PMS.0"));
+					connectionStatus.setToolTipText(Messages.getString("NoRenderersWereFound"));
 					disconnectedIcon.restartArm();
 					if (oldIcon != null) {
 						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, disconnectedIcon, false));
@@ -234,7 +234,7 @@ public class StatusTab {
 					}
 					break;
 				case BLOCKED:
-					connectionStatus.setToolTipText(Messages.getString("PMS.141"));
+					connectionStatus.setToolTipText(Messages.getString("PortBlockedChangeIt"));
 					blockedIcon.reset();
 					if (oldIcon != null) {
 						oldIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, blockedIcon, false));

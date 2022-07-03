@@ -1696,7 +1696,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getConfName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		return getString(RENDERER_NAME, Messages.getString("UnknownRenderer"));
 	}
 
 	/**

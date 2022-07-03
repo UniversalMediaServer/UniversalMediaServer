@@ -145,7 +145,7 @@ public class BrowseHandler implements HttpHandler {
 			) {
 				DLNAResource thisResourceFromResources = resources.get(0).getParent();
 				String thisName = thisResourceFromResources.getDisplayName();
-				if (thisName.equals(Messages.getString("PMS.MediaLibrary"))) {
+				if (thisName.equals(Messages.getString("MediaLibrary"))) {
 					for (DLNAResource resource : resources) {
 						String newId = resource.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
@@ -285,19 +285,19 @@ public class BrowseHandler implements HttpHandler {
 						boolean addFolderToFoldersListOnLeft = true;
 
 						// Populate the front page
-						if (id.equals("0") && resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
+						if (id.equals("0") && resource.getName().equals(Messages.getString("MediaLibrary"))) {
 							mustacheVars.put("isFrontPage", true);
 
-							List<DLNAResource> videoSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("PMS.34"), true, true);
+							List<DLNAResource> videoSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Video"));
+							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("Video"), true, true);
 							DLNAResource videoFolder = videoSearchResults.get(0);
 
-							List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.1"));
-							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("PMS.1"), true, true);
+							List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Audio"));
+							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("Audio"), true, true);
 							DLNAResource audioFolder = audioSearchResults.get(0);
 
-							List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.31"));
-							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("PMS.31"), true, true);
+							List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Photo"));
+							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("Photo"), true, true);
 							DLNAResource imagesFolder = imageSearchResults.get(0);
 
 							mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(videoFolder, enterSearchStringText));

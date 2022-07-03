@@ -135,11 +135,11 @@ public class GeneralTab {
 					configuration.setServerName(serverName.getText());
 				}
 			});
-			builder.addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("ServerName"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
-			appendProfileName.setToolTipText(Messages.getString("NetworkTab.73"));
+			appendProfileName = new JCheckBox(Messages.getString("AppendProfileName"), configuration.isAppendProfileName());
+			appendProfileName.setToolTipText(Messages.getString("WhenEnabledUmsProfileName"));
 			appendProfileName.setContentAreaFilled(false);
 			appendProfileName.addItemListener((ItemEvent e) -> {
 				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
@@ -162,7 +162,7 @@ public class GeneralTab {
 			xpos += 2;
 		}
 
-		showSplashScreen = new JCheckBox(Messages.getString("NetworkTab.74"), configuration.isShowSplashScreen());
+		showSplashScreen = new JCheckBox(Messages.getString("EnableSplashScreen"), configuration.isShowSplashScreen());
 		showSplashScreen.setContentAreaFilled(false);
 		showSplashScreen.addItemListener((ItemEvent e) -> {
 			configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED));
@@ -197,7 +197,7 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		hideAdvancedOptions = new JCheckBox(Messages.getString("NetworkTab.61"), configuration.isHideAdvancedOptions());
+		hideAdvancedOptions = new JCheckBox(Messages.getString("HideAdvancedOptions"), configuration.isHideAdvancedOptions());
 		hideAdvancedOptions.setContentAreaFilled(false);
 		hideAdvancedOptions.addActionListener((ActionEvent e) -> {
 			configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
@@ -233,7 +233,7 @@ public class GeneralTab {
 		ArrayList<Object> keyValues = new ArrayList<>();
 		ArrayList<Object> nameValues = new ArrayList<>();
 		keyValues.add("");
-		nameValues.add(Messages.getString("NetworkTab.37"));
+		nameValues.add(Messages.getString("UnknownRenderer"));
 
 		if (allConfs != null) {
 			sortRendererConfigurationsByName(allConfs);
@@ -259,7 +259,7 @@ public class GeneralTab {
 
 		if (!configuration.isHideAdvancedOptions()) {
 			// Edit UMS configuration file manually
-			CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
+			CustomJButton confEdit = new CustomJButton(Messages.getString("EditUmsConfigurationFileManually"));
 			confEdit.setToolTipText(configuration.getProfilePath());
 			confEdit.addActionListener((ActionEvent e) -> {
 				JPanel tPanel = new JPanel(new BorderLayout());
@@ -285,10 +285,10 @@ public class GeneralTab {
 				}
 
 				tPanel.add(scrollPane, BorderLayout.NORTH);
-				Object[] options = {Messages.getString("Save"), Messages.getString("NetworkTab.45")};
+				Object[] options = {Messages.getString("Save"), Messages.getString("Cancel")};
 
 				if (JOptionPane.showOptionDialog(looksFrame,
-					tPanel, Messages.getString("NetworkTab.51"),
+					tPanel, Messages.getString("EditUmsConfigurationFileManually"),
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
 					String text = textArea.getText();
@@ -300,7 +300,7 @@ public class GeneralTab {
 						}
 						configuration.reload();
 					} catch (Exception e1) {
-						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.52") + e1.toString());
+						JOptionPane.showMessageDialog(looksFrame, Messages.getString("ErrorSavingConfigFile") + e1.toString());
 					}
 				}
 			});
@@ -316,7 +316,7 @@ public class GeneralTab {
 			});
 
 			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
-			port.setToolTipText(Messages.getString("NetworkTab.64"));
+			port.setToolTipText(Messages.getString("IfServerCantFindRenderer"));
 			port.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -360,7 +360,7 @@ public class GeneralTab {
 			});
 
 			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
-			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
+			maxbitrate.setToolTipText(Messages.getString("AValue90Recommended"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -394,24 +394,24 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("UseIpFilter"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ipFilter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("MaximumBandwidthMbs"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(adaptBitrate), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("AdvancedHttpSystemSettings"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-			builder.addLabel(Messages.getString("NetworkTab.MediaServerEngine"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("MediaServerEngine"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final KeyedComboBoxModel<Integer, String> mediaServerEngineKcbm = new KeyedComboBoxModel<>();
 			mediaServerEngineKcbm.add(0, Messages.getString("Default"));
 			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
 			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
-			serverEngine.setToolTipText(Messages.getString("NetworkTab.MediaServerEngineTooltip"));
+			serverEngine.setToolTipText(Messages.getString("DefaultOptionIsHighlyRecommended"));
 			serverEngine.setEditable(false);
 			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
 			if (serverEngine.getSelectedIndex() == -1) {
@@ -431,10 +431,10 @@ public class GeneralTab {
 
 			boolean preventSleepSupported = SleepManager.isPreventSleepSupported();
 			if (preventSleepSupported) {
-				builder.addLabel(Messages.getString("NetworkTab.PreventSleepLabel"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+				builder.addLabel(Messages.getString("PreventSleep"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 				final KeyedComboBoxModel<PreventSleepMode, String> preventSleepModel = createPreventSleepModel();
 				preventSleep = new JComboBox<>(preventSleepModel);
-				preventSleep.setToolTipText(Messages.getString("NetworkTab.PreventSleepToolTip"));
+				preventSleep.setToolTipText(Messages.getString("DuringPlaybackPreventOperating"));
 				preventSleepModel.setSelectedKey(configuration.getPreventSleep());
 				preventSleep.addItemListener((ItemEvent e) -> {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -447,7 +447,7 @@ public class GeneralTab {
 
 			final SelectRenderers selectRenderers = new SelectRenderers();
 
-			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("EnabledRenderers"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("SelectRenderers"));
 			setRenderers.addActionListener((ActionEvent e) -> {
 				selectRenderers.showDialog();
@@ -456,7 +456,7 @@ public class GeneralTab {
 			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 			ypos += 2;
 
-			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("DefaultRendererWhenAutoFails"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
@@ -471,8 +471,8 @@ public class GeneralTab {
 			ypos += 2;
 
 			// External network box
-			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"), configuration.getExternalNetwork());
-			extNetBox.setToolTipText(Messages.getString("NetworkTab.67"));
+			extNetBox = new JCheckBox(Messages.getString("EnableExternalNetwork"), configuration.getExternalNetwork());
+			extNetBox.setToolTipText(Messages.getString("ThisControlsWhetherUmsTry"));
 			extNetBox.setContentAreaFilled(false);
 			extNetBox.addItemListener((ItemEvent e) -> {
 				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
@@ -538,7 +538,7 @@ public class GeneralTab {
 			} else {
 				// Update button text and tooltip
 				installService.setText(Messages.getString("InstallAsWindowsService"));
-				installService.setToolTipText(Messages.getString("NetworkTab.63"));
+				installService.setToolTipText(Messages.getString("NotRecommendedJustStartMinimized"));
 
 				// Remove all attached action listeners
 				for (ActionListener al : installService.getActionListeners()) {
@@ -605,7 +605,7 @@ public class GeneralTab {
 		ArrayList<String> keyValues = new ArrayList<>();
 		ArrayList<String> nameValues = new ArrayList<>();
 		keyValues.add("");
-		nameValues.add(Messages.getString("NetworkTab.37"));
+		nameValues.add(Messages.getString("UnknownRenderer"));
 
 		if (allConfs != null) {
 			sortRendererConfigurationsByName(allConfs);

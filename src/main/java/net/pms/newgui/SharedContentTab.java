@@ -90,7 +90,7 @@ public class SharedContentTab {
 	private SharedFoldersTableModel folderTableModel;
 	public static WebContentTableModel webContentTableModel;
 	public static JCheckBox itunes;
-	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("NetworkTab.StartupScan"));
+	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
 	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
 	private static final AnimatedIcon SCAN_NORMAL_ICON = (AnimatedIcon) SCAN_BUTTON.getIcon();
 	private static final AnimatedIcon SCAN_ROLLOVER_ICON = (AnimatedIcon) SCAN_BUTTON.getRolloverIcon();
@@ -729,7 +729,7 @@ public class SharedContentTab {
 
 		if (enabled) {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("NetworkTab.StartupScanTooltipEnabled"));
+			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisControlsUmsScanShared"));
 		} else {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(false);
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));

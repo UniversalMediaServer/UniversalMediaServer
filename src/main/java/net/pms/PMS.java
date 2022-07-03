@@ -1095,7 +1095,7 @@ public class PMS {
 				JOptionPane.showMessageDialog(
 					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
-					Messages.getString("PMS.42"),
+					Messages.getString("ErrorWhileStartingUms"),
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
@@ -1547,7 +1547,7 @@ public class PMS {
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
 				configuration.getDynamicPlsSavePath(),
 				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
 		}

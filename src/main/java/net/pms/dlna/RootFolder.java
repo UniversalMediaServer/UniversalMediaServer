@@ -498,7 +498,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(resources));
+			SearchFolder sf = new SearchFolder(Messages.getString("SearchDiscFolders"), new FileSearch(resources));
 			addChild(sf);
 		}
 
@@ -1074,7 +1074,7 @@ public class RootFolder extends DLNAResource {
 							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("BrowseByArtist"), null);
 							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("BrowseByAlbum"), null);
 							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("BrowseByGenre"), null);
-							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("PMS.11"), null);
+							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("AllAudioTracks"), null);
 							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							String artistName;
@@ -1158,7 +1158,7 @@ public class RootFolder extends DLNAResource {
 										if (individualArtistFolder == null) {
 											individualArtistFolder = new VirtualFolder(artistName, null);
 											virtualFolderArtists.addChild(individualArtistFolder);
-											individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("PMS.11"), null);
+											individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("AllAudioTracks"), null);
 											individualArtistFolder.addChild(individualArtistAllTracksFolder);
 										} else {
 											individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
@@ -1298,7 +1298,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private void addAdminFolder() {
-		DLNAResource res = new VirtualFolder(Messages.getString("PMS.131"), null);
+		DLNAResource res = new VirtualFolder(Messages.getString("ServerSettings"), null);
 		DLNAResource vsf = getVideoSettingsFolder();
 
 		if (vsf != null) {
@@ -1309,7 +1309,7 @@ public class RootFolder extends DLNAResource {
 			final File scriptDir = new File(configuration.getScriptDir());
 
 			if (scriptDir.exists()) {
-				res.addChild(new VirtualFolder(Messages.getString("PMS.132"), null) {
+				res.addChild(new VirtualFolder(Messages.getString("Scripts"), null) {
 					@Override
 					public void discoverChildren() {
 						File[] files = scriptDir.listFiles();
@@ -1349,11 +1349,11 @@ public class RootFolder extends DLNAResource {
 
 		// Resume file management
 		if (configuration.isResumeEnabled()) {
-			res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
+			res.addChild(new VirtualFolder(Messages.getString("ManageResumeFiles"), null) {
 				@Override
 				public void discoverChildren() {
 					final File[] files = ResumeObj.resumeFiles();
-					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+					addChild(new VirtualVideoAction(Messages.getString("DeleteAllFiles"), true) {
 						@Override
 						public boolean enable() {
 							for (File f : files) {
@@ -1380,7 +1380,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		// Reboot DMS
-		res.addChild(new VirtualVideoAction(Messages.getString("PMS.149"), true) {
+		res.addChild(new VirtualVideoAction(Messages.getString("RebootUms"), true) {
 			@Override
 			public boolean enable() {
 				ProcessUtil.reboot();
@@ -1401,8 +1401,8 @@ public class RootFolder extends DLNAResource {
 		DLNAResource res = null;
 
 		if (configuration.isShowServerSettingsFolder()) {
-			res = new VirtualFolder(Messages.getString("PMS.37"), null);
-			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
+			res = new VirtualFolder(Messages.getString("VideoSettings"), null);
+			VirtualFolder vfSub = new VirtualFolder(Messages.getString("Subtitles"), null);
 			res.addChild(vfSub);
 
 			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
@@ -1424,7 +1424,7 @@ public class RootFolder extends DLNAResource {
 				res.addChild(ce1);
 			}
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync()) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderNoOutOfSync(!configuration.isMencoderNoOutOfSync());
@@ -1432,7 +1432,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.14"), configuration.isMencoderMuxWhenCompatible()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("DefaultH264RemuxMencoder"), configuration.isMencoderMuxWhenCompatible()) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderMuxWhenCompatible(!configuration.isMencoderMuxWhenCompatible());
@@ -1450,7 +1450,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.4"), configuration.isMencoderYadif()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif()) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderYadif(!configuration.isMencoderYadif());
@@ -1505,7 +1505,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.27"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("SaveConfiguration"), true) {
 				@Override
 				public boolean enable() {
 					try {

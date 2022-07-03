@@ -750,15 +750,15 @@ public class WebInterfaceServerUtil {
 			while (i.hasNext()) {
 				if (genresFolder == null) {
 					// prepare to get IDs of certain metadata resources, to make them clickable
-					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.MediaLibrary"));
-					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true, true);
+					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
 					if (rootFolderChildren.isEmpty()) {
 						return null;
 					}
 					DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
 
-					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.34"));
-					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
+					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
 					DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 					boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();

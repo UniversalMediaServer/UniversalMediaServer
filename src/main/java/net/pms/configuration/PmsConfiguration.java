@@ -2313,7 +2313,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							Messages.getString("NetworkTab.58"),
+							Messages.getString("UmsMustRunAdministrator"),
 							Messages.getString("PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);

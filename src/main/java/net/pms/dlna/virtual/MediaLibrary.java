@@ -31,13 +31,13 @@ public class MediaLibrary extends VirtualFolder {
 	}
 
 	public MediaLibrary() {
-		super(Messages.getString("PMS.MediaLibrary"), "/images/folder-icons/media-library.png");
+		super(Messages.getString("MediaLibrary"), "/images/folder-icons/media-library.png");
 		init();
 	}
 
 	private void init() {
 		// Videos folder
-		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
+		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("Video"), null);
 
 		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 
@@ -56,18 +56,18 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("RecentlyAdded"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
-		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("AllVideos"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC",
 				sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}'" + unwatchedCondition + " ORDER BY FILENAME ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);
-		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(Messages.getString("PMS.39"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), sqlJoinStart + "FILES.FORMAT_TYPE = 32" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
+		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(Messages.getString("HdVideos"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(Messages.getString("SdVideos"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("DvdImages"), sqlJoinStart + "FILES.FORMAT_TYPE = 32" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
 
 		// The following block contains all videos regardless of fully played status
 		tvShowsFolder = new MediaLibraryFolder(
@@ -94,7 +94,7 @@ public class MediaLibrary extends VirtualFolder {
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(
-			Messages.getString("PMS.35"),
+			Messages.getString("AllVideos"),
 			"FORMAT_TYPE = 4 ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
@@ -114,7 +114,7 @@ public class MediaLibrary extends VirtualFolder {
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES WHERE FORMAT_TYPE = 4 ORDER BY FILES.MODIFIED DESC",
 				"FORMAT_TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILES.FILENAME ASC"
@@ -122,17 +122,17 @@ public class MediaLibrary extends VirtualFolder {
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT_WITH_FILTERS, MediaLibraryFolder.FILES}
 		);
 		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(
-			Messages.getString("PMS.36"),
+			Messages.getString("HdVideos"),
 			"FORMAT_TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)    ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(
-			Messages.getString("PMS.39"),
+			Messages.getString("SdVideos"),
 			"FORMAT_TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576) ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(
-			Messages.getString("PMS.40"),
+			Messages.getString("DvdImages"),
 			"FORMAT_TYPE = 32                                     ORDER BY FILENAME ASC",
 			MediaLibraryFolder.ISOS_WITH_FILTERS
 		);
@@ -175,30 +175,30 @@ public class MediaLibrary extends VirtualFolder {
 		}
 		addChild(vfVideo);
 
-		vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
-		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
+		vfAudio = new VirtualFolder(Messages.getString("Audio"), null);
+		allFolder = new MediaLibraryFolder(Messages.getString("AllAudioTracks"), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
 		vfAudio.addChild(allFolder);
-		playlistFolder = new MediaLibraryFolder(Messages.getString("PMS.9"), "select FILENAME, MODIFIED from FILES F WHERE F.FORMAT_TYPE = 16 ORDER BY F.FILENAME ASC", MediaLibraryFolder.PLAYLISTS);
+		playlistFolder = new MediaLibraryFolder(Messages.getString("AllAudioPlaylists"), "select FILENAME, MODIFIED from FILES F WHERE F.FORMAT_TYPE = 16 ORDER BY F.FILENAME ASC", MediaLibraryFolder.PLAYLISTS);
 		vfAudio.addChild(playlistFolder);
-		artistFolder = new MediaLibraryFolder(Messages.getString("PMS.13"), new String[]{"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY ARTIST ASC", "select FILENAME, MODIFIED  from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		artistFolder = new MediaLibraryFolder(Messages.getString("ByArtist"), new String[]{"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY ARTIST ASC", "select FILENAME, MODIFIED  from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(artistFolder);
-		albumFolder = new MediaLibraryFolder(Messages.getString("PMS.16"), new String[]{"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY A.ALBUM ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.ALBUM = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		albumFolder = new MediaLibraryFolder(Messages.getString("ByAlbum"), new String[]{"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY A.ALBUM ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.ALBUM = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(albumFolder);
-		genreFolder = new MediaLibraryFolder(Messages.getString("PMS.19"), new String[]{"SELECT DISTINCT A.GENRE FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY A.GENRE ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.GENRE = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		genreFolder = new MediaLibraryFolder(Messages.getString("ByGenre"), new String[]{"SELECT DISTINCT A.GENRE FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY A.GENRE ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.GENRE = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(genreFolder);
-		MediaLibraryFolder mlf6 = new MediaLibraryFolder(Messages.getString("PMS.22"), new String[]{
+		MediaLibraryFolder mlf6 = new MediaLibraryFolder(Messages.getString("ByArtistAlbum"), new String[]{
 				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY ARTIST ASC",
 				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}' ORDER BY A.ALBUM ASC",
 				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlf6);
-		MediaLibraryFolder mlf7 = new MediaLibraryFolder(Messages.getString("PMS.26"), new String[]{
+		MediaLibraryFolder mlf7 = new MediaLibraryFolder(Messages.getString("ByGenreArtistAlbum"), new String[]{
 				"SELECT DISTINCT A.GENRE FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY A.GENRE ASC",
 				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.GENRE = '${0}' ORDER BY ARTIST ASC",
 				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.GENRE = '${1}' AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}' ORDER BY A.ALBUM ASC",
 				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND A.GENRE = '${2}' AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
 		vfAudio.addChild(mlf7);
 		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MM d') FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 ORDER BY F.MODIFIED DESC",
 				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND FORMATDATETIME(MODIFIED, 'yyyy MM d') = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"
@@ -208,7 +208,7 @@ public class MediaLibrary extends VirtualFolder {
 		vfAudio.addChild(mlfAudioDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(
-			Messages.getString("PMS.28"),
+			Messages.getString("ByLetterArtistAlbum"),
 			new String[]{
 				"SELECT ID FROM REGEXP_RULES ORDER BY REGEXP_ORDER ASC",
 				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.FORMAT_TYPE = 1 AND ARTIST REGEXP (SELECT REGEXP_RULE FROM REGEXP_RULES WHERE ID = '${0}') ORDER BY ARTIST ASC",
@@ -220,15 +220,15 @@ public class MediaLibrary extends VirtualFolder {
 		vfAudio.addChild(mlf8);
 		addChild(vfAudio);
 
-		VirtualFolder vfImage = new VirtualFolder(Messages.getString("PMS.31"), null);
+		VirtualFolder vfImage = new VirtualFolder(Messages.getString("Photo"), null);
 		MediaLibraryFolder mlfPhoto01 = new MediaLibraryFolder(
-			Messages.getString("PMS.32"),
+			Messages.getString("AllPhotos"),
 			"FORMAT_TYPE = 2 ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES
 		);
 		vfImage.addChild(mlfPhoto01);
 		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MM d') FROM FILES WHERE FORMAT_TYPE = 2 ORDER BY MODIFIED DESC",
 				"FORMAT_TYPE = 2 AND FORMATDATETIME(MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILENAME ASC"

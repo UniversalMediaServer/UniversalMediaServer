@@ -164,7 +164,7 @@ public class NavigationShareTab {
 			builder.add(select,                                                          FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(dvdIsoThumbnails),                 FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"),              FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("FileSortingNaming"),              FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -180,7 +180,7 @@ public class NavigationShareTab {
 			builder.add(addVideoSuffix,                                                  FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
 			builder.add(GuiUtil.getPreferredSizeComponent(hideEngines),                  FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"),              FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
+			cmp = builder.addSeparator(Messages.getString("VirtualFoldersFiles"),              FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -571,8 +571,8 @@ public class NavigationShareTab {
 			configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
-		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
-		resume.setToolTipText(Messages.getString("NetworkTab.69"));
+		resume = new JCheckBox(Messages.getString("EnableVideoResuming"), configuration.isResumeEnabled());
+		resume.setToolTipText(Messages.getString("WhenEnabledPartiallyWatchVideo"));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener((ItemEvent e) -> {
 			configuration.setResume((e.getStateChange() == ItemEvent.SELECTED));

@@ -4672,7 +4672,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private String resumeStr(String s) {
 		if (isResume()) {
-			return Messages.getString("PMS.134") + ": " + s;
+			return Messages.getString("Resume") + ": " + s;
 		}
 		return s;
 	}
@@ -4967,13 +4967,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (dynamicPls == null) {
-			dynamicPls = new VirtualFolder(Messages.getString("PMS.147"), null);
+			dynamicPls = new VirtualFolder(Messages.getString("DynamicPlaylist_FolderName"), null);
 			addChildInternal(dynamicPls);
 			dynamicPls.addChild(dynPls);
 		}
 
 		if (dynamicPls != null) {
-			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
+			String str = Messages.getString("Add") + " " + child.getDisplayName() + " " + Messages.getString("ToDynamicPlaylist");
 			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
 
 				@Override
