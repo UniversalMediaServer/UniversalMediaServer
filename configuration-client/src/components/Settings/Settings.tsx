@@ -1,9 +1,11 @@
-import { Accordion, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import axios from 'axios';
+import { arrayMove, List } from 'react-movable';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import {getToolTipContent} from '../../utils';
@@ -11,7 +13,6 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -31,8 +32,8 @@ export default function Settings() {
     serverEngines: [],
     sortMethods: [],
     subtitlesInfoLevels: [],
-	transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
-	transcodingEnginesPurposes: [],
+    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
+    transcodingEnginesPurposes: [],
   });
 
   const i18n = useContext(I18nContext);
@@ -142,36 +143,69 @@ export default function Settings() {
     });
   }
 
-  const getTranscodingEnginesAccordionItems = () => {
-	return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
-      return (
-        <Accordion.Item label={i18n.getI18nString(value)}>
-          <Stack justify="flex-start" align="flex-start" spacing="xs">
-            {getTranscodingEnginesButtons(index)}
-          </Stack>
-        </Accordion.Item>);
-    });
+  const getTranscodingEnginesPriority = (purpose:number) => {
+    return form.getInputProps('engines_priority').value !== undefined ? form.getInputProps('engines_priority').value.filter((value: string) => 
+      selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose
+    ) : [];
   }
 
-  const getTranscodingEnginesPriority = (purpose:number) => {
-    return configuration['engines_priority'].filter((value: string) => 
-      selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose
+  const moveTranscodingEnginesPriority = (purpose:number, oldIndex:number, newIndex:number) => {
+    if (form.getInputProps('engines_priority').value instanceof Array<string>) {
+      var items = form.getInputProps('engines_priority').value as Array<string>;
+      let index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
+      let moveTo = index - oldIndex + newIndex;
+      form.setFieldValue('engines_priority', arrayMove(items, index, moveTo));
+    }
+  }
+
+  const getTranscodingEnginesList = (purpose:number) => {
+    const engines = getTranscodingEnginesPriority(purpose);
+    return engines.length > 1 ? (
+      <List
+        lockVertically
+        values={getTranscodingEnginesPriority(purpose)}
+        onChange={({ oldIndex, newIndex }) => {
+          moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
+        }}
+        renderList={({ children, props, isDragged }) => (
+          <Stack justify="flex-start" align="flex-start" spacing="xs" {...props}>
+            {children}
+          </Stack>
+        )}
+        renderItem={({ value, props, isDragged, isSelected }) => (
+          <Button {...props} color='gray' size="xs" compact
+            variant={isDragged || isSelected ? 'outline' : 'subtle'}
+            leftIcon={
+              <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+              </ActionIcon>
+            }
+            onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
+          >
+            {selectionSettings.transcodingEngines[value].name}
+          </Button>
+        )}
+      />
+    ) : (
+      <Stack justify="flex-start" align="flex-start" spacing="xs">
+        {engines.map((value: string) => (
+          <Button variant="subtle" color='gray' size="xs" compact
+            onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
+          >
+            {selectionSettings.transcodingEngines[value].name}
+          </Button>
+        ))}
+      </Stack>
     );
   }
 
-  const getTranscodingEnginesButtonsArrow = (index:number, tePriority:Array<string>) => {
-    const isFirst = index===0;
-    const isLast = index===tePriority.length - 1;
-    return isFirst ? isLast ? null : (<ArrowNarrowDown size={10} color={'grey'} />) : isLast ? (<ArrowNarrowUp size={10} color='grey' />) : (<ArrowsVertical size={10} color={'grey'} />);
-  }
-
-  const getTranscodingEnginesButtons = (purpose:number) => {
-    const tePriority = getTranscodingEnginesPriority(purpose);
-    return tePriority.map((value: string, index: number) => (
-      <Button variant="subtle" color='gray' leftIcon={getTranscodingEnginesButtonsArrow(index, tePriority)} size="xs" compact onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}>
-        {selectionSettings.transcodingEngines[value].name}
-      </Button>
-    ));
+  const getTranscodingEnginesAccordionItems = () => {
+    return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
+      return (
+        <Accordion.Item label={i18n.getI18nString(value)}>
+          {getTranscodingEnginesList(index)}
+        </Accordion.Item>);
+    });
   }
 
   const getTranscodingCommon = () => { return (<>
