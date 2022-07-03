@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -24,11 +22,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +37,6 @@ import net.pms.iam.Permissions;
 import net.pms.iam.User;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,8 +107,7 @@ public class AccountApiHandler implements HttpHandler {
 					//action requested on account (create/modify)
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
-						String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-						JsonObject action = jsonObjectFromString(reqBody);
+						JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
 						if (action == null || !action.has("operation") || !action.get("operation").isJsonPrimitive()) {
 							WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 							return;
@@ -156,8 +150,8 @@ public class AccountApiHandler implements HttpHandler {
 												String cuUsername = action.get("username").getAsString();
 												String cuPassword = action.get("password").getAsString();
 												String cuName;
-												if (action.has("name")) {
-													cuName = action.get("name").getAsString();
+												if (action.has("displayname")) {
+													cuName = action.get("displayname").getAsString();
 												} else {
 													cuName = cuUsername;
 												}
@@ -173,6 +167,7 @@ public class AccountApiHandler implements HttpHandler {
 												}
 												AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -217,6 +212,8 @@ public class AccountApiHandler implements HttpHandler {
 													}
 													AccountService.updateUser(connection, muUserId, muName, muGroupId);
 													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+													SseApiHandler.setRefreshSession(muUserId);
+													SseApiHandler.setUpdateAccounts();
 												} else {
 													//user does not exists
 													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
@@ -236,6 +233,8 @@ public class AccountApiHandler implements HttpHandler {
 											if (account.havePermission(Permissions.USERS_MANAGE)) {
 												AccountService.deleteUser(connection, duUserId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSession(duUserId);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
@@ -251,6 +250,7 @@ public class AccountApiHandler implements HttpHandler {
 												String cgName = action.get("name").getAsString();
 												AccountService.createGroup(connection, cgName);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -265,8 +265,11 @@ public class AccountApiHandler implements HttpHandler {
 											if (action.has("groupid") && action.has("name")) {
 												int mgGroupId = action.get("groupid").getAsInt();
 												String mgName = action.get("name").getAsString();
+												List<Integer> userIds = AccountService.getUserIdsForGroup(mgGroupId);
 												AccountService.updateGroup(connection, mgGroupId, mgName);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSessions(userIds);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -280,8 +283,11 @@ public class AccountApiHandler implements HttpHandler {
 											//we need groupid
 											if (action.has("groupid")) {
 												int dgGroupId = action.get("groupid").getAsInt();
+												List<Integer> userIds = AccountService.getUserIdsForGroup(dgGroupId);
 												AccountService.deleteGroup(connection, dgGroupId);
 												WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+												SseApiHandler.setRefreshSessions(userIds);
+												SseApiHandler.setUpdateAccounts();
 											} else {
 												WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 											}
@@ -304,8 +310,11 @@ public class AccountApiHandler implements HttpHandler {
 													}
 												}
 												if (upPermissions != null) {
-													AccountService.updatePermission(connection, upGroupId, upPermissions);
+													List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
+													AccountService.updatePermissions(connection, upGroupId, upPermissions);
 													WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+													SseApiHandler.setRefreshSessions(userIds);
+													SseApiHandler.setUpdateAccounts();
 												} else {
 													WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
 												}
@@ -337,25 +346,11 @@ public class AccountApiHandler implements HttpHandler {
 				LOGGER.error("RuntimeException in UserApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 			}
-		} catch (IOException e) {
-			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in UserApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
-	}
-
-	private static JsonObject jsonObjectFromString(String str) {
-		JsonObject jObject = null;
-		try {
-			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
-			if (jElem.isJsonObject()) {
-				jObject = jElem.getAsJsonObject();
-			}
-		} catch (JsonSyntaxException je) {
-		}
-		return jObject;
 	}
 
 	public static JsonObject accountToJsonObject(Account account) {

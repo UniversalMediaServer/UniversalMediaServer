@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +27,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,6 @@ import org.slf4j.LoggerFactory;
 public class StartHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	@SuppressWarnings("unused")
-	private static final String CRLF = "\r\n";
 
 	private final WebInterfaceServerHttpServer parent;
 
@@ -57,6 +54,11 @@ public class StartHandler implements HttpHandler {
 			}
 			if (t.getRequestURI().getPath().contains("favicon")) {
 				WebInterfaceServerUtil.sendLogo(t);
+				return;
+			}
+
+			//react app
+			if (ConfigurationClientHandler.handleApp(parent, t)) {
 				return;
 			}
 

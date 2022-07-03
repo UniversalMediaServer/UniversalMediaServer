@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -22,6 +20,8 @@ package net.pms.network.webinterfaceserver.configuration.handlers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
@@ -33,6 +33,11 @@ public class ConfigurationClientHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
 	public static final String BASE_PATH = "/configuration";
+	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
+		"/about",
+		"/accounts",
+		"/settings"
+	));
 
 	private final WebInterfaceServerHttpServer parent;
 
@@ -69,4 +74,17 @@ public class ConfigurationClientHandler implements HttpHandler {
 			LOGGER.trace("", e);
 		}
 	}
+
+	public static boolean handleApp(WebInterfaceServerHttpServer parent, HttpExchange exchange) throws IOException {
+		if (ROUTES.contains(exchange.getRequestURI().getPath())) {
+			if (!parent.getResources().write("react-app/index.html", exchange)) {
+				// The resource manager can't found or send the file, we need to send a response.
+				LOGGER.trace("ConfigurationClientHandler request not available : /index.html");
+				WebInterfaceServerUtil.respond(exchange, "<html><body>404 - File Not Found: " + exchange.getRequestURI().getPath() + "</body></html>", 404, "text/html");
+			}
+			return true;
+		}
+		return false;
+	}
+
 }

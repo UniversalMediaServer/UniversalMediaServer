@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -33,7 +31,6 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
 import org.apache.commons.io.IOUtils;
@@ -82,10 +79,6 @@ public class AuthApiHandler implements HttpHandler {
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
-//should be replaced to handle only sse
-								if (WebInterfaceServer.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
 								JsonObject jObject = new JsonObject();
 								jObject.add("token", new JsonPrimitive(token));
 								JsonElement jElement = gson.toJsonTree(account);
@@ -117,13 +110,13 @@ public class AuthApiHandler implements HttpHandler {
 					JsonObject jObject = new JsonObject();
 					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
 					if (account != null) {
-						jObject.add("firstLogin", new JsonPrimitive(false));
+						jObject.add("noAdminFound", new JsonPrimitive(false));
 						jObject.add("account", AccountApiHandler.accountToJsonObject(account));
 					}
-					if (!jObject.has("firstLogin")) {
+					if (!jObject.has("noAdminFound")) {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							jObject.add("firstLogin", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
+							jObject.add("noAdminFound", new JsonPrimitive(AccountService.hasNoAdmin(connection)));
 							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
@@ -145,11 +138,8 @@ public class AuthApiHandler implements HttpHandler {
 							Account account = AccountService.getAccountByUsername(connection, data.getUsername());
 							if (account != null && AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
-								if (AccountService.getAccountByUserId(account.getUser().getId()) == null) {
-									WebInterfaceServer.setAccount(account);
-								}
 								JsonObject jObject = new JsonObject();
-								jObject.add("firstLogin", new JsonPrimitive(false));
+								jObject.add("noAdminFound", new JsonPrimitive(false));
 								String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
 								jObject.add("token", new JsonPrimitive(token));
 								jObject.add("account", AccountApiHandler.accountToJsonObject(account));

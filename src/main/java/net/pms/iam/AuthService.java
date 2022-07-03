@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -36,12 +34,13 @@ public class AuthService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
+	private static final String JWT_ISSUER = "UMS";
 
 	public static String signJwt(int id, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			String token = JWT.create()
-					.withIssuer("UMS")
+					.withIssuer(JWT_ISSUER)
 					.withSubject(host)
 					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
 					.withClaim("id", id)
@@ -77,7 +76,7 @@ public class AuthService {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
-					.withIssuer("UMS")
+					.withIssuer(JWT_ISSUER)
 					.withSubject(host)
 					.build();
 			verifier.verify(token);
@@ -88,7 +87,7 @@ public class AuthService {
 		}
 	}
 
-	public static Account getAccountLoggedIn(String authHeader, String host) {
+	private static Account getAccountLoggedIn(String authHeader, String host) {
 		final String token = authHeader.replace("Bearer ", "");
 		if (isValidToken(token, host)) {
 			int userId = getUserIdFromJWT(token);

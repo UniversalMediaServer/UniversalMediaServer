@@ -1,10 +1,12 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import React, { useContext } from 'react';
-import { Trash, Settings, Lock, Refresh } from 'tabler-icons-react';
+import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
+
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { sendAction } from '../../services/actions-service';
-import { havePermission } from '../../services/account-service';
+import { havePermission } from '../../services/accounts-service';
+import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
@@ -18,7 +20,7 @@ function UserMenu() {
     <Menu
       control={
         <ActionIcon variant="default" size={30}>
-          <Settings size={16} />
+          <Menu2 size={16} />
         </ActionIcon>
       }
     >
@@ -28,30 +30,39 @@ function UserMenu() {
           icon={<Refresh size={14} />}
           onClick={restartServer}
         >
-          {i18n['LooksFrame.12']}
+          {i18n.get['LooksFrame.12']}
+        </Menu.Item>
+      )}
+      {havePermission(session, "settings_view")  && (
+        <Menu.Item
+          icon={<Settings size={14} />}
+          onClick={() => { window.location.href = '/settings'; }}
+        >
+          {i18n.get['PMS.131']}
         </Menu.Item>
       )}
       <Menu.Item
-        icon={<Lock size={14} />}
-        onClick={() => {
-          window.location.href = '/accounts';
-        }}
-      >{havePermission(session, "users_manage") ? 'Manage accounts' : 'My account'}</Menu.Item>
+        icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
+        onClick={() => { window.location.href = '/accounts'; }}
+      >
+        {havePermission(session, "users_manage") ? i18n.get['WebGui.UserMenuManageAccounts'] : i18n.get['WebGui.UserMenuManageAccount']}
+      </Menu.Item>
       <Menu.Item
-        icon={<Lock size={14} />}
-        onClick={() => {
-          window.location.href = '/changepassword';
-        }}
-      >Change password</Menu.Item>
+        color="yellow"
+        icon={<InfoCircle size={14} />}
+        onClick={() => { window.location.href = '/about'; }}
+      >
+        {i18n.getI18nString("About")}
+      </Menu.Item>
       <Menu.Item
         color="red"
-        icon={<Trash size={14} />}
+        icon={<Logout size={14} />}
         onClick={() => {
-          localStorage.removeItem('user');
-          window.location.reload();
-          }
-        }
-        >Log out</Menu.Item>
+          redirectToLogin();
+        }}
+      >
+        {i18n.get['WebGui.ButtonLogout']}
+      </Menu.Item>
     </Menu>
   );
 }

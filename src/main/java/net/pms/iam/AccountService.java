@@ -1,9 +1,7 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -21,6 +19,7 @@ package net.pms.iam;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -148,23 +147,23 @@ public class AccountService {
 		createUser(connection, username, password, username, 0);
 	}
 
-	public static void createUser(final Connection connection, final String username, final String password, final String name) {
-		createUser(connection, username, password, name, 0);
+	public static void createUser(final Connection connection, final String username, final String password, final String displayName) {
+		createUser(connection, username, password, displayName, 0);
 	}
 
 	public static void createUser(final Connection connection, final String username, final String password, final int groupId) {
 		createUser(connection, username, password, username, groupId);
 	}
 
-	public static void createUser(final Connection connection, final String username, final String password, final String name, final int groupId) {
+	public static void createUser(final Connection connection, final String username, final String password, final String displayName, final int groupId) {
 		LOGGER.info("Creating user: {}", username);
-		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(name, 255), groupId);
+		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(displayName, 255), groupId);
 	}
 
-	public static void updateUser(final Connection connection, final int userId, final String name, final int groupId) {
+	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId) {
 		LOGGER.info("Updating user id : {}", userId);
-		if (UserTableUsers.updateUser(connection, userId, name, groupId) && USERS.containsKey(userId)) {
-			USERS.get(userId).setDisplayName(name);
+		if (UserTableUsers.updateUser(connection, userId, displayName, groupId) && USERS.containsKey(userId)) {
+			USERS.get(userId).setDisplayName(displayName);
 			USERS.get(userId).setGroupId(groupId);
 		}
 	}
@@ -227,34 +226,10 @@ public class AccountService {
 		}
 	}
 
-	public static void updatePermission(final Connection connection, final int groupId, final List<String> permissions) {
+	public static void updatePermissions(final Connection connection, final int groupId, final List<String> permissions) {
 		LOGGER.info("Updating permissions to group id {}", groupId);
 		if (UserTablePermissions.updateGroup(connection, groupId, permissions) && GROUPS.containsKey(groupId)) {
 			GROUPS.get(groupId).setPermissions(permissions);
-		}
-	}
-
-	public static void grantPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Granting permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
-		if (!account.havePermission(name)) {
-			account.getGroup().getPermissions().add(name);
-			UserTablePermissions.insert(connection, account.getGroup().getId(), name);
-		} else {
-			LOGGER.info("Permission '{}' already granted to group '{}'", name, account.getGroup().getDisplayName());
-		}
-	}
-
-	public static void denyPermission(final Connection connection, final Account account, final String name) {
-		LOGGER.info("Denying permission '{}' to group '{}'", name, account.getGroup().getDisplayName());
-		if (account.havePermission(name)) {
-			if (account.havePermission(Permissions.ALL)) {
-				LOGGER.info("Permission '{}' could not be denied to group '{}' with full permissions", name, account.getGroup().getDisplayName());
-			} else {
-				account.getGroup().getPermissions().remove(name);
-				UserTablePermissions.remove(connection, account.getGroup().getId(), name);
-			}
-		} else {
-			LOGGER.info("Permission '{}' already denied to group '{}'", name, account.getGroup().getDisplayName());
 		}
 	}
 
@@ -293,5 +268,15 @@ public class AccountService {
 			UserDatabase.close(connection);
 		}
 		return GROUPS.values();
+	}
+
+	public static List<Integer> getUserIdsForGroup(int groupId) {
+		List<Integer> userIds = new ArrayList<>();
+		for (User user : USERS.values()) {
+			if (user.getGroupId() == groupId) {
+				userIds.add(user.getId());
+			}
+		}
+		return userIds;
 	}
 }

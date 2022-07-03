@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +25,6 @@ import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.RootFolder;
-import net.pms.iam.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +32,6 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
-	protected static final Map<Integer, Account> ACCOUNTS = new HashMap<>();
 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
@@ -89,19 +85,9 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 		return webServer.isSecure();
 	}
 
-	public static Account getAccountByUserId(int id) {
-		if (ACCOUNTS.containsKey(id)) {
-			return ACCOUNTS.get(id);
-		}
-		return null;
-	}
-
-	public static void setAccount(Account account) {
-		ACCOUNTS.put(account.getUser().getId(), account);
-	}
-
 	public static WebInterfaceServer createServer(int port) throws IOException {
 		LOGGER.debug("Using httpserver as web interface server");
 		return new WebInterfaceServerHttpServer(port);
 	}
+
 }
