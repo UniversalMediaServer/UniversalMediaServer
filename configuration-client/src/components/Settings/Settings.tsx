@@ -1,4 +1,4 @@
-import { Accordion, Modal, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Modal, Box, Button, Checkbox, Container, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import _ from 'lodash';
@@ -12,6 +12,20 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+
+const int32toRgb = (int: string) => {
+  const num = Number(int);
+    return {
+        a: (num >> 24) & 0xFF,
+        b: (num >> 16) & 0xFF,
+        g: (num >> 8) & 0xFF,
+        r: num & 0xFF
+    };
+}
+
+const rgbToInt32 = (rgb: any) => {
+  return (rgb.a << 24 | rgb.b << 16 | rgb.g << 8 | rgb.r) >>> 0
+}
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -37,7 +51,8 @@ export default function Settings() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
-  
+
+  // todo retrieve from server
   const subtitlesCodepage = [
     { label: i18n.get['Generic.AutoDetect'], value: ''},
     { label: i18n.get['CharacterSet.874'], value: 'cp874'},
@@ -144,8 +159,6 @@ export default function Settings() {
         setLoading(false);
       });
   }, [canView, formSetValues]);
-
-  const [subtitleColor, setSubtitleColor] = useState(defaultConfiguration.subtitles_color);
 
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
@@ -345,166 +358,179 @@ export default function Settings() {
         />
         </Tabs.Tab>
         <Tabs.Tab label={i18n.get['MEncoderVideo.8']}>
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.76'])} {...defaultTooltipSettings}>
-                        <TextInput
-                          label={i18n.get['MEncoderVideo.9']}
-                          sx={{ flex: 1 }}
-                          size="xs"
-                          {...form.getInputProps('subtitles_languages')}
-                        />
-                      </Tooltip>
-                      <TextInput
-                        label={i18n.get['MEncoderVideo.94']}
-                        sx={{ flex: 1 }}
-                        size="xs"
-                        {...form.getInputProps('forced_subtitle_language')}
-                      />
-                      <TextInput
-                        label={i18n.get['MEncoderVideo.95']}
-                        sx={{ flex: 1 }}
-                        size="xs"
-                        {...form.getInputProps('forced_subtitle_tags')}
-                      />
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.77'])} {...defaultTooltipSettings}>
-                        <TextInput
-                          label={i18n.get['MEncoderVideo.10']}
-                          sx={{ flex: 1 }}
-                          size="xs"
-                          {...form.getInputProps('audio_subtitles_languages')}
-                        />
-                      </Tooltip>
-                      <DirectoryChooser
-                        path={form.getInputProps('alternate_subtitles_folder').value}
-                        callback={form.setFieldValue}
-                        label={i18n.get['MEncoderVideo.37']}
-                        formKey="alternate_subtitles_folder"
-                      ></DirectoryChooser>
-                      <Select
-                        label={i18n.get['TrTab2.95']}
-                        data={subtitlesCodepage}
-                        {...form.getInputProps('subtitles_codepage')}
-                      />
-                      <Space h="xs" />
-                      <Checkbox
-                        size="xs"
-                        label={i18n.get['MEncoderVideo.23']}
-                        {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
-                      />
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.97'])} {...defaultTooltipSettings}>
-                        <DirectoryChooser
-                          path={form.getInputProps('subtitles_font').value}
-                          callback={form.setFieldValue}
-                          label={i18n.get['MEncoderVideo.24']}
-                          formKey="subtitles_font"
-                        ></DirectoryChooser>
-                      </Tooltip>
-                      <Text>{i18n.get['MEncoderVideo.12']}</Text>
-                      <Space h="xs" />
-                      <Grid>
-                        <Grid.Col span={3}>
-                          <TextInput
-                            label={i18n.get['MEncoderVideo.133']}
-                            sx={{ flex: 1 }}
-                            size="xs"
-                            {...form.getInputProps('subtitles_ass_scale')}
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={3}>
-                          <NumberInput
-                            label={i18n.get['MEncoderVideo.13']}
-                            size="xs"
-                            disabled={!canModify}
-                            {...form.getInputProps('mencoder_noass_outline')}
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={3}>
-                          <NumberInput
-                              label={i18n.get['MEncoderVideo.14']}
-                              size="xs"
-                              disabled={!canModify}
-                              {...form.getInputProps('subtitles_ass_shadow')}
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={3}>
-                          <NumberInput
-                              label={i18n.get['MEncoderVideo.15']}
-                              size="xs"
-                              disabled={!canModify}
-                              {...form.getInputProps('subtitles_ass_margin')}
-                          />
-                        </Grid.Col>
-                      </Grid>
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.78'])} {...defaultTooltipSettings}>
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['MEncoderVideo.22']}
-                          {...form.getInputProps('autoload_external_subtitles', { type: 'checkbox' })}
-                        />
-                      </Tooltip>
-                      <Space h="xs" />
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.88'])} {...defaultTooltipSettings}>
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['TrTab2.87']}
-                          {...form.getInputProps('force_external_subtitles', { type: 'checkbox' })}
-                        />
-                      </Tooltip>
-                      <Space h="xs" />
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.89'])} {...defaultTooltipSettings}>
-                        <Checkbox
-                          size="xs"
-                          label={i18n.get['MEncoderVideo.36']}
-                          {...form.getInputProps('use_embedded_subtitles_style', { type: 'checkbox' })}
-                        />
-                      </Tooltip>
-                      <Space h="xs" />
-                      <Modal size="sm"
-                        title={i18n.get['MEncoderVideo.31']}
-                        opened={opened}
-                        onClose={() => setOpened(false)}
-                      >
-                         <Group position="center" direction="column">
-                          <SketchPicker
-                            color={subtitleColor}
-                            onChange={(color)=> {setSubtitleColor(color.hex); form.setFieldValue('subtitles_color', color.hex)}}
-                          ></SketchPicker>
-                          <Text>{subtitleColor}</Text>
-                        </Group>
-                      </Modal>
-                      <Grid>
-                        <Grid.Col span={4}>
-                        <Button
-                          disabled={!canModify}
-                          size="xs"
-                          onClick={() => { setOpened(true); }}
-                        >{i18n.get['MEncoderVideo.31']}</Button>
-                        </Grid.Col>
-                        <Grid.Col span={8}> <Text>{subtitleColor}</Text></Grid.Col>
-                      </Grid>
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
-                        <Checkbox
-                          disabled={!canModify}
-                          size="xs"
-                          label={i18n.get['TrTab2.DeleteLiveSubtitles']}
-                          {...form.getInputProps('live_subtitles_keep', { type: 'checkbox' })}
-                        />
-                      </Tooltip>
-                      <Space h="xs" />
-                      <Tooltip label={getToolTipContent(i18n.get['TrTab2.LiveSubtitlesLimitTooltip'])} {...defaultTooltipSettings}>
-                        <NumberInput
-                          label={i18n.get['TrTab2.LiveSubtitlesLimit']}
-                          size="xs"
-                          disabled={!canModify}
-                          {...form.getInputProps('live_subtitles_limit')}
-                        />
-                        </Tooltip>
-                        <Select
-                          disabled={!canModify}
-                          label={i18n.get['TrTab2.90']}
-                          data={threeDSubs}
-                          {...form.getInputProps('3d_subtitles_depth')}
-                        />
-                    </Tabs.Tab>
+          <Tooltip label={getToolTipContent(i18n.get['TrTab2.76'])} {...defaultTooltipSettings}>
+            <TextInput
+              label={i18n.get['MEncoderVideo.9']}
+              sx={{ flex: 1 }}
+              size="xs"
+              {...form.getInputProps('subtitles_languages')}
+            />
+          </Tooltip>
+          <TextInput
+            label={i18n.get['MEncoderVideo.94']}
+            sx={{ flex: 1 }}
+            size="xs"
+            {...form.getInputProps('forced_subtitle_language')}
+          />
+          <TextInput
+            label={i18n.get['MEncoderVideo.95']}
+            sx={{ flex: 1 }}
+            size="xs"
+            {...form.getInputProps('forced_subtitle_tags')}
+          />
+          <Tooltip label={getToolTipContent(i18n.get['TrTab2.77'])} {...defaultTooltipSettings}>
+            <TextInput
+              label={i18n.get['MEncoderVideo.10']}
+              sx={{ flex: 1 }}
+              size="xs"
+              {...form.getInputProps('audio_subtitles_languages')}
+            />
+          </Tooltip>
+          <DirectoryChooser
+            path={form.getInputProps('alternate_subtitles_folder').value}
+            callback={form.setFieldValue}
+            label={i18n.get['MEncoderVideo.37']}
+            formKey="alternate_subtitles_folder"
+          ></DirectoryChooser>
+          <Select
+            label={i18n.get['TrTab2.95']}
+            data={subtitlesCodepage}
+            {...form.getInputProps('subtitles_codepage')}
+          />
+          <Space h="xs" />
+          <Checkbox
+            size="xs"
+            label={i18n.get['MEncoderVideo.23']}
+            {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
+          />
+          <DirectoryChooser
+            tooltipText={i18n.get['TrTab2.97']}
+            path={form.getInputProps('subtitles_font').value}
+            callback={form.setFieldValue}
+            label={i18n.get['MEncoderVideo.24']}
+            formKey="subtitles_font"
+          ></DirectoryChooser>
+          <Text>{i18n.get['MEncoderVideo.12']}</Text>
+          <Space h="xs" />
+          <Grid>
+            <Grid.Col span={3}>
+              <TextInput
+                label={i18n.get['MEncoderVideo.133']}
+                sx={{ flex: 1 }}
+                size="xs"
+                {...form.getInputProps('subtitles_ass_scale')}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <NumberInput
+                label={i18n.get['MEncoderVideo.13']}
+                size="xs"
+                disabled={!canModify}
+                {...form.getInputProps('mencoder_noass_outline')}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <NumberInput
+                  label={i18n.get['MEncoderVideo.14']}
+                  size="xs"
+                  disabled={!canModify}
+                  {...form.getInputProps('subtitles_ass_shadow')}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <NumberInput
+                  label={i18n.get['MEncoderVideo.15']}
+                  size="xs"
+                  disabled={!canModify}
+                  {...form.getInputProps('subtitles_ass_margin')}
+              />
+            </Grid.Col>
+          </Grid>
+          <Tooltip label={getToolTipContent(i18n.get['TrTab2.78'])} {...defaultTooltipSettings}>
+            <Checkbox
+              size="xs"
+              label={i18n.get['MEncoderVideo.22']}
+              {...form.getInputProps('autoload_external_subtitles', { type: 'checkbox' })}
+            />
+          </Tooltip>
+          <Space h="xs" />
+          <Tooltip label={getToolTipContent(i18n.get['TrTab2.88'])} {...defaultTooltipSettings}>
+            <Checkbox
+              size="xs"
+              label={i18n.get['TrTab2.87']}
+              {...form.getInputProps('force_external_subtitles', { type: 'checkbox' })}
+            />
+          </Tooltip>
+          <Space h="xs" />
+          <Tooltip label={getToolTipContent(i18n.get['TrTab2.89'])} {...defaultTooltipSettings}>
+            <Checkbox
+              size="xs"
+              label={i18n.get['MEncoderVideo.36']}
+              {...form.getInputProps('use_embedded_subtitles_style', { type: 'checkbox' })}
+            />
+          </Tooltip>
+          <Space h="xs" />
+          <Modal size="sm"
+            title={i18n.get['MEncoderVideo.31']}
+            opened={opened}
+            onClose={() => setOpened(false)}
+          >
+            <Group position="center" direction="column">
+              <SketchPicker
+                color={int32toRgb(form.getInputProps('subtitles_color').value)}
+                onChange={(color)=> {form.setFieldValue('subtitles_color', rgbToInt32(color.rgb))}}
+              ></SketchPicker>
+              <Button
+                size="xs"
+                onClick={() => { setOpened(false); }}
+              >{i18n.get['Dialog.Confirm']}</Button>
+          </Group>
+        </Modal>
+        <Grid>
+          <Grid.Col span={4}>
+          <Button
+            disabled={!canModify}
+            size="xs"
+            onClick={() => { setOpened(true); }}
+          >{i18n.get['MEncoderVideo.31']}</Button>
+          </Grid.Col>
+          <Grid.Col span={8}>
+            <Container style={{
+                padding: '15px',
+                background: form.getInputProps('subtitles_color').value,
+                borderRadius: '1px',
+                boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
+                display: 'inline-block',
+                cursor: 'pointer',
+                }}
+                onClick={() => { setOpened(true); }}
+              ></Container>
+          </Grid.Col>
+        </Grid>
+        <Tooltip label={getToolTipContent(i18n.get['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['TrTab2.DeleteLiveSubtitles']}
+            {...form.getInputProps('live_subtitles_keep', { type: 'checkbox' })}
+          />
+        </Tooltip>
+        <Space h="xs" />
+        <Tooltip label={getToolTipContent(i18n.get['TrTab2.LiveSubtitlesLimitTooltip'])} {...defaultTooltipSettings}>
+          <NumberInput
+            label={i18n.get['TrTab2.LiveSubtitlesLimit']}
+            size="xs"
+            disabled={!canModify}
+            {...form.getInputProps('live_subtitles_limit')}
+          />
+        </Tooltip>
+        <Select
+          disabled={!canModify}
+          label={i18n.get['TrTab2.90']}
+          data={threeDSubs}
+          {...form.getInputProps('3d_subtitles_depth')}
+        />
+        </Tabs.Tab>
       </Tabs>
     </>);
   }

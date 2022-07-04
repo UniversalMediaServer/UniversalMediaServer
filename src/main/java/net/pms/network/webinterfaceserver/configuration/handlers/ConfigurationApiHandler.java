@@ -292,6 +292,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("show_splash_screen", true);
 		jObj.addProperty("sort_method", "4");
 		jObj.addProperty("subs_info_level", "basic");
+		jObj.addProperty("subtitles_color","0xFFFFFFFF");
 		jObj.addProperty("thumbnail_seek_position", "4");
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
