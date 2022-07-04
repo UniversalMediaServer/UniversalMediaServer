@@ -291,7 +291,7 @@ public class StatusTab {
 		CellConstraints cc = new CellConstraints();
 
 		// Renderers
-		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("DetectedMediaRenderers"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		Font bold = cmp.getFont().deriveFont(Font.BOLD);
 		Color fgColor = new Color(68, 68, 68);
@@ -322,20 +322,20 @@ public class StatusTab {
 		// Set initial connection state
 		setConnectionState(ConnectionState.SEARCHING);
 
-		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.Servers") + "</b></html>");
+		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);
 		connectionBuilder.add(mediaServerLabel, FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
 		mediaServerBindLabel = new JLabel("-");
 		mediaServerBindLabel.setForeground(fgColor);
 		mediaServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		mediaServerBindLabel.addMouseListener(new ServerBindMouseListener(mediaServerBindLabel));
-		mediaServerBindLabel.setToolTipText(Messages.getString("StatusTab.MediaServerTooltip"));
+		mediaServerBindLabel.setToolTipText(Messages.getString("MediaServerIpAddress"));
 		connectionBuilder.add(mediaServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 3, "left, top"), conColSpec, orientation));
 		interfaceServerBindLabel = new JLabel("-");
 		interfaceServerBindLabel.setForeground(fgColor);
 		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
-		interfaceServerBindLabel.setToolTipText(Messages.getString("StatusTab.InterfaceServerTooltip"));
+		interfaceServerBindLabel.setToolTipText(Messages.getString("InterfaceServerIpAddress"));
 		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
 		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
@@ -349,9 +349,9 @@ public class StatusTab {
 		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
 		memoryProgressBar.setStringPainted(true);
 		memoryProgressBar.setForeground(new Color(75, 140, 181));
-		memoryProgressBar.setString(Messages.getString("StatusTab.5"));
+		memoryProgressBar.setString(Messages.getString("Empty"));
 
-		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("StatusTab.6") + "</b> (" + Messages.getString("StatusTab.12") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 		mem.setForeground(fgColor);
 		builder.add(memoryProgressBar, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
 
@@ -359,11 +359,11 @@ public class StatusTab {
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
 		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
 
-		bitrateLabel = new JLabel("<html><b>" + Messages.getString("StatusTab.13") + "</b> (" + Messages.getString("StatusTab.11") + ")</html>");
+		bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
-		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.14"));
+		currentBitrateLabel = new JLabel(Messages.getString("Current"));
 		currentBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
@@ -371,7 +371,7 @@ public class StatusTab {
 		currentBitrate.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
-		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.15"));
+		peakBitrateLabel = new JLabel(Messages.getString("Peak"));
 		peakBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 

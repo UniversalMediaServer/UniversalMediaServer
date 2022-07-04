@@ -218,10 +218,10 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON:
 							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
 								"");
-							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("Search.AllFiles"),
+							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
-							DLNAResource albums = new VirtualFolderDbId(Messages.getString("Search.ByAlbum"),
+							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 							break;

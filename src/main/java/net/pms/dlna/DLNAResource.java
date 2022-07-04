@@ -1643,22 +1643,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							nameSuffixBuilder.append(subtitleLanguage);
 						}
-						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles.LowerCase"));
+						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles_lowercase"));
 					} else if (subsInfoLevel == SubtitlesInfoLevel.FULL) {
 						if (subsAreValidForStreaming) {
 							nameSuffixBuilder.append(Messages.getString("Stream")).append(" ");
 						}
 
 						if (mediaSubtitle.isExternal()) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.ExternalShort")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("External_abbr")).append(" ");
 						} else if (mediaSubtitle.isEmbedded()) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.InternalShort")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("Internal_abbr")).append(" ");
 						}
 						nameSuffixBuilder.append(Messages.getString("Sub"));
 						nameSuffixBuilder.append(mediaSubtitle.getType().getShortName()).append("/");
 
 						if ("Undetermined".equals(subtitleLanguage)) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.UnknownShort"));
+							nameSuffixBuilder.append(Messages.getString("Unknown_abbr"));
 						} else {
 							nameSuffixBuilder.append(subtitleLanguage);
 						}

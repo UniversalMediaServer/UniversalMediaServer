@@ -73,7 +73,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
+		noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener(new ItemListener() {
 			@Override
