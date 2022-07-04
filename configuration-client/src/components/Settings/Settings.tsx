@@ -1,4 +1,4 @@
-import { Accordion, Modal, Container, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Modal, Container, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -14,20 +14,6 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
-
-const int32toRgb = (int: string) => {
-  const num = Number(int);
-    return {
-        a: (num >> 24) & 0xFF,
-        b: (num >> 16) & 0xFF,
-        g: (num >> 8) & 0xFF,
-        r: num & 0xFF
-    };
-}
-
-const rgbToInt32 = (rgb: any) => {
-  return (rgb.a << 24 | rgb.b << 16 | rgb.g << 8 | rgb.r) >>> 0
-}
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -453,7 +439,7 @@ export default function Settings() {
             label={i18n.get['MEncoderVideo.24']}
             formKey="subtitles_font"
           ></DirectoryChooser>
-          <Text>{i18n.get['MEncoderVideo.12']}</Text>
+          <Text size="xs">{i18n.get['MEncoderVideo.12']}</Text>
           <Space h="xs" />
           <Grid>
             <Grid.Col span={3}>
@@ -520,8 +506,8 @@ export default function Settings() {
           >
             <Group position="center" direction="column">
               <SketchPicker
-                color={int32toRgb(form.getInputProps('subtitles_color').value)}
-                onChange={(color)=> {form.setFieldValue('subtitles_color', rgbToInt32(color.rgb))}}
+                color={form.getInputProps('subtitles_color').value}
+                onChange={(color)=> {form.setFieldValue('subtitles_color', color.hex)}}
               ></SketchPicker>
               <Button
                 size="xs"
@@ -531,23 +517,23 @@ export default function Settings() {
         </Modal>
         <Grid>
           <Grid.Col span={4}>
-          <Button
-            disabled={!canModify}
-            size="xs"
-            onClick={() => { setOpened(true); }}
-          >{i18n.get['MEncoderVideo.31']}</Button>
+            <Center inline>
+              <Button
+                disabled={!canModify}
+                size="xs"
+                onClick={() => { setOpened(true); }}
+              >{i18n.get['MEncoderVideo.31']}</Button>
+            </Center>
           </Grid.Col>
           <Grid.Col span={8}>
-            <Container style={{
-                padding: '15px',
-                background: form.getInputProps('subtitles_color').value,
-                borderRadius: '1px',
-                boxShadow: '0 0 0 1px rgba(0,0,0,.1)',
-                display: 'inline-block',
-                cursor: 'pointer',
-                }}
-                onClick={() => { setOpened(true); }}
-              ></Container>
+            <Center inline>
+              <TextInput
+                label={i18n.get['MEncoderVideo.31']}
+                sx={{ flex: 1 }}
+                size="xs"
+                {...form.getInputProps('subtitles_color')}
+              />
+            </Center>
           </Grid.Col>
         </Grid>
         <Tooltip label={getToolTipContent(i18n.get['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
