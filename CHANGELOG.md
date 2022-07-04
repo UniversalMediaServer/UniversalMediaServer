@@ -1,5 +1,27 @@
 # Changelog
 
+### [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
+
+### General
+- Added a release for Apple ARM (Apple Silicon, M1/M2) processors, for 3x faster transcoding
+- Added renderer option SendDateMetadataYearForAudioTags
+- Added netbeans git exclusions for developers
+- Media Library Movies folders ignore files with durations under 40 minutes
+- Fixed broken browsing on some renderers
+- Fixed audio playback on web interface
+- Cleanup old transcoding engines
+- Removed dead code and language terms
+
+### Dependencies
+- Update assertj to v3.23.1
+- Update checkstyle to v10.3.1
+- Update h2database to v2.1.214
+- Update jna to v5.12.1
+- Update JRE to 17.0.3.1
+- Update maven-assembly-plugin to v3.4.0
+- Update oshi to v6.2.1
+- Update pako to v2
+
 ### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
 
 ### General

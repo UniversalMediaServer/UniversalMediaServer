@@ -86,8 +86,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 28: No db changes, clear database metadata to populate new columns
 	 * - 29-30: No db changes, improved filename parsing
 	 * - 31: Redo the changes from version 27 because the versioning got muddled
+	 * - 32: Added an index for the Media Library Movies folder that includes duration
 	 */
-	private static final int TABLE_VERSION = 31;
+	private static final int TABLE_VERSION = 32;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -317,6 +318,12 @@ public class MediaTableFiles extends MediaTable {
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
+					case 31:
+						executeUpdate(connection, "DROP INDEX IF EXISTS FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY");
+						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV_YEAR_DURATION_STEREOSCOPY on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MEDIA_YEAR, DURATION, STEREOSCOPY)");
+
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+						break;
 					default:
 						// Do the dumb way
 						force = true;
@@ -430,8 +437,8 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_NAME_SEASON");
 			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_NAME_SEASON on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
 
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MEDIA_YEAR, STEREOSCOPY)");
+			LOGGER.trace("Creating index for Media Library Movies (2D and 3D): FORMAT_TYPE_ISTV_YEAR_DURATION_STEREOSCOPY");
+			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_YEAR_DURATION_STEREOSCOPY on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MEDIA_YEAR, DURATION, STEREOSCOPY)");
 
 			LOGGER.trace("Creating index FORMAT_TYPE_WIDTH_HEIGHT");
 			statement.execute("CREATE INDEX FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");

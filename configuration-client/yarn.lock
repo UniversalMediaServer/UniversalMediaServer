@@ -10767,6 +10767,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-movable@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "react-movable@npm:3.0.4"
+  peerDependencies:
+    react: ">=16.3"
+    react-dom: ">=16.3"
+  checksum: 1da4eedde1995f2a56fe60fb301c60fad6df3ee1bae47357ff2d7c9a3b9270d2c953f08e666ef07eb7486a2ab029f8fdfd357faa6dedd5665ba2b4af9360bed7
+  languageName: node
+  linkType: hard
+
 "react-popper@npm:^2.2.5":
   version: 2.3.0
   resolution: "react-popper@npm:2.3.0"
@@ -12505,6 +12515,7 @@ __metadata:
     react-color: ^2.19.3
     react-country-flag: ^3.0.2
     react-dom: ^18.2.0
+    react-movable: ^3.0.4
     react-router-dom: ^6.3.0
     react-scripts: ^5.0.1
     stylis: ^4.1.1
