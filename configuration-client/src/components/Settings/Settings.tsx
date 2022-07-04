@@ -33,6 +33,8 @@ export default function Settings() {
     networkInterfaces: [],
     serverEngines: [],
     sortMethods: [],
+    subtitlesDepth: [],
+    subtitlesCodepages: [],
     subtitlesInfoLevels: [],
     transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
     transcodingEnginesPurposes: [],
@@ -46,52 +48,6 @@ export default function Settings() {
 
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
-
-  // todo retrieve from server
-  const subtitlesCodepage = [
-    { label: i18n.get['Generic.AutoDetect'], value: ''},
-    { label: i18n.get['CharacterSet.874'], value: 'cp874'},
-    { label: i18n.get['CharacterSet.932'], value: 'cp932'},
-    { label: i18n.get['CharacterSet.936'], value: 'cp936'},
-    { label: i18n.get['CharacterSet.949'], value: 'cp949'},
-    { label: i18n.get['CharacterSet.950'], value: 'cp950'},
-    { label: i18n.get['CharacterSet.1250'], value: 'cp1250'},
-    { label: i18n.get['CharacterSet.1251'], value: 'cp1251'},
-    { label: i18n.get['CharacterSet.1252'], value: 'cp1252'},
-    { label: i18n.get['CharacterSet.1253'], value: 'cp1253'},
-    { label: i18n.get['CharacterSet.1254'], value: 'cp1254'},
-    { label: i18n.get['CharacterSet.1255'], value: 'cp1255'},
-    { label: i18n.get['CharacterSet.1256'], value: 'cp1256'},
-    { label: i18n.get['CharacterSet.1257'], value: 'cp1257'},
-    { label: i18n.get['CharacterSet.1258'], value: 'cp1258'},
-    { label: i18n.get['CharacterSet.2022-CN'], value: 'ISO-2022-CN'},
-    { label: i18n.get['CharacterSet.2022-JP'], value: 'ISO-2022-JP'},
-    { label: i18n.get['CharacterSet.2022-KR'], value: 'ISO-2022-KR'},
-    { label: i18n.get['CharacterSet.8859-1'], value: 'ISO-8859-1'},
-    { label: i18n.get['CharacterSet.8859-2'], value: 'ISO-8859-2'},
-    { label: i18n.get['CharacterSet.8859-3'], value: 'ISO-8859-3'},
-    { label: i18n.get['CharacterSet.8859-4'], value: 'ISO-8859-4'},
-    { label: i18n.get['CharacterSet.8859-5'], value: 'ISO-8859-5'},
-    { label: i18n.get['CharacterSet.8859-6'], value: 'ISO-8859-6'},
-    { label: i18n.get['CharacterSet.8859-7'], value: 'ISO-8859-7'},
-    { label: i18n.get['CharacterSet.8859-8'], value: 'ISO-8859-8'},
-    { label: i18n.get['CharacterSet.8859-9'], value: 'ISO-8859-9'},
-    { label: i18n.get['CharacterSet.8859-10'], value: 'ISO-8859-10'},
-    { label: i18n.get['CharacterSet.8859-11'], value: 'ISO-8859-11'},
-    { label: i18n.get['CharacterSet.8859-13'], value: 'ISO-8859-13'},
-    { label: i18n.get['CharacterSet.8859-14'], value: 'ISO-8859-14'},
-    { label: i18n.get['CharacterSet.8859-15'], value: 'ISO-8859-15'},
-    { label: i18n.get['CharacterSet.8859-16'], value: 'ISO-8859-16'},
-    { label: i18n.get['CharacterSet.Big5'], value: 'Big5'},
-    { label: i18n.get['CharacterSet.EUC-JP'], value: 'EUC-JP'},
-    { label: i18n.get['CharacterSet.EUC-KR'], value: 'EUC-KR'},
-    { label: i18n.get['CharacterSet.GB18030'], value: 'GB18030'},
-    { label: i18n.get['CharacterSet.IBM420'], value: 'IBM420'},
-    { label: i18n.get['CharacterSet.IBM424'], value: 'IBM424'},
-    { label: i18n.get['CharacterSet.KOI8-R'], value: 'KOI8-R'},
-    { label: i18n.get['CharacterSet.ShiftJIS]'], value: 'Shift_JIS'},
-    { label: i18n.get['CharacterSet.TIS-620'], value: 'TIS-620'},
-  ];
 
   const threeDSubs = ['-5', '-4', '-3', '-2', '-1', '0', '1', '2', '3', '4', '5']
 
@@ -423,7 +379,7 @@ export default function Settings() {
           ></DirectoryChooser>
           <Select
             label={i18n.get['TrTab2.95']}
-            data={subtitlesCodepage}
+            data={selectionSettings.subtitlesCodepages}
             {...form.getInputProps('subtitles_codepage')}
           />
           <Space h="xs" />
@@ -537,6 +493,7 @@ export default function Settings() {
           </Grid.Col>
         </Grid>
         <Tooltip label={getToolTipContent(i18n.get['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
+          {/* TODO: live_subtitles_keep checkbox value needs to be inverted */}
           <Checkbox
             disabled={!canModify}
             size="xs"
@@ -556,7 +513,7 @@ export default function Settings() {
         <Select
           disabled={!canModify}
           label={i18n.get['TrTab2.90']}
-          data={threeDSubs}
+          data={selectionSettings.subtitlesDepth}
           {...form.getInputProps('3d_subtitles_depth')}
         />
         </Tabs.Tab>

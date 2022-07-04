@@ -65,7 +65,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = PmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -119,6 +121,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("sortMethods", SORT_METHODS);
 				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
 				jsonResponse.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
+				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
+				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
 
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
