@@ -3503,6 +3503,64 @@ public class PmsConfiguration extends RendererConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
+	public synchronized static JsonArray getSubtitlesCodepageArray() {
+		String[] values = new String[]{
+			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
+			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
+			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
+			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
+			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
+			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
+		};
+		String[] labels = new String[]{
+			Messages.getString("Generic.AutoDetect"),
+			Messages.getString("CharacterSet.874"),
+			Messages.getString("CharacterSet.932"),
+			Messages.getString("CharacterSet.936"),
+			Messages.getString("CharacterSet.949"),
+			Messages.getString("CharacterSet.950"),
+			Messages.getString("CharacterSet.1250"),
+			Messages.getString("CharacterSet.1251"),
+			Messages.getString("CharacterSet.1252"),
+			Messages.getString("CharacterSet.1253"),
+			Messages.getString("CharacterSet.1254"),
+			Messages.getString("CharacterSet.1255"),
+			Messages.getString("CharacterSet.1256"),
+			Messages.getString("CharacterSet.1257"),
+			Messages.getString("CharacterSet.1258"),
+			Messages.getString("CharacterSet.2022-CN"),
+			Messages.getString("CharacterSet.2022-JP"),
+			Messages.getString("CharacterSet.2022-KR"),
+			Messages.getString("CharacterSet.8859-1"),
+			Messages.getString("CharacterSet.8859-2"),
+			Messages.getString("CharacterSet.8859-3"),
+			Messages.getString("CharacterSet.8859-4"),
+			Messages.getString("CharacterSet.8859-5"),
+			Messages.getString("CharacterSet.8859-6"),
+			Messages.getString("CharacterSet.8859-7"),
+			Messages.getString("CharacterSet.8859-8"),
+			Messages.getString("CharacterSet.8859-9"),
+			Messages.getString("CharacterSet.8859-10"),
+			Messages.getString("CharacterSet.8859-11"),
+			Messages.getString("CharacterSet.8859-13"),
+			Messages.getString("CharacterSet.8859-14"),
+			Messages.getString("CharacterSet.8859-15"),
+			Messages.getString("CharacterSet.8859-16"),
+			Messages.getString("CharacterSet.Big5"),
+			Messages.getString("CharacterSet.EUC-JP"),
+			Messages.getString("CharacterSet.EUC-KR"),
+			Messages.getString("CharacterSet.GB18030"),
+			Messages.getString("CharacterSet.IBM420"),
+			Messages.getString("CharacterSet.IBM424"),
+			Messages.getString("CharacterSet.KOI8-R"),
+			Messages.getString("CharacterSet.ShiftJIS"),
+			Messages.getString("CharacterSet.TIS-620")
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public boolean isHideExtensions() {
 		return getBoolean(KEY_HIDE_EXTENSIONS, true);
 	}
@@ -5252,6 +5310,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		result.add("i18n@TrTab2.17"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
 		result.add("i18n@TrTab2.18"); //Player.MISC_PLAYER = 4
 		return result;
+	}
+
+	public synchronized static JsonArray getSubtitlesDepthArray() {
+
+		String[] values = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
+		String[] labels = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
 }

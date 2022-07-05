@@ -65,7 +65,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = PmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -119,6 +121,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("sortMethods", SORT_METHODS);
 				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);
 				jsonResponse.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
+				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
+				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
 
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
@@ -241,15 +245,18 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static JsonObject getWebSettingsWithDefaults() {
 		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
 		JsonObject jObj = new JsonObject();
+		jObj.addProperty("alternate_subtitles_folder", "");
 		jObj.addProperty("alternate_thumb_folder", "");
 		jObj.addProperty("append_profile_name", false);
 		jObj.addProperty("audio_channels", "6");
 		jObj.addProperty("audio_embed_dts_in_pcm", false);
 		jObj.addProperty("audio_bitrate", "448");
 		jObj.addProperty("audio_remux_ac3", true);
-		jObj.addProperty("audio_use_pcm", false);
+		jObj.addProperty("audio_subtitles_languages", "");
 		jObj.addProperty("audio_thumbnails_method", "1");
+		jObj.addProperty("audio_use_pcm", false);
 		jObj.addProperty("auto_update", true);
+		jObj.addProperty("autoload_external_subtitles", true);
 		jObj.addProperty("automatic_maximum_bitrate", true);
 		jObj.addProperty("chapter_interval", 5);
 		jObj.addProperty("chapter_support", false);
@@ -262,6 +269,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("force_transcode_for_extensions", "");
 		jObj.addProperty("gpu_acceleration", false);
 		jObj.addProperty("external_network", true);
+		jObj.addProperty("force_external_subtitles", true);
+		jObj.addProperty("forced_subtitle_language", "");
+		jObj.addProperty("forced_subtitle_tags", "forced");
 		jObj.addProperty("generate_thumbnails", true);
 		jObj.addProperty("hide_enginenames", true);
 		jObj.addProperty("hide_extensions", true);
@@ -269,9 +279,13 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("ignore_the_word_a_and_the", true);
 		jObj.addProperty("ip_filter", "");
 		jObj.addProperty("language", "en-US");
+		jObj.addProperty("live_subtitles_keep", false);
+		jObj.addProperty("live_subtitles_limit", 20);
 		jObj.addProperty("mencoder_remux_mpeg2", true);
 		jObj.addProperty("maximum_video_buffer_size", 200);
 		jObj.addProperty("maximum_bitrate", "90");
+		jObj.addProperty("mencoder_noass_outline", 1);
+		jObj.addProperty("mencoder_subfribidi", false);
 		jObj.addProperty("minimized", false);
 		jObj.addProperty("mpeg2_main_settings", "Automatic (Wired)");
 		jObj.addProperty("network_interface", "");
@@ -292,11 +306,18 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("show_splash_screen", true);
 		jObj.addProperty("sort_method", "4");
 		jObj.addProperty("subs_info_level", "basic");
+		jObj.addProperty("subtitles_codepage", "");
+		jObj.addProperty("subtitles_color", "0xFFFFFFFF");
+		jObj.addProperty("subtitles_font", "");
+		jObj.addProperty("subtitles_ass_margin", 10);
+		jObj.addProperty("subtitles_ass_scale", 1.4);
+		jObj.addProperty("subtitles_ass_shadow", 1);
 		jObj.addProperty("thumbnail_seek_position", "4");
+		jObj.addProperty("use_embedded_subtitles_style", true);
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
-
+		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;
 	}
 
