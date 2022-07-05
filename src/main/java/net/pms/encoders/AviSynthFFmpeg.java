@@ -90,7 +90,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 	@Override
 	public JComponent config() {
-		return config("NetworkTab.5");
+		return config("GeneralSettings");
 	}
 
 	@Override

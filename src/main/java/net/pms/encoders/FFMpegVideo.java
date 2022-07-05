@@ -1684,7 +1684,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public JComponent config() {
-		return config("NetworkTab.5");
+		return config("GeneralSettings");
 	}
 
 	protected JComponent config(String languageLabel) {
@@ -1753,7 +1753,7 @@ public class FFMpegVideo extends Player {
 		builder.add(GuiUtil.getPreferredSizeComponent(fc), cc.xy(1, y));
 
 		y += 2;
-		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
+		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("DeferMencoderTranscodingProblematic"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
 		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("MencoderMoreStableFfmpegTranscoding"));
 		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
