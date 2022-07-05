@@ -425,7 +425,7 @@ public class TranscodingTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.addLabel(Messages.getString("MaximumTranscodeBufferSize"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
-			maxbuffer.setToolTipText(Messages.getString("TrTab2.73"));
+			maxbuffer.setToolTipText(Messages.getString("UsingSettingHigherThan200"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -496,8 +496,8 @@ public class TranscodingTab {
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
 
-		setupTabbedPanel.addTab(Messages.getString("TrTab2.67"), buildVideoSetupPanel());
-		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
+		setupTabbedPanel.addTab(Messages.getString("VideoSettings"), buildVideoSetupPanel());
+		setupTabbedPanel.addTab(Messages.getString("AudioSettings"), buildAudioSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("SubtitlesSettings"), buildSubtitlesSetupPanel());
 
 		if (!configuration.isHideAdvancedOptions()) {
@@ -517,7 +517,7 @@ public class TranscodingTab {
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		videoHWacceleration = new JCheckBox(Messages.getString("TrTab2.70"), configuration.isGPUAcceleration());
+		videoHWacceleration = new JCheckBox(Messages.getString("EnableGpuAcceleration"), configuration.isGPUAcceleration());
 		videoHWacceleration.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -528,7 +528,7 @@ public class TranscodingTab {
 		videoHWacceleration.setEnabled(false);
 
 		mpeg2remux = new JCheckBox(Messages.getString("LosslessDvdVideoPlayback"), configuration.isMencoderRemuxMPEG2());
-		mpeg2remux.setToolTipText(Messages.getString("TrTab2.82") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
+		mpeg2remux.setToolTipText(Messages.getString("WhenEnabledMuxesDvd") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener(new ItemListener() {
 			@Override
@@ -555,8 +555,8 @@ public class TranscodingTab {
 		};
 		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
 		String[] values = new String[] {
-			Messages.getString("TrTab2.92"), // Automatic (Wired)
-			Messages.getString("TrTab2.93"), // Automatic (Wireless)
+			Messages.getString("AutomaticWiredRecommend"), // Automatic (Wired)
+			Messages.getString("AutomaticWirelessRecommend"), // Automatic (Wireless)
 			String.format(
 				Messages.getString("LosslessQuality") + "%s", // Lossless
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (keyint=5:vqscale=1:vqmin=1)" : ""
@@ -586,7 +586,7 @@ public class TranscodingTab {
 
 		vq = new JComboBox<>(mPEG2MainModel);
 		vq.setPreferredSize(getPreferredHeight(vq));
-		vq.setToolTipText(Messages.getString("TrTab2.74"));
+		vq.setToolTipText(Messages.getString("AutomaticWiredOrWireless"));
 		mPEG2MainModel.setSelectedKey(configuration.getMPEG2MainSettings());
 		vq.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		vq.addItemListener(new ItemListener() {
@@ -600,7 +600,7 @@ public class TranscodingTab {
 		vq.setEditable(true);
 		builder.add(vq, FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(new JLabel(Messages.getString("TranscodingQualityH264")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		keys = new String[] {
 			"Automatic (Wired)",
 			"Automatic (Wireless)",
@@ -608,8 +608,8 @@ public class TranscodingTab {
 		};
 		//TODO Set ViewLevel.EXPERT when ViewLevel is fully implemented
 		values = new String[] {
-			Messages.getString("TrTab2.92"),
-			Messages.getString("TrTab2.93"),
+			Messages.getString("AutomaticWiredRecommend"),
+			Messages.getString("AutomaticWirelessRecommend"),
 			String.format(
 				Messages.getString("LosslessQuality") + "%s", // Lossless
 				looksFrame.getViewLevel().isGreaterOrEqual(ViewLevel.ADVANCED) ? " (16)" : ""
@@ -619,7 +619,7 @@ public class TranscodingTab {
 
 		x264Quality = new JComboBox<>(x264QualityModel);
 		x264Quality.setPreferredSize(getPreferredHeight(x264Quality));
-		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
+		x264Quality.setToolTipText(Messages.getString("AutomaticSettingServeBestQuality"));
 		x264QualityModel.setSelectedKey(configuration.getx264ConstantRateFactor());
 		x264Quality.setEnabled(!configuration.isAutomaticMaximumBitrate());
 		x264Quality.addItemListener(new ItemListener() {
@@ -635,7 +635,7 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("SkipTranscodingFollowingExtensions")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
-		notranscode.setToolTipText(Messages.getString("TrTab2.96"));
+		notranscode.setToolTipText(Messages.getString("ThisOverridesRendererConfiguration"));
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -646,7 +646,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("ForceTranscodingFollowingExtensions"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
-		forcetranscode.setToolTipText(Messages.getString("TrTab2.96"));
+		forcetranscode.setToolTipText(Messages.getString("ThisOverridesRendererConfiguration"));
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -689,7 +689,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		forcePCM = new JCheckBox(Messages.getString("UseLpcmForAudio"), configuration.isAudioUsePCM());
-		forcePCM.setToolTipText(Messages.getString("TrTab2.83"));
+		forcePCM.setToolTipText(Messages.getString("ThisOptionLosslessNotBest"));
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener(new ItemListener() {
 			@Override
@@ -700,7 +700,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		ac3remux = new JCheckBox(Messages.getString("KeepAc3Tracks"), configuration.isAudioRemuxAC3());
-		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
+		ac3remux.setToolTipText(Messages.getString("ThisOptionLosslessVeryStable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
@@ -711,7 +711,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm());
-		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
+		forceDTSinPCM.setToolTipText(Messages.getString("ThisOptionLosslessUnstable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
@@ -723,7 +723,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		encodedAudioPassthrough = new JCheckBox(Messages.getString("EncodedAudioPassthrough"), configuration.isEncodedAudioPassthrough());
-		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
+		encodedAudioPassthrough.setToolTipText(Messages.getString("ThisOptionLossless") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		encodedAudioPassthrough.setContentAreaFilled(false);
 		encodedAudioPassthrough.addItemListener(new ItemListener() {
 			@Override
@@ -752,7 +752,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("AudioLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
-		langs.setToolTipText(Messages.getString("TrTab2.75"));
+		langs.setToolTipText(Messages.getString("YouCanRearrangeOrderAudio"));
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -776,7 +776,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("SubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
-		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
+		defaultsubs.setToolTipText(Messages.getString("YouCanRearrangeOrderSubtitles"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -807,7 +807,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("AudioSubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
-		defaultaudiosubs.setToolTipText(Messages.getString("TrTab2.77"));
+		defaultaudiosubs.setToolTipText(Messages.getString("AnExplanationDefaultValueAudio"));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -846,7 +846,7 @@ public class TranscodingTab {
 		});
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 8), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.95"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.addLabel(Messages.getString("NonUnicodeSubtitleEncoding"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		String[] keys = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
 			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
@@ -905,7 +905,7 @@ public class TranscodingTab {
 		final KeyedComboBoxModel<String, String> subtitleCodePageModel = new KeyedComboBoxModel<>(keys, values);
 		subtitleCodePage = new JComboBox<>(subtitleCodePageModel);
 		subtitleCodePage.setPreferredSize(getPreferredHeight(subtitleCodePage));
-		subtitleCodePage.setToolTipText(Messages.getString("TrTab2.94"));
+		subtitleCodePage.setToolTipText(Messages.getString("YouFindListSupportedCharacter"));
 		subtitleCodePageModel.setSelectedKey(configuration.getSubtitlesCodepage());
 		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
@@ -932,7 +932,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("SpecifyTruetypeFont"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
-		defaultfont.setToolTipText(Messages.getString("TrTab2.97"));
+		defaultfont.setToolTipText(Messages.getString("ToUseFontMustBeRegistered"));
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -1028,7 +1028,7 @@ public class TranscodingTab {
 		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
 
 		autoloadExternalSubtitles = new JCheckBox(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles());
-		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
+		autoloadExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesPrioritized"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		autoloadExternalSubtitles.addItemListener(new ItemListener() {
@@ -1068,8 +1068,8 @@ public class TranscodingTab {
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(11, 16, 5), colSpec, orientation));
 
-		forceExternalSubtitles = new JCheckBox(Messages.getString("TrTab2.87"), configuration.isForceExternalSubtitles());
-		forceExternalSubtitles.setToolTipText(Messages.getString("TrTab2.88"));
+		forceExternalSubtitles = new JCheckBox(Messages.getString("ForceExternalSubtitles"), configuration.isForceExternalSubtitles());
+		forceExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesAlways"));
 		forceExternalSubtitles.setContentAreaFilled(false);
 		forceExternalSubtitles.addItemListener(new ItemListener() {
 			@Override
@@ -1084,8 +1084,8 @@ public class TranscodingTab {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 18, 6), colSpec, orientation));
 
-		deleteDownloadedSubtitles = new JCheckBox(Messages.getString("TrTab2.DeleteLiveSubtitles"), !configuration.isLiveSubtitlesKeep());
-		deleteDownloadedSubtitles.setToolTipText(Messages.getString("TrTab2.DeleteLiveSubtitlesTooltip"));
+		deleteDownloadedSubtitles = new JCheckBox(Messages.getString("DeleteDownloadedLiveSubtitlesAfter"), !configuration.isLiveSubtitlesKeep());
+		deleteDownloadedSubtitles.setToolTipText(Messages.getString("DeterminesDownloadedLiveSubtitlesDeleted"));
 		deleteDownloadedSubtitles.setContentAreaFilled(false);
 		deleteDownloadedSubtitles.addItemListener(new ItemListener() {
 			@Override
@@ -1097,7 +1097,7 @@ public class TranscodingTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
-		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
+		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("IfEnabledWontModifySubtitlesStyling"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener(new ItemListener() {
 			@Override
@@ -1111,21 +1111,21 @@ public class TranscodingTab {
 
 		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
 		liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
-		liveSubtitlesLimit.setToolTipText(Messages.getString("TrTab2.LiveSubtitlesLimitTooltip"));
+		liveSubtitlesLimit.setToolTipText(Messages.getString("SetsMaximumNumberLiveSubtitles"));
 		liveSubtitlesLimit.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue());
 			}
 		});
-		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("TrTab2.LiveSubtitlesLimit"));
+		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("LimitNumberLiveSubtitlesTo"));
 		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
 		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 20, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		builder.add(liveSubtitlesLimit, FormLayoutUtil.flip(cc.xy(15, 20), colSpec, orientation));
 
 		Integer[] depth = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
 
-		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(1, 22), colSpec, orientation));
+		builder.addLabel(Messages.getString("3dSubtitlesDepth"), FormLayoutUtil.flip(cc.xy(1, 22), colSpec, orientation));
 		depth3D = new JComboBox<>(depth);
 		depth3D.setSelectedItem(configuration.getDepth3D());
 		depth3D.addItemListener(new ItemListener() {

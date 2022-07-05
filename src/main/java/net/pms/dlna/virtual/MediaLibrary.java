@@ -44,7 +44,7 @@ public class MediaLibrary extends VirtualFolder {
 		// All videos that are unwatched
 		String unwatchedCondition = " AND " + MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.4"),
+			Messages.getString("TvShows"),
 			new String[]{
 				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.FORMAT_TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                    ORDER BY FILES.MOVIEORSHOWNAME ASC",
 				sqlJoinStart +                                                                                                                                                        "FILES.FORMAT_TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}' ORDER BY FILES.TVSEASON, FILES.TVEPISODENUMBER"
@@ -52,9 +52,9 @@ public class MediaLibrary extends VirtualFolder {
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 
-		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("Movies"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("3dMovies"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("Unsorted"), sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("RecentlyAdded"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("AllVideos"), sqlJoinStart + "FILES.FORMAT_TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
@@ -71,7 +71,7 @@ public class MediaLibrary extends VirtualFolder {
 
 		// The following block contains all videos regardless of fully played status
 		tvShowsFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.4"),
+			Messages.getString("TvShows"),
 			new String[]{
 				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE FORMAT_TYPE = 4 AND ISTVEPISODE                              ORDER BY MOVIEORSHOWNAME ASC",
 				"SELECT          *               FROM FILES WHERE FORMAT_TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
@@ -79,17 +79,17 @@ public class MediaLibrary extends VirtualFolder {
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.5"),
+			Messages.getString("Movies"),
 			"FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.7"),
+			Messages.getString("3dMovies"),
 			"FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND MEDIA_YEAR != '' AND STEREOSCOPY != '' ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.8"),
+			Messages.getString("Unsorted"),
 			"FORMAT_TYPE = 4 AND NOT ISTVEPISODE AND (MEDIA_YEAR IS NULL OR MEDIA_YEAR = '') ORDER BY FILENAME ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
@@ -159,7 +159,7 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(recentlyAddedVideos);
 			if (configuration.isShowRecentlyPlayedFolder()) {
 				MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.1"),
+					Messages.getString("RecentlyPlayed"),
 					sqlJoinStart + "FILES.FORMAT_TYPE = 4 AND " + MediaTableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + MediaTableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
 					MediaLibraryFolder.FILES_NOSORT
 				);

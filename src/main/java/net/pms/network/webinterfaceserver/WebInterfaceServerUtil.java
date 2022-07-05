@@ -762,28 +762,28 @@ public class WebInterfaceServerUtil {
 					DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 					boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-					String folderName = isRelatedToTV ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
+					String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
 					List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
 					UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 					DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.FilterByInformation"));
-					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true, true);
+					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
 					DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.Genres"));
+					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
 
 					for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
 						DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-						if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Actors"))) {
+						if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
 							actorsFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Country"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
 							countryFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Director"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
 							directorFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Genres"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
 							genresFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Rated"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
 							ratedFolder = filterByInformationChild;
 						}
 					}

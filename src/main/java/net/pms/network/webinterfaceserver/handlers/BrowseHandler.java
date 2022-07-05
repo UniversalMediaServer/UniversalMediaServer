@@ -266,16 +266,16 @@ public class BrowseHandler implements HttpHandler {
 					* - This is Recommendations
 					*/
 					if (
-						resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
+						resource.getParent().getDisplayName().equals(Messages.getString("TvShows")) ||
 						resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
 						(
 							resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+							resource.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
 						) ||
 						(
 							resource.getParent().getParent() != null &&
 							resource.getParent().getParent().getParent() != null &&
-							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
+							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
 						)
 					) {
 						isDisplayFoldersAsThumbnails = true;
@@ -359,16 +359,16 @@ public class BrowseHandler implements HttpHandler {
 
 				// Check whether this resource is expected to contain folders that display as big thumbnails
 				if (
-					folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
+					folder.getDisplayName().equals(Messages.getString("TvShows")) ||
 					folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
 					(
 						folder.getParent() != null &&
-						folder.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+						folder.getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
 					) ||
 					(
 						folder.getParent() != null &&
 						folder.getParent().getParent() != null &&
-						folder.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
+						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
 					)
 				) {
 					for (DLNAResource resource : resources) {
@@ -526,7 +526,7 @@ public class BrowseHandler implements HttpHandler {
 			String recentlyPlayedName = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
 
 			// Skip the #--TRANSCODE--# entry
-			if (recentlyPlayedName.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
+			if (recentlyPlayedName.equals(Messages.getString("Transcode"))) {
 				continue;
 			}
 

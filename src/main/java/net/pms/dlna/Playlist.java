@@ -108,7 +108,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 				});
 			}
 			// Clear
-			addChild(new VirtualVideoAction(Messages.getString("TracesTab.3"), true) {
+			addChild(new VirtualVideoAction(Messages.getString("Clear"), true) {
 				@Override
 				public boolean enable() {
 					self.clear();

@@ -224,7 +224,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 					}
 				} catch (FileNotFoundException e) {
 					// This should never happen
-					permissionsReminder = "\n" + String.format(Messages.getString("TracesTab.21"), file.getAbsolutePath());
+					permissionsReminder = "\n" + String.format(Messages.getString("XNotFound"), file.getAbsolutePath());
 					cancelButton.setText(Messages.getString("Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);

@@ -255,10 +255,10 @@ public class DbgPacker implements ActionListener {
 					LOGGER.warn("Failed to open default desktop application: {}", e2);
 					if (Platform.isWindows()) {
 						JOptionPane.showMessageDialog(null, Messages.getString("CouldNotOpenExternalViewerPlease") + e2,
-								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+								Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					} else {
 						JOptionPane.showMessageDialog(null, Messages.getString("CouldNotOpenExternalViewer") + e2,
-								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+								Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			} else {

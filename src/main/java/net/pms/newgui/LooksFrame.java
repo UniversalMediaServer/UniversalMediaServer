@@ -442,7 +442,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
-			title = title + "  [" + Messages.getString("TracesTab.10").toUpperCase() + "]";
+			title = title + "  [" + Messages.getString("Trace").toUpperCase() + "]";
 		}
 
 		setTitle(title);

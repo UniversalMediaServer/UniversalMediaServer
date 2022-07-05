@@ -464,9 +464,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
 			if (!unwatchedSqls.isEmpty() && !watchedSqls.isEmpty()) {
-				VirtualFolder filterByProgress = new VirtualFolder(Messages.getString("VirtualFolder.FilterByProgress"), null);
+				VirtualFolder filterByProgress = new VirtualFolder(Messages.getString("FilterByProgress"), null);
 				filterByProgress.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.9"),
+					Messages.getString("Unwatched"),
 					unwatchedSqls.toArray(new String[0]),
 					filteredExpectedOutputs
 				));
@@ -478,29 +478,29 @@ public class MediaLibraryFolder extends VirtualFolder {
 				addChild(filterByProgress);
 			}
 			if (!genresSqls.isEmpty()) {
-				VirtualFolder filterByInformation = new VirtualFolder(Messages.getString("VirtualFolder.FilterByInformation"), null);
+				VirtualFolder filterByInformation = new VirtualFolder(Messages.getString("FilterByInformation"), null);
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Actors"),
+					Messages.getString("Actors"),
 					actorsSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Country"),
+					Messages.getString("Country"),
 					countriesSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Director"),
+					Messages.getString("Director"),
 					directorsSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Genres"),
+					Messages.getString("Genres"),
 					genresSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Rated"),
+					Messages.getString("Rated"),
 					ratedSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
@@ -536,7 +536,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						if (virtualFolderName.length() != 4) {
-							nameToDisplay = Messages.getString("VirtualFolder.6") + " " + virtualFolderName;
+							nameToDisplay = Messages.getString("Season") + " " + virtualFolderName;
 						}
 					}
 
@@ -551,27 +551,27 @@ public class MediaLibraryFolder extends VirtualFolder {
 						DLNAResource resource = this;
 
 						if (resource.getName() != null && "###".equals(virtualFolderName)) {
-							if (resource.getName().equals(Messages.getString("VirtualFolder.Actors"))) {
+							if (resource.getName().equals(Messages.getString("Actors"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataActors.TABLE_NAME + ".ACTOR = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataActors.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Country"))) {
+							} else if (resource.getName().equals(Messages.getString("Country"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataCountries.TABLE_NAME + ".COUNTRY = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataCountries.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Director"))) {
+							} else if (resource.getName().equals(Messages.getString("Director"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataDirectors.TABLE_NAME + ".DIRECTOR = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataDirectors.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Genres"))) {
+							} else if (resource.getName().equals(Messages.getString("Genres"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataGenres.TABLE_NAME + ".GENRE = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataGenres.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Rated"))) {
+							} else if (resource.getName().equals(Messages.getString("Rated"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataRated.TABLE_NAME + ".RATING = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataRated.TABLE_NAME + ".FILENAME IS NULL");
 								}
