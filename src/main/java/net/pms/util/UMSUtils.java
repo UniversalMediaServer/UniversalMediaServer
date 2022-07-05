@@ -728,23 +728,6 @@ public class UMSUtils {
 		return jsonArray;
 	}
 
-	public static JsonArray getArraysAsJsonArrayOfObjects(Integer[] values, String[] labels, JsonArray jsonArray) {
-		if (jsonArray == null) {
-			jsonArray = new JsonArray();
-		}
-
-		for (int i = 0; i < values.length; i++) {
-			JsonObject objectGroup = new JsonObject();
-			Integer value = values[i];
-			String label = labels[i];
-			objectGroup.addProperty("value", value);
-			objectGroup.addProperty("label", label);
-			jsonArray.add(objectGroup);
-		}
-
-		return jsonArray;
-	}
-
 	/**
 	 * The keys are in the format Mantine expects, which can
 	 * be confusing - "value" in Mantine is what is usually

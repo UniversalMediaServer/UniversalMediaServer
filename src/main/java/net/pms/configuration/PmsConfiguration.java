@@ -5314,7 +5314,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public synchronized static JsonArray getSubtitlesDepthArray() {
 
-		Integer[] values = new Integer[]{-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
+		String[] values = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
 		String[] labels = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}

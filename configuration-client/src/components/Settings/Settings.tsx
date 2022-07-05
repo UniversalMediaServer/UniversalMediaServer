@@ -515,6 +515,10 @@ export default function Settings() {
           label={i18n.get['TrTab2.90']}
           data={selectionSettings.subtitlesDepth}
           {...form.getInputProps('3d_subtitles_depth')}
+          value={String(form.values['3d_subtitles_depth'])}
+          onChange={(val) => {
+            form.setFieldValue('3d_subtitles_depth', val);
+          }}
         />
         </Tabs.Tab>
       </Tabs>
