@@ -1687,12 +1687,6 @@
 "@types/range-parser@*":
   "version" "1.2.4"
 
-"@types/react-color@^3.0.6":
-  "version" "3.0.6"
-  dependencies:
-    "@types/react" "*"
-    "@types/reactcss" "*"
-
 "@types/react-dom@^18.0.0", "@types/react-dom@^18.0.5":
   "version" "18.0.5"
   dependencies:
@@ -1704,11 +1698,6 @@
     "@types/prop-types" "*"
     "@types/scheduler" "*"
     "csstype" "^3.0.2"
-
-"@types/reactcss@*":
-  "version" "1.2.6"
-  dependencies:
-    "@types/react" "*"
 
 "@types/resolve@1.17.1":
   "version" "1.17.1"
