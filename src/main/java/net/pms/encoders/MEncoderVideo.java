@@ -290,7 +290,7 @@ public class MEncoderVideo extends Player {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(forcefps), FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
-		yadif = new JCheckBox(Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif());
+		yadif = new JCheckBox(Messages.getString("DeinterlaceFilter_Sentencecase"), configuration.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
 		yadif.addItemListener(new ItemListener() {
 			@Override

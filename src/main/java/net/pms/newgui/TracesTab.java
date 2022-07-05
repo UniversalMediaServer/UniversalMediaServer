@@ -614,7 +614,7 @@ public class TracesTab {
 
 		final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-		JLabel rootLevelLabel = new JLabel(Messages.getString("LogLevel") + ": ");
+		JLabel rootLevelLabel = new JLabel(Messages.getString("LogLevelColon") + ": ");
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
 		rootLevelLabel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
 

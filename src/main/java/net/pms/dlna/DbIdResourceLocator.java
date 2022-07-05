@@ -221,7 +221,7 @@ public class DbIdResourceLocator {
 							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
-							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum"),
+							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum_lowercase"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 							break;
