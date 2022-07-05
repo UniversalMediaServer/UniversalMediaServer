@@ -19,7 +19,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [isLoading, setLoading] = useState(true);
-  const [opened, setOpened] = useState(false);
+  const [modalOpened, setModalOpened] = useState(false);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
@@ -455,8 +455,8 @@ export default function Settings() {
           <Space h="xs" />
           <Modal size="sm"
             title={i18n.get['MEncoderVideo.31']}
-            opened={opened}
-            onClose={() => setOpened(false)}
+            opened={modalOpened}
+            onClose={() => setModalOpened(false)}
           >
             <Group position="center" direction="column">
               <SketchPicker
@@ -465,7 +465,7 @@ export default function Settings() {
               ></SketchPicker>
               <Button
                 size="xs"
-                onClick={() => { setOpened(false); }}
+                onClick={() => { setModalOpened(false); }}
               >{i18n.get['Dialog.Confirm']}</Button>
           </Group>
         </Modal>
@@ -475,7 +475,7 @@ export default function Settings() {
               <Button
                 disabled={!canModify}
                 size="xs"
-                onClick={() => { setOpened(true); }}
+                onClick={() => { setModalOpened(true); }}
               >{i18n.get['MEncoderVideo.31']}</Button>
             </Center>
           </Grid.Col>
