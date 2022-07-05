@@ -49,8 +49,6 @@ export default function Settings() {
   const canModify = havePermission(session, "settings_modify");
   const canView = canModify || havePermission(session, "settings_view");
 
-  const threeDSubs = ['-5', '-4', '-3', '-2', '-1', '0', '1', '2', '3', '4', '5']
-
   const defaultTooltipSettings = {
     width: 350,
     color: 'blue',
