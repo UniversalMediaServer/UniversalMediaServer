@@ -493,12 +493,14 @@ export default function Settings() {
           </Grid.Col>
         </Grid>
         <Tooltip label={getToolTipContent(i18n.get['TrTab2.DeleteLiveSubtitlesTooltip'])} {...defaultTooltipSettings}>
-          {/* TODO: live_subtitles_keep checkbox value needs to be inverted */}
           <Checkbox
             disabled={!canModify}
             size="xs"
             label={i18n.get['TrTab2.DeleteLiveSubtitles']}
-            {...form.getInputProps('live_subtitles_keep', { type: 'checkbox' })}
+            checked={!form.values['live_subtitles_keep']}
+            onChange={(event) => {
+              form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked);
+            }}
           />
         </Tooltip>
         <Space h="xs" />
