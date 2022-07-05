@@ -673,7 +673,7 @@ public class VLCVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
+		experimentalCodecs = new JCheckBox(Messages.getString("EnableExperimentalCodecs"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener((ItemEvent e) -> {
 			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);

@@ -471,7 +471,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					filteredExpectedOutputs
 				));
 				filterByProgress.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Watched"),
+					Messages.getString("Watched"),
 					watchedSqls.toArray(new String[0]),
 					filteredExpectedOutputs
 				));
@@ -505,7 +505,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.Released"),
+					Messages.getString("Released"),
 					releasedSqls.toArray(new String[0]),
 					filteredExpectedOutputsWithPrependedTexts
 				));
@@ -576,7 +576,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataRated.TABLE_NAME + ".RATING = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataRated.TABLE_NAME + ".FILENAME IS NULL");
 								}
 								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("VirtualFolder.Released"))) {
+							} else if (resource.getName().equals(Messages.getString("Released"))) {
 								for (int i = 0; i < sqls2.length; i++) {
 									sqls2[i] = sqls2[i].replace("WHERE FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_NAME + ".RELEASEDATE, 'yyyy') = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataReleased.TABLE_NAME + ".FILENAME IS NULL");
 								}

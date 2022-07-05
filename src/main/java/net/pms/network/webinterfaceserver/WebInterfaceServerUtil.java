@@ -1018,21 +1018,21 @@ public class WebInterfaceServerUtil {
 
 			javascriptVarsScript = "";
 			javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
-			javascriptVarsScript += "var awardsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
+			javascriptVarsScript += "var awardsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Awards", language) + "\";";
 			javascriptVarsScript += "var country = " + country + ";";
-			javascriptVarsScript += "var countryTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Country", language) + "\";";
+			javascriptVarsScript += "var countryTranslation = \"" + WebInterfaceServerUtil.getMsgString("Country", language) + "\";";
 			javascriptVarsScript += "var director = " + director + ";";
-			javascriptVarsScript += "var directorTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Director", language) + "\";";
+			javascriptVarsScript += "var directorTranslation = \"" + WebInterfaceServerUtil.getMsgString("Director", language) + "\";";
 			javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
 			javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
-			javascriptVarsScript += "var plotTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
+			javascriptVarsScript += "var plotTranslation = \"" + WebInterfaceServerUtil.getMsgString("Plot", language) + "\";";
 			javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
 			javascriptVarsScript += "var rated = " + rated + ";";
-			javascriptVarsScript += "var ratedTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
+			javascriptVarsScript += "var ratedTranslation = \"" + WebInterfaceServerUtil.getMsgString("Rated", language) + "\";";
 			javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
-			javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
+			javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("YearStarted", language) + "\";";
 			javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
-			javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
+			javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("TotalSeasons", language) + "\";";
 
 			// TMDB metadata added in V11
 			javascriptVarsScript += "var createdBy = \"" + StringEscapeUtils.escapeEcmaScript(createdBy) + "\";";
@@ -1061,7 +1061,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 
-			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
+			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Actors", language) + "\";";
 			String actorsArrayJavaScript = "var actors = [";
 			for (String actor : actors) {
 				actorsArrayJavaScript += actor + ",";
@@ -1069,7 +1069,7 @@ public class WebInterfaceServerUtil {
 			actorsArrayJavaScript += "];";
 			javascriptVarsScript += actorsArrayJavaScript;
 
-			javascriptVarsScript += "var genresTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
+			javascriptVarsScript += "var genresTranslation = \"" + WebInterfaceServerUtil.getMsgString("Genres", language) + "\";";
 			String genresArrayJavaScript = "var genres = [";
 			for (String genre : genres) {
 				genresArrayJavaScript += genre + ",";
@@ -1078,7 +1078,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += genresArrayJavaScript;
 
 			String ratingsArrayJavaScript = "var ratings = [";
-			javascriptVarsScript += "var ratingsTranslation= \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
+			javascriptVarsScript += "var ratingsTranslation= \"" + WebInterfaceServerUtil.getMsgString("Ratings", language) + "\";";
 			if (!ratings.isEmpty()) {
 				Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
 				while (ratingsIterator.hasNext()) {
