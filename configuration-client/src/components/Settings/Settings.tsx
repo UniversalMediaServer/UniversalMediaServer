@@ -1,6 +1,7 @@
 import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
+import { SketchPicker } from 'react-color';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
