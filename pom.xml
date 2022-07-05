@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.1.1.1-SNAPSHOT</version>
+	<version>11.2.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.1.1.1</project.version.short>
+		<project.version.short>11.2.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -70,13 +70,13 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>156</binary-revision>
+		<binary-revision>157</binary-revision>
 
 		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.4.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.4.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
 
 		<!--
@@ -584,7 +584,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.2.0</version>
+			<version>6.2.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -1950,6 +1950,7 @@
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2065,6 +2066,209 @@
 								<configuration>
 									<descriptors>
 										<descriptor>${project.basedir}/src/main/assembly/assembly-macos.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			macOS on ARM (Apple Silicon) processors
+			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+		-->
+		<profile>
+			<id>macos-arm</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>${project.jre-version}</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}/osx/10.15" />
+										<mkdir dir="${project.binaries}/osx/arm" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/arm/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+													failonerror="true"
+													outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="${project.jre-version}"/>
+										</exec>
+
+										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="UMS"
+											identifier="net.pms.PMS"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="net.pms.PMS"
+										>
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx2048M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-macos</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos-arm.xml</descriptor>
 									</descriptors>
 									<archive>
 										<manifest>
