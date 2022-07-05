@@ -3,7 +3,6 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { SketchPicker } from 'react-color';
 import { useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
 import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
