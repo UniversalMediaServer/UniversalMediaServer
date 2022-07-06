@@ -525,10 +525,42 @@ export default function Settings() {
     </>);
   }
 
+  const getVLCWebVideo = () => {
+    return (
+      <>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['VlcTrans.3']}
+          {...form.getInputProps('vlc_use_experimental_codecs', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['MEncoderVideo.2']}
+          {...form.getInputProps('vlc_audio_sync_enabled', { type: 'checkbox' })}
+        />
+    </>
+    );
+  }
+
+  const noSettingsForNow = () => {
+    return (
+      <Text>{i18n.get['TrTab2.1']}</Text>
+    )
+  }
   const getTranscodingContent = () => {
     switch(transcodingContent) {
       case 'common':
         return getTranscodingCommon();
+      case 'VLCAudioStreaming':
+        return (noSettingsForNow());
+      case 'VLCWebVideo':
+        return getVLCWebVideo();
+      case 'VLCVideoStreaming':
+        return (noSettingsForNow());
+      case 'DCRaw':
+        return (noSettingsForNow());
       default:
       return null;
     }
