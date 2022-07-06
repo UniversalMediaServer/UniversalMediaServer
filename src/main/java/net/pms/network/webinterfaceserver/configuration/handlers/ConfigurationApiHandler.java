@@ -252,6 +252,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("audio_embed_dts_in_pcm", false);
 		jObj.addProperty("audio_bitrate", "448");
 		jObj.addProperty("audio_remux_ac3", true);
+		jObj.addProperty("audio_resample", true);
 		jObj.addProperty("audio_subtitles_languages", "");
 		jObj.addProperty("audio_thumbnails_method", "1");
 		jObj.addProperty("audio_use_pcm", false);
@@ -262,6 +263,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("chapter_support", false);
 		jObj.addProperty("disable_subtitles", false);
 		jObj.addProperty("disable_transcode_for_extensions", "");
+		jObj.addProperty("vlc_use_experimental_codecs", false);
 		jObj.addProperty("encoded_audio_passthrough", false);
 		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
 		jObj.add("engines", transcodingEngines);
@@ -316,6 +318,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("use_embedded_subtitles_style", true);
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
+		jObj.addProperty("vlc_audio_sync_enabled", false);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;
