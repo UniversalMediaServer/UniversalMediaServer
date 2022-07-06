@@ -252,6 +252,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("audio_embed_dts_in_pcm", false);
 		jObj.addProperty("audio_bitrate", "448");
 		jObj.addProperty("audio_remux_ac3", true);
+		jObj.addProperty("audio_resample", true);
 		jObj.addProperty("audio_subtitles_languages", "");
 		jObj.addProperty("audio_thumbnails_method", "1");
 		jObj.addProperty("audio_use_pcm", false);

@@ -544,6 +544,19 @@ export default function Settings() {
     );
   }
 
+  const getFFMPEGAudio = () => {
+    return (
+      <>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['TrTab2.22']}
+          {...form.getInputProps('audio_resample', { type: 'checkbox' })}
+        />
+      </>
+    )
+  }
+
   const noSettingsForNow = () => {
     return (
       <Text>{i18n.get['TrTab2.1']}</Text>
@@ -553,13 +566,23 @@ export default function Settings() {
     switch(transcodingContent) {
       case 'common':
         return getTranscodingCommon();
+      case 'DCRaw':
+        return (noSettingsForNow());
+      case 'FFmpegAudio':
+        return getFFMPEGAudio();
+      case 'FFmpegWebVideo':
+        return (noSettingsForNow());
+      case 'MEncoderWebVideo':
+        return (noSettingsForNow());
+      case 'tsMuxeRAudio':
+        return (noSettingsForNow());
       case 'VLCAudioStreaming':
         return (noSettingsForNow());
       case 'VLCWebVideo':
         return getVLCWebVideo();
       case 'VLCVideoStreaming':
         return (noSettingsForNow());
-      case 'DCRaw':
+      case 'youtubeDl':
         return (noSettingsForNow());
       default:
       return null;
