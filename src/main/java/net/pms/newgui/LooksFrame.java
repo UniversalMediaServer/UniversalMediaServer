@@ -97,7 +97,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");;
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);
@@ -437,12 +437,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		// If the version contains a "-" (e.g. "1.50.1-SNAPSHOT" or "1.50.1-beta1"), add a warning message
 		if (projectVersion.indexOf('-') > -1) {
-			title = title + " - " + Messages.getString("LooksFrame.26");
+			title = title + " - " + Messages.getString("ForTestingOnly");
 		}
 
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
-			title = title + "  [" + Messages.getString("TracesTab.10").toUpperCase() + "]";
+			title = title + "  [" + Messages.getString("Trace").toUpperCase() + "]";
 		}
 
 		setTitle(title);
@@ -488,7 +488,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
-			webinterface = createToolBarButton(Messages.getString("LooksFrame.29"), "button-wif.png", Messages.getString("LooksFrame.30"));
+			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
@@ -498,7 +498,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
 							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
-								error = Messages.getString("LooksFrame.BrowserError");
+								error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 							}
 						} catch (URISyntaxException se) {
 							LOGGER.error(
@@ -507,13 +507,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 								se.getMessage()
 							);
 							LOGGER.trace("", se);
-							error = Messages.getString("LooksFrame.URIError");
+							error = Messages.getString("CouldNotFormValidUrl");
 						}
 					} else {
-						error = Messages.getString("LooksFrame.URIError");
+						error = Messages.getString("CouldNotFormValidUrl");
 					}
 					if (error != null) {
-						JOptionPane.showMessageDialog(null, error, Messages.getString("Dialog.Error"), JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			});
@@ -532,12 +532,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 				PMS.get().reset();
 			}
 		});
-		reload.setToolTipText(Messages.getString("LooksFrame.28"));
+		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
+		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener(new ActionListener() {
 			@Override
@@ -583,18 +583,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
-		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.TabGeneralSettings"), generalSettingsTab.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.TabNavigationSettings"), navigationSettingsTab.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.TabSharedContent"), sharedContentTab.build());
+		tabbedPane.addTab(Messages.getString("Status"), st.build());
+		tabbedPane.addTab(Messages.getString("Logs"), tt.build());
+		tabbedPane.addTab(Messages.getString("GeneralSettings"), generalSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("NavigationSettings"), navigationSettingsTab.build());
+		tabbedPane.addTab(Messages.getString("SharedContent"), sharedContentTab.build());
 		if (!configuration.isDisableTranscoding()) {
-			tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+			tabbedPane.addTab(Messages.getString("TranscodingSettings"), tr.build());
 		} else {
 			tr.build();
 		}
-		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
+		tabbedPane.addTab(Messages.getString("Help"), new HelpTab().build());
+		tabbedPane.addTab(Messages.getString("About"), new AboutTab().build());
 
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
@@ -701,12 +701,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			if (required) {
 				if (reload.getIcon() == restartIcon) {
 					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
-					reload.setToolTipText(Messages.getString("LooksFrame.13"));
+					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
 				}
 			} else {
 				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
-					reload.setToolTipText(Messages.getString("LooksFrame.28"));
+					reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}

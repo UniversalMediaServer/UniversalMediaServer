@@ -187,7 +187,7 @@ public abstract class Database extends DatabaseHelper {
 					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
 					needRetry = true;
 				} else {
-					showMessageDialog("DLNAMediaDatabase.5", dbDir);
+					showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
 					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 				}
 			} else {
@@ -200,7 +200,7 @@ public abstract class Database extends DatabaseHelper {
 					conn = getConnection();
 					status = DatabaseStatus.OPENED;
 				} catch (SQLException se2) {
-					showMessageDialog("DLNAMediaDatabase.ConnectionError", dbDir);
+					showMessageDialog("TheLocalCacheCouldNotStarted", dbDir);
 					LOGGER.debug("", se2);
 				}
 			}
@@ -219,7 +219,7 @@ public abstract class Database extends DatabaseHelper {
 				JOptionPane.showMessageDialog(
 					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					String.format(Messages.getString(message), dbDir),
-					Messages.getString("Dialog.Error"),
+					Messages.getString("Error"),
 					JOptionPane.ERROR_MESSAGE
 				);
 			} catch (NullPointerException e1) {

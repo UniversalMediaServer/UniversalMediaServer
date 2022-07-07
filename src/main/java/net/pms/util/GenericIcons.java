@@ -163,7 +163,7 @@ public enum GenericIcons {
 			}
 
 			if (isBlank(label)) {
-				label = Messages.getString("Generic.Unknown");
+				label = Messages.getString("Unknown");
 			}
 
 			if (imageCache.containsKey(label)) {
@@ -240,7 +240,7 @@ public enum GenericIcons {
 			case WEBVTT:
 				return "WebVTT";
 			case ISOVOB:
-				return Messages.getString("GenericIcons.DVDVideo");
+				return Messages.getString("DvdVideo");
 			default:
 				return format.getIdentifier().toString();
 		}

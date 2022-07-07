@@ -62,11 +62,11 @@ public enum PreventSleepMode {
 	public String toString() {
 		switch (this) {
 			case NEVER:
-				return Messages.getString("NetworkTab.PreventSleepNever");
+				return Messages.getString("Never");
 			case PLAYBACK:
-				return Messages.getString("NetworkTab.PreventSleepDuringPlayback");
+				return Messages.getString("DuringPlayback");
 			case RUNNING:
-				return Messages.getString("NetworkTab.PreventSleepWhileRunning");
+				return Messages.getString("WhileRunning");
 			default:
 				throw new IllegalStateException("Unimplemented enum value: " + super.toString());
 		}

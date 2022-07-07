@@ -24,7 +24,7 @@ public class PlaylistService implements ApiResponseHandler {
 		String uriLower = uri.toLowerCase();
 		try {
 			if (!pm.isServiceEnabled()) {
-				throw new RuntimeException(Messages.getString("Api.Playlist.ServiceDisabled"));
+				throw new RuntimeException(Messages.getString("PlaylistServiceDisabled"));
 			}
 			switch (uriLower) {
 				case "getallplaylists":
@@ -41,20 +41,20 @@ public class PlaylistService implements ApiResponseHandler {
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
 					pm.addSongToPlaylist(add.audiotrackId, add.playlistName);
-					return Messages.getString("Api.Playlist.SongAdded");
+					return Messages.getString("SongAddedToPlaylist");
 				case "removesongfromplaylist":
 					LOGGER.trace("removesongfromplaylist");
 					AudioPlaylistVO remove = getParamsFromContent(content);
 					pm.removeSongFromPlaylist(remove.audiotrackId, remove.playlistName);
-					return Messages.getString("Api.Playlist.SongRemoved");
+					return Messages.getString("SongRemovedFromPlaylist");
 				case "createplaylist":
 					LOGGER.trace("createplaylist");
 					pm.createPlaylist(content);
-					return Messages.getString("Api.Playlist.PlaylistCreated");
+					return Messages.getString("PlaylistHasBeenCreated");
 				default:
 					LOGGER.trace("default");
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return Messages.getString("Api.Error.UnknownService") + " : " + uri;
+					return Messages.getString("NoServiceAvailableForPath") + " : " + uri;
 			}
 		} catch (Exception e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);

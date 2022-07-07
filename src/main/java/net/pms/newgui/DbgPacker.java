@@ -79,7 +79,7 @@ public class DbgPacker implements ActionListener {
 			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) :
 					new CustomJButton("+");
 			open.setActionCommand(file.getAbsolutePath());
-			open.setToolTipText((exists ? "" : Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
+			open.setToolTipText((exists ? "" : Messages.getString("Create") + " ") + file.getAbsolutePath());
 			open.addActionListener(this);
 			c.gridx++;
 			c.weightx = 0.0;
@@ -88,13 +88,13 @@ public class DbgPacker implements ActionListener {
 			c.gridy++;
 		}
 		c.weightx = 2.0;
-		CustomJButton debugPack = new CustomJButton(Messages.getString("DbgPacker.2"));
+		CustomJButton debugPack = new CustomJButton(Messages.getString("ZipSelectedFiles"));
 		debugPack.setActionCommand("pack");
 		debugPack.addActionListener(this);
 		top.add(debugPack, c);
 		openZip = new CustomJButton(MetalIconFactory.getTreeFolderIcon());
 		openZip.setActionCommand("showzip");
-		openZip.setToolTipText(Messages.getString("DbgPacker.3"));
+		openZip.setToolTipText(Messages.getString("OpenZipLocation"));
 		openZip.setEnabled(false);
 		openZip.addActionListener(this);
 		c.gridx++;
@@ -186,7 +186,7 @@ public class DbgPacker implements ActionListener {
 			public void approveSelection() {
 				File f = getSelectedFile();
 				if (!f.isDirectory()) {
-					if (f.exists() && JOptionPane.showConfirmDialog(null, Messages.getString("DbgPacker.4"), "Confirm",
+					if (f.exists() && JOptionPane.showConfirmDialog(null, Messages.getString("OverwriteExistingFile"), "Confirm",
 							JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
 						return;
 					}
@@ -254,16 +254,16 @@ public class DbgPacker implements ActionListener {
 				} catch (IOException e2) {
 					LOGGER.warn("Failed to open default desktop application: {}", e2);
 					if (Platform.isWindows()) {
-						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.5") + e2,
-								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, Messages.getString("CouldNotOpenExternalViewerPlease") + e2,
+								Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					} else {
-						JOptionPane.showMessageDialog(null, Messages.getString("DbgPacker.6") + e2,
-								Messages.getString("TracesTab.6"), JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, Messages.getString("CouldNotOpenExternalViewer") + e2,
+								Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			} else {
 				JOptionPane.showMessageDialog(null,
-						String.format(Messages.getString("DbgPacker.7"), file.getAbsolutePath()), null,
+						String.format(Messages.getString("CantOpenXDoesntExist"), file.getAbsolutePath()), null,
 						JOptionPane.INFORMATION_MESSAGE);
 				reload((JComponent) e.getSource());
 			}
@@ -275,7 +275,7 @@ public class DbgPacker implements ActionListener {
 		LOGGER.debug("Reloading...");
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), config(),
-				Messages.getString("Dialog.Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null,
+				Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null,
 				null);
 	}
 }

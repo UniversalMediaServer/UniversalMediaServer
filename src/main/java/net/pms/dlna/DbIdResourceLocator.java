@@ -142,7 +142,7 @@ public class DbIdResourceLocator {
 								if (resultSet.next()) {
 									res = new VirtualFolderDbId(resultSet.getString("ALBUM"),
 										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
-									res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum"))));
+									res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums"))));
 									// Find "best track" logic should be optimized !!
 									String lastUuidTrack = "";
 									do {
@@ -168,8 +168,8 @@ public class DbIdResourceLocator {
 							}
 							DoubleRecordFilter filter = new DoubleRecordFilter();
 							res = new VirtualFolderDbId(
-								Messages.getString("Audio.Like.MyAlbum"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("Audio.Like.MyAlbum")),
+								Messages.getString("MyAlbums"),
+								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums")),
 								"");
 							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 								res.setFakeParentId("0");
@@ -218,10 +218,10 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON:
 							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
 								"");
-							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("Search.AllFiles"),
+							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
-							DLNAResource albums = new VirtualFolderDbId(Messages.getString("Search.ByAlbum"),
+							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum_lowercase"),
 								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 							break;

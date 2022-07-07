@@ -286,7 +286,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return (isBlank(parentName) ? "" : parentName + " ") + Messages.getString("DVDISOTitle.1") + " " + title;
+		return (isBlank(parentName) ? "" : parentName + " ") + Messages.getString("Title") + " " + title;
 	}
 
 	@Override

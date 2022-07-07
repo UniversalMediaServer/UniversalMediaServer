@@ -1562,7 +1562,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				engineName = "[" + player.name() + (isAvisynth() ? " + AviSynth]" : "]");
 			}
 		} else if (isNoName()) {
-			engineName = Messages.getString("DLNAResource.0");
+			engineName = Messages.getString("NoTranscoding");
 		}
 		return engineName;
 	}
@@ -1639,26 +1639,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					String subtitleLanguage = mediaSubtitle.getLangFullName();
 					if (subsInfoLevel == SubtitlesInfoLevel.BASIC) {
 						if ("Undetermined".equals(subtitleLanguage)) {
-							nameSuffixBuilder.append(Messages.getString("Generic.Unknown"));
+							nameSuffixBuilder.append(Messages.getString("Unknown"));
 						} else {
 							nameSuffixBuilder.append(subtitleLanguage);
 						}
-						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles.LowerCase"));
+						nameSuffixBuilder.append(" ").append(Messages.getString("Subtitles_lowercase"));
 					} else if (subsInfoLevel == SubtitlesInfoLevel.FULL) {
 						if (subsAreValidForStreaming) {
-							nameSuffixBuilder.append(Messages.getString("DLNAResource.3")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("Stream")).append(" ");
 						}
 
 						if (mediaSubtitle.isExternal()) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.ExternalShort")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("External_abbr")).append(" ");
 						} else if (mediaSubtitle.isEmbedded()) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.InternalShort")).append(" ");
+							nameSuffixBuilder.append(Messages.getString("Internal_abbr")).append(" ");
 						}
-						nameSuffixBuilder.append(Messages.getString("DLNAResource.2"));
+						nameSuffixBuilder.append(Messages.getString("Sub"));
 						nameSuffixBuilder.append(mediaSubtitle.getType().getShortName()).append("/");
 
 						if ("Undetermined".equals(subtitleLanguage)) {
-							nameSuffixBuilder.append(Messages.getString("Subtitles.UnknownShort"));
+							nameSuffixBuilder.append(Messages.getString("Unknown_abbr"));
 						} else {
 							nameSuffixBuilder.append(subtitleLanguage);
 						}
@@ -4672,7 +4672,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private String resumeStr(String s) {
 		if (isResume()) {
-			return Messages.getString("PMS.134") + ": " + s;
+			return Messages.getString("Resume") + ": " + s;
 		}
 		return s;
 	}
@@ -4967,13 +4967,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (dynamicPls == null) {
-			dynamicPls = new VirtualFolder(Messages.getString("PMS.147"), null);
+			dynamicPls = new VirtualFolder(Messages.getString("DynamicPlaylist_FolderName"), null);
 			addChildInternal(dynamicPls);
 			dynamicPls.addChild(dynPls);
 		}
 
 		if (dynamicPls != null) {
-			String str = Messages.getString("PluginTab.9") + " " + child.getDisplayName() + " " + Messages.getString("PMS.148");
+			String str = Messages.getString("Add") + " " + child.getDisplayName() + " " + Messages.getString("ToDynamicPlaylist");
 			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
 
 				@Override

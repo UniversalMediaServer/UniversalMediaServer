@@ -750,40 +750,40 @@ public class WebInterfaceServerUtil {
 			while (i.hasNext()) {
 				if (genresFolder == null) {
 					// prepare to get IDs of certain metadata resources, to make them clickable
-					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.MediaLibrary"));
-					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("PMS.MediaLibrary"), true, true);
+					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
 					if (rootFolderChildren.isEmpty()) {
 						return null;
 					}
 					DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
 
-					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("PMS.34"));
-					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("PMS.34"), true, true);
+					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
 					DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
 					boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-					String folderName = isRelatedToTV ? Messages.getString("VirtualFolder.4") : Messages.getString("VirtualFolder.5");
+					String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
 					List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
 					UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 					DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.FilterByInformation"));
-					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("VirtualFolder.FilterByInformation"), true, true);
+					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
 					DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("VirtualFolder.Genres"));
+					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
 
 					for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
 						DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-						if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Actors"))) {
+						if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
 							actorsFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Country"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
 							countryFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Director"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
 							directorFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Genres"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
 							genresFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("VirtualFolder.Rated"))) {
+						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
 							ratedFolder = filterByInformationChild;
 						}
 					}
@@ -1018,21 +1018,21 @@ public class WebInterfaceServerUtil {
 
 			javascriptVarsScript = "";
 			javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
-			javascriptVarsScript += "var awardsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Awards", language) + "\";";
+			javascriptVarsScript += "var awardsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Awards", language) + "\";";
 			javascriptVarsScript += "var country = " + country + ";";
-			javascriptVarsScript += "var countryTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Country", language) + "\";";
+			javascriptVarsScript += "var countryTranslation = \"" + WebInterfaceServerUtil.getMsgString("Country", language) + "\";";
 			javascriptVarsScript += "var director = " + director + ";";
-			javascriptVarsScript += "var directorTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Director", language) + "\";";
+			javascriptVarsScript += "var directorTranslation = \"" + WebInterfaceServerUtil.getMsgString("Director", language) + "\";";
 			javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
 			javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
-			javascriptVarsScript += "var plotTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Plot", language) + "\";";
+			javascriptVarsScript += "var plotTranslation = \"" + WebInterfaceServerUtil.getMsgString("Plot", language) + "\";";
 			javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
 			javascriptVarsScript += "var rated = " + rated + ";";
-			javascriptVarsScript += "var ratedTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Rated", language) + "\";";
+			javascriptVarsScript += "var ratedTranslation = \"" + WebInterfaceServerUtil.getMsgString("Rated", language) + "\";";
 			javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
-			javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.YearStarted", language) + "\";";
+			javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("YearStarted", language) + "\";";
 			javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
-			javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.TotalSeasons", language) + "\";";
+			javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("TotalSeasons", language) + "\";";
 
 			// TMDB metadata added in V11
 			javascriptVarsScript += "var createdBy = \"" + StringEscapeUtils.escapeEcmaScript(createdBy) + "\";";
@@ -1061,7 +1061,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 
-			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Actors", language) + "\";";
+			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Actors", language) + "\";";
 			String actorsArrayJavaScript = "var actors = [";
 			for (String actor : actors) {
 				actorsArrayJavaScript += actor + ",";
@@ -1069,7 +1069,7 @@ public class WebInterfaceServerUtil {
 			actorsArrayJavaScript += "];";
 			javascriptVarsScript += actorsArrayJavaScript;
 
-			javascriptVarsScript += "var genresTranslation = \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Genres", language) + "\";";
+			javascriptVarsScript += "var genresTranslation = \"" + WebInterfaceServerUtil.getMsgString("Genres", language) + "\";";
 			String genresArrayJavaScript = "var genres = [";
 			for (String genre : genres) {
 				genresArrayJavaScript += genre + ",";
@@ -1078,7 +1078,7 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += genresArrayJavaScript;
 
 			String ratingsArrayJavaScript = "var ratings = [";
-			javascriptVarsScript += "var ratingsTranslation= \"" + WebInterfaceServerUtil.getMsgString("VirtualFolder.Ratings", language) + "\";";
+			javascriptVarsScript += "var ratingsTranslation= \"" + WebInterfaceServerUtil.getMsgString("Ratings", language) + "\";";
 			if (!ratings.isEmpty()) {
 				Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
 				while (ratingsIterator.hasNext()) {
