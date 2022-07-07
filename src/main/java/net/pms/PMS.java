@@ -273,7 +273,7 @@ public class PMS {
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
 			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
 			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("To solve this, replace the binaries found in the \"osx\"");
 			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("");
