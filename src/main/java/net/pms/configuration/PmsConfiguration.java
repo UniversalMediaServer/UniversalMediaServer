@@ -3496,9 +3496,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			SubtitlesInfoLevel.FULL.toString()
 		};
 		String[] labels = new String[] {
-			"i18n@Generic.None",
-			"i18n@Generic.Basic",
-			"i18n@Generic.Full"
+			"i18n@None",
+			"i18n@Basic",
+			"i18n@Full"
 		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
@@ -5241,12 +5241,12 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		JsonObject noneObject = new JsonObject();
 		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
-		noneObject.addProperty("label", "i18n@Generic.None");
+		noneObject.addProperty("label", "i18n@None");
 		jsonArray.add(noneObject);
 
 		JsonObject coverArtArchiveObject = new JsonObject();
 		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
-		coverArtArchiveObject.addProperty("label", "i18n@FoldTab.73");
+		coverArtArchiveObject.addProperty("label", "i18n@DownloadFromCoverArtArchive");
 		jsonArray.add(coverArtArchiveObject);
 
 		return jsonArray;
@@ -5266,13 +5266,13 @@ public class PmsConfiguration extends RendererConfiguration {
 			"" + UMSUtils.SORT_NO_SORT    // no sorting
 		};
 		String[] labels = new String[]{
-			"i18n@FoldTab.15",
-			"i18n@FoldTab.22",
-			"i18n@FoldTab.20",
-			"i18n@FoldTab.16",
-			"i18n@FoldTab.17",
-			"i18n@FoldTab.58",
-			"i18n@FoldTab.62"
+			"i18n@AlphabeticalAZ",
+			"i18n@Alphanumeric",
+			"i18n@Asciibetical",
+			"i18n@ByDateNewestFirst",
+			"i18n@ByDateOldestFirst",
+			"i18n@Random",
+			"i18n@NoSorting"
 		};
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
@@ -5304,11 +5304,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public synchronized static JsonArray getEnginesPurposesAsJsonArray() {
 		JsonArray result = new JsonArray();
-		result.add("i18n@TrTab2.14"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
-		result.add("i18n@TrTab2.15"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
-		result.add("i18n@TrTab2.16"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
-		result.add("i18n@TrTab2.17"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
-		result.add("i18n@TrTab2.18"); //Player.MISC_PLAYER = 4
+		result.add("i18n@VideoFilesEngines"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
+		result.add("i18n@AudioFilesEngines"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
+		result.add("i18n@WebVideoStreamingEngines"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
+		result.add("i18n@WebAudioStreamingEngines"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
+		result.add("i18n@MiscEngines"); //Player.MISC_PLAYER = 4
 		return result;
 	}
 

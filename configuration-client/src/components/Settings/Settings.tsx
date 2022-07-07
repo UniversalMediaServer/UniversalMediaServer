@@ -817,7 +817,7 @@ export default function Settings() {
                   </Tooltip>
                 </Group>
               </Accordion.Item>
-              <Accordion.Item label={i18n.get['NetworkTab.60']}>
+              <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
                 <Tooltip label={getToolTipContent(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xl"

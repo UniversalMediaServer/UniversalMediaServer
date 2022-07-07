@@ -34,7 +34,7 @@ const About = () => {
           autoClose: 3000,
         });
       });
-  }, []);
+  }, [i18n]);
 
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
