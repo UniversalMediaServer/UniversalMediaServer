@@ -42,36 +42,36 @@ public class Wizard {
 		int currentQuestionNumber = 1;
 
 		String status = new StringBuilder()
-			.append(Messages.getString("Wizard.2"))
+			.append(Messages.getString("ConfigurationWizardQuestion"))
 			.append(" %d ")
-			.append(Messages.getString("Wizard.4"))
+			.append(Messages.getString("Of"))
 			.append(" ")
 			.append(numberOfQuestions)
 			.toString();
 
 		Object[] okOptions = {
-				Messages.getString("Dialog.OK")
+				Messages.getString("OK")
 			};
 
 		Object[] yesNoOptions = {
-				Messages.getString("Dialog.YES"),
-				Messages.getString("Dialog.NO")
+				Messages.getString("Yes"),
+				Messages.getString("No")
 			};
 
 		Object[] networkTypeOptions = {
-				Messages.getString("Wizard.8"),
-				Messages.getString("Wizard.9"),
-				Messages.getString("Wizard.10")
+				Messages.getString("WiredGigabit"),
+				Messages.getString("Wired100Megabit"),
+				Messages.getString("Wireless")
 			};
 
 		Object[] defaultOptions = {
-				Messages.getString("Wizard.DefaultsYes"),
-				Messages.getString("Wizard.DefaultsNo")
+				Messages.getString("YesRunTheWizard"),
+				Messages.getString("NoUseTheDefaults")
 			};
 
 		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
 			null,
-			Messages.getString("Wizard.13"),
+			Messages.getString("WouldYouLikeRunWizard"),
 			String.format(status, currentQuestionNumber++),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.QUESTION_MESSAGE,
@@ -91,7 +91,7 @@ public class Wizard {
 			// Ask if they want UMS to start minimized
 			int whetherToStartMinimized = JOptionPane.showOptionDialog(
 				null,
-				Messages.getString("Wizard.3"),
+				Messages.getString("ShouldUmsStartMinimized"),
 				String.format(status, currentQuestionNumber++),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
@@ -109,7 +109,7 @@ public class Wizard {
 			// Ask if they want to hide advanced options
 			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
 				null,
-				Messages.getString("Wizard.11"),
+				Messages.getString("ShouldUmsHideAdvancedOptions"),
 				String.format(status, currentQuestionNumber++),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
@@ -127,7 +127,7 @@ public class Wizard {
 			// Ask if they want to scan shared folders
 			int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
 				null,
-				Messages.getString("Wizard.IsStartupScan"),
+				Messages.getString("ShouldUmsScanFoldersStartup"),
 				String.format(status, currentQuestionNumber++),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
@@ -145,7 +145,7 @@ public class Wizard {
 			// Ask to set at least one shared folder
 			JOptionPane.showOptionDialog(
 				null,
-				Messages.getString("Wizard.12"),
+				Messages.getString("FinallyChooseFolderShare"),
 				String.format(status, currentQuestionNumber++),
 				JOptionPane.OK_OPTION,
 				JOptionPane.INFORMATION_MESSAGE,
@@ -164,7 +164,7 @@ public class Wizard {
 					}
 
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					chooser.setDialogTitle(Messages.getString("Wizard.12"));
+					chooser.setDialogTitle(Messages.getString("FinallyChooseFolderShare"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());

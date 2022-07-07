@@ -125,7 +125,7 @@ public class PlaylistManager {
 		if (playlistsNames.indexOf(baseName.toLowerCase()) > -1) {
 			return availablePlaylists.get(playlistsNames.indexOf(baseName.toLowerCase()));
 		}
-		throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNotManaged") + " : " + playlistName);
+		throw new RuntimeException(Messages.getString("UnknownPlaylistName") + " : " + playlistName);
 	}
 
 	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
@@ -133,17 +133,17 @@ public class PlaylistManager {
 		String filenameToAdd = getFilenameFromId(audiotrackID);
 
 		if (StringUtils.isAllBlank(filenameToAdd)) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.AudiotrackIdUnknown") + " : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackID);
 		}
 		if (playlistName == null) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNotProvided"));
+			throw new RuntimeException(Messages.getString("PlaylistNameNotProvided"));
 		}
 
 		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
 			LOGGER.trace("song already in playlist " + relativeSongPath);
-			throw new RuntimeException(Messages.getString("Api.Playlist.SongAlredyInPlaylist") + ". ID : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("SongAlreadyInPlaylist") + ". ID : " + audiotrackID);
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
@@ -160,7 +160,7 @@ public class PlaylistManager {
 			if (rs.next()) {
 				return rs.getString(1);
 			}
-			throw new RuntimeException(Messages.getString("Api.Playlist.AudiotrackIdUnknown") + " : " + audiotrackId);
+			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackId);
 		}
 	}
 
@@ -177,7 +177,7 @@ public class PlaylistManager {
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
 		} else {
-			throw new RuntimeException(Messages.getString("Api.Playlist.SongNotInPlaylist") + " : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + audiotrackID);
 		}
 		return playlistEntries;
 	}
@@ -243,19 +243,19 @@ public class PlaylistManager {
 
 	public void createPlaylist(String playlistName) throws IOException {
 		if (StringUtils.isAllBlank(playlistName)) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNameNotProvided"));
+			throw new RuntimeException(Messages.getString("NoPlaylistNameProvided"));
 		}
 		if (!FilenameUtils.getBaseName(playlistName).equals(playlistName)) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistNameNoExt"));
+			throw new RuntimeException(Messages.getString("DoNotProvidePathOrFileExtensions"));
 		}
 		if (playlistsNames.contains(playlistName)) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistAlreadyExists"));
+			throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
 		}
 
 		String absoluteNewFilename = FilenameUtils.concat(PMS.getConfiguration().getManagedPlaylistFolder(), playlistName + ".m3u8");
 		File newPlaylist = new File(absoluteNewFilename);
 		if (newPlaylist.exists()) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistAlreadyExists"));
+			throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
 		}
 
 		createNewEmptyPlaylistFile(newPlaylist);
@@ -265,7 +265,7 @@ public class PlaylistManager {
 
 	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException, FileNotFoundException {
 		if (!newPlaylist.createNewFile()) {
-			throw new RuntimeException(Messages.getString("Api.Playlist.PlaylistCanNotBeCreated"));
+			throw new RuntimeException(Messages.getString("PlaylistCanNotBeCreated"));
 		}
 		PrintWriter pw = new PrintWriter(newPlaylist);
 		pw.println("#EXTM3U");

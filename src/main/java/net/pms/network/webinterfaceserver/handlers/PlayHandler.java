@@ -228,7 +228,7 @@ public class PlayHandler implements HttpHandler {
 				breadcrumbs.add("<li class=\"active\">" + name + "</li>");
 				while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 					thisResourceFromResources = thisResourceFromResources.getParent();
-					String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+					String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Home") : thisResourceFromResources.getDisplayName();
 					ancestorName = StringEscapeUtils.escapeHtml(ancestorName);
 					String ancestorID = thisResourceFromResources.getResourceId();
 					String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
@@ -241,8 +241,8 @@ public class PlayHandler implements HttpHandler {
 				String parentID = parentFromResources.getResourceId();
 				String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 				String backUri = "/browse/" + parentIDForWeb;
-				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
-				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
+				backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Back", t)).append("\">");
+				backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Back", t)).append("</span>");
 				backLinkHTML.append("</a>");
 				folders.add(backLinkHTML.toString());
 			}
@@ -312,11 +312,11 @@ public class PlayHandler implements HttpHandler {
 				if (rootResource.getParent() instanceof Playlist) {
 					mustacheVars.put("plsOp", "del");
 					mustacheVars.put("plsSign", "-");
-					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.4", t));
+					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("RemoveFromPlaylist", t));
 				} else {
 					mustacheVars.put("plsOp", "add");
 					mustacheVars.put("plsSign", "+");
-					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("Web.5", t));
+					mustacheVars.put("plsAttr", WebInterfaceServerUtil.getMsgString("AddToPlaylist", t));
 				}
 			}
 			addNextByType(rootResource, mustacheVars);

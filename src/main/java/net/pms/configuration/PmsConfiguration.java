@@ -49,6 +49,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
@@ -1724,7 +1725,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_LANGUAGES,
-				Messages.getString("MEncoderVideo.126")
+				Messages.getString("AudioLanguages")
 		);
 	}
 
@@ -1740,7 +1741,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_SUBTITLES_LANGUAGES,
-				Messages.getString("MEncoderVideo.127")
+				Messages.getString("SubtitlesLanguages")
 		);
 	}
 
@@ -1779,7 +1780,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_SUB_LANGS,
-				Messages.getString("MEncoderVideo.128")
+				Messages.getString("AudioSubtitlesPairs")
 		);
 	}
 
@@ -2330,8 +2331,8 @@ public class PmsConfiguration extends RendererConfiguration {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							Messages.getString("NetworkTab.58"),
-							Messages.getString("Dialog.PermissionsError"),
+							Messages.getString("UmsMustRunAdministrator"),
+							Messages.getString("PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
 
@@ -2606,7 +2607,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"));
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2622,7 +2623,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled")).split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
@@ -3316,7 +3317,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
 							"list on the \"{}\" tab or in the configuration file.",
 							folder,
-							Messages.getString("LooksFrame.TabSharedContent")
+							Messages.getString("SharedContent")
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -3327,7 +3328,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					"\"{}\" does not exist. Please remove it from your shared folders " +
 					"list on the \"{}\" tab or in the configuration file.",
 					folder,
-					Messages.getString("LooksFrame.TabSharedContent")
+					Messages.getString("SharedContent")
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
@@ -3476,7 +3477,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
-
+	public synchronized static JsonArray getFfmpegLoglevels() {
+		String[] values = FFmpegLogLevels.getLabels();
+		String[] labels = FFmpegLogLevels.getLabels();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
 	/**
 	 * Sets if subtitles information should be added to video names.
 	 *
@@ -3496,9 +3501,67 @@ public class PmsConfiguration extends RendererConfiguration {
 			SubtitlesInfoLevel.FULL.toString()
 		};
 		String[] labels = new String[] {
-			"i18n@Generic.None",
-			"i18n@Generic.Basic",
-			"i18n@Generic.Full"
+			"i18n@None",
+			"i18n@Basic",
+			"i18n@Full"
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public synchronized static JsonArray getSubtitlesCodepageArray() {
+		String[] values = new String[]{
+			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
+			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
+			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
+			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
+			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
+			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
+		};
+		String[] labels = new String[]{
+			Messages.getString("Generic.AutoDetect"),
+			Messages.getString("CharacterSet.874"),
+			Messages.getString("CharacterSet.932"),
+			Messages.getString("CharacterSet.936"),
+			Messages.getString("CharacterSet.949"),
+			Messages.getString("CharacterSet.950"),
+			Messages.getString("CharacterSet.1250"),
+			Messages.getString("CharacterSet.1251"),
+			Messages.getString("CharacterSet.1252"),
+			Messages.getString("CharacterSet.1253"),
+			Messages.getString("CharacterSet.1254"),
+			Messages.getString("CharacterSet.1255"),
+			Messages.getString("CharacterSet.1256"),
+			Messages.getString("CharacterSet.1257"),
+			Messages.getString("CharacterSet.1258"),
+			Messages.getString("CharacterSet.2022-CN"),
+			Messages.getString("CharacterSet.2022-JP"),
+			Messages.getString("CharacterSet.2022-KR"),
+			Messages.getString("CharacterSet.8859-1"),
+			Messages.getString("CharacterSet.8859-2"),
+			Messages.getString("CharacterSet.8859-3"),
+			Messages.getString("CharacterSet.8859-4"),
+			Messages.getString("CharacterSet.8859-5"),
+			Messages.getString("CharacterSet.8859-6"),
+			Messages.getString("CharacterSet.8859-7"),
+			Messages.getString("CharacterSet.8859-8"),
+			Messages.getString("CharacterSet.8859-9"),
+			Messages.getString("CharacterSet.8859-10"),
+			Messages.getString("CharacterSet.8859-11"),
+			Messages.getString("CharacterSet.8859-13"),
+			Messages.getString("CharacterSet.8859-14"),
+			Messages.getString("CharacterSet.8859-15"),
+			Messages.getString("CharacterSet.8859-16"),
+			Messages.getString("CharacterSet.Big5"),
+			Messages.getString("CharacterSet.EUC-JP"),
+			Messages.getString("CharacterSet.EUC-KR"),
+			Messages.getString("CharacterSet.GB18030"),
+			Messages.getString("CharacterSet.IBM420"),
+			Messages.getString("CharacterSet.IBM424"),
+			Messages.getString("CharacterSet.KOI8-R"),
+			Messages.getString("CharacterSet.ShiftJIS"),
+			Messages.getString("CharacterSet.TIS-620")
 		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
@@ -4254,7 +4317,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The folder name.
 	 */
 	public String getTranscodeFolderName() {
-		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("TranscodeVirtualFolder.0"));
+		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("Transcode"));
 	}
 
 	/**
@@ -5183,12 +5246,12 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		JsonObject noneObject = new JsonObject();
 		noneObject.addProperty("value", CoverSupplier.NONE_INTEGER.toString());
-		noneObject.addProperty("label", "i18n@Generic.None");
+		noneObject.addProperty("label", "i18n@None");
 		jsonArray.add(noneObject);
 
 		JsonObject coverArtArchiveObject = new JsonObject();
 		coverArtArchiveObject.addProperty("value", CoverSupplier.COVER_ART_ARCHIVE_INTEGER.toString());
-		coverArtArchiveObject.addProperty("label", "i18n@FoldTab.73");
+		coverArtArchiveObject.addProperty("label", "i18n@DownloadFromCoverArtArchive");
 		jsonArray.add(coverArtArchiveObject);
 
 		return jsonArray;
@@ -5208,13 +5271,13 @@ public class PmsConfiguration extends RendererConfiguration {
 			"" + UMSUtils.SORT_NO_SORT    // no sorting
 		};
 		String[] labels = new String[]{
-			"i18n@FoldTab.15",
-			"i18n@FoldTab.22",
-			"i18n@FoldTab.20",
-			"i18n@FoldTab.16",
-			"i18n@FoldTab.17",
-			"i18n@FoldTab.58",
-			"i18n@FoldTab.62"
+			"i18n@AlphabeticalAZ",
+			"i18n@Alphanumeric",
+			"i18n@Asciibetical",
+			"i18n@ByDateNewestFirst",
+			"i18n@ByDateOldestFirst",
+			"i18n@Random",
+			"i18n@NoSorting"
 		};
 
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
@@ -5246,12 +5309,19 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public synchronized static JsonArray getEnginesPurposesAsJsonArray() {
 		JsonArray result = new JsonArray();
-		result.add("i18n@TrTab2.14"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
-		result.add("i18n@TrTab2.15"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
-		result.add("i18n@TrTab2.16"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
-		result.add("i18n@TrTab2.17"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
-		result.add("i18n@TrTab2.18"); //Player.MISC_PLAYER = 4
+		result.add("i18n@VideoFilesEngines"); //Player.VIDEO_SIMPLEFILE_PLAYER = 0
+		result.add("i18n@AudioFilesEngines"); //Player.AUDIO_SIMPLEFILE_PLAYER = 1
+		result.add("i18n@WebVideoStreamingEngines"); //Player.VIDEO_WEBSTREAM_PLAYER = 2
+		result.add("i18n@WebAudioStreamingEngines"); //Player.AUDIO_WEBSTREAM_PLAYER = 3
+		result.add("i18n@MiscEngines"); //Player.MISC_PLAYER = 4
 		return result;
+	}
+
+	public synchronized static JsonArray getSubtitlesDepthArray() {
+
+		String[] values = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
+		String[] labels = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
 }

@@ -83,8 +83,8 @@ public class Splash extends JFrame implements MouseListener {
 		synchronized (optionLock) {
 			int isShowSplashScreen = JOptionPane.showConfirmDialog(
 				this,
-				Messages.getString("Splash.1"),
-				Messages.getString("Splash.2"),
+				Messages.getString("DisableSplashScreenDuringStartup"),
+				Messages.getString("SplashScreenSetting"),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE
 			);

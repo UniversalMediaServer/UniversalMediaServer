@@ -104,7 +104,7 @@ public class CodeEnter extends VirtualFolder {
 				addCharVVA(String.valueOf(i));
 			}
 		}
-		super.addChild(new CodeAction(Messages.getString("TracesTab.3"), true) {
+		super.addChild(new CodeAction(Messages.getString("Clear"), true) {
 			@Override
 			public boolean enable() {
 				if (preventAutoPlay()) {

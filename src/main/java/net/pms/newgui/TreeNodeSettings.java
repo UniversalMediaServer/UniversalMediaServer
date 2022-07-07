@@ -103,7 +103,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			builder.add(iconPanel, cc.xywh(2, 1, 1, 4, CellConstraints.CENTER, CellConstraints.TOP));
 
-			JLabel warningLabel = new JLabel(Messages.getString("TreeNodeSettings.4"));
+			JLabel warningLabel = new JLabel(Messages.getString("ThisEngineNotLoaded"));
 			builder.add(warningLabel, cc.xy(4, 2, CellConstraints.LEFT, CellConstraints.CENTER));
 			warningLabel.setFont(warningLabel.getFont().deriveFont(Font.BOLD));
 

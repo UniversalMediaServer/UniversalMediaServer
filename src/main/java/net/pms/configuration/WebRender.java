@@ -172,7 +172,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			case EDGE:     return "Edge";
 			case CHROMIUM: return "Chromium";
 			case VIVALDI:  return "Vivaldi";
-			default:       return Messages.getString("PMS.142");
+			default:       return Messages.getString("WebClient");
 		}
 	}
 

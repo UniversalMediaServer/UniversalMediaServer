@@ -305,7 +305,7 @@ public class APIUtils {
 					return;
 				}
 
-				frame.setSecondaryStatusLine(Messages.getString("StatusBar.GettingAPIInfoFor") + " " + file.getName());
+				frame.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
 				HashMap<?, ?> metadataFromAPI;
 
 				String year                        = media.getYear();

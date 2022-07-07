@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.2.0</version>
+	<version>11.2.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -633,6 +633,11 @@
 		</dependency>
 		<!-- end of JAXB dependencies -->
 		<dependency>
+			<groupId>com.vdurmont</groupId>
+			<artifactId>semver4j</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>pl.jalokim.propertiestojson</groupId>
 			<artifactId>java-properties-to-json</artifactId>
 			<version>5.2.2</version>
@@ -1092,7 +1097,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.0.0</version>
+				<version>4.7.1.0</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->

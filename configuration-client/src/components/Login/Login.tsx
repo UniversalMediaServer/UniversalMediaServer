@@ -29,7 +29,7 @@ const Login = () => {
         showNotification({
           id: 'pwd-error',
           color: 'red',
-          title: i18n.get['Dialog.Error'],
+          title: i18n.get['Error'],
           message: i18n.get['WebGui.LoginError'],
           autoClose: 3000,
         });
@@ -47,7 +47,7 @@ const Login = () => {
         showNotification({
           id: 'user-creation-error',
           color: 'red',
-          title: i18n.get['Dialog.Error'],
+          title: i18n.get['Error'],
           message: i18n.get['WebGui.AccountsUserCreationError'],
           autoClose: 3000,
         });

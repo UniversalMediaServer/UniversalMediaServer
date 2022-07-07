@@ -272,16 +272,13 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
 			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
 			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("To solve this, replace the binaries found in the \"osx\"");
 			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("");
@@ -491,15 +488,15 @@ public class PMS {
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
 			if (!configuration.isAutomaticMaximumBitrate()) {
 				Object[] yesNoOptions = {
-						Messages.getString("Dialog.YES"),
-						Messages.getString("Dialog.NO")
+						Messages.getString("Yes"),
+						Messages.getString("No")
 				};
 
 				// Ask if user wants to use automatic maximum bitrate
 				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
 					null,
-					Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
-					Messages.getString("ImprovedFeatureOptIn.Title"),
+					Messages.getString("WeImprovedAutomaticVideoQuality"),
+					Messages.getString("ImprovedFeature"),
 					JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE,
 					null,
@@ -1109,7 +1106,7 @@ public class PMS {
 				JOptionPane.showMessageDialog(
 					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
-					Messages.getString("PMS.42"),
+					Messages.getString("ErrorWhileStartingUms"),
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
@@ -1561,7 +1558,7 @@ public class PMS {
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
 				configuration.getDynamicPlsSavePath(),
 				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
 		}

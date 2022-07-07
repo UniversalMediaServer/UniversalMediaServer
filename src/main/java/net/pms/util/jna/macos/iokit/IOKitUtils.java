@@ -16,13 +16,11 @@
  */
 package net.pms.util.jna.macos.iokit;
 
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.vdurmont.semver4j.Semver;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryRef;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryRefByReference;
@@ -36,7 +34,6 @@ import net.pms.util.jna.macos.kernreturn.KernReturnT;
 import net.pms.util.jna.macos.types.IOIteratorTRef;
 import net.pms.util.jna.macos.types.IORegistryEntryT;
 
-
 /**
  * This is a utility class for {@link IOKitUtils}.
  * <p>
@@ -45,87 +42,25 @@ import net.pms.util.jna.macos.types.IORegistryEntryT;
  * @author Nadahar
  */
 public class IOKitUtils {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(IOKitUtils.class);
 
 	private static IOKit ioKit = IOKit.INSTANCE;
 	private static CoreFoundation cf = CoreFoundation.INSTANCE;
 
-	/**
-	 * An {@code array} of {@code int} containing the current macOS version
-	 * number.
-	 */
-	@SuppressFBWarnings("MALICIOUS_CODE")
-	protected static final int[] MAC_OS_VERSION = parseOSXVersion();
+	protected static final Semver MAC_OS_VERSION = new Semver(System.getProperty("os.version"));;
 
 	private IOKitUtils() {
 	}
 
 	/**
-	 * Used internally to populate {@link #MAC_OS_VERSION} by parsing the system
-	 * property {@code "os.version"}.
-	 *
-	 * @return An {@code array} of {@code int} containing the current macOS
-	 *         version number.
-	 */
-	protected static int[] parseOSXVersion() {
-		if (!Platform.isMac()) {
-			return null;
-		}
-		if (!"Mac OS X".equals(System.getProperty("os.name"))) {
-			LOGGER.error("Unable to parse maxOS version for operating system \"{}\"", System.getProperty("os.name"));
-			return new int[] {0, 0, 0};
-		}
-		String[] parts = System.getProperty("os.version").split("\\.");
-		if (parts.length != 2 && parts.length != 3) {
-			LOGGER.error("Unable to parse maxOS version \"{}\"", System.getProperty("os.version"));
-			return new int[] {0, 0, 0};
-		}
-		int[] result = new int[3];
-		result[2] = 0;
-		try {
-			for (int i = 0; i < parts.length; i++) {
-				result[i] = Integer.parseInt(parts[i]);
-			}
-		} catch (NumberFormatException e) {
-			LOGGER.error("Unable to parse maxOS version \"{}\": {}", System.getProperty("os.version"), e.getMessage());
-			LOGGER.trace("", e);
-			return new int[] {0, 0, 0};
-		}
-		return result;
-	}
-
-
-	/**
-	 * @return An array of {@code int}s of size 3 containing the current
-	 *         macOS version in the form <code>{10, major, minor}</code>. If the
-	 *         current platform isn't macOS, {@code null} is returned and if the
-	 *         current version couldn't be parsed, <code>{0, 0, 0}</code> is
-	 *         returned.
-	 */
-	public static int[] getMacosversion() {
-		return Arrays.copyOf(MAC_OS_VERSION, MAC_OS_VERSION.length);
-	}
-
-	/**
 	 * Determines if the current macOS version is of a version equal or greater
-	 * to the arguments. Since {@code "10"} is fixed for all versions of macOS,
-	 * only the major and minor versions are needed. The format is interpreted
-	 * as {@code 10.major.minor}.
+	 * to the argument.
 	 *
-	 * @param major the second part of the macOS version number.
-	 * @param minor the third part of the macOS version number.
-	 * @return {@code true} if the current version is at least the specified
-	 *         version, {@code false} otherwise.
+	 * @param version the version to evaluate.
+	 * @return whether the current version is at least the specified version.
 	 */
-	public static boolean isMacOsVersionEqualOrGreater(int major, int minor) {
-		return
-			MAC_OS_VERSION[0] == 10 &&
-			(
-				MAC_OS_VERSION[1] > major ||
-				MAC_OS_VERSION[1] == major &&
-				MAC_OS_VERSION[2] >= minor
-			);
+	public static boolean isMacOsVersionEqualOrGreater(String version) {
+		return MAC_OS_VERSION.isGreaterThanOrEqualTo(version);
 	}
 
 	/**
@@ -202,7 +137,7 @@ public class IOKitUtils {
 		CFStringRef name = CFStringRef.toCFStringRef(assertionName);
 		CFStringRef details = CFStringRef.toCFStringRef(assertionDetails);
 
-		if (isMacOsVersionEqualOrGreater(7, 0)) {
+		if (isMacOsVersionEqualOrGreater("10.7.0")) {
 			KernReturnT ioReturn = ioKit.IOPMAssertionCreateWithDescription(
 				assertionType,
 				name,
@@ -217,13 +152,13 @@ public class IOKitUtils {
 				return assertionIdRef.getValue();
 			}
 			throw new IOKitException("IOPMAssertionCreateWithDescription failed with error code: " + ioReturn.toStandardString());
-		} else if (isMacOsVersionEqualOrGreater(6, 0)) {
+		} else if (isMacOsVersionEqualOrGreater("10.6.0")) {
 			KernReturnT ioReturn = ioKit.IOPMAssertionCreateWithName(assertionType, IOKit.kIOPMAssertionLevelOn, name, assertionIdRef);
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
 				return assertionIdRef.getValue();
 			}
 			throw new IOKitException("IOPMAssertionCreateWithName failed with error code: " + ioReturn.toStandardString());
-		} else if (isMacOsVersionEqualOrGreater(5, 0)) {
+		} else if (isMacOsVersionEqualOrGreater("10.5.0")) {
 			@SuppressWarnings("deprecation")
 			KernReturnT ioReturn = ioKit.IOPMAssertionCreate(assertionType, IOKit.kIOPMAssertionLevelOn, assertionIdRef);
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
@@ -246,7 +181,7 @@ public class IOKitUtils {
 	 * @throws IOKitException If an error occurs during the operation.
 	 */
 	public static void enableGoToSleep(int assertionId) throws IOKitException {
-		if (isMacOsVersionEqualOrGreater(5, 0)) {
+		if (isMacOsVersionEqualOrGreater("10.5.0")) {
 			KernReturnT ioReturn = ioKit.IOPMAssertionRelease(assertionId);
 			if (ioReturn != DefaultKernReturnT.KERN_SUCCESS) {
 				throw new IOKitException("IOPMAssertionRelease failed with error code: " + ioReturn.toStandardString());
@@ -273,7 +208,7 @@ public class IOKitUtils {
 	 * @throws IOKitException If an error occurs during the operation.
 	 */
 	public static int resetIdleTimer(String assertionName, int assertionId) throws IOKitException {
-		if (isMacOsVersionEqualOrGreater(7, 3)) {
+		if (isMacOsVersionEqualOrGreater("10.7.3")) {
 			IntByReference assertionIdRef = new IntByReference(assertionId > 0 ? assertionId : 0);
 			CFStringRef name = CFStringRef.toCFStringRef(assertionName);
 			KernReturnT ioReturn = ioKit.IOPMAssertionDeclareUserActivity(name, IOPMUserActiveType.kIOPMUserActiveLocal, assertionIdRef);

@@ -69,11 +69,11 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
+		noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener(new ItemListener() {
 			@Override
