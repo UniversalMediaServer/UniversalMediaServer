@@ -184,7 +184,7 @@ public class BasicSystemUtils implements SystemUtils {
 			settingsItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					browseURI(PMS.get().getWebInterfaceServer().getUrl() + "/configuration");
+					browseURI(PMS.get().getWebInterfaceServer().getUrl() + "/settings");
 				}
 			});
 			popup.add(settingsItem);
