@@ -16,14 +16,11 @@
  */
 package net.pms.util.jna.macos.iokit;
 
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.vdurmont.semver4j.Semver;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryRef;
 import net.pms.util.jna.macos.corefoundation.CoreFoundation.CFMutableDictionaryRefByReference;
