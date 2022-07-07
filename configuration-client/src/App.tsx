@@ -24,6 +24,7 @@ import { AccountsProvider } from './providers/accounts-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
+import Player from './components/Player/Player';
 
 function App() {
   useEffect(() => {
@@ -91,6 +92,7 @@ function App() {
                               <Route path='about' element={<About />}></Route>
                               <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
                               <Route path='settings' element={<Settings />}></Route>
+                              <Route path='player' element={<Player />}></Route>
                               <Route index element={<Settings />} />
                               <Route
                                 path="/*"

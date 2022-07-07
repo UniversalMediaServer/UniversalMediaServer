@@ -36,6 +36,7 @@ public class ConfigurationClientHandler implements HttpHandler {
 	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
 		"/about",
 		"/accounts",
+		"/player",
 		"/settings"
 	));
 

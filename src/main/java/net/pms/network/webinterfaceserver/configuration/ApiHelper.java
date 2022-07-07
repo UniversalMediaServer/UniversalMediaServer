@@ -51,6 +51,14 @@ public class ApiHelper {
 
 	/**
 	 * @param path the specified path
+	 * @return whether this was a GET request for the specified root path.
+	 */
+	public Boolean getIn(String path) {
+		return exchange.getRequestMethod().equals("GET") && getEndpoint().startsWith(path);
+	}
+
+	/**
+	 * @param path the specified path
 	 * @return whether this was a POST request for the specified path.
 	 */
 	public Boolean post(String path) {
