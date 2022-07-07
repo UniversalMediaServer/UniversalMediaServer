@@ -29,6 +29,8 @@ export default function Settings() {
     allRendererNames: [],
     audioCoverSuppliers: [],
     enabledRendererNames: [],
+    ffmpegLoglevels: [],
+    gpuAccelerationMethod: [],
     languages: [],
     networkInterfaces: [],
     serverEngines: [],
@@ -557,11 +559,85 @@ export default function Settings() {
     )
   }
 
+  const getTsMuxerVideo = () => {
+    return (
+      <>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['ForceFpsParsedFfmpeg']}
+          {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['MuxAllAudioTracks']}
+          {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
+        />
+      </>
+    )
+  }
+
+  const getMEncoderVideo = () => {
+    return (<></>)
+  }
+
+  const getFFMPEGVideo = () => {
+    return (
+      <>
+        <Select
+          disabled={!canModify}
+          label={i18n.get['LogLevelColon']}
+          data={selectionSettings.ffmpegLoglevels}
+          {...form.getInputProps('ffmpeg_logging_level')}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['EnableMultithreading']}
+          {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['RemuxVideosTsmuxer']}
+          {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['UseFontSettings']}
+          {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['DeferMencoderTranscodingProblematic']}
+          {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['UseSoxHigherQualityAudio']}
+          {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
+        />
+        <NumberInput
+          label={i18n.get['GpuDecodingThreadCount']}
+          size="xs"
+          max={16}
+          min={0}
+          {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
+        />
+      </>
+    )
+  }
+
   const noSettingsForNow = () => {
     return (
       <Text>{i18n.get['NoSettingsForNow']}</Text>
     )
   }
+
   const getTranscodingContent = () => {
     switch(transcodingContent) {
       case 'common':
@@ -570,14 +646,22 @@ export default function Settings() {
         return (noSettingsForNow());
       case 'FFmpegAudio':
         return getFFMPEGAudio();
+      case 'FFmpegVideo':
+        return getFFMPEGVideo();
       case 'FFmpegWebVideo':
         return (noSettingsForNow());
+      case 'MEncoderVideo':
+        return getMEncoderVideo();
       case 'MEncoderWebVideo':
         return (noSettingsForNow());
       case 'tsMuxeRAudio':
         return (noSettingsForNow());
+      case 'tsMuxeRVideo':
+        return getTsMuxerVideo();
       case 'VLCAudioStreaming':
         return (noSettingsForNow());
+      case 'VLCVideo':
+        return getVLCWebVideo();
       case 'VLCWebVideo':
         return getVLCWebVideo();
       case 'VLCVideoStreaming':
