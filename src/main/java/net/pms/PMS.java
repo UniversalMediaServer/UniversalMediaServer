@@ -267,10 +267,7 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
