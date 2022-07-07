@@ -281,7 +281,7 @@ public class SleepManager {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isPreventSleepSupported() {
-		return Platform.isWindows() || Platform.isMac() && IOKitUtils.isMacOsVersionEqualOrGreater(5, 0);
+		return Platform.isWindows() || Platform.isMac() && IOKitUtils.isMacOsVersionEqualOrGreater("10.5.0");
 	}
 
 	/**
