@@ -632,7 +632,7 @@
 			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
-		</dependency>
+		<dependency>
 			<groupId>com.vdurmont</groupId>
 			<artifactId>semver4j</artifactId>
 			<version>3.1.0</version>
