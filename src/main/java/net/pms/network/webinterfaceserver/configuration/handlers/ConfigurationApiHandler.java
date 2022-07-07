@@ -289,6 +289,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("mencoder_noass_outline", 1);
 		jObj.addProperty("mencoder_subfribidi", false);
 		jObj.addProperty("minimized", false);
+		jObj.addProperty("tsmuxer_forcefps", true);
+		jObj.addProperty("tsmuxer_mux_all_audiotracks", false);
 		jObj.addProperty("mpeg2_main_settings", "Automatic (Wired)");
 		jObj.addProperty("network_interface", "");
 		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();

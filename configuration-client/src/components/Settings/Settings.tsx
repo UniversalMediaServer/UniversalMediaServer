@@ -557,11 +557,31 @@ export default function Settings() {
     )
   }
 
+  const getTsMuxerVideo = () => {
+    return (
+      <>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['TsMuxeRVideo.2']}
+          {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['TsMuxeRVideo.19']}
+          {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
+        />
+      </>
+    )
+  }
+
   const noSettingsForNow = () => {
     return (
       <Text>{i18n.get['TrTab2.1']}</Text>
     )
   }
+
   const getTranscodingContent = () => {
     switch(transcodingContent) {
       case 'common':
@@ -576,8 +596,12 @@ export default function Settings() {
         return (noSettingsForNow());
       case 'tsMuxeRAudio':
         return (noSettingsForNow());
+      case 'tsMuxeRVideo':
+        return getTsMuxerVideo();
       case 'VLCAudioStreaming':
         return (noSettingsForNow());
+      case 'VLCVideo':
+        return getVLCWebVideo();
       case 'VLCWebVideo':
         return getVLCWebVideo();
       case 'VLCVideoStreaming':
