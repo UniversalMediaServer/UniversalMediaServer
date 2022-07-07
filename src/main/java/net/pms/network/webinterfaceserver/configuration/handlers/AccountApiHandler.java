@@ -70,7 +70,7 @@ public class AccountApiHandler implements HttpHandler {
 			try {
 				if (api.get("/accounts")) {
 					//get account list that the user can view/modify
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null) {
 						JsonObject jObject = new JsonObject();
 						JsonArray jUsers = new JsonArray();
@@ -99,13 +99,15 @@ public class AccountApiHandler implements HttpHandler {
 							}
 						}
 						jObject.add("groups", jGroups);
+						jObject.add("enabled", new JsonPrimitive(AuthService.isEnabled()));
+						jObject.add("localhost", new JsonPrimitive(AuthService.isLocalhostAsAdmin()));
 						WebInterfaceServerUtil.respond(exchange, jObject.toString(), 200, "application/json");
 					} else {
 						WebInterfaceServerUtil.respond(exchange, null, 401, "application/json");
 					}
 				} else if (api.post("/action")) {
 					//action requested on account (create/modify)
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null) {
 						JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
 						if (action == null || !action.has("operation") || !action.get("operation").isJsonPrimitive()) {
@@ -117,6 +119,28 @@ public class AccountApiHandler implements HttpHandler {
 							Connection connection = UserDatabase.getConnectionIfAvailable();
 							if (connection != null) {
 								switch (operation) {
+									case "authentication":
+										//we need enabled
+										if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
+											boolean enabled = action.get("enabled").getAsBoolean();
+											AuthService.setEnabled(enabled);
+											WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+										} else {
+											LOGGER.trace("User '{}' try to change authentication service", account.toString());
+											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+										}
+										break;
+									case "localhost":
+										//we need enabled
+										if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
+											boolean enabled = action.get("enabled").getAsBoolean();
+											AuthService.setLocalhostAsAdmin(enabled);
+											WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
+										} else {
+											LOGGER.trace("User '{}' try to change localhost auto admin", account.toString());
+											WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+										}
+										break;
 									case "changelogin":
 										//we need username, password
 										//optional userid

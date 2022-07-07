@@ -28,6 +28,7 @@ export interface UmsAccount {
 export interface UmsSession {
   noAdminFound : boolean,
   account? : UmsAccount,
+  authenticate : boolean,
   initialized: boolean,
   refresh: () => void
 }

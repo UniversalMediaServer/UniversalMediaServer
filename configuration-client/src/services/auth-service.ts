@@ -39,6 +39,10 @@ export const create = async (username: string, password: string) => {
   return response.data;
 };
 
+export const disable = async () => {
+  return await axios.get('/v1/api/auth/disable');
+};
+
 export const refreshToken = async () => {
   const response = await axios
     .post('/v1/api/auth/refresh', {});

@@ -948,7 +948,7 @@ export default function Settings() {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <Text color="red">{i18n.get['WebGui.AccessDenied']}</Text>
+      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );
 }

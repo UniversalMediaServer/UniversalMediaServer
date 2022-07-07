@@ -26,12 +26,14 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Date;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 	private static final String JWT_ISSUER = "UMS";
@@ -96,11 +98,29 @@ public class AuthService {
 		return null;
 	}
 
-	public static Account getAccountLoggedIn(List<String> authHeaders, String host) {
+	public static Account getAccountLoggedIn(List<String> authHeaders, String host, boolean isLocalhost) {
+		if (!isEnabled() || (isLocalhost && isLocalhostAsAdmin())) {
+			return AccountService.getFakeAdminAccount();
+		}
 		if (authHeaders == null || authHeaders.isEmpty()) {
 			return null;
 		}
 		return getAccountLoggedIn(authHeaders.get(0), host);
 	}
 
+	public static boolean isEnabled() {
+		return CONFIGURATION.isAuthenticationEnabled();
+	}
+
+	public static void setEnabled(boolean value) {
+		CONFIGURATION.setAuthenticationEnabled(value);
+	}
+
+	public static boolean isLocalhostAsAdmin() {
+		return CONFIGURATION.isAuthenticateLocalhostAsAdmin();
+	}
+
+	public static void setLocalhostAsAdmin(boolean value) {
+		CONFIGURATION.setAuthenticateLocalhostAsAdmin(value);
+	}
 }

@@ -41,6 +41,7 @@ public class AccountService {
 	public static final int LOGIN_FAIL_LOCK_TIME = 30000;	//30 sec
 	private static final Map<Integer, User> USERS = new HashMap<>();
 	private static final Map<Integer, Group> GROUPS = new HashMap<>();
+	private static final Account FAKE_ADMIN_ACCOUNT = setFakeAdminAccount();
 
 	public static Account getAccountByUserId(final int userId) {
 		Account result = new Account();
@@ -278,5 +279,21 @@ public class AccountService {
 			}
 		}
 		return userIds;
+	}
+
+	public static Account getFakeAdminAccount() {
+		return FAKE_ADMIN_ACCOUNT;
+	}
+
+	private static Account setFakeAdminAccount() {
+		Account account = new Account();
+		Group group = new Group();
+		group.setPermissions(List.of("*"));
+		group.setId(Integer.MAX_VALUE);
+		account.setGroup(group);
+		User user = new User();
+		user.setId(Integer.MAX_VALUE);
+		account.setUser(new User());
+		return account;
 	}
 }

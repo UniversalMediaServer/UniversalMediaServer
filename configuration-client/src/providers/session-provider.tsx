@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({noAdminFound:false, initialized: false} as UmsSession)
+  const [session, setSession] = useState({noAdminFound:false, authenticate:true, initialized: false} as UmsSession)
 
   useEffect(() => {
     const refresh = () => {
