@@ -293,7 +293,7 @@ public class AccountService {
 		account.setGroup(group);
 		User user = new User();
 		user.setId(Integer.MAX_VALUE);
-		account.setUser(new User());
+		account.setUser(user);
 		return account;
 	}
 }
