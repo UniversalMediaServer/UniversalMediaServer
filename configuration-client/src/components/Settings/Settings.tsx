@@ -565,13 +565,13 @@ export default function Settings() {
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['TsMuxeRVideo.2']}
+          label={i18n.get['ForceFpsParsedFfmpeg']}
           {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['TsMuxeRVideo.19']}
+          label={i18n.get['MuxAllAudioTracks']}
           {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
         />
       </>
@@ -587,42 +587,42 @@ export default function Settings() {
       <>
         <Select
           disabled={!canModify}
-          label={i18n.get['FFmpeg.LoggingLevel']}
+          label={i18n.get['LogLevelColon']}
           data={selectionSettings.ffmpegLoglevels}
           {...form.getInputProps('ffmpeg_logging_level')}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['MEncoderVideo.35']}
+          label={i18n.get['EnableMultithreading']}
           {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['MEncoderVideo.38']}
+          label={i18n.get['RemuxVideosTsmuxer']}
           {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['FFmpeg.3']}
+          label={i18n.get['UseFontSettings']}
           {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['FFmpeg.1']}
+          label={i18n.get['DeferMencoderTranscodingProblematic']}
           {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
         />
         <Checkbox
           disabled={!canModify}
           mt="xl"
-          label={i18n.get['FFmpeg.Sox']}
+          label={i18n.get['UseSoxHigherQualityAudio']}
           {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
         />
         <NumberInput
-          label={i18n.get['FFmpeg.GPUDecodingThreadCount']}
+          label={i18n.get['GpuDecodingThreadCount']}
           size="xs"
           max={16}
           min={0}
@@ -634,7 +634,7 @@ export default function Settings() {
 
   const noSettingsForNow = () => {
     return (
-      <Text>{i18n.get['TrTab2.1']}</Text>
+      <Text>{i18n.get['NoSettingsForNow']}</Text>
     )
   }
 
