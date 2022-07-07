@@ -29,6 +29,8 @@ export default function Settings() {
     allRendererNames: [],
     audioCoverSuppliers: [],
     enabledRendererNames: [],
+    ffmpegLoglevels: [],
+    gpuAccelerationMethod: [],
     languages: [],
     networkInterfaces: [],
     serverEngines: [],
@@ -576,6 +578,60 @@ export default function Settings() {
     )
   }
 
+  const getMEncoderVideo = () => {
+    return (<></>)
+  }
+
+  const getFFMPEGVideo = () => {
+    return (
+      <>
+        <Select
+          disabled={!canModify}
+          label={i18n.get['FFmpeg.LoggingLevel']}
+          data={selectionSettings.ffmpegLoglevels}
+          {...form.getInputProps('ffmpeg_logging_level')}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['MEncoderVideo.35']}
+          {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['MEncoderVideo.38']}
+          {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['FFmpeg.3']}
+          {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['FFmpeg.1']}
+          {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['FFmpeg.Sox']}
+          {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
+        />
+        <NumberInput
+          label={i18n.get['FFmpeg.GPUDecodingThreadCount']}
+          size="xs"
+          max={16}
+          min={0}
+          {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
+        />
+      </>
+    )
+  }
+
   const noSettingsForNow = () => {
     return (
       <Text>{i18n.get['TrTab2.1']}</Text>
@@ -590,8 +646,12 @@ export default function Settings() {
         return (noSettingsForNow());
       case 'FFmpegAudio':
         return getFFMPEGAudio();
+      case 'FFmpegVideo':
+        return getFFMPEGVideo();
       case 'FFmpegWebVideo':
         return (noSettingsForNow());
+      case 'MEncoderVideo':
+        return getMEncoderVideo();
       case 'MEncoderWebVideo':
         return (noSettingsForNow());
       case 'tsMuxeRAudio':

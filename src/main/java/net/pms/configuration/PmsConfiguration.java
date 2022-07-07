@@ -49,6 +49,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
@@ -3476,7 +3477,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
-
+	public synchronized static JsonArray getFfmpegLoglevels() {
+		String[] values = FFmpegLogLevels.getLabels();
+		String[] labels = FFmpegLogLevels.getLabels();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
 	/**
 	 * Sets if subtitles information should be added to video names.
 	 *

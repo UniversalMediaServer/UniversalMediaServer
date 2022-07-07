@@ -68,6 +68,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
 	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
+	private static final JsonArray FFMPEG_LOGLEVEL = PmsConfiguration.getFfmpegLoglevels();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -123,12 +124,14 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("transcodingEnginesPurposes", TRANSCODING_ENGINES_PURPOSES);
 				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
 				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
+				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
 
 				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
+
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -271,6 +274,14 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("force_transcode_for_extensions", "");
 		jObj.addProperty("gpu_acceleration", false);
 		jObj.addProperty("external_network", true);
+		jObj.addProperty("ffmpeg_fontconfig", false);
+		jObj.addProperty("ffmpeg_gpu_decoding_acceleration_method", "none");
+		jObj.addProperty("ffmpeg_gpu_decoding_acceleration_thread_number", 1);
+		jObj.addProperty("ffmpeg_logging_level", "fatal");
+		jObj.addProperty("ffmpeg_mencoder_problematic_subtitles", true);
+		jObj.addProperty("ffmpeg_multithreading", "");
+		jObj.addProperty("ffmpeg_mux_tsmuxer_compatible", false);
+		jObj.addProperty("fmpeg_sox", true);
 		jObj.addProperty("force_external_subtitles", true);
 		jObj.addProperty("forced_subtitle_language", "");
 		jObj.addProperty("forced_subtitle_tags", "forced");
