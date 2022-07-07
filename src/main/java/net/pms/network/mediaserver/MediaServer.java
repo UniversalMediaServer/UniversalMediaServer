@@ -287,7 +287,7 @@ public class MediaServer {
 
 		JsonObject defaultOption = new JsonObject();
 		defaultOption.addProperty("value", "0");
-		defaultOption.addProperty("label", "i18n@Generic.Default");
+		defaultOption.addProperty("label", "i18n@Default");
 		jsonArray.add(defaultOption);
 
 		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {

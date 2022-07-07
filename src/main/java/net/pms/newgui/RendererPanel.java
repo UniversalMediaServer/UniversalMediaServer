@@ -65,7 +65,7 @@ public class RendererPanel extends JPanel {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 			builder.appendRow(rspec);
-			builder.addSeparator(Messages.getString("RendererPanel.1"), cc.xyw(1, ++y, 2));
+			builder.addSeparator(Messages.getString("Controls"), cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
 			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 		}
@@ -92,7 +92,7 @@ public class RendererPanel extends JPanel {
 		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
 		open.setHorizontalTextPosition(JButton.CENTER);
 		open.setForeground(Color.lightGray);
-		open.setToolTipText(Messages.getString("RendererPanel.5"));
+		open.setToolTipText(Messages.getString("CustomizeThisDevice"));
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
@@ -117,7 +117,7 @@ public class RendererPanel extends JPanel {
 		final File ref = ((DeviceConfiguration) renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
-		open.setToolTipText(exists ? (Messages.getString("RendererPanel.3") + ": " + ref) : Messages.getString("RendererPanel.4"));
+		open.setToolTipText(exists ? (Messages.getString("OpenParentConfiguration") + ": " + ref) : Messages.getString("NoParentConfiguration"));
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
@@ -141,7 +141,7 @@ public class RendererPanel extends JPanel {
 	public JButton editButton(final boolean create) {
 		final File file = create ? renderer.getUsableFile() : renderer.getFile();
 		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>" :
-			"<html><font color=blue>" + Messages.getString("RendererPanel.2") + ":</font> ") + file.getName() + "</html>",
+			"<html><font color=blue>" + Messages.getString("StartNewConfigurationFile") + ":</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);
@@ -189,7 +189,7 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void approveSelection() {
 				if (getSelectedFile().exists()) {
-					switch (JOptionPane.showConfirmDialog(this, Messages.getString("RendererPanel.6"), Messages.getString("RendererPanel.7"), JOptionPane.YES_NO_CANCEL_OPTION)) {
+					switch (JOptionPane.showConfirmDialog(this, Messages.getString("OverwriteExistingFile"), Messages.getString("FileExists"), JOptionPane.YES_NO_CANCEL_OPTION)) {
 						case JOptionPane.CANCEL_OPTION:
 						case JOptionPane.NO_OPTION:
 							setSelectedFile(file);
@@ -208,7 +208,7 @@ public class RendererPanel extends JPanel {
 		fc.setCurrentDirectory(dir);
 		fc.setSelectedFile(file);
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		fc.setDialogTitle(Messages.getString("RendererPanel.8"));
+		fc.setDialogTitle(Messages.getString("SpecifyFileName"));
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			return fc.getSelectedFile();
 		}
@@ -226,7 +226,7 @@ public class RendererPanel extends JPanel {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		switch (fc.showDialog(this, Messages.getString("RendererPanel.9"))) {
+		switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
 			case JFileChooser.APPROVE_OPTION:
 				return fc.getSelectedFile();
 			case JFileChooser.CANCEL_OPTION:

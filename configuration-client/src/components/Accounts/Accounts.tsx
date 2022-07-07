@@ -13,7 +13,7 @@ const Accounts = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
-  const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['Generic.None']);
+  const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['None']);
   const canManageUsers = havePermission(session, "users_manage");
   const canManageGroups = havePermission(session, "groups_manage");
 
@@ -74,7 +74,7 @@ const Accounts = () => {
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n.get['WebGui.ButtonCreate']}
+            {i18n.get['Create']}
           </Button>
         </Group>
       </form>
@@ -105,7 +105,7 @@ const Accounts = () => {
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n.get['WebGui.ButtonUpdate']}
+            {i18n.get['Apply']}
           </Button>
         </Group>
       </form>
@@ -128,7 +128,7 @@ const Accounts = () => {
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n.get['WebGui.ButtonUpdate']}
+            {i18n.get['Apply']}
           </Button>
         </Group>
       </form>
@@ -154,7 +154,7 @@ const Accounts = () => {
         {canManageGroups && (
           <Group position="right" mt="md">
             <Button type="submit">
-              {i18n.get['WebGui.ButtonUpdate']}
+              {i18n.get['Apply']}
             </Button>
           </Group>
         )}

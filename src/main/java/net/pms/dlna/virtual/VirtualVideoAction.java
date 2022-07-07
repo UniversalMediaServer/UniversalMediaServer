@@ -117,7 +117,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * Recommended way to instantiate this class is as follows:
 	 * <pre> VirtualFolder vf;
 	 * [...]
-	 * vf.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
+	 * vf.addChild(new VirtualVideoAction(Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync()) {
 	 *   public boolean enable() {
 	 *   configuration.setMencoderNoOutOfSync(!configuration.isMencoderNoOutOfSync());
 	 *   return configuration.isMencoderNoOutOfSync();

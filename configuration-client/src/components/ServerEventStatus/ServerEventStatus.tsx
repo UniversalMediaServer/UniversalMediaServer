@@ -14,8 +14,8 @@ export const ServerEventStatus = () => {
     'red',
   ];
   const connectionStatusTooltip = [
-    i18n.get['AutoUpdate.5'],
-    i18n.get['SleepManager.PreventSleepRunningName'],
+    i18n.get['ConnectingToServer'],
+    i18n.get['UniversalMediaServerRunning'],
     'Server unreachable',
   ];
 

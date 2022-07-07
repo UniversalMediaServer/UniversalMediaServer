@@ -358,7 +358,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String pathWithWildcard = sqlLikeEscape(FileUtil.appendPathSeparator(fullPathToFolder)) + "%";
-		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
+		String statusLineString = isFullyPlayed ? Messages.getString("MarkContentsFullyPlayed") : Messages.getString("MarkContentsUnplayed");
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try {

@@ -539,7 +539,7 @@ public class SleepManager {
 		protected synchronized void doResetSleepTimer() {
 			try {
 				LOGGER.trace("Calling IOKitUtils.resetSleepTimer() to postpone macOS idle sleep");
-				postponeAssertionId = IOKitUtils.resetIdleTimer(Messages.getString("SleepManager.PostponeSleepName"), postponeAssertionId);
+				postponeAssertionId = IOKitUtils.resetIdleTimer(Messages.getString("UniversalMediaServerResetIdle"), postponeAssertionId);
 			} catch (IOKitException e) {
 				LOGGER.warn("Unable to reset idle sleep timer: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -553,9 +553,9 @@ public class SleepManager {
 		 */
 		protected synchronized String getPreventAssertionName() {
 			if (mode == PreventSleepMode.PLAYBACK) {
-				return Messages.getString("SleepManager.PreventSleepPlaybackName");
+				return Messages.getString("UniversalMediaServerPlaying");
 			} else if (mode == PreventSleepMode.RUNNING) {
-				return Messages.getString("SleepManager.PreventSleepRunningName");
+				return Messages.getString("UniversalMediaServerRunning");
 			}
 			return "Universal Media Server internal error";
 		}
@@ -565,9 +565,9 @@ public class SleepManager {
 		 */
 		protected synchronized String getPreventAssertionDetails() {
 			if (mode == PreventSleepMode.PLAYBACK) {
-				return Messages.getString("SleepManager.PreventSleepPlaybackDetails");
+				return Messages.getString("SystemIdleSleepPreventedPlayback");
 			} else if (mode == PreventSleepMode.RUNNING) {
-				return Messages.getString("SleepManager.PreventSleepRunningDetails");
+				return Messages.getString("SystemIdleSleepPreventedRunning");
 			}
 			return "A bug in Universal Media Server causes this assertion to exist";
 		}

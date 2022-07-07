@@ -1495,9 +1495,9 @@ public class RendererConfiguration extends Renderer {
 					private static final long serialVersionUID = -3998102753945339020L;
 
 					{
-						put(Messages.getString("RendererPanel.10"), getRendererName());
+						put(Messages.getString("Name"), getRendererName());
 						if (getAddress() != null) {
-							put(Messages.getString("RendererPanel.11"), getAddress().getHostAddress());
+							put(Messages.getString("Address"), getAddress().getHostAddress());
 						}
 					}
 				};
@@ -1702,7 +1702,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getConfName() {
-		return getString(RENDERER_NAME, Messages.getString("NetworkTab.37"));
+		return getString(RENDERER_NAME, Messages.getString("UnknownRenderer"));
 	}
 
 	/**
@@ -2403,7 +2403,7 @@ public class RendererConfiguration extends Renderer {
 
 		JsonArray jsonArray = new JsonArray();
 		jsonArray.add(pmsConfigurationStatic.allRenderers);
-		jsonArray.add("i18n@Generic.None");
+		jsonArray.add("i18n@None");
 		for (int i = 0; i < values.size(); i++) {
 			jsonArray.add(values.get(i));
 		}

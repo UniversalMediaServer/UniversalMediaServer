@@ -33,7 +33,7 @@ export default function DirectoryChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: i18n.get['Dialog.Error'],
+      title: i18n.get['Error'],
       message: i18n.get['WebGui.DirectoryChooserSelectError'],
       autoClose: 3000,
     });
@@ -52,7 +52,7 @@ export default function DirectoryChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Dialog.Error'],
+          title: i18n.get['Error'],
           message: i18n.get['WebGui.DirectoryChooserGetError'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,

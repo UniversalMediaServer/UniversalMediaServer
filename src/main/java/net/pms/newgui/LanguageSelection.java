@@ -127,8 +127,8 @@ public class LanguageSelection {
 				if (rebootOnChange) {
 					int response = JOptionPane.showConfirmDialog(
 						parentComponent,
-						String.format(buildString("Dialog.Restart", true), PMS.NAME, PMS.NAME),
-						buildString("Dialog.Confirm"),
+						String.format(buildString("XNeedsRestartedApplyChanges", true), PMS.NAME, PMS.NAME),
+						buildString("Confirm"),
 						JOptionPane.YES_NO_CANCEL_OPTION
 					);
 					if (response != JOptionPane.CANCEL_OPTION) {
@@ -237,7 +237,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					Messages.getString(descriptionMessage, locale),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale)
+					Messages.getString("GeneralSettings", locale)
 				));
 			}
 		} else {
@@ -251,7 +251,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					buildString(descriptionMessage, true),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale),
+					Messages.getString("GeneralSettings", locale),
 					PMS.NAME,
 					Messages.getRootString("LooksFrame.TabGeneralSettings")
 				));
@@ -297,9 +297,9 @@ public class LanguageSelection {
 
 		if (keyedModel.getSelectedKey() != null && Languages.warnCoverage(keyedModel.getSelectedKey())) {
 			String localizedLanguageName = Messages.getString("Language." + keyedModel.getSelectedKey(), locale);
-			if (Messages.getString("LanguageSelection.3", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
+			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
 				warningText.setText(String.format(
-					Messages.getString("LanguageSelection.3", locale),
+					Messages.getString("XIsOnlyPercentTranslated", locale),
 					localizedLanguageName,
 					Languages.getLanguageCoverage(keyedModel.getSelectedKey()),
 					localizedLanguageName
@@ -327,8 +327,8 @@ public class LanguageSelection {
 		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
 		infoText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(infoText, textWidth, StringUtil.stripHTML(infoText.getText())));
 
-		selectButton.setText(buildString("Dialog.Select"));
-		applyButton.setText(buildString("Dialog.Apply"));
+		selectButton.setText(buildString("Select"));
+		applyButton.setText(buildString("Apply"));
 	}
 
 	private JComponent buildComponent() {
@@ -409,7 +409,7 @@ public class LanguageSelection {
 						JOptionPane.showOptionDialog(
 							dialog,
 							String.format(buildString("LanguageSelection.6", true), PMS.CROWDIN_LINK),
-							buildString("Dialog.Error"),
+							buildString("Error"),
 							JOptionPane.DEFAULT_OPTION,
 							JOptionPane.ERROR_MESSAGE,
 							null,

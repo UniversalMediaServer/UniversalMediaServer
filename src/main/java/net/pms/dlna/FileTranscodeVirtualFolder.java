@@ -154,7 +154,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
 				String.format(
-				Messages.getString("FileTranscodeVirtualFolder.1"),
+				Messages.getString("ChapterX"),
 				dlna.getDisplayName()),
 				null,
 				chapterInterval);

@@ -92,7 +92,7 @@ public class BrowseHandler implements HttpHandler {
 			String search = WebInterfaceServerUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 			String language = WebInterfaceServerUtil.getFirstSupportedLanguage(t);
 
-			String enterSearchStringText = WebInterfaceServerUtil.getMsgString("Web.8", language);
+			String enterSearchStringText = WebInterfaceServerUtil.getMsgString("EnterSearchString", language);
 
 			List<DLNAResource> resources = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 			if (
@@ -145,7 +145,7 @@ public class BrowseHandler implements HttpHandler {
 			) {
 				DLNAResource thisResourceFromResources = resources.get(0).getParent();
 				String thisName = thisResourceFromResources.getDisplayName();
-				if (thisName.equals(Messages.getString("PMS.MediaLibrary"))) {
+				if (thisName.equals(Messages.getString("MediaLibrary"))) {
 					for (DLNAResource resource : resources) {
 						String newId = resource.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
@@ -187,7 +187,7 @@ public class BrowseHandler implements HttpHandler {
 				breadcrumbs.add("<li class=\"active\">" + thisName + "</li>");
 				while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 					thisResourceFromResources = thisResourceFromResources.getParent();
-					String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Web.Home") : thisResourceFromResources.getDisplayName();
+					String ancestorName = thisResourceFromResources.getDisplayName().equals("root") ? Messages.getString("Home") : thisResourceFromResources.getDisplayName();
 					String ancestorID = thisResourceFromResources.getResourceId();
 					String ancestorIDForWeb = URLEncoder.encode(ancestorID, "UTF-8");
 					String ancestorUri = "/browse/" + ancestorIDForWeb;
@@ -200,8 +200,8 @@ public class BrowseHandler implements HttpHandler {
 					String parentID = parentFromResources.getResourceId();
 					String parentIDForWeb = URLEncoder.encode(parentID, "UTF-8");
 					String backUri = "/browse/" + parentIDForWeb;
-					backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("\">");
-					backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Web.10", t)).append("</span>");
+					backLinkHTML.append("<a href=\"").append(backUri).append("\" title=\"").append(WebInterfaceServerUtil.getMsgString("Back", t)).append("\">");
+					backLinkHTML.append("<span><i class=\"fa fa-angle-left\"></i> ").append(WebInterfaceServerUtil.getMsgString("Back", t)).append("</span>");
 					backLinkHTML.append("</a>");
 					folders.add(backLinkHTML.toString());
 				} else {
@@ -266,16 +266,16 @@ public class BrowseHandler implements HttpHandler {
 					* - This is Recommendations
 					*/
 					if (
-						resource.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-						resource.getParent().getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+						resource.getParent().getDisplayName().equals(Messages.getString("TvShows")) ||
+						resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
 						(
 							resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+							resource.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
 						) ||
 						(
 							resource.getParent().getParent() != null &&
 							resource.getParent().getParent().getParent() != null &&
-							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
+							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
 						)
 					) {
 						isDisplayFoldersAsThumbnails = true;
@@ -285,19 +285,19 @@ public class BrowseHandler implements HttpHandler {
 						boolean addFolderToFoldersListOnLeft = true;
 
 						// Populate the front page
-						if (id.equals("0") && resource.getName().equals(Messages.getString("PMS.MediaLibrary"))) {
+						if (id.equals("0") && resource.getName().equals(Messages.getString("MediaLibrary"))) {
 							mustacheVars.put("isFrontPage", true);
 
-							List<DLNAResource> videoSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.34"));
-							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("PMS.34"), true, true);
+							List<DLNAResource> videoSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Video"));
+							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("Video"), true, true);
 							DLNAResource videoFolder = videoSearchResults.get(0);
 
-							List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.1"));
-							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("PMS.1"), true, true);
+							List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Audio"));
+							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("Audio"), true, true);
 							DLNAResource audioFolder = audioSearchResults.get(0);
 
-							List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("PMS.31"));
-							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("PMS.31"), true, true);
+							List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Photo"));
+							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("Photo"), true, true);
 							DLNAResource imagesFolder = imageSearchResults.get(0);
 
 							mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(videoFolder, enterSearchStringText));
@@ -318,7 +318,7 @@ public class BrowseHandler implements HttpHandler {
 							String resourceUri = "/browse/" + idForWeb;
 							boolean code = (resource instanceof CodeEnter);
 							if (code) {
-								enterSearchStringText = WebInterfaceServerUtil.getMsgString("Web.9", t);
+								enterSearchStringText = WebInterfaceServerUtil.getMsgString("EnterSearchString", t);
 							}
 							if (resource.getClass().getName().contains("SearchFolder") || code) {
 								// search folder add a prompt
@@ -359,16 +359,16 @@ public class BrowseHandler implements HttpHandler {
 
 				// Check whether this resource is expected to contain folders that display as big thumbnails
 				if (
-					folder.getDisplayName().equals(Messages.getString("VirtualFolder.4")) ||
-					folder.getDisplayName().equals(Messages.getString("MediaLibrary.Recommendations")) ||
+					folder.getDisplayName().equals(Messages.getString("TvShows")) ||
+					folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
 					(
 						folder.getParent() != null &&
-						folder.getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByProgress"))
+						folder.getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
 					) ||
 					(
 						folder.getParent() != null &&
 						folder.getParent().getParent() != null &&
-						folder.getParent().getParent().getDisplayName().equals(Messages.getString("VirtualFolder.FilterByInformation"))
+						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
 					)
 				) {
 					for (DLNAResource resource : resources) {
@@ -390,7 +390,7 @@ public class BrowseHandler implements HttpHandler {
 			}
 			if (hasFile) {
 				mustacheVars.put("folderId", id);
-				mustacheVars.put("downloadFolderTooltip", WebInterfaceServerUtil.getMsgString("Web.DownloadFolderAsPlaylist", t));
+				mustacheVars.put("downloadFolderTooltip", WebInterfaceServerUtil.getMsgString("DownloadFolderAsPlaylist", t));
 			}
 
 			DLNAResource dlna = null;
@@ -440,21 +440,21 @@ public class BrowseHandler implements HttpHandler {
 				bumpHTML.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 					.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 					.append(name.replace("'", "\\'")).append("')\" title=\"")
-					.append(WebInterfaceServerUtil.getMsgString("Web.1", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("PlayOnAnotherRenderer", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:notify('warn','")
-					.append(WebInterfaceServerUtil.getMsgString("Web.2", t))
-					.append("')\" title=\"").append(WebInterfaceServerUtil.getMsgString("Web.3", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("NoUpnpControllableRenderers", t))
+					.append("')\" title=\"").append(WebInterfaceServerUtil.getMsgString("NoOtherRenderersAvailable", t)).append("\"></a>");
 			}
 
 			if (resource.getParent() instanceof Playlist) {
 				bumpHTML.append("\n<a class=\"playlist_del\" href=\"#\" onclick=\"umsAjax('/playlist/del/")
 					.append(idForWeb).append("', true);return false;\" title=\"")
-					.append(WebInterfaceServerUtil.getMsgString("Web.4", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("RemoveFromPlaylist", t)).append("\"></a>");
 			} else {
 				bumpHTML.append("\n<a class=\"playlist_add\" href=\"#\" onclick=\"umsAjax('/playlist/add/")
 					.append(idForWeb).append("', false);return false;\" title=\"")
-					.append(WebInterfaceServerUtil.getMsgString("Web.5", t)).append("\"></a>");
+					.append(WebInterfaceServerUtil.getMsgString("AddToPlaylist", t)).append("\"></a>");
 			}
 		} else {
 			// ensure that we got a string
@@ -462,7 +462,7 @@ public class BrowseHandler implements HttpHandler {
 		}
 
 		bumpHTML.append("\n<a class=\"download\" href=\"/m3u8/").append(idForWeb).append(".m3u8\" title=\"")
-			.append(WebInterfaceServerUtil.getMsgString("Web.DownloadAsPlaylist", t)).append("\"></a>");
+			.append(WebInterfaceServerUtil.getMsgString("DownloadAsPlaylist", t)).append("\"></a>");
 
 		item.put("actions", bumpHTML.toString());
 
@@ -526,7 +526,7 @@ public class BrowseHandler implements HttpHandler {
 			String recentlyPlayedName = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
 
 			// Skip the #--TRANSCODE--# entry
-			if (recentlyPlayedName.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
+			if (recentlyPlayedName.equals(Messages.getString("Transcode"))) {
 				continue;
 			}
 

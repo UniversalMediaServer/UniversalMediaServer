@@ -347,7 +347,7 @@ public abstract class Player {
 		}
 		ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
 		if (executableInfo == null) {
-			return String.format(Messages.getString("Engine.Undefined"), name());
+			return String.format(Messages.getString("TheXExecutableNotDefined"), name());
 		}
 		if (executableInfo.getAvailable() == null || executableInfo.getAvailable().booleanValue()) {
 			// Generally available or unknown, check for Player specific failures
@@ -355,28 +355,28 @@ public abstract class Player {
 			try {
 				String specificError = specificErrors.get(executableType);
 				if (specificError != null) {
-					return fullText ? specificError : String.format(Messages.getString("Engine.ErrorShort"), name());
+					return fullText ? specificError : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), name());
 				}
 			} finally {
 				specificErrorsLock.readLock().unlock();
 			}
 			if (executableInfo.getAvailable() == null) {
-				return String.format(Messages.getString("Engine.UnknownStatus"), name());
+				return String.format(Messages.getString("StatusTranscodingEngineXUnknown"), name());
 			}
 		}
 		if (executableInfo.getAvailable().booleanValue()) {
 			if (isEnabled()) {
 				if (executableInfo.getVersion() != null) {
-					return String.format(Messages.getString("Engine.EnabledVersion"), name(), executableInfo.getVersion());
+					return String.format(Messages.getString("TranscodingEngineXYEnabled"), name(), executableInfo.getVersion());
 				}
-				return String.format(Messages.getString("Engine.Enabled"), name());
+				return String.format(Messages.getString("TranscodingEngineXEnabled"), name());
 			}
-			return String.format(Messages.getString("Engine.Disabled"), name());
+			return String.format(Messages.getString("TranscodingEngineXDisabled"), name());
 		}
 		if (executableInfo.getErrorText() == null) {
-			return Messages.getString("General.3");
+			return Messages.getString("UnknownError");
 		}
-		return fullText ? executableInfo.getErrorText() : String.format(Messages.getString("Engine.ErrorShort"), name());
+		return fullText ? executableInfo.getErrorText() : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), name());
 	}
 
 	/**
@@ -790,7 +790,7 @@ public abstract class Player {
 					.available(Boolean.FALSE)
 					.errorType(ExecutableErrorType.GENERAL)
 					.errorText(
-						String.format(Messages.getString("Engine.MissingExecutePermission"), executableInfo.getPath(), this)
+						String.format(Messages.getString("InsufficientPermissionExecuteTranscodingEngine"), executableInfo.getPath(), this)
 					).build();
 			}
 		} catch (FileNotFoundException e) {
@@ -804,7 +804,7 @@ public abstract class Player {
 				.available(Boolean.FALSE)
 				.errorType(ExecutableErrorType.GENERAL)
 				.errorText(
-					String.format(Messages.getString("Engine.ExecutableNotFound"), executableInfo.getPath(), this)
+					String.format(Messages.getString("ExecutableXTranscodingEngineNotFound"), executableInfo.getPath(), this)
 				).build();
 		}
 		return executableInfo;
@@ -859,7 +859,7 @@ public abstract class Player {
 					setUnavailable(
 						executableType,
 						ExecutableErrorType.SPECIFIC,
-						String.format(Messages.getString("Engine.ExecutablePlatformIncompatible"), this)
+						String.format(Messages.getString("TranscodingEngineNotAvailableOperatingSystem"), this)
 					);
 					return true;
 				}
@@ -873,7 +873,7 @@ public abstract class Player {
 					setUnavailable(
 						executableType,
 						ExecutableErrorType.SPECIFIC,
-						String.format(Messages.getString("Engine.AviSynthNotFound"), this)
+						String.format(Messages.getString("TranscodingEngineXNotAvailableAvisynth"), this)
 					);
 					return true;
 				}

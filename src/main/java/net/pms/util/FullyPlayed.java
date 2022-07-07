@@ -155,11 +155,11 @@ public class FullyPlayed {
 			case IMAGE:
 				return String.format("[%s] %s", Messages.getString("DLNAResource.6"), displayName);
 			case VIDEO:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.4"), displayName);
+				return String.format("[%s] %s", Messages.getString("Watched"), displayName);
 			case AUDIO:
 			case UNKNOWN:
 			default:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.5"), displayName);
+				return String.format("[%s] %s", Messages.getString("Played"), displayName);
 
 		}
 	}

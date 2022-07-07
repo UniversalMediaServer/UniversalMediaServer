@@ -26,9 +26,9 @@ export const MemoryBar = ({ decorate }: { decorate?: boolean }) => {
 
   return decorate ? (
     <Group position="center" spacing="xs" grow>
-      <Text>{i18n.get['StatusTab.6']}</Text>
+      <Text>{i18n.get['MemoryUsage']}</Text>
       { MemoryBarProgress }
-      <Text>{MaxMemLabel() + ' ' + i18n.get['StatusTab.12']}</Text>
+      <Text>{MaxMemLabel() + ' ' + i18n.get['Mb']}</Text>
     </Group>
   ) : MemoryBarProgress;
 };
