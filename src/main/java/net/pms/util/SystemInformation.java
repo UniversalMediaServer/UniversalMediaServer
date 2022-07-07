@@ -104,6 +104,8 @@ public class SystemInformation extends Thread {
 		result.add(sb.toString());
 		sb.setLength(0);
 		if (processor != null && processorIdentifier != null) {
+			String microarchitecture = processorIdentifier.getMicroarchitecture();
+			LOGGER.info("microarchitecture is " + microarchitecture);
 			sb.append("CPU: ").append(processorIdentifier.getName()).append(" with ").append(processor.getPhysicalProcessorCount());
 			if (processor.getPhysicalProcessorCount() > 1) {
 				sb.append(" cores");
