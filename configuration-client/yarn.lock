@@ -6914,6 +6914,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hls.js@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "hls.js@npm:1.1.5"
+  checksum: 7363eb8be6ad35be73fe3497a2fa1d493b42c76382ccc6b05f298394545eb75d6c466fb233748f3226859360d7aeea99bc5ea3e372ec074c6c2e354dcc5f6435
+  languageName: node
+  linkType: hard
+
 "hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
@@ -12462,6 +12469,7 @@ __metadata:
     "@types/react": ^18.0.14
     "@types/react-dom": ^18.0.5
     axios: ^0.27.2
+    hls.js: ^1.1.5
     jwt-decode: ^3.1.2
     lodash: ^4.17.21
     react: ^18.2.0

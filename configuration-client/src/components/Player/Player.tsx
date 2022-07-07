@@ -2,9 +2,10 @@ import { Box, Breadcrumbs, Button, Card, Grid, Group, Image, Paper, ScrollArea, 
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
+import hls from 'hls.js';
 import { useEffect, useState } from 'react';
-import { ArrowBigLeft, ArrowBigRight, Folder, Home } from 'tabler-icons-react';
 import ReactPlayer from 'react-player';
+import { ArrowBigLeft, ArrowBigRight, Folder, Home } from 'tabler-icons-react';
 
 const Player = () => {
   const baseUrl = '/v1/api/player/';
@@ -165,7 +166,18 @@ const Player = () => {
 	});
   }
 
+  function setupHlsJs() {
+    const HLS_VAR = 'Hls';
+    if ((window as { [key: string]: any })[HLS_VAR] == null) {
+      (window as { [key: string]: any })[HLS_VAR] = hls;
+    }
+  }
+
+  // Make sure hls.js is available offline
+  useEffect(setupHlsJs, []);
+
   useEffect(() => {
+
     getToken();
   }, []);
 
