@@ -76,7 +76,7 @@
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.4.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.4.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.4.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
 
 		<!--
