@@ -748,11 +748,11 @@ public class TsMuxeRVideo extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"), configuration.isTsmuxerForceFps());
+		tsmuxerforcefps = new JCheckBox(Messages.getString("ForceFpsParsedFfmpeg"), configuration.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
 		tsmuxerforcefps.addItemListener(new ItemListener() {
 			@Override
@@ -762,7 +762,7 @@ public class TsMuxeRVideo extends Player {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
+		muxallaudiotracks = new JCheckBox(Messages.getString("MuxAllAudioTracks"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
 		muxallaudiotracks.addItemListener(new ItemListener() {
 			@Override
@@ -848,7 +848,7 @@ public class TsMuxeRVideo extends Player {
 			);
 			if (output.getError() != null) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 				result.available(Boolean.FALSE);
 				LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 				return result.build();
@@ -866,13 +866,13 @@ public class TsMuxeRVideo extends Player {
 				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
 				if (ntStatus != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.errorText(String.format(Messages.getString("TranscodingEngineNotAvailableExitCode"), this, output.getExitCode()));
 					if (Platform.isLinux() && Platform.is64Bit()) {
 						result.errorType(ExecutableErrorType.GENERAL);
-						result.errorText(result.errorText() + ". \n" + Messages.getString("Engine.tsMuxerErrorLinux"));
+						result.errorText(result.errorText() + ". \n" + Messages.getString("MakeSureNecessary32bitLibraries"));
 					}
 					result.available(Boolean.FALSE);
 				}

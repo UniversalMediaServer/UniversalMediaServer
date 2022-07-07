@@ -29,8 +29,8 @@ const About = () => {
         showNotification({
           id: 'about-data-loading',
           color: 'red',
-          title: 'Error',
-          message: 'Your datas was not received from the server.',
+          title: i18n.get["Error"],
+          message: i18n.get["DatasNotReceived"],
           autoClose: 3000,
         });
       });
@@ -39,7 +39,7 @@ const About = () => {
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
         <Tabs active={activeTab} onTabChange={setActiveTab}>
-          <Tabs.Tab label="Application">
+          <Tabs.Tab label={i18n.get["Application"]}>
             <Table striped>
               <thead>
                 <tr>
@@ -48,50 +48,50 @@ const About = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td>{i18n.getI18nString("Version")}</td>
+                  <td>{i18n.get["Version"]}</td>
                   <td>{aboutDatas.version}</td>
                 </tr>
                 <tr>
-                  <td>{i18n.getI18nString("Commit")}</td>
+                  <td>{i18n.get["Commit"]}</td>
                   <td><Text style={{cursor:'pointer'}} onClick={() => { window.open(aboutDatas.commitUrl, '_blank'); }}>{aboutDatas.commit}</Text></td>
                 </tr>
                 <tr>
-                  <td>{i18n.getI18nString("Website")}</td>
+                  <td>{i18n.get["Website"]}</td>
                   <td><Text style={{cursor:'pointer'}} onClick={() => { window.open(aboutDatas.website, '_blank'); }}>{aboutDatas.website}</Text></td>
                 </tr>
                 <tr>
-                  <td>{i18n.getI18nString("Licence")}</td>
+                  <td>{i18n.get["Licence"]}</td>
                   <td><Text style={{cursor:'pointer'}} onClick={() => { window.open(aboutDatas.licenceUrl, '_blank'); }}>{aboutDatas.licence}</Text></td>
                 </tr>
               </tbody>
             { canView && <>
                 <thead>
                   <tr>
-                    <th colSpan={2}><Text color="blue" size="lg" align="center">{i18n.getI18nString("System")}</Text></th>
+                    <th colSpan={2}><Text color="blue" size="lg" align="center">{i18n.get["System"]}</Text></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{i18n.getI18nString("Operating system")}</td>
+                    <td>{i18n.get["OperatingSystem"]}</td>
                     <td>{aboutDatas.operatingSystem}</td>
                   </tr>
                   <tr>
-                    <td>{i18n.getI18nString("System memory size")}</td>
+                    <td>{i18n.get["SystemMemorySize"]}</td>
                     <td>{aboutDatas.systemMemorySize}</td>
                   </tr>
                   <tr>
-                    <td>{i18n.getI18nString("JVM memory max")}</td>
+                    <td>{i18n.get["JVMMemoryMax"]}</td>
                     <td>{aboutDatas.jvmMemoryMax}</td>
                   </tr>
                   <tr>
-                    <td>{i18n.getI18nString("JVM memory usage")}</td>
+                    <td>{i18n.get["JVMMemoryUsage"]}</td>
                     <td><MemoryBar decorate={false} /></td>
                   </tr>
                 </tbody>
             </>}
             </Table>
           </Tabs.Tab>
-          <Tabs.Tab label="Related links">
+          <Tabs.Tab label={i18n.get["RelatedLinks_title"]}>
             <Table striped>
               {linksRows}
             </Table>

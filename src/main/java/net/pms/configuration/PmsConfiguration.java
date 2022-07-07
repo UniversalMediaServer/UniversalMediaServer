@@ -1724,7 +1724,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_LANGUAGES,
-				Messages.getString("MEncoderVideo.126")
+				Messages.getString("AudioLanguages")
 		);
 	}
 
@@ -1740,7 +1740,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_SUBTITLES_LANGUAGES,
-				Messages.getString("MEncoderVideo.127")
+				Messages.getString("SubtitlesLanguages")
 		);
 	}
 
@@ -1779,7 +1779,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_SUB_LANGS,
-				Messages.getString("MEncoderVideo.128")
+				Messages.getString("AudioSubtitlesPairs")
 		);
 	}
 
@@ -2330,8 +2330,8 @@ public class PmsConfiguration extends RendererConfiguration {
 					try {
 						JOptionPane.showMessageDialog(
 							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							Messages.getString("NetworkTab.58"),
-							Messages.getString("Dialog.PermissionsError"),
+							Messages.getString("UmsMustRunAdministrator"),
+							Messages.getString("PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
 
@@ -2606,7 +2606,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled"));
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2622,7 +2622,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("FFmpeg.GPUDecodingAccelerationDisabled")).split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
@@ -3316,7 +3316,7 @@ public class PmsConfiguration extends RendererConfiguration {
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
 							"list on the \"{}\" tab or in the configuration file.",
 							folder,
-							Messages.getString("LooksFrame.TabSharedContent")
+							Messages.getString("SharedContent")
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -3327,7 +3327,7 @@ public class PmsConfiguration extends RendererConfiguration {
 					"\"{}\" does not exist. Please remove it from your shared folders " +
 					"list on the \"{}\" tab or in the configuration file.",
 					folder,
-					Messages.getString("LooksFrame.TabSharedContent")
+					Messages.getString("SharedContent")
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
@@ -4312,7 +4312,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The folder name.
 	 */
 	public String getTranscodeFolderName() {
-		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("TranscodeVirtualFolder.0"));
+		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("Transcode"));
 	}
 
 	/**

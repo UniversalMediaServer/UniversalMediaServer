@@ -244,7 +244,7 @@ public class SubSelFile extends VirtualFolder {
 
 	@Override
 	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
-		return "{" + Messages.getString("Subtitles.LiveSubtitles") + "}";
+		return "{" + Messages.getString("LiveSubtitles") + "}";
 	}
 
 	private static class LanguageRankedItem implements Comparable<LanguageRankedItem> {

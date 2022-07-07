@@ -30,7 +30,7 @@ function UserMenu() {
           icon={<Refresh size={14} />}
           onClick={restartServer}
         >
-          {i18n.get['LooksFrame.12']}
+          {i18n.get['RestartServer']}
         </Menu.Item>
       )}
       {havePermission(session, "settings_view")  && (
@@ -38,7 +38,7 @@ function UserMenu() {
           icon={<Settings size={14} />}
           onClick={() => { window.location.href = '/settings'; }}
         >
-          {i18n.get['PMS.131']}
+          {i18n.get['ServerSettings']}
         </Menu.Item>
       )}
       <Menu.Item
@@ -52,7 +52,7 @@ function UserMenu() {
         icon={<InfoCircle size={14} />}
         onClick={() => { window.location.href = '/about'; }}
       >
-        {i18n.getI18nString("About")}
+        {i18n.get['About']}
       </Menu.Item>
       <Menu.Item
         color="red"

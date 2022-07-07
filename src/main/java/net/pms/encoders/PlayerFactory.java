@@ -205,7 +205,7 @@ public final class PlayerFactory {
 			player.setUnavailable(
 				executableType,
 				ExecutableErrorType.GENERAL,
-				String.format(Messages.getString("Engine.NotTested"), player)
+				String.format(Messages.getString("TranscodingEngineXNotAvailableCouldntValidated"), player)
 			);
 		}
 	}
