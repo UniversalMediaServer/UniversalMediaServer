@@ -313,7 +313,7 @@ public class HlsHelper {
 		if (!url.contains("/hls/")) {
 			return null;
 		}
-		String rendition = url.substring(url.indexOf("/hls/") + 5);
+		String rendition = url.substring(url.lastIndexOf("/hls/") + 5);
 		rendition = rendition.substring(0, rendition.indexOf("/"));
 		//here we need to set rendition to renderer
 		HlsHelper.HlsConfiguration hlsConfiguration = getByKey(rendition);

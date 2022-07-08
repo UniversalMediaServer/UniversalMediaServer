@@ -45,8 +45,12 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DLNAMediaChapter;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.DVDISOTitle;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.Playlist;
@@ -55,8 +59,12 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImagePlayer;
 import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
@@ -69,6 +77,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SubtitleUtils;
@@ -169,7 +178,7 @@ public class PlayerApiHandler implements HttpHandler {
 						}
 					}
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.getIn("/raw")) {
+				} else if (api.getIn("/raw/")) {
 					String[] rawData = api.getEndpoint().split("/");
 					if (rawData.length == 4) {
 						RootFolder root = getRoot(exchange, rawData[2]);
@@ -178,6 +187,10 @@ public class PlayerApiHandler implements HttpHandler {
 						}
 					}
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				} else if (api.getIn("/media/")) {
+					if (!sendMedia(exchange, api)) {
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+					}
 				} else {
 					LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
 					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
@@ -1083,9 +1096,148 @@ public class PlayerApiHandler implements HttpHandler {
 	}
 
 
+	private static boolean sendMedia(HttpExchange exchange, ApiHelper api) {
+		String[] rawData = api.getEndpoint().split("/");
+		if (rawData.length < 4) {
+			return false;
+		}
+		String sessionId = rawData[2];
+		String resourceId = rawData[3];
+		String uri = exchange.getRequestURI().getPath();
+		RootFolder root = getRoot(exchange, sessionId);
+		RendererConfiguration renderer = root.getDefaultRenderer();
+		DLNAResource resource = root.getDLNAResource(resourceId, renderer);
+		if (resource == null) {
+			// another error
+			LOGGER.debug("media unkonwn");
+			return false;
+		}
+		DLNAMediaSubtitle sid = null;
+		String mimeType = renderer.getMimeType(resource);
+		WebRender render = (WebRender) renderer;
+		DLNAMediaInfo media = resource.getMedia();
+		if (media == null) {
+			media = new DLNAMediaInfo();
+			resource.setMedia(media);
+		}
+		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
+			mimeType = media.getMimeType();
+		}
+		int code = 200;
+		resource.setDefaultRenderer(renderer);
+		if (resource.getFormat().isVideo()) {
+			if (!WebInterfaceServerUtil.directmime(mimeType) || WebInterfaceServerUtil.transMp4(mimeType, media)) {
+				mimeType = render.getVideoMimeType();
+				// TODO: Use normal engine priorities instead of the following hacks
+				if (FileUtil.isUrl(resource.getSystemName())) {
+					if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
+						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.YOUTUBE_DL, false, false));
+					} else {
+						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
+					}
+				} else if (!(resource instanceof DVDISOTitle)) {
+					resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_VIDEO, false, false));
+				}
+				//code = 206;
+			}
+			if (
+				PMS.getConfiguration().getWebSubs() &&
+				resource.getMediaSubtitle() != null &&
+				resource.getMediaSubtitle().isExternal()
+			) {
+				// fetched on the side
+				sid = resource.getMediaSubtitle();
+				resource.setMediaSubtitle(null);
+			}
+		}
 
+		if (!WebInterfaceServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
+			resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
+			code = 206;
+		}
 
+		try {
+			//hls part
+			if (resource.getFormat().isVideo() && render != null && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+				Headers headers = exchange.getResponseHeaders();
+				headers.add("Server", PMS.get().getServerName());
+				if (uri.endsWith("/chapters.vtt")) {
+					String response = DLNAMediaChapter.getWebVtt(resource);
+					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+				} else if (uri.endsWith("/chapters.json")) {
+					String response = DLNAMediaChapter.getHls(resource);
+					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.JSON_TYPEMIME);
+				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
+					if (rawData[5].endsWith(".m3u8")) {
+						String rendition = rawData[5];
+						rendition = rendition.replace(".m3u8", "");
+						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, BASE_PATH + "/media/" + sessionId + "/", rendition);
+						WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.HLS_TYPEMIME);
+					} else {
+						//we need to hls stream
+						InputStream in = HlsHelper.getInputStream(uri, resource, renderer);
 
+						if (in != null) {
+							headers.add("Connection", "keep-alive");
+							if (uri.endsWith(".ts")) {
+								headers.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+							} else if (uri.endsWith(".vtt")) {
+								headers.add("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+							}
+							OutputStream os = exchange.getResponseBody();
+							exchange.sendResponseHeaders(200, 0); //chunked
+							((WebRender) renderer).start(resource);
+							if (LOGGER.isTraceEnabled()) {
+								WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+							}
+							WebInterfaceServerUtil.dump(in, os);
+						} else {
+							exchange.sendResponseHeaders(500, -1);
+						}
+					}
+				} else {
+					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), BASE_PATH + "/media/" + sessionId + "/");
+					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.HLS_TYPEMIME);
+				}
+			} else {
+				media.setMimeType(mimeType);
+				Range.Byte range = WebInterfaceServerUtil.parseRange(exchange.getRequestHeaders(), resource.length());
+				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
+				InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
+				if (range.getEnd() == 0) {
+					// For web resources actual length may be unknown until we open the stream
+					range.setEnd(resource.length());
+				}
+				Headers headers = exchange.getResponseHeaders();
+				headers.add("Content-Type", mimeType);
+				headers.add("Accept-Ranges", "bytes");
+				long end = range.getEnd();
+				long start = range.getStart();
+				String rStr = start + "-" + end + "/*";
+				headers.add("Content-Range", "bytes " + rStr);
+				if (start != 0) {
+					code = 206;
+				}
 
+				headers.add("Server", PMS.get().getServerName());
+				headers.add("Connection", "keep-alive");
+				exchange.sendResponseHeaders(code, 0);
+				if (LOGGER.isTraceEnabled()) {
+					WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+				}
+				OutputStream os = exchange.getResponseBody();
+				if (render != null) {
+					render.start(resource);
+				}
+				if (sid != null) {
+					resource.setMediaSubtitle(sid);
+				}
+				WebInterfaceServerUtil.dump(in, os);
+			}
+		} catch (IOException ex) {
+			return false;
+		}
+		return true;
+	}
 
 }

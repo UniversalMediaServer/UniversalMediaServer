@@ -12,6 +12,8 @@
     "@mantine/prism": "^4.2.9",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@types/react-color": "^3.0.6",
+    "@types/video.js": "^7.3.42",
+    "@types/videojs-hls-quality-selector": "^1.1.0",
     "axios": "^0.27.2",
     "hls.js": "^1.1.5",
     "jwt-decode": "^3.1.2",
@@ -21,12 +23,13 @@
     "react-country-flag": "^3.0.2",
     "react-dom": "^18.2.0",
     "react-movable": "^3.0.4",
-    "react-player": "^2.10.1",
     "react-router-dom": "^6.3.0",
     "stylis": "^4.1.1",
     "stylis-plugin-rtl": "^2.1.1",
     "tabler-icons-react": "^1.49.0",
     "typescript": "^4.7.4",
+    "video.js": "^7.19.2",
+    "videojs-hls-quality-selector": "^1.1.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
