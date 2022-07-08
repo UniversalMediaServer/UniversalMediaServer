@@ -67,7 +67,7 @@ public class AutoUpdaterServerProperties {
 			String microarchitecture = processorIdentifier.getMicroarchitecture();
 			if (isMacOSPreCatalina) {
 				os += "-pre10.15";
-			} else if (microarchitecture.startsWith("apple.arm")) {
+			} else if (microarchitecture.startsWith("ARM64")) {
 				os += "-arm";
 			}
 		}
