@@ -31,7 +31,7 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
         });
     }
     refresh();
-  }, []);
+  }, [i18n]);
 
   const { Provider } = sessionContext;
   return(

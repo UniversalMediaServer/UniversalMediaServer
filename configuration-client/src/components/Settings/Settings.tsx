@@ -95,7 +95,7 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
-  }, [canView, formSetValues]);
+  }, [canView, formSetValues, i18n]);
 
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
