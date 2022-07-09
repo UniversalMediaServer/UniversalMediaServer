@@ -12,7 +12,7 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
-import {getToolTipContent, openGitHubNewIssue} from '../../utils';
+import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
@@ -268,7 +268,7 @@ export default function Settings() {
           {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
         />
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
           <Checkbox
             size="xs"
             label={i18n.get['LosslessDvdVideoPlayback']}
@@ -276,7 +276,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityMpeg2']}
             sx={{ flex: 1 }}
@@ -285,7 +285,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityH264']}
             sx={{ flex: 1 }}
@@ -350,7 +350,7 @@ export default function Settings() {
         />
         </Tabs.Tab>
         <Tabs.Tab label={i18n.get['SubtitlesSettings']}>
-          <Tooltip label={getToolTipContent(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
             <TextInput
               label={i18n.get['SubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
@@ -370,7 +370,7 @@ export default function Settings() {
             size="xs"
             {...form.getInputProps('forced_subtitle_tags')}
           />
-          <Tooltip label={getToolTipContent(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
             <TextInput
               label={i18n.get['AudioSubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
@@ -438,7 +438,7 @@ export default function Settings() {
               />
             </Grid.Col>
           </Grid>
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['AutomaticallyLoadSrtSubtitles']}
@@ -446,7 +446,7 @@ export default function Settings() {
             />
           </Tooltip>
           <Space h="xs" />
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['ForceExternalSubtitles']}
@@ -454,7 +454,7 @@ export default function Settings() {
             />
           </Tooltip>
           <Space h="xs" />
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['UseEmbeddedStyle']}
@@ -499,7 +499,7 @@ export default function Settings() {
             </Center>
           </Grid.Col>
         </Grid>
-        <Tooltip label={getToolTipContent(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
           <Checkbox
             disabled={!canModify}
             size="xs"
@@ -511,7 +511,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
           <NumberInput
             label={i18n.get['LimitNumberLiveSubtitlesTo']}
             size="xs"
@@ -700,7 +700,7 @@ export default function Settings() {
                 sx={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
-              <Tooltip label={getToolTipContent(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" wrapLines withArrow>
+              <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" wrapLines withArrow>
                 <Checkbox
                   disabled={!canModify}
                   mt="xl"
@@ -767,7 +767,7 @@ export default function Settings() {
                     {...form.getInputProps('maximum_bitrate')}
                   />
                   
-                  <Tooltip label={getToolTipContent(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
                       mt="xl"
@@ -779,7 +779,7 @@ export default function Settings() {
               </Accordion.Item>
               <Accordion.Item label={i18n.get['AdvancedHttpSystemSettings']}>
               
-                <Tooltip label={getToolTipContent(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
                   <Select
                     disabled={!canModify}
                     label={i18n.get['MediaServerEngine']}
@@ -806,7 +806,7 @@ export default function Settings() {
                     searchable
                   />
 
-                  <Tooltip label={getToolTipContent(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
                       mt="xl"
@@ -816,7 +816,7 @@ export default function Settings() {
                   </Tooltip>
                 </Group>
 
-                <Tooltip label={getToolTipContent(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
                     mt="xs"
@@ -868,7 +868,7 @@ export default function Settings() {
                     {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
                   />
                 </Group>
-                <Tooltip label={getToolTipContent(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="md"
                     label={i18n.get['PrettifyFilenames']}
@@ -881,7 +881,7 @@ export default function Settings() {
                   disabled={form.values['prettify_filenames']}
                   {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                 />
-                <Tooltip label={getToolTipContent(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="md"
                     label={i18n.get['UseInfoFromOurApi']}
@@ -889,14 +889,14 @@ export default function Settings() {
                   />
                 </Tooltip>
                 <Group mt="xs">
-                  <Tooltip label={getToolTipContent(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
                     <Select
                       label={i18n.get['AddSubtitlesInformationVideoNames']}
                       data={getI18nSelectData(selectionSettings.subtitlesInfoLevels as unknown as [{value:string;label:string}])}
                       {...form.getInputProps('subs_info_level')}
                     />
                   </Tooltip>
-                  <Tooltip label={getToolTipContent(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
                     <Checkbox
                       mt="xl"
                       label={i18n.get['AddEnginesNamesAfterFilenames']}
@@ -909,7 +909,7 @@ export default function Settings() {
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
-                <Tooltip label={getToolTipContent(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xl"
                     label={i18n.get['EnableCache']}

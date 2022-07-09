@@ -7,7 +7,7 @@ import { User, Lock } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { clearJwt, create, disable, login } from '../../services/auth-service';
-import { getToolTipContent } from '../../utils';
+import { allowHtml } from '../../utils';
 
 const Login = () => {
   const i18n = useContext(I18nContext);
@@ -103,8 +103,9 @@ const Login = () => {
               centered
               opened={opened}
               onClose={() => setOpened(false)}
+              title={i18n.get['Warning']}
             >
-              <Text>{getToolTipContent(i18n.get['DisablingAuthenticationService'])}</Text>
+              <Text>{allowHtml(i18n.get['DisablingAuthenticationService'])}</Text>
               <Group position='right' mt='md'>
                 <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
                 <Button color="red" onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>

@@ -1,4 +1,4 @@
-export function getToolTipContent(content: string) {
+export function allowHtml(content: string) {
   return (<span dangerouslySetInnerHTML={{__html: content}}></span>)
 }
 

@@ -7,7 +7,7 @@ import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { getToolTipContent } from '../../utils';
+import { allowHtml } from '../../utils';
 
 const Accounts = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -409,8 +409,9 @@ const Accounts = () => {
           centered
           opened={authOpened}
           onClose={() => setAuthOpened(false)}
+          title={i18n.get['Warning']}
         >
-          <Text>{getToolTipContent(i18n.get['DisablingAuthenticationService'])}</Text>
+          <Text>{allowHtml(i18n.get['DisablingAuthenticationService'])}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setAuthOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color="red" onClick={() => handleAuthenticationToggle()}>{i18n.get['Confirm']}</Button>
@@ -445,8 +446,9 @@ const Accounts = () => {
           centered
           opened={localhostOpened}
           onClose={() => setLocalhostOpened(false)}
+          title={i18n.get['Warning']}
         >
-          <Text>{getToolTipContent(i18n.get['EnablingAuthenticateLocalhost'])}</Text>
+          <Text>{i18n.get['EnablingAuthenticateLocalhost']}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setLocalhostOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color="red" onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Confirm']}</Button>
