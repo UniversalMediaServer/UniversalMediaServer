@@ -30,8 +30,10 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
           });
         });
     }
-    refresh();
-  }, [i18n]);
+    if (!session.initialized) {
+      refresh();
+    }
+  }, [session.initialized, i18n]);
 
   const { Provider } = sessionContext;
   return(

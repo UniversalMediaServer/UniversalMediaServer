@@ -69,7 +69,10 @@ export default function Settings() {
 
   // Code here will run just like componentDidMount
   useEffect(() => {
-    canView && axios.get('/configuration-api/settings')
+    if (selectionSettings.serverEngines.length > 0) {
+      return;
+    }
+	canView && axios.get('/configuration-api/settings')
       .then(function (response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
@@ -95,7 +98,7 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
-  }, [canView, formSetValues, i18n]);
+  }, [canView, formSetValues, i18n, selectionSettings]);
 
   const handleSubmit = (values: typeof form.values) => {
     const changedValues: Record<string, any> = {};
