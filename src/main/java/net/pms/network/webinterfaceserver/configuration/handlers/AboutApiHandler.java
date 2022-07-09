@@ -69,7 +69,7 @@ public class AboutApiHandler implements HttpHandler {
 					jsonResponse.addProperty("version", PMS.getVersion());
 					String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
 					jsonResponse.addProperty("commit", commitId.substring(0, 9) + " (" + PropertiesUtil.getProjectProperties().get("git.commit.time") + ")");
-					jsonResponse.addProperty("commitUrl", "https://github.com/UniversalMediaServer/UniversalMediaServer/commit/" + commitId);
+					jsonResponse.addProperty("commitUrl", "https://github.com/UniversalMediaServer/UniversalMediaServer/tree/" + commitId);
 					jsonResponse.addProperty("website", "https://www.universalmediaserver.com");
 					jsonResponse.addProperty("licence", "GNU General Public License version 2");
 					jsonResponse.addProperty("licenceUrl", "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt");

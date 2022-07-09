@@ -4335,7 +4335,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The folder name.
 	 */
 	public String getTranscodeFolderName() {
-		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("Transcode"));
+		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("Transcode_FolderName"));
 	}
 
 	/**

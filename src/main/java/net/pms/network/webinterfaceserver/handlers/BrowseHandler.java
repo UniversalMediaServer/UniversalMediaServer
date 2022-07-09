@@ -526,7 +526,7 @@ public class BrowseHandler implements HttpHandler {
 			String recentlyPlayedName = StringEscapeUtils.escapeHtml4(recentlyPlayedResource.resumeName());
 
 			// Skip the #--TRANSCODE--# entry
-			if (recentlyPlayedName.equals(Messages.getString("Transcode"))) {
+			if (recentlyPlayedName.equals(Messages.getString("Transcode_FolderName"))) {
 				continue;
 			}
 

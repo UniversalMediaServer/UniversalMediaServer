@@ -1401,7 +1401,7 @@ public class RootFolder extends DLNAResource {
 		DLNAResource res = null;
 
 		if (configuration.isShowServerSettingsFolder()) {
-			res = new VirtualFolder(Messages.getString("VideoSettings"), null);
+			res = new VirtualFolder(Messages.getString("VideoSettings_FolderName"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("Subtitles"), null);
 			res.addChild(vfSub);
 
