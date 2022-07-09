@@ -30,7 +30,7 @@ const Login = () => {
           id: 'pwd-error',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['WebGui.LoginError'],
+          message: i18n.get['ErrorLoggingIn'],
           autoClose: 3000,
         });
       }
@@ -48,7 +48,7 @@ const Login = () => {
           id: 'user-creation-error',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['WebGui.AccountsUserCreationError'],
+          message: i18n.get['NewUserNotCreated'],
           autoClose: 3000,
         });
       }
@@ -59,23 +59,23 @@ const Login = () => {
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
           <Text size="xl">Universal Media Server</Text>
-          <Text size="lg">{ session.noAdminFound ? i18n.get['WebGui.LoginCreateFirstAdmin'] : i18n.get['WebGui.Login'] }</Text>
+          <Text size="lg">{ session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn'] }</Text>
         <Space h="md" />
         <TextInput
           required
-          label={i18n.get['WebGui.AccountsUsername']}
+          label={i18n.get['Username']}
           icon={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
-          label={i18n.get['WebGui.AccountsPassword']}
+          label={i18n.get['Password']}
           type='password'
           icon={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group position='right' mt='md'>
-          <Button type='submit'>{session.noAdminFound ? i18n.get['WebGui.ButtonCreate'] : i18n.get['WebGui.ButtonLogin']}</Button>
+          <Button type='submit'>{session.noAdminFound ? i18n.get['Create'] : i18n.get['LogIn']}</Button>
         </Group>
       </form>
     </Box>

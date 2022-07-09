@@ -45,7 +45,7 @@ function UserMenu() {
         icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
         onClick={() => { window.location.href = '/accounts'; }}
       >
-        {havePermission(session, "users_manage") ? i18n.get['WebGui.UserMenuManageAccounts'] : i18n.get['WebGui.UserMenuManageAccount']}
+        {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
       </Menu.Item>
       <Menu.Item
         color="yellow"
@@ -61,7 +61,7 @@ function UserMenu() {
           redirectToLogin();
         }}
       >
-        {i18n.get['WebGui.ButtonLogout']}
+        {i18n.get['LogOut']}
       </Menu.Item>
     </Menu>
   );
