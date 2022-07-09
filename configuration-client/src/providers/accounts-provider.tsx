@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const AccountsProvider = ({ children, ...props }: Props) => {
-  const [accounts, setAccounts] = useState({users:[],groups:[]} as UmsAccounts)
+  const [accounts, setAccounts] = useState({users:[],groups:[],enabled:true,localhost:false} as UmsAccounts)
   const sse = useContext(ServerEventContext);
   const i18n = useContext(I18nContext);
 

@@ -1,17 +1,18 @@
-import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
+import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { User, Lock } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import { create, login } from '../../services/auth-service';
 import SessionContext from '../../contexts/session-context';
+import { clearJwt, create, disable, login } from '../../services/auth-service';
+import { getToolTipContent } from '../../utils';
 
 const Login = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
+  const [opened, setOpened] = useState(false);
   const form = useForm({
     initialValues: {
       username: '',
@@ -55,6 +56,24 @@ const Login = () => {
     );
   };
 
+  const handleAuthDisable = () => {
+      disable().then(
+      () => {
+        clearJwt();
+        window.location.reload();
+      },
+      (error) => {
+        showNotification({
+          id: 'auth-disable-error',
+          color: 'red',
+          title: i18n.get['Error'],
+          message: i18n.get['AuthenticationServiceNotDisabled'],
+          autoClose: 3000,
+        });
+      }
+    );
+  };
+
   return (
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
@@ -77,6 +96,25 @@ const Login = () => {
         <Group position='right' mt='md'>
           <Button type='submit'>{session.noAdminFound ? i18n.get['Create'] : i18n.get['LogIn']}</Button>
         </Group>
+        {session.noAdminFound && session.authenticate && (
+          <>
+            <Divider my='lg' label={i18n.get['Or']} labelPosition="center" />
+            <Modal
+              centered
+              opened={opened}
+              onClose={() => setOpened(false)}
+            >
+              <Text>{getToolTipContent(i18n.get['DisablingAuthenticationService'])}</Text>
+              <Group position='right' mt='md'>
+                <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
+                <Button color="red" onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
+              </Group>
+            </Modal>
+            <Group position='center' mt='md'>
+              <Button color="red" onClick={() => setOpened(true)}>{i18n.get['DisableAuthenticationService']}</Button>
+            </Group>
+          </>
+        )}
       </form>
     </Box>
   );

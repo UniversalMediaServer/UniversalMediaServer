@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({noAdminFound:false, initialized: false} as UmsSession)
+  const [session, setSession] = useState({noAdminFound:false, authenticate:true, initialized: false} as UmsSession)
   const i18n = useContext(I18nContext);
 
   useEffect(() => {

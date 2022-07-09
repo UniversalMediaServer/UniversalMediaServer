@@ -85,7 +85,7 @@ public class AboutApiHandler implements HttpHandler {
 					jsonlinks.add(toJsonObject("SVP", "https://www.svp-team.com/"));
 					jsonlinks.add(toJsonObject("OpenSubtitles.org", "https://www.opensubtitles.org/"));
 					jsonResponse.add("links", jsonlinks);
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null && (account.havePermission("settings_view") || account.havePermission("settings_modify"))) {
 						jsonResponse.addProperty("operatingSystem", getOperatingSystem());
 						jsonResponse.addProperty("systemMemorySize", getSystemMemorySize());

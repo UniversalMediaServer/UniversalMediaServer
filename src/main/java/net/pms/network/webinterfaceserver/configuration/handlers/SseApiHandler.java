@@ -72,7 +72,7 @@ public class SseApiHandler implements HttpHandler {
 			var api = new ApiHelper(exchange, BASE_PATH);
 			try {
 				if (api.get("/")) {
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null && account.getUser().getId() > 0) {
 						Headers hdr = exchange.getResponseHeaders();
 						hdr.add("Server", PMS.get().getServerName());

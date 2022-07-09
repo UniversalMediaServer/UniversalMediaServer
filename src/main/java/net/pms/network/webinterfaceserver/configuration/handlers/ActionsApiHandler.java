@@ -59,7 +59,7 @@ public class ActionsApiHandler implements HttpHandler {
 			var api = new ApiHelper(exchange, BASE_PATH);
 			try {
 				if (api.post("/")) {
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null) {
 						String reqBody = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
 						HashMap<String, String> data = gson.fromJson(reqBody, HashMap.class);

@@ -104,7 +104,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			 */
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;
@@ -147,7 +147,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
 			} else if (api.post("/settings")) {
 				Configuration configuration = CONFIGURATION.getRawConfiguration();
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;
@@ -211,7 +211,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				WebInterfaceServerUtil.respond(exchange, i18n.toString(), 200, "application/json");
 			} else if (api.post("/directories")) {
 				//only logged users for security concerns
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;

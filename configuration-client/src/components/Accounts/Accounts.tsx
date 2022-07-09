@@ -1,12 +1,13 @@
-import { Accordion, Avatar, Box, Button, Checkbox, CheckboxGroup, Divider, Group, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, CheckboxGroup, Divider, Group, Modal, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
 
 import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
-import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction } from '../../services/accounts-service';
+import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
+import { getToolTipContent } from '../../utils';
 
 const Accounts = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -14,6 +15,7 @@ const Accounts = () => {
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
   const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['None']);
+  const canModifySettings = havePermission(session, "settings_modify");
   const canManageUsers = havePermission(session, "users_manage");
   const canManageGroups = havePermission(session, "groups_manage");
 
@@ -395,19 +397,93 @@ const Accounts = () => {
     );
   };
 
+  function AuthenticationServiceButton() {
+    const [authOpened, setAuthOpened] = useState(false);
+    const handleAuthenticationToggle = () => {
+      const data = {operation:'authentication', enabled:!accounts.enabled};
+      postAccountAuthAction(data, accounts.enabled?i18n.get['AuthenticationServiceNotDisabled']:i18n.get['AuthenticationServiceNotEnabled']);
+    }
+    return accounts.enabled ? (<>
+      <Group position='left' mt='md'>
+        <Modal
+          centered
+          opened={authOpened}
+          onClose={() => setAuthOpened(false)}
+        >
+          <Text>{getToolTipContent(i18n.get['DisablingAuthenticationService'])}</Text>
+          <Group position='right' mt='md'>
+            <Button onClick={() => setAuthOpened(false)}>{i18n.get['Cancel']}</Button>
+            <Button color="red" onClick={() => handleAuthenticationToggle()}>{i18n.get['Confirm']}</Button>
+          </Group>
+        </Modal>
+        <Button onClick={() => setAuthOpened(true)}>{i18n.get['Disable']}</Button>
+        <Text>{i18n.get['AuthenticationServiceEnabled']}</Text>
+      </Group>
+      <AuthenticateLocalhostAdmin />
+    </>) : (
+      <Group position='left' mt='md'>
+        <Button onClick={() => handleAuthenticationToggle()}>{i18n.get['Enable']}</Button>
+        <Text>{i18n.get['AuthenticationServiceDisabled']}</Text>
+      </Group>
+    );
+  };
+
+  function AuthenticateLocalhostAdmin() {
+    const [localhostOpened, setLocalhostOpened] = useState(false);
+    const handleAuthenticateLocalhostToggle = () => {
+      const data = {operation:'localhost', enabled:!accounts.localhost};
+      postAccountAuthAction(data, i18n.get['AuthenticationServiceNotToggled']);
+    }
+    return accounts.localhost ? (
+      <Group position='left' mt='md'>
+        <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Disable']}</Button>
+        <Text>{i18n.get['AuthenticateLocalhostAdminEnabled']}</Text>
+      </Group>
+    ) : (<>
+      <Group position='left' mt='md'>
+        <Modal
+          centered
+          opened={localhostOpened}
+          onClose={() => setLocalhostOpened(false)}
+        >
+          <Text>{getToolTipContent(i18n.get['EnablingAuthenticateLocalhost'])}</Text>
+          <Group position='right' mt='md'>
+            <Button onClick={() => setLocalhostOpened(false)}>{i18n.get['Cancel']}</Button>
+            <Button color="red" onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Confirm']}</Button>
+          </Group>
+        </Modal>
+        <Button onClick={() => setLocalhostOpened(true)}>{i18n.get['Enable']}</Button>
+        <Text>{i18n.get['AuthenticateLocalhostAdminDisabled']}</Text>
+      </Group>
+    </>)
+  };
+
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
           {canManageGroups ? (
             <Tabs active={activeTab} onTabChange={setActiveTab}>
-	          <Tabs.Tab label={i18n.get['Users']}>
-	            <UsersAccordions />
-              </Tabs.Tab>
-	          <Tabs.Tab label={i18n.get['Groups']}>
-	            <GroupsAccordions />
-              </Tabs.Tab>
+              {session.authenticate && (
+                <Tabs.Tab label={i18n.get['Users']}>
+                  <UsersAccordions />
+                </Tabs.Tab>
+              )}
+              {session.authenticate && (
+                <Tabs.Tab label={i18n.get['Groups']}>
+                  <GroupsAccordions />
+                </Tabs.Tab>
+              )}
+              {canModifySettings && (
+                <Tabs.Tab label={i18n.get['Settings']}>
+                   <AuthenticationServiceButton />
+                </Tabs.Tab>
+              )}
             </Tabs>
-          ) : (
+          ) : session.authenticate ? (
             <UsersAccordions />
+          ) : (
+            <Box sx={{ maxWidth: 700 }} mx="auto">
+              <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
+            </Box>
           )}
       </Box>
   );

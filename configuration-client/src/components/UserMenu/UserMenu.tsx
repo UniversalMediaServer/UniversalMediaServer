@@ -54,15 +54,17 @@ function UserMenu() {
       >
         {i18n.get['About']}
       </Menu.Item>
-      <Menu.Item
-        color="red"
-        icon={<Logout size={14} />}
-        onClick={() => {
-          redirectToLogin();
-        }}
-      >
-        {i18n.get['LogOut']}
-      </Menu.Item>
+      {session.authenticate && session.account?.user.id !== 2147483647 && (
+        <Menu.Item
+          color="red"
+          icon={<Logout size={14} />}
+          onClick={() => {
+            redirectToLogin();
+          }}
+        >
+          {i18n.get['LogOut']}
+        </Menu.Item>
+      )}
     </Menu>
   );
 }

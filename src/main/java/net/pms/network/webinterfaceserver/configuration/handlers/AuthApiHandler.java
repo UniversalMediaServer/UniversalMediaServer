@@ -99,7 +99,7 @@ public class AuthApiHandler implements HttpHandler {
 						WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
 					}
 				} else if (api.post("/refresh")) {
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 					if (account != null) {
 						String token = AuthService.signJwt(account.getUser().getId(), api.getRemoteHostString());
 						WebInterfaceServerUtil.respond(exchange, "{\"token\": \"" + token + "\"}", 200, "application/json");
@@ -108,7 +108,8 @@ public class AuthApiHandler implements HttpHandler {
 					}
 				} else if (api.get("/session")) {
 					JsonObject jObject = new JsonObject();
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString());
+					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+					jObject.add("authenticate", new JsonPrimitive(AuthService.isEnabled()));
 					if (account != null) {
 						jObject.add("noAdminFound", new JsonPrimitive(false));
 						jObject.add("account", AccountApiHandler.accountToJsonObject(account));
@@ -156,6 +157,20 @@ public class AuthApiHandler implements HttpHandler {
 					} else {
 						LOGGER.error("User database not available");
 						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
+					}
+				} else if (api.get("/disable")) {
+					Connection connection = UserDatabase.getConnectionIfAvailable();
+					if (connection == null) {
+						LOGGER.error("User database not available");
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"User database not available\"}", 500, "application/json");
+					} else {
+						if (!AccountService.hasNoAdmin(connection)) {
+							LOGGER.error("An admin user is already in database");
+							WebInterfaceServerUtil.respond(exchange, null, 403, "application/json");
+						} else {
+							AuthService.setEnabled(false);
+							WebInterfaceServerUtil.respond(exchange, "", 200, "application/json");
+						}
 					}
 				} else {
 					LOGGER.trace("AuthApiHandler request not available : {}", api.getEndpoint());

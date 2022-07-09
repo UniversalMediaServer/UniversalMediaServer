@@ -131,6 +131,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_AUDIO_UPDATE_RATING_TAG = "audio_update_rating_tag";
+	protected static final String KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN = "authenticate_localhost_as_admin";
+	protected static final String KEY_AUTHENTICATION_ENABLED = "authentication_enabled";
 	protected static final String KEY_AUTO_UPDATE = "auto_update";
 	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
 	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
@@ -4248,6 +4250,22 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		return getString(KEY_PROFILE_NAME, hostName);
+	}
+
+	public boolean isAuthenticationEnabled() {
+		return getBoolean(KEY_AUTHENTICATION_ENABLED, true);
+	}
+
+	public void setAuthenticationEnabled(boolean value) {
+		configuration.setProperty(KEY_AUTHENTICATION_ENABLED, value);
+	}
+
+	public boolean isAuthenticateLocalhostAsAdmin() {
+		return getBoolean(KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN, false);
+	}
+
+	public void setAuthenticateLocalhostAsAdmin(boolean value) {
+		configuration.setProperty(KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN, value);
 	}
 
 	public boolean isAutoUpdate() {
