@@ -118,6 +118,9 @@ public class SystemInformation extends Thread {
 					sb.append(" virtual core)");
 				}
 			}
+			if (processorIdentifier.getMicroarchitecture() != null) {
+				sb.append(" (").append(processorIdentifier.getMicroarchitecture()).append(")");
+			}
 			result.add(sb.toString());
 			sb.setLength(0);
 		}
