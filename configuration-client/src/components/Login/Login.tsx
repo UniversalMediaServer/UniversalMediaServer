@@ -105,14 +105,14 @@ const Login = () => {
               onClose={() => setOpened(false)}
               title={i18n.get['Warning']}
             >
-              <Text>{allowHtml(i18n.get['DisablingAuthenticationService'])}</Text>
+              <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
               <Group position='right' mt='md'>
                 <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
                 <Button color="red" onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
               </Group>
             </Modal>
             <Group position='center' mt='md'>
-              <Button color="red" onClick={() => setOpened(true)}>{i18n.get['DisableAuthenticationService']}</Button>
+              <Button color="red" onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
             </Group>
           </>
         )}

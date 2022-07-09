@@ -411,7 +411,7 @@ const Accounts = () => {
           onClose={() => setAuthOpened(false)}
           title={i18n.get['Warning']}
         >
-          <Text>{allowHtml(i18n.get['DisablingAuthenticationService'])}</Text>
+          <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setAuthOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color="red" onClick={() => handleAuthenticationToggle()}>{i18n.get['Confirm']}</Button>
