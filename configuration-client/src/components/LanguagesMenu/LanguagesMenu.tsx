@@ -37,7 +37,7 @@ function LanguagesMenu() {
       }
       size="xl"
     >
-      <Menu.Label>{i18n.get['GeneralTab.14']}</Menu.Label>
+      <Menu.Label>{i18n.get['Language']}</Menu.Label>
       <ScrollArea style={{ height: 250 }}>
         {languagesMenus}
       </ScrollArea>

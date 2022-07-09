@@ -1,18 +1,18 @@
 import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { SketchPicker } from 'react-color';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import { SketchPicker } from 'react-color';
 import { arrayMove, List } from 'react-movable';
 import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import {getToolTipContent, openGitHubNewIssue} from '../../utils';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
+import {getToolTipContent, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
@@ -86,8 +86,8 @@ export default function Settings() {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: 'Error',
-          message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
+          title: i18n.get['Error'],
+          message: i18n.get['ConfigurationNotReceived'] +  ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -95,6 +95,7 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
+	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
   const handleSubmit = (values: typeof form.values) => {
@@ -109,8 +110,8 @@ export default function Settings() {
 
     if (_.isEmpty(changedValues)) {
       showNotification({
-        title: 'Saved',
-        message: 'Your configuration has no changes to save',
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationHasNoChanges'],
       })
       return;
     }
@@ -120,16 +121,16 @@ export default function Settings() {
       .then(function () {
         setConfiguration(values);
         showNotification({
-          title: 'Saved',
-          message: 'Your configuration changes were saved successfully',
+          title: i18n.get['Saved'],
+          message: i18n.get['ConfigurationSaved'],
         })
       })
       .catch(function (error: Error) {
         console.log(error);
         showNotification({
           color: 'red',
-          title: 'Error',
-          message: 'Your configuration changes were not saved. Please click here to report the bug to us.',
+          title: i18n.get['Error'],
+          message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
         })
       })

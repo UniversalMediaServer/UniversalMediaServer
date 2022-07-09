@@ -1,8 +1,9 @@
-import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
-import { UmsAccounts } from '../contexts/accounts-context';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { clearJwt } from './auth-service';
+
+import { UmsAccounts } from '../contexts/accounts-context';
+import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 
 export const accountHavePermission = (account: UmsAccount, permission: string) => {
   return (typeof account.group !== "undefined"
