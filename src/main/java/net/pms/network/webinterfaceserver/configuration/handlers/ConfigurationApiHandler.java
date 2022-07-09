@@ -126,7 +126,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
 				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
 
-				jsonResponse.add("languages", Languages.getLanguagesAsJsonArray());
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
@@ -207,7 +206,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				JsonObject i18n = new JsonObject();
 				i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
-				i18n.add("languages", Languages.getLanguagesWithCountry(locale));
+				i18n.add("languages", Languages.getLanguagesAsJsonArray(locale));
 				i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
 				WebInterfaceServerUtil.respond(exchange, i18n.toString(), 200, "application/json");
 			} else if (api.post("/directories")) {

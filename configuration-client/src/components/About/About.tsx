@@ -1,7 +1,9 @@
-import { Box, Table, Tabs, Text } from '@mantine/core';
+import { ActionIcon, Box, Group, Table, Tabs, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
+import ReactCountryFlag from 'react-country-flag';
+import { Edit, EditOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -14,6 +16,21 @@ const About = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canView = havePermission(session, "settings_view") || havePermission(session, "settings_modify");
+  const languagesRows = i18n.languages.map((language) => (
+    <tr>
+      <td><Group style={{cursor: 'default'}}><ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em'}}/><Text>{language.name}</Text></Group></td>
+      {language.id==='en-US' ? (
+        <td><Group style={{cursor: 'default'}} position='right'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></td>
+      ) : (
+        <td><Group style={{cursor: 'default'}} position='right'>
+          <Text>{language.coverage===100?i18n.get["Completed"]:i18n.get["InProgress"]+' (' + language.coverage + '%)'}</Text>
+          <ActionIcon variant="default" onClick={() => { window.open('https://crowdin.com/project/universalmediaserver/' + language.id, '_blank'); }}>
+            <Edit />
+          </ActionIcon>
+        </Group></td>
+      )}
+    </tr>
+  ));
   const linksRows = aboutDatas.links.map((link:{key:string,value:string}) => (
     <tr>
       <td><Text align="center" style={{cursor:'pointer'}} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></td>
@@ -91,8 +108,15 @@ const About = () => {
             </>}
             </Table>
           </Tabs.Tab>
+          <Tabs.Tab label={i18n.get["Translations"]}>
+            <Table highlightOnHover>
+              <tbody>
+               {languagesRows}
+              </tbody>
+            </Table>
+          </Tabs.Tab>
           <Tabs.Tab label={i18n.get["RelatedLinks_title"]}>
-            <Table striped>
+            <Table>
               {linksRows}
             </Table>
           </Tabs.Tab>

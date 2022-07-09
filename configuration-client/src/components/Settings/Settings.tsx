@@ -9,7 +9,7 @@ import { arrayMove, List } from 'react-movable';
 import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import {getToolTipContent} from '../../utils';
+import {getToolTipContent, openGitHubNewIssue} from '../../utils';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
@@ -31,7 +31,6 @@ export default function Settings() {
     enabledRendererNames: [],
     ffmpegLoglevels: [],
     gpuAccelerationMethod: [],
-    languages: [],
     networkInterfaces: [],
     serverEngines: [],
     sortMethods: [],
@@ -57,10 +56,6 @@ export default function Settings() {
     wrapLines: true,
     withArrow: true,
   }
-
-  const openGitHubNewIssue = () => {
-    window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
-  };
 
   useEffect(() => {
     if (sse.userConfiguration === null) {
@@ -142,6 +137,17 @@ export default function Settings() {
         setLoading(false);
       });
   };
+
+  const getLanguagesSelectData = () => {
+    return i18n.languages.map((language) => {
+      return {
+        value : language.id,
+        label: language.name
+		  + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
+		  + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
+      };
+    });
+  }
 
   const getI18nSelectData = (values: [{value:string;label:string}]) => {
     return values.map((value : {value:string;label:string}) => {
@@ -681,7 +687,7 @@ export default function Settings() {
             <Select
               disabled={!canModify}
               label={i18n.get['Language']}
-              data={selectionSettings.languages}
+              data={getLanguagesSelectData()}
               {...form.getInputProps('language')}
             />
 

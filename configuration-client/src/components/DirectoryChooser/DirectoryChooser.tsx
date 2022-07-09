@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Devices2, Folder, Folders } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import { openGitHubNewIssue } from '../../utils';
 
 export default function DirectoryChooser(props: {
   tooltipText: string,
@@ -21,10 +22,6 @@ export default function DirectoryChooser(props: {
   const [parents, setParents] = useState([] as { value: string, label: string }[]);
   const [selectedDirectory, setSelectedDirectory] = useState('');
   const [separator, setSeparator] = useState('/');
-
-  const openGitHubNewIssue = () => {
-    window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
-  };
 
   const selectAndCloseModal = () => {
     if (selectedDirectory) {

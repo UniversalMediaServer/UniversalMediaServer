@@ -21,5 +21,7 @@ export default i18nContext;
 export interface LanguageValue {
   id : string,
   name : string,
+  defaultname : string,
   country : string,
+  coverage : number,
 }
