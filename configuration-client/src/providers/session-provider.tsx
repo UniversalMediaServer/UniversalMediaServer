@@ -1,6 +1,8 @@
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useContext, useEffect, useState } from 'react';
+
+import I18nContext from '../contexts/i18n-context';
 import { sessionContext, UmsSession } from '../contexts/session-context';
 
 interface Props {
@@ -9,6 +11,7 @@ interface Props {
 
 export const SessionProvider = ({ children, ...props }: Props) =>{
   const [session, setSession] = useState({noAdminFound:false, initialized: false} as UmsSession)
+  const i18n = useContext(I18nContext);
 
   useEffect(() => {
     const refresh = () => {
@@ -21,14 +24,16 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
           showNotification({
             id: 'data-loading',
             color: 'red',
-            title: 'Error',
-            message: 'Session was not received from the server.',
+            title: i18n.get['Error'],
+            message: i18n.get['SessionNotReceived'],
             autoClose: 3000,
           });
         });
     }
-    refresh();
-  }, []);
+    if (!session.initialized) {
+      refresh();
+    }
+  }, [session.initialized, i18n]);
 
   const { Provider } = sessionContext;
   return(

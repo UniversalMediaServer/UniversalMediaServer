@@ -91,8 +91,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       showNotification({
         id: 'connection-lost',
         color: 'orange',
-        title: 'Warning',
-        message: 'Connectivity to Universal Media Server unavailable',
+        title: i18n.get['Warning'],
+        message: i18n.get['UniversalMediaServerUnreachable'],
         autoClose: false
       });
     }
