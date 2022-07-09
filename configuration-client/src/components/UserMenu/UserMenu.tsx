@@ -4,8 +4,8 @@ import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'table
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { sendAction } from '../../services/actions-service';
 import { havePermission } from '../../services/accounts-service';
+import { sendAction } from '../../services/actions-service';
 import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
