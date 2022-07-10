@@ -19,7 +19,6 @@ package net.pms.dlna;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -96,21 +95,16 @@ public class MapFile extends DLNAResource {
 			return null;
 		}
 		try {
-			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), new DirectoryStream.Filter<Path>() {
-
-				@Override
-				public boolean accept(Path entry) throws IOException {
-					Path fileNamePath = entry.getFileName();
-					if (fileNamePath == null) {
-						return false;
-					}
-					String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
-					if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
-						return isPotentialThumbnail(fileName);
-					}
+			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
+				Path fileNamePath = entry.getFileName();
+				if (fileNamePath == null) {
 					return false;
 				}
-
+				String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
+				if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
+					return isPotentialThumbnail(fileName);
+				}
+				return false;
 			});
 			for (Path folderThumbnail : folderThumbnails) {
 				// We don't have any rule to prioritize between them; return the first
@@ -298,7 +292,7 @@ public class MapFile extends DLNAResource {
 		ArrayList<String> ignoredDirectoryNames = configuration.getIgnoredFolderNames();
 		String directoryName;
 		for (File directory : this.conf.getFiles()) {
-			directoryName = directory.getName() == null ? "unnamed" : directory.getName();
+			directoryName = directory == null || directory.getName() == null ? "unnamed" : directory.getName();
 			if (directory == null || !directory.isDirectory()) {
 				LOGGER.trace("Ignoring {} because it is not a valid directory", directoryName);
 				continue;
@@ -311,21 +305,16 @@ public class MapFile extends DLNAResource {
 			}
 
 			if (directory.canRead()) {
-				File[] files = directory.listFiles(
-					new FilenameFilter() {
-						@Override
-						public boolean accept(File parentDirectory, String name) {
-							// Accept any directory
-							Path path = Paths.get(parentDirectory + File.separator + name);
-							if (Files.isDirectory(path)) {
-								return true;
-							}
-
-							// We want to find only media files
-							return isPotentialMediaFile(name);
-						}
+				File[] files = directory.listFiles((File parentDirectory, String name) -> {
+					// Accept any directory
+					Path path = Paths.get(parentDirectory + File.separator + name);
+					if (Files.isDirectory(path)) {
+						return true;
 					}
-				);
+
+					// We want to find only media files
+					return isPotentialMediaFile(name);
+				});
 
 				if (files == null) {
 					LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
@@ -350,6 +339,7 @@ public class MapFile extends DLNAResource {
 		return analyzeChildren(count, true);
 	}
 
+	@Override
 	public boolean analyzeChildren(int count, boolean isAddGlobally) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
@@ -421,8 +411,8 @@ public class MapFile extends DLNAResource {
 		}
 
 		// Remove cover/thumbnails from file list
-		if (images.size() > 0 && audioVideo.size() > 0) {
-			HashSet<File> potentialMatches = new HashSet<File>(THUMBNAIL_EXTENSIONS.size() * 2);
+		if (!images.isEmpty() && !audioVideo.isEmpty()) {
+			HashSet<File> potentialMatches;
 			for (File audioVideoFile : audioVideo) {
 				potentialMatches = getPotentialFileThumbnails(audioVideoFile, false);
 				iterator = images.iterator();
