@@ -28,10 +28,10 @@ public class RendererPanel extends JPanel {
 	private static final long serialVersionUID = 5130146620433713605L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
+	private static final RowSpec RSPEC = RowSpec.decode("center:pref");
 
-	private RendererConfiguration renderer;
-	private CellConstraints cc = new CellConstraints();
-	private static RowSpec rspec = RowSpec.decode("center:pref");
+	private final RendererConfiguration renderer;
+	private final CellConstraints cc = new CellConstraints();
 	private JPanel editBar;
 	private boolean ready = false;
 
@@ -45,14 +45,14 @@ public class RendererPanel extends JPanel {
 		builder.border(new EmptyBorder(10, 10, 10, 10));
 		int y = 0;
 
-		builder.appendRow(rspec);
+		builder.appendRow(RSPEC);
 		editBar = new JPanel();
 		editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
 		builder.add(editBar, cc.xyw(1, ++y, 2));
 		if (/*renderer.loaded &&*/ !renderer.isFileless()) {
 			buildEditBar(false);
 		}
-		builder.appendRow(rspec);
+		builder.appendRow(RSPEC);
 		builder.addLabel(" ", cc.xy(1, ++y));
 
 		y = addMap(renderer.getDetails(), builder, y);
@@ -62,11 +62,11 @@ public class RendererPanel extends JPanel {
 		}
 
 		if (renderer.isControllable()) {
-			builder.appendRow(rspec);
+			builder.appendRow(RSPEC);
 			builder.addLabel(" ", cc.xy(1, ++y));
-			builder.appendRow(rspec);
+			builder.appendRow(RSPEC);
 			builder.addSeparator(Messages.getString("Controls"), cc.xyw(1, ++y, 2));
-			builder.appendRow(rspec);
+			builder.appendRow(RSPEC);
 			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 		}
 		return builder.getPanel();
@@ -98,7 +98,7 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				DeviceConfiguration d = (DeviceConfiguration) renderer;
-				File f = chooseConf(d.getDeviceDir(), d.getDefaultFilename(d));
+				File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
 				if (f != null) {
 					File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
 					buildEditBar(true);
@@ -155,7 +155,7 @@ public class RendererPanel extends JPanel {
 					if (f != null) {
 						File ref = chooseReferenceConf();
 						if (ref != null) {
-							renderer.createNewFile(renderer, f, true, ref);
+							RendererConfiguration.createNewFile(renderer, f, true, ref);
 							open.setText(f.getName());
 							exists = true;
 						}
@@ -236,7 +236,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public int addItem(String key, String value, PanelBuilder builder, int y) {
-		builder.appendRow(rspec);
+		builder.appendRow(RSPEC);
 		builder.addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
 		JTextField val = new JTextField(value);
 		val.setEditable(false);

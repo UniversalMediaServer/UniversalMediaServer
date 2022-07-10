@@ -5,7 +5,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -44,7 +43,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,35 +265,40 @@ public class RendererConfiguration extends Renderer {
 				LOGGER.debug("Caught exception", e);
 			}
 
-			File renderersDir = getRenderersDir();
+			File[] renderersDirs = new File[]{getProfileRenderersDir(), getRenderersDir()};
+			for (File renderersDir : renderersDirs) {
+				if (renderersDir != null) {
+					LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
 
-			if (renderersDir != null) {
-				LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
+					File[] confs = renderersDir.listFiles();
+					Arrays.sort(confs);
+					int rank = 1;
 
-				File[] confs = renderersDir.listFiles();
-				Arrays.sort(confs);
-				int rank = 1;
+					List<String> selectedRenderers = pmsConf.getSelectedRenderers();
+					for (File f : confs) {
+						if (f.getName().endsWith(".conf")) {
+							try {
+								RendererConfiguration r = new RendererConfiguration(f);
+								//do not add device conf
+								if (r.configuration.containsKey(DEVICE_ID) || r.configuration.containsKey("device")) {
+									continue;
+								}
+								r.rank = rank++;
+								String rendererName = r.getConfName();
+								ALL_RENDERERS_NAMES.add(rendererName);
+								String renderersGroup = null;
+								if (rendererName.indexOf(' ') > 0) {
+									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
+								}
 
-				List<String> selectedRenderers = pmsConf.getSelectedRenderers();
-				for (File f : confs) {
-					if (f.getName().endsWith(".conf")) {
-						try {
-							RendererConfiguration r = new RendererConfiguration(f);
-							r.rank = rank++;
-							String rendererName = r.getConfName();
-							ALL_RENDERERS_NAMES.add(rendererName);
-							String renderersGroup = null;
-							if (rendererName.indexOf(' ') > 0) {
-								renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.allRenderers)) {
+									enabledRendererConfs.add(r);
+								} else {
+									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
+								}
+							} catch (ConfigurationException ce) {
+								LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 							}
-
-							if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.allRenderers)) {
-								enabledRendererConfs.add(r);
-							} else {
-								LOGGER.debug("Ignored \"{}\" configuration", rendererName);
-							}
-						} catch (ConfigurationException ce) {
-							LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 						}
 					}
 				}
@@ -493,6 +496,17 @@ public class RendererConfiguration extends Renderer {
 			}
 		}
 
+		return null;
+	}
+
+	public static File getProfileRenderersDir() {
+		File file = new File(pmsConfigurationStatic.getProfileDirectory(), "renderers");
+		if (file.isDirectory()) {
+			if (file.canRead()) {
+				return file;
+			}
+			LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+		}
 		return null;
 	}
 
@@ -932,8 +946,6 @@ public class RendererConfiguration extends Renderer {
 		configurationReader = new ConfigurationReader(configuration, true); // true: log
 	}
 
-	static UnicodeUnescaper unicodeUnescaper = new UnicodeUnescaper();
-
 	public RendererConfiguration(File f) throws ConfigurationException {
 		this(f, null);
 	}
@@ -999,7 +1011,7 @@ public class RendererConfiguration extends Renderer {
 		return false;
 	}
 
-	public void init(File f) throws ConfigurationException {
+	public final void init(File f) throws ConfigurationException {
 		setRootFolder(null);
 		if (!loaded) {
 			configuration.clear();
@@ -1116,18 +1128,12 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public boolean supportsFormat(Format f) {
-		switch (f.getType()) {
-			case Format.VIDEO:
-				return isVideoSupported();
-			case Format.AUDIO:
-				return isAudioSupported();
-			case Format.IMAGE:
-				return isImageSupported();
-			default:
-				break;
-		}
-
-		return false;
+		return switch (f.getType()) {
+			case Format.VIDEO -> isVideoSupported();
+			case Format.AUDIO -> isAudioSupported();
+			case Format.IMAGE -> isImageSupported();
+			default -> false;
+		};
 	}
 
 	public boolean isVideoSupported() {
@@ -1651,23 +1657,20 @@ public class RendererConfiguration extends Renderer {
 	public static void delete(final RendererConfiguration r, int delay) {
 		r.setActive(false);
 		// Using javax.swing.Timer because of gui (this works in headless mode too).
-		javax.swing.Timer t = new javax.swing.Timer(delay, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				// Make sure we haven't been reactivated while asleep
-				if (!r.isActive()) {
-					LOGGER.debug("Deleting renderer " + r);
-					if (r.gui != null) {
-						r.gui.delete();
-					}
-					PMS.get().getFoundRenderers().remove(r);
-					UPNPHelper.getInstance().removeRenderer(r);
-					InetAddress ia = r.getAddress();
-					if (ADDRESS_ASSOCIATION.get(ia) == r) {
-						ADDRESS_ASSOCIATION.remove(ia);
-					}
-					// TODO: actually delete rootfolder, etc.
+		javax.swing.Timer t = new javax.swing.Timer(delay, (ActionEvent event) -> {
+			// Make sure we haven't been reactivated while asleep
+			if (!r.isActive()) {
+				LOGGER.debug("Deleting renderer " + r);
+				if (r.gui != null) {
+					r.gui.delete();
 				}
+				PMS.get().getFoundRenderers().remove(r);
+				UPNPHelper.getInstance().removeRenderer(r);
+				InetAddress ia = r.getAddress();
+				if (ADDRESS_ASSOCIATION.get(ia) == r) {
+					ADDRESS_ASSOCIATION.remove(ia);
+				}
+				// TODO: actually delete rootfolder, etc.
 			}
 		});
 		t.setRepeats(false);
@@ -1995,20 +1998,10 @@ public class RendererConfiguration extends Renderer {
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
-				case "keyint":
-					returnString.append("-g ").append(pairArray[1]).append(' ');
-					break;
-				case "vqscale":
-					returnString.append("-q:v ").append(pairArray[1]).append(' ');
-					break;
-				case "vqmin":
-					returnString.append("-qmin ").append(pairArray[1]).append(' ');
-					break;
-				case "vqmax":
-					returnString.append("-qmax ").append(pairArray[1]).append(' ');
-					break;
-				default:
-					break;
+				case "keyint" -> returnString.append("-g ").append(pairArray[1]).append(' ');
+				case "vqscale" -> returnString.append("-q:v ").append(pairArray[1]).append(' ');
+				case "vqmin" -> returnString.append("-qmin ").append(pairArray[1]).append(' ');
+				case "vqmax" -> returnString.append("-qmax ").append(pairArray[1]).append(' ');
 			}
 		}
 
@@ -2670,7 +2663,7 @@ public class RendererConfiguration extends Renderer {
 		}
 
 		@Override
-		public String put(String key, String value) {
+		public final String put(String key, String value) {
 			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 				headers = null; // i.e. mark as changed
 				return super.put(key.trim(), value.trim());
@@ -2731,16 +2724,13 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * A loading priority comparator
 	 */
-	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = new Comparator<RendererConfiguration>() {
-		@Override
-		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
-			if (r1 == null || r2 == null) {
-				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
-			}
-			int p1 = r1.getLoadingPriority();
-			int p2 = r2.getLoadingPriority();
-			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
+	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = (RendererConfiguration r1, RendererConfiguration r2) -> {
+		if (r1 == null || r2 == null) {
+			return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
 		}
+		int p1 = r1.getLoadingPriority();
+		int p2 = r2.getLoadingPriority();
+		return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
 	};
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
@@ -2766,13 +2756,10 @@ public class RendererConfiguration extends Renderer {
 	/**
 	 * Automatic reloading
 	 */
-	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
-		@Override
-		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			RendererConfiguration r = (RendererConfiguration) watch.getItem();
-			if (r != null && r.getFile().equals(new File(filename))) {
-				r.reset();
-			}
+	private static final FileWatcher.Listener RELOADER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+		RendererConfiguration r = (RendererConfiguration) watch.getItem();
+		if (r != null && r.getFile().equals(new File(filename))) {
+			r.reset();
 		}
 	};
 
@@ -2903,25 +2890,22 @@ public class RendererConfiguration extends Renderer {
 
 	public static int getUpnpMode(String mode) {
 		if (mode != null) {
-			switch (mode.trim().toLowerCase()) {
-				case "false":    return BLOCK;
-				case "postpone": return POSTPONE;
-			default:
-				break;
-			}
+			return switch (mode.trim().toLowerCase()) {
+				case "false" -> BLOCK;
+				case "postpone" -> POSTPONE;
+				default -> ALLOW;
+			};
 		}
 		return ALLOW;
 	}
 
 	public static String getUpnpModeString(int mode) {
-		switch (mode) {
-			case BLOCK:    return "blocked";
-			case POSTPONE: return "postponed";
-			case NONE:     return "unknown";
-		default:
-			break;
-		}
-		return "allowed";
+		return switch (mode) {
+			case BLOCK -> "blocked";
+			case POSTPONE -> "postponed";
+			case NONE -> "unknown";
+			default -> "allowed";
+		};
 	}
 
 	public int getUpnpMode() {
