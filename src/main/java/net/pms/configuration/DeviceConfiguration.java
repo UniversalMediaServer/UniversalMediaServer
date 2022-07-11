@@ -322,7 +322,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 				conf.clear();
 				List<String> idsList = loadDeviceFile(f, conf);
 				if (idsList != null && !idsList.isEmpty()) {
-					ids.addAll(loadDeviceFile(f, conf));
+					ids.addAll(idsList);
 				}
 				for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 					if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
