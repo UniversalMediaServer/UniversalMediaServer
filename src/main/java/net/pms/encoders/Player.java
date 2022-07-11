@@ -17,6 +17,7 @@
  */
 package net.pms.encoders;
 
+import com.google.gson.JsonArray;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -336,6 +337,7 @@ public abstract class Player {
 	 * Returns the current engine status (enabled, available) as a localized
 	 * text.
 	 *
+	 * @param executableType
 	 * @param fullText if {@code true} the full error text is returned in case
 	 *            of an error, if {@code false} only a generic text is returned
 	 *            in case of an error.
@@ -349,7 +351,7 @@ public abstract class Player {
 		if (executableInfo == null) {
 			return String.format(Messages.getString("TheXExecutableNotDefined"), name());
 		}
-		if (executableInfo.getAvailable() == null || executableInfo.getAvailable().booleanValue()) {
+		if (executableInfo.getAvailable() == null || executableInfo.getAvailable()) {
 			// Generally available or unknown, check for Player specific failures
 			specificErrorsLock.readLock().lock();
 			try {
@@ -364,7 +366,7 @@ public abstract class Player {
 				return String.format(Messages.getString("StatusTranscodingEngineXUnknown"), name());
 			}
 		}
-		if (executableInfo.getAvailable().booleanValue()) {
+		if (executableInfo.getAvailable()) {
 			if (isEnabled()) {
 				if (executableInfo.getVersion() != null) {
 					return String.format(Messages.getString("TranscodingEngineXYEnabled"), name(), executableInfo.getVersion());
@@ -377,6 +379,70 @@ public abstract class Player {
 			return Messages.getString("UnknownError");
 		}
 		return fullText ? executableInfo.getErrorText() : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), name());
+	}
+
+	public JsonArray getStatusTextAsJsonArray(ProgramExecutableType executableType, boolean fullText) {
+		if (executableType == null) {
+			return null;
+		}
+		JsonArray array = new JsonArray();
+		ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
+		if (executableInfo == null) {
+			array.add("i18n@TheXExecutableNotDefined");
+			array.add(name());
+			return array;
+		}
+		if (executableInfo.getAvailable() == null || executableInfo.getAvailable()) {
+			// Generally available or unknown, check for Player specific failures
+			specificErrorsLock.readLock().lock();
+			try {
+				String specificError = specificErrors.get(executableType);
+				if (specificError != null) {
+					if (fullText) {
+						array.add(specificError);
+					} else {
+						array.add("i18n@ThereIsProblemTranscodingEngineX");
+						array.add(name());
+					}
+					return array;
+				}
+			} finally {
+				specificErrorsLock.readLock().unlock();
+			}
+			if (executableInfo.getAvailable() == null) {
+				array.add("i18n@StatusTranscodingEngineXUnknown");
+				array.add(name());
+				return array;
+			}
+		}
+		if (executableInfo.getAvailable()) {
+			if (isEnabled()) {
+				Version version = executableInfo.getVersion();
+				if (version != null) {
+					array.add("i18n@TranscodingEngineXYEnabled");
+					array.add(name());
+					array.add(version.toString());
+					return array;
+				}
+				array.add("i18n@TranscodingEngineXEnabled");
+				array.add(name());
+				return array;
+			}
+			array.add("i18n@TranscodingEngineXDisabled");
+			array.add(name());
+			return array;
+		}
+		if (executableInfo.getErrorText() == null) {
+			array.add("i18n@UnknownError");
+			return array;
+		}
+		if (fullText) {
+			array.add(executableInfo.getErrorText());
+			return array;
+		}
+		array.add("i18n@ThereIsProblemTranscodingEngineX");
+		array.add(name());
+		return array;
 	}
 
 	/**
@@ -402,6 +468,10 @@ public abstract class Player {
 	 */
 	public String getStatusTextFull() {
 		return getStatusText(currentExecutableType, true);
+	}
+
+	public JsonArray getStatusTextFullAsJsonArray() {
+		return getStatusTextAsJsonArray(currentExecutableType, true);
 	}
 
 	/**
