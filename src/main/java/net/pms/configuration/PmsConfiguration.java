@@ -5311,6 +5311,8 @@ public class PmsConfiguration extends RendererConfiguration {
 				jsonPlayer.add("name", new JsonPrimitive(player.name()));
 				jsonPlayer.add("isAvailable", new JsonPrimitive(player.isAvailable()));
 				jsonPlayer.add("purpose", new JsonPrimitive(player.purpose()));
+				jsonPlayer.add("enabled", new JsonPrimitive(player.isEnabled()));
+				jsonPlayer.add("statusText", new JsonPrimitive(player.getStatusTextFull()));
 				result.add(playerId.getName(), jsonPlayer);
 			}
 		}

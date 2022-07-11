@@ -1,4 +1,4 @@
-import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Modal, Center, ColorSwatch, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { SketchPicker } from 'react-color';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -37,7 +37,7 @@ export default function Settings() {
     subtitlesDepth: [],
     subtitlesCodepages: [],
     subtitlesInfoLevels: [],
-    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
+    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number,statusText:string}},
     transcodingEnginesPurposes: [],
   });
 
@@ -171,6 +171,33 @@ export default function Settings() {
     }
   }
 
+  const getTranscodingEngineStatus = (engine: any) => {
+    if (engine.enabled && engine.isAvailable) {
+      return (
+        <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <PlayerPlay strokeWidth={2} color={'green'} size={14}/>
+        </Tooltip>
+      )
+    }
+
+    if (!engine.enabled) {
+      return (
+        <Tooltip label={allowHtml(i18n.get['TranscodingEngineXDisabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <Ban color={'red'} size={14}/>
+        </Tooltip>
+      )
+    }
+
+    if (!engine.isAvailable) {
+      return (
+        <Tooltip label={allowHtml(i18n.get['ThereIsProblemTranscodingEngineX']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <ExclamationMark color={'orange'} strokeWidth={3} size={14}/>
+        </Tooltip>
+      )
+    }
+
+  }
+
   const getTranscodingEnginesList = (purpose:number) => {
     const engines = getTranscodingEnginesPriority(purpose);
     return engines.length > 1 ? (
@@ -189,9 +216,12 @@ export default function Settings() {
           <Button {...props} color='gray' size="xs" compact
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
             leftIcon={
-              <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
-                { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
-              </ActionIcon>
+              <>
+                <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                  { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+                </ActionIcon>
+                {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
+              </>
             }
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
@@ -222,6 +252,7 @@ export default function Settings() {
   }
 
   const getTranscodingCommon = () => { return (<>
+    <Title order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
     <TextInput
       label={i18n.get['MaximumTranscodeBufferSize']}
       name="maximum_video_buffer_size"
@@ -490,6 +521,10 @@ export default function Settings() {
           </Grid.Col>
           <Grid.Col span={8}>
             <Center inline>
+              <ColorSwatch
+                  color={form.getInputProps('subtitles_color').value}
+                  onClick={() => { setModalOpened(true); }}
+                />
               <TextInput
                 label={i18n.get['Color']}
                 sx={{ flex: 1 }}
@@ -535,8 +570,13 @@ export default function Settings() {
   }
 
   const getVLCWebVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -554,8 +594,13 @@ export default function Settings() {
   }
 
   const getFFMPEGAudio = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -567,8 +612,13 @@ export default function Settings() {
   }
 
   const getTsMuxerVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -586,12 +636,25 @@ export default function Settings() {
   }
 
   const getMEncoderVideo = () => {
-    return (<></>)
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
+    return (
+      <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+      </>
+    )
   }
 
   const getFFMPEGVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Select
           disabled={!canModify}
           label={i18n.get['LogLevelColon']}
@@ -638,10 +701,30 @@ export default function Settings() {
       </>
     )
   }
-
+  const engineStatus = () => {
+    const currentEngine = selectionSettings.transcodingEngines[transcodingContent];
+    if (!currentEngine.isAvailable) {
+      return (
+        <>
+          <Title order={5}>{currentEngine.name}</Title>
+          <Text><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
+          <Space h="md"/>
+          <Text size="xs">{currentEngine.statusText}</Text>
+        </>
+      )
+    }
+    return;
+  }
   const noSettingsForNow = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status)
+    }
     return (
-      <Text>{i18n.get['NoSettingsForNow']}</Text>
+      <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Text>{i18n.get['NoSettingsForNow']}</Text>
+      </>
     )
   }
 
@@ -935,6 +1018,7 @@ export default function Settings() {
                   <Accordion>
                     {getTranscodingEnginesAccordionItems()}
                   </Accordion>
+                  <Text size="xs">{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
                   </Navbar.Section>
                 </Navbar>
               </Grid.Col>
