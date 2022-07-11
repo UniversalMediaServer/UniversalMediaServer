@@ -293,7 +293,16 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("language", "en-US");
 		jObj.addProperty("live_subtitles_keep", false);
 		jObj.addProperty("live_subtitles_limit", 20);
+		jObj.addProperty("mencoder_ass", true);
+		jObj.addProperty("mencoder_fontconfig", true);
+		jObj.addProperty("mencoder_forcefps", false);
+		jObj.addProperty("mencoder_mt", "");
+		jObj.addProperty("mencoder_mux_compatible", false);
+		jObj.addProperty("mencoder_nooutofsync", false);
 		jObj.addProperty("mencoder_remux_mpeg2", true);
+		jObj.addProperty("mencoder_scaler", false);
+		jObj.addProperty("mencoder_skip_loop_filter", false);
+		jObj.addProperty("mencoder_yadif", false);
 		jObj.addProperty("maximum_video_buffer_size", 200);
 		jObj.addProperty("maximum_bitrate", "90");
 		jObj.addProperty("mencoder_noass_outline", 1);

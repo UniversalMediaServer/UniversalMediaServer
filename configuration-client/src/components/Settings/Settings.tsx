@@ -1,4 +1,4 @@
-import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -586,7 +586,66 @@ export default function Settings() {
   }
 
   const getMEncoderVideo = () => {
-    return (<></>)
+    return (
+      <>
+        <Title order={5}>{i18n.get['GeneralSettings']}</Title>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['EnableMultithreading']}
+          {...form.getInputProps('mencoder_mt', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['SkipLoopFilterDeblocking']}
+          {...form.getInputProps('mencoder_skip_loop_filter', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['AvSyncAlternativeMethod']}
+          {...form.getInputProps('mencoder_nooutofsync', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['ChangeVideoResolution']}
+          {...form.getInputProps('mencoder_scaler', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['ForceFramerateParsedFfmpeg']}
+          {...form.getInputProps('mencoder_forcefps', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['DeinterlaceFilter']}
+          {...form.getInputProps('mencoder_yadif', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['RemuxVideosTsmuxer']}
+          {...form.getInputProps('mencoder_mux_compatible ', { type: 'checkbox' })}
+        />
+        <Title order={5}>{i18n.get['SubtitlesSettings']}</Title>
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['UseAssSubtitlesStyling']}
+          {...form.getInputProps('mencoder_ass', { type: 'checkbox' })}
+        />
+        <Checkbox
+          disabled={!canModify}
+          mt="xl"
+          label={i18n.get['FonconfigEmbeddedFonts']}
+          {...form.getInputProps('mencoder_fontconfig', { type: 'checkbox' })}
+        />
+      </>
+    )
   }
 
   const getFFMPEGVideo = () => {
