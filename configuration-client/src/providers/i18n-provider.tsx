@@ -30,6 +30,19 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
     }
   }
 
+  const getI18nFormat = (value: string[]) => {
+    if (value == null || value.length < 1) { return "";}
+    let result = getI18nString(value[0]);
+    for (let i = 1; i < value.length; i++) {
+      if (value[i].includes('%' + i + '$s')) {
+        result = result.replace('%' + i + '$s', getI18nString(value[i]));
+      } else if (value[i].includes('%s')) {
+        result = result.replace('%s', getI18nString(value[i]));
+      }
+	}
+	return result;
+  }
+
   useEffect(() => {
     axios.post('/configuration-api/i18n', {language:language})
       .then(function (response: any) {
@@ -53,7 +66,8 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
   return(
     <Provider value={{
       get: i18n,
-	  getI18nString: getI18nString,
+      getI18nString: getI18nString,
+      getI18nFormat: getI18nFormat,
       language: language,
       rtl: rtl,
       languages: languages,
