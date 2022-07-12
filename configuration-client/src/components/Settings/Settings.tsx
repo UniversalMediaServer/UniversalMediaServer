@@ -1,5 +1,6 @@
-import { Accordion, ActionIcon, ColorSwatch, Box, Button, Checkbox, Grid, Group, Modal, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Title, Tooltip, ColorPicker } from '@mantine/core';
+import { Accordion, ActionIcon, ColorSwatch, Box, Button, Checkbox, Grid, Group, Modal, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip, ColorPicker } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { Prism } from '@mantine/prism';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -18,6 +19,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
+  const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [isLoading, setLoading] = useState(true);
   const [transcodingContent, setTranscodingContent] = useState('common');
@@ -750,6 +752,46 @@ export default function Settings() {
           size="xs"
           {...form.getInputProps('mencoder_custom_options')}
         />
+        <Modal
+          size="xl"
+          opened={mencoderAdvancedOpened}
+          onClose={() => setMencoderAdvancedOpened(false)}
+          title={i18n.get['EditCodecSpecificParameters']}
+        >
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            mt="xl"
+            label={i18n.get['UseApplicationDefaults']}
+            {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
+          />
+          <Prism language={'markup'}>{
+            i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
+            i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
+            i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
+            i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
+            i18n.get['MencoderConfigScript.5.SpecialOptions'] +
+            i18n.get['MencoderConfigScript.6.Noass'] +
+            i18n.get['MencoderConfigScript.7.Nosync'] +
+            i18n.get['MencoderConfigScript.8.Quality'] +
+            i18n.get['MencoderConfigScript.9.Nomux'] +
+            i18n.get['MencoderConfigScript.10.YouCanPut'] +
+            i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
+            i18n.get['MencoderConfigScript.12.ToRemux']}
+          </Prism>
+          <Space h="sm"/>
+          <Textarea
+            disabled={!canModify}
+            label={i18n.get['CustomParameters']}
+            name="mencoder_codec_specific_script"
+            size="xs"
+            {...form.getInputProps('mencoder_codec_specific_script')}
+          />
+        </Modal>
+        <Space h="sm"/>
+        <Group position="center">
+          <Button variant="subtle" compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
+        </Group>
         <Space h="sm"/>
         <Grid>
           <Grid.Col span={6}>

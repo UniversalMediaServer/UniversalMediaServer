@@ -294,11 +294,14 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("live_subtitles_keep", false);
 		jObj.addProperty("live_subtitles_limit", 20);
 		jObj.addProperty("mencoder_ass", true);
+		jObj.addProperty("mencoder_codec_specific_script", "");
 		jObj.addProperty("mencoder_custom_options", "");
 		jObj.addProperty("mencoder_fontconfig", true);
 		jObj.addProperty("mencoder_forcefps", false);
+		jObj.addProperty("mencoder_intelligent_sync", true);
 		jObj.addProperty("mencoder_mt", "");
 		jObj.addProperty("mencoder_mux_compatible", false);
+		jObj.addProperty("mencoder_noass_outline", 1);
 		jObj.addProperty("mencoder_nooutofsync", false);
 		jObj.addProperty("mencoder_overscan_compensation_height", "0");
 		jObj.addProperty("mencoder_overscan_compensation_width", "0");
@@ -307,11 +310,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("mencoder_scalex", "0");
 		jObj.addProperty("mencoder_scaley", "0");
 		jObj.addProperty("mencoder_skip_loop_filter", false);
+		jObj.addProperty("mencoder_subfribidi", false);
 		jObj.addProperty("mencoder_yadif", false);
 		jObj.addProperty("maximum_video_buffer_size", 200);
 		jObj.addProperty("maximum_bitrate", "90");
-		jObj.addProperty("mencoder_noass_outline", 1);
-		jObj.addProperty("mencoder_subfribidi", false);
 		jObj.addProperty("minimized", false);
 		jObj.addProperty("tsmuxer_forcefps", true);
 		jObj.addProperty("tsmuxer_mux_all_audiotracks", false);
