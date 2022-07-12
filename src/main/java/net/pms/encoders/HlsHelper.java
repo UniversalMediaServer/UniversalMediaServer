@@ -20,6 +20,7 @@ package net.pms.encoders;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -147,26 +148,33 @@ public class HlsHelper {
 			if (!audioGroups.contains(askedDefaultAudioGroup)) {
 				audioGroups.add(askedDefaultAudioGroup);
 			}
+			Map<String, Integer> audioNames = new HashMap<>();
 			for (HlsAudioConfiguration audioGroup : audioGroups) {
 				String groupId = audioGroup.label;
 				for (DLNAMediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 					sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"").append(groupId).append("\",LANGUAGE=\"");
-					sb.append(mediaAudio.getLang()).append("\",NAME=\"").append(mediaAudio.getLangFullName());
+					sb.append(mediaAudio.getLang()).append("\",NAME=\"");
+					String audioName = mediaAudio.getLangFullName();
 					if (audioGroup.audioChannels != 2) {
-						sb.append(" (");
 						switch (audioGroup.audioChannels) {
 							case 6:
-								sb.append("5.1");
+								audioName = audioName.concat(" (5.1)");
 								break;
 							case 8:
-								sb.append("7.1");
+								audioName = audioName.concat(" (7.1)");
 								break;
 							default:
-								sb.append(audioGroup.audioChannels).append("ch");
+								audioName = audioName.concat(" (" + audioGroup.audioChannels + "ch)");
 								break;
 						}
-						sb.append(")");
 					}
+					if (audioNames.containsKey(audioName)) {
+						audioNames.put(audioName, audioNames.get(audioName)+1);
+						audioName = audioName.concat(" [" + audioNames.get(audioName) + "]");
+					} else {
+						audioNames.put(audioName, 0);
+					}
+					sb.append(audioName);
 					sb.append("\",CHANNELS=").append(audioGroup.audioChannels);
 					sb.append(",AUTOSELECT=YES,DEFAULT=");
 					if (mediaAudioDefault != null && mediaAudioDefault.equals(mediaAudio)) {
