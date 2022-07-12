@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ArrowBigLeft, ArrowBigRight, Folder, Home } from 'tabler-icons-react';
 
+import { AudioPlayer } from './AudioPlayer';
 import { VideoPlayer } from './VideoPlayer';
 
 const Player = () => {
@@ -102,21 +103,15 @@ const Player = () => {
   const getVideoMediaPlayer = (media: VideoMedia) => {
     return (<Paper>
       <VideoPlayer
-        sources={[{src:baseUrl + "media/" + token + "/"  + media.id, type: media.mime}]}
-        controls
-        poster={baseUrl + "thumb/" + token + "/"  + media.id}
-		//tracks={media.sub ? {media.sub.map} : undefined}
+        {...{media:media , baseUrl:baseUrl, token:token}}
       />
     </Paper>);
   }
 
   const getAudioMediaPlayer = (media: AudioMedia) => {
     return (<Paper>
-      <VideoPlayer
-        sources={[{src:baseUrl + "media/" + token + "/"  + media.id, type: media.mime}]}
-        controls
-        poster={baseUrl + "thumb/" + token + "/"  + media.id}
-		//tracks={media.sub ? {media.sub.map} : undefined}
+      <AudioPlayer
+        {...{media:media , baseUrl:baseUrl, token:token}}
       />
     </Paper>);
   }
@@ -264,7 +259,7 @@ interface PlayMedia extends BaseMedia {
   useWebControl: boolean,
 }
 
-interface VideoMedia extends PlayMedia {
+export interface VideoMedia extends PlayMedia {
   isVideoWithChapters: boolean,
   mime: string,
   width: number,
@@ -274,7 +269,7 @@ interface VideoMedia extends PlayMedia {
   sub?: string,
 }
 
-interface AudioMedia extends PlayMedia {
+export interface AudioMedia extends PlayMedia {
   isNativeAudio:boolean,
   mime:string,
   width:number,
