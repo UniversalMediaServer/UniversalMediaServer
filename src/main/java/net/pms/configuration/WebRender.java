@@ -121,14 +121,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
 		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
-		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac-lc m:video/flash");
-		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
-		configuration.addProperty(SUPPORTED, "f:ogg v:theora m:video/ogg");
 		configuration.addProperty(SUPPORTED, "f:m4a m:audio/mp4");
 		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
 		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
-		configuration.addProperty(SUPPORTED, "f:webm v:vp8|vp9 m:video/webm");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
 		configuration.addProperty(HLS_MULTI_VIDEO_QUALITY, true);

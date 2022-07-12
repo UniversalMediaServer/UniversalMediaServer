@@ -169,7 +169,7 @@ public class HlsHelper {
 						}
 					}
 					if (audioNames.containsKey(audioName)) {
-						audioNames.put(audioName, audioNames.get(audioName)+1);
+						audioNames.put(audioName, audioNames.get(audioName) + 1);
 						audioName = audioName.concat(" [" + audioNames.get(audioName) + "]");
 					} else {
 						audioNames.put(audioName, 0);
@@ -213,7 +213,10 @@ public class HlsHelper {
 			if (renderer.getHlsMultiVideoQuality()) {
 				//always add basic LD conf and other conf that match
 				for (HlsVideoConfiguration videoConf : HlsVideoConfiguration.getValues()) {
-					if (videoConf.isTranscodable && ((maxHeight >= videoConf.resolutionHeight && mediaVideo.getWidth() >= videoConf.resolutionWidth) || "LD".equals(videoConf.label)) && !videoGroups.contains(videoConf)) {
+					if (videoConf.isTranscodable && !videoGroups.contains(videoConf) &&
+						(mediaVideo.getHeight() != videoConf.resolutionHeight && mediaVideo.getWidth() != videoConf.resolutionWidth) &&
+						((maxHeight >= videoConf.resolutionHeight && mediaVideo.getWidth() >= videoConf.resolutionWidth) || "LD".equals(videoConf.label))
+					) {
 						videoGroups.add(videoConf);
 					}
 				}
