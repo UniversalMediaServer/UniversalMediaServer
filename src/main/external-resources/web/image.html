@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
-		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/files/util/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/util/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<script src="/files/jquery.min.js"></script>
+		<script src="/files/util/jquery.min.js"></script>
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
 		<script src="/files/util/html5.js"></script>
@@ -97,8 +97,12 @@
 				<img id="Image" class="imgfit" src="/raw/{{id1}}" alt="" onclick="fit(event)"><br>
 			</div>
 			<div id="ImageToolbar">
+				{{#prevAttr}}
 				<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+				{{/prevAttr}}
+				{{#nextAttr}}
 				<button id="next" onclick="next()"{{nextAttr}}>>></button>
+				{{/nextAttr}}
 			</div>
 		</div>
 		<script src="/files/util/fontawesome/js/all.min.js"></script>
