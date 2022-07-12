@@ -78,4 +78,12 @@ public class ApiHelper {
 	public List<String> getAuthorization() {
 		return exchange.getRequestHeaders().get("Authorization");
 	}
+
+	/**
+	 * @return true if the Remote Host is the server.
+	 */
+	public boolean isFromLocalhost() {
+		return exchange.getRemoteAddress().getHostName().equals(exchange.getLocalAddress().getHostName());
+	}
+
 }

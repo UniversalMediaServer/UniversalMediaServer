@@ -1,17 +1,18 @@
-import { TextInput, Button, Group, Box, Text, Space } from '@mantine/core';
+import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { User, Lock } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import { create, login } from '../../services/auth-service';
 import SessionContext from '../../contexts/session-context';
+import { clearJwt, create, disable, login } from '../../services/auth-service';
+import { allowHtml } from '../../utils';
 
 const Login = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
+  const [opened, setOpened] = useState(false);
   const form = useForm({
     initialValues: {
       username: '',
@@ -30,7 +31,7 @@ const Login = () => {
           id: 'pwd-error',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['WebGui.LoginError'],
+          message: i18n.get['ErrorLoggingIn'],
           autoClose: 3000,
         });
       }
@@ -48,7 +49,25 @@ const Login = () => {
           id: 'user-creation-error',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['WebGui.AccountsUserCreationError'],
+          message: i18n.get['NewUserNotCreated'],
+          autoClose: 3000,
+        });
+      }
+    );
+  };
+
+  const handleAuthDisable = () => {
+      disable().then(
+      () => {
+        clearJwt();
+        window.location.reload();
+      },
+      (error) => {
+        showNotification({
+          id: 'auth-disable-error',
+          color: 'red',
+          title: i18n.get['Error'],
+          message: i18n.get['AuthenticationServiceNotDisabled'],
           autoClose: 3000,
         });
       }
@@ -59,24 +78,44 @@ const Login = () => {
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
           <Text size="xl">Universal Media Server</Text>
-          <Text size="lg">{ session.noAdminFound ? i18n.get['WebGui.LoginCreateFirstAdmin'] : i18n.get['WebGui.Login'] }</Text>
+          <Text size="lg">{ session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn'] }</Text>
         <Space h="md" />
         <TextInput
           required
-          label={i18n.get['WebGui.AccountsUsername']}
+          label={i18n.get['Username']}
           icon={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
-          label={i18n.get['WebGui.AccountsPassword']}
+          label={i18n.get['Password']}
           type='password'
           icon={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group position='right' mt='md'>
-          <Button type='submit'>{session.noAdminFound ? i18n.get['WebGui.ButtonCreate'] : i18n.get['WebGui.ButtonLogin']}</Button>
+          <Button type='submit'>{session.noAdminFound ? i18n.get['Create'] : i18n.get['LogIn']}</Button>
         </Group>
+        {session.noAdminFound && session.authenticate && (
+          <>
+            <Divider my='lg' label={i18n.get['Or']} labelPosition="center" />
+            <Modal
+              centered
+              opened={opened}
+              onClose={() => setOpened(false)}
+              title={i18n.get['Warning']}
+            >
+              <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
+              <Group position='right' mt='md'>
+                <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
+                <Button color="red" onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
+              </Group>
+            </Modal>
+            <Group position='center' mt='md'>
+              <Button color="red" onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
+            </Group>
+          </>
+        )}
       </form>
     </Box>
   );

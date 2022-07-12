@@ -1,7 +1,9 @@
-import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
-import { UmsAccounts } from '../contexts/accounts-context';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
+import { clearJwt } from './auth-service';
+
+import { UmsAccounts } from '../contexts/accounts-context';
+import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 
 export const accountHavePermission = (account: UmsAccount, permission: string) => {
   return (typeof account.group !== "undefined"
@@ -44,6 +46,22 @@ export const postAccountAction = (data: any, title: string, message: string, err
         title: title,
         message: message,
       })
+    })
+    .catch(function (error: Error) {
+        console.log(error);
+        showNotification({
+          color: 'red',
+          title: 'Error',
+          message: errormessage,
+        })
+    });
+};
+
+export const postAccountAuthAction = (data: any, errormessage: string) => {
+  return axios.post('/v1/api/account/action', data)
+    .then(function () {
+        clearJwt();
+        window.location.reload();
     })
     .catch(function (error: Error) {
         console.log(error);

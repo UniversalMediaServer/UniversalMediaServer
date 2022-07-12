@@ -1,10 +1,11 @@
 import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
-import React, { useContext, useState, ReactNode } from 'react';
 import axios from 'axios';
+import { useContext, useState, ReactNode } from 'react';
 import { Devices2, Folder, Folders } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import { openGitHubNewIssue } from '../../utils';
 
 export default function DirectoryChooser(props: {
   tooltipText: string,
@@ -22,10 +23,6 @@ export default function DirectoryChooser(props: {
   const [selectedDirectory, setSelectedDirectory] = useState('');
   const [separator, setSeparator] = useState('/');
 
-  const openGitHubNewIssue = () => {
-    window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
-  };
-
   const selectAndCloseModal = () => {
     if (selectedDirectory) {
       props.callback(props.formKey, selectedDirectory);
@@ -34,7 +31,7 @@ export default function DirectoryChooser(props: {
     showNotification({
       color: 'red',
       title: i18n.get['Error'],
-      message: i18n.get['WebGui.DirectoryChooserSelectError'],
+      message: i18n.get['NoDirectorySelected'],
       autoClose: 3000,
     });
   };
@@ -53,7 +50,7 @@ export default function DirectoryChooser(props: {
           id: 'data-loading',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['WebGui.DirectoryChooserGetError'],
+          message: i18n.get['SubdirectoriesNotReceived'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -80,7 +77,7 @@ export default function DirectoryChooser(props: {
           title={
             <Group>
               <Folders />
-              {i18n.get['WebGui.DirectoryChooserSelectedDirectory']}
+              {i18n.get['SelectedDirectory']}
             </Group>
           }
           overflow="inside"

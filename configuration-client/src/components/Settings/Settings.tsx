@@ -1,25 +1,25 @@
-import { Accordion, Modal, Center, ActionIcon, Box, Button, Checkbox, Grid, Group, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, ColorSwatch, Box, Button, Checkbox, Grid, Group, Modal, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, TextInput, Title, Tooltip, ColorPicker } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { SketchPicker } from 'react-color';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import {getToolTipContent} from '../../utils';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
+import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
   const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
+  const [subColorModalOpened, setSubColorModalOpened] = useState(false);
+  const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [isLoading, setLoading] = useState(true);
-  const [modalOpened, setModalOpened] = useState(false);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
@@ -31,14 +31,13 @@ export default function Settings() {
     enabledRendererNames: [],
     ffmpegLoglevels: [],
     gpuAccelerationMethod: [],
-    languages: [],
     networkInterfaces: [],
     serverEngines: [],
     sortMethods: [],
     subtitlesDepth: [],
     subtitlesCodepages: [],
     subtitlesInfoLevels: [],
-    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number}},
+    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number,statusText:string[]}},
     transcodingEnginesPurposes: [],
   });
 
@@ -57,10 +56,6 @@ export default function Settings() {
     wrapLines: true,
     withArrow: true,
   }
-
-  const openGitHubNewIssue = () => {
-    window.location.href = 'https://github.com/UniversalMediaServer/UniversalMediaServer/issues/new';
-  };
 
   useEffect(() => {
     if (sse.userConfiguration === null) {
@@ -91,8 +86,8 @@ export default function Settings() {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: 'Error',
-          message: 'Your configuration was not received from the server. Please click here to report the bug to us.',
+          title: i18n.get['Error'],
+          message: i18n.get['ConfigurationNotReceived'] +  ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -100,6 +95,7 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
+	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
   const handleSubmit = (values: typeof form.values) => {
@@ -114,8 +110,8 @@ export default function Settings() {
 
     if (_.isEmpty(changedValues)) {
       showNotification({
-        title: 'Saved',
-        message: 'Your configuration has no changes to save',
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationHasNoChanges'],
       })
       return;
     }
@@ -125,16 +121,16 @@ export default function Settings() {
       .then(function () {
         setConfiguration(values);
         showNotification({
-          title: 'Saved',
-          message: 'Your configuration changes were saved successfully',
+          title: i18n.get['Saved'],
+          message: i18n.get['ConfigurationSaved'],
         })
       })
       .catch(function (error: Error) {
         console.log(error);
         showNotification({
           color: 'red',
-          title: 'Error',
-          message: 'Your configuration changes were not saved. Please click here to report the bug to us.',
+          title: i18n.get['Error'],
+          message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
         })
       })
@@ -142,6 +138,17 @@ export default function Settings() {
         setLoading(false);
       });
   };
+
+  const getLanguagesSelectData = () => {
+    return i18n.languages.map((language) => {
+      return {
+        value : language.id,
+        label: language.name
+		  + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
+		  + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
+      };
+    });
+  }
 
   const getI18nSelectData = (values: [{value:string;label:string}]) => {
     return values.map((value : {value:string;label:string}) => {
@@ -157,11 +164,53 @@ export default function Settings() {
 
   const moveTranscodingEnginesPriority = (purpose:number, oldIndex:number, newIndex:number) => {
     if (form.getInputProps('engines_priority').value instanceof Array<string>) {
-      var items = form.getInputProps('engines_priority').value as Array<string>;
+      let items = form.getInputProps('engines_priority').value as Array<string>;
       let index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
       let moveTo = index - oldIndex + newIndex;
       form.setFieldValue('engines_priority', arrayMove(items, index, moveTo));
     }
+  }
+
+  const setTranscodingEngineStatus = (id: string, enabled: boolean) => {
+    let items = (form.getInputProps('engines').value instanceof Array<string>) ?
+      form.getInputProps('engines').value as Array<string> :
+      [form.getInputProps('engines').value];
+    let included = items.includes(id);
+    if (enabled && !included) {
+	  let updated = items.concat(id);
+      form.setFieldValue('engines', updated);
+    } else if (!enabled && included) {
+      let updated = items.filter(function(value){ return value !== id;});
+      form.setFieldValue('engines', updated);
+    }
+  }
+
+  const getTranscodingEngineStatus = (engine: {id:string,name:string,isAvailable:boolean,purpose:number,statusText:string[]}) => {
+    let items = (form.getInputProps('engines').value instanceof Array<string>) ?
+      form.getInputProps('engines').value as Array<string> :
+      [form.getInputProps('engines').value];
+    if (!engine.isAvailable) {
+      return (
+        <Tooltip label={allowHtml(i18n.get['ThereIsProblemTranscodingEngineX']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <ExclamationMark color={'orange'} strokeWidth={3} size={14}/>
+        </Tooltip>
+      )
+    } else if (items.includes(engine.id)) {
+      return (
+        <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <ActionIcon size={10} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, false); e.stopPropagation();}}>
+            <PlayerPlay strokeWidth={2} color={'green'} size={14}/>
+          </ActionIcon>
+        </Tooltip>
+      )
+    }
+	return (
+      <Tooltip label={allowHtml(i18n.get['TranscodingEngineXDisabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+        <ActionIcon size={10} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, true); e.stopPropagation();}}>
+          <Ban color={'red'} size={14}/>
+        </ActionIcon>
+      </Tooltip>
+    )
   }
 
   const getTranscodingEnginesList = (purpose:number) => {
@@ -182,9 +231,12 @@ export default function Settings() {
           <Button {...props} color='gray' size="xs" compact
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
             leftIcon={
-              <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
-                { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
-              </ActionIcon>
+              <>
+                <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                  { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+                </ActionIcon>
+                {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
+              </>
             }
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
@@ -196,6 +248,7 @@ export default function Settings() {
       <Stack justify="flex-start" align="flex-start" spacing="xs">
         {engines.map((value: string) => (
           <Button variant="subtle" color='gray' size="xs" compact
+            leftIcon={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
             {selectionSettings.transcodingEngines[value].name}
@@ -214,7 +267,29 @@ export default function Settings() {
     });
   }
 
+  function rgbaToHexA(rgbaval: string) {
+    if (rgbaval == null) { return '#00000000' }
+    let sep = rgbaval.indexOf(",") > -1 ? "," : " "; 
+    let rgbastr = rgbaval.substring(5).split(")")[0].split(sep);
+    let hexa = '#';
+    for (let i = 0; i < rgbastr.length; i++) {
+      let hex = (i < 3) ? parseInt(rgbastr[i]).toString(16) : Math.round(parseFloat(rgbastr[i]) * 255).toString(16);
+      if (hex.length < 2) { hexa = hexa + '0' }
+	  hexa = hexa + hex;
+    }
+    return hexa;
+  }
+
+  function hexAToRgba(hex: string) {
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    let a = parseFloat((parseInt(hex.slice(7, 9), 16) / 255).toFixed(2));
+    return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+  }
+
   const getTranscodingCommon = () => { return (<>
+    <Title order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
     <TextInput
       label={i18n.get['MaximumTranscodeBufferSize']}
       name="maximum_video_buffer_size"
@@ -261,7 +336,7 @@ export default function Settings() {
           {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
         />
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
           <Checkbox
             size="xs"
             label={i18n.get['LosslessDvdVideoPlayback']}
@@ -269,7 +344,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityMpeg2']}
             sx={{ flex: 1 }}
@@ -278,7 +353,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityH264']}
             sx={{ flex: 1 }}
@@ -343,7 +418,7 @@ export default function Settings() {
         />
         </Tabs.Tab>
         <Tabs.Tab label={i18n.get['SubtitlesSettings']}>
-          <Tooltip label={getToolTipContent(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
             <TextInput
               label={i18n.get['SubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
@@ -363,7 +438,7 @@ export default function Settings() {
             size="xs"
             {...form.getInputProps('forced_subtitle_tags')}
           />
-          <Tooltip label={getToolTipContent(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
             <TextInput
               label={i18n.get['AudioSubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
@@ -431,7 +506,7 @@ export default function Settings() {
               />
             </Grid.Col>
           </Grid>
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['AutomaticallyLoadSrtSubtitles']}
@@ -439,7 +514,7 @@ export default function Settings() {
             />
           </Tooltip>
           <Space h="xs" />
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['ForceExternalSubtitles']}
@@ -447,7 +522,7 @@ export default function Settings() {
             />
           </Tooltip>
           <Space h="xs" />
-          <Tooltip label={getToolTipContent(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
             <Checkbox
               size="xs"
               label={i18n.get['UseEmbeddedStyle']}
@@ -457,42 +532,38 @@ export default function Settings() {
           <Space h="xs" />
           <Modal size="sm"
             title={i18n.get['Color']}
-            opened={modalOpened}
-            onClose={() => setModalOpened(false)}
+            opened={subColorModalOpened}
+            onClose={() => setSubColorModalOpened(false)}
           >
             <Group position="center" direction="column">
-              <SketchPicker
-                color={form.getInputProps('subtitles_color').value}
-                onChange={(color)=> {form.setFieldValue('subtitles_color', color.hex)}}
-              ></SketchPicker>
+              <ColorPicker
+                format="rgba"
+                swatches={['#25262b', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14']}
+                color={subColor}
+				onChange={setSubColor}
+              ></ColorPicker>
               <Button
                 size="xs"
-                onClick={() => { setModalOpened(false); }}
+                onClick={() => { form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
               >{i18n.get['Confirm']}</Button>
           </Group>
         </Modal>
-        <Grid>
-          <Grid.Col span={4}>
-            <Center inline>
-              <Button
-                disabled={!canModify}
-                size="xs"
-                onClick={() => { setModalOpened(true); }}
-              >{i18n.get['Color']}</Button>
-            </Center>
-          </Grid.Col>
-          <Grid.Col span={8}>
-            <Center inline>
-              <TextInput
-                label={i18n.get['Color']}
-                sx={{ flex: 1 }}
-                size="xs"
-                {...form.getInputProps('subtitles_color')}
-              />
-            </Center>
-          </Grid.Col>
-        </Grid>
-        <Tooltip label={getToolTipContent(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
+        <Group>
+          <TextInput
+            label={i18n.get['Color']}
+            sx={{ flex: 1 }}
+            size="xs"
+            {...form.getInputProps('subtitles_color')}
+          />
+          <ColorSwatch radius={5}
+            size={30}
+            color={form.getInputProps('subtitles_color').value}
+            style={{ cursor: 'pointer', marginTop: '28px'}}
+            onClick={() => { setSubColor(hexAToRgba(form.getInputProps('subtitles_color').value)); setSubColorModalOpened(true); }}
+          />
+        </Group>
+        <Space h="xs" />
+        <Tooltip label={allowHtml(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
           <Checkbox
             disabled={!canModify}
             size="xs"
@@ -504,7 +575,7 @@ export default function Settings() {
           />
         </Tooltip>
         <Space h="xs" />
-        <Tooltip label={getToolTipContent(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
+        <Tooltip label={allowHtml(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
           <NumberInput
             label={i18n.get['LimitNumberLiveSubtitlesTo']}
             size="xs"
@@ -528,8 +599,13 @@ export default function Settings() {
   }
 
   const getVLCWebVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -547,8 +623,13 @@ export default function Settings() {
   }
 
   const getFFMPEGAudio = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -560,8 +641,13 @@ export default function Settings() {
   }
 
   const getTsMuxerVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Checkbox
           disabled={!canModify}
           mt="xl"
@@ -579,12 +665,25 @@ export default function Settings() {
   }
 
   const getMEncoderVideo = () => {
-    return (<></>)
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
+    return (
+      <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+      </>
+    )
   }
 
   const getFFMPEGVideo = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status);
+    }
     return (
       <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Select
           disabled={!canModify}
           label={i18n.get['LogLevelColon']}
@@ -632,9 +731,31 @@ export default function Settings() {
     )
   }
 
+  const engineStatus = () => {
+    const currentEngine = selectionSettings.transcodingEngines[transcodingContent];
+    if (!currentEngine.isAvailable) {
+      return (
+        <>
+          <Title order={5}>{currentEngine.name}</Title>
+          <Text><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
+          <Space h="md"/>
+          <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
+        </>
+      )
+    }
+    return;
+  }
+
   const noSettingsForNow = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status)
+    }
     return (
-      <Text>{i18n.get['NoSettingsForNow']}</Text>
+      <>
+        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Text>{i18n.get['NoSettingsForNow']}</Text>
+      </>
     )
   }
 
@@ -681,7 +802,7 @@ export default function Settings() {
             <Select
               disabled={!canModify}
               label={i18n.get['Language']}
-              data={selectionSettings.languages}
+              data={getLanguagesSelectData()}
               {...form.getInputProps('language')}
             />
 
@@ -693,7 +814,7 @@ export default function Settings() {
                 sx={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
-              <Tooltip label={getToolTipContent(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" wrapLines withArrow>
+              <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" wrapLines withArrow>
                 <Checkbox
                   disabled={!canModify}
                   mt="xl"
@@ -760,7 +881,7 @@ export default function Settings() {
                     {...form.getInputProps('maximum_bitrate')}
                   />
                   
-                  <Tooltip label={getToolTipContent(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
                       mt="xl"
@@ -772,7 +893,7 @@ export default function Settings() {
               </Accordion.Item>
               <Accordion.Item label={i18n.get['AdvancedHttpSystemSettings']}>
               
-                <Tooltip label={getToolTipContent(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
                   <Select
                     disabled={!canModify}
                     label={i18n.get['MediaServerEngine']}
@@ -799,7 +920,7 @@ export default function Settings() {
                     searchable
                   />
 
-                  <Tooltip label={getToolTipContent(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
                       mt="xl"
@@ -809,7 +930,7 @@ export default function Settings() {
                   </Tooltip>
                 </Group>
 
-                <Tooltip label={getToolTipContent(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
                     mt="xs"
@@ -861,7 +982,7 @@ export default function Settings() {
                     {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
                   />
                 </Group>
-                <Tooltip label={getToolTipContent(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="md"
                     label={i18n.get['PrettifyFilenames']}
@@ -874,7 +995,7 @@ export default function Settings() {
                   disabled={form.values['prettify_filenames']}
                   {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                 />
-                <Tooltip label={getToolTipContent(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="md"
                     label={i18n.get['UseInfoFromOurApi']}
@@ -882,14 +1003,14 @@ export default function Settings() {
                   />
                 </Tooltip>
                 <Group mt="xs">
-                  <Tooltip label={getToolTipContent(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
                     <Select
                       label={i18n.get['AddSubtitlesInformationVideoNames']}
                       data={getI18nSelectData(selectionSettings.subtitlesInfoLevels as unknown as [{value:string;label:string}])}
                       {...form.getInputProps('subs_info_level')}
                     />
                   </Tooltip>
-                  <Tooltip label={getToolTipContent(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
                     <Checkbox
                       mt="xl"
                       label={i18n.get['AddEnginesNamesAfterFilenames']}
@@ -902,7 +1023,7 @@ export default function Settings() {
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
-                <Tooltip label={getToolTipContent(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xl"
                     label={i18n.get['EnableCache']}
@@ -928,6 +1049,7 @@ export default function Settings() {
                   <Accordion>
                     {getTranscodingEnginesAccordionItems()}
                   </Accordion>
+                  <Text size="xs">{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
                   </Navbar.Section>
                 </Navbar>
               </Grid.Col>
@@ -948,7 +1070,7 @@ export default function Settings() {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 700 }} mx="auto">
-      <Text color="red">{i18n.get['WebGui.AccessDenied']}</Text>
+      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );
 }

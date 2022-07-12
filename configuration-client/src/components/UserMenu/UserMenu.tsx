@@ -4,8 +4,8 @@ import { InfoCircle, Logout, Menu2, PlayerPlay, Refresh, Settings, User, Users }
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { sendAction } from '../../services/actions-service';
 import { havePermission } from '../../services/accounts-service';
+import { sendAction } from '../../services/actions-service';
 import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
@@ -45,7 +45,7 @@ function UserMenu() {
         icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
         onClick={() => { window.location.href = '/accounts'; }}
       >
-        {havePermission(session, "users_manage") ? i18n.get['WebGui.UserMenuManageAccounts'] : i18n.get['WebGui.UserMenuManageAccount']}
+        {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
       </Menu.Item>
       <Menu.Item
         color="blue"
@@ -61,15 +61,17 @@ function UserMenu() {
       >
         {i18n.get['About']}
       </Menu.Item>
-      <Menu.Item
-        color="red"
-        icon={<Logout size={14} />}
-        onClick={() => {
-          redirectToLogin();
-        }}
-      >
-        {i18n.get['WebGui.ButtonLogout']}
-      </Menu.Item>
+      {session.authenticate && session.account?.user.id !== 2147483647 && (
+        <Menu.Item
+          color="red"
+          icon={<Logout size={14} />}
+          onClick={() => {
+            redirectToLogin();
+          }}
+        >
+          {i18n.get['LogOut']}
+        </Menu.Item>
+      )}
     </Menu>
   );
 }

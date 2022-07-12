@@ -167,6 +167,8 @@ public final class Languages {
 	private static class LanguageEntry implements Comparable<LanguageEntry> {
 		public String tag;
 		public String name;
+		public String defaultname;
+		public String country;
 		public Locale locale = null;
 		public int coveragePercent;
 		public int approvedPercent;
@@ -194,6 +196,8 @@ public final class Languages {
 			result = prime * result + coveragePercent;
 			result = prime * result + ((locale == null) ? 0 : locale.hashCode());
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			result = prime * result + ((defaultname == null) ? 0 : defaultname.hashCode());
+			result = prime * result + ((country == null) ? 0 : country.hashCode());
 			result = prime * result + ((tag == null) ? 0 : tag.hashCode());
 			return result;
 		}
@@ -210,34 +214,15 @@ public final class Languages {
 				return false;
 			}
 			LanguageEntry other = (LanguageEntry) obj;
-			if (approvedPercent != other.approvedPercent) {
-				return false;
-			}
-			if (coveragePercent != other.coveragePercent) {
-				return false;
-			}
-			if (locale == null) {
-				if (other.locale != null) {
-					return false;
-				}
-			} else if (!locale.equals(other.locale)) {
-				return false;
-			}
-			if (name == null) {
-				if (other.name != null) {
-					return false;
-				}
-			} else if (!name.equals(other.name)) {
-				return false;
-			}
-			if (tag == null) {
-				if (other.tag != null) {
-					return false;
-				}
-			} else if (!tag.equals(other.tag)) {
-				return false;
-			}
-			return true;
+			return (
+				approvedPercent == other.approvedPercent &&
+				coveragePercent == other.coveragePercent &&
+				(locale == null ? other.locale == null : locale.equals(other.locale)) &&
+				(name == null ? other.name == null : name.equals(other.name)) &&
+				(defaultname == null ? other.defaultname == null : defaultname.equals(other.defaultname)) &&
+				(country == null ? other.country == null : country.equals(other.country)) &&
+				(tag == null ? other.tag == null : tag.equals(other.tag))
+			);
 		}
 
 	}
@@ -547,9 +532,7 @@ public final class Languages {
 				LanguageEntry entry = new LanguageEntry();
 				entry.tag = tag;
 				entry.name = Messages.getString("Language." + tag, preferredLocale);
-				if (!entry.name.equals(Messages.getRootString("Language." + tag))) {
-					entry.name += " (" + Messages.getRootString("Language." + tag) + ")";
-				}
+				entry.defaultname = Messages.getRootString("Language." + tag);
 				entry.locale = Locale.forLanguageTag(tag);
 				if (tag.equals("en-US")) {
 					entry.coveragePercent = 100;
@@ -575,7 +558,23 @@ public final class Languages {
 						LOGGER.debug("Warning: Could not find language statistics for {}", entry.name);
 					}
 				}
-
+				String country = entry.locale.getCountry();
+				if ("".equals(country)) {
+					country = switch (entry.locale.getLanguage()) {
+						case "ca" -> "es";
+						case "cs" -> "CZ";
+						case "da" -> "DK";
+						case "el" -> "GR";
+						case "fa" -> "IR";
+						case "he" -> "IL";
+						case "ja" -> "JP";
+						case "ko" -> "KR";
+						case "uk" -> "UA";
+						case "zh" -> "cn";
+						default -> entry.locale.getLanguage();
+					};
+				}
+				entry.country = country;
 				if (entry.coveragePercent >= MINIMUM_TRANSLATE_PCT) {
 					SORTED_LANGUAGES.add(entry);
 				}
@@ -847,16 +846,19 @@ public final class Languages {
 			String[] languages = new String[SORTED_LANGUAGES.size()];
 			for (int i = 0; i < SORTED_LANGUAGES.size(); i++) {
 				LanguageEntry entry = SORTED_LANGUAGES.get(i);
-				if (entry.locale.getLanguage().equals("en")) {
-					languages[i] = entry.name;
-				} else {
+				String name = entry.name;
+				if (!entry.name.equals(entry.defaultname)) {
+					name += String.format(" (%s)", entry.defaultname);
+				}
+				if (!entry.locale.getLanguage().equals("en")) {
 					/*
 					 * Only show coverage on non-English languages as we can't
 					 * calculate if for English because they only override
 					 * what's different from US English.
 					 */
-					languages[i] = entry.name + String.format(" (%d%%)", entry.coveragePercent);
+					name += String.format(" (%d%%)", entry.coveragePercent);
 				}
+				languages[i] = name;
 			}
 
 			return languages;
@@ -864,25 +866,13 @@ public final class Languages {
 	}
 
 	/**
-	 * @return available languages as a JSON array
-	 */
-	public synchronized static JsonArray getLanguagesAsJsonArray() {
-		Locale locale = PMS.getLocale();
-		String[] values = getLanguageTags(locale);
-		String[] labels = getLanguageNames(locale);
-
-		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
-	}
-
-	/**
-	 * Returns a sorted jsonned string of localized UMS supported language names
-	 * with country.
+	 * Returns a sorted jsonned string of localized UMS supported languages.
 	 *
 	 * @param locale the language to be seen as preferred when
 	 *            sorting the array, and used when localizing language names.
-	 * @return The sorted jsonned string of localized language names.
+	 * @return The sorted jsonned string of localized languages.
 	 */
-	public static JsonArray getLanguagesWithCountry(Locale locale) {
+	public static JsonArray getLanguagesAsJsonArray(Locale locale) {
 		Locale preferredLocale = toLocale(locale);
 		if (preferredLocale == null) {
 			preferredLocale = PMS.getLocale();
@@ -895,22 +885,9 @@ public final class Languages {
 				LanguageEntry entry = SORTED_LANGUAGES.get(i);
 				objectGroup.addProperty("id", entry.tag);
 				objectGroup.addProperty("name", entry.name);
-				String country = SORTED_LANGUAGES.get(i).locale.getCountry();
-				if ("".equals(country)) {
-					country = switch (entry.locale.getLanguage()) {
-						case "ca" -> "es";
-						case "cs" -> "CZ";
-						case "da" -> "DK";
-						case "el" -> "GR";
-						case "fa" -> "IR";
-						case "ja" -> "JP";
-						case "ko" -> "KR";
-						case "uk" -> "UA";
-						case "zh" -> "cn";
-						default -> entry.locale.getLanguage();
-					};
-				}
-				objectGroup.addProperty("country", country);
+				objectGroup.addProperty("defaultname", entry.defaultname);
+				objectGroup.addProperty("country", entry.country);
+				objectGroup.addProperty("coverage", entry.coveragePercent);
 				jsonArray.add(objectGroup);
 			}
 			return jsonArray;
