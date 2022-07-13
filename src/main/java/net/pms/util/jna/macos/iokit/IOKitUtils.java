@@ -47,7 +47,7 @@ public class IOKitUtils {
 	private static IOKit ioKit = IOKit.INSTANCE;
 	private static CoreFoundation cf = CoreFoundation.INSTANCE;
 
-	protected static final Semver MAC_OS_VERSION = new Semver(System.getProperty("os.version"));;
+	protected static final Semver MAC_OS_VERSION;
 
 	private IOKitUtils() {
 	}
@@ -219,5 +219,19 @@ public class IOKitUtils {
 		}
 		LOGGER.warn("Unable to reset sleep timer; not supported by maxOS version {}", System.getProperty("os.version"));
 		return -1;
+	}
+
+	static {
+		int dotCount = 0;
+		String ver = System.getProperty("os.version");
+		for (int i = 0; i < ver.length(); i++) {
+			if (ver.charAt(i) == '.') {
+				dotCount++;
+			}
+		}
+		if (dotCount == 1) {
+			ver += ".0";
+		}
+		MAC_OS_VERSION = new Semver(ver);
 	}
 }
