@@ -4167,7 +4167,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean getUpnpSearchCapsEnabled() {
-		return getBoolean(KEY_UPNP_SEARCHCAPS_ENABLED, true);
+		return getBoolean(KEY_UPNP_SEARCHCAPS_ENABLED, false);
 	}
 
 	public String getUuid() {
