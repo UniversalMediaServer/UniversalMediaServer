@@ -570,8 +570,8 @@ public class PlayerApiHandler implements HttpHandler {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
-					media.addProperty("metadatas", apiMetadataAsJavaScriptVars);
+					JsonObject metadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
+					media.add("metadatas", metadatas);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
