@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -15,6 +15,7 @@ const Player = () => {
   const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[]} as BaseBrowse);
   const [browseId, setBrowseId] = useState('0');
   const [playId, setPlayId] = useState('');
+  const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
 
   const [rtl] = useLocalStorage<boolean>({
@@ -250,6 +251,7 @@ const Player = () => {
 
   useEffect(() => {
     if (token && browseId) {
+      setLoading(true);
       axios.post(baseUrl + 'browse', {token:token,id:browseId})
       .then(function (response: any) {
         setData(response.data);
@@ -262,12 +264,16 @@ const Player = () => {
           message: 'Your browse data was not received from the server.',
           autoClose: 3000,
         });
+      })
+      .then(function () {
+        setLoading(false);
       });
     }
   }, [token, browseId]);
 
   useEffect(() => {
     if (token && playId) {
+      setLoading(true);
       axios.post(baseUrl + 'play', {token:token,id:playId})
       .then(function (response: any) {
         setData(response.data);
@@ -280,12 +286,16 @@ const Player = () => {
           message: 'Your play data was not received from the server.',
           autoClose: 3000,
         });
+      })
+      .then(function () {
+        setLoading(false);
       });
     }
   }, [token, playId]);
 
   return (
     <Box mx="auto">
+      <LoadingOverlay visible={loading} />
       <Grid>
         <Grid.Col md={3} style={{height: 'calc(100vh - 60px)'}}>
 		<Paper>
