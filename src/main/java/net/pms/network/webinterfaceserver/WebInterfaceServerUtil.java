@@ -1176,7 +1176,6 @@ public class WebInterfaceServerUtil {
 	 * this resource, which could be a TV series, TV episode, or movie.
 	 *
 	 * @param resource
-	 * @param language
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
 	 * @param rootFolder the root folder, used for looking up IDs
 	 * @return a JsonObject to be used by a web browser which includes
@@ -1184,396 +1183,369 @@ public class WebInterfaceServerUtil {
 	 *         when there is no metadata
 	 */
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
+		List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
+		Connection connection = null;
 		try {
-			List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				if (isTVSeries) {
+					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
+					resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
+				} else {
+					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while getting metadata for web interface");
+			LOGGER.debug("", e);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		if (resourceMetadataFromDatabase == null) {
+			return null;
+		}
+		JsonObject result = new JsonObject();
+		HashMap<String, String> actors = new HashMap<>();
+		HashMap<String, String> genres = new HashMap();
+		String startYear = "";
+		String awards = "";
+		JsonObject country = null;
+		JsonObject director = null;
+		String imdbID = "";
+		JsonObject rated = null;
+		List<HashMap<String, String>> ratings = new ArrayList<>();
+		String plot = "";
+		String poster = "";
+		Double totalSeasons = null;
 
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					if (isTVSeries) {
-						String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-						resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
-					} else {
-						resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+		// TMDB metadata added in V11
+		String createdBy = "";
+		String credits = "";
+		String externalIDs = "";
+		String firstAirDate = "";
+		String homepage = "";
+		String images = "[]";
+		Boolean inProduction = null;
+		String languages = "";
+		String lastAirDate = "";
+		String networks = "";
+		Double numberOfEpisodes = null;
+		String numberOfSeasons = "";
+		String originCountry = "";
+		String originalLanguage = "";
+		String originalTitle = "";
+		String productionCompanies = "";
+		String productionCountries = "";
+		String seasons = "";
+		String seriesImages = "[]";
+		String seriesType = "";
+		String spokenLanguages = "";
+		String status = "";
+		String tagline = "";
+		Boolean hasAPIMetadata = false;
+		DLNAResource actorsFolder = null;
+		DLNAResource countryFolder = null;
+		DLNAResource directorFolder = null;
+		DLNAResource genresFolder = null;
+		DLNAResource ratedFolder = null;
+		List<DLNAResource> actorsChildren = null;
+		List<DLNAResource> genresChildren = null;
+		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
+		while (i.hasNext()) {
+			if (genresFolder == null) {
+				// prepare to get IDs of certain metadata resources, to make them clickable
+				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+				UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
+				if (rootFolderChildren.isEmpty()) {
+					return null;
+				}
+				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
+				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+				UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
+				DLNAResource videoFolder = mediaLibraryChildren.get(0);
+
+				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+				String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
+				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
+				UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
+				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+
+				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+				UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
+				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+
+				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
+
+				for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+					DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+					if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
+						actorsFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
+						countryFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
+						directorFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
+						genresFolder = filterByInformationChild;
+					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
+						ratedFolder = filterByInformationChild;
 					}
 				}
-			} catch (Exception e) {
-				LOGGER.error("Error while getting metadata for web interface");
-				LOGGER.debug("", e);
-			} finally {
-				MediaDatabase.close(connection);
+
+				hasAPIMetadata = true;
 			}
 
-			if (resourceMetadataFromDatabase == null) {
-				return null;
+			HashMap<String, Object> row = i.next();
+			if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
+				awards = (String) row.get("AWARD");
 			}
-
-			JsonObject result = new JsonObject();
-			HashMap<String, String> actors = new HashMap<>();
-			HashMap<String, String> genres = new HashMap();
-			String startYear = "";
-			String awards = "";
-			String country = "{}";
-			String director = "{}";
-			String imdbID = "";
-			JsonObject rated = null;
-			List<HashMap<String, String>> ratings = new ArrayList<>();
-			String plot = "";
-			String poster = "";
-			Double totalSeasons = null;
+			String countryValue = (String) row.get("COUNTRY");
+			if (country == null && StringUtils.isNotBlank(countryValue) && countryFolder != null) {
+				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
+				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
+				country = new JsonObject();
+				if (!countriesChildren.isEmpty()) {
+					country.addProperty("id", countriesChildren.get(0).getId());
+					country.addProperty("name", countryValue);
+					result.add("country", country);
+				}
+			}
+			String directorValue = (String) row.get("DIRECTOR");
+			if (director == null && StringUtils.isNotBlank(directorValue) && directorFolder != null) {
+				List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
+				UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
+				director = new JsonObject();
+				if (!directorsChildren.isEmpty()) {
+					director.addProperty("id", directorsChildren.get(0).getId());
+					director.addProperty("name", countryValue);
+					result.add("director", director);
+				}
+				/**
+				 * Empty is usually caused by TV episodes that have a director saved
+				 * that is not the director of the TV series. One possible fix for
+				 * that is to populate the TV series data with the episode data in
+				 * that case, which would mean we need to support multiple directors
+				 * as we do for actors and genres.
+				 *
+				 * For now we stop the code from erroring by ignoring the mismatch.
+				 *
+				 * @todo do the above fix, and the same fix for other similar folders.
+				 */
+			}
+			if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
+				imdbID = (String) row.get("IMDBID");
+			}
+			if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
+				plot = (String) row.get("PLOT");
+			}
+			if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
+				poster = (String) row.get("POSTER");
+			}
+			String ratedValue = (String) row.get("RATING");
+			if (StringUtils.isNotBlank(ratedValue) && rated == null && ratedFolder != null) {
+				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
+				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
+				rated = new JsonObject();
+				if (!ratedChildren.isEmpty()) {
+					rated.addProperty("id", ratedChildren.get(0).getId());
+					rated.addProperty("name", ratedValue);
+					result.add("rated", rated);
+				}
+			}
+			if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
+				HashMap<String, String> ratingToInsert = new HashMap();
+				ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
+				ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
+				if (!ratings.contains(ratingToInsert)) {
+					ratings.add(ratingToInsert);
+				}
+			}
+			if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
+				startYear = (String) row.get("STARTYEAR");
+			}
+			if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
+				totalSeasons = (Double) row.get("TOTALSEASONS");
+			}
 
 			// TMDB metadata added in V11
-			String createdBy = "";
-			String credits = "";
-			String externalIDs = "";
-			String firstAirDate = "";
-			String homepage = "";
-			String images = "[]";
-			Boolean inProduction = null;
-			String languages = "";
-			String lastAirDate = "";
-			String networks = "";
-			Double numberOfEpisodes = null;
-			String numberOfSeasons = "";
-			String originCountry = "";
-			String originalLanguage = "";
-			String originalTitle = "";
-			String productionCompanies = "";
-			String productionCountries = "";
-			String seasons = "";
-			String seriesImages = "[]";
-			String seriesType = "";
-			String spokenLanguages = "";
-			String status = "";
-			String tagline = "";
+			if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
+				createdBy = (String) row.get("CREATEDBY");
+			}
+			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
+				credits = (String) row.get("CREDITS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
+				externalIDs = (String) row.get("EXTERNALIDS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
+				firstAirDate = (String) row.get("FIRSTAIRDATE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
+				homepage = (String) row.get("HOMEPAGE");
+			}
 
-
-			Boolean hasAPIMetadata = false;
-
-			DLNAResource actorsFolder = null;
-			DLNAResource countryFolder = null;
-			DLNAResource directorFolder = null;
-			DLNAResource genresFolder = null;
-			DLNAResource ratedFolder = null;
-
-			List<DLNAResource> actorsChildren = null;
-			List<DLNAResource> genresChildren = null;
-
-			Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
-			while (i.hasNext()) {
-				if (genresFolder == null) {
-					// prepare to get IDs of certain metadata resources, to make them clickable
-					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
-					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
-					if (rootFolderChildren.isEmpty()) {
-						return null;
-					}
-					DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
-
-					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
-					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
-					DLNAResource videoFolder = mediaLibraryChildren.get(0);
-
-					boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-					String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-					List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-					UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
-					DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
-
-					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
-					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
-					DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
-
-					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
-
-					for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-						DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-						if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
-							actorsFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
-							countryFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
-							directorFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
-							genresFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
-							ratedFolder = filterByInformationChild;
-						}
-					}
-
-					hasAPIMetadata = true;
-				}
-
-				HashMap<String, Object> row = i.next();
-				if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
-					awards = (String) row.get("AWARD");
-				}
-				if (StringUtils.isNotBlank((String) row.get("COUNTRY")) && "{}".equals(country) && countryFolder != null) {
-					String countryValue = (String) row.get("COUNTRY");
-					List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
-					UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
-					if (countriesChildren.isEmpty()) {
-						country = "{ }";
-					} else {
-						DLNAResource filteredCountryFolder = countriesChildren.get(0);
-
-						String countryId = filteredCountryFolder.getId();
-						String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
-
-						country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("DIRECTOR")) && "{}".equals(director) && directorFolder != null) {
-					String directorValue = (String) row.get("DIRECTOR");
-					List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
-					UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
-					if (directorsChildren.isEmpty()) {
-						/**
-						* This is usually caused by TV episodes that have a director saved
-						* that is not the director of the TV series. One possible fix for
-						* that is to populate the TV series data with the episode data in
-						* that case, which would mean we need to support multiple directors
-						* as we do for actors and genres.
-						*
-						* For now we stop the code from erroring by ignoring the mismatch.
-						*
-						* @todo do the above fix, and the same fix for other similar folders.
-						*/
-						director = "{ }";
-					} else {
-						DLNAResource filteredDirectorFolder = directorsChildren.get(0);
-
-						String directorId = filteredDirectorFolder.getId();
-						String directorIdForWeb = URLEncoder.encode(directorId, "UTF-8");
-
-						director = "{ id: \"" + directorIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(directorValue) + "\" }";
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
-					imdbID = (String) row.get("IMDBID");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
-					plot = (String) row.get("PLOT");
-				}
-				if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
-					poster = (String) row.get("POSTER");
-				}
-				String ratedValue = (String) row.get("RATING");
-				if (StringUtils.isNotBlank(ratedValue) && rated == null && ratedFolder != null) {
-					List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
-					UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
-					rated = new JsonObject();
-					if (!ratedChildren.isEmpty()) {
-						rated.addProperty("id", ratedChildren.get(0).getId());
-						rated.addProperty("name", ratedValue);
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
-					HashMap<String, String> ratingToInsert = new HashMap();
-					ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
-					ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
-					if (!ratings.contains(ratingToInsert)) {
-						ratings.add(ratingToInsert);
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
-					startYear = (String) row.get("STARTYEAR");
-				}
-				if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
-					totalSeasons = (Double) row.get("TOTALSEASONS");
-				}
-
-				// TMDB metadata added in V11
-				if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
-					createdBy = (String) row.get("CREATEDBY");
-				}
-				if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
-					credits = (String) row.get("CREDITS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
-					externalIDs = (String) row.get("EXTERNALIDS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
-					firstAirDate = (String) row.get("FIRSTAIRDATE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
-					homepage = (String) row.get("HOMEPAGE");
-				}
-
-				if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
-					connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
-						if (connection != null) {
-							String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
-							List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
-							if (optionalSeriesMetadataFromDatabase != null && !optionalSeriesMetadataFromDatabase.isEmpty()) {
-								HashMap<String, Object> seriesRow = optionalSeriesMetadataFromDatabase.get(0);
-								if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
-									seriesImages = (String) seriesRow.get("IMAGES");
-								}
-							}
-						}
-					} catch (Exception e) {
-						LOGGER.error("Error while getting series metadata for web interface");
-						LOGGER.debug("", e);
-					} finally {
-						MediaDatabase.close(connection);
-					}
-				}
-
-				if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
-					images = (String) row.get("IMAGES");
-				}
-				if (row.get("INPRODUCTION") != null) {
-					inProduction = (Boolean) row.get("INPRODUCTION");
-				}
-				if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
-					languages = (String) row.get("LANGUAGES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
-					lastAirDate = (String) row.get("LASTAIRDATE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
-					networks = (String) row.get("NETWORKS");
-				}
-				if (row.get("NUMBEROFEPISODES") != null) {
-					numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
-					numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
-					originCountry = (String) row.get("ORIGINCOUNTRY");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
-					originalLanguage = (String) row.get("ORIGINALLANGUAGE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
-					originalTitle = (String) row.get("ORIGINALTITLE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
-					productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
-					productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
-					seasons = (String) row.get("SEASONS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
-					seriesType = (String) row.get("SERIESTYPE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
-					spokenLanguages = (String) row.get("SPOKENLANGUAGES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
-					status = (String) row.get("STATUS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
-					tagline = (String) row.get("TAGLINE");
-				}
-
-				// These are for records that can have multiple results
-				if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
-					String actorName = (String) row.get("ACTOR");
-					if (!actors.containsKey(actorName)) {
-						if (actorsChildren == null) {
-							actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actorName);
-						}
-						for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
-							DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
-							if (filterByInformationChild.getDisplayName().equals(actorName)) {
-								actors.put(actorName, filterByInformationChild.getId());
-								break;
+			if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
+				connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
+						List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
+						if (optionalSeriesMetadataFromDatabase != null && !optionalSeriesMetadataFromDatabase.isEmpty()) {
+							HashMap<String, Object> seriesRow = optionalSeriesMetadataFromDatabase.get(0);
+							if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
+								seriesImages = (String) seriesRow.get("IMAGES");
 							}
 						}
 					}
+				} catch (Exception e) {
+					LOGGER.error("Error while getting series metadata for web interface");
+					LOGGER.debug("", e);
+				} finally {
+					MediaDatabase.close(connection);
 				}
-				if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
-					String genreName = (String) row.get("GENRE");
-					if (!genres.containsKey(genreName)) {
-						if (genresChildren == null) {
-							genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genreName);
-						}
-						for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
-							DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
-							if (filterByInformationChild.getDisplayName().equals(genreName)) {
-								genres.put(genreName, filterByInformationChild.getId());
-								break;
-							}
+			}
+
+			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
+				images = (String) row.get("IMAGES");
+			}
+			if (row.get("INPRODUCTION") != null) {
+				inProduction = (Boolean) row.get("INPRODUCTION");
+			}
+			if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
+				languages = (String) row.get("LANGUAGES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
+				lastAirDate = (String) row.get("LASTAIRDATE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
+				networks = (String) row.get("NETWORKS");
+			}
+			if (row.get("NUMBEROFEPISODES") != null) {
+				numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
+				numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
+				originCountry = (String) row.get("ORIGINCOUNTRY");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
+				originalLanguage = (String) row.get("ORIGINALLANGUAGE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
+				originalTitle = (String) row.get("ORIGINALTITLE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
+				productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
+				productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
+				seasons = (String) row.get("SEASONS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
+				seriesType = (String) row.get("SERIESTYPE");
+			}
+			if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
+				spokenLanguages = (String) row.get("SPOKENLANGUAGES");
+			}
+			if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
+				status = (String) row.get("STATUS");
+			}
+			if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
+				tagline = (String) row.get("TAGLINE");
+			}
+
+			// These are for records that can have multiple results
+			if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
+				String actorName = (String) row.get("ACTOR");
+				if (!actors.containsKey(actorName)) {
+					if (actorsChildren == null) {
+						actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actorName);
+					}
+					for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
+						DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
+						if (filterByInformationChild.getDisplayName().equals(actorName)) {
+							actors.put(actorName, filterByInformationChild.getId());
+							break;
 						}
 					}
 				}
 			}
-
-			if (!hasAPIMetadata) {
-				return null;
+			if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
+				String genreName = (String) row.get("GENRE");
+				if (!genres.containsKey(genreName)) {
+					if (genresChildren == null) {
+						genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genreName);
+					}
+					for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
+						DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
+						if (filterByInformationChild.getDisplayName().equals(genreName)) {
+							genres.put(genreName, filterByInformationChild.getId());
+							break;
+						}
+					}
+				}
 			}
-			result.addProperty("awards", awards);
-			result.addProperty("country", country);
-			result.addProperty("director", director);
-			result.addProperty("imdbID", imdbID);
-			result.addProperty("plot", plot);
-			result.addProperty("poster", poster);
-			result.add("rated", rated);
-			result.addProperty("startYear", startYear);
-			result.addProperty("totalSeasons", totalSeasons);
-			result.addProperty("createdBy", createdBy);
-			result.addProperty("credits", credits);
-			result.addProperty("externalIDs", externalIDs);
-			result.addProperty("firstAirDate", firstAirDate);
-			result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
-			result.addProperty("homepage", homepage);
-			result.addProperty("images", images);
-			result.addProperty("inProduction", inProduction);
-			result.addProperty("languages", languages);
-			result.addProperty("lastAirDate", lastAirDate);
-			result.addProperty("networks", networks);
-			result.addProperty("numberOfEpisodes", numberOfEpisodes);
-			result.addProperty("numberOfSeasons", numberOfSeasons);
-			result.addProperty("originCountry", originCountry);
-			result.addProperty("originalLanguage", originalLanguage);
-			result.addProperty("originalTitle", originalTitle);
-			result.addProperty("productionCompanies", productionCompanies);
-			result.addProperty("productionCountries", productionCountries);
-			result.addProperty("seasons", seasons);
-			result.addProperty("seriesImages", seriesImages);
-			result.addProperty("seriesType", seriesType);
-			result.addProperty("spokenLanguages", spokenLanguages);
-			result.addProperty("status", status);
-			result.addProperty("tagline", tagline);
-			JsonArray jActors = new JsonArray();
-			for (Map.Entry<String, String> actor : actors.entrySet()) {
-				JsonObject jActor = new JsonObject();
-				jActor.addProperty("id", actor.getValue());
-				jActor.addProperty("name", actor.getKey());
-				jActors.add(jActor);
-			}
-			result.add("actors", jActors);
-			JsonArray jGenres = new JsonArray();
-			for (Map.Entry<String, String> genre : genres.entrySet()) {
-				JsonObject jGenre = new JsonObject();
-				jGenre.addProperty("id", genre.getValue());
-				jGenre.addProperty("name", genre.getKey());
-				jGenres.add(jGenre);
-			}
-			result.add("genres", jGenres);
-			JsonArray jRatings = new JsonArray();
-			for (Map<String, String> rating : ratings) {
-				JsonObject jRating = new JsonObject();
-				jRating.addProperty("source", rating.get("source"));
-				jRating.addProperty("value", rating.get("value"));
-				jRatings.add(jRating);
-			}
-			result.add("ratings", jRatings);
-			return result;
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Caught exception in getAPIMetadataAsJsonObject: {}", e.getMessage());
-			LOGGER.debug("{}", e);
 		}
-
-		return null;
+		if (!hasAPIMetadata) {
+			return null;
+		}
+		JsonArray jActors = new JsonArray();
+		for (Map.Entry<String, String> actor : actors.entrySet()) {
+			JsonObject jActor = new JsonObject();
+			jActor.addProperty("id", actor.getValue());
+			jActor.addProperty("name", actor.getKey());
+			jActors.add(jActor);
+		}
+		result.add("actors", jActors);
+		result.addProperty("awards", awards);
+		result.addProperty("createdBy", createdBy);
+		result.addProperty("credits", credits);
+		result.addProperty("externalIDs", externalIDs);
+		result.addProperty("firstAirDate", firstAirDate);
+		JsonArray jGenres = new JsonArray();
+		for (Map.Entry<String, String> genre : genres.entrySet()) {
+			JsonObject jGenre = new JsonObject();
+			jGenre.addProperty("id", genre.getValue());
+			jGenre.addProperty("name", genre.getKey());
+			jGenres.add(jGenre);
+		}
+		result.add("genres", jGenres);
+		result.addProperty("homepage", homepage);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
+		result.addProperty("images", images);
+		result.addProperty("imdbID", imdbID);
+		result.addProperty("inProduction", inProduction);
+		result.addProperty("languages", languages);
+		result.addProperty("lastAirDate", lastAirDate);
+		result.addProperty("networks", networks);
+		result.addProperty("numberOfEpisodes", numberOfEpisodes);
+		result.addProperty("numberOfSeasons", numberOfSeasons);
+		result.addProperty("originCountry", originCountry);
+		result.addProperty("originalLanguage", originalLanguage);
+		result.addProperty("originalTitle", originalTitle);
+		result.addProperty("plot", plot);
+		result.addProperty("poster", poster);
+		result.addProperty("productionCompanies", productionCompanies);
+		result.addProperty("productionCountries", productionCountries);
+		JsonArray jRatings = new JsonArray();
+		for (Map<String, String> rating : ratings) {
+			JsonObject jRating = new JsonObject();
+			jRating.addProperty("source", rating.get("source"));
+			jRating.addProperty("value", rating.get("value"));
+			jRatings.add(jRating);
+		}
+		result.add("ratings", jRatings);
+		result.addProperty("seasons", seasons);
+		result.addProperty("seriesImages", seriesImages);
+		result.addProperty("seriesType", seriesType);
+		result.addProperty("spokenLanguages", spokenLanguages);
+		result.addProperty("startYear", startYear);
+		result.addProperty("status", status);
+		result.addProperty("tagline", tagline);
+		result.addProperty("totalSeasons", totalSeasons);
+		return result;
 	}
 }

@@ -132,8 +132,7 @@ public class PlayerApiHandler implements HttpHandler {
 						RootFolder root = getRoot(exchange, token);
 						if (root != null) {
 							String id = action.get("id").getAsString();
-							String language = action.has("language") ? action.get("language").getAsString() : "";
-							JsonObject play = getPlayPage(root, id, language);
+							JsonObject play = getPlayPage(root, id);
 							if (play != null) {
 								WebInterfaceServerUtil.respond(exchange, play.toString(), 200, "application/json");
 							}
@@ -298,16 +297,17 @@ public class PlayerApiHandler implements HttpHandler {
 				String thisName = thisResourceFromResources.getDisplayName();
 				if (thisName.equals(Messages.getString("MediaLibrary"))) {
 					for (DLNAResource resource : resources) {
-						String faIcon = switch (resource.resumeName()) {
-							case "Video" -> "fa-video";
-							case "Audio" -> "fa-music";
-							case "Photo" -> "fa-images";
-							default -> "fa-folder";
+						String icon = switch (resource.resumeName()) {
+							case "Video" -> "video";
+							case "Audio" -> "audio";
+							case "Photo" -> "image";
+							default -> "folder";
 						};
 						hasFile = true;
 						JsonObject jMedia = new JsonObject();
 						jMedia.addProperty("id", resource.getResourceId());
 						jMedia.addProperty("name", resource.resumeName());
+						jMedia.addProperty("icon", icon);
 						jMedias.add(jMedia);
 					}
 				}
@@ -318,6 +318,7 @@ public class PlayerApiHandler implements HttpHandler {
 					JsonObject jFolder = new JsonObject();
 					jFolder.addProperty("id", parentFromResources.getResourceId());
 					jFolder.addProperty("name", "..");
+					jFolder.addProperty("icon", "back");
 					jFolders.add(jFolder);
 				}
 			}
@@ -372,6 +373,7 @@ public class PlayerApiHandler implements HttpHandler {
 							JsonObject mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", videoFolder.resumeName());
+							mediaLibraryFolder.addProperty("icon", "video");
 							mediaLibraryFolders.add(mediaLibraryFolder);
 
 							List<DLNAResource> audioSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Audio"));
@@ -380,6 +382,7 @@ public class PlayerApiHandler implements HttpHandler {
 							mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", audioFolder.resumeName());
+							mediaLibraryFolder.addProperty("icon", "audio");
 							mediaLibraryFolders.add(mediaLibraryFolder);
 
 							List<DLNAResource> imageSearchResults = root.getDLNAResources(resource.getId(), true, 0, 0, root.getDefaultRenderer(), Messages.getString("Photo"));
@@ -388,12 +391,15 @@ public class PlayerApiHandler implements HttpHandler {
 							mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", imagesFolder.resumeName());
+							mediaLibraryFolder.addProperty("icon", "image");
 							mediaLibraryFolders.add(mediaLibraryFolder);
 
-							result.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("RecentlyAdded")));
-							result.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("RecentlyPlayed")));
-							result.add("inProgress", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("InProgress")));
-							result.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("MostPlayed")));
+							JsonObject jMediasSelections = new JsonObject();
+							jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("RecentlyAdded")));
+							jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("RecentlyPlayed")));
+							jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("InProgress")));
+							jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, root, Messages.getString("MostPlayed")));
+							result.add("mediasSelections", jMediasSelections);
 
 							addFolderToFoldersListOnLeft = false;
 						}
@@ -465,6 +471,7 @@ public class PlayerApiHandler implements HttpHandler {
 			result.addProperty("hasFile", hasFile);
 			result.addProperty("webControl", CONFIGURATION.useWebControl());
 			result.add("breadcrumbs", jBreadcrumbs);
+			result.add("mediaLibraryFolders", mediaLibraryFolders);
 			result.add("folders", jFolders);
 			result.add("medias", jMedias);
 			return result;
@@ -531,7 +538,7 @@ public class PlayerApiHandler implements HttpHandler {
 		return jLibraryVideos;
 	}
 
-	private JsonObject getPlayPage(RootFolder root, String id, String language) throws IOException, InterruptedException {
+	private JsonObject getPlayPage(RootFolder root, String id) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make play page " + id);

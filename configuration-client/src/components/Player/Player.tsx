@@ -1,19 +1,21 @@
-import { Box, Breadcrumbs, Button, Card, Grid, Group, Image, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { ArrowBigLeft, ArrowBigRight, Folder, Home } from 'tabler-icons-react';
+import { createElement, useContext, useEffect, useState } from 'react';
+import { ArrowBigLeft, ArrowBigRight, Folder, Home, Movie, Music, Photo, QuestionMark } from 'tabler-icons-react';
 
 import { AudioPlayer } from './AudioPlayer';
 import { VideoPlayer } from './VideoPlayer';
+import I18nContext from '../../contexts/i18n-context';
 
 const Player = () => {
   const baseUrl = '/v1/api/player/';
   const [token, setToken] = useState('');
-  const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[]});
+  const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[]} as BaseBrowse);
   const [browseId, setBrowseId] = useState('0');
   const [playId, setPlayId] = useState('');
+  const i18n = useContext(I18nContext);
 
   const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
@@ -50,9 +52,8 @@ const Player = () => {
 	  setBrowseId('');
 	  setPlayId(id);
   }
-
-  const getFolders = () => {
-    return data.folders.map((folder: BaseMedia) => {
+  const getMediaLibraryFolders = () => {
+    return data.mediaLibraryFolders?.map((folder) => {
       return (
         <Button
           onClick={() => askBrowseId(folder.id)}
@@ -60,7 +61,30 @@ const Player = () => {
           variant="subtle"
           compact
           styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
-          leftIcon = {getFolderIcon(folder.name, rtl)}
+          leftIcon = {getFolderIcon(folder, rtl)}
+        >
+          {folder.name}
+        </Button>
+     );
+	});
+  }
+  const getFolders = () => {
+    if (data.mediaLibraryFolders && data.mediaLibraryFolders.length > 0) {
+		return (<><span>{i18n.get['MediaLibrary']}</span>{getMediaLibraryFolders()}<span>{i18n.get['YourFolders']}</span>{getFoldersButtons()}</>);
+    } else {
+		return getFoldersButtons();
+	}
+  }
+  const getFoldersButtons = () => {
+    return data.folders.map((folder) => {
+      return (
+        <Button
+          onClick={() => askBrowseId(folder.id)}
+          color='gray'
+          variant="subtle"
+          compact
+          styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
+          leftIcon = {getFolderIcon(folder, rtl)}
         >
           {folder.name}
         </Button>
@@ -68,8 +92,12 @@ const Player = () => {
 	});
   }
 
-  const getFolderIcon = (name:string, rtl:boolean) => {
-    return name === '..' ? rtl ? <ArrowBigRight size={20}/> : <ArrowBigLeft size={20}/> : <Folder size={20}/>;
+  const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
+    let icon = getMediaIcon(folder, rtl);
+    if (icon) {
+      return createElement(icon, {size:20});
+    }
+	return <Folder size={20} />
   }
 
   const hasBreadcrumbs = () => {
@@ -144,24 +172,76 @@ const Player = () => {
 	return null;
   }
 
-  const getMedias = () => {
-    return data.medias.map((media: GoalMedia) => {
-      return (
-	  <Grid.Col span={3}>
+  const getMediaIcon = (media: BaseMedia, rtl:boolean) => {
+    if (media.icon) {
+        switch(media.icon) {
+          case 'back':
+            return rtl ? ArrowBigRight : ArrowBigLeft;
+          case 'video':
+            return Movie;
+          case 'audio':
+            return Music;
+          case 'image':
+            return Photo;
+          case 'folder':
+            return Folder;
+          default:
+            return QuestionMark;
+        }
+    }
+	return null;
+  }
+
+  const getMedia = (media: BaseMedia) => {
+    let isPlay = media.goal==="play";
+	let image;
+    let icon = getMediaIcon(media, rtl);
+    if (icon) {
+      image = <Center>{createElement(icon, {size:60})}</Center>;
+    } else {
+      image = <Image src={baseUrl + "thumb/" + token + "/"  + media.id} fit="contain" height={160} alt={media.name} />;
+    }
+    return (
+      <Grid.Col span={3}>
         <Card shadow="sm" p="lg"
-          onClick={() => media.goal==="play" ? askPlayId(media.id) : askBrowseId(media.id)}
+          onClick={() => isPlay ? askPlayId(media.id) : askBrowseId(media.id)}
           style={{cursor:'pointer'}}
-		>
+        >
           <Card.Section>
-            <Image src={baseUrl + "thumb/" + token + "/"  + media.id} fit="contain" height={160} alt={media.name} />
+            {image}
           </Card.Section>
           <Text align="center" size="sm">
             {media.name}
           </Text>
         </Card>
-		</Grid.Col>
-     )
-	});
+      </Grid.Col>
+    )
+  }
+
+  const getMedias = () => {
+    return data.medias.map((media: BaseMedia) => {
+      return getMedia(media);
+	})
+  }
+
+  const getMediasSelection = (selection:BaseMedia[], title:string) => {
+    if (selection.length > 0) {
+      let medias = selection.map((media: BaseMedia) => {
+        return getMedia(media);
+      })
+      return (<><Grid.Col span={12}><Card><Text align="center" size="lg">{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
+	}
+  }
+
+  const getMediaSelections = () => {
+    if (data.mediasSelections) {
+		return <>
+		  {getMediasSelection(data.mediasSelections.recentlyAdded, 'RecentlyAddedVideos')}
+		  {getMediasSelection(data.mediasSelections.inProgress, 'InProgressVideos')}
+		  {getMediasSelection(data.mediasSelections.recentlyPlayed, 'RecentlyPlayedVideos')}
+		  {getMediasSelection(data.mediasSelections.mostPlayed, 'MostPlayedVideos')}
+		</>;
+	}
   }
 
   useEffect(() => {
@@ -221,10 +301,11 @@ const Player = () => {
           <ScrollArea offsetScrollbars style={{height: hasBreadcrumbs() ? 'calc(100vh - 100px)' : 'calc(100vh - 60px)'}}>
             {data.goal === 'play' ?
               <Paper>
-              {getMediaPlayer()}
+                {getMediaPlayer()}
 			  </Paper>
              : (
               <Grid>
+                {getMediaSelections()}
                 {getMedias()}
               </Grid>
             )}
@@ -238,12 +319,26 @@ const Player = () => {
 export default Player;
 
 interface BaseMedia {
+  goal?: string,
+  icon?: string,
   id: string,
   name: string,
 }
 
-interface GoalMedia extends BaseMedia {
+interface MediasSelections {
+  recentlyAdded: BaseMedia[],
+  recentlyPlayed: BaseMedia[],
+  inProgress: BaseMedia[],
+  mostPlayed: BaseMedia[],
+}
+
+interface BaseBrowse {
+  breadcrumbs: BaseMedia[],
+  folders: BaseMedia[],
   goal: string,
+  medias: BaseMedia[],
+  mediaLibraryFolders?: BaseMedia[],
+  mediasSelections?: MediasSelections,
 }
 
 interface SurroundMedias {
@@ -252,21 +347,63 @@ interface SurroundMedias {
 }
 
 interface PlayMedia extends BaseMedia {
-  mediaType: string,
   autoContinue: boolean,
   isDynamicPls: boolean,
+  mediaType: string,
   surroundMedias: SurroundMedias,
   useWebControl: boolean,
 }
 
+interface MediaRating {
+  source: string,
+  value: string,
+}
+
+interface VideoMetadatas {
+  actors?: BaseMedia[],
+  awards: string,
+  country?: BaseMedia,
+  createdBy?: string,
+  credits?: string,
+  director?: BaseMedia,
+  externalIDs?: string,
+  firstAirDate?: string,
+  genres?: BaseMedia[],
+  homepage?: string,
+  images?: string,
+  imdbID?: string,
+  inProduction?: boolean,
+  languages?: string,
+  lastAirDate?: string,
+  networks?: string,
+  numberOfEpisodes?: number,
+  numberOfSeasons?: string,
+  originCountry?: string,
+  originalLanguage?: string,
+  originalTitle?: string,
+  plot?: string,
+  poster?: string,
+  productionCompanies?: string,
+  productionCountries?: string,
+  rated?: BaseMedia,
+  ratings?: MediaRating[],
+  seasons?: string,
+  seriesType?: string,
+  spokenLanguages?: string,
+  startYear?: string,
+  status?: string,
+  tagline?: string,
+  totalSeasons?: number,
+}
+
 export interface VideoMedia extends PlayMedia {
-  isVideoWithChapters: boolean,
-  mime: string,
-  width: number,
   height: number,
-  metadatas?: string,
+  isVideoWithChapters: boolean,
+  metadatas?: VideoMetadatas,
+  mime: string,
   resumePosition?: number,
   sub?: string,
+  width: number,
 }
 
 export interface AudioMedia extends PlayMedia {
