@@ -403,41 +403,42 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * The set of keys defining when the HTTP server has to restarted due to a configuration change
 	 */
-	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
+	public static final Set<String> NEED_SERVER_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
-			KEY_ALTERNATE_THUMB_FOLDER,				//dynamic
-			KEY_HIDE_ENGINENAMES,					//dynamic
-			KEY_HIDE_EXTENSIONS,					//dynamic
-			KEY_IGNORE_THE_WORD_A_AND_THE,			//dynamic
-			KEY_IP_FILTER,							//dynamic
-			KEY_SERVER_NAME,						//dynamic
-			KEY_SUBS_INFO_LEVEL,					//dynamic
+			KEY_CHROMECAST_EXT,
+			KEY_NETWORK_INTERFACE,
+			KEY_SERVER_ENGINE,
+			KEY_SERVER_HOSTNAME,
+			KEY_SERVER_PORT,
+			KEY_UPNP_ENABLED
+		)
+	);
 
-			KEY_ATZ_LIMIT,							//resolveOnce => RendererConfigurations
-			KEY_AUDIO_THUMBNAILS_METHOD,			//resolveOnce => RendererConfigurations
-			KEY_CHAPTER_SUPPORT,					//resolveOnce => RendererConfigurations
-			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,	//resolveOnce => RendererConfigurations
-			KEY_DISABLE_TRANSCODING,				//resolveOnce => RendererConfigurations
-			KEY_FOLDERS,							//resolveOnce => RendererConfigurations
-			KEY_FOLDERS_MONITORED,					//resolveOnce => RendererConfigurations
-			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,		//resolveOnce => RendererConfigurations
-			KEY_HIDE_EMPTY_FOLDERS,					//resolveOnce => RendererConfigurations
-			KEY_OPEN_ARCHIVES,						//resolveOnce => RendererConfigurations
-			KEY_PRETTIFY_FILENAMES,					//resolveOnce => RendererConfigurations
-			KEY_SHOW_APERTURE_LIBRARY,				//resolveOnce => RendererConfigurations
-			KEY_SHOW_IPHOTO_LIBRARY,				//resolveOnce => RendererConfigurations
-			KEY_SHOW_ITUNES_LIBRARY,				//resolveOnce => RendererConfigurations
-			KEY_SHOW_LIVE_SUBTITLES_FOLDER,			//resolveOnce => RendererConfigurations
-			KEY_SHOW_MEDIA_LIBRARY_FOLDER,			//resolveOnce => RendererConfigurations
-			KEY_SHOW_SERVER_SETTINGS_FOLDER,		//resolveOnce => RendererConfigurations
-			KEY_SHOW_TRANSCODE_FOLDER,				//resolveOnce => RendererConfigurations
-			KEY_SORT_METHOD,						//resolveOnce => RendererConfigurations
-			KEY_USE_CACHE,							//resolveOnce => RendererConfigurations
-
-			KEY_NETWORK_INTERFACE,	//restart
-			KEY_SERVER_ENGINE,		//restart
-			KEY_SERVER_HOSTNAME,	//restart
-			KEY_SERVER_PORT			//restart
+	/**
+	 * The set of keys defining when the renderers has to resolve again due to a configuration change
+	 */
+	public static final Set<String> NEED_RENDERERS_RELOAD_FLAGS = new HashSet<>(
+		Arrays.asList(
+			KEY_ATZ_LIMIT,
+			KEY_AUDIO_THUMBNAILS_METHOD,
+			KEY_CHAPTER_SUPPORT,
+			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
+			KEY_DISABLE_TRANSCODING,
+			KEY_FOLDERS,
+			KEY_FOLDERS_MONITORED,
+			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
+			KEY_HIDE_EMPTY_FOLDERS,
+			KEY_OPEN_ARCHIVES,
+			KEY_PRETTIFY_FILENAMES,
+			KEY_SHOW_APERTURE_LIBRARY,
+			KEY_SHOW_IPHOTO_LIBRARY,
+			KEY_SHOW_ITUNES_LIBRARY,
+			KEY_SHOW_LIVE_SUBTITLES_FOLDER,
+			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
+			KEY_SHOW_SERVER_SETTINGS_FOLDER,
+			KEY_SHOW_TRANSCODE_FOLDER,
+			KEY_SORT_METHOD,
+			KEY_USE_CACHE
 		)
 	);
 

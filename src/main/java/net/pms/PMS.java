@@ -77,7 +77,6 @@ import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -570,10 +569,14 @@ public class PMS {
 		 */
 		FrameAppender.setFrame(frame);
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					frame.setReloadable(true);
+				}
+				if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					//should auto reload
+					//current reset has never worked on currently founded renderers that are in fact not updated.
 					frame.setReloadable(true);
 				}
 			}
