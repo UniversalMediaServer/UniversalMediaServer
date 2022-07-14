@@ -3,6 +3,10 @@ package net.pms.update;
 import java.io.IOException;
 import net.pms.util.PmsProperties;
 import net.pms.util.Version;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 
 /**
  * Data provided by the server for us to update with.  Must be synchronized externally.
@@ -55,8 +59,16 @@ public class AutoUpdaterServerProperties {
 			String osVersionRaw = System.getProperty("os.version");
 			Version osVersion = new Version(osVersionRaw);
 			boolean isMacOSPreCatalina = osVersion.isLessThan(new Version("10.15"));
+
+			SystemInfo systemInfo = new SystemInfo();
+			HardwareAbstractionLayer hardware = systemInfo.getHardware();
+			CentralProcessor processor = hardware.getProcessor();
+			ProcessorIdentifier processorIdentifier = processor.getProcessorIdentifier();
+			String microarchitecture = processorIdentifier.getMicroarchitecture();
 			if (isMacOSPreCatalina) {
 				os += "-pre10.15";
+			} else if (microarchitecture.startsWith("ARM64")) {
+				os += "-arm";
 			}
 		}
 
