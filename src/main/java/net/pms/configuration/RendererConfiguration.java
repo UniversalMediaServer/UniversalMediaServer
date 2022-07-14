@@ -510,6 +510,15 @@ public class RendererConfiguration extends Renderer {
 		return null;
 	}
 
+	/**
+	 * Delete connected renderers devices.
+	 */
+	public static void deleteAllConnectedRenderers() {
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			r.delete(0);
+		}
+	}
+
 	public static void resetAllRenderers() {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
 			r.setRootFolder(null);

@@ -784,7 +784,7 @@ public class Request extends HTTPResource {
 
 					// Xbox 360 virtual containers ... d'oh!
 					String searchCriteria = null;
-					if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+					if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary().isEnabled() && containerID != null) {
 						if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
 							objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
 						} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {

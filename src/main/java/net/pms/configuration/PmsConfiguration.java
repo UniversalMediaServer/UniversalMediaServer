@@ -375,6 +375,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
 	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
+	/**
+	 * Web stuff
+	 */
+	protected static final String KEY_NO_FOLDERS = "no_shared";
+	protected static final String KEY_WEB_HTTPS = "web_https";
+	protected static final String KEY_WEB_PORT = "web_port";
+	protected static final int WEB_MAX_THREADS = 100;
+
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
 	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -401,9 +409,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	public IpFilter filter;
 
 	/**
-	 * The set of keys defining when the HTTP server has to restarted due to a configuration change
+	 * The set of keys defining when the media server should be restarted due to a
+	 * configuration change.
 	 */
-	public static final Set<String> NEED_SERVER_RELOAD_FLAGS = new HashSet<>(
+	public static final Set<String> NEED_MEDIA_SERVER_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
 			KEY_CHROMECAST_EXT,
 			KEY_NETWORK_INTERFACE,
@@ -415,9 +424,48 @@ public class PmsConfiguration extends RendererConfiguration {
 	);
 
 	/**
-	 * The set of keys defining when the renderers has to resolve again due to a configuration change
+	 * The set of keys defining when the HTTP Interface server should be restarted
+	 * due to a configuration change.
+	 */
+	public static final Set<String> NEED_INTERFACE_SERVER_RELOAD_FLAGS = new HashSet<>(
+		Arrays.asList(
+			KEY_WEB_ENABLE,
+			KEY_WEB_HTTPS,
+			KEY_WEB_PORT
+		)
+	);
+
+	/**
+	 * The set of keys defining when the renderers should be reloaded due to a
+	 * configuration change.
 	 */
 	public static final Set<String> NEED_RENDERERS_RELOAD_FLAGS = new HashSet<>(
+		Arrays.asList(
+			KEY_RENDERER_DEFAULT,
+			KEY_RENDERER_FORCE_DEFAULT,
+			KEY_SELECTED_RENDERERS
+		)
+	);
+
+	/**
+	 * The set of keys defining when the media library has to reset due to a
+	 * configuration change.
+	 *
+	 * It will need a renderers reload as renderers build from it.
+	 */
+	public static final Set<String> NEED_MEDIA_LIBRARY_RELOAD_FLAGS = new HashSet<>(
+		Arrays.asList(
+			KEY_FULLY_PLAYED_ACTION,
+			KEY_SHOW_RECENTLY_PLAYED_FOLDER,
+			KEY_USE_CACHE
+		)
+	);
+
+	/**
+	 * The set of keys defining when the renderers has to rebuid their root folder
+	 * due to a configuration change.
+	 */
+	public static final Set<String> NEED_RENDERERS_ROOT_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
 			KEY_ATZ_LIMIT,
 			KEY_AUDIO_THUMBNAILS_METHOD,
@@ -437,8 +485,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 			KEY_SHOW_SERVER_SETTINGS_FOLDER,
 			KEY_SHOW_TRANSCODE_FOLDER,
-			KEY_SORT_METHOD,
-			KEY_USE_CACHE
+			KEY_SORT_METHOD
 		)
 	);
 
@@ -4678,14 +4725,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean isRunSingleInstance() {
 		return getBoolean(KEY_SINGLE, true);
 	}
-
-	/**
-	 * Web stuff
-	 */
-	protected static final String KEY_NO_FOLDERS = "no_shared";
-	protected static final String KEY_WEB_HTTPS = "web_https";
-	protected static final String KEY_WEB_PORT = "web_port";
-	protected static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
 		if (tag == null) {
