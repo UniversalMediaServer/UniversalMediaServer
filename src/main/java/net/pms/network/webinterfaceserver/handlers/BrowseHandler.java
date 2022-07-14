@@ -304,10 +304,10 @@ public class BrowseHandler implements HttpHandler {
 							mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(audioFolder, enterSearchStringText));
 							mediaLibraryFolders.add(addMediaLibraryChildToMustacheVars(imagesFolder, enterSearchStringText));
 
-							addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.RecentlyAdded", "Web.RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", t, mustacheVars);
-							addMediaLibraryFolderToFrontPage(videoFolder, root, "VirtualFolder.1", "Web.RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", t, mustacheVars);
-							addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.InProgress", "Web.InProgressVideos", "hasInProgress", "inProgress", t, mustacheVars);
-							addMediaLibraryFolderToFrontPage(videoFolder, root, "MediaLibrary.MostPlayed", "Web.MostPlayedVideos", "hasMostPlayed", "mostPlayed", t, mustacheVars);
+							addMediaLibraryFolderToFrontPage(videoFolder, root, "RecentlyAdded", "RecentlyAddedVideos", "hasRecentlyAdded", "recentlyAdded", t, mustacheVars);
+							addMediaLibraryFolderToFrontPage(videoFolder, root, "RecentlyPlayed", "RecentlyPlayedVideos", "hasRecentlyPlayed", "recentlyPlayed", t, mustacheVars);
+							addMediaLibraryFolderToFrontPage(videoFolder, root, "InProgress", "InProgressVideos", "hasInProgress", "inProgress", t, mustacheVars);
+							addMediaLibraryFolderToFrontPage(videoFolder, root, "MostPlayed", "MostPlayedVideos", "hasMostPlayed", "mostPlayed", t, mustacheVars);
 
 							addFolderToFoldersListOnLeft = false;
 						}
