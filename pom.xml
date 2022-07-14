@@ -2096,7 +2096,7 @@
 											<arg value="${project.jre-version}"/>
 										</exec>
 
-										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
 										<bundleapp 
@@ -2299,7 +2299,7 @@
 											<arg value="${project.jre-version}"/>
 										</exec>
 
-										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
 										<bundleapp 
