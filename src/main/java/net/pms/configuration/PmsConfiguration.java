@@ -153,6 +153,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
+	protected static final String KEY_DATABASE_BACKEND = "database_backend";
 	protected static final String KEY_DATABASE_NAME = "database_name";
 	protected static final String KEY_DATABASE_PASS = "database_pass";
 	protected static final String KEY_DATABASE_URL = "database_url";
@@ -5083,6 +5084,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getDatabaseName() {
 		return getString(KEY_DATABASE_NAME, "medias");
+	}
+
+	// active backends are : 'h2db'
+	public String getDatabaseBackend() {
+		return getString(KEY_DATABASE_BACKEND, "h2db");
 	}
 
 	public String getDatabaseUrl() {

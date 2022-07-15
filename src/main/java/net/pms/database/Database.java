@@ -19,21 +19,24 @@ package net.pms.database;
 
 import java.awt.Component;
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import net.pms.Messages;
-import net.pms.PMS;
 import org.apache.commons.io.FileUtils;
 import org.h2.engine.Constants;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.jdbcx.JdbcDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Properties;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.Upgrade;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -49,7 +52,9 @@ public abstract class Database extends DatabaseHelper {
 	private String dbName;
 	private String dbUser;
 	private String dbPassword;
-	private final JdbcConnectionPool cp;
+
+	// External connection pool. (at the moment used for postgresql)
+	private HikariDataSource ds = null;
 
 	protected DatabaseStatus status;
 
@@ -65,6 +70,32 @@ public abstract class Database extends DatabaseHelper {
 	 * @param password the database password
 	 */
 	public Database(String name, String user, String password) {
+		if (isH2dbBackend()) {
+			h2dbInit(name, user, password);
+		}
+		// create connection pool.
+
+		PmsConfiguration c = PMS.getConfiguration();
+		HikariConfig config = new HikariConfig();
+		config.setJdbcUrl(c.getDatabaseUrl());
+		config.setUsername(c.getDatabaseUser());
+		config.setPassword(c.getDatabasePassword());
+		config.addDataSourceProperty("cachePrepStmts", "true");
+		config.addDataSourceProperty("prepStmtCacheSize", "250");
+		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+		ds = new HikariDataSource(config);
+	}
+
+	private boolean isH2dbBackend() {
+		return "h2db".equalsIgnoreCase(PMS.getConfiguration().getDatabaseBackend());
+	}
+
+	private boolean isPostgresBackend() {
+		return "pg".equalsIgnoreCase(PMS.getConfiguration().getDatabaseBackend());
+	}
+
+	private void h2dbInit(String name, String user, String password) {
 		status = DatabaseStatus.CLOSED;
 		dbName = name;
 		dbUser = user;
@@ -89,12 +120,6 @@ public abstract class Database extends DatabaseHelper {
 		} catch (ClassNotFoundException e) {
 			LOGGER.error(null, e);
 		}
-
-		JdbcDataSource ds = new JdbcDataSource();
-		ds.setURL(url);
-		ds.setUser(dbUser);
-		ds.setPassword(dbPassword);
-		cp = JdbcConnectionPool.create(ds);
 	}
 
 	public Database(String name) {
@@ -135,11 +160,11 @@ public abstract class Database extends DatabaseHelper {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
-		return cp.getConnection();
+		return ds.getConnection();
 	}
 
 	public int getActiveConnections() throws SQLException {
-		return cp.getActiveConnections();
+		return 0;
 	}
 
 	public boolean isOpened() {
@@ -174,39 +199,46 @@ public abstract class Database extends DatabaseHelper {
 			conn = getConnection();
 			status = DatabaseStatus.OPENED;
 		} catch (SQLException se) {
-			status = DatabaseStatus.OPENFAILED;
-			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
-			final File dbDirectory = new File(dbDir);
-			if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
-				LOGGER.info("The database need a migration to h2 format 2");
-				migrateDatabaseVersion2(true);
-				needRetry = true;
-			} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
-				FileUtils.deleteQuietly(dbDirectory);
-				if (!dbDirectory.exists()) {
-					LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
-					needRetry = true;
-				} else {
-					showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
-					LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
-				}
-			} else {
-				LOGGER.debug("Database connection error, retrying in 10 seconds");
-				sleep(10000);
-				needRetry = true;
-			}
-			if (needRetry) {
-				try {
-					conn = getConnection();
-					status = DatabaseStatus.OPENED;
-				} catch (SQLException se2) {
-					showMessageDialog("TheLocalCacheCouldNotStarted", dbDir);
-					LOGGER.debug("", se2);
-				}
+			if (isH2dbBackend()) {
+				conn = handleOpenExceptionH2db(conn, needRetry, se);
 			}
 		} finally {
 			close(conn);
 		}
+	}
+
+	private Connection handleOpenExceptionH2db(Connection conn, boolean needRetry, SQLException se) {
+		status = DatabaseStatus.OPENFAILED;
+		final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
+		final File dbDirectory = new File(dbDir);
+		if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
+			LOGGER.info("The database need a migration to h2 format 2");
+			migrateDatabaseVersion2(true);
+			needRetry = true;
+		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+			FileUtils.deleteQuietly(dbDirectory);
+			if (!dbDirectory.exists()) {
+				LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
+				needRetry = true;
+			} else {
+				showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
+				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+			}
+		} else {
+			LOGGER.debug("Database connection error, retrying in 10 seconds");
+			sleep(10000);
+			needRetry = true;
+		}
+		if (needRetry) {
+			try {
+				conn = getConnection();
+				status = DatabaseStatus.OPENED;
+			} catch (SQLException se2) {
+				showMessageDialog("TheLocalCacheCouldNotStarted", dbDir);
+				LOGGER.debug("", se2);
+			}
+		}
+		return conn;
 	}
 
 	abstract void onOpening(boolean force);
@@ -312,8 +344,10 @@ public abstract class Database extends DatabaseHelper {
 	 */
 	public void createDatabaseReport() {
 		try {
-			ConvertTraceFile.main("-traceFile", getDatabaseFilename() + ".trace.db",
-				"-script", getDatabaseFilename() + "_logging_report.txt");
+			if (isH2dbBackend()) {
+				ConvertTraceFile.main("-traceFile", getDatabaseFilename() + ".trace.db",
+					"-script", getDatabaseFilename() + "_logging_report.txt");
+			}
 		} catch (SQLException e) {}
 	}
 
