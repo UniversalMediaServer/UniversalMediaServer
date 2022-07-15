@@ -9,10 +9,10 @@ import { AudioPlayer } from './AudioPlayer';
 import { VideoPlayer } from './VideoPlayer';
 import I18nContext from '../../contexts/i18n-context';
 
-const Player = () => {
+export const Player = () => {
   const baseUrl = '/v1/api/player/';
   const [token, setToken] = useState('');
-  const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[]} as BaseBrowse);
+  const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[],useWebControl:false} as BaseBrowse);
   const [browseId, setBrowseId] = useState('0');
   const [playId, setPlayId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -132,7 +132,7 @@ const Player = () => {
   const getVideoMediaPlayer = (media: VideoMedia) => {
     return (<Paper>
       <VideoPlayer
-        {...{media:media , baseUrl:baseUrl, token:token}}
+        {...{media:media , baseUrl:baseUrl, token:token, askPlayId:askPlayId}}
       />
     </Paper>);
   }
@@ -293,6 +293,11 @@ const Player = () => {
     }
   }, [token, playId]);
 
+  useEffect(() => {
+
+  }, [data]);
+
+
   return (
     <Box mx="auto">
       <LoadingOverlay visible={loading} />
@@ -328,7 +333,7 @@ const Player = () => {
 
 export default Player;
 
-interface BaseMedia {
+export interface BaseMedia {
   goal?: string,
   icon?: string,
   id: string,
@@ -349,6 +354,7 @@ interface BaseBrowse {
   medias: BaseMedia[],
   mediaLibraryFolders?: BaseMedia[],
   mediasSelections?: MediasSelections,
+  useWebControl: boolean,
 }
 
 interface SurroundMedias {
@@ -358,10 +364,10 @@ interface SurroundMedias {
 
 interface PlayMedia extends BaseMedia {
   autoContinue: boolean,
+  isDownload: boolean,
   isDynamicPls: boolean,
   mediaType: string,
   surroundMedias: SurroundMedias,
-  useWebControl: boolean,
 }
 
 interface MediaRating {

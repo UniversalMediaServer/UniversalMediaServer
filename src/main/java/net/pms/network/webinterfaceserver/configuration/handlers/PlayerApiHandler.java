@@ -139,6 +139,22 @@ public class PlayerApiHandler implements HttpHandler {
 						}
 					}
 					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				} else if (api.post("/status")) {
+					JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+					if (action.has("token")) {
+						String token = action.get("token").getAsString();
+						RootFolder root = getRoot(exchange, token);
+						if (root != null) {
+							WebRender renderer = (WebRender) root.getDefaultRenderer();
+							((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
+							WebInterfaceServerUtil.respond(exchange, "", 200, "application/json");
+						} else {
+							LOGGER.debug("root not found");
+							WebInterfaceServerUtil.respond(exchange, "", 403, "application/json");
+						}
+					} else {
+						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+					}
 				} else if (api.getIn("/thumb/")) {
 					String[] thumbData = api.getEndpoint().split("/");
 					if (thumbData.length == 4) {
@@ -173,6 +189,15 @@ public class PlayerApiHandler implements HttpHandler {
 					if (rawData.length == 4) {
 						RootFolder root = getRoot(exchange, rawData[2]);
 						if (root != null && sendRawMedia(exchange, root, rawData[3], false)) {
+							return;
+						}
+					}
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				} else if (api.getIn("/download/")) {
+					String[] rawData = api.getEndpoint().split("/");
+					if (rawData.length == 4) {
+						RootFolder root = getRoot(exchange, rawData[2]);
+						if (root != null && sendDownloadMedia(exchange, root, rawData[3])) {
 							return;
 						}
 					}
@@ -469,7 +494,7 @@ public class PlayerApiHandler implements HttpHandler {
 			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 			result.addProperty("name", id.equals("0") || dlna == null ? CONFIGURATION.getServerDisplayName() : dlna.getDisplayName());
 			result.addProperty("hasFile", hasFile);
-			result.addProperty("webControl", CONFIGURATION.useWebControl());
+			result.addProperty("useWebControl", CONFIGURATION.useWebControl());
 			result.add("breadcrumbs", jBreadcrumbs);
 			result.add("mediaLibraryFolders", mediaLibraryFolders);
 			result.add("folders", jFolders);
@@ -607,8 +632,8 @@ public class PlayerApiHandler implements HttpHandler {
 			media.addProperty("id", id);
 			media.addProperty("autoContinue", CONFIGURATION.getWebAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
+			media.addProperty("isDownload", true);
 			media.add("surroundMedias", getSurroundingByType(rootResource));
-			media.addProperty("useWebControl", CONFIGURATION.useWebControl());
 
 			if (isImage) {
 				// do this like this to simplify the code
@@ -650,6 +675,7 @@ public class PlayerApiHandler implements HttpHandler {
 			result.add("medias", medias);
 			result.add("folders", jFolders);
 			result.add("breadcrumbs", getBreadcrumbs(rootResource));
+			result.addProperty("useWebControl", CONFIGURATION.useWebControl());
 			return result;
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
@@ -754,7 +780,7 @@ public class PlayerApiHandler implements HttpHandler {
 			hdr.add("Connection", "keep-alive");
 			hdr.add("Transfer-Encoding", "chunked");
 			if (isDownload) {
-				hdr.add("Content-Disposition", "attachment; filename=\"" + dlna.getFileName() + "\"");
+				hdr.add("Content-Disposition", "attachment; filename=\"" + new File(dlna.getFileName()).getName() + "\"");
 			}
 			if (in != null && in.available() != len) {
 				hdr.add("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
@@ -768,6 +794,41 @@ public class PlayerApiHandler implements HttpHandler {
 			OutputStream os = new BufferedOutputStream(exchange.getResponseBody(), 512 * 1024);
 			LOGGER.debug("start raw dump");
 			WebInterfaceServerUtil.dump(in, os);
+		} catch (IOException ex) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean sendDownloadMedia(HttpExchange exchange, RootFolder root, String id) {
+		List<DLNAResource> res;
+		try {
+			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+			if (res.size() != 1) {
+				// another error
+				LOGGER.debug("media unkonwn");
+				return false;
+			}
+			DLNAResource dlna = res.get(0);
+			File media = new File(dlna.getFileName());
+			String mime = root.getDefaultRenderer().getMimeType(dlna);
+			Headers hdr = exchange.getResponseHeaders();
+			hdr.add("Content-Type", mime);
+			hdr.add("Server", PMS.get().getServerName());
+			hdr.add("Connection", "keep-alive");
+			hdr.add("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
+			exchange.sendResponseHeaders(200, media.length());
+			InputStream in = dlna.getInputStream();
+			if (LOGGER.isTraceEnabled()) {
+				WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+			}
+			OutputStream os = exchange.getResponseBody();
+			byte[] buffer = new byte[32 * 1024];
+			int bytes;
+			while ((bytes = in.read(buffer)) != -1) {
+				os.write(buffer, 0, bytes);
+			}
+			os.flush();
 		} catch (IOException ex) {
 			return false;
 		}
