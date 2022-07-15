@@ -72,6 +72,7 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.h2.engine.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,6 +153,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
+	protected static final String KEY_DATABASE_NAME = "database_name";
+	protected static final String KEY_DATABASE_PASS = "database_pass";
+	protected static final String KEY_DATABASE_URL = "database_url";
+	protected static final String KEY_DATABASE_USER = "database_user";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
@@ -5066,6 +5071,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean disableExternalEntities() {
 		return getBoolean(KEY_DISABLE_EXTERNAL_ENTITIES, true);
+	}
+
+	public String getDatabaseUser() {
+		return getString(KEY_DATABASE_USER, "sa");
+	}
+
+	public String getDatabasePassword() {
+		return getString(KEY_DATABASE_PASS, "");
+	}
+
+	public String getDatabaseName() {
+		return getString(KEY_DATABASE_NAME, "medias");
+	}
+
+	public String getDatabaseUrl() {
+		File profileDirectory = new File(getProfileDirectory());
+		String dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? getProfileDirectory() : null, "database").getAbsolutePath();
+		return getString(KEY_DATABASE_URL, Constants.START_URL + dbDir + File.separator + getDatabaseName() + ";DB_CLOSE_ON_EXIT=FALSE");
 	}
 
 	public List<String> getWebConfigurationFileHeader() {

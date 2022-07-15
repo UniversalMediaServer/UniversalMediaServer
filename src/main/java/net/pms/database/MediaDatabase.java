@@ -31,7 +31,7 @@ import net.pms.dlna.RootFolder;
  */
 public class MediaDatabase extends Database {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
-	public static final String DATABASE_NAME = "medias";
+	public static final String DATABASE_NAME = PMS.getConfiguration().getDatabaseName();
 	/**
 	 * Pointer to the instanciated MediaDatabase.
 	 */

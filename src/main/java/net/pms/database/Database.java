@@ -98,7 +98,7 @@ public abstract class Database extends DatabaseHelper {
 	}
 
 	public Database(String name) {
-		this(name, "sa", "");
+		this(name, PMS.getConfiguration().getDatabaseUser(), PMS.getConfiguration().getDatabasePassword());
 	}
 
 	/**
