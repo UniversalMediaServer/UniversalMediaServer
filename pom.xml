@@ -2958,4 +2958,15 @@
 			</build>
 		</profile>
 	</profiles>
+	<dependencyManagement>
+		<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>${slf4j-api-version}</version>
+		</dependency>
+		
+		</dependencies>		
+	</dependencyManagement>
 </project>
