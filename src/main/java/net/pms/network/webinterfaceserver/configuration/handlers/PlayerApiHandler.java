@@ -1051,4 +1051,20 @@ public class PlayerApiHandler implements HttpHandler {
 		return true;
 	}
 
+	public static void resetAllRenderers() {
+		synchronized (ROOTS) {
+			for (String token : ROOTS.keySet()) {
+				RendererConfiguration conf = ROOTS.get(token).getDefaultRenderer();
+				RootFolder root = new RootFolder();
+				root.setDefaultRenderer(conf);
+				ROOTS.put(token, root);
+			}
+		}
+	}
+
+	public static void deleteAllRenderers() {
+		synchronized (ROOTS) {
+			ROOTS.clear();
+		}
+	}
 }
