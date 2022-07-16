@@ -304,6 +304,17 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 		return server instanceof HttpsServer;
 	}
 
+	/**
+	 * Stop the current server.
+	 * Once stopped, a {@code HttpServer} cannot be re-used.
+	 */
+	@Override
+	public void stop() {
+		if (server != null) {
+			server.stop(0);
+		}
+	}
+
 	public static void associate(HttpExchange t, WebRender webRenderer) {
 		webRenderer.associateIP(t.getRemoteAddress().getAddress());
 		webRenderer.associatePort(t.getRemoteAddress().getPort());

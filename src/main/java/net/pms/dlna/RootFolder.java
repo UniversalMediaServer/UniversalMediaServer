@@ -44,6 +44,7 @@ import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -74,10 +75,10 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
+	private final ArrayList<DLNAResource> webFolders;
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private ArrayList<DLNAResource> webFolders;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -96,7 +97,7 @@ public class RootFolder extends DLNAResource {
 			}
 		} else {
 			if (
-				PMS.get().getLibrary() != null &&
+				PMS.get().getLibrary().isEnabled() &&
 				PMS.get().getLibrary().getAudioFolder() != null &&
 				PMS.get().getLibrary().getAudioFolder().getChildren() != null &&
 				!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)
@@ -151,15 +152,15 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (isAddGlobally && configuration.isShowMediaLibraryFolder()) {
-			DLNAResource libraryRes = PMS.get().getLibrary();
-			if (libraryRes != null) {
+			MediaLibrary libraryRes = PMS.get().getLibrary();
+			if (libraryRes.isEnabled()) {
 				addChild(libraryRes, true);
 			}
 		}
 
 		if (configuration.getUseCache()) {
 			List<Path> foldersMonitored = configuration.getMonitoredFolders();
-			if (foldersMonitored != null && !foldersMonitored.isEmpty()) {
+			if (!foldersMonitored.isEmpty()) {
 				File[] dirs = new File[foldersMonitored.size()];
 				int i = 0;
 				for (Path folderMonitored : foldersMonitored) {
@@ -1520,7 +1521,7 @@ public class RootFolder extends DLNAResource {
 			res.addChild(new VirtualVideoAction(Messages.getString("RestartServer"), true) {
 				@Override
 				public boolean enable() {
-					PMS.get().reset();
+					PMS.get().resetMediaServer();
 					return true;
 				}
 			});

@@ -23,4 +23,8 @@ public interface WebInterfaceServerInterface {
 	String getAddress();
 	String getUrl();
 	boolean isSecure();
+	/**
+	 * Stop the current server.
+	 */
+	void stop();
 }
