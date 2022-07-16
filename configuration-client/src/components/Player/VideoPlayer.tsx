@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import videojs, { VideoJsPlayerOptions } from 'video.js';
 import hlsQualitySelector from 'videojs-hls-quality-selector';
 import 'videojs-contrib-quality-levels';
@@ -10,13 +10,15 @@ import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 import { BaseMedia, VideoMedia } from './Player';
 
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!videoRef.current || !document.body.contains(videoRef.current)) {return}
     if (!videojs.getPlugin('hlsQualitySelector')) {
       videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
     }
+	let videoElem = document.createElement('video');
+	videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
+	document.getElementById('videodiv')?.appendChild(videoElem);
+
     let options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
@@ -32,8 +34,30 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
       let sub = {kind:'chapters', src:vpOptions.baseUrl + 'media/' + vpOptions.token + '/'  + vpOptions.media.id + '/chapters.vtt', default:true} as videojs.TextTrackOptions;
       options.tracks.push(sub);
     }
-
+    const status = {'token':vpOptions.token,'id':vpOptions.media.id} as {[key: string]: string};
+    const setStatus = (key:string, value:any, wait:boolean) => {
+      if (status[key] !== value) {
+        status[key] = value;
+        if (! wait) {
+          axios.post(vpOptions.baseUrl + 'status', JSON.stringify(status));
+        }
+      }
+    }
     const onready  = (player: videojs.Player ) => {
+      const volumeStatus = () => {
+        setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
+        setStatus('volume', (videoPlayer.volume() * 100).toFixed(0), false);
+      }
+      videoPlayer.on(['play','playing'], () => {setStatus('playback', 'PLAYING', false)});
+      videoPlayer.on('pause', () => {setStatus('playback', 'PAUSED', false)});
+      videoPlayer.on(['dispose','abort','ended','error','beforeunload'], () => {setStatus('playback', 'STOPPED', false)});
+      videoPlayer.on('timeupdate', () => {setStatus('position', videoPlayer.currentTime().toFixed(0), false)});
+      videoPlayer.on('volumechange', () => {volumeStatus()});
+      if (vpOptions.media.resumePosition) {
+        videoPlayer.on('loadedmetadata', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
+        videoPlayer.one('canplaythrough', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
+      }
+      volumeStatus();
       if (vpOptions.media.isDownload) {
         let indexopt = videoPlayer.controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
         let nextButton = videoPlayer.controlBar.addChild('button',
@@ -41,14 +65,14 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
           , indexopt);
         let placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
         if (placeholder) {
-          placeholder.className = 'vjs-icon-placeholder fa fa-cog';
+			placeholder.innerHTML=('<svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><polyline points="7 11 12 16 17 11"></polyline><line x1="12" y1="4" x2="12" y2="16"></line></svg>');
         }
       }
       if (vpOptions.media.surroundMedias.next !== undefined) {
         let next = vpOptions.media.surroundMedias.next as BaseMedia;
         let indexopt = videoPlayer.controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
         let nextButton = videoPlayer.controlBar.addChild('button',
-          {'controlText':next.name, 'className':'vjs-menu-button', 'clickHandler':() => {askPlayId(next.id)}}
+          {'controlText':next.name, 'className':'vjs-menu-button', 'clickHandler':() => {vpOptions.askPlayId(next.id)}}
           , indexopt);
         let placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
         if (placeholder) {
@@ -62,7 +86,7 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
         let prev = vpOptions.media.surroundMedias.prev as BaseMedia;
         let indexopt = videoPlayer.controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
         let prevButton = videoPlayer.controlBar.addChild('Button',
-          {'controlText':prev.name, 'className':'vjs-menu-button', 'clickHandler':() => {askPlayId(prev.id)}}
+          {'controlText':prev.name, 'className':'vjs-menu-button', 'clickHandler':() => {vpOptions.askPlayId(prev.id)}}
           , indexopt);
         let placeholder = prevButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
         if (placeholder) {
@@ -73,46 +97,23 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
         videoPlayer.hlsQualitySelector();
 	  }
     };
-    const videoPlayer = videojs(videoRef.current, options, onready as videojs.ReadyCallback);
-    const state = {} as {[key: string]: string};
-    const askPlayId = (id:string) => {
-      videoPlayer.dispose();
-      vpOptions.askPlayId(id);
-    }
-    const setStatus = (k:string, v:any, wait:boolean) => {
-      if (state[k] !== v) {
-        state[k] = v;
-        if (! wait) {
-          axios.post(vpOptions.baseUrl + 'status', JSON.stringify(state));
-        }
+
+    const videoPlayer = videojs(videoElem, options, onready as videojs.ReadyCallback);
+
+    return () => {
+      if (!videoPlayer.isDisposed()) {
+        videoPlayer.dispose()
       }
-    }
-    setStatus('token', vpOptions.token, true);
-    const volumeStatus = () => {
-      setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
-      setStatus('volume', (videoPlayer.volume() * 100).toFixed(0), false);
-    }
-    videoPlayer.on(['play','playing'], () => {setStatus('playback', 'PLAYING', false)});
-    videoPlayer.on('pause', () => {setStatus('playback', 'PAUSED', false)});
-    videoPlayer.on(['dispose','abort','ended','error','beforeunload'], () => {setStatus('playback', 'STOPPED', false)});
-    videoPlayer.on('timeupdate', () => {setStatus('position', videoPlayer.currentTime().toFixed(0), false)});
-    videoPlayer.on('volumechange', () => {volumeStatus()});
-    if (vpOptions.media.resumePosition) {
-      videoPlayer.on('loadedmetadata', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
-      videoPlayer.one('canplaythrough', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
-    }
-    volumeStatus();
-    return () => videoPlayer.dispose();
-  }, [vpOptions, videoRef]);
+    };
+  }, [vpOptions]);
 
   return (
-    <div>
-      <video ref={videoRef} className='video-js vjs-default-skin vjs-fluid vjs-big-play-centered full-card card' />
+    <div id='videodiv'>
     </div>
   );
 };
 
-interface VideoPlayerOption {
+export interface VideoPlayerOption {
   media:VideoMedia,
   baseUrl:string,
   token:string,
