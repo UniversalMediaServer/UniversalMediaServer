@@ -68,7 +68,7 @@ public class ActionsApiHandler implements HttpHandler {
 							switch (operation) {
 								case "Server.Restart":
 									if (account.havePermission(Permissions.SERVER_RESTART)) {
-										PMS.get().reset();
+										PMS.get().resetMediaServer();
 										WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 									} else {
 										WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
