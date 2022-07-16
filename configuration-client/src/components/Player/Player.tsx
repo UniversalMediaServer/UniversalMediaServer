@@ -226,7 +226,7 @@ export const Player = () => {
   }
 
   const getMediasSelection = (selection:BaseMedia[], title:string) => {
-    if (selection.length > 0) {
+    if (selection && selection.length > 0) {
       let medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })

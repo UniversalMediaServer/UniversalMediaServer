@@ -347,6 +347,17 @@ public class PlayerApiHandler implements HttpHandler {
 					jFolders.add(jFolder);
 				}
 			}
+			if (resources.isEmpty() && rootResource != null && rootResource.isFolder()) {
+				jBreadcrumbs = getBreadcrumbs(rootResource);
+				if (rootResource.getParent() != null) {
+					DLNAResource parentFromResources = rootResource.getParent();
+					JsonObject jFolder = new JsonObject();
+					jFolder.addProperty("id", parentFromResources.getResourceId());
+					jFolder.addProperty("name", "..");
+					jFolder.addProperty("icon", "back");
+					jFolders.add(jFolder);
+				}
+			}
 
 			// Generate innerHtml snippets for folders and media items
 			for (DLNAResource resource : resources) {
