@@ -58,6 +58,7 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.PmsConfiguration.SharedFolder;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -774,19 +775,19 @@ public class SharedContentTab {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
+			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 
 		@Override
 		public void insertRow(int row, Vector rowData) {
 			super.insertRow(row, rowData);
-			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
+			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 
 		@Override
 		public void removeRow(int row) {
 			super.removeRow(row);
-			configuration.setSharedFolders((Vector) folderTableModel.getDataVector());
+			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 	}
 
@@ -996,26 +997,14 @@ public class SharedContentTab {
 								String[] values = parseFeedValue(value);
 								String uri = values[0];
 
-								String readableType = "";
-								switch (sourceType) {
-									case "imagefeed":
-										readableType = READABLE_TYPE_IMAGE_FEED;
-										break;
-									case "videofeed":
-										readableType = READABLE_TYPE_VIDEO_FEED;
-										break;
-									case "audiofeed":
-										readableType = READABLE_TYPE_AUDIO_FEED;
-										break;
-									case "audiostream":
-										readableType = READABLE_TYPE_AUDIO_STREAM;
-										break;
-									case "videostream":
-										readableType = READABLE_TYPE_VIDEO_STREAM;
-										break;
-									default:
-										break;
-								}
+								String readableType = switch (sourceType) {
+									case "imagefeed" -> READABLE_TYPE_IMAGE_FEED;
+									case "videofeed" -> READABLE_TYPE_VIDEO_FEED;
+									case "audiofeed" -> READABLE_TYPE_AUDIO_FEED;
+									case "audiostream" -> READABLE_TYPE_AUDIO_STREAM;
+									case "videostream" -> READABLE_TYPE_VIDEO_STREAM;
+									default -> "";
+								};
 
 								// If the resource does not yet have a name, attempt to get one now
 								String resourceName = values.length > 3 && values[3] != null ? values[3] : null;
@@ -1102,5 +1091,21 @@ public class SharedContentTab {
 		}
 
 		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private List<SharedFolder> getFolders(Vector<Vector<?>> tableVector) {
+		List<SharedFolder> result = new ArrayList<>();
+		if (tableVector != null) {
+			for (Vector rowVector : tableVector) {
+				if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
+					SharedFolder sharedFolder = new SharedFolder();
+					sharedFolder.path = (String) rowVector.get(0);
+					sharedFolder.monitored = (boolean) rowVector.get(1);
+					result.add(sharedFolder);
+				}
+			}
+		}
+		return result;
 	}
 }

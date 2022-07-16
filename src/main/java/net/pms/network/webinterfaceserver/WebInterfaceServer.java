@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,23 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	@Override
 	public boolean isSecure() {
 		return webServer.isSecure();
+	}
+
+	public void resetAllRenderers() {
+		synchronized (roots) {
+			for (String cookie : roots.keySet()) {
+				RendererConfiguration conf = roots.get(cookie).getDefaultRenderer();
+				RootFolder root = new RootFolder();
+				root.setDefaultRenderer(conf);
+				roots.put(cookie, root);
+			}
+		}
+	}
+
+	public void deleteAllRenderers() {
+		synchronized (roots) {
+			roots.clear();
+		}
 	}
 
 	public static WebInterfaceServer createServer(int port) throws IOException {

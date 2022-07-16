@@ -18,18 +18,23 @@ public class MediaLibrary extends VirtualFolder {
 	 * @see https://www.bfi.org.uk/bfi-national-archive/research-bfi-archive/bfi-filmography/bfi-filmography-faq
 	 */
 	private static final Double FORTY_MINUTES_IN_SECONDS = 2400.0;
+	private boolean enabled;
+
 	private MediaLibraryFolder allFolder;
-
-	public MediaLibraryFolder getAllFolder() {
-		return allFolder;
-	}
-
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
 	private MediaLibraryFolder tvShowsFolder;
 	private VirtualFolder vfAudio = null;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public MediaLibraryFolder getAllFolder() {
+		return allFolder;
+	}
 
 	public VirtualFolder getAudioFolder() {
 		return vfAudio;
@@ -41,10 +46,14 @@ public class MediaLibrary extends VirtualFolder {
 
 	public MediaLibrary() {
 		super(Messages.getString("MediaLibrary"), "/images/folder-icons/media-library.png");
-		init();
+		reset();
 	}
 
-	private void init() {
+	public final void reset() {
+		enabled = configuration.getUseCache();
+		if (!enabled) {
+			return;
+		}
 		// Videos folder
 		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("Video"), null);
 

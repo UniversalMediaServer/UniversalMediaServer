@@ -515,12 +515,18 @@ public class StatusTab {
 
 				File f = new File(icon);
 
-				if (!f.isAbsolute() && f.getParent() == null) { // filename
-					f = new File("renderers", icon);
-				}
-
-				if (f.isFile()) {
-					is = new FileInputStream(f);
+				if (!f.isAbsolute() && f.getParent() == null) {
+					// filename, try profile renderers dir
+					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+					if (f.isFile()) {
+						is = new FileInputStream(f);
+					} else {
+						//try renderers dir
+						f = new File(RendererConfiguration.getRenderersDir(), icon);
+						if (f.isFile()) {
+							is = new FileInputStream(f);
+						}
+					}
 				}
 
 				if (is == null) {
