@@ -580,10 +580,10 @@ public class PMS {
 			if (!event.isBeforeUpdate()) {
 				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-          SseApiHandler.setReloadable(true);
+					SseApiHandler.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-          SseApiHandler.setReloadable(true);
+					SseApiHandler.setReloadable(true);
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
