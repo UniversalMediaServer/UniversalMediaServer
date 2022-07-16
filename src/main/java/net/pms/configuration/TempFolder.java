@@ -14,14 +14,14 @@ import org.slf4j.LoggerFactory;
  *
  * @author Tim Cox (mail@tcox.org)
  */
-class TempFolder {
+public class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
 	private static final String DEFAULT_TEMP_FOLDER_NAME = "UMS";
 	private final String userSpecifiedFolder;
 	private File tempFolder;
 
 	/**
-	 * userSpecifiedFolder may be null
+	 * @param userSpecifiedFolder may be null
 	 */
 	public TempFolder(String userSpecifiedFolder) {
 		this.userSpecifiedFolder = userSpecifiedFolder;

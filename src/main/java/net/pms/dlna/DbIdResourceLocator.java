@@ -173,8 +173,11 @@ public class DbIdResourceLocator {
 								"");
 							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 								res.setFakeParentId("0");
-							} else {
+							} else if (PMS.get().getLibrary().isEnabled()) {
 								res.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
+							} else {
+								LOGGER.debug("couldn't add 'My Music' folder because the media library is not initialized.");
+								return null;
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {

@@ -22,11 +22,14 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SocketChannelServer extends HttpMediaServer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SocketChannelServer.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;

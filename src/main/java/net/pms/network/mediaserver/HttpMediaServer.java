@@ -19,12 +19,8 @@ package net.pms.network.mediaserver;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 
 public abstract class HttpMediaServer {
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
 	protected final int port;
 
 	protected String hostname;
