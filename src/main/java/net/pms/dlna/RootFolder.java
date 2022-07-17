@@ -1096,9 +1096,13 @@ public class RootFolder extends DLNAResource {
 										// remove dots from name to prevent media renderer from trimming
 										name = name.replace('.', '-');
 
+										//this was merged without translation value, disabling this for now
+										//https://github.com/UniversalMediaServer/UniversalMediaServer/commit/cd81cf523d65afc8328edb1af0399c0e825eff6e
+										/*
 										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
 											name = String.format(Messages.getString("RootFolder.1"), name);
 										}
+										*/
 
 										boolean isCompilation = (track.containsKey("Compilation") && track.get("Compilation").equals(Boolean.TRUE));
 
@@ -1262,9 +1266,13 @@ public class RootFolder extends DLNAResource {
 										// remove dots from name to prevent media renderer from trimming
 										name = name.replace('.', '-');
 
+										//this was merged without translation value, disabling this for now
+										//https://github.com/UniversalMediaServer/UniversalMediaServer/commit/cd81cf523d65afc8328edb1af0399c0e825eff6e
+										/*
 										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
 											name = String.format(Messages.getString("RootFolder.1"), name);
 										}
+										*/
 
 										URI tURI2 = new URI(track.get("Location").toString());
 										RealFile file = new RealFile(new File(URLDecoder.decode(tURI2.toURL().getFile(), "UTF-8")), name);
