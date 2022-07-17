@@ -1062,9 +1062,10 @@ public class MediaTableFiles extends MediaTable {
 	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param media the {@link DLNAMediaInfo} row to update.
+	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final HashMap apiExtendedMetadata) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final JsonObject apiExtendedMetadata) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -1104,35 +1105,33 @@ public class MediaTableFiles extends MediaTable {
 
 					// TMDB data, since v11
 					if (apiExtendedMetadata != null) {
-						if (apiExtendedMetadata.get("budget") != null) {
-							rs.updateDouble("BUDGET", (Double) apiExtendedMetadata.get("budget"));
+						if (apiExtendedMetadata.has("budget")) {
+							rs.updateDouble("BUDGET", apiExtendedMetadata.get("budget").getAsDouble());
 						}
-						if (apiExtendedMetadata.get("credits") != null) {
-							rs.updateString("CREDITS", StringUtils.join(apiExtendedMetadata.get("credits"), ","));
+						if (apiExtendedMetadata.has("credits")) {
+							rs.updateString("CREDITS", apiExtendedMetadata.get("credits").toString());
 						}
-						if (apiExtendedMetadata.get("externalIDs") != null) {
-							rs.updateString("EXTERNALIDS", StringUtils.join(apiExtendedMetadata.get("externalIDs"), ","));
+						if (apiExtendedMetadata.has("externalIDs")) {
+							rs.updateString("EXTERNALIDS", apiExtendedMetadata.get("externalIDs").toString());
 						}
-						rs.updateString("HOMEPAGE", (String) apiExtendedMetadata.get("homepage"));
-						if (apiExtendedMetadata.get("images") != null) {
-							String json = new Gson().toJson(apiExtendedMetadata.get("images"));
-							rs.updateString("IMAGES", json);
+						rs.updateString("HOMEPAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
+						if (apiExtendedMetadata.has("images")) {
+							rs.updateString("IMAGES", apiExtendedMetadata.get("images").toString());
 						}
-						rs.updateString("ORIGINALLANGUAGE", (String) apiExtendedMetadata.get("originalLanguage"));
-						rs.updateString("ORIGINALTITLE", (String) apiExtendedMetadata.get("originalTitle"));
-						if (apiExtendedMetadata.get("productionCompanies") != null) {
-							rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(apiExtendedMetadata.get("productionCompanies"), ","));
+						rs.updateString("ORIGINALLANGUAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
+						rs.updateString("ORIGINALTITLE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
+						if (apiExtendedMetadata.has("productionCompanies")) {
+							rs.updateString("PRODUCTIONCOMPANIES", apiExtendedMetadata.get("productionCompanies").toString());
 						}
-						if (apiExtendedMetadata.get("productionCountries") != null) {
-							rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(apiExtendedMetadata.get("productionCountries"), ","));
+						if (apiExtendedMetadata.has("productionCountries")) {
+							rs.updateString("PRODUCTIONCOUNTRIES", apiExtendedMetadata.get("productionCountries").toString());
 						}
-						rs.updateString("REVENUE", (String) apiExtendedMetadata.get("revenue"));
+						rs.updateString("REVENUE", APIUtils.getStringOrNull(apiExtendedMetadata, "revenue"));
 					}
 
 					rs.updateRow();
 				} else {
 					LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
-					return;
 				}
 			}
 		}
@@ -1329,7 +1328,7 @@ public class MediaTableFiles extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 			}
-		} catch (Exception se) {
+		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}

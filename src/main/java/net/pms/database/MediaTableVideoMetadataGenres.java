@@ -17,6 +17,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -143,15 +144,15 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement genres, final long tvSeriesID) {
+		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			Iterator<String> i = genres.iterator();
+			Iterator<JsonElement> i = genres.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				String genre = i.next();
+				String genre = i.next().getAsString();
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(

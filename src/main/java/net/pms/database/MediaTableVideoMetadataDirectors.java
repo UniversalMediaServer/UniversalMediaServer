@@ -17,12 +17,12 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.Iterator;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
@@ -113,15 +113,15 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 	 * @param directors
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final HashSet directors, final long tvSeriesID) {
-		if (directors == null || directors.isEmpty()) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement directors, final long tvSeriesID) {
+		if (directors == null || !directors.isJsonArray() || directors.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			Iterator<String> i = directors.iterator();
+			Iterator<JsonElement> i = directors.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				String director = i.next();
+				String director = i.next().getAsString();
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(
