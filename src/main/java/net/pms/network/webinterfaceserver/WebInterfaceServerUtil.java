@@ -1385,16 +1385,17 @@ public class WebInterfaceServerUtil {
 			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
 				//fix credits json as it is wrongly stored in db
 				//it's not a json object
+				credits = null;
 			}
 			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
 				//fix external ids json as it is wrongly stored in db
 				String externalIDsStr = (String) row.get("EXTERNALIDS");
 				if (externalIDsStr.endsWith(",")) {
-					externalIDsStr = externalIDsStr.substring(0, externalIDsStr.length() - 1); 
+					externalIDsStr = externalIDsStr.substring(0, externalIDsStr.length() - 1);
 				}
 				//should return an object ??? why an array ???
 				JsonArray jExternalIDs = jsonArrayFromString(externalIDsStr);
-				if (jExternalIDs != null && ! jExternalIDs.isEmpty()) {
+				if (jExternalIDs != null && !jExternalIDs.isEmpty()) {
 					if (jExternalIDs.size() > 1) {
 						//check if their is only one and that the datas in db should be stored as an object.
 						LOGGER.warn("There is more than 1 externalIDs in array");
@@ -1434,7 +1435,7 @@ public class WebInterfaceServerUtil {
 			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
 				//should return an object ??? why an array ???
 				JsonArray jImages = jsonArrayFromString((String) row.get("IMAGES"));
-				if (jImages != null && ! jImages.isEmpty()) {
+				if (jImages != null && !jImages.isEmpty()) {
 					if (jImages.size() > 1) {
 						//check if their is only one and that the datas in db should be stored as an object.
 						LOGGER.warn("There is more than 1 images object in array");
