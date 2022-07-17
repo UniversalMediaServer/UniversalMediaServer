@@ -451,7 +451,7 @@ public class PlayerApiHandler implements HttpHandler {
 				} else {
 					// The resource is a media file
 					hasFile = true;
-					jMedias.add(getMediaJsonObject(resource));
+					jMedias.add(getMediaJsonObject(resource, root));
 				}
 			}
 
@@ -485,7 +485,7 @@ public class PlayerApiHandler implements HttpHandler {
 					for (DLNAResource resource : resources) {
 						if (resource instanceof MediaLibraryFolder) {
 							hasFile = true;
-							jMedias.add(getMediaJsonObject(resource));
+							jMedias.add(getMediaJsonObject(resource, root));
 						}
 					}
 				}
@@ -516,7 +516,7 @@ public class PlayerApiHandler implements HttpHandler {
 		}
 	}
 
-	private JsonObject getMediaJsonObject(DLNAResource resource) {
+	private JsonObject getMediaJsonObject(DLNAResource resource, RootFolder root) {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
@@ -525,6 +525,12 @@ public class PlayerApiHandler implements HttpHandler {
 		}
 		jMedia.addProperty("id", resource.getResourceId());
 		jMedia.addProperty("name", resource.resumeName());
+		if (CONFIGURATION.getUseCache()) {
+			JsonObject metadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
+			if (metadatas != null) {
+				jMedia.add("metadatas", metadatas);
+			}
+		}
 		return jMedia;
 	}
 
@@ -569,7 +575,7 @@ public class PlayerApiHandler implements HttpHandler {
 			if (libraryVideo.resumeName().equals(Messages.getString("Transcode_FolderName"))) {
 				continue;
 			}
-			jLibraryVideos.add(getMediaJsonObject(libraryVideo));
+			jLibraryVideos.add(getMediaJsonObject(libraryVideo, root));
 		}
 		return jLibraryVideos;
 	}

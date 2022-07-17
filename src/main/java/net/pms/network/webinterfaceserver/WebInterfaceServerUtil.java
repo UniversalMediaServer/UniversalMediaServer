@@ -439,6 +439,18 @@ public class WebInterfaceServerUtil {
 		return jObject;
 	}
 
+	private static JsonArray jsonArrayFromString(String str) {
+		JsonArray jArray = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem.isJsonArray()) {
+				jArray = jElem.getAsJsonArray();
+			}
+		} catch (JsonSyntaxException je) {
+		}
+		return jArray;
+	}
+
 	public static WebRender matchRenderer(String user, HttpExchange t) {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
@@ -1220,11 +1232,11 @@ public class WebInterfaceServerUtil {
 
 		// TMDB metadata added in V11
 		String createdBy = "";
-		String credits = "";
-		String externalIDs = "";
+		JsonObject credits = null;
+		JsonObject externalIDs = null;
 		String firstAirDate = "";
 		String homepage = "";
-		String images = "[]";
+		JsonObject images = null;
 		Boolean inProduction = null;
 		String languages = "";
 		String lastAirDate = "";
@@ -1371,10 +1383,24 @@ public class WebInterfaceServerUtil {
 				createdBy = (String) row.get("CREATEDBY");
 			}
 			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
-				credits = (String) row.get("CREDITS");
+				//fix credits json as it is wrongly stored in db
+				//it's not a json object
 			}
 			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
-				externalIDs = (String) row.get("EXTERNALIDS");
+				//fix external ids json as it is wrongly stored in db
+				String externalIDsStr = (String) row.get("EXTERNALIDS");
+				if (externalIDsStr.endsWith(",")) {
+					externalIDsStr = externalIDsStr.substring(0, externalIDsStr.length() - 1); 
+				}
+				//should return an object ??? why an array ???
+				JsonArray jExternalIDs = jsonArrayFromString(externalIDsStr);
+				if (jExternalIDs != null && ! jExternalIDs.isEmpty()) {
+					if (jExternalIDs.size() > 1) {
+						//check if their is only one and that the datas in db should be stored as an object.
+						LOGGER.warn("There is more than 1 externalIDs in array");
+					}
+					externalIDs = jExternalIDs.get(0).getAsJsonObject();
+				}
 			}
 			if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
 				firstAirDate = (String) row.get("FIRSTAIRDATE");
@@ -1406,7 +1432,15 @@ public class WebInterfaceServerUtil {
 			}
 
 			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
-				images = (String) row.get("IMAGES");
+				//should return an object ??? why an array ???
+				JsonArray jImages = jsonArrayFromString((String) row.get("IMAGES"));
+				if (jImages != null && ! jImages.isEmpty()) {
+					if (jImages.size() > 1) {
+						//check if their is only one and that the datas in db should be stored as an object.
+						LOGGER.warn("There is more than 1 images object in array");
+					}
+					images = jImages.get(0).getAsJsonObject();
+				}
 			}
 			if (row.get("INPRODUCTION") != null) {
 				inProduction = (Boolean) row.get("INPRODUCTION");
@@ -1502,8 +1536,8 @@ public class WebInterfaceServerUtil {
 		result.add("actors", jActors);
 		result.addProperty("awards", awards);
 		result.addProperty("createdBy", createdBy);
-		result.addProperty("credits", credits);
-		result.addProperty("externalIDs", externalIDs);
+		result.add("credits", credits);
+		result.add("externalIDs", externalIDs);
 		result.addProperty("firstAirDate", firstAirDate);
 		JsonArray jGenres = new JsonArray();
 		for (Map.Entry<String, String> genre : genres.entrySet()) {
@@ -1515,7 +1549,7 @@ public class WebInterfaceServerUtil {
 		result.add("genres", jGenres);
 		result.addProperty("homepage", homepage);
 		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
-		result.addProperty("images", images);
+		result.add("images", images);
 		result.addProperty("imdbID", imdbID);
 		result.addProperty("inProduction", inProduction);
 		result.addProperty("languages", languages);
