@@ -938,7 +938,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
 						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
 					} else {
-						ps.setString(++databaseColumnIterator, null);
+						ps.setDouble(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
@@ -948,7 +948,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setByte(++databaseColumnIterator, (byte) -1);
+						ps.setShort(++databaseColumnIterator, (short) -1);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.OTHER);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
