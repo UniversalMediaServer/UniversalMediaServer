@@ -175,4 +175,15 @@ public class PostgresTypes implements DbTypes {
 		ps.executeUpdate();
 	}
 
+	@Override
+	public void appendProperty(StringBuilder sb, String op, String val, String field) {
+		if ("=".equals(op)) {
+			sb.append(String.format(" %s = '%s' ", field, val));
+		} else if ("contains".equals(op)) {
+			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", field, val.toLowerCase()));
+		} else {
+			throw new RuntimeException("unknown or unimplemented operator : " + op);
+		}
+		sb.append("");
+	}
 }

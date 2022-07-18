@@ -145,4 +145,16 @@ public class H2dbTypes implements DbTypes {
 		ps.setObject(1, UUID.fromString(content));
 		ps.executeUpdate();
 	}
+
+	@Override
+	public void appendProperty(StringBuilder sb, String op, String val, String field) {
+		if ("=".equals(op)) {
+			sb.append(String.format(" %s = '%s' ", field, val));
+		} else if ("contains".equals(op)) {
+			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", field, val.toLowerCase()));
+		} else {
+			throw new RuntimeException("unknown or unimplemented operator : " + op);
+		}
+		sb.append("");
+	}
 }

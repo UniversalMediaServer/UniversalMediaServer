@@ -38,4 +38,7 @@ public interface DbTypes {
 	void cleanupMetadataTable(Connection connection, String table);
 
 	void mergeLikedAlbum(Connection connection, String content) throws SQLException;
+
+	// database specific UPnP search
+	void appendProperty(StringBuilder sb, String op, String val, String field);
 }

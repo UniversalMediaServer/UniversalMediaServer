@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.syntax.DbTypes;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
@@ -51,6 +52,7 @@ public class SearchRequestHandler {
 
 	private final AtomicInteger updateID = new AtomicInteger(1);
 	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+	private DbTypes dbTypes = MediaDatabase.get().getDbType();
 
 	public SearchRequestHandler() {
 	}
@@ -238,14 +240,8 @@ public class SearchRequestHandler {
 	 * @param requestType
 	 */
 	private void appendProperty(StringBuilder sb, String property, String op, String val, DbIdMediaType requestType) {
-		if ("=".equals(op)) {
-			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
-		} else if ("contains".equals(op)) {
-			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", getField(property, requestType), val.toLowerCase()));
-		} else {
-			throw new RuntimeException("unknown or unimplemented operator : " + op);
-		}
-		sb.append("");
+		String field = getField(property, requestType);
+		dbTypes.appendProperty(sb, op, val, field);
 	}
 
 	private String getField(String property, DbIdMediaType requestType) {
