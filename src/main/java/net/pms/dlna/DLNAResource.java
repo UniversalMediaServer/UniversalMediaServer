@@ -3974,6 +3974,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							connection.commit();
 						}
 					} catch (SQLException e) {
+						e.printStackTrace();
 						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
 							e.getMessage());
 						if (LOGGER.isTraceEnabled()) {

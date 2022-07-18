@@ -198,7 +198,7 @@ public final class MediaTableThumbnails extends MediaTable {
 
 					String insertQuery = "INSERT INTO " + TABLE_NAME + " (THUMBNAIL, MODIFIED, MD5) VALUES (?, ?, ?)";
 					try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
-						insertStatement.setObject(1, thumbnail);
+						DB_TYPES.insertSerialized(insertStatement, thumbnail, 1);
 						insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
 						insertStatement.setString(3, md5Hash);
 						insertStatement.executeUpdate();

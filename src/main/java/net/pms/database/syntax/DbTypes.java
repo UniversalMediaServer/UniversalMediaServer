@@ -34,4 +34,6 @@ public interface DbTypes {
 	String getIdentity();
 
 	String getBlob();
+
+	void cleanupMetadataTable(Connection connection, String table);
 }

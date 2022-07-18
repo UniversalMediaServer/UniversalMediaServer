@@ -911,7 +911,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
 						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVCLEVEL));
 						if (media.getImageInfo() != null) {
-							ps.setObject(++databaseColumnIterator, media.getImageInfo());
+							DB_TYPES.insertSerialized(ps, media.getImageInfo(), ++databaseColumnIterator);
 						} else {
 							ps.setNull(++databaseColumnIterator, Types.OTHER);
 						}
@@ -1414,11 +1414,7 @@ public class MediaTableFiles extends MediaTable {
 					MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRatings.TABLE_NAME,
 					MediaTableVideoMetadataReleased.TABLE_NAME };
 			for (String table : metadataTables) {
-				ps = connection.prepareStatement("DELETE FROM " + table + " " + "WHERE NOT EXISTS (" + "SELECT FILENAME FROM " +
-					TABLE_NAME + " " + "WHERE " + TABLE_NAME + ".FILENAME = " + table + ".FILENAME " + "LIMIT 1" + ") AND NOT EXISTS (" +
-					"SELECT ID FROM " + MediaTableTVSeries.TABLE_NAME + " " + "WHERE " + MediaTableTVSeries.TABLE_NAME + ".ID = " + table +
-					".TVSERIESID " + "LIMIT 1" + ");");
-				ps.execute();
+				DB_TYPES.cleanupMetadataTable(connection, table);
 			}
 		} catch (SQLException se) {
 			LOGGER.error(null, se);

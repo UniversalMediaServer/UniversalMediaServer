@@ -46,12 +46,12 @@ public class PostgresTypes implements DbTypes {
 
 	@Override
 	public void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
-		byte[] obj = getBytesFromObject(x);
-		ByteArrayInputStream bais = new ByteArrayInputStream(obj);
-		if (obj.length > 0) {
-			rs.updateBinaryStream(0, bais, obj.length);
-		} else {
+		if (x == null) {
 			rs.updateNull(columnLabel);
+		} else {
+			byte[] obj = getBytesFromObject(x);
+			ByteArrayInputStream bais = new ByteArrayInputStream(obj);
+			rs.updateBinaryStream(columnLabel, bais, obj.length);
 		}
 	}
 
@@ -83,6 +83,9 @@ public class PostgresTypes implements DbTypes {
 	@Override
 	public <T> T getObject(Class<T> cls, ResultSet rs, String column) throws SQLException {
 		byte[] obj = rs.getBytes(column);
+		if (obj == null) {
+			return null;
+		}
 		try {
 			ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(obj));
 			return (T) ois.readObject();
@@ -146,7 +149,7 @@ public class PostgresTypes implements DbTypes {
 
 	@Override
 	public String getBlob() {
-		return " bytea ";
+		return " BYTEA ";
 	}
 
 	@Override
@@ -156,6 +159,11 @@ public class PostgresTypes implements DbTypes {
 		} else {
 			rs.updateNull("COVER");
 		}
+	}
+
+	@Override
+	public void cleanupMetadataTable(Connection connection, String table) {
+		// TODO
 	}
 
 }

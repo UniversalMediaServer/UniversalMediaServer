@@ -147,7 +147,7 @@ public class MediaTableChapters extends MediaTable {
 						insertStatement.setString(4, left(chapter.getTitle(), SIZE_MAX));
 						insertStatement.setDouble(5, chapter.getStart());
 						insertStatement.setDouble(6, chapter.getEnd());
-						insertStatement.setObject(7, chapter.getThumbnail());
+						DB_TYPES.insertSerialized(insertStatement, chapter.getThumbnail(), 7);
 						insertStatement.executeUpdate();
 					}
 				}

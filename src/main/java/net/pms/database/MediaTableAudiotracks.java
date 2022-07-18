@@ -338,7 +338,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						} else {
 							try {
 								UUID mbidRecord = UUID.fromString(trimToEmpty(audioTrack.getMbidRecord()));
-								insertStatement.setObject(19, mbidRecord);
+								DB_TYPES.insertSerialized(insertStatement, mbidRecord, 19);
 							} catch (IllegalArgumentException e) {
 								LOGGER.trace("UUID not well formated, store null value");
 								insertStatement.setNull(19, Types.OTHER);
@@ -349,7 +349,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						} else {
 							try {
 								UUID mbidTrack = UUID.fromString(trimToEmpty(audioTrack.getMbidTrack()));
-								insertStatement.setObject(20, mbidTrack);
+								DB_TYPES.insertSerialized(insertStatement, mbidTrack, 20);
 							} catch (IllegalArgumentException e) {
 								LOGGER.trace("UUID not well formated, store null value");
 								insertStatement.setNull(20, Types.OTHER);

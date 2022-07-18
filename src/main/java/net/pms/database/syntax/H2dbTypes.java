@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.database.MediaTableTVSeries;
 
 public class H2dbTypes implements DbTypes {
 
@@ -64,9 +65,7 @@ public class H2dbTypes implements DbTypes {
 	public boolean tableExists(Connection connection, String tableName, String tableSchema) throws SQLException {
 		LOGGER.trace("Checking if database table \"{}\" in schema \"{}\" exists", tableName, tableSchema);
 
-		String sql = " SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-			"WHERE TABLE_SCHEMA = ? " +
-			"AND  TABLE_NAME = ? ";
+		String sql = " SELECT * FROM INFORMATION_SCHEMA.TABLES " + "WHERE TABLE_SCHEMA = ? " + "AND  TABLE_NAME = ? ";
 
 		try (PreparedStatement statement = connection.prepareStatement(sql)) {
 			statement.setString(1, tableSchema);
@@ -85,12 +84,9 @@ public class H2dbTypes implements DbTypes {
 
 	@Override
 	public boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
-		String sql = " SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
-			"WHERE TABLE_NAME = ? " +
-			"AND COLUMN_NAME = ? ";
+		String sql = " SELECT * FROM INFORMATION_SCHEMA.COLUMNS " + "WHERE TABLE_NAME = ? " + "AND COLUMN_NAME = ? ";
 
-		try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE
-		)) {
+		try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 			statement.setString(1, table);
 			statement.setString(2, column);
 			try (ResultSet result = statement.executeQuery()) {
@@ -126,6 +122,18 @@ public class H2dbTypes implements DbTypes {
 			rs.updateBinaryStream("COVER", new ByteArrayInputStream(data));
 		} else {
 			rs.updateNull("COVER");
+		}
+	}
+
+	@Override
+	public void cleanupMetadataTable(Connection connection, String table) {
+		String sql = "DELETE FROM " + table + " " + "WHERE NOT EXISTS (" + "SELECT FILENAME FROM FILES " + "WHERE FILES.FILENAME = " +
+			table + ".FILENAME " + "LIMIT 1" + ") AND NOT EXISTS (" + "SELECT ID FROM " + MediaTableTVSeries.TABLE_NAME + " " + "WHERE " +
+			MediaTableTVSeries.TABLE_NAME + ".ID = " + table + ".TVSERIESID " + "LIMIT 1" + ");";
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.execute();
+		} catch (SQLException e) {
+			LOGGER.error("cleanup failed.", e);
 		}
 	}
 }
