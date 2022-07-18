@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.h2.tools.RunScript;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.syntax.DbTypes;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class LikeMusic implements ApiResponseHandler {
@@ -27,6 +29,8 @@ public class LikeMusic implements ApiResponseHandler {
 	public static final String PATH_MATCH = "like";
 	private MediaDatabase db = PMS.get().getMediaDatabase();
 	private final String backupFilename;
+
+	private DbTypes dbTypes = MediaDatabase.get().getDbType();
 
 	public LikeMusic() {
 		String dir = FilenameUtils.concat(PMS.getConfiguration().getProfileDirectory(), "database_backup");
@@ -49,7 +53,7 @@ public class LikeMusic implements ApiResponseHandler {
 					sql = "UPDATE AUDIOTRACKS set LIKESONG = true where MBID_TRACK = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
-						ps.setString(1, content);
+						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
@@ -57,11 +61,8 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "likealbum":
-					sql = "MERGE INTO MUSIC_BRAINZ_RELEASE_LIKE KEY (MBID_RELEASE) values (?)";
 					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
-						ps.setString(1, content);
-						ps.executeUpdate();
+						dbTypes.mergeLikedAlbum(connection, content);
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
@@ -71,7 +72,7 @@ public class LikeMusic implements ApiResponseHandler {
 					sql = "UPDATE AUDIOTRACKS set LIKESONG = false where MBID_TRACK = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
-						ps.setString(1, content);
+						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
@@ -82,7 +83,7 @@ public class LikeMusic implements ApiResponseHandler {
 					sql = "DELETE FROM MUSIC_BRAINZ_RELEASE_LIKE where MBID_RELEASE = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
-						ps.setString(1, content);
+						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
@@ -116,7 +117,7 @@ public class LikeMusic implements ApiResponseHandler {
 
 	private boolean isCountGreaterZero(String sql, Connection connection, String key) {
 		try (PreparedStatement ps = connection.prepareStatement(sql);) {
-			ps.setString(1, key);
+			ps.setObject(1, UUID.fromString(key));
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
 				return rs.getLong(1) > 0;

@@ -36,4 +36,6 @@ public interface DbTypes {
 	String getBlob();
 
 	void cleanupMetadataTable(Connection connection, String table);
+
+	void mergeLikedAlbum(Connection connection, String content) throws SQLException;
 }

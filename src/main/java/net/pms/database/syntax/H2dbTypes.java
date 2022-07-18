@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaTableTVSeries;
@@ -135,5 +136,13 @@ public class H2dbTypes implements DbTypes {
 		} catch (SQLException e) {
 			LOGGER.error("cleanup failed.", e);
 		}
+	}
+
+	@Override
+	public void mergeLikedAlbum(Connection connection, String content) throws SQLException {
+		String sql = "MERGE INTO MUSIC_BRAINZ_RELEASE_LIKE KEY (MBID_RELEASE) values (?)";
+		PreparedStatement ps = connection.prepareStatement(sql);
+		ps.setObject(1, UUID.fromString(content));
+		ps.executeUpdate();
 	}
 }

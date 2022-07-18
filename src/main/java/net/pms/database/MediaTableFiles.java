@@ -832,7 +832,7 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), SIZE_MAX));
 							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
 							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
-							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
+							rs.updateShort("REFRAMES", media.getReferenceFrameCount());
 							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVCLEVEL));
 							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
 							if (media.getImageInfo() != null) {
@@ -908,7 +908,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_MAX));
 						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
 						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
-						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
+						ps.setShort(++databaseColumnIterator, media.getReferenceFrameCount());
 						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVCLEVEL));
 						if (media.getImageInfo() != null) {
 							DB_TYPES.insertSerialized(ps, media.getImageInfo(), ++databaseColumnIterator);

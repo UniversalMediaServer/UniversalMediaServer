@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,6 +165,14 @@ public class PostgresTypes implements DbTypes {
 	@Override
 	public void cleanupMetadataTable(Connection connection, String table) {
 		// TODO
+	}
+
+	@Override
+	public void mergeLikedAlbum(Connection connection, String content) throws SQLException {
+		String sql = "insert into music_brainz_release_like (MBID_RELEASE) VALUES ( ? ) ON CONFLICT DO NOTHING";
+		PreparedStatement ps = connection.prepareStatement(sql);
+		ps.setObject(1, UUID.fromString(content));
+		ps.executeUpdate();
 	}
 
 }
