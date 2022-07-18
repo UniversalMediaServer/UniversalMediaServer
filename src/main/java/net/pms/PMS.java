@@ -77,7 +77,6 @@ import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -570,25 +569,22 @@ public class PMS {
 		 */
 		FrameAppender.setFrame(frame);
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
+				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					frame.setReloadable(true);
+				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetMediaLibrary();
+				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetRenderersRoot();
 				}
 			}
 		});
 
 		// Web stuff
-		if (configuration.useWebInterfaceServer()) {
-			try {
-				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
-				getFrame().updateServerStatus();
-			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-			}
-		}
+		resetWebInterfaceServer();
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -698,9 +694,7 @@ public class PMS {
 		}
 
 		// initialize the cache
-		if (configuration.getUseCache()) {
-			mediaLibrary = new MediaLibrary();
-		}
+		mediaLibrary = new MediaLibrary();
 
 		// XXX: this must be called:
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
@@ -802,8 +796,7 @@ public class PMS {
 	/**
 	 * Returns the MediaLibrary.
 	 *
-	 * @return The current {@link MediaLibrary} or {@code null} if none is in
-	 *         use.
+	 * @return The current {@link MediaLibrary}.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
@@ -815,10 +808,10 @@ public class PMS {
 	 */
 	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
 	// see the comment above HttpMediaServer.stop()
-	public void reset() {
+	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
 			MediaServer.stop();
-			RendererConfiguration.loadRendererConfigurations(configuration);
+			resetRenderers(true);
 
 			LOGGER.trace("Waiting 1 second...");
 			try {
@@ -826,12 +819,73 @@ public class PMS {
 			} catch (InterruptedException e) {
 				LOGGER.trace("Caught exception", e);
 			}
+
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
 
 			frame.setReloadable(false);
 		});
+	}
+
+	/**
+	 * Reset renderers.
+	 * The trigger is configuration change.
+	 * @param delete True if removal of known renderers is needed
+	 */
+	public void resetRenderers(boolean delete) {
+		RendererConfiguration.loadRendererConfigurations(configuration);
+		if (delete) {
+			RendererConfiguration.deleteAllConnectedRenderers();
+			if (webInterfaceServer != null) {
+				webInterfaceServer.deleteAllRenderers();
+			}
+		}
+	}
+
+	/**
+	 * Reset the media library.
+	 * The trigger is configuration change.
+	 */
+	public void resetMediaLibrary() {
+		if (mediaLibrary != null) {
+			mediaLibrary.reset();
+		}
+		resetRenderersRoot();
+	}
+
+	/**
+	 * Reset all renderers Root Folder.
+	 * The trigger is configuration change.
+	 */
+	public void resetRenderersRoot() {
+		RendererConfiguration.resetAllRenderers();
+		if (webInterfaceServer != null) {
+			webInterfaceServer.resetAllRenderers();
+		}
+		DLNAResource.bumpSystemUpdateId();
+	}
+
+	/**
+	 * Reset the web interface server.
+	 * The trigger is init and configuration change.
+	 */
+	public void resetWebInterfaceServer() {
+		// Web stuff
+		if (webInterfaceServer != null) {
+			webInterfaceServer.stop();
+		}
+		if (configuration.useWebInterfaceServer()) {
+			try {
+				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
+				getFrame().updateServerStatus();
+			} catch (BindException b) {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			} catch (IOException ex) {
+				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
+			}
+		}
 	}
 
 	/**

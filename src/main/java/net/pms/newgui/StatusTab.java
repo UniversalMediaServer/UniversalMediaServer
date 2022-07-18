@@ -335,7 +335,7 @@ public class StatusTab {
 		interfaceServerBindLabel.setForeground(fgColor);
 		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
-		interfaceServerBindLabel.setToolTipText(Messages.getString("InterfaceServerIpAddress"));
+		interfaceServerBindLabel.setToolTipText(Messages.getString("WebInterfaceServerIpAddress"));
 		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
 		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
@@ -515,12 +515,18 @@ public class StatusTab {
 
 				File f = new File(icon);
 
-				if (!f.isAbsolute() && f.getParent() == null) { // filename
-					f = new File("renderers", icon);
-				}
-
-				if (f.isFile()) {
-					is = new FileInputStream(f);
+				if (!f.isAbsolute() && f.getParent() == null) {
+					// filename, try profile renderers dir
+					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+					if (f.isFile()) {
+						is = new FileInputStream(f);
+					} else {
+						//try renderers dir
+						f = new File(RendererConfiguration.getRenderersDir(), icon);
+						if (f.isFile()) {
+							is = new FileInputStream(f);
+						}
+					}
 				}
 
 				if (is == null) {

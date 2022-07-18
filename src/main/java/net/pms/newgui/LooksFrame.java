@@ -529,7 +529,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				reload.setEnabled(false);
-				PMS.get().reset();
+				PMS.get().resetMediaServer();
 			}
 		});
 		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
