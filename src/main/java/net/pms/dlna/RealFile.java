@@ -18,7 +18,6 @@
 package net.pms.dlna;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -462,7 +461,7 @@ public class RealFile extends MapFile {
 						LOGGER.trace("no artwork in MediaTableCoverArtArchive table");
 						if (t.getFirstArtwork() != null) {
 							byte[] artBytes = t.getFirstArtwork().getBinaryData();
-							MediaTableCoverArtArchive.writeMBID(mbReleaseId, new ByteArrayInputStream(artBytes));
+							MediaTableCoverArtArchive.writeMBID(mbReleaseId, artBytes);
 							LOGGER.trace("added cover to MediaTableCoverArtArchive");
 						} else {
 							LOGGER.trace("no artwork in TAG");

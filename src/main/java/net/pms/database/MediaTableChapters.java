@@ -17,15 +17,15 @@
  */
 package net.pms.database;
 
+import static org.apache.commons.lang3.StringUtils.left;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
-import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.dlna.DLNAMediaChapter;
+import net.pms.dlna.DLNAMediaInfo;
 
 /**
  * This class is responsible for managing the Chapters releases table. It
@@ -96,11 +96,11 @@ public class MediaTableChapters extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + " (" +
 				"ID             INT                                 NOT NULL            , " +
 				"FILEID         BIGINT                              NOT NULL            , " +
-				"LANG           VARCHAR2(" + SIZE_LANG + ")                             , " +
-				"TITLE          VARCHAR2(" + SIZE_MAX + ")                              , " +
-				"START_TIME     DOUBLE                                                  , " +
-				"END_TIME       DOUBLE                                                  , " +
-				"THUMBNAIL		OTHER	                    		            		, " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
+				"START_TIME     " + DB_TYPES.getDouble() + "                            , " +
+				"END_TIME       " + DB_TYPES.getDouble() + "                            , " +
+				"THUMBNAIL		" + DB_TYPES.getObjectType() + "	             		, " +
 				"CONSTRAINT PKCHAP PRIMARY KEY (FILEID, ID, LANG)                       , " +
 				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +
 			")"

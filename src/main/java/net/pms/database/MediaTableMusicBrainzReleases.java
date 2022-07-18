@@ -127,8 +127,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY	, " +
-				"MODIFIED		DATETIME					, " +
+				"ID				" + DB_TYPES.getIdentity() + "		PRIMARY KEY	, " +
+				"MODIFIED		TIMESTAMP					, " +
 				"MBID			VARCHAR(36)					, " +
 				"ARTIST			VARCHAR(1000)				, " +
 				"ALBUM			VARCHAR(1000)				, " +

@@ -103,11 +103,11 @@ public class MediaTableSubtracks extends MediaTable {
 			"CREATE TABLE SUBTRACKS (" +
 				"ID             INT									NOT NULL			, " +
 				"FILEID         BIGINT								NOT NULL			, " +
-				"LANG           VARCHAR2(" + SIZE_LANG + ")								, " +
-				"TITLE          VARCHAR2(" + SIZE_MAX + ")								, " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")								, " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")								, " +
 				"FORMAT_TYPE    INT														, " +
-				"EXTERNALFILE   VARCHAR2(" + SIZE_EXTERNALFILE + ")	NOT NULL default ''	, " +
-				"CHARSET        VARCHAR2(" + SIZE_MAX + ")								, " +
+				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")	NOT NULL default ''	, " +
+				"CHARSET        VARCHAR(" + SIZE_MAX + ")								, " +
 				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)				, " +
 				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +
 			")"

@@ -17,7 +17,6 @@
  */
 package net.pms.database;
 
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -105,10 +104,10 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY, " +
-				"MODIFIED		DATETIME, " +
+				"ID				" + DB_TYPES.getIdentity() + "		PRIMARY KEY, " +
+				"MODIFIED		TIMESTAMP, " +
 				"MBID			VARCHAR(36), " +
-				"COVER			BLOB" +
+				"COVER		" + DB_TYPES.getBlob() +
 			")",
 			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)"
 		);
@@ -144,7 +143,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @param mBID the MBID (releaseId) to store
 	 * @param cover the cover as a {@link Blob}
 	 */
-	public static void writeMBID(final String mBID, InputStream cover) {
+	public static void writeMBID(final String mBID, byte[] cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
@@ -163,11 +162,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 							LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
 						}
 						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						if (cover != null) {
-							result.updateBinaryStream("COVER", cover);
-						} else {
-							result.updateNull("COVER");
-						}
+						DB_TYPES.updateBinary(result, cover, "COVER");
 						result.updateRow();
 					} else if (trace) {
 						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
@@ -181,7 +176,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
 					result.updateString("MBID", mBID);
 					if (cover != null) {
-						result.updateBinaryStream("COVER", cover);
+						DB_TYPES.updateBinary(result, cover, "COVER");
 					}
 					result.insertRow();
 				}

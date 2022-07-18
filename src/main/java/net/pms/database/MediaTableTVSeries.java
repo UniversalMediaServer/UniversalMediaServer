@@ -111,7 +111,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				case 1:
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
 							statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
 						}
 					} catch (SQLException e) {
@@ -128,28 +128,28 @@ public final class MediaTableTVSeries extends MediaTable {
 					break;
 				case 3:
 					LOGGER.trace("Adding TMDB columns");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FIRSTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS INPRODUCTION VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LASTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NETWORKS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFEPISODES DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFSEASONS DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINCOUNTRY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SEASONS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SERIESTYPE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FIRSTAIRDATE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS INPRODUCTION VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LANGUAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LASTAIRDATE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NETWORKS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFEPISODES " + DB_TYPES.getDouble());
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFSEASONS " + DB_TYPES.getDouble());
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINCOUNTRY VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SEASONS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SERIESTYPE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR");
 					break;
 				case 4:
 					// This version was for testing, left here to not break tester dbs
@@ -179,39 +179,39 @@ public final class MediaTableTVSeries extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					IDENTITY			PRIMARY KEY	, " +
-				"ENDYEAR			VARCHAR2(1024)					, " +
-				"IMDBID				VARCHAR2(1024)					, " +
+				"ID					" + DB_TYPES.getObjectType() + "			PRIMARY KEY	, " +
+				"ENDYEAR			VARCHAR(1024)					, " +
+				"IMDBID				VARCHAR(1024)					, " +
 				"THUMBID			BIGINT							, " +
-				"PLOT				VARCHAR2(20000)					, " +
-				"STARTYEAR			VARCHAR2(1024)					, " +
-				"TITLE				VARCHAR2(1024)		NOT NULL	, " +
-				"SIMPLIFIEDTITLE    VARCHAR2(1024)		NOT NULL	, " +
-				"TOTALSEASONS		DOUBLE							, " +
-				"VERSION			VARCHAR2(1024)					, " +
-				"VOTES				VARCHAR2(1024)					, " +
-				"CREATEDBY VARCHAR2, " +
-				"CREDITS VARCHAR2, " +
-				"EXTERNALIDS VARCHAR2, " +
-				"FIRSTAIRDATE VARCHAR2, " +
-				"HOMEPAGE VARCHAR2, " +
-				"IMAGES VARCHAR2, " +
-				"INPRODUCTION BOOLEAN, " +
-				"LANGUAGES VARCHAR2, " +
-				"LASTAIRDATE VARCHAR2, " +
-				"NETWORKS VARCHAR2, " +
-				"NUMBEROFEPISODES DOUBLE, " +
-				"NUMBEROFSEASONS DOUBLE, " +
-				"ORIGINCOUNTRY VARCHAR2, " +
-				"ORIGINALLANGUAGE VARCHAR2, " +
-				"ORIGINALTITLE VARCHAR2, " +
-				"PRODUCTIONCOMPANIES VARCHAR2, " +
-				"PRODUCTIONCOUNTRIES VARCHAR2, " +
-				"SEASONS VARCHAR2, " +
-				"SERIESTYPE VARCHAR2, " +
-				"SPOKENLANGUAGES VARCHAR2, " +
-				"STATUS VARCHAR2, " +
-				"TAGLINE VARCHAR2" +
+				"PLOT				VARCHAR(20000)					, " +
+				"STARTYEAR			VARCHAR(1024)					, " +
+				"TITLE				VARCHAR(1024)		NOT NULL	, " +
+				"SIMPLIFIEDTITLE    VARCHAR(1024)		NOT NULL	, " +
+				"TOTALSEASONS		" + DB_TYPES.getDouble() + "    , " +
+				"VERSION			VARCHAR(1024)					, " +
+				"VOTES				VARCHAR(1024)					, " +
+				"CREATEDBY 			VARCHAR, " +
+				"CREDITS 			VARCHAR, " +
+				"EXTERNALIDS 		VARCHAR, " +
+				"FIRSTAIRDATE 		VARCHAR, " +
+				"HOMEPAGE 			VARCHAR, " +
+				"IMAGES 			VARCHAR, " +
+				"INPRODUCTION 		BOOLEAN, " +
+				"LANGUAGES 			VARCHAR, " +
+				"LASTAIRDATE 		VARCHAR, " +
+				"NETWORKS 			VARCHAR, " +
+				"NUMBEROFEPISODES 	" + DB_TYPES.getDouble() + ", " +
+				"NUMBEROFSEASONS 	" + DB_TYPES.getDouble() + ", " +
+				"ORIGINCOUNTRY 		VARCHAR, " +
+				"ORIGINALLANGUAGE 	VARCHAR, " +
+				"ORIGINALTITLE 		VARCHAR, " +
+				"PRODUCTIONCOMPANIES VARCHAR, " +
+				"PRODUCTIONCOUNTRIES VARCHAR, " +
+				"SEASONS 			VARCHAR, " +
+				"SERIESTYPE 		VARCHAR, " +
+				"SPOKENLANGUAGES 	VARCHAR, " +
+				"STATUS 			VARCHAR, " +
+				"TAGLINE 			VARCHAR" +
 			")",
 			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
 			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",

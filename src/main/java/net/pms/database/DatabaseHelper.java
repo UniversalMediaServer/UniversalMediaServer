@@ -17,25 +17,25 @@
  */
 package net.pms.database;
 
-import com.google.common.base.CharMatcher;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.CharMatcher;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.database.syntax.DbTypes;
 
 public class DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
@@ -61,6 +61,8 @@ public class DatabaseHelper {
 	// Generic constant for the maximum string size: 255 chars
 	protected static final int SIZE_MAX = 255;
 
+	protected static final DbTypes DB_TYPES = MediaDatabase.get().getDbType();
+
 	/**
 	 * Checks if a named table exists
 	 *
@@ -74,25 +76,7 @@ public class DatabaseHelper {
 	 * @throws SQLException
 	 */
 	protected static final boolean tableExists(final Connection connection, final String tableName, final String tableSchema) throws SQLException {
-		LOGGER.trace("Checking if database table \"{}\" in schema \"{}\" exists", tableName, tableSchema);
-
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-			"WHERE TABLE_SCHEMA = ? " +
-			"AND  TABLE_NAME = ?"
-		)) {
-			statement.setString(1, tableSchema);
-			statement.setString(2, tableName);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.next()) {
-					LOGGER.trace("Database table \"{}\" found", tableName);
-					return true;
-				} else {
-					LOGGER.trace("Database table \"{}\" not found", tableName);
-					return false;
-				}
-			}
-		}
+		return DB_TYPES.tableExists(connection, tableName, tableSchema);
 	}
 
 	/**
@@ -315,28 +299,12 @@ public class DatabaseHelper {
 	 * @throws SQLException
 	 */
 	protected static boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
-			"WHERE TABLE_NAME = ? " +
-			"AND COLUMN_NAME = ?"
-		)) {
-			statement.setString(1, table);
-			statement.setString(2, column);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.first()) {
-					LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
-					return true;
-				} else {
-					LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
-					return false;
-				}
-			}
-		}
+		return DB_TYPES.isColumnExist(connection, table, column);
 	}
 
 	protected static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
-			try (Statement stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				stmt.executeUpdate(sql);
 			}
 		}
@@ -348,7 +316,7 @@ public class DatabaseHelper {
 
 	protected static void execute(Connection conn, String... sqls) throws SQLException {
 		if (conn != null) {
-			try (Statement stmt = conn.createStatement()) {
+			try (Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				for (String sql : sqls) {
 					stmt.execute(sql);
 				}
@@ -357,19 +325,11 @@ public class DatabaseHelper {
 	}
 
 	protected static void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
-		if (x != null) {
-			rs.updateObject(columnLabel, x);
-		} else {
-			rs.updateNull(columnLabel);
-		}
+		DB_TYPES.updateSerialized(rs, x, columnLabel);
 	}
 
 	protected static void insertSerialized(PreparedStatement ps, Object x, int parameterIndex) throws SQLException {
-		if (x != null) {
-			ps.setObject(parameterIndex, x);
-		} else {
-			ps.setNull(parameterIndex, Types.OTHER);
-		}
+		DB_TYPES.insertSerialized(ps, x, parameterIndex);
 	}
 	/**
 	 * Returns the VALUES {@link String} for the SQL request.

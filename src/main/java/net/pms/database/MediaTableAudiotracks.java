@@ -134,7 +134,7 @@ public class MediaTableAudiotracks extends MediaTable {
 					connection.setAutoCommit(false);
 					try (
 						Statement stmt =  DATABASE.getConnection().createStatement()) {
-						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID int auto_increment");
+						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID " + DB_TYPES.getAutoIncVariableType());
 						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
 						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
 						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
@@ -168,26 +168,26 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", FILEID            BIGINT           NOT NULL");
 			sb.append(", MBID_RECORD       UUID");
 			sb.append(", MBID_TRACK        UUID");
-			sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
-			sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", LANG              VARCHAR(").append(SIZE_LANG).append(')');
+			sb.append(", TITLE             VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", NRAUDIOCHANNELS   NUMERIC");
-			sb.append(", SAMPLEFREQ        VARCHAR2(").append(SIZE_SAMPLEFREQ).append(')');
-			sb.append(", CODECA            VARCHAR2(").append(SIZE_CODECA).append(')');
+			sb.append(", SAMPLEFREQ        VARCHAR(").append(SIZE_SAMPLEFREQ).append(')');
+			sb.append(", CODECA            VARCHAR(").append(SIZE_CODECA).append(')');
 			sb.append(", BITSPERSAMPLE     INT");
-			sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
+			sb.append(", ALBUM             VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ARTIST            VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ALBUMARTIST       VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", SONGNAME          VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", GENRE             VARCHAR(").append(SIZE_GENRE).append(')');
 			sb.append(", MEDIA_YEAR        INT");
 			sb.append(", TRACK             INT");
 			sb.append(", DISC              INT");
 			sb.append(", DELAY             INT");
-			sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
+			sb.append(", MUXINGMODE        VARCHAR(").append(SIZE_MUXINGMODE).append(')');
 			sb.append(", BITRATE           INT");
 			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INT");
-			sb.append(", AUDIOTRACK_ID     INT 				AUTO_INCREMENT");
+			sb.append(", AUDIOTRACK_ID " + DB_TYPES.getAutoIncVariableType());
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
 			sb.append("    REFERENCES FILES(ID)");

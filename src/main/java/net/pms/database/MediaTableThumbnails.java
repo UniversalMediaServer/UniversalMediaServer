@@ -109,9 +109,9 @@ public final class MediaTableThumbnails extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY		, " +
-				"THUMBNAIL		OTHER			NOT NULL		, " +
-				"MODIFIED		DATETIME						, " +
+				"ID				" + DB_TYPES.getIdentity() + " PRIMARY KEY		, " +
+				"THUMBNAIL		" + DB_TYPES.getObjectType() + " NOT NULL		, " +
+				"MODIFIED		TIMESTAMP						, " +
 				"MD5			VARCHAR			UNIQUE NOT NULL" +
 			")"
 		);

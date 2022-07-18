@@ -94,10 +94,10 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID           IDENTITY         PRIMARY KEY, " +
-				"TVSERIESID   INT              DEFAULT -1, " +
-				"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-				"AWARD        VARCHAR2(1024)   NOT NULL" +
+				"ID           " + DB_TYPES.getIdentity() + "   PRIMARY KEY, " +
+				"TVSERIESID   INT             DEFAULT -1, " +
+				"FILENAME     VARCHAR(1024)   DEFAULT '', " +
+				"AWARD        VARCHAR(1024)   NOT NULL" +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)"
 		);

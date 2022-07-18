@@ -37,6 +37,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.database.syntax.DbTypes;
+import net.pms.database.syntax.H2dbTypes;
+import net.pms.database.syntax.PostgresTypes;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -45,7 +48,7 @@ import net.pms.configuration.PmsConfiguration;
  * later.
  */
 public abstract class Database extends DatabaseHelper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
+	private static Logger logger;
 
 	private String url;
 	private String dbDir;
@@ -57,6 +60,12 @@ public abstract class Database extends DatabaseHelper {
 	private HikariDataSource ds = null;
 
 	protected DatabaseStatus status;
+
+	protected DbTypes dbTypes;
+
+	public DbTypes getDbType() {
+		return dbTypes;
+	}
 
 	/**
 	 * Initializes the database connection pool for the current profile.
@@ -70,11 +79,18 @@ public abstract class Database extends DatabaseHelper {
 	 * @param password the database password
 	 */
 	public Database(String name, String user, String password) {
+		logger = LoggerFactory.getLogger(Database.class);
 		if (isH2dbBackend()) {
 			h2dbInit(name, user, password);
+			dbTypes = new H2dbTypes();
+		} else if (isPostgresBackend()) {
+			dbTypes = new PostgresTypes();
+		} else {
+			logger.warn("unknown database");
+			dbTypes = null;
 		}
-		// create connection pool.
 
+		// create connection pool.
 		PmsConfiguration c = PMS.getConfiguration();
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl(c.getDatabaseUrl());
@@ -87,11 +103,11 @@ public abstract class Database extends DatabaseHelper {
 		ds = new HikariDataSource(config);
 	}
 
-	private boolean isH2dbBackend() {
+	public boolean isH2dbBackend() {
 		return "h2db".equalsIgnoreCase(PMS.getConfiguration().getDatabaseBackend());
 	}
 
-	private boolean isPostgresBackend() {
+	public boolean isPostgresBackend() {
 		return "pg".equalsIgnoreCase(PMS.getConfiguration().getDatabaseBackend());
 	}
 
@@ -103,22 +119,22 @@ public abstract class Database extends DatabaseHelper {
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
 		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
-		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
+		logger.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
 
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
-			LOGGER.info("Database logging is enabled");
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Database logging is disabled");
+			logger.info("Database logging is enabled");
+		} else if (logger.isDebugEnabled()) {
+			logger.debug("Database logging is disabled");
 		}
 
-		LOGGER.debug("Using \"{}\" database URL: {}", dbName, url);
-		LOGGER.info("Using \"{}\" database located at: \"{}\"", dbName, dbDir);
+		logger.debug("Using \"{}\" database URL: {}", dbName, url);
+		logger.info("Using \"{}\" database located at: \"{}\"", dbName, dbDir);
 
 		try {
 			Class.forName("org.h2.Driver");
 		} catch (ClassNotFoundException e) {
-			LOGGER.error(null, e);
+			logger.error(null, e);
 		}
 	}
 
@@ -202,6 +218,7 @@ public abstract class Database extends DatabaseHelper {
 			if (isH2dbBackend()) {
 				conn = handleOpenExceptionH2db(conn, needRetry, se);
 			}
+			logger.error("db open", se);
 		} finally {
 			close(conn);
 		}
@@ -212,20 +229,20 @@ public abstract class Database extends DatabaseHelper {
 		final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
 		final File dbDirectory = new File(dbDir);
 		if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
-			LOGGER.info("The database need a migration to h2 format 2");
+			logger.info("The database need a migration to h2 format 2");
 			migrateDatabaseVersion2(true);
 			needRetry = true;
 		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 			FileUtils.deleteQuietly(dbDirectory);
 			if (!dbDirectory.exists()) {
-				LOGGER.info("The database has been deleted because it was corrupt or had the wrong version");
+				logger.info("The database has been deleted because it was corrupt or had the wrong version");
 				needRetry = true;
 			} else {
 				showMessageDialog("DamagedCacheCantBeDeleted", dbDir);
-				LOGGER.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+				logger.error("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 			}
 		} else {
-			LOGGER.debug("Database connection error, retrying in 10 seconds");
+			logger.debug("Database connection error, retrying in 10 seconds");
 			sleep(10000);
 			needRetry = true;
 		}
@@ -235,7 +252,7 @@ public abstract class Database extends DatabaseHelper {
 				status = DatabaseStatus.OPENED;
 			} catch (SQLException se2) {
 				showMessageDialog("TheLocalCacheCouldNotStarted", dbDir);
-				LOGGER.debug("", se2);
+				logger.debug("", se2);
 			}
 		}
 		return conn;
@@ -255,7 +272,7 @@ public abstract class Database extends DatabaseHelper {
 					JOptionPane.ERROR_MESSAGE
 				);
 			} catch (NullPointerException e1) {
-				LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e1);
+				logger.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e1);
 			}
 		}
 	}
@@ -269,25 +286,25 @@ public abstract class Database extends DatabaseHelper {
 			int curAttempts = 1;
 			//allow threads to finish
 			while (activeConnections > 0 && curAttempts <= maxAttempts) {
-				LOGGER.trace("Database shutdown waiting 500 ms ({}/{}) for {} connections to close", curAttempts, maxAttempts, activeConnections);
+				logger.trace("Database shutdown waiting 500 ms ({}/{}) for {} connections to close", curAttempts, maxAttempts, activeConnections);
 				Thread.sleep(500);
 				activeConnections = getActiveConnections();
 				curAttempts++;
 			}
 			if (activeConnections > 0) {
-				LOGGER.debug("Database shutdown will kill remaining connections ({}), db errors may occurs", activeConnections);
+				logger.debug("Database shutdown will kill remaining connections ({}), db errors may occurs", activeConnections);
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Waiting DB connections", e);
+			logger.error("Waiting DB connections", e);
 		} catch (InterruptedException e) {
-			LOGGER.debug("Interrupted while shutting down database..");
-			LOGGER.trace("", e);
+			logger.debug("Interrupted while shutting down database..");
+			logger.trace("", e);
 		}
 
 		try (Statement stmt = getConnection().createStatement()) {
 			stmt.execute("SHUTDOWN COMPACT");
 		} catch (SQLException e1) {
-			LOGGER.error("compacting DB ", e1);
+			logger.error("compacting DB ", e1);
 		}
 		status = DatabaseStatus.CLOSED;
 	}
@@ -297,12 +314,12 @@ public abstract class Database extends DatabaseHelper {
 	 *
 	 */
 	private void migrateDatabaseVersion2(boolean deleteBackup) {
-		LOGGER.info("Migrating database to v{}", Constants.VERSION);
+		logger.info("Migrating database to v{}", Constants.VERSION);
 		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
 			try {
 				PMS.get().getFrame().setStatusLine("Migrating database to v" + Constants.VERSION);
 			} catch (NullPointerException e) {
-				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
+				logger.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
 			}
 		}
 		String oldUrl = Constants.START_URL + dbDir + File.separator + dbName;
@@ -317,13 +334,13 @@ public abstract class Database extends DatabaseHelper {
 					dbBakFile.delete();
 				}
 			}
-			LOGGER.info("The database successfully migrated to version {}", Constants.VERSION);
+			logger.info("The database successfully migrated to version {}", Constants.VERSION);
 		} catch (Exception e) {
-			LOGGER.error(
+			logger.error(
 				"Database migration failed: {}",
 				e.getMessage()
 			);
-			LOGGER.trace("", e);
+			logger.trace("", e);
 		}
 	}
 
