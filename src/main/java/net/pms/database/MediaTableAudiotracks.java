@@ -185,8 +185,8 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", DELAY             INT");
 			sb.append(", MUXINGMODE        VARCHAR(").append(SIZE_MUXINGMODE).append(')');
 			sb.append(", BITRATE           INT");
-			sb.append(", LIKE_SONG         BOOLEAN");
-			sb.append(", RATING            INT");
+			sb.append(", LIKE_SONG         BOOLEAN DEFAULT false");
+			sb.append(", RATING            INT 	DEFAULT 0");
 			sb.append(", AUDIOTRACK_ID " + DB_TYPES.getAutoIncVariableType());
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
@@ -300,7 +300,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						rs.updateString("MUXINGMODE", left(trimToEmpty(audioTrack.getMuxingModeAudio()), SIZE_MUXINGMODE));
 						rs.updateInt("BITRATE", audioTrack.getBitRate());
 						if (audioTrack.getRating() == null) {
-							rs.updateNull("RATING");
+							rs.updateInt("RATING", 0);
 						} else {
 							rs.updateInt("RATING", audioTrack.getRating());
 						}
@@ -357,7 +357,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						}
 						insertStatement.setInt(21, audioTrack.getDisc());
 						if (audioTrack.getRating() == null) {
-							insertStatement.setNull(22, Types.INTEGER);
+							insertStatement.setInt(22, 0);
 						} else {
 							insertStatement.setInt(22, audioTrack.getRating());
 						}
