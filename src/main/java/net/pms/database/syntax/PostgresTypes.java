@@ -2,6 +2,8 @@ package net.pms.database.syntax;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -11,8 +13,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.UUID;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.database.MediaDatabase;
 
 public class PostgresTypes implements DbTypes {
 
@@ -185,5 +190,26 @@ public class PostgresTypes implements DbTypes {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
 		sb.append("");
+	}
+
+	@Override
+	public void backupLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
+		CopyManager cp = new CopyManager((BaseConnection) db.getConnection());
+		try {
+			cp.copyOut("select * from music_brainz_release_like", new FileOutputStream(backupFilename));
+		} catch (SQLException | IOException e) {
+			LOGGER.error("backup failed.", e);
+		}
+	}
+
+	@Override
+	public void restoreLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
+		CopyManager cp = new CopyManager((BaseConnection) db.getConnection());
+		try {
+			String sql = "insert into music_brainz_release_like ON CONFLICT DO NOTHING";
+			cp.copyIn("select * from music_brainz_release_like", new FileInputStream(backupFilename));
+		} catch (SQLException | IOException e) {
+			LOGGER.error("backup failed.", e);
+		}
 	}
 }

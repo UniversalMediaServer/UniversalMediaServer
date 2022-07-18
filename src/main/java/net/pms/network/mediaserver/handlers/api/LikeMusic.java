@@ -1,18 +1,12 @@
 package net.pms.network.mediaserver.handlers.api;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.h2.tools.RunScript;
-import org.h2.tools.Script;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -25,7 +19,7 @@ import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class LikeMusic implements ApiResponseHandler {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
 	private MediaDatabase db = PMS.get().getMediaDatabase();
 	private final String backupFilename;
@@ -56,7 +50,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+						LOGGER.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
 					break;
@@ -64,7 +58,7 @@ public class LikeMusic implements ApiResponseHandler {
 					try {
 						dbTypes.mergeLikedAlbum(connection, content);
 					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+						LOGGER.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
 					break;
@@ -75,7 +69,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+						LOGGER.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
 					break;
@@ -86,7 +80,7 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.setObject(1, UUID.fromString(content));
 						ps.executeUpdate();
 					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+						LOGGER.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
 					break;
@@ -129,34 +123,10 @@ public class LikeMusic implements ApiResponseHandler {
 	}
 
 	public void backupLikedAlbums() throws SQLException {
-		try (Connection connection = db.getConnection()) {
-			Script.process(connection, backupFilename, "", "TABLE MUSIC_BRAINZ_RELEASE_LIKE");
-		}
+		dbTypes.backupLikedAlbums(db, backupFilename);
 	}
 
 	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
-		File backupFile = new File(backupFilename);
-		if (backupFile.exists() && backupFile.isFile()) {
-			try (Connection connection = db.getConnection(); Statement stmt = connection.createStatement()) {
-				String sql;
-				sql = "DROP TABLE MUSIC_BRAINZ_RELEASE_LIKE";
-				stmt.execute(sql);
-				try {
-					RunScript.execute(connection, new FileReader(backupFilename));
-				} catch (Exception e) {
-					LOG.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
-					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
-				}
-				connection.commit();
-				LOG.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
-			}
-		} else {
-			if (!StringUtils.isEmpty(backupFilename)) {
-				LOG.trace("Backup file doesn't exist : " + backupFilename);
-				throw new RuntimeException("Backup file doesn't exist : " + backupFilename);
-			} else {
-				throw new RuntimeException("Backup filename not set !");
-			}
-		}
+		dbTypes.restoreLikedAlbums(db, backupFilename);
 	}
 }

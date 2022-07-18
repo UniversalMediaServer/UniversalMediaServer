@@ -1,14 +1,21 @@
 package net.pms.database.syntax;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
+import org.h2.tools.RunScript;
+import org.h2.tools.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 
 public class H2dbTypes implements DbTypes {
@@ -156,5 +163,39 @@ public class H2dbTypes implements DbTypes {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
 		sb.append("");
+	}
+
+	@Override
+	public void backupLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
+		try (Connection connection = db.getConnection()) {
+			Script.process(connection, backupFilename, "", "TABLE MUSIC_BRAINZ_RELEASE_LIKE");
+		}
+	}
+
+	@Override
+	public void restoreLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
+		File backupFile = new File(backupFilename);
+		if (backupFile.exists() && backupFile.isFile()) {
+			try (Connection connection = db.getConnection(); Statement stmt = connection.createStatement()) {
+				String sql;
+				sql = "DROP TABLE MUSIC_BRAINZ_RELEASE_LIKE";
+				stmt.execute(sql);
+				try {
+					RunScript.execute(connection, new FileReader(backupFilename));
+				} catch (Exception e) {
+					LOGGER.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
+					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
+				}
+				connection.commit();
+				LOGGER.trace("restoring MUSIC_BRAINZ_RELEASE_LIKE table : success");
+			}
+		} else {
+			if (!StringUtils.isEmpty(backupFilename)) {
+				LOGGER.trace("Backup file doesn't exist : " + backupFilename);
+				throw new RuntimeException("Backup file doesn't exist : " + backupFilename);
+			} else {
+				throw new RuntimeException("Backup filename not set !");
+			}
+		}
 	}
 }

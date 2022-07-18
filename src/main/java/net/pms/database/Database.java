@@ -26,6 +26,7 @@ import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.h2.engine.Constants;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.Upgrade;
@@ -80,17 +81,7 @@ public abstract class Database extends DatabaseHelper {
 	 */
 	public Database(String name, String user, String password) {
 		logger = LoggerFactory.getLogger(Database.class);
-		if (isH2dbBackend()) {
-			h2dbInit(name, user, password);
-			dbTypes = new H2dbTypes();
-		} else if (isPostgresBackend()) {
-			dbTypes = new PostgresTypes();
-		} else {
-			logger.warn("unknown database");
-			dbTypes = null;
-		}
 
-		// create connection pool.
 		PmsConfiguration c = PMS.getConfiguration();
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl(c.getDatabaseUrl());
@@ -99,6 +90,24 @@ public abstract class Database extends DatabaseHelper {
 		config.addDataSourceProperty("cachePrepStmts", "true");
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+		if (isH2dbBackend()) {
+			h2dbInit(name, user, password);
+			dbTypes = new H2dbTypes();
+		} else if (isPostgresBackend()) {
+			PMS.get();
+			PmsConfiguration pmsConfig = PMS.getConfiguration();
+			dbTypes = new PostgresTypes();
+			if (!StringUtils.isAllBlank(pmsConfig.getDatabaseSocketFactory())) {
+				logger.info("adding socket factory class and arg's");
+				config.addDataSourceProperty("socketFactory", pmsConfig.getDatabaseSocketFactory());
+				config.addDataSourceProperty("socketFactoryArg", pmsConfig.getDatabaseSocketFactoryArg());
+				config.addDataSourceProperty("sslMode", "disable");
+			}
+		} else {
+			logger.warn("unknown database");
+			dbTypes = null;
+		}
 
 		ds = new HikariDataSource(config);
 	}

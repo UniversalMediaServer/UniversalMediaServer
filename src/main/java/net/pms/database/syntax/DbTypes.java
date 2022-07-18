@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import net.pms.database.MediaDatabase;
 
 public interface DbTypes {
 
@@ -41,4 +42,8 @@ public interface DbTypes {
 
 	// database specific UPnP search
 	void appendProperty(StringBuilder sb, String op, String val, String field);
+
+	void backupLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException;
+
+	void restoreLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException;
 }

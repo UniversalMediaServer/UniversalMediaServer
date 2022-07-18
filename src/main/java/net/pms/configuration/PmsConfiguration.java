@@ -158,6 +158,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_DATABASE_NAME = "database_name";
 	protected static final String KEY_DATABASE_PASS = "database_pass";
 	protected static final String KEY_DATABASE_URL = "database_url";
+	protected static final String KEY_DATABASE_SOCKET_FACTORY = "database_socket_factory";
+	protected static final String KEY_DATABASE_SOCKET_FACTORY_ARG = "database_socket_factory_arg";
 	protected static final String KEY_DATABASE_USER = "database_user";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
@@ -5123,6 +5125,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	// active backends are : 'h2db'
 	public String getDatabaseBackend() {
 		return getString(KEY_DATABASE_BACKEND, "h2db");
+	}
+
+	public String getDatabaseSocketFactory() {
+		return getString(KEY_DATABASE_SOCKET_FACTORY, "");
+	}
+
+	public String getDatabaseSocketFactoryArg() {
+		return getString(KEY_DATABASE_SOCKET_FACTORY_ARG, "");
 	}
 
 	public String getDatabaseUrl() {
