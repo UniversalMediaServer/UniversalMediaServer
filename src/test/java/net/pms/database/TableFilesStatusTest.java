@@ -61,7 +61,7 @@ public class TableFilesStatusTest {
 			database.checkTables(true);
 			MediaDatabase.dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
 			MediaDatabase.execute(connection,
-				"CREATE TABLE " + MediaTableFilesStatus.TABLE_NAME + "(" +
+				MediaDatabase.get().getDbType().createTable() + MediaTableFilesStatus.TABLE_NAME + "(" +
 					"ID            IDENTITY PRIMARY KEY, " +
 					"FILENAME      VARCHAR(1024)        NOT NULL UNIQUE, " +
 					"MODIFIED      DATETIME, " +

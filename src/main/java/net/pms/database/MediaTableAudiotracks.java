@@ -163,7 +163,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("CREATE TABLE " + TABLE_NAME + " (");
+			sb.append(DB_TYPES.createTable() + TABLE_NAME + " (");
 			sb.append("  ID                INT              NOT NULL");
 			sb.append(", FILEID            BIGINT           NOT NULL");
 			sb.append(", MBID_RECORD       UUID");

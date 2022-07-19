@@ -93,7 +93,7 @@ public class MediaTableChapters extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + " (" +
+			DB_TYPES.createTable() + TABLE_NAME + " (" +
 				"ID             INT                                 NOT NULL            , " +
 				"FILEID         BIGINT                              NOT NULL            , " +
 				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +

@@ -37,7 +37,7 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
-		execute(connection, "CREATE TABLE " + TABLE_NAME + "(" + "MBID_RELEASE	UUID  PRIMARY KEY" + ")");
+		execute(connection, DB_TYPES.createTable() + TABLE_NAME + "(" + "MBID_RELEASE	UUID  PRIMARY KEY" + ")");
 	}
 
 }

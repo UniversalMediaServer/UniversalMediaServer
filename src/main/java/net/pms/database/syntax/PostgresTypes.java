@@ -213,4 +213,9 @@ public class PostgresTypes implements DbTypes {
 			LOGGER.error("backup failed.", e);
 		}
 	}
+
+	@Override
+	public String createTable() {
+		return "CREATE TABLE ";
+	}
 }

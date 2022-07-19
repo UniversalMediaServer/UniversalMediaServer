@@ -54,7 +54,7 @@ public class MediaTableTablesVersions extends MediaTable {
 	protected static final void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			DB_TYPES.createTable() + TABLE_NAME + "(" +
 				"TABLE_NAME			VARCHAR(50)		PRIMARY KEY, " +
 				"TABLE_VERSION		INT				NOT NULL" +
 			")"

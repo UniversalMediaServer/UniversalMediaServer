@@ -85,7 +85,7 @@ public abstract class Database extends DatabaseHelper {
 
 		PmsConfiguration c = PMS.getConfiguration();
 		HikariConfig config = new HikariConfig();
-		config.setJdbcUrl(c.getDatabaseUrl());
+		config.setJdbcUrl(c.getDatabaseUrl() + ";CACHE_SIZE=131072");
 		config.setUsername(c.getDatabaseUser());
 		config.setPassword(c.getDatabasePassword());
 		config.addDataSourceProperty("cachePrepStmts", "true");

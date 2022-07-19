@@ -103,7 +103,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			DB_TYPES.createTable() + TABLE_NAME + "(" +
 				"ID				" + DB_TYPES.getIdentity() + "		PRIMARY KEY, " +
 				"MODIFIED		TIMESTAMP, " +
 				"MBID			VARCHAR(36), " +

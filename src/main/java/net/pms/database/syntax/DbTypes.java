@@ -46,4 +46,6 @@ public interface DbTypes {
 	void backupLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException;
 
 	void restoreLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException;
+
+	String createTable();
 }

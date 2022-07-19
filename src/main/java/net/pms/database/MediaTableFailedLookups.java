@@ -117,7 +117,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			DB_TYPES.createTable() + TABLE_NAME + "(" +
 				"ID               " + DB_TYPES.getIdentity() + "  PRIMARY KEY, " +
 				"FILENAME         VARCHAR(1024)             NOT NULL, " +
 				"FAILUREDETAILS   VARCHAR(20000)            NOT NULL, " +

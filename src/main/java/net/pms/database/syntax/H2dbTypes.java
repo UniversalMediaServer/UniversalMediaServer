@@ -198,4 +198,9 @@ public class H2dbTypes implements DbTypes {
 			}
 		}
 	}
+
+	@Override
+	public String createTable() {
+		return "CREATE MEMORY TABLE ";
+	}
 }
