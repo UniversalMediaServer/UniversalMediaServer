@@ -200,15 +200,15 @@ export default function Settings() {
     } else if (items.includes(engine.id)) {
       return (
         <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon size={10} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, false); e.stopPropagation();}}>
+          <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, false); e.stopPropagation();}}>
             <PlayerPlay strokeWidth={2} color={'green'} size={14}/>
           </ActionIcon>
         </Tooltip>
       )
     }
-	return (
+    return (
       <Tooltip label={allowHtml(i18n.get['TranscodingEngineXDisabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-        <ActionIcon size={10} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, true); e.stopPropagation();}}>
+        <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, true); e.stopPropagation();}}>
           <Ban color={'red'} size={14}/>
         </ActionIcon>
       </Tooltip>
@@ -234,7 +234,7 @@ export default function Settings() {
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
             leftIcon={
               <>
-                <ActionIcon data-movable-handle size={10} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                <ActionIcon data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
                   { engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
                 </ActionIcon>
                 {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
