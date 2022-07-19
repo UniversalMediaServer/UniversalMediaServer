@@ -22,13 +22,13 @@ public class LikeMusic implements ApiResponseHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
 	private MediaDatabase db = PMS.get().getMediaDatabase();
-	private final String backupFilename;
+	private final String backupFilenameMusicBrainzReleaseLike;
 
 	private DbTypes dbTypes = MediaDatabase.get().getDbType();
 
 	public LikeMusic() {
 		String dir = FilenameUtils.concat(PMS.getConfiguration().getProfileDirectory(), "database_backup");
-		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
+		backupFilenameMusicBrainzReleaseLike = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
 	}
 
 	@Override
@@ -123,10 +123,10 @@ public class LikeMusic implements ApiResponseHandler {
 	}
 
 	public void backupLikedAlbums() throws SQLException {
-		dbTypes.backupLikedAlbums(db, backupFilename);
+		dbTypes.backupLikedAlbums(db, backupFilenameMusicBrainzReleaseLike);
 	}
 
 	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
-		dbTypes.restoreLikedAlbums(db, backupFilename);
+		dbTypes.restoreLikedAlbums(db, backupFilenameMusicBrainzReleaseLike);
 	}
 }

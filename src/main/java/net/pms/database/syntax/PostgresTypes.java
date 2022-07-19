@@ -194,9 +194,10 @@ public class PostgresTypes implements DbTypes {
 
 	@Override
 	public void backupLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
-		CopyManager cp = new CopyManager((BaseConnection) db.getConnection());
-		try {
-			cp.copyOut("select * from music_brainz_release_like", new FileOutputStream(backupFilename));
+		try (Connection conn = db.getStandaloneConnection()) {
+			CopyManager cp = new CopyManager((BaseConnection) conn);
+			long data = cp.copyOut("COPY (select * from music_brainz_release_like) TO STDOUT delimiter ','  NULL AS 'null' ENCODING 'UTF8'", new FileOutputStream(backupFilename));
+			LOGGER.info(String.format("copies %d lines to file %s.", data, backupFilename));
 		} catch (SQLException | IOException e) {
 			LOGGER.error("backup failed.", e);
 		}
@@ -204,9 +205,9 @@ public class PostgresTypes implements DbTypes {
 
 	@Override
 	public void restoreLikedAlbums(MediaDatabase db, String backupFilename) throws SQLException {
-		CopyManager cp = new CopyManager((BaseConnection) db.getConnection());
-		try {
-			String sql = "insert into music_brainz_release_like ON CONFLICT DO NOTHING";
+		try (Connection conn = db.getStandaloneConnection()) {
+			CopyManager cp = new CopyManager((BaseConnection) conn);
+			long data = cp.copyIn("COPY music_brainz_release_like FROM stdin delimiter ','  NULL AS 'null' ENCODING 'UTF8'", new FileInputStream(backupFilename));
 			cp.copyIn("select * from music_brainz_release_like", new FileInputStream(backupFilename));
 		} catch (SQLException | IOException e) {
 			LOGGER.error("backup failed.", e);

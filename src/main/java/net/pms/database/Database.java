@@ -20,6 +20,7 @@ package net.pms.database;
 import java.awt.Component;
 import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -110,6 +111,30 @@ public abstract class Database extends DatabaseHelper {
 		}
 
 		ds = new HikariDataSource(config);
+	}
+
+	/**
+	 * Delivers a database connection from JDBC driver instead of a pooled connection.
+	 *
+	 * @return
+	 * @throws SQLException
+	 */
+	public Connection getStandaloneConnection() throws SQLException {
+		PmsConfiguration c = PMS.getConfiguration();
+		Properties props = new Properties();
+		props.setProperty("user", c.getDatabaseUser());
+		props.setProperty("password", c.getDatabasePassword());
+		props.setProperty("ssl", "false");
+
+		if (isPostgresBackend() && !StringUtils.isAllBlank(c.getDatabaseSocketFactory())) {
+			logger.info("adding socket factory class and arg's");
+			props.setProperty("socketFactory", c.getDatabaseSocketFactory());
+			props.setProperty("socketFactoryArg", c.getDatabaseSocketFactoryArg());
+			props.setProperty("sslMode", "disable");
+		}
+
+		Connection conn = DriverManager.getConnection(c.getDatabaseUrl(), props);
+		return conn;
 	}
 
 	public boolean isH2dbBackend() {
