@@ -100,8 +100,8 @@ public class MediaTableRegexpRules extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " ( " +
-				"ID					VARCHAR2(255)		PRIMARY KEY	, " +
-				"REGEXP_RULE		VARCHAR2(255)					, " +
+				"ID					VARCHAR(255)		PRIMARY KEY	, " +
+				"REGEXP_RULE		VARCHAR(255)					, " +
 				"REGEXP_ORDER		NUMERIC							  " +
 			")",
 			"INSERT INTO " + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",

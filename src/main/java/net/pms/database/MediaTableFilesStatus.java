@@ -100,7 +100,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				case 1:
 					// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
 					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR(1024)");
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 						Set<String> fileStatusEntries = new HashSet<>();
@@ -224,7 +224,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID                     IDENTITY              PRIMARY KEY	, " +
-				"FILENAME               VARCHAR2(1024)        NOT NULL		, " +
+				"FILENAME               VARCHAR(1024)        NOT NULL		, " +
 				"MODIFIED               DATETIME							, " +
 				"ISFULLYPLAYED          BOOLEAN               DEFAULT false	, " +
 				"BOOKMARK               INTEGER               DEFAULT 0		, " +

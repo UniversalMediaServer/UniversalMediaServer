@@ -96,8 +96,8 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID           IDENTITY         PRIMARY KEY, " +
 				"TVSERIESID   INT              DEFAULT -1, " +
-				"FILENAME     VARCHAR2(1024)   DEFAULT '', " +
-				"AWARD        VARCHAR2(1024)   NOT NULL" +
+				"FILENAME     VARCHAR(1024)   DEFAULT '', " +
+				"AWARD        VARCHAR(1024)   NOT NULL" +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_AWARD_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, AWARD, TVSERIESID)"
 		);

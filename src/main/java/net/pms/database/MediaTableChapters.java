@@ -96,8 +96,8 @@ public class MediaTableChapters extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + " (" +
 				"ID             INT                                 NOT NULL            , " +
 				"FILEID         BIGINT                              NOT NULL            , " +
-				"LANG           VARCHAR2(" + SIZE_LANG + ")                             , " +
-				"TITLE          VARCHAR2(" + SIZE_MAX + ")                              , " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")                             , " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")                              , " +
 				"START_TIME     DOUBLE                                                  , " +
 				"END_TIME       DOUBLE                                                  , " +
 				"THUMBNAIL		OTHER	                    		            		, " +

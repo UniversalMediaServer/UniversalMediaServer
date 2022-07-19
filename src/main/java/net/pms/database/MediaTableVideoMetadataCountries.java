@@ -100,8 +100,8 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY			PRIMARY KEY, " +
 				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"COUNTRY		VARCHAR2(1024)		NOT NULL" +
+				"FILENAME		VARCHAR(1024)		DEFAULT '', " +
+				"COUNTRY		VARCHAR(1024)		NOT NULL" +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_COUNTRY_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, COUNTRY, TVSERIESID)"
 		);

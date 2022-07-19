@@ -97,8 +97,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY			PRIMARY KEY, " +
 				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"ACTOR			VARCHAR2(1024)		NOT NULL" +
+				"FILENAME		VARCHAR(1024)		DEFAULT '', " +
+				"ACTOR			VARCHAR(1024)		NOT NULL" +
 			")"
 		);
 	}
