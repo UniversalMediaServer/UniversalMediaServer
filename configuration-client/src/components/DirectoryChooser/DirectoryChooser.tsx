@@ -41,7 +41,7 @@ export default function DirectoryChooser(props: {
       .then(function (response: any) {
         const directoriesResponse = response.data;
         setSeparator(directoriesResponse.separator);
-        setDirectories(directoriesResponse.childrens);
+        setDirectories(directoriesResponse.children);
         setParents(directoriesResponse.parents.reverse());
       })
       .catch(function (error: Error) {

@@ -390,7 +390,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			directoryGroup.addProperty("value", value);
 			jsonArray.add(directoryGroup);
 		}
-		jsonResponse.add("childrens", jsonArray);
+		jsonResponse.add("children", jsonArray);
 		String name = requestedDirectoryFile.getName();
 		if (StringUtils.isEmpty(name) && roots.contains(requestedDirectoryFile)) {
 			name = requestedDirectoryFile.toString().replace("\\", "");
@@ -425,7 +425,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			directoryGroup.addProperty("value", file.toString());
 			jsonArray.add(directoryGroup);
 		}
-		jsonResponse.add("childrens", jsonArray);
+		jsonResponse.add("children", jsonArray);
 		jsonResponse.add("parents", new JsonArray());
 		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
