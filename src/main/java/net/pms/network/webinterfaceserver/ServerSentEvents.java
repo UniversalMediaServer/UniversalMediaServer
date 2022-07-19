@@ -41,7 +41,9 @@ public class ServerSentEvents {
 		//clean current OutputStream in case of....
 		stopPing();
 		close();
-		this.os = os;
+		synchronized (osLock) {
+			this.os = os;
+		}
 		LOGGER.debug("ServerSentEvents OutputStream was set");
 		startPing();
 	}
@@ -58,13 +60,15 @@ public class ServerSentEvents {
 	}
 
 	public void close() {
-		if (os != null) {
-			LOGGER.debug("ServerSentEvents close OutputStream");
-			try {
-				os.close();
-			} catch (IOException ex1) {
+		synchronized (osLock) {
+			if (os != null) {
+				LOGGER.debug("ServerSentEvents close OutputStream");
+				try {
+					os.close();
+				} catch (IOException ex) {
+				}
+				os = null;
 			}
-			os = null;
 		}
 	}
 
