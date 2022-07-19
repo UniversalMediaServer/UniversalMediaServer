@@ -85,7 +85,6 @@ public abstract class Database extends DatabaseHelper {
 
 		PmsConfiguration c = PMS.getConfiguration();
 		HikariConfig config = new HikariConfig();
-		config.setJdbcUrl(c.getDatabaseUrl() + ";CACHE_SIZE=131072");
 		config.setUsername(c.getDatabaseUser());
 		config.setPassword(c.getDatabasePassword());
 		config.addDataSourceProperty("cachePrepStmts", "true");
@@ -94,8 +93,10 @@ public abstract class Database extends DatabaseHelper {
 
 		if (isH2dbBackend()) {
 			h2dbInit(name, user, password);
+			config.setJdbcUrl(c.getDatabaseUrl() + ";CACHE_SIZE=131072");
 			dbTypes = new H2dbTypes();
 		} else if (isPostgresBackend()) {
+			config.setJdbcUrl(c.getDatabaseUrl());
 			PMS.get();
 			PmsConfiguration pmsConfig = PMS.getConfiguration();
 			dbTypes = new PostgresTypes();
