@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 public class NavigationShareTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NavigationShareTab.class);
-	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
 	private JCheckBox hideExtensions;
 	private JCheckBox hideEmptyFolders;
