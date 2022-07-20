@@ -4584,7 +4584,15 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return the cache size in Mb
 	 */
 	public int getDatabaseMediaCacheSize() {
-		return getInt(KEY_DATABASE_MEDIA_CACHE_SIZE_MB, 0);
+		return getInt(KEY_DATABASE_MEDIA_CACHE_SIZE_MB, -1);
+	}
+
+	/**
+	 * Set the embedded Media database cache size.
+	 * @value the cache size in Mb
+	 */
+	public void setDatabaseMediaCacheSize(int value) {
+		configuration.setProperty(KEY_DATABASE_MEDIA_CACHE_SIZE_MB, value);
 	}
 
 	/**

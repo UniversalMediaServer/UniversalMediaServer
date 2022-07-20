@@ -44,15 +44,31 @@ public class DatabaseEmbedded {
 		String url = Constants.START_URL + dbDir + File.separator + name + ";DB_CLOSE_ON_EXIT=FALSE";
 		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
 		int cacheSize = CONFIGURATION.getDatabaseMediaCacheSize();
+		if (cacheSize < 0) {
+			//never set, try to set to 10% of JVM memory if > 500MB
+			long maxMemKb = Runtime.getRuntime().maxMemory() / 1024;
+			if (maxMemKb > 500000) {
+				cacheSize = cacheSize / 10;
+			} else {
+				cacheSize = 0;
+			}
+			CONFIGURATION.setDatabaseMediaCacheSize(cacheSize);
+		}
 		if (cacheSize > 0) {
 			cacheSize = (cacheSize * 1000);
 			url += ";CACHE_SIZE=" + cacheSize;
 		}
+
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");
 		} else if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Database logging is disabled");
+		}
+
+		if (CONFIGURATION.isDatabaseMediaUseMemoryIndexes()) {
+			url += ";DEFAULT_TABLE_TYPE=MEMORY";
+			LOGGER.info("Database indexes in memory is enabled");
 		}
 
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
