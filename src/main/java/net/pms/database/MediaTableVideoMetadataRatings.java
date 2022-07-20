@@ -98,7 +98,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID					IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID			INT					DEFAULT -1, " +
+				"TVSERIESID			INTEGER				DEFAULT -1, " +
 				"FILENAME			VARCHAR(1024)		DEFAULT '', " +
 				"RATINGSOURCE		VARCHAR(1024)		NOT NULL, " +
 				"RATINGVALUE		VARCHAR(1024)		NOT NULL" +

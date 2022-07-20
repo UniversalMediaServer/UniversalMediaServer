@@ -56,7 +56,7 @@ public class MediaTableTablesVersions extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"TABLE_NAME			VARCHAR(50)		PRIMARY KEY, " +
-				"TABLE_VERSION		INT				NOT NULL" +
+				"TABLE_VERSION		INTEGER			NOT NULL" +
 			")"
 		);
 	}

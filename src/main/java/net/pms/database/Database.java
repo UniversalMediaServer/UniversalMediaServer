@@ -54,14 +54,11 @@ public abstract class Database extends DatabaseHelper {
 	public Database(String name) {
 		dbName = name;
 		status = DatabaseStatus.CLOSED;
-		if (true) {
-			//use embedded db
-			embedded = true;
-			String jdbcUrl = DatabaseEmbedded.getJdbcUrl(name);
-			ds = new HikariDataSource();
-			ds.setJdbcUrl(jdbcUrl);
-			ds.setUsername("sa");
-		}
+		embedded = true;
+		String jdbcUrl = DatabaseEmbedded.getJdbcUrl(name);
+		ds = new HikariDataSource();
+		ds.setJdbcUrl(jdbcUrl);
+		ds.setUsername(DatabaseEmbedded.getDbUser());
 	}
 
 	/**

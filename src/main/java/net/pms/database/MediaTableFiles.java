@@ -257,7 +257,7 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 26:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE PRECISION");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
@@ -305,7 +305,7 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 30:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE PRECISION");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
@@ -358,16 +358,16 @@ public class MediaTableFiles extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
+			sb.append("  ID                      INTEGER          AUTO_INCREMENT PRIMARY KEY");
 			sb.append(", THUMBID                 BIGINT");
-			sb.append(", FILENAME                VARCHAR(1024)   NOT NULL UNIQUE");
+			sb.append(", FILENAME                VARCHAR(1024)    NOT NULL UNIQUE");
 			sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
-			sb.append(", FORMAT_TYPE             INT");
+			sb.append(", FORMAT_TYPE             INTEGER");
 			//all columns here are not file related but media related
-			sb.append(", DURATION                DOUBLE");
-			sb.append(", BITRATE                 INT");
-			sb.append(", WIDTH                   INT");
-			sb.append(", HEIGHT                  INT");
+			sb.append(", DURATION                DOUBLE PRECISION");
+			sb.append(", BITRATE                 INTEGER");
+			sb.append(", WIDTH                   INTEGER");
+			sb.append(", HEIGHT                  INTEGER");
 			sb.append(", MEDIA_SIZE              NUMERIC");
 			sb.append(", CODECV                  VARCHAR(").append(SIZE_CODECV).append(')');
 			sb.append(", FRAMERATE               VARCHAR(").append(SIZE_FRAMERATE).append(')');
@@ -384,9 +384,9 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", MATRIXCOEFFICIENTS      VARCHAR(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
 			sb.append(", TITLECONTAINER          VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", TITLEVIDEOTRACK         VARCHAR(").append(SIZE_MAX).append(')');
-			sb.append(", VIDEOTRACKCOUNT         INT");
-			sb.append(", IMAGECOUNT              INT");
-			sb.append(", BITDEPTH                INT");
+			sb.append(", VIDEOTRACKCOUNT         INTEGER");
+			sb.append(", IMAGECOUNT              INTEGER");
+			sb.append(", BITDEPTH                INTEGER");
 			sb.append(", PIXELASPECTRATIO        VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", SCANTYPE                OTHER");
 			sb.append(", SCANORDER               OTHER");
@@ -401,7 +401,7 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", ISTVEPISODE             BOOLEAN");
 			sb.append(", EXTRAINFORMATION        VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", VERSION                 VARCHAR(").append(SIZE_MAX).append(')');
-			sb.append(", BUDGET                  DOUBLE");
+			sb.append(", BUDGET                  DOUBLE PRECISION");
 			sb.append(", CREDITS                 VARCHAR");
 			sb.append(", EXTERNALIDS             VARCHAR");
 			sb.append(", HOMEPAGE                VARCHAR");

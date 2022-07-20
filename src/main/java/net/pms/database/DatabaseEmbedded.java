@@ -43,9 +43,11 @@ public class DatabaseEmbedded {
 		String dbDir = getDbDir();
 		String url = Constants.START_URL + dbDir + File.separator + name + ";DB_CLOSE_ON_EXIT=FALSE";
 		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
-		long maxMemory = Runtime.getRuntime().maxMemory();
-		long cacheSize = (maxMemory / 1024) / 4;
-		url += ";CACHE_SIZE=" + cacheSize;
+		int cacheSize = CONFIGURATION.getDatabaseMediaCacheSize();
+		if (cacheSize > 0) {
+			cacheSize = (cacheSize * 1000);
+			url += ";CACHE_SIZE=" + cacheSize;
+		}
 		if (CONFIGURATION.getDatabaseLogging()) {
 			url += ";TRACE_LEVEL_FILE=3";
 			LOGGER.info("Database logging is enabled");

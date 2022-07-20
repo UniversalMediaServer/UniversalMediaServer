@@ -101,11 +101,11 @@ public class MediaTableSubtracks extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE SUBTRACKS (" +
-				"ID             INT									NOT NULL			, " +
+				"ID             INTEGER								NOT NULL			, " +
 				"FILEID         BIGINT								NOT NULL			, " +
 				"LANG           VARCHAR(" + SIZE_LANG + ")								, " +
 				"TITLE          VARCHAR(" + SIZE_MAX + ")								, " +
-				"FORMAT_TYPE    INT														, " +
+				"FORMAT_TYPE    INTEGER													, " +
 				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")	NOT NULL default ''	, " +
 				"CHARSET        VARCHAR(" + SIZE_MAX + ")								, " +
 				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)				, " +

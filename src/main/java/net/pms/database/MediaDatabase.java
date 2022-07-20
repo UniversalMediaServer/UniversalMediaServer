@@ -50,7 +50,7 @@ public class MediaDatabase extends Database {
 	}
 
 	@Override
-	void onOpening(boolean force) {
+	public final void onOpening(boolean force) {
 		try {
 			checkTables(force);
 		} catch (SQLException se) {
@@ -61,7 +61,7 @@ public class MediaDatabase extends Database {
 	}
 
 	@Override
-	void onOpeningFail(boolean force) {
+	public final void onOpeningFail(boolean force) {
 		RootFolder rootFolder = PMS.get().getRootFolder(null);
 		if (rootFolder != null) {
 			rootFolder.stopScan();
