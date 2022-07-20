@@ -222,7 +222,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			"CREATE MEMORY TABLE " + TABLE_NAME + "(" +
 				"ID                     IDENTITY              PRIMARY KEY	, " +
 				"FILENAME               VARCHAR2(1024)        NOT NULL		, " +
 				"MODIFIED               DATETIME							, " +

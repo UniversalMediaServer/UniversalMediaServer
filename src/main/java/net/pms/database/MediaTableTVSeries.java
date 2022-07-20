@@ -178,7 +178,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			"CREATE MEMORY TABLE " + TABLE_NAME + "(" +
 				"ID					IDENTITY			PRIMARY KEY	, " +
 				"ENDYEAR			VARCHAR2(1024)					, " +
 				"IMDBID				VARCHAR2(1024)					, " +

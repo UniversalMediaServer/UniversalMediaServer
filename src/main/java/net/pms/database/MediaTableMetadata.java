@@ -94,7 +94,7 @@ public class MediaTableMetadata extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + " (" +
+			"CREATE MEMORY TABLE " + TABLE_NAME + " (" +
 				"M_KEY		VARCHAR2(255)		NOT NULL, " +
 				"M_VALUE	VARCHAR2(255)		NOT NULL" +
 			")",

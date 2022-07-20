@@ -357,7 +357,7 @@ public class MediaTableFiles extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("CREATE TABLE " + TABLE_NAME + " (");
+			sb.append("CREATE MEMORY TABLE " + TABLE_NAME + " (");
 			sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
 			sb.append(", THUMBID                 BIGINT");
 			sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL UNIQUE");
