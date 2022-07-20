@@ -36,7 +36,9 @@ public class LibraryScanner {
 		} else {
 			Runnable scan = () -> {
 				try {
+					long start = System.currentTimeMillis();
 					PMS.get().getRootFolder(null).scan();
+					LOGGER.info("finished library scannin in {} seconds ", ((System.currentTimeMillis() - start) / 1000));
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 					LOGGER.trace("", e);
