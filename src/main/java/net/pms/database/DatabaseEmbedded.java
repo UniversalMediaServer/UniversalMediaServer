@@ -48,13 +48,14 @@ public class DatabaseEmbedded {
 			//never set, try to set to 10% of JVM memory if > 500MB
 			long maxMemKb = Runtime.getRuntime().maxMemory() / 1000;
 			if (maxMemKb > 500000) {
-				cacheSize = cacheSize / 10;
+				cacheSize = Math.round(maxMemKb / 10);
 			} else {
 				cacheSize = 0;
 			}
 			CONFIGURATION.setDatabaseMediaCacheSize(Math.round(cacheSize / 1000));
 		}
 		if (cacheSize > 0) {
+			LOGGER.info("Database may use {} MB for caching", cacheSize);
 			cacheSize = (cacheSize * 1000);
 			url += ";CACHE_SIZE=" + cacheSize;
 		}
