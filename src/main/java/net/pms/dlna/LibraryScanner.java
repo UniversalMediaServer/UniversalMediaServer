@@ -17,10 +17,10 @@
  */
 package net.pms.dlna;
 
-import net.pms.PMS;
-import net.pms.newgui.SharedContentTab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.newgui.SharedContentTab;
 
 public class LibraryScanner {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibraryScanner.class);
@@ -38,7 +38,7 @@ public class LibraryScanner {
 				try {
 					long start = System.currentTimeMillis();
 					PMS.get().getRootFolder(null).scan();
-					LOGGER.info("finished library scannin in {} seconds ", ((System.currentTimeMillis() - start) / 1000));
+					LOGGER.info(PMS.getConfiguration().getDatabaseBackend() + " > finished library scannin in {} seconds ", ((System.currentTimeMillis() - start) / 1000));
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 					LOGGER.trace("", e);
