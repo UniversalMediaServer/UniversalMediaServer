@@ -19,21 +19,23 @@ package net.pms.database;
 
 import java.awt.Component;
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import net.pms.Messages;
-import net.pms.PMS;
 import org.apache.commons.io.FileUtils;
 import org.h2.engine.Constants;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.jdbcx.JdbcDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Properties;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.Upgrade;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.pms.Messages;
+import net.pms.PMS;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -49,7 +51,7 @@ public abstract class Database extends DatabaseHelper {
 	private String dbName;
 	private String dbUser;
 	private String dbPassword;
-	private final JdbcConnectionPool cp;
+	private HikariDataSource ds;
 
 	protected DatabaseStatus status;
 
@@ -71,7 +73,7 @@ public abstract class Database extends DatabaseHelper {
 		dbPassword = password;
 		File profileDirectory = new File(CONFIGURATION.getProfileDirectory());
 		dbDir = new File(PMS.isRunningTests() || profileDirectory.isDirectory() ? CONFIGURATION.getProfileDirectory() : null, "database").getAbsolutePath();
-		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE";
+		url = Constants.START_URL + dbDir + File.separator + dbName + ";DB_CLOSE_ON_EXIT=FALSE;CACHE_SIZE=131072";
 		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
 
 		if (CONFIGURATION.getDatabaseLogging()) {
@@ -90,11 +92,14 @@ public abstract class Database extends DatabaseHelper {
 			LOGGER.error(null, e);
 		}
 
-		JdbcDataSource ds = new JdbcDataSource();
-		ds.setURL(url);
-		ds.setUser(dbUser);
-		ds.setPassword(dbPassword);
-		cp = JdbcConnectionPool.create(ds);
+		HikariConfig config = new HikariConfig();
+		config.setUsername(dbUser);
+		config.setPassword(dbPassword);
+		config.setJdbcUrl(url);
+		config.addDataSourceProperty("cachePrepStmts", "true");
+		config.addDataSourceProperty("prepStmtCacheSize", "250");
+		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+		ds = new HikariDataSource(config);
 	}
 
 	public Database(String name) {
@@ -135,11 +140,11 @@ public abstract class Database extends DatabaseHelper {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
-		return cp.getConnection();
+		return ds.getConnection();
 	}
 
 	public int getActiveConnections() throws SQLException {
-		return cp.getActiveConnections();
+		return 0;
 	}
 
 	public boolean isOpened() {
