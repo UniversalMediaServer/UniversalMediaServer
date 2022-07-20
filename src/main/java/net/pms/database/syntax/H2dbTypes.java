@@ -158,7 +158,7 @@ public class H2dbTypes implements DbTypes {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", field, val));
 		} else if ("contains".equals(op)) {
-			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", field, val.toLowerCase()));
+			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", field, val.toLowerCase()));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
