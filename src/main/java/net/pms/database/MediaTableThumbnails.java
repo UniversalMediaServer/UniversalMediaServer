@@ -111,7 +111,7 @@ public final class MediaTableThumbnails extends MediaTable {
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY		PRIMARY KEY		, " +
 				"THUMBNAIL		OTHER			NOT NULL		, " +
-				"MODIFIED		DATETIME						, " +
+				"MODIFIED		TIMESTAMP						, " +
 				"MD5			VARCHAR			UNIQUE NOT NULL" +
 			")"
 		);

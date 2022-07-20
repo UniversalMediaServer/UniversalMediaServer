@@ -95,9 +95,9 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"POSTER			VARCHAR2(1024)		NOT NULL" +
+				"TVSERIESID		INTEGER				DEFAULT -1, " +
+				"FILENAME		VARCHAR(1024)		DEFAULT '', " +
+				"POSTER			VARCHAR(1024)		NOT NULL" +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_POSTER_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, TVSERIESID)"
 		);

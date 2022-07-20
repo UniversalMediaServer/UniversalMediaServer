@@ -77,7 +77,6 @@ import net.pms.util.*;
 import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.h2.util.Profiler;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -413,11 +412,6 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
-		final Profiler profiler = new Profiler();
-		if (configuration.getDatabaseLogging()) {
-			profiler.startCollecting();
-		}
-
 		// Start network scanner
 		NetworkConfiguration.start();
 		// Initialize mediaDatabase
@@ -721,14 +715,7 @@ public class PMS {
 					MediaServer.stop();
 					Thread.sleep(500);
 
-					if (configuration.getDatabaseLogging()) {
-						LOGGER.trace("-------------------------------------------------------------");
-						LOGGER.trace(profiler.getTop(5));
-						LOGGER.trace("-------------------------------------------------------------");
-					}
-
 					LOGGER.debug("Shutting down all active processes");
-
 
 					if (Services.processManager() != null) {
 						Services.processManager().stop();
@@ -774,9 +761,7 @@ public class PMS {
 
 				if (MediaDatabase.isInstantiated()) {
 					MediaDatabase.shutdown();
-					if (configuration.getDatabaseLogging()) {
-						MediaDatabase.createReport();
-					}
+					MediaDatabase.createDatabaseReportIfNeeded();
 				}
 			}
 		});

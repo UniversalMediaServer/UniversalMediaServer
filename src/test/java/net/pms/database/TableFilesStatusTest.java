@@ -63,7 +63,7 @@ public class TableFilesStatusTest {
 			MediaDatabase.execute(connection,
 				"CREATE TABLE " + MediaTableFilesStatus.TABLE_NAME + "(" +
 					"ID            IDENTITY PRIMARY KEY, " +
-					"FILENAME      VARCHAR2(1024)        NOT NULL UNIQUE, " +
+					"FILENAME      VARCHAR(1024)        NOT NULL UNIQUE, " +
 					"MODIFIED      DATETIME, " +
 					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
 					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +

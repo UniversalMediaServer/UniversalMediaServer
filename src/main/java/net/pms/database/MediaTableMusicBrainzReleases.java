@@ -128,7 +128,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY		PRIMARY KEY	, " +
-				"MODIFIED		DATETIME					, " +
+				"MODIFIED		TIMESTAMP					, " +
 				"MBID			VARCHAR(36)					, " +
 				"ARTIST			VARCHAR(1000)				, " +
 				"ALBUM			VARCHAR(1000)				, " +

@@ -94,12 +94,12 @@ public class MediaTableChapters extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
-				"ID             INT                                 NOT NULL            , " +
+				"ID             INTEGER                             NOT NULL            , " +
 				"FILEID         BIGINT                              NOT NULL            , " +
-				"LANG           VARCHAR2(" + SIZE_LANG + ")                             , " +
-				"TITLE          VARCHAR2(" + SIZE_MAX + ")                              , " +
-				"START_TIME     DOUBLE                                                  , " +
-				"END_TIME       DOUBLE                                                  , " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
+				"START_TIME     DOUBLE PRECISION                                        , " +
+				"END_TIME       DOUBLE PRECISION                                        , " +
 				"THUMBNAIL		OTHER	                    		            		, " +
 				"CONSTRAINT PKCHAP PRIMARY KEY (FILEID, ID, LANG)                       , " +
 				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +

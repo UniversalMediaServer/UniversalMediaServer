@@ -36,7 +36,6 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import org.h2.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sun.jna.Memory;
@@ -93,7 +92,7 @@ public class ProcessManager {
 	 * the constructor, and need only be called if {@link #stop()} has
 	 * previously been called.
 	 */
-	public void start() {
+	public final void start() {
 		synchronized (incoming) {
 			if (terminator == null || !terminator.isAlive()) {
 				LOGGER.debug("Starting ProcessManager");
@@ -837,6 +836,15 @@ public class ProcessManager {
 			}
 		}
 
+		protected static void closeSilently(AutoCloseable autoCloseable) {
+			if (autoCloseable != null) {
+				try {
+					autoCloseable.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+
 		/**
 		 * Destroys a {@link Process} after closing all the attached streams.
 		 *
@@ -847,9 +855,9 @@ public class ProcessManager {
 				return;
 			}
 
-			IOUtils.closeSilently(process.getInputStream());
-			IOUtils.closeSilently(process.getErrorStream());
-			IOUtils.closeSilently(process.getOutputStream());
+			closeSilently(process.getInputStream());
+			closeSilently(process.getErrorStream());
+			closeSilently(process.getOutputStream());
 			process.destroy();
 		}
 

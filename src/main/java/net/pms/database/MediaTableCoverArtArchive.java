@@ -106,7 +106,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY		PRIMARY KEY, " +
-				"MODIFIED		DATETIME, " +
+				"MODIFIED		TIMESTAMP, " +
 				"MBID			VARCHAR(36), " +
 				"COVER			BLOB" +
 			")",

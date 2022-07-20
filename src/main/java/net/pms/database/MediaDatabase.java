@@ -50,7 +50,7 @@ public class MediaDatabase extends Database {
 	}
 
 	@Override
-	void onOpening(boolean force) {
+	public final void onOpening(boolean force) {
 		try {
 			checkTables(force);
 		} catch (SQLException se) {
@@ -61,7 +61,7 @@ public class MediaDatabase extends Database {
 	}
 
 	@Override
-	void onOpeningFail(boolean force) {
+	public final void onOpeningFail(boolean force) {
 		RootFolder rootFolder = PMS.get().getRootFolder(null);
 		if (rootFolder != null) {
 			rootFolder.stopScan();
@@ -248,22 +248,17 @@ public class MediaDatabase extends Database {
 	}
 
 	/**
-	 * Create the database report.
-	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
-	 * converted to the "logging_report.txt" in the database directory.
-	 */
-	public static void createReport() {
-		if (instance != null) {
-			instance.createDatabaseReport();
-		}
-	}
-
-	/**
 	 * Shutdown the MediaDatabase database.
 	 */
 	public synchronized static void shutdown() {
 		if (instance != null) {
 			instance.close();
+		}
+	}
+
+	public synchronized static void createDatabaseReportIfNeeded() {
+		if (instance != null && instance.isEmbedded()) {
+			instance.createDatabaseReport();
 		}
 	}
 

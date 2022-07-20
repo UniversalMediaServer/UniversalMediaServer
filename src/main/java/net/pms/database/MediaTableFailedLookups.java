@@ -90,7 +90,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 				case 1:
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
 							statement.execute("CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)");
 						}
 					} catch (SQLException e) {
@@ -119,9 +119,9 @@ public final class MediaTableFailedLookups extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID               IDENTITY                   PRIMARY KEY, " +
-				"FILENAME         VARCHAR2(1024)             NOT NULL, " +
-				"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
-				"VERSION          VARCHAR2(1024)             NOT NULL, " +
+				"FILENAME         VARCHAR(1024)             NOT NULL, " +
+				"FAILUREDETAILS   VARCHAR(20000)            NOT NULL, " +
+				"VERSION          VARCHAR(1024)             NOT NULL, " +
 				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
 			")",
 			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
