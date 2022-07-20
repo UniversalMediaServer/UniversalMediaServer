@@ -886,10 +886,10 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	private String getSearchCapabilitiesHandler(RendererConfiguration mediaRenderer) {
-		if (mediaRenderer.isUpnpSearchCapsDisabled()) {
-			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED).toString();
-		} else {
+		if (mediaRenderer.isUpnpSearchCapsEnabled()) {
 			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+		} else {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED).toString();
 		}
 	}
 

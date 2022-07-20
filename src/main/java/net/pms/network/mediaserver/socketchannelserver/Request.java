@@ -733,10 +733,10 @@ public class Request extends HTTPResource {
 					response.append(CRLF);
 					response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 					response.append(CRLF);
-					if (mediaRenderer.isUpnpSearchCapsDisabled()) {
-						response.append(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED);
-					} else {
+					if (mediaRenderer.isUpnpSearchCapsEnabled()) {
 						response.append(HTTPXMLHelper.SEARCHCAPS_RESPONSE);
+					} else {
+						response.append(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED);
 					}
 					response.append(CRLF);
 					response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);

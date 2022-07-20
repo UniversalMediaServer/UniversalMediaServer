@@ -218,7 +218,7 @@ public class RendererConfiguration extends Renderer {
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 	protected static final String DISABLE_UMS_RESUME = "DisableUmsResume";
-	protected static final String DISABLE_SEARCHCAPS = "upnp_search_caps_disabled";
+	protected static final String UPNP_ENABLE_SEARCHCAPS = "upnp_search_caps_enabled = true";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -332,8 +332,8 @@ public class RendererConfiguration extends Renderer {
 		return configurationReader.getInt(key, def);
 	}
 
-	public boolean isUpnpSearchCapsDisabled() {
-		return getBoolean(DISABLE_SEARCHCAPS, false);
+	public boolean isUpnpSearchCapsEnabled() {
+		return getBoolean(UPNP_ENABLE_SEARCHCAPS, true);
 	}
 
 	public long getLong(String key, long def) {
