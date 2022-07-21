@@ -133,6 +133,9 @@ public abstract class Database extends DatabaseHelper {
 				}
 			}
 		} finally {
+			if (embedded && conn != null) {
+				DatabaseEmbedded.checkTableStorageType(conn, dbName);
+			}
 			close(conn);
 		}
 	}
@@ -166,7 +169,7 @@ public abstract class Database extends DatabaseHelper {
 		}
 
 		if (embedded) {
-			DatabaseEmbedded.close(ds);
+			DatabaseEmbedded.shutdown(ds);
 		}
 		ds.close();
 		status = DatabaseStatus.CLOSED;
