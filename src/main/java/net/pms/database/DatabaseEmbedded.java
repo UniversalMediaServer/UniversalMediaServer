@@ -17,7 +17,6 @@
  */
 package net.pms.database;
 
-import com.zaxxer.hikari.HikariDataSource;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -102,9 +101,9 @@ public class DatabaseEmbedded {
 		return null;
 	}
 
-	public static void shutdown(HikariDataSource ds) {
+	public static void shutdown(Connection connection) {
 		logProfilerIfNeeded();
-		try (Statement stmt = ds.getConnection().createStatement()) {
+		try (Statement stmt = connection.createStatement()) {
 			stmt.execute("SHUTDOWN COMPACT");
 		} catch (SQLException e1) {
 			LOGGER.error("compacting DB ", e1);
