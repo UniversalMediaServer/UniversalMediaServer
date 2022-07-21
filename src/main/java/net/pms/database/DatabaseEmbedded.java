@@ -34,6 +34,7 @@ import org.h2.engine.Constants;
 import org.h2.tools.ConvertTraceFile;
 import org.h2.tools.Upgrade;
 import org.h2.util.Profiler;
+import org.h2.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,26 +51,17 @@ public class DatabaseEmbedded {
 		LOGGER.info("Using database engine version {}.{}.{}", Constants.VERSION_MAJOR, Constants.VERSION_MINOR, Constants.BUILD_ID);
 		int cacheSize = CONFIGURATION.getDatabaseMediaCacheSize();
 		if (cacheSize < 0) {
-			//never set, try to set to 10% of JVM memory if > 500MB
-			long maxMemKb = Runtime.getRuntime().maxMemory() / 1000;
-			if (maxMemKb > 500000) {
-				cacheSize = Math.round(maxMemKb / 10);
-			} else {
-				cacheSize = 0;
-			}
-			CONFIGURATION.setDatabaseMediaCacheSize(Math.round(cacheSize / 1000));
+			//no value set, use 64 MB per GB
+			cacheSize = Utils.scaleForAvailableMemory(65536);
 		}
-		if (cacheSize > 0) {
-			LOGGER.info("Database may use {} MB for caching", cacheSize);
-			cacheSize = (cacheSize * 1000);
-			url += ";CACHE_SIZE=" + cacheSize;
-		}
+		LOGGER.info("Database may use {} MB for caching", Math.round(cacheSize / 1024));
+		url += ";CACHE_SIZE=" + cacheSize;
 
-		if (CONFIGURATION.getDatabaseLogging()) {
-			url += ";TRACE_LEVEL_FILE=3";
-			LOGGER.info("Database logging is enabled");
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Database logging is disabled");
+		if (CONFIGURATION.isDatabaseMediaUseCacheSoft()) {
+			LOGGER.info("Database use soft cache");
+			url += ";CACHE_TYPE=SOFT_" + Constants.CACHE_TYPE_DEFAULT;
+		} else {
+			url += ";CACHE_TYPE=" + Constants.CACHE_TYPE_DEFAULT;
 		}
 
 		if (CONFIGURATION.isDatabaseMediaUseMemoryIndexes()) {
@@ -77,6 +69,13 @@ public class DatabaseEmbedded {
 			LOGGER.info("Database indexes in memory is enabled");
 		} else {
 			url += ";DEFAULT_TABLE_TYPE=CACHED";
+		}
+
+		if (CONFIGURATION.getDatabaseLogging()) {
+			url += ";TRACE_LEVEL_FILE=3";
+			LOGGER.info("Database logging is enabled");
+		} else if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Database logging is disabled");
 		}
 
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
