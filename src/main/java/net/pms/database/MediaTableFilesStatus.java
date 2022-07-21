@@ -104,23 +104,22 @@ public final class MediaTableFilesStatus extends MediaTable {
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 						Set<String> fileStatusEntries = new HashSet<>();
-						PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
-						ResultSet rs = stmt.executeQuery();
-						String filename;
-						while (rs.next()) {
-							filename = rs.getString("FILES_FILENAME");
+						try (PreparedStatement stmt = connection.prepareStatement("SELECT " + MediaTableFiles.TABLE_NAME + ".ID AS FILES_ID, " + MediaTableFiles.TABLE_NAME + ".FILENAME AS FILES_FILENAME FROM " + MediaTableFiles.TABLE_NAME + " LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_NAME + ".ID = " + TABLE_NAME + ".FILEID");
+								ResultSet rs = stmt.executeQuery()) {
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
 
-							// Ensure we don't attempt add the same filename twice
-							if (!fileStatusEntries.contains(filename)) {
-								fileStatusEntries.add(filename);
-								String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-								Statement statement2 = connection.createStatement();
-								statement2.execute(query);
-								LOGGER.info("Updating fully played entry for " + filename);
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
+									Statement statement2 = connection.createStatement();
+									statement2.execute(query);
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
 							}
 						}
-						stmt.close();
-						rs.close();
 
 						statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
@@ -362,7 +361,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
+			String query = "SELECT ID, FILENAME FROM " + MediaTableFiles.TABLE_NAME + " WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
 			}

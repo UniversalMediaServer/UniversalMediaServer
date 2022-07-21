@@ -544,7 +544,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "updating cached thumbnail", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -583,7 +583,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			) {
 				return convertResultSetToList(resultSet);
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
 			LOGGER.debug("", e);
 		}
@@ -630,7 +630,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		try (
 			PreparedStatement ps = connection.prepareStatement(
 				"SELECT * " +
-				"FROM " + MediaTableTVSeries.TABLE_NAME + " " +
+				"FROM " + TABLE_NAME + " " +
 				"WHERE SIMPLIFIEDTITLE = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
@@ -715,7 +715,6 @@ public final class MediaTableTVSeries extends MediaTable {
 					rs.updateRow();
 				} else {
 					LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
-					return;
 				}
 			}
 		} catch (SQLException e) {
@@ -773,14 +772,14 @@ public final class MediaTableTVSeries extends MediaTable {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			String sql = "SELECT FILES.MOVIEORSHOWNAME " +
-				"FROM FILES " +
+			String sql = "SELECT " + MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME " +
+				"FROM " + MediaTableFiles.TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " +
-					"FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
+					MediaTableFiles.TABLE_NAME + ".FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
-					"FILES.FORMAT_TYPE = 4 AND " +
-					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
-					"FILES.ISTVEPISODE AND " +
+					MediaTableFiles.TABLE_NAME + ".FORMAT_TYPE = 4 AND " +
+					MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
+					MediaTableFiles.TABLE_NAME + ".ISTVEPISODE AND " +
 					MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
 				"LIMIT 1";
 
