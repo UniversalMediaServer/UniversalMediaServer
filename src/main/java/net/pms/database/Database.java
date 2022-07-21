@@ -83,35 +83,39 @@ public abstract class Database extends DatabaseHelper {
 	public Database(String name, String user, String password) {
 		logger = LoggerFactory.getLogger(Database.class);
 
-		PmsConfiguration c = PMS.getConfiguration();
-		HikariConfig config = new HikariConfig();
-		config.setUsername(c.getDatabaseUser());
-		config.setPassword(c.getDatabasePassword());
-		config.addDataSourceProperty("cachePrepStmts", "true");
-		config.addDataSourceProperty("prepStmtCacheSize", "250");
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+		PmsConfiguration pmsConfig = PMS.getConfiguration();
+		HikariConfig hikariConfig = new HikariConfig();
+		hikariConfig.setUsername(pmsConfig.getDatabaseUser());
+		hikariConfig.setPassword(pmsConfig.getDatabasePassword());
+		hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+		hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+		hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+		logger.info("using {} database backend ", PMS.getConfiguration().getDatabaseBackend());
 
 		if (isH2dbBackend()) {
 			h2dbInit(name, user, password);
-			config.setJdbcUrl(c.getDatabaseUrl() + ";CACHE_SIZE=131072");
+			String h2url = pmsConfig.getDatabaseUrl() + ";CACHE_SIZE=131072";
+			hikariConfig.setJdbcUrl(h2url);
+			logger.info("database url : {} ", h2url);
 			dbTypes = new H2dbTypes();
 		} else if (isPostgresBackend()) {
-			config.setJdbcUrl(c.getDatabaseUrl());
-			PMS.get();
-			PmsConfiguration pmsConfig = PMS.getConfiguration();
+			hikariConfig.setJdbcUrl(pmsConfig.getDatabaseUrl());
 			dbTypes = new PostgresTypes();
 			if (!StringUtils.isAllBlank(pmsConfig.getDatabaseSocketFactory())) {
-				logger.info("adding socket factory class and arg's");
-				config.addDataSourceProperty("socketFactory", pmsConfig.getDatabaseSocketFactory());
-				config.addDataSourceProperty("socketFactoryArg", pmsConfig.getDatabaseSocketFactoryArg());
-				config.addDataSourceProperty("sslMode", "disable");
+				hikariConfig.addDataSourceProperty("socketFactory", pmsConfig.getDatabaseSocketFactory());
+				hikariConfig.addDataSourceProperty("socketFactoryArg", pmsConfig.getDatabaseSocketFactoryArg());
+				hikariConfig.addDataSourceProperty("sslMode", "disable");
+				logger.info("database socketFactory : {} ", pmsConfig.getDatabaseSocketFactory());
+				logger.info("database socketFactoryArg : {} ", pmsConfig.getDatabaseSocketFactoryArg());
+				logger.info("database url : {} ", pmsConfig.getDatabaseUrl());
 			}
 		} else {
 			logger.warn("unknown database");
 			dbTypes = null;
 		}
 
-		ds = new HikariDataSource(config);
+		ds = new HikariDataSource(hikariConfig);
 	}
 
 	/**
