@@ -93,7 +93,7 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
+			"CREATE MEMORY TABLE " + TABLE_NAME + "(" +
 				"ID				IDENTITY			PRIMARY KEY, " +
 				"TVSERIESID		INTEGER				DEFAULT -1, " +
 				"FILENAME		VARCHAR(1024)		DEFAULT '', " +

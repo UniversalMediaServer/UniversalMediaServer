@@ -100,7 +100,7 @@ public class MediaTableSubtracks extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE SUBTRACKS (" +
+			"CREATE MEMORY TABLE SUBTRACKS (" +
 				"ID             INTEGER								NOT NULL			, " +
 				"FILEID         BIGINT								NOT NULL			, " +
 				"LANG           VARCHAR(" + SIZE_LANG + ")								, " +
