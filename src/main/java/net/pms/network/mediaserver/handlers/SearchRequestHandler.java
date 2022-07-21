@@ -241,7 +241,7 @@ public class SearchRequestHandler {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
-			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", getField(property, requestType), val.toLowerCase()));
+			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", getField(property, requestType), val.toLowerCase()));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
