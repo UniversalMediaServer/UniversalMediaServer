@@ -98,12 +98,8 @@ public abstract class Database extends DatabaseHelper {
 		}
 		open();
 		switch (status) {
-			case OPENED:
-				onOpening(force);
-				break;
-			case OPENFAILED:
-				onOpeningFail(force);
-				break;
+			case OPENED -> onOpening(force);
+			case OPENFAILED -> onOpeningFail(force);
 		}
 	}
 
@@ -169,7 +165,11 @@ public abstract class Database extends DatabaseHelper {
 		}
 
 		if (embedded) {
-			DatabaseEmbedded.shutdown(ds);
+			try (Connection con = getConnection()) {
+				DatabaseEmbedded.shutdown(con);
+			} catch (SQLException ex) {
+				LOGGER.error("shutdown DB ", ex);
+			}
 		}
 		ds.close();
 		status = DatabaseStatus.CLOSED;
