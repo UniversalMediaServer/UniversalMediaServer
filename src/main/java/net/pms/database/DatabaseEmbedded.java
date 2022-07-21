@@ -18,7 +18,12 @@
 package net.pms.database;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -70,6 +75,8 @@ public class DatabaseEmbedded {
 		if (CONFIGURATION.isDatabaseMediaUseMemoryIndexes()) {
 			url += ";DEFAULT_TABLE_TYPE=MEMORY";
 			LOGGER.info("Database indexes in memory is enabled");
+		} else {
+			url += ";DEFAULT_TABLE_TYPE=CACHED";
 		}
 
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
@@ -96,7 +103,7 @@ public class DatabaseEmbedded {
 		return null;
 	}
 
-	public static void close(HikariDataSource ds) {
+	public static void shutdown(HikariDataSource ds) {
 		logProfilerIfNeeded();
 		try (Statement stmt = ds.getConnection().createStatement()) {
 			stmt.execute("SHUTDOWN COMPACT");
@@ -218,4 +225,73 @@ public class DatabaseEmbedded {
 		}
 	}
 
+	public static void checkTableStorageType(final Connection connection, String dbName) {
+		try {
+			boolean memoryStorage = CONFIGURATION.isDatabaseMediaUseMemoryIndexes();
+			String askedStorageType = memoryStorage ? "MEMORY" : "CACHED";
+			boolean upgradeTables = false;
+			try (ResultSet rs = connection.getMetaData().getTables(null, "PUBLIC", "%", new String[] {"BASE TABLE"})) {
+				while (rs.next()) {
+					String tableName = rs.getString("TABLE_NAME");
+					try (Statement st = connection.createStatement(); ResultSet rs2 = st.executeQuery("SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='" + tableName + "'")) {
+						if (rs2.first()) {
+							String storageType = rs2.getString("STORAGE_TYPE");
+							if (!askedStorageType.equals(storageType)) {
+								upgradeTables = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (upgradeTables) {
+				LOGGER.info("Database will update to {} table storage type", askedStorageType);
+				try (Statement stBackup = connection.createStatement()) {
+					boolean hasError = false;
+					ResultSet backup = stBackup.executeQuery("SCRIPT NOPASSWORDS NOSETTINGS NOVERSION DROP");
+					try (Statement stRestore = connection.createStatement()) {
+						while (backup.next()) {
+							String sql = backup.getString(1);
+							if (!memoryStorage && sql.startsWith("CREATE MEMORY TABLE")) {
+								sql = sql.replace("CREATE MEMORY TABLE", "CREATE CACHED TABLE");
+							} else if (memoryStorage && sql.startsWith("CREATE CACHED TABLE")) {
+								sql = sql.replace("CREATE CACHED TABLE", "CREATE MEMORY TABLE");
+							}
+							try {
+								stRestore.execute(sql);
+							} catch (SQLException e) {
+								hasError = true;
+							}
+						}
+					}
+					if (hasError) {
+						//dump to disk
+						LOGGER.info("Database update error, backup file will be created");
+						String dbFilename = getDatabaseFilename(dbName);
+						String backupFilename = dbFilename + ".script.sql";
+						File backupFile = new File(backupFilename);
+						try (BufferedWriter fileStream = new BufferedWriter(new FileWriter(backupFile))) {
+							backup.beforeFirst(); //first is user
+							while (backup.next()) {
+								String sql = backup.getString(1);
+								if (!memoryStorage && sql.startsWith("CREATE MEMORY TABLE")) {
+									sql = sql.replace("CREATE MEMORY TABLE", "CREATE CACHED TABLE");
+								} else if (memoryStorage && sql.startsWith("CREATE CACHED TABLE")) {
+									sql = sql.replace("CREATE CACHED TABLE", "CREATE MEMORY TABLE");
+								}
+								fileStream.write(sql);
+								fileStream.newLine();
+							}
+							fileStream.flush();
+						} catch (IOException ex) {
+						}
+					} else {
+						LOGGER.info("Database updated succefully");
+					}
+				}
+			}
+		} catch (SQLException ex) {
+			LOGGER.error("Database error on memory indexes change", ex);
+		}
+	}
 }
