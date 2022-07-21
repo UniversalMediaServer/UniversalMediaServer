@@ -17,6 +17,7 @@
  */
 package net.pms.database;
 
+import com.zaxxer.hikari.HikariDataSource;
 import java.awt.Component;
 import java.sql.*;
 import javax.swing.JOptionPane;
@@ -25,7 +26,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * This class provides methods for creating and maintaining the database where

@@ -165,7 +165,7 @@ public class MediaTableFiles extends MediaTable {
 							sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -238,7 +238,7 @@ public class MediaTableFiles extends MediaTable {
 							StringBuilder sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -287,7 +287,7 @@ public class MediaTableFiles extends MediaTable {
 							StringBuilder sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -1134,7 +1134,6 @@ public class MediaTableFiles extends MediaTable {
 					rs.updateRow();
 				} else {
 					LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
-					return;
 				}
 			}
 		}
@@ -1331,7 +1330,7 @@ public class MediaTableFiles extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 			}
-		} catch (Exception se) {
+		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}
@@ -1455,7 +1454,7 @@ public class MediaTableFiles extends MediaTable {
 				"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".FILENAME = FILES_STATUS.FILENAME" +
+					"WHERE " + TABLE_NAME + ".FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME" +
 				");"
 			);
 			ps.execute();
