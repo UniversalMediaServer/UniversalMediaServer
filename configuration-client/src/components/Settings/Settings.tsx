@@ -141,6 +141,28 @@ export default function Settings() {
       });
   };
 
+  const resetCache = () => {
+    setLoading(true);
+    axios.post('/configuration-api/reset-cache')
+      .then(function () {
+        showNotification({
+          message: i18n.get['Success'],
+        })
+      })
+      .catch(function (error: Error) {
+        console.log(error);
+        showNotification({
+          color: 'red',
+          title: i18n.get['Error'],
+          message: i18n.get['ClickHereReportBug'],
+          onClick: () => { openGitHubNewIssue(); },
+        })
+      })
+      .then(function () {
+        setLoading(false);
+      });
+  };
+
   const getLanguagesSelectData = () => {
     return i18n.languages.map((language) => {
       return {
@@ -1190,11 +1212,53 @@ export default function Settings() {
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
-                <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                <Group position="apart" mt="xl">
+                  <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['EnableCache']}
+                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Button
+                      size="xs"
+                      onClick={() => resetCache()}
+                      disabled={!form.values['use_cache']}
+                    >
+                      {i18n.get['ResetCache']}
+                    </Button>
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['MediaLibraryFolderWillAvailable'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['ShowMediaLibraryFolder']}
+                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                </Group>
+                <Group position="apart" mt="xl">
                   <Checkbox
-                    mt="xl"
-                    label={i18n.get['EnableCache']}
-                    {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    label={i18n.get['BrowseCompressedArchives']}
+                    {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label={i18n.get['ShowServerSettingsFolder']}
+                    {...form.getInputProps('show_server_settings_folder', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label={i18n.get['ShowTranscodeFolder']}
+                    {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
+                  />
+                </Group>
+                <Checkbox
+                  mt="xl"
+                  label={i18n.get['ShowLiveSubtitlesFolder']}
+                  {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
+                />
+                <Tooltip label={allowHtml(i18n.get['IfNumberItemsFolderExceeds'])} {...defaultTooltipSettings}>
+                  <NumberInput
+                    label={i18n.get['MinimumItemLimitBeforeAZ']}
+                    disabled={!canModify}
+                    {...form.getInputProps('atz_limit')}
                   />
                 </Tooltip>
               </Accordion.Item>

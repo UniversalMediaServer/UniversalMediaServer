@@ -28,6 +28,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -222,6 +224,20 @@ public class ConfigurationApiHandler implements HttpHandler {
 					return;
 				}
 				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
+			} else if (api.post("/reset-cache")) {
+				//only logged users for security concerns
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+				if (account == null) {
+					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					return;
+				}
+				MediaDatabase.initForce();
+				try {
+					MediaDatabase.resetCache();
+				} catch (SQLException e) {
+					LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+				}
+				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
 			} else {
 				LOGGER.trace("ConfigurationApiHandler request not available : {}", api.getEndpoint());
 				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
@@ -265,7 +281,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("chapter_support", false);
 		jObj.addProperty("disable_subtitles", false);
 		jObj.addProperty("disable_transcode_for_extensions", "");
-		jObj.addProperty("vlc_use_experimental_codecs", false);
+		jObj.addProperty("enable_archive_browsing", false);
 		jObj.addProperty("encoded_audio_passthrough", false);
 		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
 		jObj.add("engines", transcodingEngines);
@@ -333,7 +349,10 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.add("selected_renderers", allRenderers);
 		jObj.addProperty("server_engine", "0");
 		jObj.addProperty("server_name", "Universal Media Server");
+		jObj.addProperty("show_media_library_folder", true);
+		jObj.addProperty("show_server_settings_folder", false);
 		jObj.addProperty("show_splash_screen", true);
+		jObj.addProperty("show_transcode_folder", true);
 		jObj.addProperty("sort_method", "4");
 		jObj.addProperty("subs_info_level", "basic");
 		jObj.addProperty("subtitles_codepage", "");
@@ -347,6 +366,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
 		jObj.addProperty("vlc_audio_sync_enabled", false);
+		jObj.addProperty("vlc_use_experimental_codecs", false);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;
