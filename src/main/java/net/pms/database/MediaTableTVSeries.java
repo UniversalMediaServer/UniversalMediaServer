@@ -29,10 +29,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -40,6 +36,9 @@ import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.UriFileRetriever;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -463,63 +462,58 @@ public final class MediaTableTVSeries extends MediaTable {
 		Integer thumbnailId = null;
 		Integer tvSeriesId = null;
 
-		try {
-			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
-				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+		String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
+			"FROM " + TABLE_NAME + " " +
+			"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
+			"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+		if (trace) {
+			LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+		}
+
+		try (
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql)
+		) {
+			if (resultSet.next()) {
+				thumbnailId = resultSet.getInt("ThumbnailId");
+				tvSeriesId = resultSet.getInt("TVSeriesId");
+				return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql)
-			) {
-				if (resultSet.next()) {
-					thumbnailId = resultSet.getInt("ThumbnailId");
-					tvSeriesId = resultSet.getInt("TVSeriesId");
-					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
-				}
-			} catch (Exception e) {
-				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
-				LOGGER.trace("", e);
-
-				// Regenerate the thumbnail from a stored poster if it exists
-				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
-				if (posterInfo == null) {
-					// this should never happen, since the only way to have a TV series thumbnail is from an API poster
-					LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
-					if (thumbnailId != null) {
-						MediaTableThumbnails.removeById(connection, thumbnailId);
-						removeImdbIdById(connection, tvSeriesId);
-					}
-					return null;
-				}
-
-				String posterURL = (String) posterInfo[0];
-				Long tvSeriesDatabaseId = (Long) posterInfo[1];
-				try {
-					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
-					return thumbnail;
-				} catch (EOFException e2) {
-					LOGGER.debug(
-						"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
-						posterURL
-					);
-				} catch (UnknownFormatException e2) {
-					LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-				} catch (IOException e2) {
-					LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-					LOGGER.trace("", e2);
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series thumbnail from title", title, TABLE_NAME, e.getMessage());
+		} catch (Exception e) {
+			LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
 			LOGGER.trace("", e);
+
+			// Regenerate the thumbnail from a stored poster if it exists
+			Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
+			if (posterInfo == null) {
+				// this should never happen, since the only way to have a TV series thumbnail is from an API poster
+				LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
+				if (thumbnailId != null) {
+					MediaTableThumbnails.removeById(connection, thumbnailId);
+					removeImdbIdById(connection, tvSeriesId);
+				}
+				return null;
+			}
+
+			String posterURL = (String) posterInfo[0];
+			Long tvSeriesDatabaseId = (Long) posterInfo[1];
+			try {
+				byte[] image = URI_FILE_RETRIEVER.get(posterURL);
+				DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+				MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
+				return thumbnail;
+			} catch (EOFException e2) {
+				LOGGER.debug(
+					"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
+					posterURL
+				);
+			} catch (UnknownFormatException e2) {
+				LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+			} catch (IOException e2) {
+				LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+				LOGGER.trace("", e2);
+			}
 		}
 
 		return null;
