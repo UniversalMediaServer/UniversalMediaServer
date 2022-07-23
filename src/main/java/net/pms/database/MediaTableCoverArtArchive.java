@@ -105,10 +105,10 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY, " +
-				"MODIFIED		TIMESTAMP, " +
-				"MBID			VARCHAR(36), " +
-				"COVER			BLOB" +
+				"ID              IDENTITY       PRIMARY KEY , " +
+				"MODIFIED        TIMESTAMP                  , " +
+				"MBID            VARCHAR(36)                , " +
+				"COVER           BLOB                         " +
 			")",
 			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)"
 		);

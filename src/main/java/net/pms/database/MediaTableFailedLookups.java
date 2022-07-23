@@ -118,11 +118,11 @@ public final class MediaTableFailedLookups extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID               IDENTITY                   PRIMARY KEY, " +
-				"FILENAME         VARCHAR(1024)             NOT NULL, " +
-				"FAILUREDETAILS   VARCHAR(20000)            NOT NULL, " +
-				"VERSION          VARCHAR(1024)             NOT NULL, " +
-				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
+				"ID               IDENTITY                   PRIMARY KEY               , " +
+				"FILENAME         VARCHAR(1024)              NOT NULL                  , " +
+				"FAILUREDETAILS   VARCHAR(20000)             NOT NULL                  , " +
+				"VERSION          VARCHAR(1024)              NOT NULL                  , " +
+				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP   " +
 			")",
 			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
 			"CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)"
