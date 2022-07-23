@@ -95,10 +95,10 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"ACTOR			VARCHAR2(1024)		NOT NULL" +
+				"ID             IDENTITY            PRIMARY KEY , " +
+				"TVSERIESID     INTEGER             DEFAULT -1  , " +
+				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
+				"ACTOR          VARCHAR(1024)       NOT NULL      " +
 			")"
 		);
 	}

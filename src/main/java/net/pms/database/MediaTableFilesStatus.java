@@ -100,27 +100,26 @@ public final class MediaTableFilesStatus extends MediaTable {
 				case 1:
 					// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
 					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR(1024)");
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 						Set<String> fileStatusEntries = new HashSet<>();
-						PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
-						ResultSet rs = stmt.executeQuery();
-						String filename;
-						while (rs.next()) {
-							filename = rs.getString("FILES_FILENAME");
+						try (PreparedStatement stmt = connection.prepareStatement("SELECT " + MediaTableFiles.TABLE_NAME + ".ID AS FILES_ID, " + MediaTableFiles.TABLE_NAME + ".FILENAME AS FILES_FILENAME FROM " + MediaTableFiles.TABLE_NAME + " LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_NAME + ".ID = " + TABLE_NAME + ".FILEID");
+								ResultSet rs = stmt.executeQuery()) {
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
 
-							// Ensure we don't attempt add the same filename twice
-							if (!fileStatusEntries.contains(filename)) {
-								fileStatusEntries.add(filename);
-								String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-								Statement statement2 = connection.createStatement();
-								statement2.execute(query);
-								LOGGER.info("Updating fully played entry for " + filename);
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
+									Statement statement2 = connection.createStatement();
+									statement2.execute(query);
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
 							}
 						}
-						stmt.close();
-						rs.close();
 
 						statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
@@ -186,7 +185,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					break;
 				case 9:
 					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
+						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  TIMESTAMP");
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
 					}
 					version = 10;
@@ -195,7 +194,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				case 11:
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE PRECISION DEFAULT 0.0");
 						}
 					} catch (SQLException e) {
 						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
@@ -223,14 +222,14 @@ public final class MediaTableFilesStatus extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                     IDENTITY              PRIMARY KEY	, " +
-				"FILENAME               VARCHAR2(1024)        NOT NULL		, " +
-				"MODIFIED               DATETIME							, " +
-				"ISFULLYPLAYED          BOOLEAN               DEFAULT false	, " +
-				"BOOKMARK               INTEGER               DEFAULT 0		, " +
-				"DATELASTPLAY           DATETIME							, " +
-				"PLAYCOUNT              INTEGER               DEFAULT 0		, " +
-				"LASTPLAYBACKPOSITION   DOUBLE                DEFAULT 0.0	  " +
+				"ID                     IDENTITY              PRIMARY KEY   , " +
+				"FILENAME               VARCHAR(1024)         NOT NULL      , " +
+				"MODIFIED               TIMESTAMP                           , " +
+				"ISFULLYPLAYED          BOOLEAN               DEFAULT false , " +
+				"BOOKMARK               INTEGER               DEFAULT 0     , " +
+				"DATELASTPLAY           TIMESTAMP                           , " +
+				"PLAYCOUNT              INTEGER               DEFAULT 0     , " +
+				"LASTPLAYBACKPOSITION   DOUBLE PRECISION      DEFAULT 0.0     " +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
 			"CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)"
@@ -362,7 +361,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
+			String query = "SELECT ID, FILENAME FROM " + MediaTableFiles.TABLE_NAME + " WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
 			if (trace) {
 				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
 			}

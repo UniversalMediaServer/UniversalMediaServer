@@ -29,10 +29,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.h2.jdbc.JdbcSQLDataException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -40,6 +36,9 @@ import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.UriFileRetriever;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -110,7 +109,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				case 1:
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
 							statement.execute("CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)");
 						}
 					} catch (SQLException e) {
@@ -127,28 +126,28 @@ public final class MediaTableTVSeries extends MediaTable {
 					break;
 				case 3:
 					LOGGER.trace("Adding TMDB columns");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FIRSTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS INPRODUCTION VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LASTAIRDATE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NETWORKS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFEPISODES DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFSEASONS DOUBLE");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINCOUNTRY VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SEASONS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SERIESTYPE VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR2");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR2");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FIRSTAIRDATE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS INPRODUCTION VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LANGUAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS LASTAIRDATE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NETWORKS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFEPISODES DOUBLE PRECISION");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS NUMBEROFSEASONS DOUBLE PRECISION");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINCOUNTRY VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SEASONS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SERIESTYPE VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR");
 					break;
 				case 4:
 					// This version was for testing, left here to not break tester dbs
@@ -178,39 +177,39 @@ public final class MediaTableTVSeries extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					IDENTITY			PRIMARY KEY	, " +
-				"ENDYEAR			VARCHAR2(1024)					, " +
-				"IMDBID				VARCHAR2(1024)					, " +
-				"THUMBID			BIGINT							, " +
-				"PLOT				VARCHAR2(20000)					, " +
-				"STARTYEAR			VARCHAR2(1024)					, " +
-				"TITLE				VARCHAR2(1024)		NOT NULL	, " +
-				"SIMPLIFIEDTITLE    VARCHAR2(1024)		NOT NULL	, " +
-				"TOTALSEASONS		DOUBLE							, " +
-				"VERSION			VARCHAR2(1024)					, " +
-				"VOTES				VARCHAR2(1024)					, " +
-				"CREATEDBY VARCHAR2, " +
-				"CREDITS VARCHAR2, " +
-				"EXTERNALIDS VARCHAR2, " +
-				"FIRSTAIRDATE VARCHAR2, " +
-				"HOMEPAGE VARCHAR2, " +
-				"IMAGES VARCHAR2, " +
-				"INPRODUCTION BOOLEAN, " +
-				"LANGUAGES VARCHAR2, " +
-				"LASTAIRDATE VARCHAR2, " +
-				"NETWORKS VARCHAR2, " +
-				"NUMBEROFEPISODES DOUBLE, " +
-				"NUMBEROFSEASONS DOUBLE, " +
-				"ORIGINCOUNTRY VARCHAR2, " +
-				"ORIGINALLANGUAGE VARCHAR2, " +
-				"ORIGINALTITLE VARCHAR2, " +
-				"PRODUCTIONCOMPANIES VARCHAR2, " +
-				"PRODUCTIONCOUNTRIES VARCHAR2, " +
-				"SEASONS VARCHAR2, " +
-				"SERIESTYPE VARCHAR2, " +
-				"SPOKENLANGUAGES VARCHAR2, " +
-				"STATUS VARCHAR2, " +
-				"TAGLINE VARCHAR2" +
+				"ID                   IDENTITY           PRIMARY KEY , " +
+				"ENDYEAR              VARCHAR(1024)                  , " +
+				"IMDBID               VARCHAR(1024)                  , " +
+				"THUMBID              BIGINT                         , " +
+				"PLOT                 VARCHAR(20000)                 , " +
+				"STARTYEAR            VARCHAR(1024)                  , " +
+				"TITLE                VARCHAR(1024)      NOT NULL    , " +
+				"SIMPLIFIEDTITLE      VARCHAR(1024)      NOT NULL    , " +
+				"TOTALSEASONS         DOUBLE PRECISION               , " +
+				"VERSION              VARCHAR(1024)                  , " +
+				"VOTES                VARCHAR(1024)                  , " +
+				"CREATEDBY            VARCHAR                        , " +
+				"CREDITS              VARCHAR                        , " +
+				"EXTERNALIDS          VARCHAR                        , " +
+				"FIRSTAIRDATE         VARCHAR                        , " +
+				"HOMEPAGE             VARCHAR                        , " +
+				"IMAGES               VARCHAR                        , " +
+				"INPRODUCTION         BOOLEAN                        , " +
+				"LANGUAGES            VARCHAR                        , " +
+				"LASTAIRDATE          VARCHAR                        , " +
+				"NETWORKS             VARCHAR                        , " +
+				"NUMBEROFEPISODES     DOUBLE PRECISION               , " +
+				"NUMBEROFSEASONS      DOUBLE PRECISION               , " +
+				"ORIGINCOUNTRY        VARCHAR                        , " +
+				"ORIGINALLANGUAGE     VARCHAR                        , " +
+				"ORIGINALTITLE        VARCHAR                        , " +
+				"PRODUCTIONCOMPANIES  VARCHAR                        , " +
+				"PRODUCTIONCOUNTRIES  VARCHAR                        , " +
+				"SEASONS              VARCHAR                        , " +
+				"SERIESTYPE           VARCHAR                        , " +
+				"SPOKENLANGUAGES      VARCHAR                        , " +
+				"STATUS               VARCHAR                        , " +
+				"TAGLINE              VARCHAR                          " +
 			")",
 			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
 			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",
@@ -463,63 +462,58 @@ public final class MediaTableTVSeries extends MediaTable {
 		Integer thumbnailId = null;
 		Integer tvSeriesId = null;
 
-		try {
-			String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
-				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+		String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
+			"FROM " + TABLE_NAME + " " +
+			"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
+			"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+		if (trace) {
+			LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
+		}
+
+		try (
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql)
+		) {
+			if (resultSet.next()) {
+				thumbnailId = resultSet.getInt("ThumbnailId");
+				tvSeriesId = resultSet.getInt("TVSeriesId");
+				return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql)
-			) {
-				if (resultSet.next()) {
-					thumbnailId = resultSet.getInt("ThumbnailId");
-					tvSeriesId = resultSet.getInt("TVSeriesId");
-					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
-				}
-			} catch (JdbcSQLDataException e) {
-				LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
-				LOGGER.trace("", e);
-
-				// Regenerate the thumbnail from a stored poster if it exists
-				Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
-				if (posterInfo == null) {
-					// this should never happen, since the only way to have a TV series thumbnail is from an API poster
-					LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
-					if (thumbnailId != null) {
-						MediaTableThumbnails.removeById(connection, thumbnailId);
-						removeImdbIdById(connection, tvSeriesId);
-					}
-					return null;
-				}
-
-				String posterURL = (String) posterInfo[0];
-				Long tvSeriesDatabaseId = (Long) posterInfo[1];
-				try {
-					byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-					DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-					MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
-					return thumbnail;
-				} catch (EOFException e2) {
-					LOGGER.debug(
-						"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
-						posterURL
-					);
-				} catch (UnknownFormatException e2) {
-					LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-				} catch (IOException e2) {
-					LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-					LOGGER.trace("", e2);
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series thumbnail from title", title, TABLE_NAME, e.getMessage());
+		} catch (Exception e) {
+			LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
 			LOGGER.trace("", e);
+
+			// Regenerate the thumbnail from a stored poster if it exists
+			Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
+			if (posterInfo == null) {
+				// this should never happen, since the only way to have a TV series thumbnail is from an API poster
+				LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
+				if (thumbnailId != null) {
+					MediaTableThumbnails.removeById(connection, thumbnailId);
+					removeImdbIdById(connection, tvSeriesId);
+				}
+				return null;
+			}
+
+			String posterURL = (String) posterInfo[0];
+			Long tvSeriesDatabaseId = (Long) posterInfo[1];
+			try {
+				byte[] image = URI_FILE_RETRIEVER.get(posterURL);
+				DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+				MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
+				return thumbnail;
+			} catch (EOFException e2) {
+				LOGGER.debug(
+					"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
+					posterURL
+				);
+			} catch (UnknownFormatException e2) {
+				LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+			} catch (IOException e2) {
+				LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
+				LOGGER.trace("", e2);
+			}
 		}
 
 		return null;
@@ -624,7 +618,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		try (
 			PreparedStatement ps = connection.prepareStatement(
 				"SELECT * " +
-				"FROM " + MediaTableTVSeries.TABLE_NAME + " " +
+				"FROM " + TABLE_NAME + " " +
 				"WHERE SIMPLIFIEDTITLE = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
@@ -760,14 +754,14 @@ public final class MediaTableTVSeries extends MediaTable {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			String sql = "SELECT FILES.MOVIEORSHOWNAME " +
-				"FROM FILES " +
+			String sql = "SELECT " + MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME " +
+				"FROM " + MediaTableFiles.TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " +
-					"FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
+					MediaTableFiles.TABLE_NAME + ".FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
 				"WHERE " +
-					"FILES.FORMAT_TYPE = 4 AND " +
-					"FILES.MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
-					"FILES.ISTVEPISODE AND " +
+					MediaTableFiles.TABLE_NAME + ".FORMAT_TYPE = 4 AND " +
+					MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
+					MediaTableFiles.TABLE_NAME + ".ISTVEPISODE AND " +
 					MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
 				"LIMIT 1";
 

@@ -109,10 +109,10 @@ public final class MediaTableThumbnails extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY		, " +
-				"THUMBNAIL		OTHER			NOT NULL		, " +
-				"MODIFIED		DATETIME						, " +
-				"MD5			VARCHAR			UNIQUE NOT NULL" +
+				"ID              IDENTITY       PRIMARY KEY     , " +
+				"THUMBNAIL       OTHER          NOT NULL        , " +
+				"MODIFIED        TIMESTAMP                      , " +
+				"MD5             VARCHAR        UNIQUE NOT NULL   " +
 			")"
 		);
 	}
@@ -133,7 +133,7 @@ public final class MediaTableThumbnails extends MediaTable {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
 				connection.setAutoCommit(false);
-				MediaTableThumbnails.setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID, false);
+				setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID, false);
 				connection.commit();
 			}
 		} catch (SQLException e) {
@@ -219,7 +219,7 @@ public final class MediaTableThumbnails extends MediaTable {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, fullPathToFile, e.getMessage());
 			LOGGER.trace("", e);
 		}
