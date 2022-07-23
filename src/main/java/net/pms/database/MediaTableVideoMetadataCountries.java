@@ -17,15 +17,13 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,16 +113,15 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 	 * @param countries
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final String countries, final long tvSeriesID) {
-		if (isBlank(countries)) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement countries, final long tvSeriesID) {
+		if (countries == null || !countries.isJsonArray() || countries.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			List<String> countriesArray = Arrays.asList(countries.split(", "));
-			Iterator<String> i = countriesArray.iterator();
+			Iterator<JsonElement> i = countries.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				String country = i.next();
+				String country = i.next().getAsString();
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(
