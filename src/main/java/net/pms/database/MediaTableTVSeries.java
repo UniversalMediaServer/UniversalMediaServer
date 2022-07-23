@@ -227,7 +227,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param seriesName the name of the series, for when we don't have API data yet
 	 * @return the new row ID
 	 */
-	public static long set(final Connection connection, final HashMap tvSeries, final String seriesName) {
+	public static long set(final Connection connection, final JsonObject tvSeries, final String seriesName) {
 		boolean trace = LOGGER.isTraceEnabled();
 		String query;
 		String condition;
@@ -236,12 +236,15 @@ public final class MediaTableTVSeries extends MediaTable {
 		if (seriesName != null) {
 			simplifiedTitle = FileUtil.getSimplifiedShowName(seriesName);
 			condition = "SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle);
-		} else if (isNotBlank((String) tvSeries.get("title"))) {
-			simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
-			condition = "IMDBID = " + sqlQuote((String) tvSeries.get("imdbID"));
 		} else {
-			LOGGER.debug("Attempted to set TV series info with no series title: {}", (!tvSeries.isEmpty() ? tvSeries.toString() : "Nothing provided"));
-			return -1;
+			String title = APIUtils.getStringOrNull(tvSeries, "title");
+			if (isNotBlank(title)) {
+				simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+				condition = "IMDBID = " + sqlQuote(APIUtils.getStringOrNull(tvSeries, "imdbID"));
+			} else {
+				LOGGER.debug("Attempted to set TV series info with no series title: {}", (tvSeries != null ? tvSeries.toString() : "Nothing provided"));
+				return -1;
+			}
 		}
 
 		try {
@@ -279,89 +282,79 @@ public final class MediaTableTVSeries extends MediaTable {
 							insertStatement.setString(1, simplifiedTitle);
 							insertStatement.setString(2, seriesName);
 						} else {
-							insertStatement.setString(1, (String) tvSeries.get("endYear"));
-							insertStatement.setString(2, (String) tvSeries.get("imdbID"));
-							insertStatement.setString(3, (String) tvSeries.get("plot"));
+							insertStatement.setString(1, APIUtils.getStringOrNull(tvSeries, "endYear"));
+							insertStatement.setString(2, APIUtils.getStringOrNull(tvSeries, "imdbID"));
+							insertStatement.setString(3, APIUtils.getStringOrNull(tvSeries, "plot"));
 							insertStatement.setString(4, simplifiedTitle);
-							insertStatement.setString(5, (String) tvSeries.get("startYear"));
-							insertStatement.setString(6, (String) tvSeries.get("title"));
+							insertStatement.setString(5, APIUtils.getStringOrNull(tvSeries, "startYear"));
+							insertStatement.setString(6, APIUtils.getStringOrNull(tvSeries, "title"));
 
-							if (tvSeries.get("totalSeasons") != null) {
-								insertStatement.setDouble(7, (Double) tvSeries.get("totalSeasons"));
+							if (tvSeries.has("totalSeasons")) {
+								insertStatement.setDouble(7, tvSeries.get("totalSeasons").getAsDouble());
 							} else {
 								insertStatement.setDouble(7, 0.0);
 							}
 
-							insertStatement.setString(8, (String) tvSeries.get("votes"));
+							insertStatement.setString(8, APIUtils.getStringOrNull(tvSeries, "votes"));
 							insertStatement.setString(9, APIUtils.getApiDataSeriesVersion());
 
 							// TMDB data, since v11
-							String json;
-							if (tvSeries.get("createdBy") != null) {
-								json = GSON.toJson(tvSeries.get("createdBy"));
-								insertStatement.setString(10, json);
+							if (tvSeries.has("createdBy")) {
+								insertStatement.setString(10, tvSeries.get("createdBy").toString());
 							}
-							if (tvSeries.get("credits") != null) {
-								json = GSON.toJson(tvSeries.get("credits"));
-								insertStatement.setString(11, json);
+							if (tvSeries.has("credits")) {
+								insertStatement.setString(11, tvSeries.get("credits").toString());
 							}
-							if (tvSeries.get("externalIDs") != null) {
-								json = GSON.toJson(tvSeries.get("externalIDs"));
-								insertStatement.setString(12, json);
+							if (tvSeries.has("externalIDs")) {
+								insertStatement.setString(12, tvSeries.get("externalIDs").toString());
 							}
-							insertStatement.setString(13, (String) tvSeries.get("firstAirDate"));
-							insertStatement.setString(14, (String) tvSeries.get("homepage"));
-							if (tvSeries.get("images") != null) {
-								json = GSON.toJson(tvSeries.get("images"));
-								insertStatement.setString(15, json);
+							insertStatement.setString(13, APIUtils.getStringOrNull(tvSeries, "firstAirDate"));
+							insertStatement.setString(14, APIUtils.getStringOrNull(tvSeries, "homepage"));
+							if (tvSeries.has("images")) {
+								insertStatement.setString(15, tvSeries.get("images").toString());
 							}
-							if (tvSeries.get("inProduction") != null) {
-								insertStatement.setBoolean(16, (Boolean) tvSeries.get("inProduction"));
+							if (tvSeries.has("inProduction")) {
+								insertStatement.setBoolean(16, tvSeries.get("inProduction").getAsBoolean());
 							} else {
 								insertStatement.setBoolean(16, false);
 							}
-							if (tvSeries.get("languages") != null) {
-								insertStatement.setString(17, StringUtils.join(tvSeries.get("languages"), ","));
+							if (tvSeries.has("languages")) {
+								insertStatement.setString(17, tvSeries.get("languages").toString());
 							}
-							insertStatement.setString(18, (String) tvSeries.get("lastAirDate"));
-							if (tvSeries.get("networks") != null) {
-								json = GSON.toJson(tvSeries.get("networks"));
-								insertStatement.setString(19, json);
+							insertStatement.setString(18, APIUtils.getStringOrNull(tvSeries, "lastAirDate"));
+							if (tvSeries.has("networks")) {
+								insertStatement.setString(19, tvSeries.get("networks").toString());
 							}
-							if (tvSeries.get("numberOfEpisodes") != null) {
-								insertStatement.setDouble(20, (Double) tvSeries.get("numberOfEpisodes"));
+							if (tvSeries.has("numberOfEpisodes")) {
+								insertStatement.setDouble(20, tvSeries.get("numberOfEpisodes").getAsDouble());
 							} else {
 								insertStatement.setNull(20, Types.DOUBLE);
 							}
-							if (tvSeries.get("numberOfSeasons") != null) {
-								insertStatement.setDouble(21, (Double) tvSeries.get("numberOfSeasons"));
+							if (tvSeries.has("numberOfSeasons")) {
+								insertStatement.setDouble(21, tvSeries.get("numberOfSeasons").getAsDouble());
 							} else {
 								insertStatement.setNull(21, Types.DOUBLE);
 							}
-							if (tvSeries.get("originCountry") != null) {
-								insertStatement.setString(22, StringUtils.join(tvSeries.get("originCountry"), ","));
+							if (tvSeries.has("originCountry")) {
+								insertStatement.setString(22, tvSeries.get("originCountry").toString());
 							}
-							insertStatement.setString(23, (String) tvSeries.get("originalLanguage"));
-							insertStatement.setString(24, (String) tvSeries.get("originalTitle"));
-							if (tvSeries.get("productionCompanies") != null) {
-								json = GSON.toJson(tvSeries.get("productionCompanies"));
-								insertStatement.setString(25, json);
+							insertStatement.setString(23, APIUtils.getStringOrNull(tvSeries, "originalLanguage"));
+							insertStatement.setString(24, APIUtils.getStringOrNull(tvSeries, "originalTitle"));
+							if (tvSeries.has("productionCompanies")) {
+								insertStatement.setString(25, tvSeries.get("productionCompanies").toString());
 							}
-							if (tvSeries.get("productionCountries") != null) {
-								json = GSON.toJson(tvSeries.get("productionCountries"));
-								insertStatement.setString(26, json);
+							if (tvSeries.has("productionCountries")) {
+								insertStatement.setString(26, tvSeries.get("productionCountries").toString());
 							}
-							if (tvSeries.get("seasons") != null) {
-								json = GSON.toJson(tvSeries.get("seasons"));
-								insertStatement.setString(27, json);
+							if (tvSeries.has("seasons")) {
+								insertStatement.setString(27, tvSeries.get("seasons").toString());
 							}
-							insertStatement.setString(28, (String) tvSeries.get("seriesType"));
-							if (tvSeries.get("spokenLanguages") != null) {
-								json = GSON.toJson(tvSeries.get("spokenLanguages"));
-								insertStatement.setString(29, json);
+							insertStatement.setString(28, APIUtils.getStringOrNull(tvSeries, "seriesType"));
+							if (tvSeries.has("spokenLanguages")) {
+								insertStatement.setString(29, tvSeries.get("spokenLanguages").toString());
 							}
-							insertStatement.setString(30, (String) tvSeries.get("status"));
-							insertStatement.setString(31, (String) tvSeries.get("tagline"));
+							insertStatement.setString(30, APIUtils.getStringOrNull(tvSeries, "status"));
+							insertStatement.setString(31, APIUtils.getStringOrNull(tvSeries, "tagline"));
 						}
 						insertStatement.executeUpdate();
 
@@ -524,7 +517,7 @@ public final class MediaTableTVSeries extends MediaTable {
 					LOGGER.trace("", e2);
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading tv series thumbnail from title", title, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -620,12 +613,13 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param connection the db connection
 	 * @param tvSeries
 	 */
-	public static void insertAPIMetadata(final Connection connection, final HashMap tvSeries) {
+	public static void insertAPIMetadata(final Connection connection, final JsonObject tvSeries) {
 		if (tvSeries == null) {
 			LOGGER.warn("Couldn't write API data for \"{}\" to the database because there is no media information");
 			return;
 		}
-		String simplifiedTitle = FileUtil.getSimplifiedShowName((String) tvSeries.get("title"));
+		String title = APIUtils.getStringOrNull(tvSeries, "title");
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
 		try (
 			PreparedStatement ps = connection.prepareStatement(
@@ -641,16 +635,16 @@ public final class MediaTableTVSeries extends MediaTable {
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					String json;
-					rs.updateString("ENDYEAR", (String) tvSeries.get("endYear"));
-					rs.updateString("IMDBID", (String) tvSeries.get("imdbID"));
-					rs.updateString("PLOT", (String) tvSeries.get("plot"));
-					rs.updateString("STARTYEAR", (String) tvSeries.get("startYear"));
-					rs.updateString("TITLE", (String) tvSeries.get("title"));
+					rs.updateString("ENDYEAR", APIUtils.getStringOrNull(tvSeries, "endYear"));
+					rs.updateString("IMDBID", APIUtils.getStringOrNull(tvSeries, "imdbID"));
+					rs.updateString("PLOT", APIUtils.getStringOrNull(tvSeries, "plot"));
+					rs.updateString("STARTYEAR", APIUtils.getStringOrNull(tvSeries, "startYear"));
+					rs.updateString("TITLE", title);
 					if (tvSeries.get("totalSeasons") != null) {
-						rs.updateDouble("TOTALSEASONS", (Double) tvSeries.get("totalSeasons"));
+						rs.updateDouble("TOTALSEASONS", tvSeries.get("totalSeasons").getAsDouble());
 					}
 					rs.updateString("VERSION", APIUtils.getApiDataSeriesVersion());
-					rs.updateString("VOTES", (String) tvSeries.get("votes"));
+					rs.updateString("VOTES", APIUtils.getStringOrNull(tvSeries, "votes"));
 
 					// TMDB columns added in V11
 					if (tvSeries.get("createdBy") != null) {
@@ -665,56 +659,50 @@ public final class MediaTableTVSeries extends MediaTable {
 						json = GSON.toJson(tvSeries.get("externalIDs"));
 						rs.updateString("EXTERNALIDS", json);
 					}
-					rs.updateString("FIRSTAIRDATE", (String) tvSeries.get("firstAirDate"));
-					rs.updateString("HOMEPAGE", (String) tvSeries.get("homepage"));
-					if (tvSeries.get("images") != null) {
-						json = GSON.toJson(tvSeries.get("images"));
-						rs.updateString("IMAGES", json);
+					rs.updateString("FIRSTAIRDATE", APIUtils.getStringOrNull(tvSeries, "firstAirDate"));
+					rs.updateString("HOMEPAGE", APIUtils.getStringOrNull(tvSeries, "homepage"));
+					if (tvSeries.has("images")) {
+						rs.updateString("IMAGES", tvSeries.get("images").toString());
 					}
-					if (tvSeries.get("inProduction") != null) {
-						rs.updateBoolean("INPRODUCTION", (Boolean) tvSeries.get("inProduction"));
+					if (tvSeries.has("inProduction")) {
+						rs.updateBoolean("INPRODUCTION", tvSeries.get("inProduction").getAsBoolean());
 					}
-					if (tvSeries.get("languages") != null) {
-						rs.updateString("LANGUAGES", StringUtils.join(tvSeries.get("languages"), ","));
+					if (tvSeries.has("languages")) {
+						rs.updateString("LANGUAGES", tvSeries.get("languages").toString());
 					}
-					rs.updateString("LASTAIRDATE", (String) tvSeries.get("lastAirDate"));
-					if (tvSeries.get("networks") != null) {
-						json = GSON.toJson(tvSeries.get("networks"));
-						rs.updateString("NETWORKS", json);
+					rs.updateString("LASTAIRDATE", APIUtils.getStringOrNull(tvSeries, "lastAirDate"));
+					if (tvSeries.has("networks")) {
+						rs.updateString("NETWORKS", tvSeries.get("networks").toString());
 					}
-					if (tvSeries.get("numberOfEpisodes") != null) {
-						rs.updateDouble("NUMBEROFEPISODES", (Double) tvSeries.get("numberOfEpisodes"));
+					if (tvSeries.has("numberOfEpisodes")) {
+						rs.updateDouble("NUMBEROFEPISODES", tvSeries.get("numberOfEpisodes").getAsDouble());
 					}
-					if (tvSeries.get("numberOfSeasons") != null) {
-						rs.updateDouble("NUMBEROFSEASONS", (Double) tvSeries.get("numberOfSeasons"));
+					if (tvSeries.has("numberOfSeasons")) {
+						rs.updateDouble("NUMBEROFSEASONS", tvSeries.get("numberOfSeasons").getAsDouble());
 					}
-					if (tvSeries.get("originCountry") != null) {
-						rs.updateString("ORIGINCOUNTRY", StringUtils.join(tvSeries.get("originCountry"), ","));
+					if (tvSeries.has("originCountry")) {
+						rs.updateString("ORIGINCOUNTRY", tvSeries.get("originCountry").toString());
 					}
-					rs.updateString("ORIGINALLANGUAGE", (String) tvSeries.get("originalLanguage"));
-					rs.updateString("ORIGINALTITLE", (String) tvSeries.get("originalTitle"));
-					if (tvSeries.get("productionCompanies") != null) {
-						json = GSON.toJson(tvSeries.get("productionCompanies"));
-						rs.updateString("PRODUCTIONCOMPANIES", json);
+					rs.updateString("ORIGINALLANGUAGE", APIUtils.getStringOrNull(tvSeries, "originalLanguage"));
+					rs.updateString("ORIGINALTITLE", APIUtils.getStringOrNull(tvSeries, "originalTitle"));
+					if (tvSeries.has("productionCompanies")) {
+						rs.updateString("PRODUCTIONCOMPANIES", tvSeries.get("productionCompanies").toString());
 					}
-					if (tvSeries.get("productionCountries") != null) {
-						json = GSON.toJson(tvSeries.get("productionCountries"));
-						rs.updateString("PRODUCTIONCOUNTRIES", json);
+					if (tvSeries.has("productionCountries")) {
+						rs.updateString("PRODUCTIONCOUNTRIES", tvSeries.get("productionCountries").toString());
 					}
-					if (tvSeries.get("seasons") != null) {
-						json = GSON.toJson(tvSeries.get("seasons"));
-						rs.updateString("SEASONS", json);
+					if (tvSeries.has("seasons")) {
+						rs.updateString("SEASONS", tvSeries.get("seasons").toString());
 					}
-					rs.updateString("SERIESTYPE", (String) tvSeries.get("seriesType"));
-					if (tvSeries.get("spokenLanguages") != null) {
-						json = GSON.toJson(tvSeries.get("spokenLanguages"));
-						rs.updateString("SPOKENLANGUAGES", json);
+					rs.updateString("SERIESTYPE", APIUtils.getStringOrNull(tvSeries, "seriesType"));
+					if (tvSeries.has("spokenLanguages")) {
+						rs.updateString("SPOKENLANGUAGES", tvSeries.get("spokenLanguages").toString());
 					}
-					rs.updateString("STATUS", (String) tvSeries.get("status"));
-					rs.updateString("TAGLINE", (String) tvSeries.get("tagline"));
+					rs.updateString("STATUS", APIUtils.getStringOrNull(tvSeries, "status"));
+					rs.updateString("TAGLINE", APIUtils.getStringOrNull(tvSeries, "tagline"));
 					rs.updateRow();
 				} else {
-					LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", (String) tvSeries.get("title"));
+					LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", title);
 				}
 			}
 		} catch (SQLException e) {
