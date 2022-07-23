@@ -95,8 +95,8 @@ public class MediaTableMetadata extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
-				"M_KEY		VARCHAR(255)		NOT NULL, " +
-				"M_VALUE	VARCHAR(255)		NOT NULL" +
+				"M_KEY       VARCHAR(255)       NOT NULL , " +
+				"M_VALUE     VARCHAR(255)       NOT NULL   " +
 			")",
 			"CREATE UNIQUE INDEX IDX_M_KEY ON " + TABLE_NAME + "(M_KEY)"
 		);

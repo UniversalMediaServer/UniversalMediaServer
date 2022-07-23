@@ -178,39 +178,39 @@ public final class MediaTableTVSeries extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					IDENTITY			PRIMARY KEY	, " +
-				"ENDYEAR			VARCHAR(1024)					, " +
-				"IMDBID				VARCHAR(1024)					, " +
-				"THUMBID			BIGINT							, " +
-				"PLOT				VARCHAR(20000)					, " +
-				"STARTYEAR			VARCHAR(1024)					, " +
-				"TITLE				VARCHAR(1024)		NOT NULL	, " +
-				"SIMPLIFIEDTITLE    VARCHAR(1024)		NOT NULL	, " +
-				"TOTALSEASONS		DOUBLE PRECISION				, " +
-				"VERSION			VARCHAR(1024)					, " +
-				"VOTES				VARCHAR(1024)					, " +
-				"CREATEDBY			VARCHAR, " +
-				"CREDITS			VARCHAR, " +
-				"EXTERNALIDS		VARCHAR, " +
-				"FIRSTAIRDATE		VARCHAR, " +
-				"HOMEPAGE			VARCHAR, " +
-				"IMAGES				VARCHAR, " +
-				"INPRODUCTION		BOOLEAN, " +
-				"LANGUAGES			VARCHAR, " +
-				"LASTAIRDATE		VARCHAR, " +
-				"NETWORKS			VARCHAR, " +
-				"NUMBEROFEPISODES	DOUBLE PRECISION, " +
-				"NUMBEROFSEASONS	DOUBLE PRECISION, " +
-				"ORIGINCOUNTRY		VARCHAR, " +
-				"ORIGINALLANGUAGE	VARCHAR, " +
-				"ORIGINALTITLE		VARCHAR, " +
-				"PRODUCTIONCOMPANIES VARCHAR, " +
-				"PRODUCTIONCOUNTRIES VARCHAR, " +
-				"SEASONS			VARCHAR, " +
-				"SERIESTYPE			VARCHAR, " +
-				"SPOKENLANGUAGES	VARCHAR, " +
-				"STATUS				VARCHAR, " +
-				"TAGLINE			VARCHAR" +
+				"ID                   IDENTITY           PRIMARY KEY , " +
+				"ENDYEAR              VARCHAR(1024)                  , " +
+				"IMDBID               VARCHAR(1024)                  , " +
+				"THUMBID              BIGINT                         , " +
+				"PLOT                 VARCHAR(20000)                 , " +
+				"STARTYEAR            VARCHAR(1024)                  , " +
+				"TITLE                VARCHAR(1024)      NOT NULL    , " +
+				"SIMPLIFIEDTITLE      VARCHAR(1024)      NOT NULL    , " +
+				"TOTALSEASONS         DOUBLE PRECISION               , " +
+				"VERSION              VARCHAR(1024)                  , " +
+				"VOTES                VARCHAR(1024)                  , " +
+				"CREATEDBY            VARCHAR                        , " +
+				"CREDITS              VARCHAR                        , " +
+				"EXTERNALIDS          VARCHAR                        , " +
+				"FIRSTAIRDATE         VARCHAR                        , " +
+				"HOMEPAGE             VARCHAR                        , " +
+				"IMAGES               VARCHAR                        , " +
+				"INPRODUCTION         BOOLEAN                        , " +
+				"LANGUAGES            VARCHAR                        , " +
+				"LASTAIRDATE          VARCHAR                        , " +
+				"NETWORKS             VARCHAR                        , " +
+				"NUMBEROFEPISODES     DOUBLE PRECISION               , " +
+				"NUMBEROFSEASONS      DOUBLE PRECISION               , " +
+				"ORIGINCOUNTRY        VARCHAR                        , " +
+				"ORIGINALLANGUAGE     VARCHAR                        , " +
+				"ORIGINALTITLE        VARCHAR                        , " +
+				"PRODUCTIONCOMPANIES  VARCHAR                        , " +
+				"PRODUCTIONCOUNTRIES  VARCHAR                        , " +
+				"SEASONS              VARCHAR                        , " +
+				"SERIESTYPE           VARCHAR                        , " +
+				"SPOKENLANGUAGES      VARCHAR                        , " +
+				"STATUS               VARCHAR                        , " +
+				"TAGLINE              VARCHAR                          " +
 			")",
 			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
 			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",

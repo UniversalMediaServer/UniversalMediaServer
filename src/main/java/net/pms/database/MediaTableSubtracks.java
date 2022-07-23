@@ -101,14 +101,14 @@ public class MediaTableSubtracks extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
-				"ID             INTEGER								NOT NULL			, " +
-				"FILEID         BIGINT								NOT NULL			, " +
-				"LANG           VARCHAR(" + SIZE_LANG + ")								, " +
-				"TITLE          VARCHAR(" + SIZE_MAX + ")								, " +
-				"FORMAT_TYPE    INTEGER													, " +
-				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")	NOT NULL default ''	, " +
-				"CHARSET        VARCHAR(" + SIZE_MAX + ")								, " +
-				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)				, " +
+				"ID             INTEGER                             NOT NULL            , " +
+				"FILEID         BIGINT                              NOT NULL            , " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
+				"FORMAT_TYPE    INTEGER                                                 , " +
+				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")  NOT NULL default ''	, " +
+				"CHARSET        VARCHAR(" + SIZE_MAX + ")                               , " +
+				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)                , " +
 				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
 			")"
 		);

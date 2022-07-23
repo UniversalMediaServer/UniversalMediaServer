@@ -187,7 +187,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", BITRATE           INTEGER");
 			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INTEGER");
-			sb.append(", AUDIOTRACK_ID     INTEGER			AUTO_INCREMENT");
+			sb.append(", AUDIOTRACK_ID     INTEGER          AUTO_INCREMENT");
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
 			sb.append("    REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID)");

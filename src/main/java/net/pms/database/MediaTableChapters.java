@@ -100,7 +100,7 @@ public class MediaTableChapters extends MediaTable {
 				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
 				"START_TIME     DOUBLE PRECISION                                        , " +
 				"END_TIME       DOUBLE PRECISION                                        , " +
-				"THUMBNAIL		OTHER	                    		            		, " +
+				"THUMBNAIL      OTHER	                    		                    , " +
 				"CONSTRAINT PKCHAP PRIMARY KEY (FILEID, ID, LANG)                       , " +
 				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
 			")"

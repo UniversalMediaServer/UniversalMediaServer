@@ -222,14 +222,14 @@ public final class MediaTableFilesStatus extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                     IDENTITY              PRIMARY KEY	, " +
-				"FILENAME               VARCHAR(1024)         NOT NULL		, " +
-				"MODIFIED               TIMESTAMP							, " +
-				"ISFULLYPLAYED          BOOLEAN               DEFAULT false	, " +
-				"BOOKMARK               INTEGER               DEFAULT 0		, " +
-				"DATELASTPLAY           TIMESTAMP							, " +
-				"PLAYCOUNT              INTEGER               DEFAULT 0		, " +
-				"LASTPLAYBACKPOSITION   DOUBLE PRECISION      DEFAULT 0.0	  " +
+				"ID                     IDENTITY              PRIMARY KEY   , " +
+				"FILENAME               VARCHAR(1024)         NOT NULL      , " +
+				"MODIFIED               TIMESTAMP                           , " +
+				"ISFULLYPLAYED          BOOLEAN               DEFAULT false , " +
+				"BOOKMARK               INTEGER               DEFAULT 0     , " +
+				"DATELASTPLAY           TIMESTAMP                           , " +
+				"PLAYCOUNT              INTEGER               DEFAULT 0     , " +
+				"LASTPLAYBACKPOSITION   DOUBLE PRECISION      DEFAULT 0.0     " +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
 			"CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)"

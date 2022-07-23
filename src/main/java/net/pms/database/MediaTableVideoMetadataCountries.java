@@ -98,10 +98,10 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID		INTEGER				DEFAULT -1, " +
-				"FILENAME		VARCHAR(1024)		DEFAULT '', " +
-				"COUNTRY		VARCHAR(1024)		NOT NULL" +
+				"ID             IDENTITY            PRIMARY KEY , " +
+				"TVSERIESID     INTEGER             DEFAULT -1  , " +
+				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
+				"COUNTRY        VARCHAR(1024)       NOT NULL      " +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_COUNTRY_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, COUNTRY, TVSERIESID)"
 		);
