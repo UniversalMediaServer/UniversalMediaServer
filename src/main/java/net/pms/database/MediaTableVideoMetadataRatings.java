@@ -17,13 +17,13 @@
  */
 package net.pms.database;
 
-import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.Iterator;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
@@ -115,15 +115,17 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 * @param ratings
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final HashSet ratings, final long tvSeriesID) {
-		if (ratings == null || ratings.isEmpty()) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement ratings, final long tvSeriesID) {
+		if (ratings == null || !ratings.isJsonArray() || ratings.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			Iterator<LinkedTreeMap> i = ratings.iterator();
+			Iterator<JsonElement> i = ratings.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				LinkedTreeMap<String, String> rating = i.next();
+				JsonObject rating = i.next().getAsJsonObject();
+				String source = rating.has("Source") ? rating.get("Source").getAsString() : null;
+				String value = rating.has("Value") ? rating.get("Value").getAsString() : null;
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(
@@ -139,7 +141,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 				) {
 					ps.setLong(1, tvSeriesID);
 					ps.setString(2, left(fullPathToFile, 1024));
-					ps.setString(3, left(rating.get("Source"), 1024));
+					ps.setString(3, left(source, 1024));
 					try (ResultSet rs = ps.executeQuery()) {
 						if (rs.next()) {
 							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fullPathToFile, rating);
@@ -157,8 +159,8 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 								insertStatement.clearParameters();
 								insertStatement.setLong(1, tvSeriesID);
 								insertStatement.setString(2, left(fullPathToFile, 1024));
-								insertStatement.setString(3, left(rating.get("Source"), 1024));
-								insertStatement.setString(4, left(rating.get("Value"), 1024));
+								insertStatement.setString(3, left(source, 1024));
+								insertStatement.setString(4, left(value, 1024));
 
 								insertStatement.executeUpdate();
 								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
