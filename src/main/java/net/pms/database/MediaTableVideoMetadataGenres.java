@@ -95,7 +95,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID	            IDENTITY            PRIMARY KEY , " +
+				"ID             IDENTITY            PRIMARY KEY , " +
 				"TVSERIESID     INTEGER             DEFAULT -1  , " +
 				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
 				"GENRE          VARCHAR(1024)       NOT NULL      " +
