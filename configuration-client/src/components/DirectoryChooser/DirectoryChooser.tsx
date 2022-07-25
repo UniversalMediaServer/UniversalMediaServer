@@ -11,7 +11,7 @@ export default function DirectoryChooser(props: {
   tooltipText: string,
   path: string,
   callback: any,
-  label: string,
+  label?: string,
   formKey: string,
 }) {
   const [isLoading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function DirectoryChooser(props: {
     /> }
 
   return (
-    <Group mt="xs">
+    <Group>
       <>
         <Modal
           opened={opened}
