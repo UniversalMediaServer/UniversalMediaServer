@@ -54,6 +54,7 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import static net.pms.util.StringUtil.*;
+import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.lang3.StringUtils;
@@ -557,9 +558,7 @@ public class DLNAMediaInfo implements Cloneable {
 			parsing = true;
 		}
 		Runnable r = () -> {
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) { }
+			UMSUtils.sleep(3000);
 
 			pw.stopProcess();
 			synchronized (parsingLock) {
@@ -589,9 +588,7 @@ public class DLNAMediaInfo implements Cloneable {
 				break;
 			}
 
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) { }
+			UMSUtils.sleep(1000);
 
 			i++;
 		}
@@ -664,7 +661,7 @@ public class DLNAMediaInfo implements Cloneable {
 						Tag t = af.getTag();
 
 						if (t != null) {
-							if (t.getArtworkList().size() > 0) {
+							if (!t.getArtworkList().isEmpty()) {
 								thumb = DLNAThumbnail.toThumbnail(
 									t.getArtworkList().get(0).getBinaryData(),
 									640,
@@ -920,48 +917,6 @@ public class DLNAMediaInfo implements Cloneable {
 			postParse(type, inputFile);
 			mediaparsed = true;
 		}
-	}
-
-	/**
-	 * Extracts key value.
-	 *
-	 * @param key
-	 * @return If key is not available or blanc, NULL will be returned, otherwise string key value
-	 */
-	private String extractAudioTagKeyValue(Tag t, FieldKey key) {
-		String value = t.getFirst(key);
-		try {
-			if (StringUtils.isAllBlank(value)) {
-				LOGGER.trace("tag field is blanc");
-				return null;
-			}
-		} catch (Exception e) {
-			LOGGER.trace("tag field not found", e);
-			return null;
-		}
-		return value;
-	}
-
-	/**
-	 * Extracts key value and converts it to Integer.
-	 *
-	 * @param t
-	 * @param key
-	 * @param defaultValue
-	 * @return	If key is not available or blanc, defaultValue will be returned
-	 */
-	private Integer extractAudioTagKeyIntegerValue(Tag t, FieldKey key, Integer defaultValue) {
-		String value = extractAudioTagKeyValue(t, key);
-		if (value == null) {
-			return defaultValue;
-		}
-		try {
-			Integer intValue = Integer.parseInt(value);
-			return intValue;
-		} catch (Exception e) {
-			LOGGER.trace("no int value available for key ", e);
-		}
-		return defaultValue;
 	}
 
 	/**
@@ -1369,7 +1324,8 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug.
+	 * @return isValidForLPCMTranscoding
 	 */
 	public boolean isValidForLPCMTranscoding() {
 		if (container != null) {
@@ -1378,7 +1334,6 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 			return true;
 		}
-
 		return false;
 	}
 
@@ -1393,8 +1348,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 	/**
 	 * This is the object {@link Double} and might return <code>null</code>.
+	 *
 	 * To get <code>0</code> instead of <code>null</code>, use
 	 * {@link #getDurationInSeconds()}
+	 *
+	 * @return duration
 	 */
 	public Double getDuration() {
 		return durationSec;
@@ -1404,15 +1362,11 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return 0 if nothing is specified, otherwise the duration
 	 */
 	public double getDurationInSeconds() {
-		return durationSec != null ? durationSec : 0;
+		return Optional.ofNullable(durationSec).orElse(0D);
 	}
 
 	public String getDurationString() {
 		return durationSec != null ? StringUtil.formatDLNADuration(durationSec) : null;
-	}
-
-	public static Double parseDurationString(String duration) {
-		return duration != null ? convertStringToTime(duration) : null;
 	}
 
 	public void postParse(int type, InputFile f) {
@@ -1739,14 +1693,6 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public boolean isMuxable(String filename, String codecA) {
-		return codecA != null && (codecA.startsWith("dts") || codecA.equals("dca"));
-	}
-
-	public boolean isLossless(String codecA) {
-		return codecA != null && (codecA.contains("pcm") || codecA.startsWith("dts") || codecA.equals("dca") || codecA.contains("flac")) && !codecA.contains("pcm_u8") && !codecA.contains("pcm_s8");
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
@@ -1891,43 +1837,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getValidFps(boolean ratios) {
-		String validFrameRate = null;
-
-		if (frameRate != null && frameRate.length() > 0) {
-			try {
-				double fr = Double.parseDouble(frameRate.replace(',', '.'));
-
-				if (fr >= 14.99 && fr < 15.1) {
-					validFrameRate = "15";
-				} else if (fr > 23.9 && fr < 23.99) {
-					validFrameRate = ratios ? "24000/1001" : "23.976";
-				} else if (fr > 23.99 && fr < 24.1) {
-					validFrameRate = "24";
-				} else if (fr >= 24.99 && fr < 25.1) {
-					validFrameRate = "25";
-				} else if (fr > 29.9 && fr < 29.99) {
-					validFrameRate = ratios ? "30000/1001" : "29.97";
-				} else if (fr >= 29.99 && fr < 30.1) {
-					validFrameRate = "30";
-				} else if (fr > 47.9 && fr < 47.99) {
-					validFrameRate = ratios ? "48000/1001" : "47.952";
-				} else if (fr > 49.9 && fr < 50.1) {
-					validFrameRate = "50";
-				} else if (fr > 59.8 && fr < 59.99) {
-					validFrameRate = ratios ? "60000/1001" : "59.94";
-				} else if (fr >= 59.99 && fr < 60.1) {
-					validFrameRate = "60";
-				}
-			} catch (NumberFormatException nfe) {
-				LOGGER.error(null, nfe);
-			}
-		}
-
-		return validFrameRate;
+		return getValidFps(frameRate, ratios);
 	}
 
 	public DLNAMediaAudio getFirstAudioTrack() {
-		if (audioTracks.size() > 0) {
+		if (!audioTracks.isEmpty()) {
 			return audioTracks.get(0);
 		}
 		return null;
@@ -1945,21 +1859,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return
 	 */
 	public String getAspectRatioMencoderMpegopts(boolean ratios) {
-		String a = null;
-
-		if (aspectRatioDvdIso != null) {
-			double aspectRatio = Double.parseDouble(aspectRatioDvdIso);
-
-			if (aspectRatio > 1.7 && aspectRatio < 1.8) {
-				a = ratios ? "16/9" : "1.777777777777777";
-			}
-
-			if (aspectRatio > 1.3 && aspectRatio < 1.4) {
-				a = ratios ? "4/3" : "1.333333333333333";
-			}
-		}
-
-		return a;
+		return getAspectRatioMencoderMpegopts(aspectRatioDvdIso, ratios);
 	}
 
 	public String getResolution() {
@@ -2467,7 +2367,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * Sets the {@link ScanOrder}.
 	 *
-	 * @param scanType the {@link ScanOrder} to set.
+	 * @param scanOrder the {@link ScanOrder} to set.
 	 */
 	public void setScanOrder(@Nullable ScanOrder scanOrder) {
 		this.scanOrder = scanOrder;
@@ -2537,86 +2437,6 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setAspectRatioVideoTrack(String aspectRatio) {
 		this.aspectRatioVideoTrack = getFormattedAspectRatio(aspectRatio);
-	}
-
-	/**
-	 * This takes an exact aspect ratio, and returns the closest common aspect
-	 * ratio to that, so that e.g. 720x416 and 720x420 are the same.
-	 *
-	 * @param aspect
-	 * @return an approximate aspect ratio
-	 */
-	public String getFormattedAspectRatio(String aspect) {
-		if (isBlank(aspect)) {
-			return null;
-		}
-
-		if (aspect.contains(":")) {
-			return aspect;
-		}
-
-		double exactAspectRatio = Double.parseDouble(aspect);
-		if (exactAspectRatio >= 11.9 && exactAspectRatio <= 12.1) {
-			return "12.00:1";
-		} else if (exactAspectRatio >= 3.9 && exactAspectRatio <= 4.1) {
-			return "4.00:1";
-		} else if (exactAspectRatio >= 2.75 && exactAspectRatio <= 2.77) {
-			return "2.76:1";
-		} else if (exactAspectRatio >= 2.65 && exactAspectRatio <= 2.67) {
-			return "24:9";
-		} else if (exactAspectRatio >= 2.58 && exactAspectRatio <= 2.6) {
-			return "2.59:1";
-		} else if (exactAspectRatio >= 2.54  && exactAspectRatio <= 2.56) {
-			return "2.55:1";
-		} else if (exactAspectRatio >= 2.38 && exactAspectRatio <= 2.41) {
-			return "2.39:1";
-		} else if (exactAspectRatio > 2.36 && exactAspectRatio < 2.38) {
-			return "2.37:1";
-		} else if (exactAspectRatio >= 2.34 && exactAspectRatio <= 2.36) {
-			return "2.35:1";
-		} else if (exactAspectRatio >= 2.33 && exactAspectRatio < 2.34) {
-			return "21:9";
-		} else if (exactAspectRatio > 2.1  && exactAspectRatio < 2.3) {
-			return "11:5";
-		} else if (exactAspectRatio > 1.9 && exactAspectRatio < 2.1) {
-			return "2.00:1";
-		} else if (exactAspectRatio > 1.87  && exactAspectRatio <= 1.9) {
-			return "1.896:1";
-		} else if (exactAspectRatio >= 1.83 && exactAspectRatio <= 1.87) {
-			return "1.85:1";
-		} else if (exactAspectRatio >= 1.7 && exactAspectRatio <= 1.8) {
-			return "16:9";
-		} else if (exactAspectRatio >= 1.65 && exactAspectRatio <= 1.67) {
-			return "15:9";
-		} else if (exactAspectRatio >= 1.59 && exactAspectRatio <= 1.61) {
-			return "16:10";
-		} else if (exactAspectRatio >= 1.54 && exactAspectRatio <= 1.56) {
-			return "14:9";
-		} else if (exactAspectRatio >= 1.49 && exactAspectRatio <= 1.51) {
-			return "3:2";
-		} else if (exactAspectRatio > 1.42 && exactAspectRatio < 1.44) {
-			return "1.43:1";
-		} else if (exactAspectRatio > 1.372 && exactAspectRatio < 1.4) {
-			return "11:8";
-		} else if (exactAspectRatio > 1.35 && exactAspectRatio <= 1.372) {
-			return "1.37:1";
-		} else if (exactAspectRatio >= 1.3 && exactAspectRatio <= 1.35) {
-			return "4:3";
-		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
-			return "5:4";
-		} else if (exactAspectRatio >= 1.18 && exactAspectRatio <= 1.195) {
-			return "19:16";
-		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
-			return "1:1";
-		} else if (exactAspectRatio > 0.7 && exactAspectRatio < 0.9) {
-			return "4:5";
-		} else if (exactAspectRatio > 0.6 && exactAspectRatio < 0.7) {
-			return "2:3";
-		} else if (exactAspectRatio > 0.5 && exactAspectRatio < 0.6) {
-			return "9:16";
-		} else {
-			return aspect;
-		}
 	}
 
 	/**
@@ -2757,7 +2577,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public int getAvcAsInt() {
 		try {
 			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
@@ -3062,14 +2882,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isMod4() {
-		if (
-			height % 4 != 0 ||
-			width % 4 != 0
-		) {
-			return false;
-		}
-
-		return true;
+		return (height % 4 == 0 && width % 4 == 0);
 	}
 
 	/**
@@ -3136,34 +2949,6 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
 	}
-
-	/**
-	 * Used by FFmpeg for 3D video format naming
-	 */
-	public enum Mode3D {
-		ML,
-		MR,
-		SBSL,
-		SBSR,
-		SBS2L,
-		SBS2R,
-		ABL,
-		ABR,
-		AB2L,
-		AB2R,
-		ARCG,
-		ARCH,
-		ARCC,
-		ARCD,
-		AGMG,
-		AGMH,
-		AGMC,
-		AGMD,
-		AYBG,
-		AYBH,
-		AYBC,
-		AYBD
-	};
 
 	public Mode3D get3DLayout() {
 		if (!is3d()) {
@@ -3245,18 +3030,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 *         audio or video, {@code false} otherwise.
 	 */
 	public boolean isAudioOrVideoContainer() {
-		if (StringUtils.isBlank(container)) {
-			return false;
-		}
-		for (Entry<String, AudioVariantInfo> entry : AUDIO_OR_VIDEO_CONTAINERS.entrySet()) {
-			if (
-				container.equals(entry.getKey()) ||
-				container.equals(entry.getValue().getFormatConfiguration())
-			) {
-				return true;
-			}
-		}
-		return false;
+		return isAudioOrVideoContainer(container);
 	}
 
 	/**
@@ -3271,18 +3045,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 *         {@code null} if it doesn't apply.
 	 */
 	public Format getAudioVariantFormat() {
-		if (StringUtils.isBlank(container)) {
-			return null;
-		}
-		for (Entry<String, AudioVariantInfo> entry : AUDIO_OR_VIDEO_CONTAINERS.entrySet()) {
-			if (
-				container.equals(entry.getKey()) ||
-				container.equals(entry.getValue().getFormatConfiguration())
-			) {
-				return entry.getValue().getFormat();
-			}
-		}
-		return null;
+		return getAudioVariantFormat(container);
 	}
 
 	/**
@@ -3297,6 +3060,240 @@ public class DLNAMediaInfo implements Cloneable {
 	 *         constant for this container, or {@code null} if it doesn't apply.
 	 */
 	public String getAudioVariantFormatConfigurationString() {
+		return getAudioVariantFormatConfigurationString(container);
+	}
+
+	/**
+	 * Returns the {@link AudioVariantInfo} to use if this {@link DLNAMediaInfo}
+	 * instance represent an audio media wrapped in a container that can
+	 * represent both audio and video media.
+	 * This returns {@code null} unless {@link #isAudioOrVideoContainer}
+	 * is {@code true}.
+	 *
+	 * @see #isAudioOrVideoContainer()
+	 *
+	 * @return The {@link AudioVariantInfo} for this container, or {@code null}
+	 *         if it doesn't apply.
+	 */
+	public AudioVariantInfo getAudioVariant() {
+		return getAudioVariant(container);
+	}
+
+
+
+	private static Double parseDurationString(String duration) {
+		return duration != null ? convertStringToTime(duration) : null;
+	}
+
+	/**
+	 * Extracts key value.
+	 *
+	 * @param key
+	 * @return If key is not available or blanc, NULL will be returned, otherwise string key value
+	 */
+	private static String extractAudioTagKeyValue(Tag t, FieldKey key) {
+		try {
+			String value = t.getFirst(key);
+			if (StringUtils.isAllBlank(value)) {
+				LOGGER.trace("tag field is blanc");
+				return null;
+			}
+			return value;
+		} catch (KeyNotFoundException e) {
+			LOGGER.trace("tag field not found", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Extracts key value and converts it to Integer.
+	 *
+	 * @param t
+	 * @param key
+	 * @param defaultValue
+	 * @return	If key is not available or blanc, defaultValue will be returned
+	 */
+	private static Integer extractAudioTagKeyIntegerValue(Tag t, FieldKey key, Integer defaultValue) {
+		String value = extractAudioTagKeyValue(t, key);
+		if (value != null) {
+			try {
+				Integer intValue = Integer.parseInt(value);
+				return intValue;
+			} catch (NumberFormatException e) {
+				LOGGER.trace("no int value available for key ", e);
+			}
+		}
+		return defaultValue;
+	}
+
+	public static boolean isMuxable(String filename, String codecA) {
+		return codecA != null && (codecA.startsWith("dts") || codecA.equals("dca"));
+	}
+
+	public static boolean isLossless(String codecA) {
+		return codecA != null && (codecA.contains("pcm") || codecA.startsWith("dts") || codecA.equals("dca") || codecA.contains("flac")) && !codecA.contains("pcm_u8") && !codecA.contains("pcm_s8");
+	}
+
+	private static String getValidFps(String frameRate, boolean ratios) {
+		if (frameRate != null && frameRate.length() > 0) {
+			try {
+				double fr = Double.parseDouble(frameRate.replace(',', '.'));
+
+				if (fr >= 14.99 && fr < 15.1) {
+					return "15";
+				} else if (fr > 23.9 && fr < 23.99) {
+					return ratios ? "24000/1001" : "23.976";
+				} else if (fr > 23.99 && fr < 24.1) {
+					return "24";
+				} else if (fr >= 24.99 && fr < 25.1) {
+					return "25";
+				} else if (fr > 29.9 && fr < 29.99) {
+					return ratios ? "30000/1001" : "29.97";
+				} else if (fr >= 29.99 && fr < 30.1) {
+					return "30";
+				} else if (fr > 47.9 && fr < 47.99) {
+					return ratios ? "48000/1001" : "47.952";
+				} else if (fr > 49.9 && fr < 50.1) {
+					return "50";
+				} else if (fr > 59.8 && fr < 59.99) {
+					return ratios ? "60000/1001" : "59.94";
+				} else if (fr >= 59.99 && fr < 60.1) {
+					return "60";
+				}
+			} catch (NumberFormatException nfe) {
+				LOGGER.error(null, nfe);
+			}
+		}
+
+		return null;
+	}
+
+	private static String getAspectRatioMencoderMpegopts(String aspectRatioDvdIso, boolean ratios) {
+		if (aspectRatioDvdIso != null) {
+			double aspectRatio = Double.parseDouble(aspectRatioDvdIso);
+
+			if (aspectRatio > 1.7 && aspectRatio < 1.8) {
+				return ratios ? "16/9" : "1.777777777777777";
+			}
+
+			if (aspectRatio > 1.3 && aspectRatio < 1.4) {
+				return ratios ? "4/3" : "1.333333333333333";
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * This takes an exact aspect ratio, and returns the closest common aspect
+	 * ratio to that, so that e.g. 720x416 and 720x420 are the same.
+	 *
+	 * @param aspect
+	 * @return an approximate aspect ratio
+	 */
+	private static String getFormattedAspectRatio(String aspect) {
+		if (isBlank(aspect)) {
+			return null;
+		}
+
+		if (aspect.contains(":")) {
+			return aspect;
+		}
+
+		double exactAspectRatio = Double.parseDouble(aspect);
+		if (exactAspectRatio >= 11.9 && exactAspectRatio <= 12.1) {
+			return "12.00:1";
+		} else if (exactAspectRatio >= 3.9 && exactAspectRatio <= 4.1) {
+			return "4.00:1";
+		} else if (exactAspectRatio >= 2.75 && exactAspectRatio <= 2.77) {
+			return "2.76:1";
+		} else if (exactAspectRatio >= 2.65 && exactAspectRatio <= 2.67) {
+			return "24:9";
+		} else if (exactAspectRatio >= 2.58 && exactAspectRatio <= 2.6) {
+			return "2.59:1";
+		} else if (exactAspectRatio >= 2.54  && exactAspectRatio <= 2.56) {
+			return "2.55:1";
+		} else if (exactAspectRatio >= 2.38 && exactAspectRatio <= 2.41) {
+			return "2.39:1";
+		} else if (exactAspectRatio > 2.36 && exactAspectRatio < 2.38) {
+			return "2.37:1";
+		} else if (exactAspectRatio >= 2.34 && exactAspectRatio <= 2.36) {
+			return "2.35:1";
+		} else if (exactAspectRatio >= 2.33 && exactAspectRatio < 2.34) {
+			return "21:9";
+		} else if (exactAspectRatio > 2.1  && exactAspectRatio < 2.3) {
+			return "11:5";
+		} else if (exactAspectRatio > 1.9 && exactAspectRatio < 2.1) {
+			return "2.00:1";
+		} else if (exactAspectRatio > 1.87  && exactAspectRatio <= 1.9) {
+			return "1.896:1";
+		} else if (exactAspectRatio >= 1.83 && exactAspectRatio <= 1.87) {
+			return "1.85:1";
+		} else if (exactAspectRatio >= 1.7 && exactAspectRatio <= 1.8) {
+			return "16:9";
+		} else if (exactAspectRatio >= 1.65 && exactAspectRatio <= 1.67) {
+			return "15:9";
+		} else if (exactAspectRatio >= 1.59 && exactAspectRatio <= 1.61) {
+			return "16:10";
+		} else if (exactAspectRatio >= 1.54 && exactAspectRatio <= 1.56) {
+			return "14:9";
+		} else if (exactAspectRatio >= 1.49 && exactAspectRatio <= 1.51) {
+			return "3:2";
+		} else if (exactAspectRatio > 1.42 && exactAspectRatio < 1.44) {
+			return "1.43:1";
+		} else if (exactAspectRatio > 1.372 && exactAspectRatio < 1.4) {
+			return "11:8";
+		} else if (exactAspectRatio > 1.35 && exactAspectRatio <= 1.372) {
+			return "1.37:1";
+		} else if (exactAspectRatio >= 1.3 && exactAspectRatio <= 1.35) {
+			return "4:3";
+		} else if (exactAspectRatio > 1.2 && exactAspectRatio < 1.3) {
+			return "5:4";
+		} else if (exactAspectRatio >= 1.18 && exactAspectRatio <= 1.195) {
+			return "19:16";
+		} else if (exactAspectRatio > 0.99 && exactAspectRatio < 1.1) {
+			return "1:1";
+		} else if (exactAspectRatio > 0.7 && exactAspectRatio < 0.9) {
+			return "4:5";
+		} else if (exactAspectRatio > 0.6 && exactAspectRatio < 0.7) {
+			return "2:3";
+		} else if (exactAspectRatio > 0.5 && exactAspectRatio < 0.6) {
+			return "9:16";
+		} else {
+			return aspect;
+		}
+	}
+
+	private static boolean isAudioOrVideoContainer(String container) {
+		if (StringUtils.isBlank(container)) {
+			return false;
+		}
+		for (Entry<String, AudioVariantInfo> entry : AUDIO_OR_VIDEO_CONTAINERS.entrySet()) {
+			if (
+				container.equals(entry.getKey()) ||
+				container.equals(entry.getValue().getFormatConfiguration())
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static Format getAudioVariantFormat(String container) {
+		if (StringUtils.isBlank(container)) {
+			return null;
+		}
+		for (Entry<String, AudioVariantInfo> entry : AUDIO_OR_VIDEO_CONTAINERS.entrySet()) {
+			if (
+				container.equals(entry.getKey()) ||
+				container.equals(entry.getValue().getFormatConfiguration())
+			) {
+				return entry.getValue().getFormat();
+			}
+		}
+		return null;
+	}
+
+	private static String getAudioVariantFormatConfigurationString(String container) {
 		if (StringUtils.isBlank(container)) {
 			return null;
 		}
@@ -3311,18 +3308,7 @@ public class DLNAMediaInfo implements Cloneable {
 		return null;
 	}
 
-	/**
-	 * Returns the {@link AudioVariantInfo} to use if this {@link DLNAMediaInfo}
-	 * instance represent an audio media wrapped in a container that can
-	 * represent both audio and video media. This returns {@code null} unless
-	 * {@link #isAudioOrVideoContainer} is {@code true}.
-	 *
-	 * @see #isAudioOrVideoContainer()
-	 *
-	 * @return The {@link AudioVariantInfo} for this container, or {@code null}
-	 *         if it doesn't apply.
-	 */
-	public AudioVariantInfo getAudioVariant() {
+	private static AudioVariantInfo getAudioVariant(String container) {
 		if (StringUtils.isBlank(container)) {
 			return null;
 		}
@@ -3374,6 +3360,34 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * Used by FFmpeg for 3D video format naming
+	 */
+	public static enum Mode3D {
+		ML,
+		MR,
+		SBSL,
+		SBSR,
+		SBS2L,
+		SBS2R,
+		ABL,
+		ABR,
+		AB2L,
+		AB2R,
+		ARCG,
+		ARCH,
+		ARCC,
+		ARCD,
+		AGMG,
+		AGMH,
+		AGMC,
+		AGMD,
+		AYBG,
+		AYBH,
+		AYBC,
+		AYBD
+	};
+
+	/**
 	 * This {@code enum} represents the different video "scan types".
 	 */
 	public static enum ScanType {
@@ -3389,16 +3403,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case INTERLACED:
-					return "Interlaced";
-				case MIXED:
-					return "Mixed";
-				case PROGRESSIVE:
-					return "Progressive";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case INTERLACED -> "Interlaced";
+				case MIXED -> "Mixed";
+				case PROGRESSIVE -> "Progressive";
+				default -> name();
+			};
 		};
 
 		public static ScanType typeOf(String scanType) {
@@ -3407,15 +3417,19 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 			scanType = scanType.trim().toLowerCase(Locale.ROOT);
 			switch (scanType) {
-				case "interlaced" :
+				case "interlaced" -> {
 					return INTERLACED;
-				case "mixed" :
+				}
+				case "mixed" -> {
 					return MIXED;
-				case "progressive" :
+				}
+				case "progressive" -> {
 					return PROGRESSIVE;
-				default:
+				}
+				default -> {
 					LOGGER.debug("Warning: Unrecognized ScanType \"{}\"", scanType);
 					return null;
+				}
 			}
 		}
 	}
@@ -3448,24 +3462,16 @@ public class DLNAMediaInfo implements Cloneable {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case BFF:
-					return "Bottom Field First";
-				case BFO:
-					return "Bottom Field Only";
-				case PULLDOWN:
-					return "Pulldown";
-				case PULLDOWN_2_2_2_2_2_2_2_2_2_2_2_3:
-					return "2:2:2:2:2:2:2:2:2:2:2:3 Pulldown";
-				case PULLDOWN_2_3:
-					return "2:3 Pulldown";
-				case TFF:
-					return "Top Field First";
-				case TFO:
-					return "Top Field Only";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case BFF -> "Bottom Field First";
+				case BFO -> "Bottom Field Only";
+				case PULLDOWN -> "Pulldown";
+				case PULLDOWN_2_2_2_2_2_2_2_2_2_2_2_3 -> "2:2:2:2:2:2:2:2:2:2:2:3 Pulldown";
+				case PULLDOWN_2_3 -> "2:3 Pulldown";
+				case TFF -> "Top Field First";
+				case TFO -> "Top Field Only";
+				default -> name();
+			};
 		};
 
 		public static ScanOrder typeOf(String scanOrder) {
@@ -3474,30 +3480,34 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 			scanOrder = scanOrder.trim().toLowerCase(Locale.ROOT);
 			switch (scanOrder) {
-				case "bff" :
-				case "bottom field first":
+				case "bff", "bottom field first" -> {
 					return BFF;
-				case "bfo":
-				case "bottom field only":
+				}
+				case "bfo", "bottom field only" -> {
 					return BFO;
-				case "pulldown":
+				}
+				case "pulldown" -> {
 					return PULLDOWN;
-				case "2:2:2:2:2:2:2:2:2:2:2:3 pulldown":
+				}
+				case "2:2:2:2:2:2:2:2:2:2:2:3 pulldown" -> {
 					return PULLDOWN_2_2_2_2_2_2_2_2_2_2_2_3;
-				case "2:3 pulldown":
+				}
+				case "2:3 pulldown" -> {
 					return PULLDOWN_2_3;
-				case "tff":
-				case "top field first":
+				}
+				case "tff", "top field first" -> {
 					return TFF;
-				case "tfo":
-				case "top field only":
+				}
+				case "tfo", "top field only" -> {
 					return TFO;
-				default:
+				}
+				default -> {
 					LOGGER.debug("Warning: Unrecognized ScanOrder \"{}\"", scanOrder);
 					if (scanOrder.contains("pulldown")) {
 						return PULLDOWN;
 					}
 					return null;
+				}
 			}
 		}
 	}

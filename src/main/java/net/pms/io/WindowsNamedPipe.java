@@ -23,6 +23,7 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import java.io.*;
 import java.util.ArrayList;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -216,9 +217,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 		if (forceReconnect) {
 			while (forced.isAlive()) {
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) { }
+				UMSUtils.sleep(200);
 			}
 
 			LOGGER.debug("Forced reconnection of {} with result: {}", path, b2);

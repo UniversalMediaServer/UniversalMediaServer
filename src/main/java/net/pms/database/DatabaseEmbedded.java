@@ -28,6 +28,7 @@ import java.sql.Statement;
 import java.util.Properties;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.h2.engine.Constants;
 import org.h2.tools.ConvertTraceFile;
@@ -130,7 +131,7 @@ public class DatabaseEmbedded {
 			}
 		} else {
 			LOGGER.debug("Database connection error, retrying in 10 seconds");
-			Database.sleep(10000);
+			UMSUtils.sleep(10000);
 			return true;
 		}
 	}

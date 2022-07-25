@@ -40,19 +40,14 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
  * This class resolves DLNA objects identified by databaseID's.
  */
 public class DbIdResourceLocator {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
 
-
-	public DbIdResourceLocator() {
-	}
-
-	public DLNAResource locateResource(String id) {
+	public static DLNAResource locateResource(String id) {
 		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id));
 		return resource;
 	}
 
-	public String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
+	public static String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
 		try {
 			return String.format("%s%s%s", DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix,
 				URLEncoder.encode(typeIdent.ident, StandardCharsets.UTF_8.toString()));
@@ -70,7 +65,7 @@ public class DbIdResourceLocator {
 	 *         and resolved. In case of a container, the container will be
 	 *         created and populated.
 	 */
-	public DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent2 typeAndIdent) {
+	public static DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent2 typeAndIdent) {
 		DLNAResource res = null;
 		Connection connection = null;
 		try {
@@ -286,7 +281,7 @@ public class DbIdResourceLocator {
 	 * @param album
 	 * @param albumFolder
 	 */
-	public void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
 		DLNAMediaAudio audioInf =  new DLNAMediaAudio();
 		audioInf.setAlbum(album.album);
 		audioInf.setArtist(album.artist);

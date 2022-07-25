@@ -431,10 +431,7 @@ public interface BasicPlayer extends ActionListener {
 					player.addAll(-1, f.getChildren(), -1);
 					// add a short delay here since player.add uses
 					// swing.invokelater
-					try {
-						Thread.sleep(1000);
-					} catch (Exception e) {
-					}
+					UMSUtils.sleep(1000);
 					player.pressPlay(null, null);
 				};
 				new Thread(r).start();

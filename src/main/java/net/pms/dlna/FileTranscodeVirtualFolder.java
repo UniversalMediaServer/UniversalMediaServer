@@ -75,7 +75,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 */
 	private static class ResourceSort implements Comparator<DLNAResource> {
 
-		private ArrayList<Player> players;
+		private final ArrayList<Player> players;
 
 		ResourceSort(ArrayList<Player> players) {
 			this.players = players;
@@ -130,10 +130,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private static boolean isSeekable(DLNAResource dlna) {
 		Player player = dlna.getPlayer();
 
-		if ((player == null) || player.isTimeSeekable()) {
-			return true;
-		}
-		return false;
+		return (player == null) || player.isTimeSeekable();
 	}
 
 	private void addChapterFolder(DLNAResource dlna) {
@@ -169,7 +166,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
 			return originalResource.getThumbnailInputStream();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			return super.getThumbnailInputStream();
 		}
 	}

@@ -28,20 +28,18 @@ import net.pms.formats.PLAYLIST;
  */
 public final class RealFileDbId extends RealFile {
 
-	private final DbIdResourceLocator dbid = new DbIdResourceLocator();
-
 	public RealFileDbId(File file) {
 		super(file);
 	}
 
 	public RealFileDbId(DbIdTypeAndIdent2 typeIdent, File file) {
 		super(file);
-		setId(dbid.encodeDbid(typeIdent));
+		setId(DbIdResourceLocator.encodeDbid(typeIdent));
 	}
 
 	public RealFileDbId(DbIdTypeAndIdent2 typeIdent, File file, String name) {
 		super(file, name);
-		setId(dbid.encodeDbid(typeIdent));
+		setId(DbIdResourceLocator.encodeDbid(typeIdent));
 	}
 
 	@Override

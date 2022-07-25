@@ -52,7 +52,6 @@ public class BrowseHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	public BrowseHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
@@ -396,7 +395,7 @@ public class BrowseHandler implements HttpHandler {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

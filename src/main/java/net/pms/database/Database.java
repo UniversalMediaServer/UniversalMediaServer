@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +117,7 @@ public abstract class Database extends DatabaseHelper {
 				needRetry = DatabaseEmbedded.openFailed(dbName, se);
 			} else {
 				LOGGER.debug("Database connection error, retrying in 10 seconds");
-				sleep(10000);
+				UMSUtils.sleep(10000);
 				needRetry = true;
 			}
 			if (needRetry) {
@@ -197,19 +198,6 @@ public abstract class Database extends DatabaseHelper {
 			} catch (NullPointerException e1) {
 				LOGGER.debug("Failed to show database connection error message, probably because GUI is not initialized yet. Error was {}", e1);
 			}
-		}
-	}
-
-	/**
-	 * Utility method to call {@link Thread#sleep(long)} without having to catch
-	 * the InterruptedException.
-	 *
-	 * @param delay the delay
-	 */
-	public static void sleep(int delay) {
-		try {
-			Thread.sleep(delay);
-		} catch (InterruptedException e) {
 		}
 	}
 
