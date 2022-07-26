@@ -28,7 +28,6 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +39,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -227,20 +225,6 @@ public class ConfigurationApiHandler implements HttpHandler {
 					return;
 				}
 				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
-			} else if (api.post("/reset-cache")) {
-				//only logged users for security concerns
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
-				if (account == null) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
-					return;
-				}
-				MediaDatabase.initForce();
-				try {
-					MediaDatabase.resetCache();
-				} catch (SQLException e) {
-					LOGGER.debug("Error when re-initializing after manual cache reset:", e);
-				}
-				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
 			} else {
 				LOGGER.trace("ConfigurationApiHandler request not available : {}", api.getEndpoint());
 				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");

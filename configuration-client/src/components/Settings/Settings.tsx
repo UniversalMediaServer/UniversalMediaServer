@@ -14,6 +14,7 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { sendAction } from '../../services/actions-service';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -147,26 +148,8 @@ export default function Settings() {
       });
   };
 
-  const resetCache = () => {
-    setLoading(true);
-    axios.post('/configuration-api/reset-cache')
-      .then(function () {
-        showNotification({
-          message: i18n.get['Success'],
-        })
-      })
-      .catch(function (error: Error) {
-        console.log(error);
-        showNotification({
-          color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ClickHereReportBug'],
-          onClick: () => { openGitHubNewIssue(); },
-        })
-      })
-      .then(function () {
-        setLoading(false);
-      });
+  const resetCache = async () => {
+    await sendAction('Server.ResetCache');
   };
 
   const getLanguagesSelectData = () => {
