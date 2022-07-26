@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataReleased extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataReleased.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_RELEASED";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

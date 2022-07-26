@@ -41,6 +41,11 @@ import net.pms.dlna.DLNAMediaInfo;
 public class MediaTableAudiotracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
+	public static final String FILEID = TABLE_NAME + ".FILEID";
+	public static final String ARTIST = TABLE_NAME + ".ARTIST";
+	public static final String ALBUM = TABLE_NAME + ".ALBUM";
+	public static final String ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
+	public static final String TRACK = TABLE_NAME + ".TRACK";
 	private static final String MBID_RECORD = "MBID_RECORD";
 	private static final String MBID_TRACK = "MBID_TRACK";
 	private static final String LIKE_SONG = "LIKESONG";

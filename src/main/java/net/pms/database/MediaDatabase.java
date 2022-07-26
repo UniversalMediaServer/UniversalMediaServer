@@ -87,6 +87,7 @@ public class MediaDatabase extends Database {
 				// Files and metadata
 				MediaTableMetadata.checkTable(connection);
 				MediaTableFiles.checkTable(connection);
+				MediaTableVideoMetadatas.checkTable(connection);
 				MediaTableSubtracks.checkTable(connection);
 				MediaTableChapters.checkTable(connection);
 				MediaTableRegexpRules.checkTable(connection);

@@ -32,6 +32,10 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataGenres extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataGenres.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
+	public static final String COL_GENRE_NAME = "GENRE";
+	public static final String TVSERIESID = TABLE_NAME + ".TVSERIESID";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String GENRE = TABLE_NAME + "." + COL_GENRE_NAME;
 
 	/**
 	 * Table version must be increased every time a change is done to the table

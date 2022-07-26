@@ -47,7 +47,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFailedLookups;
-import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
@@ -62,6 +61,7 @@ import net.pms.database.MediaTableVideoMetadataProduction;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataRatings;
 import net.pms.database.MediaTableVideoMetadataReleased;
+import net.pms.database.MediaTableVideoMetadatas;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
@@ -298,7 +298,7 @@ public class APIUtils {
 
 				connection.setAutoCommit(false);
 
-				if (MediaTableFiles.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
+				if (MediaTableVideoMetadatas.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
 					LOGGER.trace("The latest metadata already exists for {}", file.getName());
 					return;
 				}
@@ -493,7 +493,7 @@ public class APIUtils {
 				media.setVideoMetadata(videoMetadata);
 
 				LOGGER.trace("setting metadata for " + file.getName());
-				MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, metadataFromAPI);
+				MediaTableVideoMetadatas.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, metadataFromAPI);
 
 				if (media.getThumb() != null) {
 					MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
@@ -726,7 +726,7 @@ public class APIUtils {
 				titleSimplified.equals(titleSimplifiedFromFilename)
 			) {
 				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-				MediaTableFiles.updateMovieOrShowName(connection, titleFromFilename, title);
+				MediaTableVideoMetadatas.updateMovieOrShowName(connection, titleFromFilename, title);
 			}
 
 			return title;

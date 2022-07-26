@@ -45,6 +45,10 @@ import net.pms.util.FileUtil;
 public final class MediaTableFilesStatus extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFilesStatus.class);
 	public static final String TABLE_NAME = "FILES_STATUS";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String ISFULLYPLAYED = TABLE_NAME + ".ISFULLYPLAYED";
+	public static final String PLAYCOUNT = TABLE_NAME + ".PLAYCOUNT";
+	public static final String DATELASTPLAY = TABLE_NAME + ".DATELASTPLAY";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

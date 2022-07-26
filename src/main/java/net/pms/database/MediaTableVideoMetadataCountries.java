@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataCountries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataCountries.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_COUNTRIES";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String COUNTRY = TABLE_NAME + ".COUNTRY";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

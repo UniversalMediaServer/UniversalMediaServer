@@ -45,6 +45,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public final class MediaTableTVSeries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
+	public static final String ID = TABLE_NAME + ".ID";
+	public static final String TITLE = TABLE_NAME + ".TITLE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -519,6 +521,30 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
+	public static String getStartYearBySimplifiedTitle(final Connection connection, final String simplifiedTitle) {
+		String sql = "SELECT STARTYEAR FROM " + TABLE_NAME + " " +
+			" WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+		try (
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql)
+		) {
+			if (resultSet.next()) {
+				return resultSet.getString("STARTYEAR");
+			}
+		} catch (SQLException ex) {
+			LOGGER.error(
+				LOG_ERROR_WHILE_IN_FOR,
+				DATABASE_NAME,
+				"reading",
+				TABLE_NAME,
+				simplifiedTitle,
+				ex.getMessage()
+			);
+			LOGGER.trace("", ex);
+		}
+		return null;
+	}
+
 	public static void updateThumbnailId(final Connection connection, long id, int thumbId) {
 		try {
 			try (
@@ -754,15 +780,17 @@ public final class MediaTableTVSeries extends MediaTable {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			String sql = "SELECT " + MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME " +
+			String sql = "SELECT " + MediaTableVideoMetadatas.TABLE_NAME + ".MOVIEORSHOWNAME " +
 				"FROM " + MediaTableFiles.TABLE_NAME + " " +
 					"LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " +
-					MediaTableFiles.TABLE_NAME + ".FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME " +
+					MediaTableFiles.FILENAME + " = " + MediaTableFilesStatus.FILENAME + " " +
+					"LEFT JOIN " + MediaTableVideoMetadatas.TABLE_NAME + " ON " +
+					MediaTableFiles.ID + " = " + MediaTableVideoMetadatas.FILEID + " " +
 				"WHERE " +
-					MediaTableFiles.TABLE_NAME + ".FORMAT_TYPE = 4 AND " +
-					MediaTableFiles.TABLE_NAME + ".MOVIEORSHOWNAME = " + sqlQuote(title) + " AND " +
-					MediaTableFiles.TABLE_NAME + ".ISTVEPISODE AND " +
-					MediaTableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE " +
+					MediaTableFiles.FORMAT_TYPE + " = 4 AND " +
+					MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = " + sqlQuote(title) + " AND " +
+					MediaTableVideoMetadatas.ISTVEPISODE + " AND " +
+					MediaTableFilesStatus.ISFULLYPLAYED + " IS NOT TRUE " +
 				"LIMIT 1";
 
 			if (trace) {

@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataDirectors extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataDirectors.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_DIRECTORS";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String DIRECTOR = TABLE_NAME + ".DIRECTOR";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

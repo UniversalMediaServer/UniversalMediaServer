@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataRated extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataRated.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_RATED";
+	public static final String COL_RATING_NAME = "RATING";
+	public static final String TVSERIESID = TABLE_NAME + ".TVSERIESID";
+	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String RATING = TABLE_NAME + "." + COL_RATING_NAME;
 
 	/**
 	 * Table version must be increased every time a change is done to the table
