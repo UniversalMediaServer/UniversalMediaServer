@@ -1,5 +1,21 @@
 # Changelog
 
+### [Unreleased](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...main)
+
+### General:
+- Improved performance when scanning and browsing by up to 3,663%
+- Improved performance when handling API metadata
+- Improved performance with many audio files
+- Fixed broken translations
+- Fixed some API metadata handling bugs
+
+### Dependencies
+- Updated maven-assembly-plugin to 3.4.2
+- Updated maven-project-info-reports-plugin 3.4.0
+- Updated maven-resources-plugin to 3.3.0
+- Updated oshi-core to 6.2.2
+- Updated spotbugs-maven-plugin to 4.7.1.1
+
 ### [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
 
 ### General
