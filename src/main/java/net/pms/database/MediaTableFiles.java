@@ -590,24 +590,27 @@ public class MediaTableFiles extends MediaTable {
 						media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
 						media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
 						media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
-						media.setIMDbID(rs.getString("IMDBID"));
-						media.setYear(rs.getString("MEDIA_YEAR"));
-						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
-						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+						if (!StringUtils.isEmpty(rs.getString("MOVIEORSHOWNAME"))) {
+							DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
+							videoMetadata.setIMDbID(rs.getString("IMDBID"));
+							videoMetadata.setYear(rs.getString("MEDIA_YEAR"));
+							videoMetadata.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+							videoMetadata.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
+							videoMetadata.setExtraInformation(rs.getString("EXTRAINFORMATION"));
 
-						if (rs.getBoolean("ISTVEPISODE")) {
-							media.setTVSeason(rs.getString("TVSEASON"));
-							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-							media.setIsTVEpisode(true);
-						} else {
-							media.setIsTVEpisode(false);
+							if (rs.getBoolean("ISTVEPISODE")) {
+								videoMetadata.setTVSeason(rs.getString("TVSEASON"));
+								videoMetadata.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+								videoMetadata.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+								videoMetadata.setIsTVEpisode(true);
+							} else {
+								videoMetadata.setIsTVEpisode(false);
+							}
+
+							// Fields from TV Series table
+							videoMetadata.setTVSeriesStartYear(rs.getString("STARTYEAR"));
+							media.setVideoMetadata(videoMetadata);
 						}
-
-						// Fields from TV Series table
-						media.setTVSeriesStartYear(rs.getString("STARTYEAR"));
-
 						media.setMediaparsed(true);
 						audios.setInt(1, id);
 						try (ResultSet elements = audios.executeQuery()) {
@@ -771,19 +774,23 @@ public class MediaTableFiles extends MediaTable {
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
-						media.setIMDbID(rs.getString("IMDBID"));
-						media.setYear(rs.getString("MEDIA_YEAR"));
-						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
-						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+						if (!StringUtils.isEmpty(rs.getString("MOVIEORSHOWNAME"))) {
+							DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
+							videoMetadata.setIMDbID(rs.getString("IMDBID"));
+							videoMetadata.setYear(rs.getString("MEDIA_YEAR"));
+							videoMetadata.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
+							videoMetadata.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
+							videoMetadata.setExtraInformation(rs.getString("EXTRAINFORMATION"));
 
-						if (rs.getBoolean("ISTVEPISODE")) {
-							media.setTVSeason(rs.getString("TVSEASON"));
-							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-							media.setIsTVEpisode(true);
-						} else {
-							media.setIsTVEpisode(false);
+							if (rs.getBoolean("ISTVEPISODE")) {
+								videoMetadata.setTVSeason(rs.getString("TVSEASON"));
+								videoMetadata.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
+								videoMetadata.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+								videoMetadata.setIsTVEpisode(true);
+							} else {
+								videoMetadata.setIsTVEpisode(false);
+							}
+							media.setVideoMetadata(videoMetadata);
 						}
 						media.setMediaparsed(true);
 					}
@@ -880,15 +887,18 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), SIZE_MAX));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
-							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-							rs.updateString("MEDIA_YEAR", left(media.getYear(), SIZE_YEAR));
-							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-							rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-							rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-							rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
-							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+							if (media.hasVideoMetadata()) {
+								DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+								rs.updateString("IMDBID", left(videoMetadata.getIMDbID(), SIZE_IMDBID));
+								rs.updateString("MEDIA_YEAR", left(videoMetadata.getYear(), SIZE_YEAR));
+								rs.updateString("MOVIEORSHOWNAME", left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
+								rs.updateString("MOVIEORSHOWNAMESIMPLE", left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
+								rs.updateString("TVSEASON", left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
+								rs.updateString("TVEPISODENUMBER", left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+								rs.updateString("TVEPISODENAME", left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
+								rs.updateBoolean("ISTVEPISODE", videoMetadata.isTVEpisode());
+								rs.updateString("EXTRAINFORMATION", left(videoMetadata.getExtraInformation(), SIZE_MAX));
+							}
 						}
 						rs.updateRow();
 					}
@@ -959,15 +969,28 @@ public class MediaTableFiles extends MediaTable {
 						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), SIZE_MAX));
 						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
 						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
-						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
-						ps.setString(++databaseColumnIterator, left(media.getYear(), SIZE_YEAR));
-						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
-						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
-						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
+						if (media.hasVideoMetadata()) {
+							DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getIMDbID(), SIZE_IMDBID));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getYear(), SIZE_YEAR));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
+							ps.setBoolean(++databaseColumnIterator, videoMetadata.isTVEpisode());
+							ps.setString(++databaseColumnIterator, left(videoMetadata.getExtraInformation(), SIZE_MAX));
+						} else {
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+							ps.setBoolean(++databaseColumnIterator, false);
+							ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						}
 					} else {
 						ps.setString(++databaseColumnIterator, null);
 						ps.setInt(++databaseColumnIterator, 0);
@@ -1094,15 +1117,16 @@ public class MediaTableFiles extends MediaTable {
 			ps.setTimestamp(2, new Timestamp(modified));
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-					rs.updateString("MEDIA_YEAR", left(media.getYear(), SIZE_YEAR));
-					rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-					rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-					rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-					rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-					rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
-					rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-					rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
+					DLNAMediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new DLNAMediaVideoMetadata();
+					rs.updateString("IMDBID", left(videoMetadata.getIMDbID(), SIZE_IMDBID));
+					rs.updateString("MEDIA_YEAR", left(videoMetadata.getYear(), SIZE_YEAR));
+					rs.updateString("MOVIEORSHOWNAME", left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
+					rs.updateString("MOVIEORSHOWNAMESIMPLE", left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
+					rs.updateString("TVSEASON", left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
+					rs.updateString("TVEPISODENUMBER", left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+					rs.updateString("TVEPISODENAME", left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
+					rs.updateBoolean("ISTVEPISODE", videoMetadata.isTVEpisode());
+					rs.updateString("EXTRAINFORMATION", left(videoMetadata.getExtraInformation(), SIZE_MAX));
 					rs.updateString("VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
 
 					// TMDB data, since v11

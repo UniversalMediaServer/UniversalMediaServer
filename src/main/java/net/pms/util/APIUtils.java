@@ -63,6 +63,7 @@ import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataRatings;
 import net.pms.database.MediaTableVideoMetadataReleased;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -309,12 +310,14 @@ public class APIUtils {
 				FRAME.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
 				JsonObject metadataFromAPI;
 
-				String year                        = media.getYear();
-				String titleFromFilename           = media.getMovieOrShowName();
+				DLNAMediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new DLNAMediaVideoMetadata();
+
+				String year                        = videoMetadata.getYear();
+				String titleFromFilename           = videoMetadata.getMovieOrShowName();
 				String titleSimplifiedFromFilename = FileUtil.getSimplifiedShowName(titleFromFilename);
-				String tvSeasonFromFilename        = media.getTVSeason();
-				String tvEpisodeNumberFromFilename = media.getTVEpisodeNumber();
-				String tvSeriesStartYear           = media.getTVSeriesStartYear();
+				String tvSeasonFromFilename        = videoMetadata.getTVSeason();
+				String tvEpisodeNumberFromFilename = videoMetadata.getTVEpisodeNumber();
+				String tvSeriesStartYear           = videoMetadata.getTVSeriesStartYear();
 
 				// unset tvSeriesStartYear if it is NOT in the title because it must have come from the API earlier and will mess up the matching logic
 				// todo: use better matching logic
@@ -325,11 +328,11 @@ public class APIUtils {
 					}
 				}
 
-				Boolean isTVEpisode = media.isTVEpisode();
+				Boolean isTVEpisode = videoMetadata.isTVEpisode();
 
 				try {
 					if (isTVEpisode) {
-						metadataFromAPI = getAPIMetadata(file, titleFromFilename, tvSeriesStartYear, tvSeasonFromFilename, media.getTVEpisodeNumberUnpadded());
+						metadataFromAPI = getAPIMetadata(file, titleFromFilename, tvSeriesStartYear, tvSeasonFromFilename, videoMetadata.getTVEpisodeNumberUnpadded());
 					} else {
 						metadataFromAPI = getAPIMetadata(file, titleFromFilename, year, null, null);
 					}
@@ -442,11 +445,11 @@ public class APIUtils {
 				}
 				String titleSimplified = FileUtil.getSimplifiedShowName(title);
 
-				media.setMovieOrShowName(title);
-				media.setSimplifiedMovieOrShowName(titleSimplified);
-				media.setYear(year);
+				videoMetadata.setMovieOrShowName(title);
+				videoMetadata.setSimplifiedMovieOrShowName(titleSimplified);
+				videoMetadata.setYear(year);
 
-				media.setIMDbID(getStringOrNull(metadataFromAPI, "imdbID"));
+				videoMetadata.setIMDbID(getStringOrNull(metadataFromAPI, "imdbID"));
 
 				// Set the poster as the thumbnail
 				String posterFromApi = getPosterUrlFromApiInfo(
@@ -478,15 +481,16 @@ public class APIUtils {
 //					media.setGoofs((String) metadataFromAPI.get("goofs"));
 
 				if (isTVEpisode) {
-					media.setTVSeason(tvSeason);
-					media.setTVEpisodeNumber(tvEpisodeNumber);
+					videoMetadata.setTVSeason(tvSeason);
+					videoMetadata.setTVEpisodeNumber(tvEpisodeNumber);
 					if (isNotBlank(tvEpisodeTitle)) {
 						LOGGER.trace("Setting episode name from api: " + tvEpisodeTitle);
-						media.setTVEpisodeName(tvEpisodeTitle);
+						videoMetadata.setTVEpisodeName(tvEpisodeTitle);
 					}
 
-					media.setIsTVEpisode(true);
+					videoMetadata.setIsTVEpisode(true);
 				}
+				media.setVideoMetadata(videoMetadata);
 
 				LOGGER.trace("setting metadata for " + file.getName());
 				MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, metadataFromAPI);
