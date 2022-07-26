@@ -46,6 +46,7 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -60,15 +61,18 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
-	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
+
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
+	private static final JsonArray FFMPEG_LOGLEVEL = PmsConfiguration.getFfmpegLoglevels();
+	private static final JsonArray FULLY_PLAYED_ACTIONS = PmsConfiguration.getFullyPlayedActionsAsJsonArray();
+	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
 	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
+	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
+	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = PmsConfiguration.getEnginesPurposesAsJsonArray();
-	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
-	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
-	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
-	private static final JsonArray FFMPEG_LOGLEVEL = PmsConfiguration.getFfmpegLoglevels();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -115,7 +119,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				JsonObject jsonResponse = new JsonObject();
 
-				//immutable datas
+				// immutable data
 				jsonResponse.add("userSettingsDefaults", WEB_SETTINGS_WITH_DEFAULTS);
 				jsonResponse.add("serverEngines", SERVER_ENGINES);
 				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
@@ -125,12 +129,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
 				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
 				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
-
+				jsonResponse.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
-
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -250,6 +253,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("alternate_subtitles_folder", "");
 		jObj.addProperty("alternate_thumb_folder", "");
 		jObj.addProperty("append_profile_name", false);
+		jObj.addProperty("atz_limit", 10000);
 		jObj.addProperty("audio_channels", "6");
 		jObj.addProperty("audio_embed_dts_in_pcm", false);
 		jObj.addProperty("audio_bitrate", "448");
@@ -265,12 +269,14 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("chapter_support", false);
 		jObj.addProperty("disable_subtitles", false);
 		jObj.addProperty("disable_transcode_for_extensions", "");
-		jObj.addProperty("vlc_use_experimental_codecs", false);
+		jObj.addProperty("enable_archive_browsing", false);
 		jObj.addProperty("encoded_audio_passthrough", false);
 		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
 		jObj.add("engines", transcodingEngines);
 		jObj.add("engines_priority", transcodingEngines);
 		jObj.addProperty("force_transcode_for_extensions", "");
+		jObj.addProperty("fully_played_action", FullyPlayedAction.MARK.toString());
+		jObj.addProperty("fully_played_output_directory", "");
 		jObj.addProperty("gpu_acceleration", false);
 		jObj.addProperty("external_network", true);
 		jObj.addProperty("ffmpeg_fontconfig", false);
@@ -285,6 +291,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("forced_subtitle_language", "");
 		jObj.addProperty("forced_subtitle_tags", "forced");
 		jObj.addProperty("generate_thumbnails", true);
+		jObj.addProperty("hide_empty_folders", false);
 		jObj.addProperty("hide_enginenames", true);
 		jObj.addProperty("hide_extensions", true);
 		jObj.addProperty("hostname", "");
@@ -328,12 +335,17 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("prettify_filenames", false);
 		jObj.addProperty("renderer_default", "");
 		jObj.addProperty("renderer_force_default", false);
+		jObj.addProperty("resume", true);
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add("All renderers");
 		jObj.add("selected_renderers", allRenderers);
 		jObj.addProperty("server_engine", "0");
 		jObj.addProperty("server_name", "Universal Media Server");
+		jObj.addProperty("show_media_library_folder", true);
+		jObj.addProperty("show_recently_played_folder", true);
+		jObj.addProperty("show_server_settings_folder", false);
 		jObj.addProperty("show_splash_screen", true);
+		jObj.addProperty("show_transcode_folder", true);
 		jObj.addProperty("sort_method", "4");
 		jObj.addProperty("subs_info_level", "basic");
 		jObj.addProperty("subtitles_codepage", "");
@@ -346,7 +358,9 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("use_embedded_subtitles_style", true);
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
+		jObj.addProperty("use_symlinks_target_file", true);
 		jObj.addProperty("vlc_audio_sync_enabled", false);
+		jObj.addProperty("vlc_use_experimental_codecs", false);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;

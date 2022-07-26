@@ -14,6 +14,7 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission } from '../../services/accounts-service';
 import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
+import { sendAction } from '../../services/actions-service';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState(0);
@@ -26,20 +27,26 @@ export default function Settings() {
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
 
+  interface mantineSelectData {
+    value: string;
+    label: string;
+  }
+
   // key/value pairs for dropdowns
   const [selectionSettings, setSelectionSettings] = useState({
     allRendererNames: [],
-    audioCoverSuppliers: [],
+    audioCoverSuppliers: [{}] as [mantineSelectData],
     enabledRendererNames: [],
     ffmpegLoglevels: [],
+    fullyPlayedActions: [{}] as [mantineSelectData],
     gpuAccelerationMethod: [],
     networkInterfaces: [],
-    serverEngines: [],
-    sortMethods: [],
+    serverEngines: [{}] as [mantineSelectData],
+    sortMethods: [{}] as [mantineSelectData],
     subtitlesDepth: [],
     subtitlesCodepages: [],
-    subtitlesInfoLevels: [],
-    transcodingEngines: {} as {[key: string]: {id:string,name:string,isAvailable:boolean,purpose:number,statusText:string[]}},
+    subtitlesInfoLevels: [{}] as [mantineSelectData],
+    transcodingEngines: {} as { [key: string]: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] } },
     transcodingEnginesPurposes: [],
   });
 
@@ -141,6 +148,10 @@ export default function Settings() {
       });
   };
 
+  const resetCache = async () => {
+    await sendAction('Server.ResetCache');
+  };
+
   const getLanguagesSelectData = () => {
     return i18n.languages.map((language) => {
       return {
@@ -152,19 +163,19 @@ export default function Settings() {
     });
   }
 
-  const getI18nSelectData = (values: [{value:string;label:string}]) => {
-    return values.map((value : {value:string;label:string}) => {
-      return {value : value.value, label: i18n.getI18nString(value.label)};
+  const getI18nSelectData = (values: [{ value: string; label: string }]) => {
+    return values.map((value: { value: string; label: string }) => {
+      return {value: value.value, label: i18n.getI18nString(value.label)};
     });
   }
 
-  const getTranscodingEnginesPriority = (purpose:number) => {
+  const getTranscodingEnginesPriority = (purpose: number) => {
     return form.getInputProps('engines_priority').value !== undefined ? form.getInputProps('engines_priority').value.filter((value: string) => 
       selectionSettings.transcodingEngines[value] && selectionSettings.transcodingEngines[value].purpose === purpose
     ) : [];
   }
 
-  const moveTranscodingEnginesPriority = (purpose:number, oldIndex:number, newIndex:number) => {
+  const moveTranscodingEnginesPriority = (purpose: number, oldIndex: number, newIndex: number) => {
     if (form.getInputProps('engines_priority').value instanceof Array<string>) {
       let items = form.getInputProps('engines_priority').value as Array<string>;
       let index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
@@ -1064,7 +1075,7 @@ export default function Settings() {
                   <Select
                     disabled={!canModify}
                     label={i18n.get['MediaServerEngine']}
-                    data={getI18nSelectData(selectionSettings.serverEngines as unknown as [{value:string;label:string}])}
+                    data={getI18nSelectData(selectionSettings.serverEngines)}
                     {...form.getInputProps('server_engine')}
                   />
                 </Tooltip>
@@ -1126,7 +1137,7 @@ export default function Settings() {
             <Select
               mt="xs"
               label={i18n.get['AudioThumbnailsImport']}
-              data={getI18nSelectData(selectionSettings.audioCoverSuppliers as unknown as [{value:string;label:string}])}
+              data={getI18nSelectData(selectionSettings.audioCoverSuppliers)}
               {...form.getInputProps('audio_thumbnails_method')}
             />
             <DirectoryChooser
@@ -1140,7 +1151,7 @@ export default function Settings() {
                 <Group mt="xs">
                   <Select
                     label={i18n.get['AudioThumbnailsImport']}
-                    data={getI18nSelectData(selectionSettings.sortMethods as unknown as [{value:string;label:string}])}
+                    data={getI18nSelectData(selectionSettings.sortMethods)}
                     {...form.getInputProps('sort_method')}
                   />
                   <Checkbox
@@ -1173,7 +1184,7 @@ export default function Settings() {
                   <Tooltip label={allowHtml(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
                     <Select
                       label={i18n.get['AddSubtitlesInformationVideoNames']}
-                      data={getI18nSelectData(selectionSettings.subtitlesInfoLevels as unknown as [{value:string;label:string}])}
+                      data={getI18nSelectData(selectionSettings.subtitlesInfoLevels)}
                       {...form.getInputProps('subs_info_level')}
                     />
                   </Tooltip>
@@ -1190,13 +1201,103 @@ export default function Settings() {
                 </Group>
               </Accordion.Item>
               <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
-                <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                <Group position="apart" mt="xl">
+                  <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['EnableCache']}
+                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Button
+                      size="xs"
+                      onClick={() => resetCache()}
+                      disabled={!form.values['use_cache']}
+                    >
+                      {i18n.get['ResetCache']}
+                    </Button>
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['MediaLibraryFolderWillAvailable'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['ShowMediaLibraryFolder']}
+                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                </Group>
+                <Group position="apart" mt="xl">
+                  <Checkbox
+                    label={i18n.get['BrowseCompressedArchives']}
+                    {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label={i18n.get['ShowServerSettingsFolder']}
+                    {...form.getInputProps('show_server_settings_folder', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    label={i18n.get['ShowTranscodeFolder']}
+                    {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
+                  />
+                </Group>
+                <Checkbox
+                  mt="xl"
+                  label={i18n.get['ShowLiveSubtitlesFolder']}
+                  {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
+                />
+                <Group mt="md">
+                  <Tooltip label={allowHtml(i18n.get['IfNumberItemsFolderExceeds'])} {...defaultTooltipSettings}>
+                    <NumberInput
+                      label={i18n.get['MinimumItemLimitBeforeAZ']}
+                      disabled={!canModify}
+                      {...form.getInputProps('atz_limit')}
+                    />
+                  </Tooltip>
+                </Group>
+                <Tooltip label={allowHtml(i18n.get['WhenEnabledPartiallyWatchVideo'])} {...defaultTooltipSettings}>
                   <Checkbox
                     mt="xl"
-                    label={i18n.get['EnableCache']}
-                    {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    disabled={!canModify}
+                    label={i18n.get['EnableVideoResuming']}
+                    {...form.getInputProps('resume', { type: 'checkbox' })}
                   />
                 </Tooltip>
+                <Checkbox
+                  mt="md"
+                  disabled={!canModify}
+                  label={i18n.get['ShowRecentlyPlayedFolder']}
+                  {...form.getInputProps('show_recently_played_folder', { type: 'checkbox' })}
+                />
+                <Tooltip label={allowHtml(i18n.get['ThisMakesBrowsingSlower'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    mt="xl"
+                    disabled={!canModify}
+                    label={i18n.get['HideEmptyFolders']}
+                    {...form.getInputProps('hide_empty_folders', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+                <Group mt="md">
+                  <Tooltip label={allowHtml(i18n.get['TreatMultipleSymbolicLinks'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      label={i18n.get['UseTargetFileSymbolicLinks']}
+                      {...form.getInputProps('use_symlinks_target_file', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                </Group>
+                <Group mt="md">
+                  <Select
+                    sx={{ flex: 1 }}
+                    disabled={!canModify}
+                    label={i18n.get['FullyPlayedAction']}
+                    data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
+                    {...form.getInputProps('fully_played_action')}
+                  />
+                  <DirectoryChooser
+                    label={i18n.get['DestinationFolder']}
+                    path={form.getInputProps('fully_played_output_directory').value}
+                    callback={form.setFieldValue}
+                    formKey="fully_played_output_directory"
+                  ></DirectoryChooser>
+                </Group>
               </Accordion.Item>
             </Accordion>
           </Tabs.Tab>
