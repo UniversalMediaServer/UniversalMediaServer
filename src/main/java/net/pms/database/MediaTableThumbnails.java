@@ -41,6 +41,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 public final class MediaTableThumbnails extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableThumbnails.class);
 	public static final String TABLE_NAME = "THUMBNAILS";
+	public static final String ID = TABLE_NAME + ".ID";
+	public static final String THUMBNAIL = TABLE_NAME + ".THUMBNAIL";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.THUMBID + " = " + ID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.THUMBID + " = " + ID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -132,9 +136,16 @@ public final class MediaTableThumbnails extends MediaTable {
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
-				connection.setAutoCommit(false);
+				//handle autocommit
+				boolean currentAutoCommit = connection.getAutoCommit();
+				if (currentAutoCommit) {
+					connection.setAutoCommit(false);
+				}
 				setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID, false);
-				connection.commit();
+				if (currentAutoCommit) {
+					connection.commit();
+					connection.setAutoCommit(true);
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("", e);

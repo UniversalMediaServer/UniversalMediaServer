@@ -34,6 +34,8 @@ public final class MediaTableVideoMetadataRated extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + ".TVSERIESID";
 	public static final String FILENAME = TABLE_NAME + ".FILENAME";
 	public static final String RATING = TABLE_NAME + "." + COL_RATING_NAME;
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.FILENAME + " = " + FILENAME + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

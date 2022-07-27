@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
 public class MediaTableRegexpRules extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableRegexpRules.class);
 	public static final String TABLE_NAME = "REGEXP_RULES";
+	public static final String ID = TABLE_NAME + ".ID";
+	public static final String REGEXP_ORDER = TABLE_NAME + ".REGEXP_ORDER";
+	public static final String REGEXP_RULE = TABLE_NAME + ".REGEXP_RULE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

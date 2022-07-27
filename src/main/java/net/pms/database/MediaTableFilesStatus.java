@@ -49,6 +49,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static final String ISFULLYPLAYED = TABLE_NAME + ".ISFULLYPLAYED";
 	public static final String PLAYCOUNT = TABLE_NAME + ".PLAYCOUNT";
 	public static final String DATELASTPLAY = TABLE_NAME + ".DATELASTPLAY";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.FILENAME + " = " + FILENAME + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -108,7 +109,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
 
 						Set<String> fileStatusEntries = new HashSet<>();
-						try (PreparedStatement stmt = connection.prepareStatement("SELECT " + MediaTableFiles.TABLE_NAME + ".ID AS FILES_ID, " + MediaTableFiles.TABLE_NAME + ".FILENAME AS FILES_FILENAME FROM " + MediaTableFiles.TABLE_NAME + " LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_NAME + ".ID = " + TABLE_NAME + ".FILEID");
+						try (PreparedStatement stmt = connection.prepareStatement("SELECT " + MediaTableFiles.ID + " AS FILES_ID, " + MediaTableFiles.TABLE_NAME + ".FILENAME AS FILES_FILENAME FROM " + MediaTableFiles.TABLE_NAME + " LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_NAME + ".ID = " + TABLE_NAME + ".FILEID");
 								ResultSet rs = stmt.executeQuery()) {
 							String filename;
 							while (rs.next()) {

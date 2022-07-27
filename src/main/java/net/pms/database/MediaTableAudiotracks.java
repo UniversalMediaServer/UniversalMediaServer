@@ -41,15 +41,26 @@ import net.pms.dlna.DLNAMediaInfo;
 public class MediaTableAudiotracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_MBID_RECORD = "MBID_RECORD";
+	private static final String COL_MBID_TRACK = "MBID_TRACK";
+	private static final String COL_LIKE_SONG = "LIKESONG";
+	private static final String COL_DISC = "DISC";
+	/**
+	 * COLUMNS with table name
+	 */
 	public static final String FILEID = TABLE_NAME + ".FILEID";
-	public static final String ARTIST = TABLE_NAME + ".ARTIST";
 	public static final String ALBUM = TABLE_NAME + ".ALBUM";
 	public static final String ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
+	public static final String ARTIST = TABLE_NAME + ".ARTIST";
+	public static final String GENRE = TABLE_NAME + ".GENRE";
+	public static final String MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
+	public static final String MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
+	public static final String MEDIA_YEAR = TABLE_NAME + ".MEDIA_YEAR";
 	public static final String TRACK = TABLE_NAME + ".TRACK";
-	private static final String MBID_RECORD = "MBID_RECORD";
-	private static final String MBID_TRACK = "MBID_TRACK";
-	private static final String LIKE_SONG = "LIKESONG";
-	private static final String DISC = "DISC";
+
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
@@ -93,16 +104,16 @@ public class MediaTableAudiotracks extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1:
-					if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
+					if (!isColumnExist(connection, TABLE_NAME, COL_MBID_RECORD)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_MBID_RECORD + " UUID");
 					}
-					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
+					if (!isColumnExist(connection, TABLE_NAME, COL_MBID_TRACK)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_MBID_TRACK + " UUID");
 					}
 					break;
 				case 2:
-					if (!isColumnExist(connection, TABLE_NAME, DISC)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
+					if (!isColumnExist(connection, TABLE_NAME, COL_DISC)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_DISC + " INT");
 					}
 					break;
 				case 3:
@@ -116,11 +127,11 @@ public class MediaTableAudiotracks extends MediaTable {
 					}
 					break;
 				case 4:
-					if (!isColumnExist(connection, TABLE_NAME, LIKE_SONG)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + LIKE_SONG + " BOOLEAN");
-						LOGGER.trace("Adding " + LIKE_SONG + " to table " + TABLE_NAME);
-						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG ON " + TABLE_NAME + " (" + LIKE_SONG + ");");
-						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
+					if (!isColumnExist(connection, TABLE_NAME, COL_LIKE_SONG)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_LIKE_SONG + " BOOLEAN");
+						LOGGER.trace("Adding " + COL_LIKE_SONG + " to table " + TABLE_NAME);
+						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG ON " + TABLE_NAME + " (" + COL_LIKE_SONG + ");");
+						LOGGER.trace("Indexing column " + COL_LIKE_SONG + " on table " + TABLE_NAME);
 					}
 					break;
 				case 5:

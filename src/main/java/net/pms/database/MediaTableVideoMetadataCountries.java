@@ -32,7 +32,10 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataCountries.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_COUNTRIES";
 	public static final String FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String TVSERIESID = TABLE_NAME + ".TVSERIESID";
 	public static final String COUNTRY = TABLE_NAME + ".COUNTRY";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.FILENAME + " = " + FILENAME + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

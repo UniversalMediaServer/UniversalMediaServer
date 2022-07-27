@@ -44,19 +44,43 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaTableVideoMetadatas extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadatas.class);
-	private static final String BASIC_COLUMNS = "IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION";
+
+	public static final String TABLE_NAME = "VIDEO_METADATAS";
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_EXTRAINFORMATION = "EXTRAINFORMATION";
+	private static final String COL_FILEID = "FILEID";
+	private static final String COL_IMDBID = "IMDBID";
+	private static final String COL_ISTVEPISODE = "ISTVEPISODE";
+	private static final String COL_MEDIA_YEAR = "MEDIA_YEAR";
+	private static final String COL_MOVIEORSHOWNAME = "MOVIEORSHOWNAME";
+	private static final String COL_MOVIEORSHOWNAMESIMPLE = "MOVIEORSHOWNAMESIMPLE";
+	private static final String COL_TVSEASON = "TVSEASON";
+	private static final String COL_TVEPISODENAME = "TVEPISODENAME";
+	private static final String COL_TVEPISODENUMBER = "TVEPISODENUMBER";
+	private static final String BASIC_COLUMNS = COL_IMDBID + ", " + COL_MEDIA_YEAR + ", " + COL_MOVIEORSHOWNAME + ", " + COL_MOVIEORSHOWNAMESIMPLE + ", " + COL_EXTRAINFORMATION + ", " + COL_ISTVEPISODE + ", " + COL_TVSEASON + ", " + COL_TVEPISODENUMBER + ", " + COL_TVEPISODENAME;
 	/**
 	 * The columns we added from TMDB in V11
 	 */
 	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
 
-	public static final String TABLE_NAME = "VIDEO_METADATAS";
-	public static final String FILEID = TABLE_NAME + ".FILEID";
-	public static final String ISTVEPISODE = TABLE_NAME + ".ISTVEPISODE";
-	public static final String TVSEASON = TABLE_NAME + ".TVSEASON";
-	public static final String TVEPISODENUMBER = TABLE_NAME + ".TVEPISODENUMBER";
-	public static final String MOVIEORSHOWNAME = TABLE_NAME + ".MOVIEORSHOWNAME";
-	public static final String MEDIA_YEAR = TABLE_NAME + ".MEDIA_YEAR";
+	
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
+	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
+	public static final String IMDBID = TABLE_NAME + "." + COL_IMDBID;
+	public static final String ISTVEPISODE = TABLE_NAME + "." + COL_ISTVEPISODE;
+	public static final String MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
+	public static final String MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
+	public static final String MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
+	public static final String TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
+	public static final String TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
+	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -128,16 +152,16 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				"ISTVEPISODE             BOOLEAN                                          , " +
 				"EXTRAINFORMATION        VARCHAR(" + SIZE_MAX + ")                        , " +
 				"API_VERSION             VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				"BUDGET                  DOUBLE PRECISION                                 , " +
-				"CREDITS                 VARCHAR                                          , " +
-				"EXTERNALIDS             VARCHAR                                          , " +
+				"BUDGET                  INTEGER                                          , " +
+				"CREDITS                 CLOB                                             , " +
+				"EXTERNALIDS             CLOB                                             , " +
 				"HOMEPAGE                VARCHAR                                          , " +
-				"IMAGES                  VARCHAR                                          , " +
+				"IMAGES                  CLOB                                             , " +
 				"ORIGINALLANGUAGE        VARCHAR                                          , " +
 				"ORIGINALTITLE           VARCHAR                                          , " +
-				"PRODUCTIONCOMPANIES     VARCHAR                                          , " +
-				"PRODUCTIONCOUNTRIES     VARCHAR                                          , " +
-				"REVENUE                 VARCHAR                                          , " +
+				"PRODUCTIONCOMPANIES     CLOB                                             , " +
+				"PRODUCTIONCOUNTRIES     CLOB                                             , " +
+				"REVENUE                 INTEGER                                          , " +
 				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
 			")"
 		);
@@ -189,9 +213,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					rs.updateBoolean("ISTVEPISODE", videoMetadata.isTVEpisode());
 					rs.updateString("EXTRAINFORMATION", left(videoMetadata.getExtraInformation(), SIZE_MAX));
 					if (apiExtendedMetadata != null) {
-						rs.updateString("API_VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
+						rs.updateString("API_VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
 						if (apiExtendedMetadata.has("budget")) {
-							rs.updateDouble("BUDGET", apiExtendedMetadata.get("budget").getAsDouble());
+							rs.updateInt("BUDGET", apiExtendedMetadata.get("budget").getAsInt());
 						}
 						if (apiExtendedMetadata.has("credits")) {
 							rs.updateString("CREDITS", apiExtendedMetadata.get("credits").toString());
@@ -211,7 +235,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 						if (apiExtendedMetadata.has("productionCountries")) {
 							rs.updateString("PRODUCTIONCOUNTRIES", apiExtendedMetadata.get("productionCountries").toString());
 						}
-						rs.updateString("REVENUE", APIUtils.getStringOrNull(apiExtendedMetadata, "revenue"));
+						if (apiExtendedMetadata.has("revenue")) {
+							rs.updateInt("REVENUE", apiExtendedMetadata.get("revenue").getAsInt());
+						}
 					}
 					rs.updateRow();
 				} else {
@@ -228,11 +254,11 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					insertStatement.setBoolean(++databaseColumnIterator, videoMetadata.isTVEpisode());
 					insertStatement.setString(++databaseColumnIterator, left(videoMetadata.getExtraInformation(), SIZE_MAX));
 					if (apiExtendedMetadata != null) {
-						insertStatement.setString(++databaseColumnIterator, left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
+						insertStatement.setString(++databaseColumnIterator, left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
 						if (apiExtendedMetadata.has("budget")) {
-							insertStatement.setDouble(++databaseColumnIterator, apiExtendedMetadata.get("budget").getAsDouble());
+							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("budget").getAsInt());
 						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.DOUBLE);
+							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
 						}
 						if (apiExtendedMetadata.has("credits")) {
 							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("credits").toString());
@@ -275,9 +301,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
 						}
 						if (apiExtendedMetadata.has("revenue")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("revenue").getAsString());
+							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("revenue").getAsInt());
 						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
+							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
 						}
 					}
 					insertStatement.executeUpdate();
@@ -319,21 +345,21 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		if (connection == null || fileId < 0) {
 			return null;
 		}
-		try (PreparedStatement selectStatement = connection.prepareStatement("SELECT * FROM " + TABLE_NAME + " WHERE FILEID = ?")) {
+		try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_VIDEO_METADATA_BY_FILEID)) {
 			selectStatement.setLong(1, fileId);
 			try (ResultSet rs = selectStatement.executeQuery()) {
 				if (rs.next()) {
 					DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
-					videoMetadata.setIMDbID(rs.getString("IMDBID"));
-					videoMetadata.setYear(rs.getString("MEDIA_YEAR"));
-					videoMetadata.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-					videoMetadata.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
-					videoMetadata.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+					videoMetadata.setIMDbID(rs.getString(COL_IMDBID));
+					videoMetadata.setYear(rs.getString(COL_MEDIA_YEAR));
+					videoMetadata.setMovieOrShowName(rs.getString(COL_MOVIEORSHOWNAME));
+					videoMetadata.setSimplifiedMovieOrShowName(rs.getString(COL_MOVIEORSHOWNAMESIMPLE));
+					videoMetadata.setExtraInformation(rs.getString(COL_EXTRAINFORMATION));
 
-					if (rs.getBoolean("ISTVEPISODE")) {
-						videoMetadata.setTVSeason(rs.getString("TVSEASON"));
-						videoMetadata.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-						videoMetadata.setTVEpisodeName(rs.getString("TVEPISODENAME"));
+					if (rs.getBoolean(COL_ISTVEPISODE)) {
+						videoMetadata.setTVSeason(rs.getString(COL_TVSEASON));
+						videoMetadata.setTVEpisodeNumber(rs.getString(COL_TVEPISODENUMBER));
+						videoMetadata.setTVEpisodeName(rs.getString(COL_TVEPISODENAME));
 						videoMetadata.setIsTVEpisode(true);
 						// Fields from TV Series table
 						videoMetadata.setTVSeriesStartYear(MediaTableTVSeries.getStartYearBySimplifiedTitle(connection, videoMetadata.getSimplifiedMovieOrShowName()));

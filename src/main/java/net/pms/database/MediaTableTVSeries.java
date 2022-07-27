@@ -45,8 +45,14 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public final class MediaTableTVSeries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
+	/**
+	 * COLUMNS with table name
+	 */
 	public static final String ID = TABLE_NAME + ".ID";
+	public static final String IMDBID = TABLE_NAME + ".IMDBID";
 	public static final String TITLE = TABLE_NAME + ".TITLE";
+	public static final String SIMPLIFIEDTITLE = TABLE_NAME + ".SIMPLIFIEDTITLE";
+	public static final String THUMBID = TABLE_NAME + ".THUMBID";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -464,10 +470,10 @@ public final class MediaTableTVSeries extends MediaTable {
 		Integer thumbnailId = null;
 		Integer tvSeriesId = null;
 
-		String sql = "SELECT " + MediaTableThumbnails.TABLE_NAME + ".ID AS ThumbnailId, " + TABLE_NAME + ".ID as TVSeriesId, THUMBNAIL " +
+		String sql = "SELECT " + MediaTableThumbnails.ID + " AS ThumbnailId, " + ID + " as TVSeriesId, " + MediaTableThumbnails.THUMBNAIL +" " +
 			"FROM " + TABLE_NAME + " " +
-			"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-			"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+			MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+			"WHERE " + SIMPLIFIEDTITLE + " = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 		if (trace) {
 			LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
@@ -523,7 +529,7 @@ public final class MediaTableTVSeries extends MediaTable {
 
 	public static String getStartYearBySimplifiedTitle(final Connection connection, final String simplifiedTitle) {
 		String sql = "SELECT STARTYEAR FROM " + TABLE_NAME + " " +
-			" WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+			" WHERE " + SIMPLIFIEDTITLE + " = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 		try (
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql)
@@ -574,17 +580,17 @@ public final class MediaTableTVSeries extends MediaTable {
 		try {
 			String sql = "SELECT * " +
 				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataActors.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataAwards.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataCountries.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataDirectors.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataGenres.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataProduction.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataPosters.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataRated.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataRatings.TABLE_NAME + ".TVSERIESID " +
-				"LEFT JOIN " + MediaTableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".ID = " + MediaTableVideoMetadataReleased.TABLE_NAME + ".TVSERIESID " +
-				"WHERE SIMPLIFIEDTITLE = " + sqlQuote(simplifiedTitle) + " and IMDBID != ''";
+				MediaTableVideoMetadataActors.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataAwards.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataCountries.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataDirectors.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataProduction.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataPosters.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataRatings.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				MediaTableVideoMetadataReleased.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
+				"WHERE " + SIMPLIFIEDTITLE + " = " + sqlQuote(simplifiedTitle) + " and " + IMDBID + " != ''";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
@@ -645,7 +651,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			PreparedStatement ps = connection.prepareStatement(
 				"SELECT * " +
 				"FROM " + TABLE_NAME + " " +
-				"WHERE SIMPLIFIEDTITLE = ?",
+				"WHERE " + SIMPLIFIEDTITLE + " = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)
@@ -780,12 +786,10 @@ public final class MediaTableTVSeries extends MediaTable {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			String sql = "SELECT " + MediaTableVideoMetadatas.TABLE_NAME + ".MOVIEORSHOWNAME " +
+			String sql = "SELECT " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " " +
 				"FROM " + MediaTableFiles.TABLE_NAME + " " +
-					"LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " +
-					MediaTableFiles.FILENAME + " = " + MediaTableFilesStatus.FILENAME + " " +
-					"LEFT JOIN " + MediaTableVideoMetadatas.TABLE_NAME + " ON " +
-					MediaTableFiles.ID + " = " + MediaTableVideoMetadatas.FILEID + " " +
+					MediaTableFilesStatus.SQL_LEFT_JOIN_TABLE_FILES +
+					MediaTableVideoMetadatas.SQL_LEFT_JOIN_TABLE_FILES +
 				"WHERE " +
 					MediaTableFiles.FORMAT_TYPE + " = 4 AND " +
 					MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = " + sqlQuote(title) + " AND " +

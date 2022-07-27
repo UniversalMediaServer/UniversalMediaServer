@@ -3971,9 +3971,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							connection.setAutoCommit(false);
+							//handle autocommit
+							boolean currentAutoCommit = connection.getAutoCommit();
+							if (currentAutoCommit) {
+								connection.setAutoCommit(false);
+							}
 							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), media);
-							connection.commit();
+							if (currentAutoCommit) {
+								connection.commit();
+								connection.setAutoCommit(true);
+							}
 						}
 					} catch (SQLException e) {
 						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
@@ -5053,9 +5060,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
-					Connection connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
+					try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 						if (connection != null) {
 							if (videoMetadata.isTVEpisode()) {
 								/**
@@ -5080,8 +5085,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								MediaTableTVSeries.set(connection, null, videoMetadata.getMovieOrShowName());
 							}
 						}
-					} finally {
-						MediaDatabase.close(connection);
 					}
 				} else {
 					media.setVideoMetadata(videoMetadata);
@@ -5111,9 +5114,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null && !MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
-					connection.setAutoCommit(false);
+					//handle autocommit
+					boolean currentAutoCommit = connection.getAutoCommit();
+					if (currentAutoCommit) {
+						connection.setAutoCommit(false);
+					}
 					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
-					connection.commit();
+					if (currentAutoCommit) {
+						connection.commit();
+						connection.setAutoCommit(true);
+					}
 				}
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());

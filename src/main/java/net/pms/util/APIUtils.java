@@ -289,14 +289,10 @@ public class APIUtils {
 				return;
 			}
 
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 				if (connection == null) {
 					return;
 				}
-
-				connection.setAutoCommit(false);
 
 				if (MediaTableVideoMetadatas.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
 					LOGGER.trace("The latest metadata already exists for {}", file.getName());
@@ -308,6 +304,7 @@ public class APIUtils {
 				}
 
 				FRAME.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
+				connection.setAutoCommit(false);
 				JsonObject metadataFromAPI;
 
 				DLNAMediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new DLNAMediaVideoMetadata();
@@ -346,6 +343,7 @@ public class APIUtils {
 							setTVSeriesInfo(connection, null, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
 						}
 
+						exitLookupAndAddMetadata(connection);
 						return;
 					} else {
 						LOGGER.trace("Found an API match for " + file.getName());
@@ -353,6 +351,7 @@ public class APIUtils {
 				} catch (IOException ex) {
 					// this likely means a transient error so don't store the failure, to allow retries
 					LOGGER.debug("Likely transient error", ex);
+					exitLookupAndAddMetadata(connection);
 					return;
 				}
 
@@ -419,6 +418,7 @@ public class APIUtils {
 						setTVSeriesInfo(connection, null, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
 					}
 
+					exitLookupAndAddMetadata(connection);
 					return;
 				}
 
@@ -526,23 +526,25 @@ public class APIUtils {
 					MediaTableVideoMetadataRatings.set(connection, file.getAbsolutePath(), metadataFromAPI.get("ratings"), -1);
 				}
 				MediaTableVideoMetadataReleased.set(connection, file.getAbsolutePath(), getStringOrNull(metadataFromAPI, "released"), -1);
+				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
-			} finally {
-				try {
-					if (connection != null) {
-						connection.commit();
-					}
-
-					MediaDatabase.close(connection);
-					FRAME.setSecondaryStatusLine(null);
-				} catch (SQLException e) {
-					LOGGER.error("Error in commit in APIUtils.backgroundLookupAndAdd: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
+	}
+
+	private static void exitLookupAndAddMetadata(Connection connection) {
+		if (connection != null) {
+			try {
+				connection.commit();
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				LOGGER.error("Error in commit in APIUtils.backgroundLookupAndAdd: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		FRAME.setSecondaryStatusLine(null);
 	}
 
 	/**
