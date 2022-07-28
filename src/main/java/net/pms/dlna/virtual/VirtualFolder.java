@@ -49,6 +49,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Because a container cannot be streamed, this function always returns null.
 	 *
 	 * @return null
+	 * @throws java.io.IOException
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
 	 */
 	@Override
@@ -81,6 +82,7 @@ public class VirtualFolder extends DLNAResource {
 	/**
 	 * Returns zero as this is a folder (container).
 	 *
+	 * @return 0
 	 * @see net.pms.dlna.DLNAResource#length()
 	 */
 	@Override

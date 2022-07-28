@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -232,12 +233,15 @@ public class DatabaseEmbedded {
 			try (ResultSet rs = connection.getMetaData().getTables(null, "PUBLIC", "%", new String[] {"BASE TABLE"})) {
 				while (rs.next()) {
 					String tableName = rs.getString("TABLE_NAME");
-					try (Statement st = connection.createStatement(); ResultSet rs2 = st.executeQuery("SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='" + tableName + "'")) {
-						if (rs2.first()) {
-							String storageType = rs2.getString("STORAGE_TYPE");
-							if (!askedStorageType.equals(storageType)) {
-								upgradeTables = true;
-								break;
+					try (PreparedStatement statement = connection.prepareStatement("SELECT STORAGE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ? LIMIT 1")) {
+						statement.setString(1, tableName);
+						try (ResultSet rs2 = statement.executeQuery()) {
+							if (rs2.first()) {
+								String storageType = rs2.getString("STORAGE_TYPE");
+								if (!askedStorageType.equals(storageType)) {
+									upgradeTables = true;
+									break;
+								}
 							}
 						}
 					}

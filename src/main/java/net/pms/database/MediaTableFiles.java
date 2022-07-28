@@ -60,7 +60,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String WIDTH = TABLE_NAME + ".WIDTH";
 	public static final String HEIGHT = TABLE_NAME + ".HEIGHT";
 	public static final String THUMBID = TABLE_NAME + ".THUMBID";
-	public static final String STEREOSCOPY = TABLE_NAME + ".THUMBID";
+	public static final String STEREOSCOPY = TABLE_NAME + ".STEREOSCOPY";
 
 	public static final String NONAME = "###";
 

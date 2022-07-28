@@ -49,6 +49,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	/**
 	 * COLUMNS NAMES
 	 */
+	private static final String COL_API_VERSION = "API_VERSION";
 	private static final String COL_EXTRAINFORMATION = "EXTRAINFORMATION";
 	private static final String COL_FILEID = "FILEID";
 	private static final String COL_IMDBID = "IMDBID";
@@ -65,10 +66,10 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 */
 	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
 
-	
 	/**
 	 * COLUMNS with table name
 	 */
+	public static final String API_VERSION = TABLE_NAME + "." + COL_API_VERSION;
 	public static final String EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
 	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
 	public static final String IMDBID = TABLE_NAME + "." + COL_IMDBID;
@@ -81,6 +82,8 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
 	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
 	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
+	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_FILES + "WHERE " + MediaTableFiles.FILENAME + " = ? AND " + MediaTableFiles.MODIFIED + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_API_VERSION_EXIST = "SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_FILES + "WHERE " + MediaTableFiles.FILENAME + " = ? AND " + MediaTableFiles.MODIFIED + " = ? AND " + API_VERSION + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -165,6 +168,8 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
 			")"
 		);
+		execute(connection, "CREATE INDEX " + TABLE_NAME + "_BASIC_COLUMNS_IDX ON " + TABLE_NAME + "(" + BASIC_COLUMNS + ")");
+		execute(connection, "CREATE INDEX " + TABLE_NAME + "_IMDBID_API_VERSION_IDX ON " + TABLE_NAME + "(" + COL_IMDBID + ", " + COL_API_VERSION + ")");
 	}
 
 	/**
@@ -394,23 +399,19 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 * @return whether the latest API metadata exists for this video.
 	 */
 	public static boolean doesLatestApiMetadataExist(final Connection connection, String name, long modified) {
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT FILEID FROM ").append(TABLE_NAME);
-		sql.append(" LEFT JOIN ").append(MediaTableFiles.TABLE_NAME);
-		sql.append(" ON ").append(TABLE_NAME).append(".FILEID").append("=");
-		sql.append(MediaTableFiles.TABLE_NAME).append(".ID");
-		sql.append(" WHERE FILENAME = ? AND MODIFIED = ?");
+		String sql;
 		String latestVersion = null;
 		if (CONFIGURATION.getExternalNetwork()) {
 			latestVersion = APIUtils.getApiDataVideoVersion();
-			if (latestVersion != null) {
-				sql.append(" AND API_VERSION = ?");
-			}
 		}
-		sql.append(" AND ").append(TABLE_NAME).append(".IMDBID IS NOT NULL LIMIT 1");
+		if (latestVersion != null) {
+			sql = SQL_GET_API_METADATA_API_VERSION_EXIST;
+		} else {
+			sql = SQL_GET_API_METADATA_EXIST;
+		}
 
 		try {
-			try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
 				statement.setString(1, name);
 				statement.setTimestamp(2, new Timestamp(modified));
 				if (latestVersion != null) {
