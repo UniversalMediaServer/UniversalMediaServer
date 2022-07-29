@@ -26,7 +26,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.sql.Types;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
@@ -81,8 +80,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
 	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
 	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
-	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_FILES + "WHERE " + MediaTableFiles.FILENAME + " = ? AND " + MediaTableFiles.MODIFIED + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
-	private static final String SQL_GET_API_METADATA_API_VERSION_EXIST = "SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_FILES + "WHERE " + MediaTableFiles.FILENAME + " = ? AND " + MediaTableFiles.MODIFIED + " = ? AND " + API_VERSION + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL AND " + API_VERSION + " = ? LIMIT 1";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -314,6 +314,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				}
 			}
 		}
+		connection.commit();
 	}
 
 	/**
@@ -338,9 +339,19 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		}
 
 		Long fileId = MediaTableFiles.getFileId(connection, path, modified);
+
 		if (fileId == null) {
 			LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
 		} else {
+			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_API_METADATA_EXIST)) {
+				selectStatement.setLong(1, fileId);
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						LOGGER.trace("\"{}\" already exists in the database", path);
+						return;
+					}
+				}
+			}
 			insertOrUpdateVideoMetadata(connection, fileId, media, apiExtendedMetadata);
 		}
 	}
@@ -454,23 +465,31 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 * @return whether the latest API metadata exists for this video.
 	 */
 	public static boolean doesLatestApiMetadataExist(final Connection connection, String name, long modified) {
+		Long id = MediaTableFiles.getFileId(connection, name, modified);
+		if (id == null) {
+			return true;
+		}
+		return doesLatestApiMetadataExist(connection, id);
+	}
+
+	public static boolean doesLatestApiMetadataExist(final Connection connection, final Long fileId) {
 		String sql;
 		String latestVersion = null;
 		if (CONFIGURATION.getExternalNetwork()) {
 			latestVersion = APIUtils.getApiDataVideoVersion();
 		}
+
 		if (latestVersion != null) {
-			sql = SQL_GET_API_METADATA_API_VERSION_EXIST;
+			sql = SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST;
 		} else {
-			sql = SQL_GET_API_METADATA_EXIST;
+			sql = SQL_GET_API_METADATA_IMDBID_EXIST;
 		}
 
 		try {
 			try (PreparedStatement statement = connection.prepareStatement(sql)) {
-				statement.setString(1, name);
-				statement.setTimestamp(2, new Timestamp(modified));
+				statement.setInt(1, fileId.intValue());
 				if (latestVersion != null) {
-					statement.setString(3, latestVersion);
+					statement.setString(2, latestVersion);
 				}
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
@@ -479,7 +498,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if API metadata exists for", TABLE_NAME, name, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if API metadata exists for", TABLE_NAME, fileId, se.getMessage());
 			LOGGER.trace("", se);
 		}
 
@@ -550,6 +569,5 @@ public class MediaTableVideoMetadatas extends MediaTable {
 			LOGGER.trace("Updated {} rows in " + TABLE_NAME + " table", rows);
 		}
 	}
-
 
 }
