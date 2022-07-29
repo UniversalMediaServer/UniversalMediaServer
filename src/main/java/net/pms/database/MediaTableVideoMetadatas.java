@@ -206,7 +206,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		) {
 			updateStatement.setLong(1, fileId);
 			try (ResultSet rs = updateStatement.executeQuery()) {
-				if (rs.next()) {					
+				if (rs.next()) {
 					rs.updateString(COL_IMDBID, StringUtils.left(videoMetadata.getIMDbID(), SIZE_IMDBID));
 					rs.updateString(COL_MEDIA_YEAR, StringUtils.left(videoMetadata.getYear(), SIZE_YEAR));
 					rs.updateString(COL_MOVIEORSHOWNAME, StringUtils.left(videoMetadata.getMovieOrShowName(), SIZE_MAX));

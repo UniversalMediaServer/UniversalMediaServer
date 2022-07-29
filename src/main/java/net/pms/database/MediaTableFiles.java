@@ -423,8 +423,8 @@ public class MediaTableFiles extends MediaTable {
 
 			LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
 			statement.execute("CREATE INDEX FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
-	
-			LOGGER.trace("Creating index on "+ THUMBID);
+
+			LOGGER.trace("Creating index on " + THUMBID);
 			statement.execute("CREATE INDEX " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
 		}
 	}
