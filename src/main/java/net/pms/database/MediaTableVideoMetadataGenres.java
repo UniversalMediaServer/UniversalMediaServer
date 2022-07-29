@@ -17,6 +17,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,18 +26,26 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Iterator;
-import static org.apache.commons.lang3.StringUtils.left;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableVideoMetadataGenres extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataGenres.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
-	public static final String COL_GENRE_NAME = "GENRE";
-	public static final String TVSERIESID = TABLE_NAME + ".TVSERIESID";
-	public static final String FILENAME = TABLE_NAME + ".FILENAME";
-	public static final String GENRE = TABLE_NAME + "." + COL_GENRE_NAME;
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.FILENAME + " = " + FILENAME + " ";
+	private static final String COL_ID = "ID";
+	private static final String COL_FILEID = "FILEID";
+	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
+	public static final String COL_GENRE = "GENRE";
+	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
+	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
+	public static final String GENRE = TABLE_NAME + "." + COL_GENRE;
+	private static final String SQL_GET_GENRE_FILEID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + GENRE + " = ? LIMIT 1";
+	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + GENRE + " = ? LIMIT 1";
+	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_GENRE + ") VALUES (?, ?)";
+	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_GENRE + ") VALUES (?, ?)";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
 	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + TVSERIESID + " ";
 
 	/**
@@ -44,7 +53,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -89,6 +98,22 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1:
+					//index with all columns ??
+					executeUpdate(connection, "DROP INDEX IF EXISTS FILENAME_GENRE_TVSERIESID_IDX");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_FILEID + " INTEGER");
+					if (isColumnExist(connection, TABLE_NAME, "FILENAME")) {
+						executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + "=(SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.FILENAME + " = " + TABLE_NAME + ".FILENAME) WHERE " + TABLE_NAME + ".FILENAME != ''");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN IF EXISTS FILENAME");
+					}
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_TVSERIESID + " DROP DEFAULT");
+
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + FILEID + " = -1");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_TVSERIESID + " = NULL WHERE " + TVSERIESID + " = -1");
+
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadatas.TABLE_NAME + "(" + MediaTableVideoMetadatas.COL_FILEID + ") ON DELETE CASCADE");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE");
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -103,11 +128,12 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				"ID             IDENTITY            PRIMARY KEY , " +
-				"TVSERIESID     INTEGER             DEFAULT -1  , " +
-				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
-				"GENRE          VARCHAR(1024)       NOT NULL      " +
-			")",
-			"CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)"
+				"TVSERIESID     INTEGER                         , " +
+				"FILEID         INTEGER                         , " +
+				"GENRE          VARCHAR(1024)       NOT NULL    , " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadatas.TABLE_NAME + "(" + MediaTableVideoMetadatas.COL_FILEID + ") ON DELETE CASCADE, " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
+			")"
 		);
 	}
 
@@ -146,12 +172,25 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * Sets a new row if it doesn't already exist.
 	 *
 	 * @param connection the db connection
-	 * @param fullPathToFile
+	 * @param fileId
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final JsonElement genres, final long tvSeriesID) {
+	public static void set(final Connection connection, final Long fileId, final JsonElement genres, final Long tvSeriesID) {
 		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
+			return;
+		}
+		final String sqlSelect, sqlInsert;
+		final int id;
+		if (tvSeriesID != null) {
+			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
+			sqlInsert = SQL_INSERT_TVSERIESID;
+			id = tvSeriesID.intValue();
+		} else if (fileId != null) {
+			sqlSelect = SQL_GET_FILEID_EXISTS;
+			sqlInsert = SQL_INSERT_FILEID;
+			id = fileId.intValue();
+		} else {
 			return;
 		}
 
@@ -160,44 +199,22 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 			while (i.hasNext()) {
 				String genre = i.next().getAsString();
 
-				try (
-					PreparedStatement ps = connection.prepareStatement(
-						"SELECT " +
-							"ID " +
-						"FROM " + TABLE_NAME + " " +
-						"WHERE " +
-							"TVSERIESID = ? AND " +
-							"FILENAME = ? AND " +
-							"GENRE = ? " +
-						"LIMIT 1"
-					)
-				) {
-					ps.setLong(1, tvSeriesID);
-					ps.setString(2, left(fullPathToFile, 1024));
-					ps.setString(3, left(genre, 1024));
+				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
+					ps.setInt(1, id);
+					ps.setString(2, StringUtils.left(genre, 1024));
 					try (ResultSet rs = ps.executeQuery()) {
 						if (rs.next()) {
-							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fullPathToFile, genre);
+							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fileId, genre);
 						} else {
-							try (
-								PreparedStatement insertStatement = connection.prepareStatement(
-									"INSERT INTO " + TABLE_NAME + " (" +
-										"TVSERIESID, FILENAME, GENRE" +
-									") VALUES (" +
-										"?, ?, ?" +
-									")",
-									Statement.RETURN_GENERATED_KEYS
-								)
-							) {
+							try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
 								insertStatement.clearParameters();
-								insertStatement.setLong(1, tvSeriesID);
-								insertStatement.setString(2, left(fullPathToFile, 1024));
-								insertStatement.setString(3, left(genre, 1024));
+								insertStatement.setInt(1, id);
+								insertStatement.setString(2, StringUtils.left(genre, 1024));
 
 								insertStatement.executeUpdate();
 								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
 									if (rs2.next()) {
-										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fullPathToFile, tvSeriesID, genre);
+										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fileId, tvSeriesID, genre);
 									}
 								}
 							}
@@ -206,30 +223,27 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fileId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	/**
-	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
-	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see Tables#sqlLikeEscape(String)
-	 *
-	 * @param connection the db connection
-	 * @param filename the filename to remove
-	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
-	 *            operator, {@code false} if {@code =} should be used.
-	 */
-	public static void remove(final Connection connection, final String filename, boolean useLike) {
-		String query = "DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +	(useLike ? "LIKE " : "= ") + sqlQuote(filename);
-		try (Statement statement = connection.createStatement()) {
-			int rows = statement.executeUpdate(query);
-			LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
+	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
+		JsonArray result = new JsonArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
 			LOGGER.trace("", e);
 		}
+		return result;
 	}
+
 }

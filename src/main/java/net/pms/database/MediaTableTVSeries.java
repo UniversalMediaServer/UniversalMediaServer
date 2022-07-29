@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableTVSeries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
+	public static final String COL_ID = "ID";
 	private static final String COL_IMDBID = "IMDBID";
 	private static final String COL_THUMBID = "THUMBID";
 	private static final String COL_SIMPLIFIEDTITLE = "SIMPLIFIEDTITLE";
@@ -57,7 +58,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
-	public static final String ID = TABLE_NAME + ".ID";
+	public static final String ID = TABLE_NAME + "." + COL_ID;
 	public static final String IMDBID = TABLE_NAME + ".IMDBID";
 	public static final String TITLE = TABLE_NAME + "." + COL_TITLE;
 	public static final String SIMPLIFIEDTITLE = TABLE_NAME + "." + COL_SIMPLIFIEDTITLE;
@@ -78,11 +79,16 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String SQL_DELETE_IMDBID = "DELETE FROM " + TABLE_NAME + " WHERE " + IMDBID + " = ?";
 
 	/**
+	 * Used by child tables
+	 */
+	public static final String CHILD_ID = "TVSERIESID";
+
+	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 6;
+	private static final int TABLE_VERSION = 7;
 
 
 	private static final Gson GSON = new Gson();
@@ -184,6 +190,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN INPRODUCTION BOOLEAN");
 					}
 					break;
+				case 6:
+					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -240,7 +249,8 @@ public final class MediaTableTVSeries extends MediaTable {
 			"CREATE INDEX IMDBID_IDX ON " + TABLE_NAME + "(IMDBID)",
 			"CREATE INDEX TITLE_IDX ON " + TABLE_NAME + "(TITLE)",
 			"CREATE INDEX SIMPLIFIEDTITLE_IDX ON " + TABLE_NAME + "(SIMPLIFIEDTITLE)",
-			"CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)"
+			"CREATE INDEX IMDBID_VERSION ON " + TABLE_NAME + "(IMDBID, VERSION)",
+			"CREATE INDEX " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")"
 		);
 	}
 
