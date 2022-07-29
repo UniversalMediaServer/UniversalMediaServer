@@ -241,6 +241,8 @@ Section "Program Files"
 
 	SetOutPath "$INSTDIR\win32"
 	${If} ${RunningX64}
+		Delete /REBOOTOK "${PROJECT_BASEDIR}\target\bin\win32\service\wrapper.exe"
+		Delete /REBOOTOK "${PROJECT_BASEDIR}\target\bin\win32\service\wrapper.dll"
 		File /r /x "wrapper.exe" /x "wrapper.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
 		Rename "service\wrapper-x64.exe" "service\wrapper.exe"
 		Rename "service\wrapper-x64.dll" "service\wrapper.dll"
