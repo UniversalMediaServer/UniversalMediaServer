@@ -195,7 +195,7 @@ public class DLNAMediaChapter extends DLNAMediaLang {
 				if (StringUtils.isNotBlank(chapter.getTitle())) {
 					chaptersVtt.append(chapter.getTitle());
 				} else {
-					chaptersVtt.append(Messages.getString("DLNAMediaChapter.Chapter")).append(" ").append(String.format("%02d", chaptersNum));
+					chaptersVtt.append(Messages.getString("Chapter")).append(" ").append(String.format("%02d", chaptersNum));
 				}
 				chaptersVtt.append("\n");
 			}

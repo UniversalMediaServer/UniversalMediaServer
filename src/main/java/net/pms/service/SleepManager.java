@@ -221,9 +221,11 @@ public class SleepManager {
 	 * For internal use only, instructs the sleep worker to allow the system to
 	 * sleep at will.
 	 */
-	protected void allowSleep() {
+	protected synchronized void allowSleep() {
 		initializeWorker();
-		worker.allowSleep();
+		if (worker != null) {
+			worker.allowSleep();
+		}
 		sleepPrevented = false;
 	}
 
@@ -231,9 +233,11 @@ public class SleepManager {
 	 * For internal use only, instructs the sleep worker to prevent system sleep
 	 * until further notice.
 	 */
-	protected void preventSleep() {
+	protected synchronized void preventSleep() {
 		initializeWorker();
-		worker.preventSleep();
+		if (worker != null) {
+			worker.preventSleep();
+		}
 		sleepPrevented = true;
 	}
 
@@ -241,9 +245,11 @@ public class SleepManager {
 	 * For internal use only, instructs the sleep worker to reset the system
 	 * idle timer.
 	 */
-	protected void resetSleepTimer() {
+	protected synchronized void resetSleepTimer() {
 		initializeWorker();
-		worker.resetSleepTimer();
+		if (worker != null) {
+			worker.resetSleepTimer();
+		}
 	}
 
 	/**

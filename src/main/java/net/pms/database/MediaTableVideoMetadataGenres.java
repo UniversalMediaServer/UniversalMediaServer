@@ -17,6 +17,7 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -95,10 +96,10 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"GENRE			VARCHAR2(1024)		NOT NULL" +
+				"ID             IDENTITY            PRIMARY KEY , " +
+				"TVSERIESID     INTEGER             DEFAULT -1  , " +
+				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
+				"GENRE          VARCHAR(1024)       NOT NULL      " +
 			")",
 			"CREATE UNIQUE INDEX FILENAME_GENRE_TVSERIESID_IDX ON " + TABLE_NAME + "(FILENAME, GENRE, TVSERIESID)"
 		);
@@ -143,15 +144,15 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final HashSet genres, final long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement genres, final long tvSeriesID) {
+		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			Iterator<String> i = genres.iterator();
+			Iterator<JsonElement> i = genres.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				String genre = i.next();
+				String genre = i.next().getAsString();
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(

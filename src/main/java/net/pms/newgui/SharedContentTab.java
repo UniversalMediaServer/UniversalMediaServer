@@ -80,7 +80,6 @@ public class SharedContentTab {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
 		Arrays.asList(new String[] {Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles")})
 	);
-	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
 	private JPanel sharedPanel;

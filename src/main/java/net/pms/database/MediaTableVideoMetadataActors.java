@@ -17,12 +17,12 @@
  */
 package net.pms.database;
 
+import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.Iterator;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
@@ -95,10 +95,10 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY			PRIMARY KEY, " +
-				"TVSERIESID		INT					DEFAULT -1, " +
-				"FILENAME		VARCHAR2(1024)		DEFAULT '', " +
-				"ACTOR			VARCHAR2(1024)		NOT NULL" +
+				"ID             IDENTITY            PRIMARY KEY , " +
+				"TVSERIESID     INTEGER             DEFAULT -1  , " +
+				"FILENAME       VARCHAR(1024)       DEFAULT ''  , " +
+				"ACTOR          VARCHAR(1024)       NOT NULL      " +
 			")"
 		);
 	}
@@ -111,15 +111,15 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	 * @param actors
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final String fullPathToFile, final HashSet actors, final long tvSeriesID) {
-		if (actors.isEmpty()) {
+	public static void set(final Connection connection, final String fullPathToFile, final JsonElement actors, final long tvSeriesID) {
+		if (actors == null || !actors.isJsonArray() || actors.getAsJsonArray().isEmpty()) {
 			return;
 		}
 
 		try {
-			Iterator<String> i = actors.iterator();
+			Iterator<JsonElement> i = actors.getAsJsonArray().iterator();
 			while (i.hasNext()) {
-				String actor = i.next();
+				String actor = i.next().getAsString();
 
 				try (
 					PreparedStatement ps = connection.prepareStatement(

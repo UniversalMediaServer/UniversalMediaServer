@@ -155,7 +155,7 @@ public class MediaTableFiles extends MediaTable {
 					case 23:
 						try (Statement statement = connection.createStatement()) {
 							StringBuilder sb = new StringBuilder();
-							sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR2(").append(SIZE_MAX).append(')');
+							sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR(").append(SIZE_MAX).append(')');
 							statement.execute(sb.toString());
 
 							/*
@@ -165,7 +165,7 @@ public class MediaTableFiles extends MediaTable {
 							sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -238,7 +238,7 @@ public class MediaTableFiles extends MediaTable {
 							StringBuilder sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -257,16 +257,16 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 26:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE PRECISION");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR");
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
@@ -287,7 +287,7 @@ public class MediaTableFiles extends MediaTable {
 							StringBuilder sb = new StringBuilder();
 							sb
 								.append("UPDATE ")
-									.append("FILES ")
+									.append(TABLE_NAME).append(" ")
 								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
@@ -305,16 +305,16 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
 					case 30:
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR2");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR2");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS BUDGET DOUBLE PRECISION");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS EXTERNALIDS VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HOMEPAGE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS IMAGES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALLANGUAGE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS ORIGINALTITLE VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOMPANIES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS PRODUCTIONCOUNTRIES VARCHAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS REVENUE VARCHAR");
 
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 						break;
@@ -358,57 +358,59 @@ public class MediaTableFiles extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
+			sb.append("  ID                      INTEGER          AUTO_INCREMENT PRIMARY KEY");
 			sb.append(", THUMBID                 BIGINT");
-			sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL UNIQUE");
+			sb.append(", FILENAME                VARCHAR(1024)    NOT NULL UNIQUE");
 			sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
-			sb.append(", FORMAT_TYPE             INT");
-			sb.append(", DURATION                DOUBLE");
-			sb.append(", BITRATE                 INT");
-			sb.append(", WIDTH                   INT");
-			sb.append(", HEIGHT                  INT");
+			sb.append(", FORMAT_TYPE             INTEGER");
+			//all columns here are not file related but media related
+			sb.append(", DURATION                DOUBLE PRECISION");
+			sb.append(", BITRATE                 INTEGER");
+			sb.append(", WIDTH                   INTEGER");
+			sb.append(", HEIGHT                  INTEGER");
 			sb.append(", MEDIA_SIZE              NUMERIC");
-			sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(')');
-			sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(')');
-			sb.append(", ASPECTRATIODVD          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", CODECV                  VARCHAR(").append(SIZE_CODECV).append(')');
+			sb.append(", FRAMERATE               VARCHAR(").append(SIZE_FRAMERATE).append(')');
+			sb.append(", ASPECTRATIODVD          VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ASPECTRATIOCONTAINER    VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", REFRAMES                TINYINT");
-			sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVCLEVEL).append(')');
+			sb.append(", AVCLEVEL                VARCHAR(").append(SIZE_AVCLEVEL).append(')');
 			sb.append(", IMAGEINFO               OTHER");
-			sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
-			sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-			sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATEMODE).append(')');
-			sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
-			sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", VIDEOTRACKCOUNT         INT");
-			sb.append(", IMAGECOUNT              INT");
-			sb.append(", BITDEPTH                INT");
-			sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", CONTAINER               VARCHAR(").append(SIZE_CONTAINER).append(')');
+			sb.append(", MUXINGMODE              VARCHAR(").append(SIZE_MUXINGMODE).append(')');
+			sb.append(", FRAMERATEMODE           VARCHAR(").append(SIZE_FRAMERATEMODE).append(')');
+			sb.append(", STEREOSCOPY             VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", MATRIXCOEFFICIENTS      VARCHAR(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
+			sb.append(", TITLECONTAINER          VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", TITLEVIDEOTRACK         VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", VIDEOTRACKCOUNT         INTEGER");
+			sb.append(", IMAGECOUNT              INTEGER");
+			sb.append(", BITDEPTH                INTEGER");
+			sb.append(", PIXELASPECTRATIO        VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", SCANTYPE                OTHER");
 			sb.append(", SCANORDER               OTHER");
-			sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
-			sb.append(", MEDIA_YEAR              VARCHAR2(").append(SIZE_YEAR).append(')');
-			sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
-			sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
-			sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
+			//all columns here are not file related but metadata related
+			sb.append(", IMDBID                  VARCHAR(").append(SIZE_IMDBID).append(')');
+			sb.append(", MEDIA_YEAR              VARCHAR(").append(SIZE_YEAR).append(')');
+			sb.append(", MOVIEORSHOWNAME         VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", TVSEASON                VARCHAR(").append(SIZE_TVSEASON).append(')');
+			sb.append(", TVEPISODENUMBER         VARCHAR(").append(SIZE_TVEPISODENUMBER).append(')');
+			sb.append(", TVEPISODENAME           VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", ISTVEPISODE             BOOLEAN");
-			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", BUDGET DOUBLE");
-			sb.append(", CREDITS VARCHAR2");
-			sb.append(", EXTERNALIDS VARCHAR2");
-			sb.append(", HOMEPAGE VARCHAR2");
-			sb.append(", IMAGES VARCHAR2");
-			sb.append(", ORIGINALLANGUAGE VARCHAR2");
-			sb.append(", ORIGINALTITLE VARCHAR2");
-			sb.append(", PRODUCTIONCOMPANIES VARCHAR2");
-			sb.append(", PRODUCTIONCOUNTRIES VARCHAR2");
-			sb.append(", REVENUE VARCHAR2");
+			sb.append(", EXTRAINFORMATION        VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", VERSION                 VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", BUDGET                  DOUBLE PRECISION");
+			sb.append(", CREDITS                 VARCHAR");
+			sb.append(", EXTERNALIDS             VARCHAR");
+			sb.append(", HOMEPAGE                VARCHAR");
+			sb.append(", IMAGES                  VARCHAR");
+			sb.append(", ORIGINALLANGUAGE        VARCHAR");
+			sb.append(", ORIGINALTITLE           VARCHAR");
+			sb.append(", PRODUCTIONCOMPANIES     VARCHAR");
+			sb.append(", PRODUCTIONCOUNTRIES     VARCHAR");
+			sb.append(", REVENUE                 VARCHAR");
 			sb.append(")");
 			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
 
@@ -1062,9 +1064,10 @@ public class MediaTableFiles extends MediaTable {
 	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param media the {@link DLNAMediaInfo} row to update.
+	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final HashMap apiExtendedMetadata) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final JsonObject apiExtendedMetadata) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -1104,35 +1107,33 @@ public class MediaTableFiles extends MediaTable {
 
 					// TMDB data, since v11
 					if (apiExtendedMetadata != null) {
-						if (apiExtendedMetadata.get("budget") != null) {
-							rs.updateDouble("BUDGET", (Double) apiExtendedMetadata.get("budget"));
+						if (apiExtendedMetadata.has("budget")) {
+							rs.updateDouble("BUDGET", apiExtendedMetadata.get("budget").getAsDouble());
 						}
-						if (apiExtendedMetadata.get("credits") != null) {
-							rs.updateString("CREDITS", StringUtils.join(apiExtendedMetadata.get("credits"), ","));
+						if (apiExtendedMetadata.has("credits")) {
+							rs.updateString("CREDITS", apiExtendedMetadata.get("credits").toString());
 						}
-						if (apiExtendedMetadata.get("externalIDs") != null) {
-							rs.updateString("EXTERNALIDS", StringUtils.join(apiExtendedMetadata.get("externalIDs"), ","));
+						if (apiExtendedMetadata.has("externalIDs")) {
+							rs.updateString("EXTERNALIDS", apiExtendedMetadata.get("externalIDs").toString());
 						}
-						rs.updateString("HOMEPAGE", (String) apiExtendedMetadata.get("homepage"));
-						if (apiExtendedMetadata.get("images") != null) {
-							String json = new Gson().toJson(apiExtendedMetadata.get("images"));
-							rs.updateString("IMAGES", json);
+						rs.updateString("HOMEPAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
+						if (apiExtendedMetadata.has("images")) {
+							rs.updateString("IMAGES", apiExtendedMetadata.get("images").toString());
 						}
-						rs.updateString("ORIGINALLANGUAGE", (String) apiExtendedMetadata.get("originalLanguage"));
-						rs.updateString("ORIGINALTITLE", (String) apiExtendedMetadata.get("originalTitle"));
-						if (apiExtendedMetadata.get("productionCompanies") != null) {
-							rs.updateString("PRODUCTIONCOMPANIES", StringUtils.join(apiExtendedMetadata.get("productionCompanies"), ","));
+						rs.updateString("ORIGINALLANGUAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
+						rs.updateString("ORIGINALTITLE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
+						if (apiExtendedMetadata.has("productionCompanies")) {
+							rs.updateString("PRODUCTIONCOMPANIES", apiExtendedMetadata.get("productionCompanies").toString());
 						}
-						if (apiExtendedMetadata.get("productionCountries") != null) {
-							rs.updateString("PRODUCTIONCOUNTRIES", StringUtils.join(apiExtendedMetadata.get("productionCountries"), ","));
+						if (apiExtendedMetadata.has("productionCountries")) {
+							rs.updateString("PRODUCTIONCOUNTRIES", apiExtendedMetadata.get("productionCountries").toString());
 						}
-						rs.updateString("REVENUE", (String) apiExtendedMetadata.get("revenue"));
+						rs.updateString("REVENUE", APIUtils.getStringOrNull(apiExtendedMetadata, "revenue"));
 					}
 
 					rs.updateRow();
 				} else {
 					LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
-					return;
 				}
 			}
 		}
@@ -1329,7 +1330,7 @@ public class MediaTableFiles extends MediaTable {
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
 			}
-		} catch (Exception se) {
+		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}
@@ -1453,7 +1454,7 @@ public class MediaTableFiles extends MediaTable {
 				"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
 					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".FILENAME = FILES_STATUS.FILENAME" +
+					"WHERE " + TABLE_NAME + ".FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME" +
 				");"
 			);
 			ps.execute();

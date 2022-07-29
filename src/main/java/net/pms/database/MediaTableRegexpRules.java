@@ -100,14 +100,14 @@ public class MediaTableRegexpRules extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " ( " +
-				"ID					VARCHAR2(255)		PRIMARY KEY	, " +
-				"REGEXP_RULE		VARCHAR2(255)					, " +
-				"REGEXP_ORDER		NUMERIC							  " +
+				"ID	                VARCHAR(255)       PRIMARY KEY , " +
+				"REGEXP_RULE        VARCHAR(255)                   , " +
+				"REGEXP_ORDER       NUMERIC                          " +
 			")",
 			"INSERT INTO " + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",
 			"INSERT INTO " + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 )"
 		);
-		String[] chars = Messages.getString("DLNAMediaDatabase.1").split(",");
+		String[] chars = Messages.getString("Alphabet").split(",");
 		for (int i = 0; i < chars.length; i++) {
 			// Create regexp rules for characters with a sort order based on the property value
 			executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");

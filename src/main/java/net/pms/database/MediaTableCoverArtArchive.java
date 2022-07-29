@@ -105,10 +105,10 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY, " +
-				"MODIFIED		DATETIME, " +
-				"MBID			VARCHAR(36), " +
-				"COVER			BLOB" +
+				"ID              IDENTITY       PRIMARY KEY , " +
+				"MODIFIED        TIMESTAMP                  , " +
+				"MBID            VARCHAR(36)                , " +
+				"COVER           BLOB                         " +
 			")",
 			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)"
 		);
@@ -140,14 +140,13 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	/**
 	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
-	 * @param connection the db connection
 	 * @param mBID the MBID (releaseId) to store
 	 * @param cover the cover as a {@link Blob}
 	 */
 	public static void writeMBID(final String mBID, InputStream cover) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 			if (trace) {
 				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
@@ -203,7 +202,6 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * Looks up cover in the table based on the given MBID.
 	 * Never returns <code>null</code>
 	 *
-	 * @param connection the db connection
 	 * @param mBID the MBID {@link String} to search with
 	 *
 	 * @return The result of the search, never <code>null</code>
@@ -212,7 +210,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 		CoverArtArchiveResult result;
 
-		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
 
 			if (trace) {
@@ -252,7 +250,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @return
 	 */
 	public static boolean hasCover(String mbReleaseId) {
-		try (Connection connection = MediaDatabase.get().getConnectionIfAvailable()) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			String query = "SELECT count(*) FROM " + TABLE_NAME + contructMBIDWhere(mbReleaseId);
 
 			try (
