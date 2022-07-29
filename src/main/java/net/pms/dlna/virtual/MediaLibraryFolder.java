@@ -623,9 +623,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 						"ratedSubquery, " +
 						"genresSubquery, " +
 						MediaTableTVSeries.TABLE_NAME + " " +
-							"LEFT JOIN " + MediaTableVideoMetadataGenres.TABLE_NAME +     " ON " + MediaTableTVSeries.ID + " = " + MediaTableVideoMetadataGenres.TVSERIESID     + " " +
-							"LEFT JOIN " + MediaTableVideoMetadataRated.TABLE_NAME +      " ON " + MediaTableTVSeries.ID + " = " + MediaTableVideoMetadataRated.TVSERIESID      + " " +
-							"LEFT JOIN " + MediaTableVideoMetadataIMDbRating.TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + MediaTableVideoMetadataIMDbRating.TVSERIESID + " " +
+						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						MediaTableVideoMetadataIMDbRating.SQL_LEFT_JOIN_TABLE_TV_SERIES +
 					"WHERE " +
 						MediaTableTVSeries.TITLE + " != " + MediaDatabase.sqlQuote(getName()) + " AND " +
 						MediaTableVideoMetadataGenres.GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
@@ -648,14 +648,14 @@ public class MediaLibraryFolder extends VirtualFolder {
 						firstSql,
 						"WITH ratedSubquery AS (" +
 							"SELECT " + MediaTableVideoMetadataRated.RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
-							MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_FILES +
+							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataRated.FILEID + " = " + MediaTableFiles.ID + " " +
 							JOIN_VIDEO_METADATAS +
 							"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}' " +
 							"LIMIT 1" +
 						"), " +
 						"genresSubquery AS (" +
 							"SELECT " + MediaTableVideoMetadataGenres.GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_FILES +
+							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataGenres.FILEID + " = " + MediaTableFiles.ID + " " +
 							JOIN_VIDEO_METADATAS +
 							"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}'" +
 						") " +

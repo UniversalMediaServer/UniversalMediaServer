@@ -42,6 +42,7 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_IMDBRATING + ") VALUES (?, ?)";
 	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_IMDBRATING + ") VALUES (?, ?)";
 	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
