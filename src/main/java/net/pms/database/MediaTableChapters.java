@@ -38,6 +38,7 @@ public class MediaTableChapters extends MediaTable {
 	private static final int SIZE_LANG = 3;
 
 	public static final String TABLE_NAME = "CHAPTERS";
+	public static final String FILEID = TABLE_NAME + ".FILEID";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -94,15 +95,15 @@ public class MediaTableChapters extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
-				"ID             INT                                 NOT NULL            , " +
+				"ID             INTEGER                             NOT NULL            , " +
 				"FILEID         BIGINT                              NOT NULL            , " +
-				"LANG           VARCHAR2(" + SIZE_LANG + ")                             , " +
-				"TITLE          VARCHAR2(" + SIZE_MAX + ")                              , " +
-				"START_TIME     DOUBLE                                                  , " +
-				"END_TIME       DOUBLE                                                  , " +
-				"THUMBNAIL		OTHER	                    		            		, " +
+				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +
+				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
+				"START_TIME     DOUBLE PRECISION                                        , " +
+				"END_TIME       DOUBLE PRECISION                                        , " +
+				"THUMBNAIL      OTHER                                                   , " +
 				"CONSTRAINT PKCHAP PRIMARY KEY (FILEID, ID, LANG)                       , " +
-				"FOREIGN KEY(FILEID) REFERENCES FILES(ID) ON DELETE CASCADE" +
+				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
 			")"
 		);
 	}

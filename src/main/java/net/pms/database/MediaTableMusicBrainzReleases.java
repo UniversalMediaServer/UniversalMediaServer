@@ -127,15 +127,15 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY	, " +
-				"MODIFIED		DATETIME					, " +
-				"MBID			VARCHAR(36)					, " +
-				"ARTIST			VARCHAR(1000)				, " +
-				"ALBUM			VARCHAR(1000)				, " +
-				"TITLE			VARCHAR(1000)				, " +
-				"MEDIA_YEAR		VARCHAR(20)					, " +
-				"ARTIST_ID		VARCHAR(36)					, " +
-				"TRACK_ID		VARCHAR(36)					  " +
+				"ID             IDENTITY         PRIMARY KEY , " +
+				"MODIFIED       TIMESTAMP                    , " +
+				"MBID           VARCHAR(36)                  , " +
+				"ARTIST         VARCHAR(1000)                , " +
+				"ALBUM          VARCHAR(1000)                , " +
+				"TITLE          VARCHAR(1000)                , " +
+				"MEDIA_YEAR     VARCHAR(20)                  , " +
+				"ARTIST_ID      VARCHAR(36)                  , " +
+				"TRACK_ID       VARCHAR(36)                    " +
 			")",
 			"CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)",
 			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)"

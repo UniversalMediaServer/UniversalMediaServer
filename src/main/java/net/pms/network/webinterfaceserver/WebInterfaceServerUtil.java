@@ -1146,7 +1146,6 @@ public class WebInterfaceServerUtil {
 			javascriptVarsScript += "var spokenLanguages = \"" + StringEscapeUtils.escapeEcmaScript(spokenLanguages) + "\";";
 			javascriptVarsScript += "var status = \"" + StringEscapeUtils.escapeEcmaScript(status) + "\";";
 			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
-			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
 
 			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Actors", language) + "\";";
 			String actorsArrayJavaScript = "var actors = [";

@@ -20,6 +20,7 @@ package net.pms.dlna;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -74,8 +75,8 @@ public class DLNAImageResElement {
 			hypotheticalResult = profile.calculateHypotheticalProperties(imageInfo);
 			ciFlag = overrideCIFlag == null ?
 				(hypotheticalResult.conversionNeeded ?
-					Integer.valueOf(1) :
-					Integer.valueOf(0)
+					1 :
+					0
 				) :
 				overrideCIFlag;
 		} else {
@@ -256,103 +257,97 @@ public class DLNAImageResElement {
 		} else {
 			preferredFormat = ImageFormat.JPEG;
 		}
-		return new Comparator<DLNAImageResElement>() {
+		return (DLNAImageResElement o1, DLNAImageResElement o2) -> {
+			if (o1 == null && o2 == null) {
+				return 0;
+			} else if (o1 == null) {
+				return 1;
+			} else if (o2 == null) {
+				return -1;
+			}
 
-			@Override
-			public int compare(DLNAImageResElement o1, DLNAImageResElement o2) {
-				if (o1 == null && o2 == null) {
-					return 0;
-				} else if (o1 == null) {
+			if (o1.isThumbnail() != o2.isThumbnail()) {
+				return (o1.isThumbnail() ? 1 : 0) - (o2.isThumbnail() ? 1 : 0);
+			}
+
+			int i = Optional.ofNullable(o1.getCiFlag()).orElse(2) -
+					Optional.ofNullable(o2.getCiFlag()).orElse(2);
+			if (i != 0) {
+				return i;
+			}
+
+			ImageFormat o1Format = o1.getProfile() != null ? o1.getProfile().getFormat() : null;
+			ImageFormat o2Format = o2.getProfile() != null ? o2.getProfile().getFormat() : null;
+
+			if (o1Format != o2Format) {
+				if (o1Format == null) {
 					return 1;
-				} else if (o2 == null) {
+				} else if (o2Format == null) {
 					return -1;
 				}
-
-				if (o1.isThumbnail() != o2.isThumbnail()) {
-					return (o1.isThumbnail() ? 1 : 0) - (o2.isThumbnail() ? 1 : 0);
+				if (o1Format == preferredFormat) {
+					return -1;
 				}
-
-				int i =
-					(o1.getCiFlag() == null ? 2 : o1.getCiFlag()) -
-					(o2.getCiFlag() == null ? 2 : o2.getCiFlag());
-				if (i != 0) {
-					return i;
+				if (o2Format == preferredFormat) {
+					return 1;
 				}
+				return o1Format.compareTo(o2Format);
+			}
 
-				ImageFormat o1Format = o1.getProfile() != null ? o1.getProfile().getFormat() : null;
-				ImageFormat o2Format = o2.getProfile() != null ? o2.getProfile().getFormat() : null;
-
-				if (o1Format != o2Format) {
-					if (o1Format == null) {
-						return 1;
-					} else if (o2Format == null) {
-						return -1;
-					}
-					if (o1Format == preferredFormat) {
-						return -1;
-					}
-					if (o2Format == preferredFormat) {
-						return 1;
-					}
-					return o1Format.compareTo(o2Format);
-				}
-
-				if (
+			if (
 					(DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
 					DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile())) &&
 					(!DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile()) ||
 					!DLNAImageProfile.JPEG_RES_H_V.equals(o2.getProfile()))
-				) {
-					if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
-						return -1;
-					}
+					) {
+				if (DLNAImageProfile.JPEG_RES_H_V.equals(o1.getProfile())) {
+					return -1;
+				}
+				return 1;
+			}
+
+			if (o1.getWidth() != o2.getWidth()) {
+				return o2.getWidth() - o1.getWidth();
+			}
+
+			if (o1.getHeight() != o2.getHeight()) {
+				return o2.getHeight() - o1.getHeight();
+			}
+
+			if (o1.getProfile() != null || o2.getProfile() != null) {
+				if (o1.getProfile() == null) {
 					return 1;
 				}
-
-				if (o1.getWidth() != o2.getWidth()) {
-					return o2.getWidth() - o1.getWidth();
+				if (o2.getProfile() == null) {
+					return -1;
 				}
-
-				if (o1.getHeight() != o2.getHeight()) {
-					return o2.getHeight() - o1.getHeight();
+				if (!o1.getProfile().equals(o2.getProfile())) {
+					return o1.getProfile().toInt() - o2.getProfile().toInt();
 				}
+			}
 
-				if (o1.getProfile() != null || o2.getProfile() != null) {
-					if (o1.getProfile() == null) {
-						return 1;
-					}
-					if (o2.getProfile() == null) {
-						return -1;
-					}
-					if (!o1.getProfile().equals(o2.getProfile())) {
-						return o1.getProfile().toInt() - o2.getProfile().toInt();
-					}
+			long l = Optional.ofNullable(o2.getSize()).orElse(0L) -
+					Optional.ofNullable(o1.getSize()).orElse(0L);
+			if (l != 0) {
+				return (int) l;
+			}
+
+			if (o1.getHypotheticalResult() != null || o2.getHypotheticalResult() != null) {
+				// This comparison serves no practical purpose other than
+				// to fulfill the contract with equals().
+				if (o1.getHypotheticalResult() == null) {
+					return 1;
 				}
-
-				long l =
-					(o2.getSize() == null ? 0 : o2.getSize()) -
-					(o1.getSize() == null ? 0 : o1.getSize());
-				if (l != 0) {
-					return (int) l;
+				if (o2.getHypotheticalResult() == null) {
+					return -1;
 				}
-
-				if (o1.getHypotheticalResult() != null || o2.getHypotheticalResult() != null) {
-					// This comparison serves no practical purpose other than
-					// to fulfill the contract with equals().
-					if (o1.getHypotheticalResult() == null) {
-						return 1;
-					}
-					if (o2.getHypotheticalResult() == null) {
-						return -1;
-					}
-					if (o1.getHypotheticalResult().conversionNeeded != o2.getHypotheticalResult().conversionNeeded) {
-						return
+				if (o1.getHypotheticalResult().conversionNeeded != o2.getHypotheticalResult().conversionNeeded) {
+					return
 							(o1.getHypotheticalResult().conversionNeeded ? 1 : 0) -
 							(o2.getHypotheticalResult().conversionNeeded ? 1 : 0);
-					}
 				}
-				return 0;
 			}
+			return 0;
 		};
 	}
 

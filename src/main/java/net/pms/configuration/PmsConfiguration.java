@@ -160,6 +160,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
+	protected static final String KEY_DATABASE_MEDIA_CACHE_SIZE_KB = "database_media_cache_size";
+	protected static final String KEY_DATABASE_MEDIA_USE_CACHE_SOFT = "database_media_use_cache_soft";
+	protected static final String KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES = "database_media_use_memory_indexes";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
@@ -4690,6 +4693,38 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getDatabaseLogging() {
 		boolean dbLog = getBoolean(KEY_LOG_DATABASE, false);
 		return dbLog || PMS.getLogDB();
+	}
+
+	/**
+	 * Get the embedded Media database cache size.
+	 * @return the cache size in Kb
+	 */
+	public int getDatabaseMediaCacheSize() {
+		return getInt(KEY_DATABASE_MEDIA_CACHE_SIZE_KB, -1);
+	}
+
+	/**
+	 * Set the embedded Media database cache size.
+	 * @param value the cache size in Kb
+	 */
+	public void setDatabaseMediaCacheSize(int value) {
+		configuration.setProperty(KEY_DATABASE_MEDIA_CACHE_SIZE_KB, value);
+	}
+
+	/**
+	 * Return whether the embedded Media database table indexes should sit in memory.
+	 * @return true if table indexes should sit on memory
+	 */
+	public boolean isDatabaseMediaUseMemoryIndexes() {
+		return getBoolean(KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES, false);
+	}
+
+	/**
+	 * Return whether the embedded Media database use soft cache.
+	 * @return true if table use soft cache
+	 */
+	public boolean isDatabaseMediaUseCacheSoft() {
+		return getBoolean(KEY_DATABASE_MEDIA_USE_CACHE_SOFT, false);
 	}
 
 	public boolean isVlcUseHardwareAccel() {

@@ -13,6 +13,7 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMusicBrainzReleaseLike.class);
 	public static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASE_LIKE";
+	public static final String MBID_RELEASE = TABLE_NAME + ".MBID_RELEASE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

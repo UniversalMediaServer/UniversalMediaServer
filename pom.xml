@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.2.0-SNAPSHOT</version>
+	<version>11.3.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.2.0</project.version.short>
+		<project.version.short>11.3.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -76,7 +76,7 @@
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.4.0</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.4.1</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
 
 		<!--
@@ -125,7 +125,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.8.2</junit5.version>
+		<junit5.version>5.9.0</junit5.version>
 		<com.sun.xml.bind-version>4.0.0</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
 		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
@@ -595,7 +595,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.2.1</version>
+			<version>6.2.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -636,6 +636,17 @@
 			<groupId>com.vdurmont</groupId>
 			<artifactId>semver4j</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>5.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>pl.jalokim.propertiestojson</groupId>
@@ -1024,7 +1035,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.3.0</version>
+				<version>3.4.0</version>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -1097,7 +1108,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.1.0</version>
+				<version>4.7.1.1</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -2753,7 +2764,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.2.0</version>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -2858,7 +2869,7 @@
 					<!-- Copy Web resources -->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.2.0</version>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>

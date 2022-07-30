@@ -28,6 +28,7 @@ import net.pms.util.DTSAudioOutputStream;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.IEC61937AudioOutputStream;
 import net.pms.util.PCMAudioOutputStream;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,10 +165,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 
 			// Allow the threads some time to do their work before
 			// starting the main thread
-			try {
-				Thread.sleep(150);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(150);
 		}
 
 		start();
@@ -181,10 +179,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 
 			// Allow the threads some time to do their work before
 			// running the main thread
-			try {
-				Thread.sleep(150);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(150);
 		}
 
 		run();

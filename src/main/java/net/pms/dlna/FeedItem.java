@@ -21,6 +21,20 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FeedItem extends DLNAResource {
+	private final String title;
+	private final String itemURL;
+	private final String thumbURL;
+
+	private long length;
+
+	public FeedItem(String title, String itemURL, String thumbURL, DLNAMediaInfo media, int type) {
+		super(type);
+		this.title = title;
+		this.itemURL = itemURL;
+		this.thumbURL = thumbURL;
+		this.setMedia(media);
+	}
+
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
 		if (thumbURL == null) {
@@ -32,19 +46,6 @@ public class FeedItem extends DLNAResource {
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumbURL, true));
-	}
-
-	private String title;
-	private String itemURL;
-	private String thumbURL;
-	private long length;
-
-	public FeedItem(String title, String itemURL, String thumbURL, DLNAMediaInfo media, int type) {
-		super(type);
-		this.title = title;
-		this.itemURL = itemURL;
-		this.thumbURL = thumbURL;
-		this.setMedia(media);
 	}
 
 	@Override
@@ -78,9 +79,6 @@ public class FeedItem extends DLNAResource {
 	@Override
 	public String getSystemName() {
 		return itemURL;
-	}
-
-	public void parse(String content) {
 	}
 
 	@Override

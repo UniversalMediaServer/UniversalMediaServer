@@ -137,10 +137,7 @@ public class ProcessUtil {
 			if (pid != null) { // Unix only
 				LOGGER.trace("Killing the Unix process: " + pid);
 				Runnable r = () -> {
-					try {
-						Thread.sleep(TERM_TIMEOUT);
-					} catch (InterruptedException e) {
-					}
+					UMSUtils.sleep(TERM_TIMEOUT);
 
 					try {
 						p.exitValue();
@@ -149,12 +146,9 @@ public class ProcessUtil {
 						// kill -14 (ALRM) works (for MEncoder) and is less
 						// dangerous than kill -9 so try that first
 						if (!kill(pid, 14)) {
-							try {
-								// This is a last resort, so let's not be
-								// too eager
-								Thread.sleep(ALRM_TIMEOUT);
-							} catch (InterruptedException ie) {
-							}
+							// This is a last resort, so let's not be
+							// too eager
+							UMSUtils.sleep(ALRM_TIMEOUT);
 
 							kill(pid, 9);
 						}

@@ -118,8 +118,6 @@ public class RequestHandler implements HttpHandler {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 
-	private static final DbIdResourceLocator DB_ID_RESOURCE_LOCATOR = new DbIdResourceLocator();
-
 	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
 	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
@@ -239,7 +237,7 @@ public class RequestHandler implements HttpHandler {
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 					sendResponse(exchange, renderer, 200, getSortCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-					sendResponse(exchange, renderer, 200, getSearchCapabilitiesHandler(), CONTENT_TYPE_XML_UTF8);
+					sendResponse(exchange, renderer, 200, getSearchCapabilitiesHandler(renderer), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
 					sendResponse(exchange, renderer, 200, browseHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
@@ -396,7 +394,7 @@ public class RequestHandler implements HttpHandler {
 		// Retrieve the DLNAresource itself.
 		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
-				dlna = DB_ID_RESOURCE_LOCATOR.locateResource(id.substring(0, id.indexOf('/')));
+				dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -1020,8 +1018,12 @@ public class RequestHandler implements HttpHandler {
 		return createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE).toString();
 	}
 
-	private static String getSearchCapabilitiesHandler() {
-		return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+	private static String getSearchCapabilitiesHandler(RendererConfiguration mediaRenderer) {
+		if (mediaRenderer.isUpnpSearchCapsEnabled()) {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+		} else {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED).toString();
+		}
 	}
 
 	private static String browseHandler(String requestBody, RendererConfiguration renderer) {

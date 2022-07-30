@@ -315,22 +315,13 @@ public class DatabaseHelper {
 	 * @throws SQLException
 	 */
 	protected static boolean isColumnExist(Connection connection, String table, String column) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT * FROM INFORMATION_SCHEMA.COLUMNS " +
-			"WHERE TABLE_NAME = ? " +
-			"AND COLUMN_NAME = ?"
-		)) {
-			statement.setString(1, table);
-			statement.setString(2, column);
-			try (ResultSet result = statement.executeQuery()) {
-				if (result.first()) {
-					LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
-					return true;
-				} else {
-					LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
-					return false;
-				}
-			}
+		ResultSet result = connection.getMetaData().getColumns(null, null, table, column);
+		if (result.first()) {
+			LOGGER.trace("Column \"{}\" found in table \"{}\"", column, table);
+			return true;
+		} else {
+			LOGGER.trace("Column \"{}\" not found in table \"{}\"", column, table);
+			return false;
 		}
 	}
 

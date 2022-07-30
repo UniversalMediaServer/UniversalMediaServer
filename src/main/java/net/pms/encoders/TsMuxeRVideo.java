@@ -55,6 +55,7 @@ import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -670,47 +671,32 @@ public class TsMuxeRVideo extends Player {
 		p.attachProcess(pipeProcess);
 		pipeProcess.runInNewThread();
 
-		try {
-			Thread.sleep(50);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(50);
 		tsPipe.deleteLater();
 
 		ProcessWrapper ffPipeProcess = ffVideoPipe.getPipeProcess();
 		p.attachProcess(ffPipeProcess);
 		ffPipeProcess.runInNewThread();
-		try {
-			Thread.sleep(50);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(50);
 		ffVideoPipe.deleteLater();
 
 		p.attachProcess(ffVideo);
 		ffVideo.runInNewThread();
-		try {
-			Thread.sleep(50);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(50);
 
 		if (ffAudioPipe != null && params.getAid() != null) {
 			for (int i = 0; i < ffAudioPipe.length; i++) {
 				ffPipeProcess = ffAudioPipe[i].getPipeProcess();
 				p.attachProcess(ffPipeProcess);
 				ffPipeProcess.runInNewThread();
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(50);
 				ffAudioPipe[i].deleteLater();
 				p.attachProcess(ffAudio[i]);
 				ffAudio[i].runInNewThread();
 			}
 		}
 
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(100);
 
 		p.runInNewThread();
 		configuration = prev;
