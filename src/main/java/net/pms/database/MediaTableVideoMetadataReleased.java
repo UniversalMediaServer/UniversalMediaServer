@@ -37,6 +37,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String RELEASEDATE = TABLE_NAME + "." + COL_RELEASEDATE;
 	private static final String SQL_GET_RELEASEDATE_FILEID = "SELECT " + RELEASEDATE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_RELEASEDATE_TVSERIESID = "SELECT " + RELEASEDATE + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? LIMIT 1";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + RELEASEDATE + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + RELEASEDATE + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_RELEASEDATE + ") VALUES (?, ?)";
@@ -198,6 +199,23 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	public static String getValueForTvSerie(final Connection connection, final Long tvSerieId) {
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RELEASEDATE_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						return rs.getString(1);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return null;

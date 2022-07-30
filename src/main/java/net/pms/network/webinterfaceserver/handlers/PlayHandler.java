@@ -17,6 +17,7 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
@@ -269,10 +270,10 @@ public class PlayHandler implements HttpHandler {
 			mustacheVars.put("javascriptVarsScript", "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, false, root);
+					JsonObject apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, language, false, root);
 					if (apiMetadataAsJavaScriptVars != null) {
-						mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
-						mustacheVars.put("isVideoWithAPIData", true);
+						mustacheVars.put("isTVSeriesWithAPIData", true);
+						mustacheVars.put("javascriptVarsScript", "apiMetadata=" + apiMetadataAsJavaScriptVars.toString() + ";");
 					}
 				}
 				if (rootResource.getMedia() != null && rootResource.getMedia().hasChapters()) {

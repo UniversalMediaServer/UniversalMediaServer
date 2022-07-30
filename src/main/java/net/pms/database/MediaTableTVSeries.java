@@ -27,7 +27,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.List;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -43,6 +42,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
 	public static final String TABLE_NAME = "TV_SERIES";
 	public static final String COL_ID = "ID";
+	private static final String COL_IMAGES = "IMAGES";
 	private static final String COL_IMDBID = "IMDBID";
 	private static final String COL_THUMBID = "THUMBID";
 	private static final String COL_SIMPLIFIEDTITLE = "SIMPLIFIEDTITLE";
@@ -63,11 +63,13 @@ public final class MediaTableTVSeries extends MediaTable {
 	public static final String TITLE = TABLE_NAME + "." + COL_TITLE;
 	public static final String SIMPLIFIEDTITLE = TABLE_NAME + "." + COL_SIMPLIFIEDTITLE;
 	public static final String STARTYEAR = TABLE_NAME + ".STARTYEAR";
+	public static final String IMAGES = TABLE_NAME + "." + COL_IMAGES;
 	public static final String THUMBID = TABLE_NAME + "." + COL_THUMBID;
 
 	private static final String SQL_GET_BY_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + IMDBID + " = ? LIMIT 1";
 	private static final String SQL_GET_BY_IMDBID_API_VERSION = "SELECT * FROM " + TABLE_NAME + " WHERE " + IMDBID + " = ? AND VERSION = ? LIMIT 1";
 	private static final String SQL_GET_BY_SIMPLIFIEDTITLE = "SELECT * FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
+	private static final String SQL_GET_IMAGES_BY_SIMPLIFIEDTITLE = "SELECT " + IMAGES + " FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
 	private static final String SQL_GET_THUMBNAIL_BY_SIMPLIFIEDTITLE = "SELECT " + THUMBID + ", " + ID + ", " + MediaTableThumbnails.THUMBNAIL + " FROM " + TABLE_NAME + " " + MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_TV_SERIES + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
 	private static final String SQL_GET_STARTYEAR_BY_SIMPLIFIEDTITLE = "SELECT " + STARTYEAR + " FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
 	private static final String SQL_GET_TITLE_BY_SIMPLIFIEDTITLE = "SELECT " + TITLE + " FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
@@ -445,6 +447,32 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	/**
+	 * Returns the images based on title.
+	 *
+	 * @param connection the db connection
+	 * @param title
+	 * @return
+	 */
+	public static String getImagesByTitle(final Connection connection, final String title) {
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+		try {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_IMAGES_BY_SIMPLIFIEDTITLE)) {
+				statement.setString(1, simplifiedTitle);
+				try (ResultSet resultSet = statement.executeQuery()) {
+					if (resultSet.next()) {
+						return resultSet.getString(COL_IMAGES);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading id from title", title, TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Returns a row based on title.
 	 *
 	 * @param connection the db connection
@@ -571,33 +599,69 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param simplifiedTitle
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static List<HashMap<String, Object>> getAPIResultsBySimplifiedTitleIncludingExternalTables(final Connection connection, final String simplifiedTitle) {
+
+	public static JsonObject getTvSerieMetadataAsJsonObject(final Connection connection, final String simplifiedTitle) {
+		if (connection == null || simplifiedTitle == null) {
+			return null;
+		}
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
-			String sql = "SELECT * " +
-				"FROM " + TABLE_NAME + " " +
-				MediaTableVideoMetadataActors.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataAwards.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataCountries.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataDirectors.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataProduction.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataPosters.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataRatings.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				MediaTableVideoMetadataReleased.SQL_LEFT_JOIN_TABLE_TV_SERIES + " " +
-				"WHERE " + SIMPLIFIEDTITLE + " = " + sqlQuote(simplifiedTitle) + " and " + IMDBID + " != ''";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", sql);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql)
-			) {
-				return convertResultSetToList(resultSet);
+			String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
+			try (PreparedStatement selectStatement = connection.prepareStatement(sql)) {
+				selectStatement.setString(1, simplifiedTitle);
+				if (trace) {
+					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", selectStatement);
+				}
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						JsonObject result = new JsonObject();
+						Long id = rs.getLong("ID");
+						result.addProperty("imdbID", rs.getString(COL_IMDBID));
+						result.addProperty("plot", rs.getString("PLOT"));
+						result.addProperty("startYear", rs.getString("STARTYEAR"));
+						result.addProperty("title", rs.getString("TITLE"));
+						result.addProperty("totalSeasons", rs.getDouble("TOTALSEASONS"));
+						result.addProperty("createdBy", rs.getString("CREATEDBY"));
+						//credits, genres, ratings and some other columns was not well saved by the api (not json).
+						//we should delete the IMDB or set this file to be parsed again at read end if a parse fail occurs.
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
+						result.addProperty("firstAirDate", rs.getString("FIRSTAIRDATE"));
+						result.addProperty("homepage", rs.getString("HOMEPAGE"));
+						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
+						addJsonElementToJsonObjectIfExists(result, "seriesImages", rs.getString("IMAGES"));
+						result.addProperty("inProduction", rs.getBoolean("INPRODUCTION"));
+						result.addProperty("homepage", rs.getString("HOMEPAGE"));
+						addJsonElementToJsonObjectIfExists(result, "languages", rs.getString("LANGUAGES"));
+						result.addProperty("lastAirDate", rs.getString("LASTAIRDATE"));
+						addJsonElementToJsonObjectIfExists(result, "networks", rs.getString("NETWORKS"));
+						result.addProperty("numberOfEpisodes", rs.getDouble("NUMBEROFEPISODES"));
+						result.addProperty("numberOfSeasons", rs.getDouble("NUMBEROFSEASONS"));
+						result.addProperty("originCountry", rs.getString("ORIGINCOUNTRY"));
+						result.addProperty("originalLanguage", rs.getString("ORIGINALLANGUAGE"));
+						result.addProperty("originalTitle", rs.getString("ORIGINALTITLE"));
+						addJsonElementToJsonObjectIfExists(result, "productionCompanies", rs.getString("PRODUCTIONCOMPANIES"));
+						addJsonElementToJsonObjectIfExists(result, "productionCountries", rs.getString("PRODUCTIONCOUNTRIES"));
+						addJsonElementToJsonObjectIfExists(result, "seasons", rs.getString("SEASONS"));
+						result.addProperty("seriesType", rs.getString("SERIESTYPE"));
+						addJsonElementToJsonObjectIfExists(result, "spokenLanguages", rs.getString("SPOKENLANGUAGES"));
+						result.addProperty("status", rs.getString("STATUS"));
+						result.addProperty("tagline", rs.getString("TAGLINE"));
+						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForTvSerie(connection, id));
+						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForTvSerie(connection, id));
+						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForTvSerie(connection, id));
+						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("imdbRating", MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, id));
+						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForTvSerie(connection, id));
+						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForTvSerie(connection, id));
+						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForTvSerie(connection, id));
+						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForTvSerie(connection, id));
+						return result;
+					}
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
@@ -605,6 +669,17 @@ public final class MediaTableTVSeries extends MediaTable {
 		}
 
 		return null;
+	}
+
+	private static void addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
+		if (StringUtils.isEmpty(jsonString)) {
+			return;
+		}
+		try {
+			JsonElement element = GSON.fromJson(jsonString, JsonElement.class);
+			dest.add(property, element);
+		} catch (JsonSyntaxException e) {
+		}
 	}
 
 	/**

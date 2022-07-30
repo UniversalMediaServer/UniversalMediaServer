@@ -399,15 +399,20 @@ public class MediaTableVideoMetadatas extends MediaTable {
 
 	/**
 	 * @param connection the db connection
-	 * @param fileId the file id from FILES table.
+	 * @param path the full path of the media.
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static JsonObject getVideoMetadata(final Connection connection, final Long fileId) {
+	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final String path) {
+		Long fileId = MediaTableFiles.getFileId(connection, path);
+		return getVideoMetadataAsJsonObject(connection, fileId);
+	}
+
+	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final Long fileId) {
 		if (connection == null || fileId == null) {
 			return null;
 		}
 		boolean trace = LOGGER.isTraceEnabled();
-		String sql = "SELECT * FROM " + TABLE_NAME + "WHERE " + FILEID + " = ? and " + IMDBID + " != '' LIMIT 1";
+		String sql = "SELECT * FROM " + TABLE_NAME + "WHERE " + FILEID + " = ? and " + IMDBID + " IS NOT NULL LIMIT 1";
 		try {
 			try (PreparedStatement selectStatement = connection.prepareStatement(sql)) {
 				selectStatement.setLong(1, fileId);
@@ -418,18 +423,29 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
+						//credits, genres, ratings and some other columns was not well saved by the api (not json).
+						//we should delete the IMDB or set this file to be parsed again at read end if a parse fail occurs.
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
 						result.addProperty("homepage", rs.getString("HOMEPAGE"));
 						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
-						result.add("actor", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
+						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
 						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
-						result.add("country", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
-						result.add("genre", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
+						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
+						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForFile(connection, fileId));
+						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
 						result.addProperty("imdbRating", MediaTableVideoMetadataIMDbRating.getValueForFile(connection, fileId));
-						//TODO add POSTER
+						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
-						result.add("rating", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
+						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
+						if (rs.getBoolean("ISTVEPISODE")) {
+							String showName = rs.getString("MOVIEORSHOWNAME");
+							if (StringUtils.isNotBlank(showName)) {
+								addJsonElementToJsonObjectIfExists(result, "seriesImages", MediaTableTVSeries.getImagesByTitle(connection, showName));
+							}
+						}
 						return result;
 					}
 				}
@@ -442,14 +458,16 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		return null;
 	}
 
-	private static void addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
+	private static boolean addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
 		if (StringUtils.isEmpty(jsonString)) {
-			return;
+			return true;
 		}
 		try {
 			JsonElement element = GSON.fromJson(jsonString, JsonElement.class);
 			dest.add(property, element);
+			return true;
 		} catch (JsonSyntaxException e) {
+			return false;
 		}
 	}
 

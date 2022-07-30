@@ -37,6 +37,7 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String POSTER = TABLE_NAME + "." + COL_POSTER;
 	private static final String SQL_GET_POSTER_FILEID = "SELECT " + POSTER + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_POSTER_TVSERIESID = "SELECT " + POSTER + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? LIMIT 1";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + POSTER + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + POSTER + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_POSTER + ") VALUES (?, ?)";
@@ -255,6 +256,40 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fileId, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	public static String getValueForFile(final Connection connection, final Long fileId) {
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_POSTER_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						return rs.getString(1);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	public static String getValueForTvSerie(final Connection connection, final Long tvSerieId) {
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_POSTER_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						return rs.getString(1);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 }

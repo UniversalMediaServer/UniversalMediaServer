@@ -37,7 +37,6 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import net.pms.util.FileUtil;
@@ -1239,47 +1238,6 @@ public class MediaTableFiles extends MediaTable {
 			return null;
 		}
 		return list;
-	}
-
-	/**
-	 * @param connection the db connection
-	 * @param filename
-	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
-	 */
-	public static List<HashMap<String, Object>> getAPIResultsByFilenameIncludingExternalTables(final Connection connection, final String filename) {
-		boolean trace = LOGGER.isTraceEnabled();
-
-		try {
-			String query = "SELECT * " +
-				"FROM " + TABLE_NAME + " " +
-				MediaTableVideoMetadatas.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataActors.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataAwards.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataCountries.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataDirectors.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataProduction.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataPosters.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataRatings.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadataReleased.SQL_LEFT_JOIN_TABLE_FILES +
-				"WHERE " + FILENAME + " = ? AND " + MediaTableVideoMetadatas.IMDBID + " != ''";
-
-			try (PreparedStatement ps = connection.prepareStatement(query)) {
-				ps.setString(1, filename);
-				if (trace) {
-					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", ps);
-				}
-				try (ResultSet resultSet = ps.executeQuery()) {
-					return convertResultSetToList(resultSet);
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
 	}
 
 	/**

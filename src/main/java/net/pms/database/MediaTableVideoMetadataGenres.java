@@ -41,6 +41,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String GENRE = TABLE_NAME + "." + COL_GENRE;
 	private static final String SQL_GET_GENRE_FILEID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_GENRE_TVSERIESID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + GENRE + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + GENRE + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_GENRE + ") VALUES (?, ?)";
@@ -241,6 +242,24 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+		JsonArray result = new JsonArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

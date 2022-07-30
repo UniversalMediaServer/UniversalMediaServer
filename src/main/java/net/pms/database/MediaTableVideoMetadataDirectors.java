@@ -40,6 +40,7 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String DIRECTOR = TABLE_NAME + "." + COL_DIRECTOR;
 	private static final String SQL_GET_DIRECTOR_FILEID = "SELECT " + DIRECTOR + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_DIRECTOR_TVSERIESID = "SELECT " + DIRECTOR + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + DIRECTOR + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + DIRECTOR + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_DIRECTOR + ") VALUES (?, ?)";
@@ -197,11 +198,11 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 		}
 	}
 
-	public static JsonArray getJsonArrayForFile(final Connection connection, final int fileId) {
+	public static JsonArray getJsonArrayForFile(final Connection connection, final long fileId) {
 		JsonArray result = new JsonArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_DIRECTOR_FILEID)) {
-				ps.setInt(1, fileId);
+				ps.setLong(1, fileId);
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
 						result.add(rs.getString(1));
@@ -210,6 +211,24 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final long tvSerieId) {
+		JsonArray result = new JsonArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_DIRECTOR_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;
