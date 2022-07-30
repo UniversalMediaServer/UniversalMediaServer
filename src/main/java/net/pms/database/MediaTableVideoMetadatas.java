@@ -433,7 +433,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForFile(connection, fileId));
 						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
 						result.addProperty("imdbRating", MediaTableVideoMetadataIMDbRating.getValueForFile(connection, fileId));
-						result.addProperty("poster", MediaTableVideoMetadataIMDbRating.getValueForFile(connection, fileId));
+						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
 						result.add("rating", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));

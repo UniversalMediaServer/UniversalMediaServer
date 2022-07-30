@@ -37,7 +37,7 @@ public final class MediaTableVideoMetadataPosters extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String POSTER = TABLE_NAME + "." + COL_POSTER;
 	private static final String SQL_GET_POSTER_FILEID = "SELECT " + POSTER + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? LIMIT 1";
-	private static final String SQL_GET_POSTER_TVSERIESID = "SELECT " + POSTER + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_POSTER_TVSERIESID = "SELECT " + POSTER + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? LIMIT 1";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + POSTER + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + POSTER + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_POSTER + ") VALUES (?, ?)";
