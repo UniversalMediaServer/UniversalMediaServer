@@ -39,9 +39,10 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String ACTOR = TABLE_NAME + "." + COL_ACTOR;
+	private static final String SQL_GET_ACTORS_FILEID = "SELECT " + ACTOR + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_ACTORS_TVSERIESID = "SELECT " + ACTOR + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + ACTOR + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + ACTOR + " = ? LIMIT 1";
-	private static final String SQL_GET_ACTORS_FILEID = "SELECT " + ACTOR + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_ACTOR + ") VALUES (?, ?)";
 	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_ACTOR + ") VALUES (?, ?)";
 	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
@@ -207,6 +208,24 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+		JsonArray result = new JsonArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ACTORS_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

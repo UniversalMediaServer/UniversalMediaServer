@@ -40,6 +40,7 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String COUNTRY = TABLE_NAME + "." + COL_COUNTRY;
 	private static final String SQL_GET_COUNTRY_FILEID = "SELECT " + COUNTRY + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_COUNTRY_TVSERIESID = "SELECT " + COUNTRY + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + COUNTRY + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + COUNTRY + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_COUNTRY + ") VALUES (?, ?)";
@@ -215,4 +216,21 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		return result;
 	}
 
+	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+		JsonArray result = new JsonArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_COUNTRY_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
 }

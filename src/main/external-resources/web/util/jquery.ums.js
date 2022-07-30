@@ -482,7 +482,7 @@ function useApiImages(apiImages) {
 				setBackgroundAndColorScheme('backgroundPreload');
 			}
 			setTimeout(function() {
-				backgroundImagePreCreation.src = imageBaseURL + 'original' + randomBackground.file_path;
+				backgroundImagePreCreation.src = apiMetadata.imageBaseURL + 'original' + randomBackground.file_path;
 				$('.backgroundPreloadContainer').html(backgroundImagePreCreation);
 			});
 
@@ -501,7 +501,7 @@ function useApiImages(apiImages) {
 			logoImagePreCreation.id = 'logo';
 			logoImagePreCreation.style.maxHeight = '150px';
 			logoImagePreCreation.style.maxWidth = 'calc(100% - 61px)'; // width minus the IMDb icon
-			logoImagePreCreation.src = imageBaseURL + 'w500' + logo.file_path;
+			logoImagePreCreation.src = apiMetadata.imageBaseURL + 'w500' + logo.file_path;
 			$('h1').html(logoImagePreCreation);
 			$('h1').css('margin','10px 0 30px 0');
 			return false;
@@ -510,47 +510,50 @@ function useApiImages(apiImages) {
 }
 
 function populateMetadataDisplayFromGlobalVars() {
+	if (!apiMetadata) {
+		return;
+	}
 	var isDark = $('body').hasClass('dark');
 	var badgeClass = isDark ? 'badge-light' : 'badge-dark';
-	if (!_.isEmpty(actors)) {
+	if (!_.isEmpty(apiMetadata.actors)) {
 		var actorLinks = [];
-		for (var i = 0; i < actors.length; i++) {
-			var actor = actors[i];
+		for (var i = 0; i < apiMetadata.actors.length; i++) {
+			var actor = apiMetadata.actors[i];
 			actorLinks.push('<a href="/browse/' + actor.id + '" class="badge ' + badgeClass + '">' + actor.name + '</a>');
 		}
-		$('.actors').html('<strong>' + actorsTranslation + ':</strong> ' + actorLinks.join(''));
+		$('.actors').html('<strong>' + apiMetadata.actorsTranslation + ':</strong> ' + actorLinks.join(''));
 	}
-	if (awards) {
-		$('.awards').html('<strong>' + awardsTranslation + ':</strong> ' + awards);
+	if (apiMetadata.awards) {
+		$('.awards').html('<strong>' + apiMetadata.awardsTranslation + ':</strong> ' + apiMetadata.awards);
 	}
-	if (country && country.id) {
-		$('.country').html('<strong>' + countryTranslation + ':</strong> <a href="/browse/' + country.id + '" class="badge ' + badgeClass + '">' + country.name + '</a>');
+	if (apiMetadata.countries && apiMetadata.countries[0] && apiMetadata.countries[0].id) {
+		$('.country').html('<strong>' + apiMetadata.countryTranslation + ':</strong> <a href="/browse/' + apiMetadata.countries[0].id + '" class="badge ' + badgeClass + '">' + apiMetadata.countries[0].name + '</a>');
 	}
-	if (director && director.id) {
-		$('.director').html('<strong>' + directorTranslation + ':</strong> <a href="/browse/' + director.id + '" class="badge ' + badgeClass + '">' + director.name + '</a>');
+	if (apiMetadata.directors && apiMetadata.directors[0] && apiMetadata.directors[0].id) {
+		$('.director').html('<strong>' + apiMetadata.directorTranslation + ':</strong> <a href="/browse/' + apiMetadata.directors[0].id + '" class="badge ' + badgeClass + '">' + apiMetadata.directors[0].name + '</a>');
 	}
-	if (imageBaseURL) {
-		if (seriesImages && seriesImages[0]) {
-			useApiImages(seriesImages);
-		} else if (images && images[0]) {
-			useApiImages(images);
+	if (apiMetadata.imageBaseURL) {
+		if (apiMetadata.seriesImages && apiMetadata.seriesImages[0]) {
+			useApiImages(apiMetadata.seriesImages);
+		} else if (apiMetadata.images && apiMetadata.images[0]) {
+			useApiImages(apiMetadata.images);
 		}
 	}
-	if (imdbID) {
-		$('h1').append(' <a href="https://www.imdb.com/title/' + imdbID + '/" id="imdbLink"><i class=\"fab fa-imdb\"></i></a>');
+	if (apiMetadata.imdbID) {
+		$('h1').append(' <a href="https://www.imdb.com/title/' + apiMetadata.imdbID + '/" id="imdbLink"><i class=\"fab fa-imdb\"></i></a>');
 	}
-	if (genres && genres[0]) {
+	if (apiMetadata.genres && apiMetadata.genres[0]) {
 		var genreLinks = [];
-		for (var i = 0; i < genres.length; i++) {
-			var genre = genres[i];
+		for (var i = 0; i < apiMetadata.genres.length; i++) {
+			var genre = apiMetadata.genres[i];
 			genreLinks.push('<a href="/browse/' + genre.id + '" class="badge ' + badgeClass + '">' + genre.name + '</a>');
 		}
-		$('.genres').html('<strong>' + genresTranslation + ':</strong> ' + genreLinks.join(''));
+		$('.genres').html('<strong>' + apiMetadata.genresTranslation + ':</strong> ' + genreLinks.join(''));
 	}
-	if (plot) {
-		$('.plot').html('<strong>' + plotTranslation + ':</strong> ' + plot);
+	if (apiMetadata.plot) {
+		$('.plot').html('<strong>' + apiMetadata.plotTranslation + ':</strong> ' + apiMetadata.plot);
 	}
-	if (poster) {
+	if (apiMetadata.poster) {
 		var img = new Image();
 		if (!isBackgroundImage) {
 			// If there is no background image from the API, set the color from the poster
@@ -559,26 +562,26 @@ function populateMetadataDisplayFromGlobalVars() {
 		img.crossOrigin = '';
 		img.id = 'poster';
 		img.style.maxHeight = '500px';
-		img.src = poster;
+		img.src = apiMetadata.poster;
 		$('.posterContainer').html(img);
 	}
-	if (rated && rated.id) {
-		$('.rated').html('<strong>' + ratedTranslation + ':</strong> <a href="/browse/' + rated.id + '" class="badge ' + badgeClass + '">' + rated.name + '</a>');
+	if (apiMetadata.rated && apiMetadata.rated.id) {
+		$('.rated').html('<strong>' + apiMetadata.ratedTranslation + ':</strong> <a href="/browse/' + apiMetadata.rated.id + '" class="badge ' + badgeClass + '">' + apiMetadata.rated.name + '</a>');
 	}
-	if (ratings && ratings[0]) {
-		$('.ratings').html('<strong>' + ratingsTranslation + ':</strong>');
+	if (apiMetadata.ratings && apiMetadata.ratings[0]) {
+		$('.ratings').html('<strong>' + apiMetadata.ratingsTranslation + ':</strong>');
 		var ratingsList = "<ul>";
-		for (var i = 0; i < ratings.length; i++) {
-			ratingsList += '<li>' + ratings[i].source + ': ' + ratings[i].value + '</li>';
+		for (var i = 0; i < apiMetadata.ratings.length; i++) {
+			ratingsList += '<li>' + apiMetadata.ratings[i].source + ': ' + apiMetadata.ratings[i].value + '</li>';
 		}
 		ratingsList += "</ul>";
 		$('.ratings').append(ratingsList);
 	}
-	if (startYear) {
-		$('.startYear').html('<strong>' + yearStartedTranslation + ':</strong> ' + startYear);
+	if (apiMetadata.startYear) {
+		$('.startYear').html('<strong>' + apiMetadata.yearStartedTranslation + ':</strong> ' + apiMetadata.startYear);
 	}
-	if (totalSeasons) {
-		$('.totalSeasons').html('<strong>' + totalSeasonsTranslation + ':</strong> ' + totalSeasons);
+	if (apiMetadata.totalSeasons) {
+		$('.totalSeasons').html('<strong>' + apiMetadata.totalSeasonsTranslation + ':</strong> ' + apiMetadata.totalSeasons);
 	}
 
 }

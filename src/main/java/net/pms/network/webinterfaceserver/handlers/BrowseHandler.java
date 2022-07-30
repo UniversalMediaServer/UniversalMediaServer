@@ -17,6 +17,7 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -349,10 +350,11 @@ public class BrowseHandler implements HttpHandler {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
+					JsonObject apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, language, true, root);
+					//String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
 					if (apiMetadataAsJavaScriptVars != null) {
 						mustacheVars.put("isTVSeriesWithAPIData", true);
-						mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+						mustacheVars.put("javascriptVarsScript", "apiMetadata=" + apiMetadataAsJavaScriptVars.toString() + ";");
 					}
 				}
 

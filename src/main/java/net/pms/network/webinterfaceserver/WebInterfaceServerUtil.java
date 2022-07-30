@@ -47,6 +47,7 @@ import net.pms.configuration.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableVideoMetadatas;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -428,27 +429,25 @@ public class WebInterfaceServerUtil {
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {
-		JsonObject jObject = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
 			if (jElem.isJsonObject()) {
-				jObject = jElem.getAsJsonObject();
+				return jElem.getAsJsonObject();
 			}
 		} catch (JsonSyntaxException je) {
 		}
-		return jObject;
+		return null;
 	}
 
 	private static JsonArray jsonArrayFromString(String str) {
-		JsonArray jArray = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
 			if (jElem.isJsonArray()) {
-				jArray = jElem.getAsJsonArray();
+				return jElem.getAsJsonArray();
 			}
 		} catch (JsonSyntaxException je) {
 		}
-		return jArray;
+		return null;
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {
@@ -1187,6 +1186,36 @@ public class WebInterfaceServerUtil {
 	 * this resource, which could be a TV series, TV episode, or movie.
 	 *
 	 * @param resource
+	 * @param language
+	 * @param isTVSeries whether this is a TV series, or an episode/movie
+	 * @param rootFolder the root folder, used for looking up IDs
+	 * @return a JsonObject to be used by a web browser which includes
+	 *         metadata names and when applicable, associated IDs, or null
+	 *         when there is no metadata
+	 */
+	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
+		JsonObject result = getAPIMetadataAsJsonObject(resource, isTVSeries, rootFolder);
+		if (result != null) {
+			result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
+			result.addProperty("actorsTranslation", WebInterfaceServerUtil.getMsgString("Actors", language));
+			result.addProperty("awardsTranslation", WebInterfaceServerUtil.getMsgString("Awards", language));
+			result.addProperty("countryTranslation", WebInterfaceServerUtil.getMsgString("Country", language));
+			result.addProperty("directorTranslation", WebInterfaceServerUtil.getMsgString("Director", language));
+			result.addProperty("genresTranslation", WebInterfaceServerUtil.getMsgString("Genres", language));
+			result.addProperty("ratedTranslation", WebInterfaceServerUtil.getMsgString("Rated", language));
+			result.addProperty("ratingsTranslation", WebInterfaceServerUtil.getMsgString("Ratings", language));
+			result.addProperty("totalSeasonsTranslation", WebInterfaceServerUtil.getMsgString("TotalSeasons", language));
+			result.addProperty("plotTranslation", WebInterfaceServerUtil.getMsgString("Plot", language));
+			result.addProperty("yearStartedTranslation", WebInterfaceServerUtil.getMsgString("YearStarted", language));
+		}
+		return result;
+	}
+
+	/**
+	 * Gets metadata from our database, which may be there from our API, for
+	 * this resource, which could be a TV series, TV episode, or movie.
+	 *
+	 * @param resource
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
 	 * @param rootFolder the root folder, used for looking up IDs
 	 * @return a JsonObject to be used by a web browser which includes
@@ -1194,391 +1223,117 @@ public class WebInterfaceServerUtil {
 	 *         when there is no metadata
 	 */
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
-		List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
+		JsonObject result = null;
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
+					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle);
 				} else {
-					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+					result = MediaTableVideoMetadatas.getVideoMetadataAsJsonObject(connection, resource.getFileName());
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while getting metadata for web interface");
 			LOGGER.debug("", e);
-		} finally {
-			MediaDatabase.close(connection);
 		}
-		if (resourceMetadataFromDatabase == null) {
+		if (result == null) {
 			return null;
 		}
-		JsonObject result = new JsonObject();
-		HashMap<String, String> actors = new HashMap<>();
-		HashMap<String, String> genres = new HashMap();
-		String startYear = "";
-		String awards = "";
-		JsonObject country = null;
-		JsonObject director = null;
-		String imdbID = "";
-		JsonObject rated = null;
-		List<HashMap<String, String>> ratings = new ArrayList<>();
-		String plot = "";
-		String poster = "";
-		Double totalSeasons = null;
-
-		// TMDB metadata added in V11
-		String createdBy = "";
-		JsonObject credits = null;
-		JsonObject externalIDs = null;
-		String firstAirDate = "";
-		String homepage = "";
-		JsonObject images = null;
-		Boolean inProduction = null;
-		String languages = "";
-		String lastAirDate = "";
-		String networks = "";
-		Double numberOfEpisodes = null;
-		String numberOfSeasons = "";
-		String originCountry = "";
-		String originalLanguage = "";
-		String originalTitle = "";
-		String productionCompanies = "";
-		String productionCountries = "";
-		String seasons = "";
-		String seriesImages = "[]";
-		String seriesType = "";
-		String spokenLanguages = "";
-		String status = "";
-		String tagline = "";
-		Boolean hasAPIMetadata = false;
 		DLNAResource actorsFolder = null;
-		DLNAResource countryFolder = null;
-		DLNAResource directorFolder = null;
+		DLNAResource countriesFolder = null;
+		DLNAResource directorsFolder = null;
 		DLNAResource genresFolder = null;
 		DLNAResource ratedFolder = null;
-		List<DLNAResource> actorsChildren = null;
-		List<DLNAResource> genresChildren = null;
-		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
-		while (i.hasNext()) {
-			if (genresFolder == null) {
-				// prepare to get IDs of certain metadata resources, to make them clickable
-				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
-				UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
-				if (rootFolderChildren.isEmpty()) {
-					return null;
-				}
-				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
-				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
-				UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
-				DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-				String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-				UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
-				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+		// prepare to get IDs of certain metadata resources, to make them clickable
+		List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+		UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
+		if (rootFolderChildren.isEmpty()) {
+			return null;
+		}
+		DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
+		List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+		UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
+		DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
-				UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
-				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+		boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+		String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
+		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
+		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
+		DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
+		List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+		UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
+		DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-				for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-					DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-					if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
-						actorsFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
-						countryFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
-						directorFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
-						genresFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
-						ratedFolder = filterByInformationChild;
-					}
-				}
+		List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
 
-				hasAPIMetadata = true;
+		for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+			DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+			if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
+				actorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
+				countriesFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
+				directorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
+				genresFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
+				ratedFolder = filterByInformationChild;
 			}
+		}
 
-			HashMap<String, Object> row = i.next();
-			if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
-				awards = (String) row.get("AWARD");
-			}
-			String countryValue = (String) row.get("COUNTRY");
-			if (country == null && StringUtils.isNotBlank(countryValue) && countryFolder != null) {
-				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
-				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
-				country = new JsonObject();
-				if (!countriesChildren.isEmpty()) {
-					country.addProperty("id", countriesChildren.get(0).getId());
-					country.addProperty("name", countryValue);
-					result.add("country", country);
-				}
-			}
-			String directorValue = (String) row.get("DIRECTOR");
-			if (director == null && StringUtils.isNotBlank(directorValue) && directorFolder != null) {
-				List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
-				UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
-				director = new JsonObject();
-				if (!directorsChildren.isEmpty()) {
-					director.addProperty("id", directorsChildren.get(0).getId());
-					director.addProperty("name", countryValue);
-					result.add("director", director);
-				}
-				/**
-				 * Empty is usually caused by TV episodes that have a director saved
-				 * that is not the director of the TV series. One possible fix for
-				 * that is to populate the TV series data with the episode data in
-				 * that case, which would mean we need to support multiple directors
-				 * as we do for actors and genres.
-				 *
-				 * For now we stop the code from erroring by ignoring the mismatch.
-				 *
-				 * @todo do the above fix, and the same fix for other similar folders.
-				 */
-			}
-			if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
-				imdbID = (String) row.get("IMDBID");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
-				plot = (String) row.get("PLOT");
-			}
-			if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
-				poster = (String) row.get("POSTER");
-			}
-			String ratedValue = (String) row.get("RATING");
-			if (StringUtils.isNotBlank(ratedValue) && rated == null && ratedFolder != null) {
-				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
-				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
-				rated = new JsonObject();
-				if (!ratedChildren.isEmpty()) {
-					rated.addProperty("id", ratedChildren.get(0).getId());
-					rated.addProperty("name", ratedValue);
-					result.add("rated", rated);
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
-				HashMap<String, String> ratingToInsert = new HashMap();
-				ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
-				ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
-				if (!ratings.contains(ratingToInsert)) {
-					ratings.add(ratingToInsert);
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
-				startYear = (String) row.get("STARTYEAR");
-			}
-			if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
-				totalSeasons = (Double) row.get("TOTALSEASONS");
-			}
+		addJsonArrayDlnaIds(result, "actors", actorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "countries", countriesFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
+		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
 
-			// TMDB metadata added in V11
-			if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
-				createdBy = (String) row.get("CREATEDBY");
-			}
-			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
-				//fix credits json as it is wrongly stored in db
-				//it's not a json object
-			}
-			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
-				//fix external ids json as it is wrongly stored in db
-				String externalIDsStr = (String) row.get("EXTERNALIDS");
-				if (externalIDsStr.endsWith(",")) {
-					externalIDsStr = externalIDsStr.substring(0, externalIDsStr.length() - 1); 
-				}
-				//should return an object ??? why an array ???
-				JsonArray jExternalIDs = jsonArrayFromString(externalIDsStr);
-				if (jExternalIDs != null && ! jExternalIDs.isEmpty()) {
-					if (jExternalIDs.size() > 1) {
-						//check if their is only one and that the datas in db should be stored as an object.
-						LOGGER.warn("There is more than 1 externalIDs in array");
-					}
-					externalIDs = jExternalIDs.get(0).getAsJsonObject();
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
-				firstAirDate = (String) row.get("FIRSTAIRDATE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
-				homepage = (String) row.get("HOMEPAGE");
-			}
+		return result;
+	}
 
-			if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
-				connection = null;
-				try {
-					connection = MediaDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
-						List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
-						if (optionalSeriesMetadataFromDatabase != null && !optionalSeriesMetadataFromDatabase.isEmpty()) {
-							HashMap<String, Object> seriesRow = optionalSeriesMetadataFromDatabase.get(0);
-							if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
-								seriesImages = (String) seriesRow.get("IMAGES");
+	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonArray()) {
+				JsonArray array = element.getAsJsonArray();
+				if (!array.isEmpty() && folder != null) {
+					JsonArray dlnaChilds = new JsonArray();
+					for (JsonElement child : array) {
+						if (child.isJsonPrimitive()) {
+							String value = child.getAsString();
+							List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+							UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+							if (!folderChildren.isEmpty()) {
+								JsonObject dlnaChild = new JsonObject();
+								dlnaChild.addProperty("id", folderChildren.get(0).getId());
+								dlnaChild.addProperty("name", value);
+								dlnaChilds.add(dlnaChild);
 							}
 						}
 					}
-				} catch (Exception e) {
-					LOGGER.error("Error while getting series metadata for web interface");
-					LOGGER.debug("", e);
-				} finally {
-					MediaDatabase.close(connection);
-				}
-			}
-
-			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
-				//should return an object ??? why an array ???
-				JsonArray jImages = jsonArrayFromString((String) row.get("IMAGES"));
-				if (jImages != null && ! jImages.isEmpty()) {
-					if (jImages.size() > 1) {
-						//check if their is only one and that the datas in db should be stored as an object.
-						LOGGER.warn("There is more than 1 images object in array");
-					}
-					images = jImages.get(0).getAsJsonObject();
-				}
-			}
-			if (row.get("INPRODUCTION") != null) {
-				inProduction = (Boolean) row.get("INPRODUCTION");
-			}
-			if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
-				languages = (String) row.get("LANGUAGES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
-				lastAirDate = (String) row.get("LASTAIRDATE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
-				networks = (String) row.get("NETWORKS");
-			}
-			if (row.get("NUMBEROFEPISODES") != null) {
-				numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
-				numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
-				originCountry = (String) row.get("ORIGINCOUNTRY");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
-				originalLanguage = (String) row.get("ORIGINALLANGUAGE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
-				originalTitle = (String) row.get("ORIGINALTITLE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
-				productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
-				productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
-				seasons = (String) row.get("SEASONS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
-				seriesType = (String) row.get("SERIESTYPE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
-				spokenLanguages = (String) row.get("SPOKENLANGUAGES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
-				status = (String) row.get("STATUS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
-				tagline = (String) row.get("TAGLINE");
-			}
-
-			// These are for records that can have multiple results
-			if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
-				String actorName = (String) row.get("ACTOR");
-				if (!actors.containsKey(actorName)) {
-					if (actorsChildren == null) {
-						actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actorName);
-					}
-					for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
-						DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
-						if (filterByInformationChild.getDisplayName().equals(actorName)) {
-							actors.put(actorName, filterByInformationChild.getId());
-							break;
-						}
-					}
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
-				String genreName = (String) row.get("GENRE");
-				if (!genres.containsKey(genreName)) {
-					if (genresChildren == null) {
-						genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genreName);
-					}
-					for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
-						DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
-						if (filterByInformationChild.getDisplayName().equals(genreName)) {
-							genres.put(genreName, filterByInformationChild.getId());
-							break;
-						}
-					}
+					object.add(memberName, dlnaChilds);
 				}
 			}
 		}
-		if (!hasAPIMetadata) {
-			return null;
-		}
-		JsonArray jActors = new JsonArray();
-		for (Map.Entry<String, String> actor : actors.entrySet()) {
-			JsonObject jActor = new JsonObject();
-			jActor.addProperty("id", actor.getValue());
-			jActor.addProperty("name", actor.getKey());
-			jActors.add(jActor);
-		}
-		result.add("actors", jActors);
-		result.addProperty("awards", awards);
-		result.addProperty("createdBy", createdBy);
-		result.add("credits", credits);
-		result.add("externalIDs", externalIDs);
-		result.addProperty("firstAirDate", firstAirDate);
-		JsonArray jGenres = new JsonArray();
-		for (Map.Entry<String, String> genre : genres.entrySet()) {
-			JsonObject jGenre = new JsonObject();
-			jGenre.addProperty("id", genre.getValue());
-			jGenre.addProperty("name", genre.getKey());
-			jGenres.add(jGenre);
-		}
-		result.add("genres", jGenres);
-		result.addProperty("homepage", homepage);
-		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
-		result.add("images", images);
-		result.addProperty("imdbID", imdbID);
-		result.addProperty("inProduction", inProduction);
-		result.addProperty("languages", languages);
-		result.addProperty("lastAirDate", lastAirDate);
-		result.addProperty("networks", networks);
-		result.addProperty("numberOfEpisodes", numberOfEpisodes);
-		result.addProperty("numberOfSeasons", numberOfSeasons);
-		result.addProperty("originCountry", originCountry);
-		result.addProperty("originalLanguage", originalLanguage);
-		result.addProperty("originalTitle", originalTitle);
-		result.addProperty("plot", plot);
-		result.addProperty("poster", poster);
-		result.addProperty("productionCompanies", productionCompanies);
-		result.addProperty("productionCountries", productionCountries);
-		JsonArray jRatings = new JsonArray();
-		for (Map<String, String> rating : ratings) {
-			JsonObject jRating = new JsonObject();
-			jRating.addProperty("source", rating.get("source"));
-			jRating.addProperty("value", rating.get("value"));
-			jRatings.add(jRating);
-		}
-		result.add("ratings", jRatings);
-		result.addProperty("seasons", seasons);
-		result.addProperty("seriesImages", seriesImages);
-		result.addProperty("seriesType", seriesType);
-		result.addProperty("spokenLanguages", spokenLanguages);
-		result.addProperty("startYear", startYear);
-		result.addProperty("status", status);
-		result.addProperty("tagline", tagline);
-		result.addProperty("totalSeasons", totalSeasons);
-		return result;
 	}
+
+	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonPrimitive() && folder != null) {
+				String value = element.getAsString();
+				List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+				UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+				if (!folderChildren.isEmpty()) {
+					JsonObject dlnaChild = new JsonObject();
+					dlnaChild.addProperty("id", folderChildren.get(0).getId());
+					dlnaChild.addProperty("name", value);
+					object.add(memberName, dlnaChild);
+				}
+			}
+		}
+	}
+
 }

@@ -608,6 +608,92 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	/**
+	 * @param connection the db connection
+	 * @param simplifiedTitle
+	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
+	 */
+
+	public static JsonObject getTvSerieMetadataAsJsonObject(final Connection connection, final String simplifiedTitle) {
+		if (connection == null || simplifiedTitle == null) {
+			return null;
+		}
+		boolean trace = LOGGER.isTraceEnabled();
+
+		try {
+			String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + SIMPLIFIEDTITLE + " = ? LIMIT 1";
+			try (PreparedStatement selectStatement = connection.prepareStatement(sql)) {
+				selectStatement.setString(1, simplifiedTitle);
+				if (trace) {
+					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", selectStatement);
+				}
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						JsonObject result = new JsonObject();
+						Long id = rs.getLong("ID");
+						result.addProperty("imdbID", rs.getString(COL_IMDBID));
+						result.addProperty("plot", rs.getString("PLOT"));
+						result.addProperty("startYear", rs.getString("STARTYEAR"));
+						result.addProperty("title", rs.getString("TITLE"));
+						result.addProperty("totalSeasons", rs.getDouble("TOTALSEASONS"));
+						result.addProperty("createdBy", rs.getString("CREATEDBY"));
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
+						result.addProperty("firstAirDate", rs.getString("FIRSTAIRDATE"));
+						result.addProperty("homepage", rs.getString("HOMEPAGE"));
+						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
+						addJsonElementToJsonObjectIfExists(result, "seriesImages", rs.getString("IMAGES"));
+						result.addProperty("inProduction", rs.getBoolean("INPRODUCTION"));
+						result.addProperty("homepage", rs.getString("HOMEPAGE"));
+						addJsonElementToJsonObjectIfExists(result, "languages", rs.getString("LANGUAGES"));
+						result.addProperty("lastAirDate", rs.getString("LASTAIRDATE"));
+						addJsonElementToJsonObjectIfExists(result, "networks", rs.getString("NETWORKS"));
+						result.addProperty("numberOfEpisodes", rs.getDouble("NUMBEROFEPISODES"));
+						result.addProperty("numberOfSeasons", rs.getDouble("NUMBEROFSEASONS"));
+						result.addProperty("originCountry", rs.getString("ORIGINCOUNTRY"));
+						result.addProperty("originalLanguage", rs.getString("ORIGINALLANGUAGE"));
+						result.addProperty("originalTitle", rs.getString("ORIGINALTITLE"));
+						addJsonElementToJsonObjectIfExists(result, "productionCompanies", rs.getString("PRODUCTIONCOMPANIES"));
+						addJsonElementToJsonObjectIfExists(result, "productionCountries", rs.getString("PRODUCTIONCOUNTRIES"));
+						addJsonElementToJsonObjectIfExists(result, "seasons", rs.getString("SEASONS"));
+						result.addProperty("seriesType", rs.getString("SERIESTYPE"));
+						addJsonElementToJsonObjectIfExists(result, "spokenLanguages", rs.getString("SPOKENLANGUAGES"));
+						result.addProperty("status", rs.getString("STATUS"));
+						result.addProperty("tagline", rs.getString("TAGLINE"));
+						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForTvSerie(connection, id));
+						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForTvSerie(connection, id));
+						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForTvSerie(connection, id));
+						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("imdbRating", MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, id));
+						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForTvSerie(connection, id));
+						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForTvSerie(connection, id));
+						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForTvSerie(connection, id));
+						result.add("rating", MediaTableVideoMetadataRatings.getJsonArrayForTvSerie(connection, id));
+						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForTvSerie(connection, id));
+						return result;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading API results", TABLE_NAME, simplifiedTitle, e.getMessage());
+			LOGGER.debug("", e);
+		}
+
+		return null;
+	}
+
+	private static void addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
+		if (StringUtils.isEmpty(jsonString)) {
+			return;
+		}
+		try {
+			JsonElement element = GSON.fromJson(jsonString, JsonElement.class);
+			dest.add(property, element);
+		} catch (JsonSyntaxException e) {
+		}
+	}
+
+	/**
 	 * Returns a similar TV series name from the database.
 	 *
 	 * @param connection the db connection
