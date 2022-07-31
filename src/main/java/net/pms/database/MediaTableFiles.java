@@ -309,7 +309,7 @@ public class MediaTableFiles extends MediaTable {
 							String[] badJsonColumns = {"CREDITS", "EXTERNALIDS", "PRODUCTIONCOMPANIES", "PRODUCTIONCOUNTRIES"};
 							for (String badJsonColumn : badJsonColumns) {
 								if (isColumnExist(connection, TABLE_NAME, badJsonColumn)) {
-									executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET VERSION = '' WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
+									executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET IMDBID = NULL WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
 								}
 							}
 						}

@@ -201,7 +201,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						String[] badJsonColumns = {"LANGUAGES", "ORIGINCOUNTRY"};
 						for (String badJsonColumn : badJsonColumns) {
 							if (isColumnExist(connection, TABLE_NAME, badJsonColumn)) {
-								executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET VERSION = '' WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
+								executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_IMDBID + " = NULL WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
 							}
 						}
 					}
