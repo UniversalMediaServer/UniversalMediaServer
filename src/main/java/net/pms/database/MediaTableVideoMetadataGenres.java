@@ -139,37 +139,6 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	}
 
 	/**
-	 * @param connection the db connection
-	 * @param tvSeriesTitle
-	 * @return all data in this table for a TV series, if it has an IMDb ID stored.
-	 */
-	public static HashSet getByTVSeriesName(final Connection connection, final String tvSeriesTitle) {
-		boolean trace = LOGGER.isTraceEnabled();
-
-		try {
-			String query = "SELECT GENRE FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediaTableTVSeries.TABLE_NAME + ".ID " +
-				"WHERE " + MediaTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle);
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				return convertResultSetToHashSet(resultSet);
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading genres", TABLE_NAME, tvSeriesTitle, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
-	}
-
-	/**
 	 * Sets a new row if it doesn't already exist.
 	 *
 	 * @param connection the db connection
