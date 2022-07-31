@@ -1,10 +1,10 @@
 # Changelog
 
-### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0)
+### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
 
 ### General:
 - Enabled UPnP searching, with the ability to disable for problematic renderers
-- Improved performance when scanning and browsing by up to 3,663%
+- Improved performance when scanning and browsing by up to 3,563%
 - Improved performance when handling API metadata
 - Improved performance with many audio files
 - Fixed broken translations
