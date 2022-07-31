@@ -304,6 +304,16 @@ public class MediaTableFiles extends MediaTable {
 							executeUpdate(connection, "DROP INDEX IF EXISTS " + index);
 						}
 
+						//set old json datas to be rescanned
+						if (isColumnExist(connection, TABLE_NAME, "VERSION")) {
+							String[] badJsonColumns = {"CREDITS", "EXTERNALIDS", "PRODUCTIONCOMPANIES", "PRODUCTIONCOUNTRIES"};
+							for (String badJsonColumn : badJsonColumns) {
+								if (isColumnExist(connection, TABLE_NAME, badJsonColumn)) {
+									executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET VERSION = '' WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
+								}
+							}
+						}
+
 						//move datas
 						String[] columns = {"IMDBID", "MEDIA_YEAR", "MOVIEORSHOWNAME", "MOVIEORSHOWNAMESIMPLE", "TVSEASON", "TVEPISODENUMBER", "TVEPISODENAME", "ISTVEPISODE", "EXTRAINFORMATION", "VERSION",
 							"BUDGET", "CREDITS", "EXTERNALIDS", "HOMEPAGE", "IMAGES", "ORIGINALLANGUAGE", "ORIGINALTITLE", "PRODUCTIONCOMPANIES", "PRODUCTIONCOUNTRIES", "REVENUE"};

@@ -423,8 +423,6 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
-						//credits, genres, ratings and some other columns was not well saved by the api (not json).
-						//we should delete the IMDB or set this file to be parsed again at read end if a parse fail occurs.
 						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
 						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
 						result.addProperty("homepage", rs.getString("HOMEPAGE"));
@@ -458,16 +456,14 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		return null;
 	}
 
-	private static boolean addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
+	private static void addJsonElementToJsonObjectIfExists(final JsonObject dest, final String property, final String jsonString) {
 		if (StringUtils.isEmpty(jsonString)) {
-			return true;
+			return;
 		}
 		try {
 			JsonElement element = GSON.fromJson(jsonString, JsonElement.class);
 			dest.add(property, element);
-			return true;
 		} catch (JsonSyntaxException e) {
-			return false;
 		}
 	}
 

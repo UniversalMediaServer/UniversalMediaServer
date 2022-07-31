@@ -195,6 +195,16 @@ public final class MediaTableTVSeries extends MediaTable {
 					break;
 				case 6:
 					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
+
+					//set old json datas to be rescanned
+					if (isColumnExist(connection, TABLE_NAME, "VERSION")) {
+						String[] badJsonColumns = {"LANGUAGES", "ORIGINCOUNTRY"};
+						for (String badJsonColumn : badJsonColumns) {
+							if (isColumnExist(connection, TABLE_NAME, badJsonColumn)) {
+								executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET VERSION = '' WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
+							}
+						}
+					}
 					break;
 				default:
 					throw new IllegalStateException(
@@ -624,14 +634,11 @@ public final class MediaTableTVSeries extends MediaTable {
 						result.addProperty("title", rs.getString("TITLE"));
 						result.addProperty("totalSeasons", rs.getDouble("TOTALSEASONS"));
 						result.addProperty("createdBy", rs.getString("CREATEDBY"));
-						//credits, genres, ratings and some other columns was not well saved by the api (not json).
-						//we should delete the IMDB or set this file to be parsed again at read end if a parse fail occurs.
 						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
 						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
 						result.addProperty("firstAirDate", rs.getString("FIRSTAIRDATE"));
 						result.addProperty("homepage", rs.getString("HOMEPAGE"));
 						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
-						addJsonElementToJsonObjectIfExists(result, "seriesImages", rs.getString("IMAGES"));
 						result.addProperty("inProduction", rs.getBoolean("INPRODUCTION"));
 						result.addProperty("homepage", rs.getString("HOMEPAGE"));
 						addJsonElementToJsonObjectIfExists(result, "languages", rs.getString("LANGUAGES"));
