@@ -22,8 +22,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.HashMap;
 import net.pms.PMS;
+import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -73,6 +75,15 @@ public class ActionsApiHandler implements HttpHandler {
 									} else {
 										WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
 									}
+									break;
+								case "Server.ResetCache":
+									MediaDatabase.initForce();
+									try {
+										MediaDatabase.resetCache();
+									} catch (SQLException e) {
+										LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+									}
+									WebInterfaceServerUtil.respond(exchange, "{}", 200, "application/json");
 									break;
 								default:
 									WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Operation not configured\"}", 400, "application/json");

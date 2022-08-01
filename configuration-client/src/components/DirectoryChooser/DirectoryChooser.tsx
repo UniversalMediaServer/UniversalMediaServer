@@ -11,7 +11,7 @@ export default function DirectoryChooser(props: {
   tooltipText: string,
   path: string,
   callback: any,
-  label: string,
+  label?: string,
   formKey: string,
 }) {
   const [isLoading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ export default function DirectoryChooser(props: {
       .then(function (response: any) {
         const directoriesResponse = response.data;
         setSeparator(directoriesResponse.separator);
-        setDirectories(directoriesResponse.childrens);
+        setDirectories(directoriesResponse.children);
         setParents(directoriesResponse.parents.reverse());
       })
       .catch(function (error: Error) {
@@ -69,7 +69,7 @@ export default function DirectoryChooser(props: {
     /> }
 
   return (
-    <Group mt="xs">
+    <Group>
       <>
         <Modal
           opened={opened}

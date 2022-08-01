@@ -3576,6 +3576,29 @@ public class PmsConfiguration extends RendererConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
+	/**
+	 * @return available fully played actions as a JSON array
+	 */
+	public synchronized static JsonArray getFullyPlayedActionsAsJsonArray() {
+		String[] values = new String[]{
+			FullyPlayedAction.NO_ACTION.toString(),
+			FullyPlayedAction.MARK.toString(),
+			FullyPlayedAction.HIDE_MEDIA.toString(),
+			FullyPlayedAction.MOVE_FOLDER.toString(),
+			FullyPlayedAction.MOVE_FOLDER_AND_MARK.toString(),
+			FullyPlayedAction.MOVE_TRASH.toString()
+		};
+		String[] labels = new String[]{
+			Messages.getString("DoNothing"),
+			Messages.getString("MarkMedia"),
+			Messages.getString("HideMedia"),
+			Messages.getString("MoveFileToDifferentFolder"),
+			Messages.getString("MoveFileDifferentFolderMark"),
+			Messages.getString("MoveFileRecycleTrashBin")
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public synchronized static JsonArray getSubtitlesCodepageArray() {
 		String[] values = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
@@ -3588,7 +3611,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] labels = new String[]{
-			Messages.getString("Generic.AutoDetect"),
+			Messages.getString("AutoDetect"),
 			Messages.getString("CharacterSet.874"),
 			Messages.getString("CharacterSet.932"),
 			Messages.getString("CharacterSet.936"),
