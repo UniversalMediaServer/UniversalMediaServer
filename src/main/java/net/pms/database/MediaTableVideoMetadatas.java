@@ -80,6 +80,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
 	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
 	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? and " + IMDBID + " IS NOT NULL LIMIT 1";
 	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? LIMIT 1";
 	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
 	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL AND " + API_VERSION + " = ? LIMIT 1";
@@ -412,9 +413,8 @@ public class MediaTableVideoMetadatas extends MediaTable {
 			return null;
 		}
 		boolean trace = LOGGER.isTraceEnabled();
-		String sql = "SELECT * FROM " + TABLE_NAME + "WHERE " + FILEID + " = ? and " + IMDBID + " IS NOT NULL LIMIT 1";
 		try {
-			try (PreparedStatement selectStatement = connection.prepareStatement(sql)) {
+			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID)) {
 				selectStatement.setLong(1, fileId);
 				if (trace) {
 					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", selectStatement);
@@ -436,9 +436,14 @@ public class MediaTableVideoMetadatas extends MediaTable {
 						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
-						result.add("rating", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
+						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
-						//TODO add TV serie images
+						if (rs.getBoolean("ISTVEPISODE")) {
+							String showName = rs.getString("MOVIEORSHOWNAME");
+							if (StringUtils.isNotBlank(showName)) {
+								addJsonElementToJsonObjectIfExists(result, "seriesImages", MediaTableTVSeries.getImagesByTitle(connection, showName));
+							}
+						}
 						return result;
 					}
 				}

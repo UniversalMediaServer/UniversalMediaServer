@@ -21,6 +21,7 @@ import static net.pms.util.FileUtil.indexOf;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
@@ -36,7 +37,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -150,7 +150,7 @@ public class APIUtils {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
-			HashMap<String, String> jsonData = new HashMap<>();
+			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
 				URL domain = new URL("https://api.universalmediaserver.com");
@@ -158,14 +158,17 @@ public class APIUtils {
 				String apiResult = getJson(url);
 
 				try {
-					jsonData = GSON.fromJson(apiResult, jsonData.getClass());
+					JsonElement element = GSON.fromJson(apiResult, JsonElement.class);
+					if (element.isJsonObject()) {
+						jsonData = element.getAsJsonObject();
+					}
 				} catch (JsonSyntaxException e) {
 					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
 				}
 			}
 
-			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
-				if (jsonData != null && jsonData.containsKey("statusCode") && "500".equals(jsonData.get("statusCode"))) {
+			if (jsonData == null || !jsonData.has("series") || !jsonData.has("video") || jsonData.has("statusCode")) {
+				if (jsonData != null && jsonData.has("statusCode") && "500".equals(jsonData.get("statusCode").getAsString())) {
 					LOGGER.debug("Got a 500 error while looking for metadata subversions");
 				}
 				LOGGER.trace("Did not get metadata subversions, will attempt to use the database version");
@@ -179,8 +182,8 @@ public class APIUtils {
 				return;
 			}
 
-			apiDataSeriesVersion = jsonData.get("series");
-			apiDataVideoVersion = jsonData.get("video");
+			apiDataSeriesVersion = jsonData.get("series").getAsString();
+			apiDataVideoVersion = jsonData.get("video").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
 			if (connection != null) {
@@ -215,7 +218,7 @@ public class APIUtils {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
-			HashMap<String, String> jsonData = new HashMap<>();
+			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
 				URL domain = new URL("https://api.universalmediaserver.com");
@@ -223,14 +226,17 @@ public class APIUtils {
 				String apiResult = getJson(url);
 
 				try {
-					jsonData = GSON.fromJson(apiResult, jsonData.getClass());
+					JsonElement element = GSON.fromJson(apiResult, JsonElement.class);
+					if (element.isJsonObject()) {
+						jsonData = element.getAsJsonObject();
+					}
 				} catch (JsonSyntaxException e) {
 					LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
 				}
 			}
 
-			if (jsonData == null || jsonData.isEmpty() || jsonData.containsKey("statusCode")) {
-				if (jsonData != null && jsonData.containsKey("statusCode") && "500".equals(jsonData.get("statusCode"))) {
+			if (jsonData == null || !jsonData.has("imageBaseURL") || jsonData.has("statusCode")) {
+				if (jsonData != null && jsonData.has("statusCode") && "500".equals(jsonData.get("statusCode").getAsString())) {
 					LOGGER.debug("Got a 500 error while looking for imageBaseURL");
 				}
 				LOGGER.trace("Did not get imageBaseURL, will attempt to use the database version");
@@ -243,7 +249,7 @@ public class APIUtils {
 				return;
 			}
 
-			apiImageBaseURL = jsonData.get("imageBaseURL");
+			apiImageBaseURL = jsonData.get("imageBaseURL").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
 			if (connection != null) {
@@ -575,8 +581,7 @@ public class APIUtils {
 	 * @return the title of the series.
 	 */
 	private static String setTVSeriesInfo(final Connection connection, String seriesIMDbIDFromAPI, String titleFromFilename, String startYear, String titleSimplifiedFromFilename, File file, DLNAMediaInfo media) {
-		long tvSeriesDatabaseId;
-		String title;
+		String title = null;
 		String titleSimplified;
 
 		String failedLookupKey = titleSimplifiedFromFilename;
@@ -589,14 +594,13 @@ public class APIUtils {
 		 * in our database yet, and persist it to our database.
 		 */
 		try {
-			HashMap<String, Object> seriesMetadataFromDatabase = null;
 			if (seriesIMDbIDFromAPI != null) {
-				seriesMetadataFromDatabase = MediaTableTVSeries.getByIMDbID(connection, seriesIMDbIDFromAPI);
+				title = MediaTableTVSeries.getTitleByIMDbID(connection, seriesIMDbIDFromAPI);
 			}
 
-			if (seriesMetadataFromDatabase != null) {
-				LOGGER.trace("TV series with API data already found in database {}", seriesMetadataFromDatabase.get("TITLE"));
-				return (String) seriesMetadataFromDatabase.get("TITLE");
+			if (title != null) {
+				LOGGER.trace("TV series with API data already found in database {}", title);
+				return title;
 			}
 
 			/*
@@ -651,7 +655,7 @@ public class APIUtils {
 			 * to insert it or update existing data, so we attempt to find an entry
 			 * based on the title.
 			 */
-			seriesMetadataFromDatabase = MediaTableTVSeries.getByTitle(connection, title);
+			Long tvSeriesId = MediaTableTVSeries.getIdByTitle(connection, title);
 
 			// Restore the startYear appended to the title if it is in the filename
 			if (isNotBlank(startYear)) {
@@ -660,33 +664,32 @@ public class APIUtils {
 				seriesMetadataFromAPI.addProperty("title", titleFromAPI);
 			}
 
-			if (seriesMetadataFromDatabase == null) {
-				LOGGER.trace("No title match, so let's make a new entry for {}", seriesMetadataFromAPI.get("title"));
-				tvSeriesDatabaseId = MediaTableTVSeries.set(connection, seriesMetadataFromAPI, null);
+			if (tvSeriesId == null) {
+				LOGGER.trace("No title match, so let's make a new entry for {}", title);
+				tvSeriesId = MediaTableTVSeries.set(connection, seriesMetadataFromAPI, null);
 			} else {
-				LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", seriesMetadataFromDatabase.get("TITLE"));
-				tvSeriesDatabaseId = (long) seriesMetadataFromDatabase.get("ID");
+				LOGGER.trace("There is an existing entry, so let's fill it in with API data for {}", title);
 				MediaTableTVSeries.insertAPIMetadata(connection, seriesMetadataFromAPI);
 			}
 
-			if (tvSeriesDatabaseId == -1) {
+			if (tvSeriesId == null) {
 				LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
 				return null;
 			}
 
 			// Now we insert the TV series data into the other tables
 			if (seriesMetadataFromAPI.has("actors")) {
-				MediaTableVideoMetadataActors.set(connection, null, seriesMetadataFromAPI.get("actors"), tvSeriesDatabaseId);
+				MediaTableVideoMetadataActors.set(connection, null, seriesMetadataFromAPI.get("actors"), tvSeriesId);
 			}
-			MediaTableVideoMetadataAwards.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "awards"), tvSeriesDatabaseId);
-			MediaTableVideoMetadataCountries.set(connection, null, seriesMetadataFromAPI.get("country"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataAwards.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "awards"), tvSeriesId);
+			MediaTableVideoMetadataCountries.set(connection, null, seriesMetadataFromAPI.get("country"), tvSeriesId);
 			if (seriesMetadataFromAPI.has("directors")) {
-				MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadataFromAPI.get("directors"), tvSeriesDatabaseId);
+				MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadataFromAPI.get("directors"), tvSeriesId);
 			}
 			if (seriesMetadataFromAPI.has("genres")) {
-				MediaTableVideoMetadataGenres.set(connection, null, seriesMetadataFromAPI.get("genres"), tvSeriesDatabaseId);
+				MediaTableVideoMetadataGenres.set(connection, null, seriesMetadataFromAPI.get("genres"), tvSeriesId);
 			}
-			MediaTableVideoMetadataProduction.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "production"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataProduction.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "production"), tvSeriesId);
 
 			String posterFromApi = getPosterUrlFromApiInfo(
 				getStringOrNull(seriesMetadataFromAPI, "poster"),
@@ -695,7 +698,7 @@ public class APIUtils {
 			if (posterFromApi != null) {
 				try {
 					byte[] image = URI_FILE_RETRIEVER.get(posterFromApi);
-					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesDatabaseId, false);
+					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesId, false);
 				} catch (EOFException e) {
 					LOGGER.debug(
 						"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
@@ -707,20 +710,20 @@ public class APIUtils {
 					LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
 					LOGGER.trace("", e);
 				}
-				MediaTableVideoMetadataPosters.set(connection, null, posterFromApi, tvSeriesDatabaseId);
+				MediaTableVideoMetadataPosters.set(connection, null, posterFromApi, tvSeriesId);
 			}
 
-			MediaTableVideoMetadataRated.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "rated"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataRated.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "rated"), tvSeriesId);
 			if (seriesMetadataFromAPI.has("rating")  && seriesMetadataFromAPI.get("rating").isJsonPrimitive()) {
 				Double rating = seriesMetadataFromAPI.get("rating").getAsDouble();
 				if (rating != 0) {
-					MediaTableVideoMetadataIMDbRating.set(connection, null, Double.toString(rating), tvSeriesDatabaseId);
+					MediaTableVideoMetadataIMDbRating.set(connection, null, Double.toString(rating), tvSeriesId);
 				}
 			}
 			if (seriesMetadataFromAPI.get("ratings") != null) {
-				MediaTableVideoMetadataRatings.set(connection, null, seriesMetadataFromAPI.get("ratings"), tvSeriesDatabaseId);
+				MediaTableVideoMetadataRatings.set(connection, null, seriesMetadataFromAPI.get("ratings"), tvSeriesId);
 			}
-			MediaTableVideoMetadataReleased.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "released"), tvSeriesDatabaseId);
+			MediaTableVideoMetadataReleased.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "released"), tvSeriesId);
 
 			// Replace any close-but-not-exact titles in the FILES table
 			if (
@@ -979,4 +982,5 @@ public class APIUtils {
 
 		return posterFromApi;
 	}
+
 }

@@ -351,7 +351,6 @@ public class BrowseHandler implements HttpHandler {
 					CONFIGURATION.getUseCache()
 				) {
 					JsonObject apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, language, true, root);
-					//String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
 					if (apiMetadataAsJavaScriptVars != null) {
 						mustacheVars.put("isTVSeriesWithAPIData", true);
 						mustacheVars.put("javascriptVarsScript", "apiMetadata=" + apiMetadataAsJavaScriptVars.toString() + ";");

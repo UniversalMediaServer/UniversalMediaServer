@@ -24,7 +24,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String GENRE = TABLE_NAME + "." + COL_GENRE;
 	private static final String SQL_GET_GENRE_FILEID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
-	private static final String SQL_GET_GENRE_TVSERIESID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
+	private static final String SQL_GET_GENRE_TVSERIESID = "SELECT " + GENRE + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + GENRE + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + GENRE + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_GENRE + ") VALUES (?, ?)";
@@ -136,37 +135,6 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
 			")"
 		);
-	}
-
-	/**
-	 * @param connection the db connection
-	 * @param tvSeriesTitle
-	 * @return all data in this table for a TV series, if it has an IMDb ID stored.
-	 */
-	public static HashSet getByTVSeriesName(final Connection connection, final String tvSeriesTitle) {
-		boolean trace = LOGGER.isTraceEnabled();
-
-		try {
-			String query = "SELECT GENRE FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_NAME + ".TVSERIESID = " + MediaTableTVSeries.TABLE_NAME + ".ID " +
-				"WHERE " + MediaTableTVSeries.TABLE_NAME + ".TITLE = " + sqlQuote(tvSeriesTitle);
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				return convertResultSetToHashSet(resultSet);
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "reading genres", TABLE_NAME, tvSeriesTitle, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return null;
 	}
 
 	/**

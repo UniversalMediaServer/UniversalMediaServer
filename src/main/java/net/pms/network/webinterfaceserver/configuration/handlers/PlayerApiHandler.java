@@ -87,8 +87,6 @@ public class PlayerApiHandler implements HttpHandler {
 
 	public static final String BASE_PATH = "/v1/api/player";
 
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
-
 	/**
 	 * Handle API calls.
 	 *
@@ -214,7 +212,7 @@ public class PlayerApiHandler implements HttpHandler {
 				LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
 				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
 			}
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in PlayerApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -461,10 +459,9 @@ public class PlayerApiHandler implements HttpHandler {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, "", true, root);
-					if (apiMetadataAsJavaScriptVars != null) {
-						//this should be JsonObject
-						result.addProperty("apiData", apiMetadataAsJavaScriptVars);
+					JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, true, root);
+					if (apiMetadatas != null) {
+						result.add("metadatas", apiMetadatas);
 					}
 				}
 
@@ -494,7 +491,7 @@ public class PlayerApiHandler implements HttpHandler {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
@@ -526,9 +523,9 @@ public class PlayerApiHandler implements HttpHandler {
 		jMedia.addProperty("id", resource.getResourceId());
 		jMedia.addProperty("name", resource.resumeName());
 		if (CONFIGURATION.getUseCache()) {
-			JsonObject metadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
-			if (metadatas != null) {
-				jMedia.add("metadatas", metadatas);
+			JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
+			if (apiMetadatas != null) {
+				jMedia.add("metadatas", apiMetadatas);
 			}
 		}
 		return jMedia;
@@ -619,8 +616,8 @@ public class PlayerApiHandler implements HttpHandler {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject metadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
-					media.add("metadatas", metadatas);
+					JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
+					media.add("metadatas", apiMetadatas);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
@@ -869,8 +866,7 @@ public class PlayerApiHandler implements HttpHandler {
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
-				if (root.getDefaultRenderer() instanceof WebRender) {
-					WebRender renderer = (WebRender) root.getDefaultRenderer();
+				if (root.getDefaultRenderer() instanceof WebRender renderer) {
 					supported = renderer.isImageFormatSupported(imageInfo.getFormat());
 				}
 				mime = dlna.getFormat() != null ?
@@ -986,7 +982,7 @@ public class PlayerApiHandler implements HttpHandler {
 
 		try {
 			//hls part
-			if (resource.getFormat().isVideo() && render != null && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
+			if (resource.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
 				Headers headers = exchange.getResponseHeaders();
 				headers.add("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
@@ -1054,9 +1050,7 @@ public class PlayerApiHandler implements HttpHandler {
 					WebInterfaceServerUtil.logMessageSent(exchange, null, in);
 				}
 				OutputStream os = exchange.getResponseBody();
-				if (render != null) {
-					render.start(resource);
-				}
+				render.start(resource);
 				if (sid != null) {
 					resource.setMediaSubtitle(sid);
 				}
