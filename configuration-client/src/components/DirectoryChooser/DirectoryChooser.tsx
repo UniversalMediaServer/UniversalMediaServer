@@ -12,6 +12,7 @@ export default function DirectoryChooser(props: {
   path: string,
   callback: any,
   label?: string,
+  disabled?: boolean,
   formKey: string,
 }) {
   const [isLoading, setLoading] = useState(true);
@@ -63,6 +64,7 @@ export default function DirectoryChooser(props: {
   const input = (): ReactNode => {
    return <TextInput
       label={props.label}
+	  disabled={props.disabled}
       sx={{ flex: 1 }}
       value={props.path}
       readOnly
@@ -144,13 +146,15 @@ export default function DirectoryChooser(props: {
           {input()}
         </Tooltip>) : input()
         }
-        <Button
-          mt="xl"
-          onClick={() => { getSubdirectories(props.path); setOpened(true); }}
-          leftIcon={<Folders size={18} />}
-        >
-          ...
-        </Button>
+        {!props.disabled && (
+          <Button
+            mt="xl"
+            onClick={() => { getSubdirectories(props.path); setOpened(true); }}
+            leftIcon={<Folders size={18} />}
+          >
+            ...
+          </Button>
+        )}
       </>
     </Group>
   );
