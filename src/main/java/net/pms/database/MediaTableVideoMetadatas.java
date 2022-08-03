@@ -62,7 +62,17 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	/**
 	 * The columns we added from TMDB in V11
 	 */
-	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
+	private static final String COL_BUDGET = "BUDGET";
+	private static final String COL_CREDITS = "CREDITS";
+	private static final String COL_EXTERNALIDS = "EXTERNALIDS";
+	private static final String COL_HOMEPAGE = "HOMEPAGE";
+	private static final String COL_IMAGES = "IMAGES";
+	private static final String COL_ORIGINALLANGUAGE = "ORIGINALLANGUAGE";
+	private static final String COL_ORIGINALTITLE = "ORIGINALTITLE";
+	private static final String COL_PRODUCTIONCOMPANIES = "PRODUCTIONCOMPANIES";
+	private static final String COL_PRODUCTIONCOUNTRIES = "PRODUCTIONCOUNTRIES";
+	private static final String COL_REVENUE = "REVENUE";
+	private static final String TMDB_COLUMNS = COL_BUDGET + ", " + COL_CREDITS + ", " + COL_EXTERNALIDS + ", " + COL_HOMEPAGE + ", " + COL_IMAGES + ", " + COL_ORIGINALLANGUAGE + ", " + COL_ORIGINALTITLE + ", " + COL_PRODUCTIONCOMPANIES + ", " + COL_PRODUCTIONCOUNTRIES + ", " + COL_REVENUE;
 
 	/**
 	 * COLUMNS with table name
@@ -90,7 +100,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -125,6 +135,10 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_BUDGET + " SET DATA TYPE BIGINT");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_REVENUE + " SET DATA TYPE BIGINT");
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -155,7 +169,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				"ISTVEPISODE             BOOLEAN                                          , " +
 				"EXTRAINFORMATION        VARCHAR(" + SIZE_MAX + ")                        , " +
 				"API_VERSION             VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				"BUDGET                  INTEGER                                          , " +
+				"BUDGET                  BIGINT                                           , " +
 				"CREDITS                 CLOB                                             , " +
 				"EXTERNALIDS             CLOB                                             , " +
 				"HOMEPAGE                VARCHAR                                          , " +
@@ -164,7 +178,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				"ORIGINALTITLE           VARCHAR                                          , " +
 				"PRODUCTIONCOMPANIES     CLOB                                             , " +
 				"PRODUCTIONCOUNTRIES     CLOB                                             , " +
-				"REVENUE                 INTEGER                                          , " +
+				"REVENUE                 BIGINT                                           , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);
@@ -220,28 +234,28 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (apiExtendedMetadata != null) {
 						rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
 						if (apiExtendedMetadata.has("budget")) {
-							rs.updateInt("BUDGET", apiExtendedMetadata.get("budget").getAsInt());
+							rs.updateLong(COL_BUDGET, apiExtendedMetadata.get("budget").getAsLong());
 						}
 						if (apiExtendedMetadata.has("credits")) {
-							rs.updateString("CREDITS", apiExtendedMetadata.get("credits").toString());
+							rs.updateString(COL_CREDITS, apiExtendedMetadata.get("credits").toString());
 						}
 						if (apiExtendedMetadata.has("externalIDs")) {
-							rs.updateString("EXTERNALIDS", apiExtendedMetadata.get("externalIDs").toString());
+							rs.updateString(COL_EXTERNALIDS, apiExtendedMetadata.get("externalIDs").toString());
 						}
-						rs.updateString("HOMEPAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
+						rs.updateString(COL_HOMEPAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
 						if (apiExtendedMetadata.has("images")) {
-							rs.updateString("IMAGES", apiExtendedMetadata.get("images").toString());
+							rs.updateString(COL_IMAGES, apiExtendedMetadata.get("images").toString());
 						}
-						rs.updateString("ORIGINALLANGUAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
-						rs.updateString("ORIGINALTITLE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
+						rs.updateString(COL_ORIGINALLANGUAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
+						rs.updateString(COL_ORIGINALTITLE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
 						if (apiExtendedMetadata.has("productionCompanies")) {
-							rs.updateString("PRODUCTIONCOMPANIES", apiExtendedMetadata.get("productionCompanies").toString());
+							rs.updateString(COL_PRODUCTIONCOMPANIES, apiExtendedMetadata.get("productionCompanies").toString());
 						}
 						if (apiExtendedMetadata.has("productionCountries")) {
-							rs.updateString("PRODUCTIONCOUNTRIES", apiExtendedMetadata.get("productionCountries").toString());
+							rs.updateString(COL_PRODUCTIONCOUNTRIES, apiExtendedMetadata.get("productionCountries").toString());
 						}
 						if (apiExtendedMetadata.has("revenue")) {
-							rs.updateInt("REVENUE", apiExtendedMetadata.get("revenue").getAsInt());
+							rs.updateLong("REVENUE", apiExtendedMetadata.get("revenue").getAsLong());
 						}
 					}
 					rs.updateRow();
@@ -261,9 +275,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (apiExtendedMetadata != null) {
 						insertStatement.setString(++databaseColumnIterator, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
 						if (apiExtendedMetadata.has("budget")) {
-							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("budget").getAsInt());
+							insertStatement.setLong(++databaseColumnIterator, apiExtendedMetadata.get("budget").getAsLong());
 						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
+							insertStatement.setNull(++databaseColumnIterator, Types.BIGINT);
 						}
 						if (apiExtendedMetadata.has("credits")) {
 							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("credits").toString());
@@ -306,9 +320,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
 						}
 						if (apiExtendedMetadata.has("revenue")) {
-							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("revenue").getAsInt());
+							insertStatement.setLong(++databaseColumnIterator, apiExtendedMetadata.get("revenue").getAsLong());
 						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
+							insertStatement.setNull(++databaseColumnIterator, Types.BIGINT);
 						}
 					}
 					insertStatement.executeUpdate();
@@ -423,10 +437,10 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
-						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
-						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
-						result.addProperty("homepage", rs.getString("HOMEPAGE"));
-						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString(COL_CREDITS));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString(COL_EXTERNALIDS));
+						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
+						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
 						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
 						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
@@ -438,8 +452,8 @@ public class MediaTableVideoMetadatas extends MediaTable {
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
 						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
-						if (rs.getBoolean("ISTVEPISODE")) {
-							String showName = rs.getString("MOVIEORSHOWNAME");
+						if (rs.getBoolean(COL_ISTVEPISODE)) {
+							String showName = rs.getString(COL_MOVIEORSHOWNAME);
 							if (StringUtils.isNotBlank(showName)) {
 								addJsonElementToJsonObjectIfExists(result, "seriesImages", MediaTableTVSeries.getImagesByTitle(connection, showName));
 							}
@@ -529,7 +543,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 */
 	public static void updateMovieOrShowName(final Connection connection, String oldName, String newName) {
 		try {
-			updateRowsInTable(connection, oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
+			updateRowsInTable(connection, oldName, newName, COL_MOVIEORSHOWNAME, SIZE_MAX, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
