@@ -100,7 +100,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 3;
+	private static final int TABLE_VERSION = 2;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -125,7 +125,14 @@ public class MediaTableVideoMetadata extends MediaTable {
 				LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 			}
 		} else {
-			createTable(connection);
+			if (!tableExists(connection, "VIDEO_METADATAS")) {
+				createTable(connection);
+			} else {
+				//change to new table name, remove name and version columns (reserved sql)
+				LOGGER.trace("Changing table name from \"{}\" to \"{}\"", "VIDEO_METADATAS", TABLE_NAME);
+				executeUpdate(connection, "ALTER TABLE VIDEO_METADATAS RENAME TO " + TABLE_NAME);
+				executeUpdate(connection, "UPDATE TABLES_VERSIONS SET TABLE_NAME = '" + TABLE_NAME + "' WHERE TABLE_NAME = 'VIDEO_METADATAS'");
+			}
 			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
@@ -138,9 +145,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 				case 1:
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_BUDGET + " SET DATA TYPE BIGINT");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_REVENUE + " SET DATA TYPE BIGINT");
-					break;
-				case 2:
-					executeUpdate(connection, "ALTER TABLE VIDEO_METADATAS IF EXISTS RENAME TO " + TABLE_NAME);
 					break;
 				default:
 					throw new IllegalStateException(
