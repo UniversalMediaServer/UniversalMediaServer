@@ -40,10 +40,10 @@ import org.slf4j.LoggerFactory;
  * lookups, updates and inserts. All operations involving this table shall be
  * done with this class.
  */
-public class MediaTableVideoMetadatas extends MediaTable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadatas.class);
+public class MediaTableVideoMetadata extends MediaTable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadata.class);
 	private static final Gson GSON = new Gson();
-	public static final String TABLE_NAME = "VIDEO_METADATAS";
+	public static final String TABLE_NAME = "VIDEO_METADATA";
 	/**
 	 * COLUMNS NAMES
 	 */
@@ -77,30 +77,30 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
-	public static final String API_VERSION = TABLE_NAME + "." + COL_API_VERSION;
-	public static final String EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
-	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String IMDBID = TABLE_NAME + "." + COL_IMDBID;
-	public static final String ISTVEPISODE = TABLE_NAME + "." + COL_ISTVEPISODE;
-	public static final String MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
-	public static final String MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
-	public static final String MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
-	public static final String TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
-	public static final String TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
-	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
+	public static final String TABLE_COL_API_VERSION = TABLE_NAME + "." + COL_API_VERSION;
+	public static final String TABLE_COL_EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
+	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
+	public static final String TABLE_COL_IMDBID = TABLE_NAME + "." + COL_IMDBID;
+	public static final String TABLE_COL_ISTVEPISODE = TABLE_NAME + "." + COL_ISTVEPISODE;
+	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
+	public static final String TABLE_COL_MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
+	public static final String TABLE_COL_MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
+	public static final String TABLE_COL_TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
+	public static final String TABLE_COL_TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
+	public static final String TABLE_COL_TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + TABLE_COL_FILEID + " ";
 	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
-	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? and " + IMDBID + " IS NOT NULL LIMIT 1";
-	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? LIMIT 1";
-	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
-	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL AND " + API_VERSION + " = ? LIMIT 1";
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? and " + TABLE_COL_IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_IMDBID + " IS NOT NULL AND " + TABLE_COL_API_VERSION + " = ? LIMIT 1";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -138,6 +138,9 @@ public class MediaTableVideoMetadatas extends MediaTable {
 				case 1:
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_BUDGET + " SET DATA TYPE BIGINT");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_REVENUE + " SET DATA TYPE BIGINT");
+					break;
+				case 2:
+					executeUpdate(connection, "ALTER TABLE VIDEO_METADATAS IF EXISTS RENAME TO " + TABLE_NAME);
 					break;
 				default:
 					throw new IllegalStateException(

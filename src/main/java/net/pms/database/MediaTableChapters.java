@@ -38,7 +38,7 @@ public class MediaTableChapters extends MediaTable {
 	private static final int SIZE_LANG = 3;
 
 	public static final String TABLE_NAME = "CHAPTERS";
-	public static final String FILEID = TABLE_NAME + ".FILEID";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

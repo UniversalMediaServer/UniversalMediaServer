@@ -47,15 +47,15 @@ public final class MediaTableThumbnails extends MediaTable {
 	private static final String COL_ID = "ID";
 	private static final String COL_MD5 = "MD5";
 	private static final String COL_MODIFIED = "MODIFIED";
-	public static final String ID = TABLE_NAME + "." + COL_ID;
-	public static final String THUMBNAIL = TABLE_NAME + "." + COL_THUMBNAIL;
-	private static final String MD5 = TABLE_NAME + "." + COL_MD5;
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.THUMBID + " = " + ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.THUMBID + " = " + ID + " ";
+	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	public static final String TABLE_COL_THUMBNAIL = TABLE_NAME + "." + COL_THUMBNAIL;
+	private static final String TABLE_COL_MD5 = TABLE_NAME + "." + COL_MD5;
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_THUMBID + " = " + TABLE_COL_ID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.TABLE_COL_THUMBID + " = " + TABLE_COL_ID + " ";
 
-	private static final String SQL_GET_ID_MD5 = "SELECT " + ID + " FROM " + TABLE_NAME + " WHERE " + MD5 + " = ? LIMIT 1";
+	private static final String SQL_GET_ID_MD5 = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_MD5 + " = ? LIMIT 1";
 	private static final String SQL_INSERT_ID_MD5 = "INSERT INTO " + TABLE_NAME + " (" + COL_THUMBNAIL + ", " + COL_MODIFIED + ", " + COL_MD5 + ") VALUES (?, ?, ?)";
-	private static final String SQL_DELETE_ID = "DELETE FROM " + TABLE_NAME + " WHERE " + ID + " = ?";
+	private static final String SQL_DELETE_ID = "DELETE FROM " + TABLE_NAME + " WHERE " + TABLE_COL_ID + " = ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table

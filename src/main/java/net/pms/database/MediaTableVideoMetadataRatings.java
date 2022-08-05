@@ -39,18 +39,18 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	public static final String COL_RATINGSOURCE = "RATINGSOURCE";
 	public static final String COL_RATINGVALUE = "RATINGVALUE";
-	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
-	public static final String RATINGSOURCE = TABLE_NAME + "." + COL_RATINGSOURCE;
-	public static final String RATINGVALUE = TABLE_NAME + "." + COL_RATINGVALUE;
-	private static final String SQL_GET_RATING_FILEID = "SELECT " + RATINGSOURCE + ", " + RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ?";
-	private static final String SQL_GET_RATING_TVSERIESID = "SELECT " + RATINGSOURCE + ", " + RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ?";
-	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TVSERIESID + " = ? AND " + RATINGSOURCE + " = ? LIMIT 1";
-	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + RATINGSOURCE + " = ? LIMIT 1";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
+	public static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
+	public static final String TABLE_COL_RATINGSOURCE = TABLE_NAME + "." + COL_RATINGSOURCE;
+	public static final String TABLE_COL_RATINGVALUE = TABLE_NAME + "." + COL_RATINGVALUE;
+	private static final String SQL_GET_RATING_FILEID = "SELECT " + TABLE_COL_RATINGSOURCE + ", " + TABLE_COL_RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
+	private static final String SQL_GET_RATING_TVSERIESID = "SELECT " + TABLE_COL_RATINGSOURCE + ", " + TABLE_COL_RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ?";
+	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ? AND " + TABLE_COL_RATINGSOURCE + " = ? LIMIT 1";
+	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_RATINGSOURCE + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_RATINGSOURCE + ", " + COL_RATINGVALUE + ") VALUES (?, ?, ?)";
 	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_RATINGSOURCE + ", " + COL_RATINGVALUE + ") VALUES (?, ?, ?)";
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.ID + " = " + TVSERIESID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.TABLE_COL_ID + " = " + TABLE_COL_TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -107,22 +107,22 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 					executeUpdate(connection, "DROP INDEX IF EXISTS FILENAME_RATINGSOURCE_TVSERIESID_IDX");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_FILEID + " INTEGER");
 					if (isColumnExist(connection, TABLE_NAME, "FILENAME")) {
-						executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + "=(SELECT " + MediaTableFiles.ID + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.FILENAME + " = " + TABLE_NAME + ".FILENAME) WHERE " + TABLE_NAME + ".FILENAME != ''");
+						executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + "=(SELECT " + MediaTableFiles.TABLE_COL_ID + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FILENAME + " = " + TABLE_NAME + ".FILENAME) WHERE " + TABLE_NAME + ".FILENAME != ''");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN IF EXISTS FILENAME");
 					}
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS " + COL_TVSERIESID + " DROP DEFAULT");
 
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_TVSERIESID + " = NULL WHERE " + TVSERIESID + " = -1");
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + TVSERIESID + " IS NOT NULL");
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + FILEID + " = -1");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_TVSERIESID + " = NULL WHERE " + TABLE_COL_TVSERIESID + " = -1");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + TABLE_COL_TVSERIESID + " IS NOT NULL");
+					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + TABLE_COL_FILEID + " = -1");
 					//api settvseriesinfo had both filled filename and tvserieId ending in multiple row for nothing.
 					executeUpdate(connection,
-						"DELETE FROM " + TABLE_NAME + " WHERE EXISTS (SELECT " + COL_ID + " FROM " + TABLE_NAME + " T2 WHERE T2." + COL_TVSERIESID + " = " + TVSERIESID + " AND " +
+						"DELETE FROM " + TABLE_NAME + " WHERE EXISTS (SELECT " + COL_ID + " FROM " + TABLE_NAME + " T2 WHERE T2." + COL_TVSERIESID + " = " + TABLE_COL_TVSERIESID + " AND " +
 						"T2." + COL_FILEID + " IS NULL AND T2." + COL_ID + " != " + TABLE_NAME + "." + COL_ID + " AND " +
-						"T2." + COL_RATINGSOURCE + " = " + RATINGSOURCE + " AND T2." + COL_RATINGVALUE + " = " + RATINGVALUE + " AND " +
+						"T2." + COL_RATINGSOURCE + " = " + TABLE_COL_RATINGSOURCE + " AND T2." + COL_RATINGVALUE + " = " + TABLE_COL_RATINGVALUE + " AND " +
 						TABLE_NAME + "." + COL_ID + " != (SELECT MIN(T3." + COL_ID + ") FROM " + TABLE_NAME + " T3 WHERE T3." + COL_TVSERIESID + " = T2." + COL_TVSERIESID + "))");
 
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadatas.TABLE_NAME + "(" + MediaTableVideoMetadatas.COL_FILEID + ") ON DELETE CASCADE");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE");
 					break;
 				default:
@@ -143,7 +143,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 				"FILEID             INTEGER                         , " +
 				"RATINGSOURCE       VARCHAR(1024)       NOT NULL    , " +
 				"RATINGVALUE        VARCHAR(1024)       NOT NULL    , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadatas.TABLE_NAME + "(" + MediaTableVideoMetadatas.COL_FILEID + ") ON DELETE CASCADE, " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
 			")"
 		);

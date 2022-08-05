@@ -54,17 +54,18 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_NAME = "FILES";
 	public static final String COL_ID = "ID";
 	public static final String COL_THUMBID = "THUMBID";
-	public static final String ID = TABLE_NAME + "." + COL_ID;
-	public static final String FORMAT_TYPE = TABLE_NAME + ".FORMAT_TYPE";
-	public static final String FILENAME = TABLE_NAME + ".FILENAME";
-	public static final String MODIFIED = TABLE_NAME + ".MODIFIED";
-	public static final String WIDTH = TABLE_NAME + ".WIDTH";
-	public static final String HEIGHT = TABLE_NAME + ".HEIGHT";
-	public static final String THUMBID = TABLE_NAME + "." + COL_THUMBID;
-	public static final String STEREOSCOPY = TABLE_NAME + ".STEREOSCOPY";
+	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + ".FORMAT_TYPE";
+	public static final String TABLE_COL_FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String TABLE_COL_MODIFIED = TABLE_NAME + ".MODIFIED";
+	public static final String TABLE_COL_WIDTH = TABLE_NAME + ".WIDTH";
+	public static final String TABLE_COL_HEIGHT = TABLE_NAME + ".HEIGHT";
+	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
+	public static final String TABLE_COL_STEREOSCOPY = TABLE_NAME + ".STEREOSCOPY";
 
-	private static final String SQL_GET_ID_FILENAME = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILENAME + " = ? LIMIT 1";
-	private static final String SQL_GET_ID_FILENAME_MODIFIED = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + FILENAME + " = ? AND " + MODIFIED + " = ? LIMIT 1";
+	private static final String SQL_GET_ID_FILENAME = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_GET_ID_FILENAME_MODIFIED = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
+	private static final String SQL_GET_ALL_FILENAME_MODIFIED = "SELECT * FROM " + TABLE_NAME + " " + MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_FILES + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
 
 	public static final String NONAME = "###";
 
@@ -287,7 +288,7 @@ public class MediaTableFiles extends MediaTable {
 						break;
 					case 32:
 						//ensure MediaTableVideoMetadatas is created
-						MediaTableVideoMetadatas.checkTable(connection);
+						MediaTableVideoMetadata.checkTable(connection);
 
 						//drop all metadata indexes
 						String[] indexes = {
@@ -320,7 +321,7 @@ public class MediaTableFiles extends MediaTable {
 						if (isColumnExist(connection, TABLE_NAME, "MOVIEORSHOWNAMESIMPLE")) {
 							StringBuilder sb = new StringBuilder();
 							StringBuilder sbselect = new StringBuilder();
-							sb.append("INSERT INTO ").append(MediaTableVideoMetadatas.TABLE_NAME);
+							sb.append("INSERT INTO ").append(MediaTableVideoMetadata.TABLE_NAME);
 							sb.append(" (FILEID");
 							sbselect.append("ID");
 							for (String column : columns)  {
@@ -338,7 +339,7 @@ public class MediaTableFiles extends MediaTable {
 							sb.append(") ");
 							sb.append("SELECT ").append(sbselect.toString()).append(" FROM ").append(TABLE_NAME);
 							sb.append(" WHERE MOVIEORSHOWNAMESIMPLE IS NOT NULL");
-							sb.append(" AND ID NOT IN (SELECT FILEID FROM ").append(MediaTableVideoMetadatas.TABLE_NAME).append(")");
+							sb.append(" AND ID NOT IN (SELECT FILEID FROM ").append(MediaTableVideoMetadata.TABLE_NAME).append(")");
 							executeUpdate(connection, sb.toString());
 						}
 
@@ -433,7 +434,7 @@ public class MediaTableFiles extends MediaTable {
 			LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
 			statement.execute("CREATE INDEX FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
 
-			LOGGER.trace("Creating index on " + THUMBID);
+			LOGGER.trace("Creating index on " + TABLE_COL_THUMBID);
 			statement.execute("CREATE INDEX " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
 		}
 	}
@@ -519,21 +520,16 @@ public class MediaTableFiles extends MediaTable {
 		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
 		try {
 			try (
-				PreparedStatement stmt = connection.prepareStatement(
-					"SELECT * FROM " + TABLE_NAME + " " +
-					MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_FILES +
-					"WHERE " + FILENAME + " = ? AND " + MODIFIED + " = ? " +
-					"LIMIT 1"
-				);
+				PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
 			) {
 				stmt.setString(1, name);
 				stmt.setTimestamp(2, new Timestamp(modified));
 				try (
 					ResultSet rs = stmt.executeQuery();
-					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.FILEID + " = ?");
-					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE " + MediaTableSubtracks.FILEID + " = ?");
-					PreparedStatement chapters = connection.prepareStatement("SELECT * FROM " + MediaTableChapters.TABLE_NAME + " WHERE " + MediaTableChapters.FILEID + " = ?");
-					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE " + MediaTableFilesStatus.FILENAME + " = ? LIMIT 1");
+					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.TABLE_COL_FILEID + " = ?");
+					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE " + MediaTableSubtracks.TABLE_COL_FILEID + " = ?");
+					PreparedStatement chapters = connection.prepareStatement("SELECT * FROM " + MediaTableChapters.TABLE_NAME + " WHERE " + MediaTableChapters.TABLE_COL_FILEID + " = ?");
+					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE " + MediaTableFilesStatus.TABLE_COL_FILENAME + " = ? LIMIT 1");
 				) {
 					if (rs.next()) {
 						media = new DLNAMediaInfo();
@@ -566,7 +562,7 @@ public class MediaTableFiles extends MediaTable {
 						media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
 						media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
 
-						media.setVideoMetadata(MediaTableVideoMetadatas.getVideoMetadataByFileId(connection, id));
+						media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
 						media.setMediaparsed(true);
 
 						audios.setInt(1, id);
@@ -719,7 +715,7 @@ public class MediaTableFiles extends MediaTable {
 		Long id = getFileId(connection, name);
 		if (id != null) {
 			DLNAMediaInfo media = new DLNAMediaInfo();
-			media.setVideoMetadata(MediaTableVideoMetadatas.getVideoMetadataByFileId(connection, id));
+			media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
 			media.setMediaparsed(true);
 			return media;
 		}
@@ -743,15 +739,14 @@ public class MediaTableFiles extends MediaTable {
 	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
 		try {
 			long fileId = -1;
-			try (PreparedStatement ps = connection.prepareStatement(
-				"SELECT " +
+			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
 					"ID, FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, FRAMERATE, " +
 					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
 					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
 					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
-					FILENAME + " = ? " +
+					TABLE_COL_FILENAME + " = ? " +
 				"LIMIT 1",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
@@ -913,7 +908,7 @@ public class MediaTableFiles extends MediaTable {
 			}
 
 			if (media != null && fileId > -1) {
-				MediaTableVideoMetadatas.insertOrUpdateVideoMetadata(connection, fileId, media, null);
+				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, null);
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
@@ -1021,9 +1016,9 @@ public class MediaTableFiles extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			int rows;
 			if (useLike) {
-				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE " + FILENAME + " LIKE " + sqlQuote(filename));
+				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " LIKE " + sqlQuote(filename));
 			} else {
-				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE " + FILENAME + " = " + sqlQuote(filename));
+				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = " + sqlQuote(filename));
 			}
 			LOGGER.trace("Deleted {} rows from " + TABLE_NAME, rows);
 		}
@@ -1063,8 +1058,7 @@ public class MediaTableFiles extends MediaTable {
 	public static void updateThumbnailId(final Connection connection, String fullPathToFile, int thumbId) {
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement(
-					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE " + FILENAME + " = ?"
+				PreparedStatement ps = connection.prepareStatement("UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE " + TABLE_COL_FILENAME + " = ?"
 				);
 			) {
 				ps.setInt(1, thumbId);
@@ -1129,7 +1123,7 @@ public class MediaTableFiles extends MediaTable {
 			int oldpercent = 0;
 
 			if (dbCount > 0) {
-				ps = connection.prepareStatement("SELECT " + FILENAME + ", " + MODIFIED + ", " + ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+				ps = connection.prepareStatement("SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_MODIFIED + ", " + TABLE_COL_ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 				rs = ps.executeQuery();
 
 				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
@@ -1173,15 +1167,14 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
+			ps = connection.prepareStatement("DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
-					"SELECT " + ID + " FROM " + TABLE_NAME + " " +
-					"WHERE " + THUMBID + " = " + MediaTableThumbnails.ID + " " +
+					"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
+					"WHERE " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
 					"LIMIT 1" +
 				") AND NOT EXISTS (" +
-					"SELECT " + MediaTableTVSeries.ID + " FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-					"WHERE " + MediaTableTVSeries.THUMBID + " = " + MediaTableThumbnails.ID + " " +
+					"SELECT " + MediaTableTVSeries.TABLE_COL_ID + " FROM " + MediaTableTVSeries.TABLE_NAME + " " +
+					"WHERE " + MediaTableTVSeries.TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
 					"LIMIT 1" +
 				");"
 			);
@@ -1192,11 +1185,10 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
+			ps = connection.prepareStatement("DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
-					"SELECT " + ID + " FROM " + TABLE_NAME + " " +
-					"WHERE " + FILENAME + " = " + MediaTableFilesStatus.FILENAME +
+					"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
+					"WHERE " + TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME +
 				");"
 			);
 			ps.execute();
@@ -1209,8 +1201,8 @@ public class MediaTableFiles extends MediaTable {
 			ps = connection.prepareStatement(
 				"DELETE FROM " + MediaTableTVSeries.TABLE_NAME + " " +
 				"WHERE NOT EXISTS (" +
-					"SELECT " + MediaTableVideoMetadatas.MOVIEORSHOWNAMESIMPLE + " FROM " + MediaTableVideoMetadatas.TABLE_NAME + " " +
-					"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAMESIMPLE + " = " + MediaTableTVSeries.SIMPLIFIEDTITLE + " " +
+					"SELECT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " FROM " + MediaTableVideoMetadata.TABLE_NAME + " " +
+					"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " = " + MediaTableTVSeries.TABLE_COL_SIMPLIFIEDTITLE + " " +
 					"LIMIT 1" +
 				");"
 			);
@@ -1261,11 +1253,11 @@ public class MediaTableFiles extends MediaTable {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 
 		try {
-			String query = "SELECT " + MediaTableThumbnails.THUMBNAIL + " " +
+			String query = "SELECT " + MediaTableThumbnails.TABLE_COL_THUMBNAIL + " " +
 				"FROM " + TABLE_NAME + " " +
 				MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadatas.SQL_LEFT_JOIN_TABLE_FILES +
-				"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAMESIMPLE + " = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
+				MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_FILES +
+				"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);

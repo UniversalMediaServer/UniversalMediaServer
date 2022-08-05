@@ -47,7 +47,7 @@ public class LikeMusic implements ApiResponseHandler {
 			String sql;
 			switch (uri) {
 				case "likesong":
-					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = true WHERE " + MediaTableAudiotracks.MBID_TRACK + " = ?";
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = true WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -69,7 +69,7 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "dislikesong":
-					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = false WHERE " + MediaTableAudiotracks.MBID_TRACK + " = ?";
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = false WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -80,7 +80,7 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "dislikealbum":
-					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.MBID_RELEASE + " = ?";
+					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -91,10 +91,10 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "isalbumliked":
-					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.MBID_RELEASE + " = ?";
+					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
 				case "issongliked":
-					sql = "SELECT COUNT(*) FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.MBID_TRACK + " = ?";
+					sql = "SELECT COUNT(*) FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
 				case "backupLikedAlbums":
 					backupLikedAlbums();

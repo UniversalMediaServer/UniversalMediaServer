@@ -62,7 +62,7 @@ import net.pms.database.MediaTableVideoMetadataProduction;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataRatings;
 import net.pms.database.MediaTableVideoMetadataReleased;
-import net.pms.database.MediaTableVideoMetadatas;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
@@ -301,7 +301,7 @@ public class APIUtils {
 					return;
 				}
 
-				if (MediaTableVideoMetadatas.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
+				if (MediaTableVideoMetadata.doesLatestApiMetadataExist(connection, file.getAbsolutePath(), file.lastModified())) {
 					LOGGER.trace("The latest metadata already exists for {}", file.getName());
 					return;
 				}
@@ -501,7 +501,7 @@ public class APIUtils {
 
 				LOGGER.trace("setting metadata for " + file.getName());
 				Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
-				MediaTableVideoMetadatas.insertOrUpdateVideoMetadata(connection, fileId, media, metadataFromAPI);
+				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, metadataFromAPI);
 
 				if (media.getThumb() != null) {
 					MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
@@ -733,7 +733,7 @@ public class APIUtils {
 				titleSimplified.equals(titleSimplifiedFromFilename)
 			) {
 				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-				MediaTableVideoMetadatas.updateMovieOrShowName(connection, titleFromFilename, title);
+				MediaTableVideoMetadata.updateMovieOrShowName(connection, titleFromFilename, title);
 			}
 
 			return title;

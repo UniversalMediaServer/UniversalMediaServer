@@ -33,15 +33,15 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFailedLookups.class);
 	public static final String TABLE_NAME = "FAILED_LOOKUPS";
 	private static final String COL_LASTATTEMPT = "LASTATTEMPT";
-	public static final String LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
-	public static final String FAILUREDETAILS = TABLE_NAME + ".FAILUREDETAILS";
-	public static final String FILENAME = TABLE_NAME + ".FILENAME";
-	public static final String VERSION = TABLE_NAME + ".VERSION";
-	private static final String SQL_GET_LASTATTEMPT = "SELECT " + LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + FILENAME + " = ? LIMIT 1";
-	private static final String SQL_GET_LASTATTEMPT_VERSION = "SELECT " + LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + FILENAME + " = ? AND " + VERSION + " = ? LIMIT 1";
-	private static final String SQL_GET_FILENAME = "SELECT " + FILENAME + ", " + FAILUREDETAILS + ", " + VERSION + " FROM " + TABLE_NAME + " WHERE " + FILENAME + " = ? LIMIT 1";
-	private static final String SQL_DELETE_FILENAME = "DELETE FROM  " + TABLE_NAME + " WHERE " + FILENAME + " = ?";
-	private static final String SQL_DELETE_FILENAME_LIKE = "DELETE FROM  " + TABLE_NAME + " WHERE " + FILENAME + " LIKE ?";
+	public static final String TABLE_COL_LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
+	public static final String TABLE_COL_FAILUREDETAILS = TABLE_NAME + ".FAILUREDETAILS";
+	public static final String TABLE_COL_FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String TABLE_COL_VERSION = TABLE_NAME + ".VERSION";
+	private static final String SQL_GET_LASTATTEMPT = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_GET_LASTATTEMPT_VERSION = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_VERSION + " = ? LIMIT 1";
+	private static final String SQL_GET_FILENAME = "SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_FAILUREDETAILS + ", " + TABLE_COL_VERSION + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_DELETE_FILENAME = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ?";
+	private static final String SQL_DELETE_FILENAME_LIKE = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " LIKE ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -224,6 +224,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 		try {
 			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAME, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				statement.setString(1, fullPathToFile);
+				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", statement);
 				try (ResultSet result = statement.executeQuery()) {
 					if (result.next()) {
 						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));

@@ -80,7 +80,7 @@ public class DbIdResourceLocator {
 						case TYPE_AUDIO:
 						case TYPE_VIDEO:
 						case TYPE_IMAGE:
-							sql = String.format("SELECT " + MediaTableFiles.FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.ID + " = %s", typeAndIdent.ident);
+							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
 							}
@@ -93,7 +93,7 @@ public class DbIdResourceLocator {
 							break;
 
 						case TYPE_PLAYLIST:
-							sql = String.format("SELECT " + MediaTableFiles.FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.ID + " = %s", typeAndIdent.ident);
+							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
 							}
@@ -109,8 +109,8 @@ public class DbIdResourceLocator {
 
 						case TYPE_ALBUM:
 							sql = String.format(
-								"SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.ID + ", " + MediaTableFiles.MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + MediaTableAudiotracks.FILEID + " " +
-									"WHERE ( " + MediaTableFiles.FORMAT_TYPE + " = 1  AND  " + MediaTableAudiotracks.ALBUM + " = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')",
 								typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
@@ -130,8 +130,8 @@ public class DbIdResourceLocator {
 
 						case TYPE_MUSICBRAINZ_RECORDID:
 							sql = String.format(
-								"SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableAudiotracks.MBID_TRACK + ", " + MediaTableFiles.ID + ", " + MediaTableAudiotracks.ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + MediaTableAudiotracks.FILEID + " " +
-									"WHERE ( " + MediaTableFiles.FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.MBID_RECORD + " = '%s' ) ORDER BY " + MediaTableAudiotracks.MBID_TRACK,
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + " = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK,
 								typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
@@ -160,7 +160,7 @@ public class DbIdResourceLocator {
 							}
 							break;
 						case TYPE_MYMUSIC_ALBUM:
-							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.MBID_RELEASE + ", " + MediaTableAudiotracks.ALBUM + ", " + MediaTableAudiotracks.ARTIST + ", " + MediaTableAudiotracks.MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.MBID_RELEASE + " = " + MediaTableAudiotracks.MBID_RECORD + ";";
+							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ", " + MediaTableAudiotracks.TABLE_COL_MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + ";";
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
 							}
@@ -196,8 +196,8 @@ public class DbIdResourceLocator {
 							break;
 						case TYPE_PERSON_ALL_FILES:
 							sql = String.format(
-								"SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.ID + ", " + MediaTableFiles.MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + MediaTableAudiotracks.FILEID + " " +
-									"WHERE (" + MediaTableAudiotracks.ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.ARTIST + " = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
 								typeAndIdent.ident, typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PERSON : %s", sql));
@@ -228,7 +228,7 @@ public class DbIdResourceLocator {
 							break;
 
 						case TYPE_PERSON_ALBUM:
-							sql = String.format("SELECT DISTINCT(" + MediaTableAudiotracks.ALBUM + ") FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE COALESCE(" + MediaTableAudiotracks.ALBUMARTIST + ", " + MediaTableAudiotracks.ARTIST + ") = '%s'",
+							sql = String.format("SELECT DISTINCT(" + MediaTableAudiotracks.TABLE_COL_ALBUM + ") FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
 								typeAndIdent.ident);
 							res = new VirtualFolderDbId(
 								typeAndIdent.ident,
@@ -248,8 +248,8 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON_ALBUM_FILES:
 							String[] identSplitted = typeAndIdent.ident.split(DbIdMediaType.SPLIT_CHARS);
 							sql = String.format(
-								"SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.ID + ", " + MediaTableFiles.MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + MediaTableAudiotracks.FILEID + " " +
-									"WHERE (" + MediaTableAudiotracks.ALBUM + " = '%s') AND (" + MediaTableAudiotracks.ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.ARTIST + " = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s') AND (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
 								identSplitted[1], identSplitted[0], identSplitted[0]);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],

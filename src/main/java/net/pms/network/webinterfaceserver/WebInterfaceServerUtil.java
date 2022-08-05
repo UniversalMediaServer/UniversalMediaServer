@@ -45,7 +45,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
-import net.pms.database.MediaTableVideoMetadatas;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -793,7 +793,7 @@ public class WebInterfaceServerUtil {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
 					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle);
 				} else {
-					result = MediaTableVideoMetadatas.getVideoMetadataAsJsonObject(connection, resource.getFileName());
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
 				}
 			}
 		} catch (Exception e) {
