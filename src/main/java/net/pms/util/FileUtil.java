@@ -618,6 +618,7 @@ public class FileUtil {
 
 	private static final String SHOW_NAME_INDEX_MATCHER = "(?i) (S\\d{2}E\\d{2}\\w{1}|S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})";
 	private static final Pattern SHOW_NAME_INDEX_PATTERN = Pattern.compile(SHOW_NAME_INDEX_MATCHER + " - (.*)");
+	private static final Pattern SHOW_NAME_INDEX_FALLBACK_PATTERN = Pattern.compile(SHOW_NAME_INDEX_MATCHER);
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
@@ -1227,8 +1228,8 @@ public class FileUtil {
 			if (tvSeason.length() > 1 && tvSeason.startsWith("0")) {
 				tvSeason = tvSeason.substring(1);
 			}
-			int showNameIndex = indexOf(SHOW_NAME_INDEX_PATTERN, formattedName);
 			if (isEmpty(movieOrShowName)) {
+				int showNameIndex = indexOf(SHOW_NAME_INDEX_PATTERN, formattedName);
 				if (showNameIndex != -1) {
 					movieOrShowName = formattedName.substring(0, showNameIndex);
 
@@ -1248,7 +1249,7 @@ public class FileUtil {
 						tvEpisodeName = convertFormattedNameToTitleCase(tvEpisodeName);
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile(SHOW_NAME_INDEX_MATCHER), formattedName);
+					showNameIndex = indexOf(SHOW_NAME_INDEX_FALLBACK_PATTERN, formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
