@@ -602,7 +602,7 @@ public class FileUtil {
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 
-	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,})";
+	private static final String SCENE_P2P_EPISODE_REGEX = "[sS](\\d{1,2})(?:\\s|)[eE](\\d{1,}\\w{1}|\\d{1,})";
 	private static final String SCENE_P2P_EPISODE_SPECIAL_REGEX = "[sS](\\d{2})\\s(\\w{3,})";
 	private static final String MIXED_EPISODE_CONVENTION = "\\s(?:Ep|e)(?:\\s{1,2}|)(\\d{1,4})(?:\\s|$)";
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
@@ -615,6 +615,9 @@ public class FileUtil {
 	private static final String SCENE_MULTI_EPISODE_CONVENTION = "[sS](\\d{1,2})[eE](\\d{1,})([eE]|-[eE])(\\d{1,})";
 	private static final String SCENE_MULTI_EPISODE_CONVENTION_MATCH = ".*" + SCENE_MULTI_EPISODE_CONVENTION + ".*";
 	private static final Pattern SCENE_MULTI_EPISODE_CONVENTION_PATTERN = Pattern.compile(SCENE_MULTI_EPISODE_CONVENTION);
+
+	private static final String SHOW_NAME_INDEX_MATCHER = "(?i) (S\\d{2}E\\d{2}\\w{1}|S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})";
+	private static final Pattern SHOW_NAME_INDEX_PATTERN = Pattern.compile(SHOW_NAME_INDEX_MATCHER + " - (.*)");
 
 	/**
 	 * Same as above, but they are common words so we reduce the chances of a
@@ -1224,14 +1227,12 @@ public class FileUtil {
 			if (tvSeason.length() > 1 && tvSeason.startsWith("0")) {
 				tvSeason = tvSeason.substring(1);
 			}
-			String showNameIndexMatcher = "(?i) (S\\d{2}E\\d{2}|S\\d{2}|S\\d{2}E\\d{2}-\\d{2}|\\d{4}/\\d{2}/\\d{2})";
-			pattern = Pattern.compile(showNameIndexMatcher + " - (.*)");
-			int showNameIndex = indexOf(pattern, formattedName);
+			int showNameIndex = indexOf(SHOW_NAME_INDEX_PATTERN, formattedName);
 			if (isEmpty(movieOrShowName)) {
 				if (showNameIndex != -1) {
 					movieOrShowName = formattedName.substring(0, showNameIndex);
 
-					matcher = pattern.matcher(formattedName);
+					matcher = SHOW_NAME_INDEX_PATTERN.matcher(formattedName);
 					if (matcher.find()) {
 						tvEpisodeName = matcher.group(2).trim();
 						if (isEmpty(tvEpisodeName)) {
@@ -1247,7 +1248,7 @@ public class FileUtil {
 						tvEpisodeName = convertFormattedNameToTitleCase(tvEpisodeName);
 					}
 				} else {
-					showNameIndex = indexOf(Pattern.compile(showNameIndexMatcher), formattedName);
+					showNameIndex = indexOf(Pattern.compile(SHOW_NAME_INDEX_MATCHER), formattedName);
 					if (showNameIndex != -1) {
 						movieOrShowName = formattedName.substring(0, showNameIndex);
 					}
