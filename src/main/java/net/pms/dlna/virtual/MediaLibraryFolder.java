@@ -652,7 +652,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						"), " +
 						"genresSubquery AS (" +
 							"SELECT " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + 
+							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
 							"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}'" +
 						") " +
 						"SELECT " +

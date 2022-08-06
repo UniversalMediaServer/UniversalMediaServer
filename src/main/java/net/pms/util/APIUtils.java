@@ -93,12 +93,17 @@ public class APIUtils {
 			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread("Api Utils Executor Shutdown Hook") {
+			@Override
+			public void run() {
+				BACKGROUND_EXECUTOR.shutdownNow();
+			}
+		});
+	}
+
 	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 	private static final Gson GSON = new Gson();
-
-	// Do not instantiate
-	private APIUtils() {
-	}
 
 	/**
 	 * These versions are returned to us from the API server. The versions are
