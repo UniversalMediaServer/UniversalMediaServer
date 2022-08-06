@@ -20,7 +20,7 @@ import net.pms.database.MediaTableVideoMetadataGenres;
 import net.pms.database.MediaTableVideoMetadataIMDbRating;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataReleased;
-import net.pms.database.MediaTableVideoMetadatas;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -37,14 +37,12 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaLibraryFolder extends VirtualFolder {
 	protected static final String FROM_FILES = "FROM " + MediaTableFiles.TABLE_NAME + " ";
-	protected static final String JOIN_VIDEO_METADATAS = "LEFT JOIN " + MediaTableVideoMetadatas.TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + MediaTableVideoMetadatas.FILEID + " ";
-	protected static final String JOIN_FILES_STATUS = "LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " + MediaTableFiles.FILENAME + " = " + MediaTableFilesStatus.FILENAME + " ";
-	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + JOIN_VIDEO_METADATAS;
-	protected static final String FROM_FILES_STATUS = FROM_FILES + JOIN_FILES_STATUS;
-	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES + JOIN_FILES_STATUS + JOIN_VIDEO_METADATAS;
-	private static final String UNWATCHED_CONDITION = MediaTableFilesStatus.ISFULLYPLAYED + " IS NOT TRUE AND ";
-	private static final String WATCHED_CONDITION = MediaTableFilesStatus.ISFULLYPLAYED + " IS TRUE AND ";
-	private static final String SELECT_DISTINCT_TVSEASON = "SELECT DISTINCT " + MediaTableVideoMetadatas.TVSEASON + " " + FROM_FILES_VIDEOMETA;
+	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
+	protected static final String FROM_FILES_STATUS = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS;
+	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
+	private static final String UNWATCHED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + " IS NOT TRUE AND ";
+	private static final String WATCHED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + " IS TRUE AND ";
+	private static final String SELECT_DISTINCT_TVSEASON = "SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_TVSEASON + " " + FROM_FILES_VIDEOMETA;
 
 	public static final int FILES = 0;
 	public static final int TEXTS = 1;
@@ -176,8 +174,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private static List<String> getTVSeriesQueries(String tableName, String columnName) {
 		List<String> queries = new ArrayList<>();
 		queries.add("SELECT " + columnName + " FROM " + tableName + " WHERE " + MediaTableTVSeries.CHILD_ID + " IS NOT NULL ORDER BY " + columnName + " ASC");
-		queries.add("SELECT " + MediaTableTVSeries.TITLE + " FROM " + MediaTableTVSeries.TABLE_NAME + " LEFT JOIN " + tableName + " ON " + MediaTableTVSeries.ID + " = " + tableName + ".TVSERIESID WHERE " + columnName + " = '${0}' ORDER BY " + MediaTableTVSeries.TITLE + " ASC");
-		queries.add("SELECT          *     " + FROM_FILES_VIDEOMETA + "WHERE " + MediaTableFiles.FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadatas.ISTVEPISODE + " AND " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}' ORDER BY " + MediaTableVideoMetadatas.TVEPISODENUMBER);
+		queries.add("SELECT " + MediaTableTVSeries.TABLE_COL_TITLE + " FROM " + MediaTableTVSeries.TABLE_NAME + " LEFT JOIN " + tableName + " ON " + MediaTableTVSeries.TABLE_COL_ID + " = " + tableName + ".TVSERIESID WHERE " + columnName + " = '${0}' ORDER BY " + MediaTableTVSeries.TABLE_COL_TITLE + " ASC");
+		queries.add("SELECT          *     " + FROM_FILES_VIDEOMETA + "WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
 		return queries;
 	}
 
@@ -193,7 +191,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		// If the query does not already join the right metadata table, do that now
 		if (!firstSql.contains("LEFT JOIN " + tableName)) {
-			String joinSection = "LEFT JOIN " + tableName + " ON " + MediaTableFiles.ID + " = " + tableName + "." + MediaTableVideoMetadatas.COL_FILEID + " ";
+			String joinSection = "LEFT JOIN " + tableName + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + tableName + "." + MediaTableVideoMetadata.COL_FILEID + " ";
 			query.insert(indexAfterFromInFirstQuery, joinSection);
 		}
 
@@ -213,7 +211,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
 		String condition = columnName + " = '${0}' AND ";
 		if (!sql.contains("LEFT JOIN " + tableName)) {
-			String joinSection = "LEFT JOIN " + tableName + " ON " + MediaTableFiles.ID + " = " + tableName + "." + MediaTableVideoMetadatas.COL_FILEID + " ";
+			String joinSection = "LEFT JOIN " + tableName + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + tableName + "." + MediaTableVideoMetadata.COL_FILEID + " ";
 			query.insert(indexAfterFrom, joinSection);
 		}
 		int indexAfterWhere = query.indexOf(whereString) + whereString.length();
@@ -281,10 +279,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 								// Build the season filter folders
 								String orderByString = "ORDER BY ";
 								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
-								if (firstSql.indexOf(JOIN_VIDEO_METADATAS) > 0) {
-									indexAfterFromInFirstQuery = firstSql.indexOf(JOIN_VIDEO_METADATAS) + JOIN_VIDEO_METADATAS.length();
+								if (firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) > 0) {
+									indexAfterFromInFirstQuery = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
 								}
-								String orderBySection = "ORDER BY " + MediaTableVideoMetadatas.TVSEASON;
+								String orderBySection = "ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVSEASON;
 
 								seasonsQuery.append(firstSql);
 								seasonsQuery.replace(0, indexAfterFromInFirstQuery, SELECT_DISTINCT_TVSEASON);
@@ -320,10 +318,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 								if (!firstSql.toLowerCase().startsWith("select")) {
 									if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-										firstSql = "SELECT " + MediaTableFiles.FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + firstSql;
+										firstSql = "SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + firstSql;
 									}
 									if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-										firstSql = "SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + firstSql;
+										firstSql = "SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + firstSql;
 									}
 								}
 
@@ -334,19 +332,19 @@ public class MediaLibraryFolder extends VirtualFolder {
 									 * attempt to modify the incoming statements to make filtering versions.
 									 */
 									if (expectedOutput == TVSERIES_WITH_FILTERS) {
-										actorsSqls = getTVSeriesQueries(MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.ACTOR);
-										countriesSqls = getTVSeriesQueries(MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.COUNTRY);
-										directorsSqls = getTVSeriesQueries(MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.DIRECTOR);
-										genresSqls = getTVSeriesQueries(MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.GENRE);
-										ratedSqls = getTVSeriesQueries(MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.RATED);
-										releasedSqls = getTVSeriesQueries(MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.RELEASEDATE + ", 'yyyy')");
+										actorsSqls = getTVSeriesQueries(MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR);
+										countriesSqls = getTVSeriesQueries(MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY);
+										directorsSqls = getTVSeriesQueries(MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR);
+										genresSqls = getTVSeriesQueries(MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE);
+										ratedSqls = getTVSeriesQueries(MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.TABLE_COL_RATED);
+										releasedSqls = getTVSeriesQueries(MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_COL_RELEASEDATE + ", 'yyyy')");
 									} else {
-										actorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.ACTOR));
-										countriesSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.COUNTRY));
-										directorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.DIRECTOR));
-										genresSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.GENRE));
-										ratedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.RATED));
-										releasedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.RELEASEDATE + ", 'yyyy')"));
+										actorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR));
+										countriesSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY));
+										directorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR));
+										genresSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE));
+										ratedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.TABLE_COL_RATED));
+										releasedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_COL_RELEASEDATE + ", 'yyyy')"));
 									}
 								}
 
@@ -355,10 +353,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 								for (String sql : sqls) {
 									if (!sql.toLowerCase().startsWith("select") && !sql.toLowerCase().startsWith("with")) {
 										if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-											sql = "SELECT " + MediaTableFiles.FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + sql;
+											sql = "SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + sql;
 										}
 										if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-											sql = "SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + sql;
+											sql = "SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + sql;
 										}
 									}
 									String whereString = "WHERE ";
@@ -367,7 +365,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 									// If the query does not already join the FILES_STATUS table, do that now
 									StringBuilder sqlWithJoin = new StringBuilder(sql);
 									if (!sql.contains("LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME)) {
-										sqlWithJoin.insert(indexAfterFrom, JOIN_FILES_STATUS);
+										sqlWithJoin.insert(indexAfterFrom, MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS);
 									}
 
 									int indexAfterWhere = sqlWithJoin.indexOf(whereString) + whereString.length();
@@ -382,12 +380,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 									// Adds modified versions of the query that filter by metadata
 									if (configuration.isUseInfoFromIMDb() && expectedOutput != TVSERIES_WITH_FILTERS) {
-										actorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.ACTOR, i));
-										countriesSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.COUNTRY, i));
-										directorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.DIRECTOR, i));
-										genresSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.GENRE, i));
-										ratedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.RATED, i));
-										releasedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.RELEASEDATE + ", 'yyyy')", i));
+										actorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR, i));
+										countriesSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY, i));
+										directorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR, i));
+										genresSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE, i));
+										ratedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataRated.TABLE_NAME, MediaTableVideoMetadataRated.TABLE_COL_RATED, i));
+										releasedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataReleased.TABLE_NAME, "FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_COL_RELEASEDATE + ", 'yyyy')", i));
 									}
 									i++;
 								}
@@ -538,7 +536,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 						String whereString = "WHERE ";
 						int indexAfterWhere = episodesWithinSeasonQuery.indexOf(whereString) + whereString.length();
-						String condition = MediaTableVideoMetadatas.TVSEASON + " = '" + virtualFolderName + "' AND ";
+						String condition = MediaTableVideoMetadata.TABLE_COL_TVSEASON + " = '" + virtualFolderName + "' AND ";
 						episodesWithinSeasonQuery.insert(indexAfterWhere, condition);
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
@@ -560,32 +558,32 @@ public class MediaLibraryFolder extends VirtualFolder {
 						if (resource.getName() != null && "###".equals(virtualFolderName)) {
 							if (resource.getName().equals(Messages.getString("Actors"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataActors.ACTOR + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataActors.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataActors.TABLE_COL_ACTOR + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataActors.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							} else if (resource.getName().equals(Messages.getString("Country"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataCountries.COUNTRY + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataCountries.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataCountries.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							} else if (resource.getName().equals(Messages.getString("Director"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataDirectors.DIRECTOR + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataDirectors.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataDirectors.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							} else if (resource.getName().equals(Messages.getString("Genres"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataGenres.GENRE + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataGenres.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							} else if (resource.getName().equals(Messages.getString("Rated"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataRated.RATED + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataRated.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE " + MediaTableVideoMetadataRated.TABLE_COL_RATED + " = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataRated.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							} else if (resource.getName().equals(Messages.getString("Released"))) {
 								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace("WHERE FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_NAME + ".RELEASEDATE, 'yyyy') = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataReleased.FILEID + " IS NULL");
+									sqls2[i] = sqls2[i].replace("WHERE FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_NAME + ".RELEASEDATE, 'yyyy') = '${" + i + "}'", "WHERE " + MediaTableVideoMetadataReleased.TABLE_COL_FILEID + " IS NULL");
 								}
 								nameToDisplay = "Unknown";
 							}
@@ -604,42 +602,42 @@ public class MediaLibraryFolder extends VirtualFolder {
 				Messages.getString("Recommendations"),
 				new String[]{
 					"WITH ratedSubquery AS (" +
-						"SELECT " + MediaTableVideoMetadataRated.RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
-						"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + MediaTableVideoMetadataRated.TVSERIESID + " = " + MediaTableTVSeries.ID + " " +
-						"WHERE " + MediaTableTVSeries.TITLE + " = " + MediaDatabase.sqlQuote(getName()) + " " +
+						"SELECT " + MediaTableVideoMetadataRated.TABLE_COL_RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
+						MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						"WHERE " + MediaTableTVSeries.TABLE_COL_TITLE + " = " + MediaDatabase.sqlQuote(getName()) + " " +
 						"LIMIT 1" +
 					"), " +
 					"genresSubquery AS (" +
-						"SELECT " + MediaTableVideoMetadataGenres.GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-						"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + MediaTableVideoMetadataGenres.TVSERIESID + " = " + MediaTableTVSeries.ID + " " +
-						"WHERE " + MediaTableTVSeries.TITLE + " = " + MediaDatabase.sqlQuote(getName()) +
+						"SELECT " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
+						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						"WHERE " + MediaTableTVSeries.TABLE_COL_TITLE + " = " + MediaDatabase.sqlQuote(getName()) +
 					") " +
 					"SELECT " +
-						"DISTINCT " + MediaTableTVSeries.TITLE + ", " +
-						MediaTableVideoMetadataIMDbRating.IMDBRATING + ", " +
-						MediaTableVideoMetadataGenres.GENRE + ", " +
-						MediaTableVideoMetadataRated.RATED + " " +
+						"DISTINCT " + MediaTableTVSeries.TABLE_COL_TITLE + ", " +
+						MediaTableVideoMetadataIMDbRating.TABLE_COL_IMDBRATING + ", " +
+						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + ", " +
+						MediaTableVideoMetadataRated.TABLE_COL_RATED + " " +
 					"FROM " +
 						"ratedSubquery, " +
 						"genresSubquery, " +
 						MediaTableTVSeries.TABLE_NAME + " " +
-						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
-						MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES +
-						MediaTableVideoMetadataIMDbRating.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING +
 					"WHERE " +
-						MediaTableTVSeries.TITLE + " != " + MediaDatabase.sqlQuote(getName()) + " AND " +
-						MediaTableVideoMetadataGenres.GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
-						MediaTableVideoMetadataRated.RATED  + " = ratedSubquery." + MediaTableVideoMetadataRated.COL_RATED + " " +
-					"ORDER BY " + MediaTableVideoMetadataIMDbRating.IMDBRATING + " DESC",
-					"SELECT * " + FROM_FILES_VIDEOMETA + "WHERE " + MediaTableFiles.FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadatas.ISTVEPISODE + " AND " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}' ORDER BY " + MediaTableVideoMetadatas.TVSEASON + ", " + MediaTableVideoMetadatas.TVEPISODENUMBER
+						MediaTableTVSeries.TABLE_COL_TITLE + " != " + MediaDatabase.sqlQuote(getName()) + " AND " +
+						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
+						MediaTableVideoMetadataRated.TABLE_COL_RATED  + " = ratedSubquery." + MediaTableVideoMetadataRated.COL_RATED + " " +
+					"ORDER BY " + MediaTableVideoMetadataIMDbRating.TABLE_COL_IMDBRATING + " DESC",
+					"SELECT * " + FROM_FILES_VIDEOMETA + "WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
 				},
 				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 			);
 			addChild(recommendations);
 		} else if (expectedOutput == FILES_WITH_FILTERS) {
 			if (firstSql != null) {
-				if (firstSql.startsWith("SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.MODIFIED)) {
-					firstSql = firstSql.replaceFirst("SELECT " + MediaTableFiles.FILENAME + ", " + MediaTableFiles.MODIFIED, "SELECT " + MediaTableVideoMetadatas.MOVIEORSHOWNAME);
+				if (firstSql.startsWith("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED)) {
+					firstSql = firstSql.replaceFirst("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED, "SELECT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME);
 				}
 
 				VirtualFolder recommendations = new MediaLibraryFolder(
@@ -647,38 +645,36 @@ public class MediaLibraryFolder extends VirtualFolder {
 					new String[]{
 						firstSql,
 						"WITH ratedSubquery AS (" +
-							"SELECT " + MediaTableVideoMetadataRated.RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
-							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataRated.FILEID + " = " + MediaTableFiles.ID + " " +
-							JOIN_VIDEO_METADATAS +
-							"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}' " +
+							"SELECT " + MediaTableVideoMetadataRated.TABLE_COL_RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
+							MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
+							"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' " +
 							"LIMIT 1" +
 						"), " +
 						"genresSubquery AS (" +
-							"SELECT " + MediaTableVideoMetadataGenres.GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataGenres.FILEID + " = " + MediaTableFiles.ID + " " +
-							JOIN_VIDEO_METADATAS +
-							"WHERE " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + " = '${0}'" +
+							"SELECT " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
+							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
+							"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}'" +
 						") " +
 						"SELECT " +
-							"DISTINCT " + MediaTableVideoMetadatas.MOVIEORSHOWNAME + ", " +
+							"DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + ", " +
 							MediaTableFiles.TABLE_NAME + ".*, " +
-							MediaTableVideoMetadataIMDbRating.IMDBRATING + ", " +
-							MediaTableVideoMetadataGenres.GENRE + ", " +
-							MediaTableVideoMetadataRated.RATED + " " +
+							MediaTableVideoMetadataIMDbRating.TABLE_COL_IMDBRATING + ", " +
+							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + ", " +
+							MediaTableVideoMetadataRated.TABLE_COL_RATED + " " +
 						"FROM " +
 							"ratedSubquery, " +
 							"genresSubquery, " +
 							MediaTableFiles.TABLE_NAME + " " +
-								JOIN_VIDEO_METADATAS +
-								MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_FILES +
-								MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_FILES +
-								MediaTableVideoMetadataIMDbRating.SQL_LEFT_JOIN_TABLE_FILES +
+							MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING +
 						"WHERE " +
-							MediaTableVideoMetadatas.MOVIEORSHOWNAME + " != '${0}' AND " +
-							MediaTableVideoMetadataGenres.GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
-							MediaTableVideoMetadataRated.RATED  + " = ratedSubquery." + MediaTableVideoMetadataRated.COL_RATED + " " +
+							MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " != '${0}' AND " +
+							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
+							MediaTableVideoMetadataRated.TABLE_COL_RATED  + " = ratedSubquery." + MediaTableVideoMetadataRated.COL_RATED + " " +
 
-						"ORDER BY " + MediaTableVideoMetadataIMDbRating.IMDBRATING + " DESC"
+						"ORDER BY " + MediaTableVideoMetadataIMDbRating.TABLE_COL_IMDBRATING + " DESC"
 					},
 					new int[]{MediaLibraryFolder.MOVIE_FOLDERS, MediaLibraryFolder.FILES_NOSORT_DEDUPED}
 				);

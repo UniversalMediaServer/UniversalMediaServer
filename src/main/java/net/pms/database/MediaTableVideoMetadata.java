@@ -26,7 +26,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.util.APIUtils;
@@ -40,10 +39,10 @@ import org.slf4j.LoggerFactory;
  * lookups, updates and inserts. All operations involving this table shall be
  * done with this class.
  */
-public class MediaTableVideoMetadatas extends MediaTable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadatas.class);
+public class MediaTableVideoMetadata extends MediaTable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadata.class);
 	private static final Gson GSON = new Gson();
-	public static final String TABLE_NAME = "VIDEO_METADATAS";
+	public static final String TABLE_NAME = "VIDEO_METADATA";
 	/**
 	 * COLUMNS NAMES
 	 */
@@ -62,28 +61,41 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	/**
 	 * The columns we added from TMDB in V11
 	 */
-	private static final String TMDB_COLUMNS = "BUDGET, CREDITS, EXTERNALIDS, HOMEPAGE, IMAGES, ORIGINALLANGUAGE, ORIGINALTITLE, PRODUCTIONCOMPANIES, PRODUCTIONCOUNTRIES, REVENUE";
+	private static final String COL_BUDGET = "BUDGET";
+	private static final String COL_CREDITS = "CREDITS";
+	private static final String COL_EXTERNALIDS = "EXTERNALIDS";
+	private static final String COL_HOMEPAGE = "HOMEPAGE";
+	private static final String COL_IMAGES = "IMAGES";
+	private static final String COL_ORIGINALLANGUAGE = "ORIGINALLANGUAGE";
+	private static final String COL_ORIGINALTITLE = "ORIGINALTITLE";
+	private static final String COL_PRODUCTIONCOMPANIES = "PRODUCTIONCOMPANIES";
+	private static final String COL_PRODUCTIONCOUNTRIES = "PRODUCTIONCOUNTRIES";
+	private static final String COL_REVENUE = "REVENUE";
 
 	/**
 	 * COLUMNS with table name
 	 */
-	public static final String API_VERSION = TABLE_NAME + "." + COL_API_VERSION;
-	public static final String EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
-	public static final String FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String IMDBID = TABLE_NAME + "." + COL_IMDBID;
-	public static final String ISTVEPISODE = TABLE_NAME + "." + COL_ISTVEPISODE;
-	public static final String MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
-	public static final String MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
-	public static final String MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
-	public static final String TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
-	public static final String TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
-	public static final String TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.ID + " = " + FILEID + " ";
-	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
-	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? and " + IMDBID + " IS NOT NULL LIMIT 1";
-	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? LIMIT 1";
-	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL LIMIT 1";
-	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + FILEID + " FROM " + TABLE_NAME + " WHERE " + FILEID + " = ? AND " + IMDBID + " IS NOT NULL AND " + API_VERSION + " = ? LIMIT 1";
+	private static final String TABLE_COL_API_VERSION = TABLE_NAME + "." + COL_API_VERSION;
+	public static final String TABLE_COL_EXTRAINFORMATION = TABLE_NAME + "." + COL_EXTRAINFORMATION;
+	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
+	public static final String TABLE_COL_IMDBID = TABLE_NAME + "." + COL_IMDBID;
+	public static final String TABLE_COL_ISTVEPISODE = TABLE_NAME + "." + COL_ISTVEPISODE;
+	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
+	public static final String TABLE_COL_MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
+	public static final String TABLE_COL_MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
+	public static final String TABLE_COL_TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
+	public static final String TABLE_COL_TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
+	public static final String TABLE_COL_TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + COL_FILEID + ", " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
+	private static final String SQL_GET_VIDEO_ALL_METADATA_BY_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_IMDBID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? and " + TABLE_COL_IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? LIMIT 1";
+	private static final String SQL_GET_API_METADATA_IMDBID_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_IMDBID + " IS NOT NULL LIMIT 1";
+	private static final String SQL_GET_API_METADATA_API_IMDBID_VERSION_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_IMDBID + " IS NOT NULL AND " + TABLE_COL_API_VERSION + " = ? LIMIT 1";
+
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = "LEFT JOIN " + MediaTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING = "LEFT JOIN " + MediaTableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataIMDbRating.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED = "LEFT JOIN " + MediaTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataRated.TABLE_COL_FILEID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -125,8 +137,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				default:
-					throw new IllegalStateException(
+				default -> throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
@@ -144,27 +155,27 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
-				"FILEID                  INTEGER                              PRIMARY KEY , " +
-				"IMDBID                  VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				"MEDIA_YEAR              VARCHAR(" + SIZE_YEAR + ")                       , " +
-				"MOVIEORSHOWNAME         VARCHAR(" + SIZE_MAX + ")                        , " +
-				"MOVIEORSHOWNAMESIMPLE   VARCHAR(" + SIZE_MAX + ")                        , " +
-				"TVSEASON                VARCHAR(" + SIZE_TVSEASON + ")                   , " +
-				"TVEPISODENUMBER         VARCHAR(" + SIZE_TVEPISODENUMBER + ")            , " +
-				"TVEPISODENAME           VARCHAR(" + SIZE_MAX + ")                        , " +
-				"ISTVEPISODE             BOOLEAN                                          , " +
-				"EXTRAINFORMATION        VARCHAR(" + SIZE_MAX + ")                        , " +
-				"API_VERSION             VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				"BUDGET                  INTEGER                                          , " +
-				"CREDITS                 CLOB                                             , " +
-				"EXTERNALIDS             CLOB                                             , " +
-				"HOMEPAGE                VARCHAR                                          , " +
-				"IMAGES                  CLOB                                             , " +
-				"ORIGINALLANGUAGE        VARCHAR                                          , " +
-				"ORIGINALTITLE           VARCHAR                                          , " +
-				"PRODUCTIONCOMPANIES     CLOB                                             , " +
-				"PRODUCTIONCOUNTRIES     CLOB                                             , " +
-				"REVENUE                 INTEGER                                          , " +
+				COL_FILEID + "                INTEGER                              PRIMARY KEY , " +
+				COL_IMDBID + "                VARCHAR(" + SIZE_IMDBID + ")                     , " +
+				COL_MEDIA_YEAR + "            VARCHAR(" + SIZE_YEAR + ")                       , " +
+				COL_MOVIEORSHOWNAME + "       VARCHAR(" + SIZE_MAX + ")                        , " +
+				COL_MOVIEORSHOWNAMESIMPLE + " VARCHAR(" + SIZE_MAX + ")                        , " +
+				COL_TVSEASON + "              VARCHAR(" + SIZE_TVSEASON + ")                   , " +
+				COL_TVEPISODENUMBER + "       VARCHAR(" + SIZE_TVEPISODENUMBER + ")            , " +
+				COL_TVEPISODENAME + "         VARCHAR(" + SIZE_MAX + ")                        , " +
+				COL_ISTVEPISODE + "           BOOLEAN                                          , " +
+				COL_EXTRAINFORMATION + "      VARCHAR(" + SIZE_MAX + ")                        , " +
+				COL_API_VERSION + "           VARCHAR(" + SIZE_IMDBID + ")                     , " +
+				COL_BUDGET + "                BIGINT                                           , " +
+				COL_CREDITS + "               CLOB                                             , " +
+				COL_EXTERNALIDS + "           CLOB                                             , " +
+				COL_HOMEPAGE + "              VARCHAR                                          , " +
+				COL_IMAGES + "                CLOB                                             , " +
+				COL_ORIGINALLANGUAGE + "      VARCHAR                                          , " +
+				COL_ORIGINALTITLE + "         VARCHAR                                          , " +
+				COL_PRODUCTIONCOMPANIES + "   CLOB                                             , " +
+				COL_PRODUCTIONCOUNTRIES + "   CLOB                                             , " +
+				COL_REVENUE + "               BIGINT                                           , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);
@@ -186,132 +197,75 @@ public class MediaTableVideoMetadatas extends MediaTable {
 		if (connection == null || fileId == null || media == null || !media.hasVideoMetadata()) {
 			return;
 		}
-		String columns = "FILEID, " + BASIC_COLUMNS;
-		if (apiExtendedMetadata != null) {
-			columns += ", API_VERSION, " + TMDB_COLUMNS;
-		}
 		DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
-				"SELECT " + columns + " " +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE " +
-					"FILEID = ?",
+				apiExtendedMetadata != null ? SQL_GET_VIDEO_ALL_METADATA_BY_FILEID : SQL_GET_VIDEO_METADATA_BY_FILEID,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
-			);
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" + columns +	")" +
-				createDefaultValueForInsertStatement(columns)
 			);
 		) {
 			updateStatement.setLong(1, fileId);
 			try (ResultSet rs = updateStatement.executeQuery()) {
-				if (rs.next()) {
-					rs.updateString(COL_IMDBID, StringUtils.left(videoMetadata.getIMDbID(), SIZE_IMDBID));
-					rs.updateString(COL_MEDIA_YEAR, StringUtils.left(videoMetadata.getYear(), SIZE_YEAR));
-					rs.updateString(COL_MOVIEORSHOWNAME, StringUtils.left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
-					rs.updateString(COL_MOVIEORSHOWNAMESIMPLE, StringUtils.left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
-					rs.updateString(COL_EXTRAINFORMATION, StringUtils.left(videoMetadata.getExtraInformation(), SIZE_MAX));
-					rs.updateBoolean(COL_ISTVEPISODE, videoMetadata.isTVEpisode());
-					rs.updateString(COL_TVSEASON, StringUtils.left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
-					rs.updateString(COL_TVEPISODENUMBER, StringUtils.left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-					rs.updateString(COL_TVEPISODENAME, StringUtils.left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
-					if (apiExtendedMetadata != null) {
-						rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
-						if (apiExtendedMetadata.has("budget")) {
-							rs.updateInt("BUDGET", apiExtendedMetadata.get("budget").getAsInt());
-						}
-						if (apiExtendedMetadata.has("credits")) {
-							rs.updateString("CREDITS", apiExtendedMetadata.get("credits").toString());
-						}
-						if (apiExtendedMetadata.has("externalIDs")) {
-							rs.updateString("EXTERNALIDS", apiExtendedMetadata.get("externalIDs").toString());
-						}
-						rs.updateString("HOMEPAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
-						if (apiExtendedMetadata.has("images")) {
-							rs.updateString("IMAGES", apiExtendedMetadata.get("images").toString());
-						}
-						rs.updateString("ORIGINALLANGUAGE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
-						rs.updateString("ORIGINALTITLE", APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
-						if (apiExtendedMetadata.has("productionCompanies")) {
-							rs.updateString("PRODUCTIONCOMPANIES", apiExtendedMetadata.get("productionCompanies").toString());
-						}
-						if (apiExtendedMetadata.has("productionCountries")) {
-							rs.updateString("PRODUCTIONCOUNTRIES", apiExtendedMetadata.get("productionCountries").toString());
-						}
-						if (apiExtendedMetadata.has("revenue")) {
-							rs.updateInt("REVENUE", apiExtendedMetadata.get("revenue").getAsInt());
-						}
+				boolean isCreatingNewRecord = !rs.next();
+				if (isCreatingNewRecord) {
+					rs.moveToInsertRow();
+					rs.updateLong(COL_FILEID, fileId);
+				}
+				rs.updateString(COL_IMDBID, StringUtils.left(videoMetadata.getIMDbID(), SIZE_IMDBID));
+				rs.updateString(COL_MEDIA_YEAR, StringUtils.left(videoMetadata.getYear(), SIZE_YEAR));
+				rs.updateString(COL_MOVIEORSHOWNAME, StringUtils.left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
+				rs.updateString(COL_MOVIEORSHOWNAMESIMPLE, StringUtils.left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
+				rs.updateString(COL_EXTRAINFORMATION, StringUtils.left(videoMetadata.getExtraInformation(), SIZE_MAX));
+				rs.updateBoolean(COL_ISTVEPISODE, videoMetadata.isTVEpisode());
+				rs.updateString(COL_TVSEASON, StringUtils.left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
+				rs.updateString(COL_TVEPISODENUMBER, StringUtils.left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
+				rs.updateString(COL_TVEPISODENAME, StringUtils.left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
+				if (apiExtendedMetadata != null) {
+					rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
+					if (apiExtendedMetadata.has("budget")) {
+						rs.updateLong(COL_BUDGET, apiExtendedMetadata.get("budget").getAsLong());
+					} else {
+						rs.updateNull(COL_BUDGET);
 					}
-					rs.updateRow();
+					if (apiExtendedMetadata.has("credits")) {
+						rs.updateString(COL_CREDITS, apiExtendedMetadata.get("credits").toString());
+					} else {
+						rs.updateNull(COL_CREDITS);
+					}
+					if (apiExtendedMetadata.has("externalIDs")) {
+						rs.updateString(COL_EXTERNALIDS, apiExtendedMetadata.get("externalIDs").toString());
+					} else {
+						rs.updateNull(COL_EXTERNALIDS);
+					}
+					rs.updateString(COL_HOMEPAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
+					if (apiExtendedMetadata.has("images")) {
+						rs.updateString(COL_IMAGES, apiExtendedMetadata.get("images").toString());
+					} else {
+						rs.updateNull(COL_IMAGES);
+					}
+					rs.updateString(COL_ORIGINALLANGUAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
+					rs.updateString(COL_ORIGINALTITLE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
+					if (apiExtendedMetadata.has("productionCompanies")) {
+						rs.updateString(COL_PRODUCTIONCOMPANIES, apiExtendedMetadata.get("productionCompanies").toString());
+					} else {
+						rs.updateNull(COL_PRODUCTIONCOMPANIES);
+					}
+					if (apiExtendedMetadata.has("productionCountries")) {
+						rs.updateString(COL_PRODUCTIONCOUNTRIES, apiExtendedMetadata.get("productionCountries").toString());
+					} else {
+						rs.updateNull(COL_PRODUCTIONCOUNTRIES);
+					}
+					if (apiExtendedMetadata.has("revenue")) {
+						rs.updateLong(COL_REVENUE, apiExtendedMetadata.get("revenue").getAsLong());
+					} else {
+						rs.updateNull(COL_REVENUE);
+					}
+				}
+				if (isCreatingNewRecord) {
+					rs.insertRow();
 				} else {
-					insertStatement.clearParameters();
-					int databaseColumnIterator = 0;
-					insertStatement.setLong(++databaseColumnIterator, fileId);
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getIMDbID(), SIZE_IMDBID));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getYear(), SIZE_YEAR));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getMovieOrShowName(), SIZE_MAX));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getSimplifiedMovieOrShowName(), SIZE_MAX));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getExtraInformation(), SIZE_MAX));
-					insertStatement.setBoolean(++databaseColumnIterator, videoMetadata.isTVEpisode());
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-					insertStatement.setString(++databaseColumnIterator, StringUtils.left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
-					if (apiExtendedMetadata != null) {
-						insertStatement.setString(++databaseColumnIterator, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
-						if (apiExtendedMetadata.has("budget")) {
-							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("budget").getAsInt());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
-						}
-						if (apiExtendedMetadata.has("credits")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("credits").toString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("externalIDs")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("externalIDs").toString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("homepage")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("homepage").getAsString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("images")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("images").toString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("originalLanguage")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("originalLanguage").getAsString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("originalTitle")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("originalTitle").getAsString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("productionCompanies")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("productionCompanies").toString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("productionCountries")) {
-							insertStatement.setString(++databaseColumnIterator, apiExtendedMetadata.get("productionCountries").toString());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.VARCHAR);
-						}
-						if (apiExtendedMetadata.has("revenue")) {
-							insertStatement.setInt(++databaseColumnIterator, apiExtendedMetadata.get("revenue").getAsInt());
-						} else {
-							insertStatement.setNull(++databaseColumnIterator, Types.INTEGER);
-						}
-					}
-					insertStatement.executeUpdate();
+					rs.updateRow();
 				}
 			}
 		}
@@ -423,10 +377,10 @@ public class MediaTableVideoMetadatas extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
-						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString("CREDITS"));
-						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString("EXTERNALIDS"));
-						result.addProperty("homepage", rs.getString("HOMEPAGE"));
-						addJsonElementToJsonObjectIfExists(result, "images", rs.getString("IMAGES"));
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString(COL_CREDITS));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString(COL_EXTERNALIDS));
+						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
+						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
 						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
 						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
@@ -438,8 +392,8 @@ public class MediaTableVideoMetadatas extends MediaTable {
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
 						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
-						if (rs.getBoolean("ISTVEPISODE")) {
-							String showName = rs.getString("MOVIEORSHOWNAME");
+						if (rs.getBoolean(COL_ISTVEPISODE)) {
+							String showName = rs.getString(COL_MOVIEORSHOWNAME);
 							if (StringUtils.isNotBlank(showName)) {
 								addJsonElementToJsonObjectIfExists(result, "seriesImages", MediaTableTVSeries.getImagesByTitle(connection, showName));
 							}
@@ -529,7 +483,7 @@ public class MediaTableVideoMetadatas extends MediaTable {
 	 */
 	public static void updateMovieOrShowName(final Connection connection, String oldName, String newName) {
 		try {
-			updateRowsInTable(connection, oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
+			updateRowsInTable(connection, oldName, newName, COL_MOVIEORSHOWNAME, SIZE_MAX, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",

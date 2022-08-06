@@ -72,7 +72,7 @@ import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
-import net.pms.database.MediaTableVideoMetadatas;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -5076,7 +5076,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							media.setVideoMetadata(videoMetadata);
-							MediaTableVideoMetadatas.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
+							MediaTableVideoMetadata.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API

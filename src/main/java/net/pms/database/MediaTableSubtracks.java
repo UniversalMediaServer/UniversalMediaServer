@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class MediaTableSubtracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
-	public static final String FILEID = TABLE_NAME + ".FILEID";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
 
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_EXTERNALFILE = 1000;

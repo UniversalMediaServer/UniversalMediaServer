@@ -51,15 +51,15 @@ public class MediaTableAudiotracks extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
-	public static final String FILEID = TABLE_NAME + ".FILEID";
-	public static final String ALBUM = TABLE_NAME + ".ALBUM";
-	public static final String ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
-	public static final String ARTIST = TABLE_NAME + ".ARTIST";
-	public static final String GENRE = TABLE_NAME + ".GENRE";
-	public static final String MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
-	public static final String MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
-	public static final String MEDIA_YEAR = TABLE_NAME + ".MEDIA_YEAR";
-	public static final String TRACK = TABLE_NAME + ".TRACK";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+	public static final String TABLE_COL_ALBUM = TABLE_NAME + ".ALBUM";
+	public static final String TABLE_COL_ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
+	public static final String TABLE_COL_ARTIST = TABLE_NAME + ".ARTIST";
+	public static final String TABLE_COL_GENRE = TABLE_NAME + ".GENRE";
+	public static final String TABLE_COL_MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
+	public static final String TABLE_COL_MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
+	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + ".MEDIA_YEAR";
+	public static final String TABLE_COL_TRACK = TABLE_NAME + ".TRACK";
 
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
