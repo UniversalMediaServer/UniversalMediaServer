@@ -37,20 +37,18 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	private static final String COL_ID = "ID";
 	private static final String COL_FILEID = "FILEID";
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
-	public static final String COL_RATINGSOURCE = "RATINGSOURCE";
-	public static final String COL_RATINGVALUE = "RATINGVALUE";
-	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
-	public static final String TABLE_COL_RATINGSOURCE = TABLE_NAME + "." + COL_RATINGSOURCE;
-	public static final String TABLE_COL_RATINGVALUE = TABLE_NAME + "." + COL_RATINGVALUE;
+	private static final String COL_RATINGSOURCE = "RATINGSOURCE";
+	private static final String COL_RATINGVALUE = "RATINGVALUE";
+	private static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
+	private static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
+	private static final String TABLE_COL_RATINGSOURCE = TABLE_NAME + "." + COL_RATINGSOURCE;
+	private static final String TABLE_COL_RATINGVALUE = TABLE_NAME + "." + COL_RATINGVALUE;
 	private static final String SQL_GET_RATING_FILEID = "SELECT " + TABLE_COL_RATINGSOURCE + ", " + TABLE_COL_RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
 	private static final String SQL_GET_RATING_TVSERIESID = "SELECT " + TABLE_COL_RATINGSOURCE + ", " + TABLE_COL_RATINGVALUE + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ?";
 	private static final String SQL_GET_TVSERIESID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ? AND " + TABLE_COL_RATINGSOURCE + " = ? LIMIT 1";
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_RATINGSOURCE + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_RATINGSOURCE + ", " + COL_RATINGVALUE + ") VALUES (?, ?, ?)";
 	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_RATINGSOURCE + ", " + COL_RATINGVALUE + ") VALUES (?, ?, ?)";
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + TABLE_COL_FILEID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.TABLE_COL_ID + " = " + TABLE_COL_TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -102,7 +100,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					//index with all columns ??
 					executeUpdate(connection, "DROP INDEX IF EXISTS FILENAME_RATINGSOURCE_TVSERIESID_IDX");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_FILEID + " INTEGER");
@@ -124,11 +122,10 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE");
-					break;
-				default:
-					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-					);
+				}
+				default -> {
+					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
+				}
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -138,11 +135,11 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                 IDENTITY            PRIMARY KEY , " +
-				"TVSERIESID         INTEGER                         , " +
-				"FILEID             INTEGER                         , " +
-				"RATINGSOURCE       VARCHAR(1024)       NOT NULL    , " +
-				"RATINGVALUE        VARCHAR(1024)       NOT NULL    , " +
+				COL_ID + "           IDENTITY            PRIMARY KEY , " +
+				COL_TVSERIESID + "   INTEGER                         , " +
+				COL_FILEID + "       INTEGER                         , " +
+				COL_RATINGSOURCE + " VARCHAR(1024)       NOT NULL    , " +
+				COL_RATINGVALUE + "  VARCHAR(1024)       NOT NULL    , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
 			")"

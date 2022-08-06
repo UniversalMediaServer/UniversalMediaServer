@@ -63,9 +63,13 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_STEREOSCOPY = TABLE_NAME + ".STEREOSCOPY";
 
+	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = "LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " + TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = "LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = "LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_ID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
+
 	private static final String SQL_GET_ID_FILENAME = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
-	private static final String SQL_GET_ALL_FILENAME_MODIFIED = "SELECT * FROM " + TABLE_NAME + " " + MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_FILES + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
+	private static final String SQL_GET_ALL_FILENAME_MODIFIED = "SELECT * FROM " + TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_THUMBNAILS + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
 
 	public static final String NONAME = "###";
 
@@ -1255,8 +1259,8 @@ public class MediaTableFiles extends MediaTable {
 		try {
 			String query = "SELECT " + MediaTableThumbnails.TABLE_COL_THUMBNAIL + " " +
 				"FROM " + TABLE_NAME + " " +
-				MediaTableThumbnails.SQL_LEFT_JOIN_TABLE_FILES +
-				MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_FILES +
+				SQL_LEFT_JOIN_TABLE_THUMBNAILS +
+				SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
 				"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
 
 			if (trace) {

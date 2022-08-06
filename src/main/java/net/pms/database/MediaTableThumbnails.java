@@ -50,8 +50,6 @@ public final class MediaTableThumbnails extends MediaTable {
 	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_THUMBNAIL = TABLE_NAME + "." + COL_THUMBNAIL;
 	private static final String TABLE_COL_MD5 = TABLE_NAME + "." + COL_MD5;
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_THUMBID + " = " + TABLE_COL_ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.TABLE_COL_THUMBID + " = " + TABLE_COL_ID + " ";
 
 	private static final String SQL_GET_ID_MD5 = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_MD5 + " = ? LIMIT 1";
 	private static final String SQL_INSERT_ID_MD5 = "INSERT INTO " + TABLE_NAME + " (" + COL_THUMBNAIL + ", " + COL_MODIFIED + ", " + COL_MD5 + ") VALUES (?, ?, ?)";

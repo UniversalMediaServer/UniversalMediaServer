@@ -50,7 +50,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static final String TABLE_COL_ISFULLYPLAYED = TABLE_NAME + ".ISFULLYPLAYED";
 	public static final String TABLE_COL_PLAYCOUNT = TABLE_NAME + ".PLAYCOUNT";
 	public static final String TABLE_COL_DATELASTPLAY = TABLE_NAME + ".DATELASTPLAY";
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_FILENAME + " = " + TABLE_COL_FILENAME + " ";
 	private static final String SQL_GET_ALL = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
 	private static final String SQL_GET_BOOKMARK = "SELECT " + TABLE_COL_BOOKMARK + " FROM " + TABLE_NAME + " WHERE FILENAME = ? LIMIT 1";
 	private static final String SQL_GET_ISFULLYPLAYED = "SELECT " + TABLE_COL_ISFULLYPLAYED + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";

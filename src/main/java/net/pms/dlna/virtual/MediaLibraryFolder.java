@@ -37,11 +37,9 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaLibraryFolder extends VirtualFolder {
 	protected static final String FROM_FILES = "FROM " + MediaTableFiles.TABLE_NAME + " ";
-	protected static final String JOIN_VIDEO_METADATAS = "LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
-	protected static final String JOIN_FILES_STATUS = "LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME + " ";
-	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + JOIN_VIDEO_METADATAS;
-	protected static final String FROM_FILES_STATUS = FROM_FILES + JOIN_FILES_STATUS;
-	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES + JOIN_FILES_STATUS + JOIN_VIDEO_METADATAS;
+	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
+	protected static final String FROM_FILES_STATUS = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS;
+	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
 	private static final String UNWATCHED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + " IS NOT TRUE AND ";
 	private static final String WATCHED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + " IS TRUE AND ";
 	private static final String SELECT_DISTINCT_TVSEASON = "SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_TVSEASON + " " + FROM_FILES_VIDEOMETA;
@@ -281,8 +279,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 								// Build the season filter folders
 								String orderByString = "ORDER BY ";
 								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
-								if (firstSql.indexOf(JOIN_VIDEO_METADATAS) > 0) {
-									indexAfterFromInFirstQuery = firstSql.indexOf(JOIN_VIDEO_METADATAS) + JOIN_VIDEO_METADATAS.length();
+								if (firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) > 0) {
+									indexAfterFromInFirstQuery = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
 								}
 								String orderBySection = "ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVSEASON;
 
@@ -367,7 +365,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 									// If the query does not already join the FILES_STATUS table, do that now
 									StringBuilder sqlWithJoin = new StringBuilder(sql);
 									if (!sql.contains("LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME)) {
-										sqlWithJoin.insert(indexAfterFrom, JOIN_FILES_STATUS);
+										sqlWithJoin.insert(indexAfterFrom, MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS);
 									}
 
 									int indexAfterWhere = sqlWithJoin.indexOf(whereString) + whereString.length();
@@ -605,13 +603,13 @@ public class MediaLibraryFolder extends VirtualFolder {
 				new String[]{
 					"WITH ratedSubquery AS (" +
 						"SELECT " + MediaTableVideoMetadataRated.TABLE_COL_RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
-						"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + MediaTableVideoMetadataRated.TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID + " " +
+						MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES +
 						"WHERE " + MediaTableTVSeries.TABLE_COL_TITLE + " = " + MediaDatabase.sqlQuote(getName()) + " " +
 						"LIMIT 1" +
 					"), " +
 					"genresSubquery AS (" +
 						"SELECT " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-						"LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + MediaTableVideoMetadataGenres.TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID + " " +
+						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
 						"WHERE " + MediaTableTVSeries.TABLE_COL_TITLE + " = " + MediaDatabase.sqlQuote(getName()) +
 					") " +
 					"SELECT " +
@@ -623,9 +621,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 						"ratedSubquery, " +
 						"genresSubquery, " +
 						MediaTableTVSeries.TABLE_NAME + " " +
-						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
-						MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_TV_SERIES +
-						MediaTableVideoMetadataIMDbRating.SQL_LEFT_JOIN_TABLE_TV_SERIES +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING +
 					"WHERE " +
 						MediaTableTVSeries.TABLE_COL_TITLE + " != " + MediaDatabase.sqlQuote(getName()) + " AND " +
 						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +
@@ -648,15 +646,13 @@ public class MediaLibraryFolder extends VirtualFolder {
 						firstSql,
 						"WITH ratedSubquery AS (" +
 							"SELECT " + MediaTableVideoMetadataRated.TABLE_COL_RATED + " FROM " + MediaTableVideoMetadataRated.TABLE_NAME + " " +
-							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataRated.TABLE_COL_FILEID + " = " + MediaTableFiles.TABLE_COL_ID + " " +
-							JOIN_VIDEO_METADATAS +
+							MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
 							"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' " +
 							"LIMIT 1" +
 						"), " +
 						"genresSubquery AS (" +
 							"SELECT " + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " FROM " + MediaTableVideoMetadataGenres.TABLE_NAME + " " +
-							"LEFT JOIN " + MediaTableFiles.TABLE_NAME + " ON " + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + " = " + MediaTableFiles.TABLE_COL_ID + " " +
-							JOIN_VIDEO_METADATAS +
+							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + 
 							"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}'" +
 						") " +
 						"SELECT " +
@@ -669,10 +665,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 							"ratedSubquery, " +
 							"genresSubquery, " +
 							MediaTableFiles.TABLE_NAME + " " +
-								JOIN_VIDEO_METADATAS +
-								MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_FILES +
-								MediaTableVideoMetadataRated.SQL_LEFT_JOIN_TABLE_FILES +
-								MediaTableVideoMetadataIMDbRating.SQL_LEFT_JOIN_TABLE_FILES +
+							MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED +
+							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING +
 						"WHERE " +
 							MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " != '${0}' AND " +
 							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ") AND " +

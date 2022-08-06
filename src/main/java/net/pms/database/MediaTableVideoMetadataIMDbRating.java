@@ -42,8 +42,6 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 	private static final String SQL_GET_FILEID_EXISTS = "SELECT " + COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND " + TABLE_COL_IMDBRATING + " = ? LIMIT 1";
 	private static final String SQL_INSERT_TVSERIESID = "INSERT INTO " + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_IMDBRATING + ") VALUES (?, ?)";
 	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_FILEID + ", " + COL_IMDBRATING + ") VALUES (?, ?)";
-	public static final String SQL_LEFT_JOIN_TABLE_FILES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + TABLE_COL_FILEID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + TABLE_NAME + " ON " + MediaTableTVSeries.TABLE_COL_ID + " = " + TABLE_COL_TVSERIESID + " ";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -95,7 +93,7 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					//index with all columns ??
 					executeUpdate(connection, "DROP INDEX IF EXISTS FILENAME_IMDBRATING_TVSERIESID_IDX");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_FILEID + " INTEGER");
@@ -110,17 +108,16 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + " = NULL WHERE " + TABLE_COL_FILEID + " = -1");
 					//api settvseriesinfo had both filled filename and tvserieId ending in multiple row for nothing.
 					executeUpdate(connection,
-						"DELETE FROM " + TABLE_NAME + " WHERE EXISTS (SELECT " + COL_ID + " FROM " + TABLE_NAME + " T2 WHERE T2." + COL_TVSERIESID + " = " + TABLE_COL_TVSERIESID + " AND " +
-						"T2." + COL_FILEID + " IS NULL AND T2." + COL_ID + " != " + TABLE_NAME + "." + COL_ID + " AND T2." + COL_IMDBRATING + " = " + TABLE_COL_IMDBRATING + " AND " +
-						TABLE_NAME + "." + COL_ID + " != (SELECT MIN(T3." + COL_ID + ") FROM " + TABLE_NAME + " T3 WHERE T3." + COL_TVSERIESID + " = T2." + COL_TVSERIESID + "))");
+					"DELETE FROM " + TABLE_NAME + " WHERE EXISTS (SELECT " + COL_ID + " FROM " + TABLE_NAME + " T2 WHERE T2." + COL_TVSERIESID + " = " + TABLE_COL_TVSERIESID + " AND " +
+					"T2." + COL_FILEID + " IS NULL AND T2." + COL_ID + " != " + TABLE_NAME + "." + COL_ID + " AND T2." + COL_IMDBRATING + " = " + TABLE_COL_IMDBRATING + " AND " +
+					TABLE_NAME + "." + COL_ID + " != (SELECT MIN(T3." + COL_ID + ") FROM " + TABLE_NAME + " T3 WHERE T3." + COL_TVSERIESID + " = T2." + COL_TVSERIESID + "))");
 
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE");
-					break;
-				default:
-					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-					);
+				}
+				default -> {
+					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
+				}
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -130,10 +127,10 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID           IDENTITY            PRIMARY KEY , " +
-				"TVSERIESID   INTEGER                         , " +
-				"FILEID       INTEGER                         , " +
-				"IMDBRATING   VARCHAR(1024)       NOT NULL    , " +
+				COL_ID + "          IDENTITY            PRIMARY KEY , " +
+				COL_TVSERIESID + "  INTEGER                         , " +
+				COL_FILEID + "      INTEGER                         , " +
+				COL_IMDBRATING + "  VARCHAR(1024)       NOT NULL    , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
 			")"
