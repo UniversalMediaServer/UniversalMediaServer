@@ -2280,6 +2280,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addBookmark(sb, mediaRenderer.getDcTitle(title, getDisplayNameSuffix(mediaRenderer, configurationSpecificToRenderer), this));
 		}
 
+		if (mediaRenderer.isSendDateMetadataYearForAudioTags() && firstAudioTrack != null && firstAudioTrack.getYear() > 1000) {
+			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(firstAudioTrack.getYear()));
+		} else if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
+			addXMLTagAndAttribute(sb, "dc:date", simpleDateFormatDate.format(new Date(getLastModified())));
+		}
+
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
@@ -2294,10 +2300,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
-			}
-
-			if (mediaRenderer.isSendDateMetadataYearForAudioTags() && firstAudioTrack.getYear() > 1000) {
-				addXMLTagAndAttribute(sb, "dc:date", Integer.toString(firstAudioTrack.getYear()));
 			}
 
 			if (firstAudioTrack.getTrack() > 0) {
@@ -2574,10 +2576,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (mediaType != MediaType.IMAGE && (!isFolder || mediaRenderer.isSendFolderThumbnails() || this instanceof DVDISOFile)) {
 			appendThumbnail(sb, mediaType, mediaRenderer);
-		}
-
-		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata() && (firstAudioTrack == null)) {
-			addXMLTagAndAttribute(sb, "dc:date", simpleDateFormatDate.format(new Date(getLastModified())));
 		}
 
 		String uclass;
