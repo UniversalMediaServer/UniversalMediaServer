@@ -166,7 +166,9 @@ public abstract class Database extends DatabaseHelper {
 		}
 
 		if (embedded) {
-			try (Connection con = getConnection()) {
+			Connection con = null;
+			try {
+				con = getConnection();
 				DatabaseEmbedded.shutdown(con);
 			} catch (SQLException ex) {
 				LOGGER.error("shutdown DB ", ex);
