@@ -43,6 +43,7 @@ import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +58,11 @@ public class DVDISOTitle extends DLNAResource {
 		"^subtitle \\( sid \\): (?<StreamNumber>\\d+) language: (?<Language>\\w*)$"
 	);
 
-	private File file;
-	private int title;
+	private final File file;
+	private final int title;
+	private final String parentName;
+
 	private long length;
-	private String parentName;
 
 	public DVDISOTitle(File file, String parentName, int title) {
 		this.file = file;
@@ -130,10 +132,7 @@ public class DVDISOTitle extends DLNAResource {
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = () -> {
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(10000);
 			pw.stopProcess();
 		};
 
@@ -357,7 +356,6 @@ public class DVDISOTitle extends DLNAResource {
 				thumbFolder = new File(configuration.getAlternateThumbFolder());
 
 				if (!thumbFolder.isDirectory()) {
-					thumbFolder = null;
 					break;
 				}
 			}

@@ -20,6 +20,11 @@ package net.pms.dlna;
 import net.pms.formats.Format;
 
 public class ImagesFeed extends Feed {
+
+	public ImagesFeed(String url) {
+		super("" + System.currentTimeMillis(), url, Format.IMAGE);
+	}
+
 	@Override
 	protected void manageItem() {
 		// Picasa Web Albums Support
@@ -30,7 +35,4 @@ public class ImagesFeed extends Feed {
 		}
 	}
 
-	public ImagesFeed(String url) {
-		super("" + System.currentTimeMillis(), url, Format.IMAGE);
-	}
 }

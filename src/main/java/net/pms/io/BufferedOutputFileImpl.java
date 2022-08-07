@@ -30,6 +30,7 @@ import java.util.TimerTask;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,10 +308,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		//LOGGER.trace("write(" + b.length + ", " + off + ", " + len + "), writeCount = " + writeCount + ", readCount = " + (input != null ? input.getReadCount() : "null"));
 
 		while ((input != null && (writeCount - input.getReadCount() > bufferOverflowWarning)) || (input == null && writeCount > bufferOverflowWarning)) {
-			try {
-				Thread.sleep(CHECK_INTERVAL);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(CHECK_INTERVAL);
 			input = getCurrentInputStream();
 		}
 
@@ -403,11 +401,8 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		boolean bb = b % 100000 == 0;
 		WaitBufferedInputStream input = getCurrentInputStream();
 		while (bb && ((input != null && (writeCount - input.getReadCount() > bufferOverflowWarning)) || (input == null && writeCount == bufferOverflowWarning))) {
-			try {
-				Thread.sleep(CHECK_INTERVAL);
-				//LOGGER.trace("BufferedOutputFile Full");
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(CHECK_INTERVAL);
+			//LOGGER.trace("BufferedOutputFile Full");
 			input = getCurrentInputStream();
 		}
 		int mb = (int) (writeCount++ % maxMemorySize);
@@ -680,10 +675,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 			c++;
 
-			try {
-				Thread.sleep(CHECK_INTERVAL);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(CHECK_INTERVAL);
 		}
 
 		if (attachedThread != null) {
@@ -756,10 +748,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 			c++;
 
-			try {
-				Thread.sleep(CHECK_INTERVAL);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(CHECK_INTERVAL);
 		}
 
 		if (attachedThread != null) {

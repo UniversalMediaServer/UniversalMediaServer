@@ -36,6 +36,7 @@ import net.pms.configuration.WindowsProgramPaths;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.formats.FormatFactory;
 import net.pms.io.BasicSystemUtils;
 import net.pms.util.FilePermissions.FileFlag;
@@ -755,16 +756,16 @@ public class FileUtil {
 		}
 
 		// Populate the variables from the data if we can, otherwise from the filename
-		if (media != null && getConfiguration().getUseCache() && isNotBlank(media.getMovieOrShowName())) {
-			title = media.getMovieOrShowName();
-
-			year              = isNotBlank(media.getYear())              ? media.getYear()              : "";
-			extraInformation  = isNotBlank(media.getExtraInformation())  ? media.getExtraInformation()  : "";
-			tvSeason          = isNotBlank(media.getTVSeason())          ? media.getTVSeason()          : "";
-			tvEpisodeNumber   = isNotBlank(media.getTVEpisodeNumber())   ? media.getTVEpisodeNumber()   : "";
-			tvEpisodeName     = isNotBlank(media.getTVEpisodeName())     ? media.getTVEpisodeName()     : "";
-			isTVEpisode       = isNotBlank(media.getTVSeason());
-			tvSeriesStartYear = isNotBlank(media.getTVSeriesStartYear()) ? media.getTVSeriesStartYear() : "";
+		if (media != null && getConfiguration().getUseCache() && media.hasVideoMetadata() && isNotBlank(media.getVideoMetadata().getMovieOrShowName())) {
+			DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+			title             = videoMetadata.getMovieOrShowName();
+			year              = isNotBlank(videoMetadata.getYear())              ? videoMetadata.getYear()              : "";
+			extraInformation  = isNotBlank(videoMetadata.getExtraInformation())  ? videoMetadata.getExtraInformation()  : "";
+			tvSeason          = isNotBlank(videoMetadata.getTVSeason())          ? videoMetadata.getTVSeason()          : "";
+			tvEpisodeNumber   = isNotBlank(videoMetadata.getTVEpisodeNumber())   ? videoMetadata.getTVEpisodeNumber()   : "";
+			tvEpisodeName     = isNotBlank(videoMetadata.getTVEpisodeName())     ? videoMetadata.getTVEpisodeName()     : "";
+			isTVEpisode       = isNotBlank(videoMetadata.getTVSeason());
+			tvSeriesStartYear = isNotBlank(videoMetadata.getTVSeriesStartYear()) ? videoMetadata.getTVSeriesStartYear() : "";
 		} else {
 			String[] metadataFromFilename = getFileNameMetadata(f, absolutePath);
 

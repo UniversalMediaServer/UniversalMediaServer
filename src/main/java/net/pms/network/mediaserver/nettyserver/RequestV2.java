@@ -125,7 +125,6 @@ public class RequestV2 extends HTTPResource {
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -348,7 +347,7 @@ public class RequestV2 extends HTTPResource {
 				// Retrieve the DLNAresource itself.
 				if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 					try {
-						dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
+						dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 					} catch (Exception e) {
 						LOGGER.error("", e);
 					}

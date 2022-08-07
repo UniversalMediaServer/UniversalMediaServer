@@ -45,7 +45,6 @@ public class ThumbHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 
 	public ThumbHandler(WebInterfaceServerHttpServer parent) {
@@ -77,7 +76,7 @@ public class ThumbHandler implements HttpHandler {
 			DLNAResource r = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					r = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					r = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

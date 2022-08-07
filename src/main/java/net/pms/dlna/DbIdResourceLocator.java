@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudiotracks;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableMusicBrainzReleaseLike;
 import net.pms.dlna.api.DoubleRecordFilter;
 import net.pms.dlna.api.MusicBrainzAlbum;
 import net.pms.dlna.virtual.VirtualFolderDbId;
@@ -40,19 +43,14 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
  * This class resolves DLNA objects identified by databaseID's.
  */
 public class DbIdResourceLocator {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
 
-
-	public DbIdResourceLocator() {
-	}
-
-	public DLNAResource locateResource(String id) {
+	public static DLNAResource locateResource(String id) {
 		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id));
 		return resource;
 	}
 
-	public String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
+	public static String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
 		try {
 			return String.format("%s%s%s", DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix,
 				URLEncoder.encode(typeIdent.ident, StandardCharsets.UTF_8.toString()));
@@ -70,7 +68,7 @@ public class DbIdResourceLocator {
 	 *         and resolved. In case of a container, the container will be
 	 *         created and populated.
 	 */
-	public DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent2 typeAndIdent) {
+	public static DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent2 typeAndIdent) {
 		DLNAResource res = null;
 		Connection connection = null;
 		try {
@@ -82,7 +80,7 @@ public class DbIdResourceLocator {
 						case TYPE_AUDIO:
 						case TYPE_VIDEO:
 						case TYPE_IMAGE:
-							sql = String.format("select FILENAME from files where id = %s", typeAndIdent.ident);
+							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
 							}
@@ -95,7 +93,7 @@ public class DbIdResourceLocator {
 							break;
 
 						case TYPE_PLAYLIST:
-							sql = String.format("select FILENAME from files where id = %s", typeAndIdent.ident);
+							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
 							}
@@ -111,8 +109,8 @@ public class DbIdResourceLocator {
 
 						case TYPE_ALBUM:
 							sql = String.format(
-								"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-									"where (  F.FORMAT_TYPE = 1  and  A.ALBUM  = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')",
 								typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
@@ -122,7 +120,7 @@ public class DbIdResourceLocator {
 									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
@@ -132,8 +130,8 @@ public class DbIdResourceLocator {
 
 						case TYPE_MUSICBRAINZ_RECORDID:
 							sql = String.format(
-								"select FILENAME, A.MBID_TRACK, F.ID as FID, ALBUM from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-									"where (  F.FORMAT_TYPE = 1 and A.MBID_RECORD = '%s' ) ORDER BY A.MBID_TRACK",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + " = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK,
 								typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
@@ -152,7 +150,7 @@ public class DbIdResourceLocator {
 										} else {
 											lastUuidTrack = currentUuidTrack;
 											DLNAResource item = new RealFileDbId(
-												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 												new File(resultSet.getString("FILENAME")));
 											item.resolve();
 											res.addChild(item);
@@ -162,7 +160,7 @@ public class DbIdResourceLocator {
 							}
 							break;
 						case TYPE_MYMUSIC_ALBUM:
-							sql = "Select mbid_release, Album, Artist, media_year from MUSIC_BRAINZ_RELEASE_LIKE as m join AUDIOTRACKS as a on m.mbid_release = A.mbid_record;";
+							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ", " + MediaTableAudiotracks.TABLE_COL_MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + ";";
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
 							}
@@ -182,10 +180,10 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									filter.addAlbum(new MusicBrainzAlbum(
-										resultSet.getString("mbid_release"),
-										resultSet.getString("album"),
-										resultSet.getString("artist"),
-										resultSet.getInt("media_year")));
+										resultSet.getString("MBID_RELEASE"),
+										resultSet.getString("ALBUM"),
+										resultSet.getString("ARTIST"),
+										resultSet.getInt("MEDIA_YEAR")));
 								}
 								for (MusicBrainzAlbum album : filter.getUniqueAlbumSet()) {
 									VirtualFolderDbId albumFolder = new VirtualFolderDbId(album.album, new DbIdTypeAndIdent2(
@@ -198,8 +196,8 @@ public class DbIdResourceLocator {
 							break;
 						case TYPE_PERSON_ALL_FILES:
 							sql = String.format(
-								"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-									"where (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
 								typeAndIdent.ident, typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PERSON : %s", sql));
@@ -209,7 +207,7 @@ public class DbIdResourceLocator {
 									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
@@ -230,7 +228,7 @@ public class DbIdResourceLocator {
 							break;
 
 						case TYPE_PERSON_ALBUM:
-							sql = String.format("SELECT DISTINCT(album) FROM AUDIOTRACKS A where COALESCE(A.ALBUMARTIST, A.ARTIST) = '%s'",
+							sql = String.format("SELECT DISTINCT(" + MediaTableAudiotracks.TABLE_COL_ALBUM + ") FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
 								typeAndIdent.ident);
 							res = new VirtualFolderDbId(
 								typeAndIdent.ident,
@@ -250,15 +248,15 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON_ALBUM_FILES:
 							String[] identSplitted = typeAndIdent.ident.split(DbIdMediaType.SPLIT_CHARS);
 							sql = String.format(
-								"select FILENAME, F.ID as FID, MODIFIED from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID " +
-									"where (A.ALBUM = '%s') and (A.ALBUMARTIST = '%s' or A.ARTIST = '%s')",
+								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s') AND (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
 								identSplitted[1], identSplitted[0], identSplitted[0]);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],
 									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("FID")),
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
@@ -286,7 +284,7 @@ public class DbIdResourceLocator {
 	 * @param album
 	 * @param albumFolder
 	 */
-	public void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
 		DLNAMediaAudio audioInf =  new DLNAMediaAudio();
 		audioInf.setAlbum(album.album);
 		audioInf.setArtist(album.artist);

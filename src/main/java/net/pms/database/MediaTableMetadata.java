@@ -18,15 +18,19 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaTableMetadata extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMetadata.class);
 	public static final String TABLE_NAME = "METADATA";
+	private static final String COL_M_KEY = "M_KEY";
+	private static final String COL_M_VALUE = "M_VALUE";
+	private static final String SQL_GET_ALL = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_M_KEY + " = ? LIMIT 1";
+	private static final String SQL_GET_M_VALUE = "SELECT " + COL_M_VALUE + " FROM " + TABLE_NAME + " WHERE " + COL_M_KEY + " = ? LIMIT 1";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -109,12 +113,12 @@ public class MediaTableMetadata extends MediaTable {
 	 * @return value
 	 */
 	public static String getMetadataValue(final Connection connection, String key) {
-		try (
-			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT M_VALUE FROM " + TABLE_NAME + " WHERE M_KEY = '" + key + "'")
-		) {
-			if (rs.next()) {
-				return rs.getString(1);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_M_VALUE)) {
+			statement.setString(1, key);
+			try (ResultSet rs = statement.executeQuery()) {
+				if (rs.next()) {
+					return rs.getString(1);
+				}
 			}
 		} catch (Exception se) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "reading value", key, TABLE_NAME, se.getMessage());
@@ -134,29 +138,28 @@ public class MediaTableMetadata extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
-			String query = "SELECT * FROM " + TABLE_NAME + " WHERE M_KEY = " + sqlQuote(key) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				boolean isCreatingNewRecord = false;
-
-				if (!result.next()) {
-					isCreatingNewRecord = true;
-					result.moveToInsertRow();
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, key);
+				if (trace) {
+					LOGGER.trace("Searching for value in METADATA with \"{}\" before update", statement);
 				}
 
-				result.updateString("M_KEY", key);
-				result.updateString("M_VALUE", value);
+				try (ResultSet result = statement.executeQuery()) {
+					boolean isCreatingNewRecord = false;
 
-				if (isCreatingNewRecord) {
-					result.insertRow();
-				} else {
-					result.updateRow();
+					if (!result.next()) {
+						isCreatingNewRecord = true;
+						result.moveToInsertRow();
+					}
+
+					result.updateString(COL_M_KEY, key);
+					result.updateString(COL_M_VALUE, value);
+
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
 				}
 			}
 		} catch (SQLException se) {

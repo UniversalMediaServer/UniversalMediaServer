@@ -34,15 +34,14 @@ import net.pms.dlna.DbIdMediaType;
  * This VirtualFolder implements support for RealFileDbId's database backed IDs.
  */
 public class VirtualFolderDbId extends VirtualFolder {
-
 	private static final Logger LOG = LoggerFactory.getLogger(VirtualFolderDbId.class.getName());
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
+
 	private final DbIdTypeAndIdent2 typeIdent;
 
 	public VirtualFolderDbId(String folderName, DbIdTypeAndIdent2 typeIdent, String thumbnailIcon) {
 		super(folderName, thumbnailIcon);
 		this.typeIdent = typeIdent;
-		String id = dbIdResourceLocator.encodeDbid(typeIdent);
+		String id = DbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
 	}
@@ -81,7 +80,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	@Override
-	protected void setId(String id) {
+	protected final void setId(String id) {
 		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			super.setId(id);
 		} else {

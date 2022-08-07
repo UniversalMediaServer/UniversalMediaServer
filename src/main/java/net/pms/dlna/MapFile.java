@@ -82,138 +82,6 @@ public class MapFile extends DLNAResource {
 		forcedName = null;
 	}
 
-	/**
-	 * Returns the first {@link File} in a specified folder that is considered a
-	 * "folder thumbnail" by naming convention.
-	 *
-	 * @param folder the folder to search for a folder thumbnail.
-	 * @return The first "folder thumbnail" file in {@code folder} or
-	 *         {@code null} if none was found.
-	 */
-	public static File getFolderThumbnail(File folder) {
-		if (folder == null || !folder.isDirectory()) {
-			return null;
-		}
-		try {
-			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
-				Path fileNamePath = entry.getFileName();
-				if (fileNamePath == null) {
-					return false;
-				}
-				String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
-				if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
-					return isPotentialThumbnail(fileName);
-				}
-				return false;
-			});
-			for (Path folderThumbnail : folderThumbnails) {
-				// We don't have any rule to prioritize between them; return the first
-				return folderThumbnail.toFile();
-			}
-		} catch (IOException e) {
-			LOGGER.warn("An error occurred while trying to browse folder \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	/**
-	 * Returns whether or not the specified {@link File} is considered a
-	 * "folder thumbnail" by naming convention.
-	 *
-	 * @param file the {@link File} to evaluate.
-	 * @param evaluateExtension if {@code true} the file extension will also be
-	 *            evaluated in addition to the file name, if {@code false} only
-	 *            the file name will be evaluated.
-	 * @return {@code true} if {@code file} name matches the naming convention
-	 *         for folder thumbnails, {@code false} otherwise.
-	 */
-	public static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
-		if (file == null || !file.isFile()) {
-			return false;
-		}
-
-		String fileName = file.getName();
-		if (isBlank(fileName)) {
-			return false;
-		}
-		if (evaluateExtension && !isPotentialThumbnail(fileName)) {
-			return false;
-		}
-		fileName = fileName.toLowerCase(Locale.ROOT);
-		return fileName.startsWith("folder.") || fileName.contains("albumart");
-	}
-
-	/**
-	 * Returns the potential thumbnail resources for the specified audio or
-	 * video file as a {@link Set} of {@link File}s.
-	 *
-	 * @param audioVideoFile the {@link File} for which to enumerate potential
-	 *            thumbnail files.
-	 * @param existingOnly if {@code true}, files will only be added to the
-	 *            returned {@link Set} if they {@link File#exists()}.
-	 * @return The {@link Set} of {@link File}s.
-	 */
-	public static HashSet<File> getPotentialFileThumbnails(
-		File audioVideoFile,
-		boolean existingOnly
-	) {
-		File file;
-		HashSet<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
-		for (String extension : THUMBNAIL_EXTENSIONS) {
-			file = FileUtil.replaceExtension(audioVideoFile, extension, false, true);
-			if (!existingOnly || file.exists()) {
-				potentialMatches.add(file);
-			}
-			file = new File(audioVideoFile.toString() + ".cover." + extension);
-			if (!existingOnly || file.exists()) {
-				potentialMatches.add(file);
-			}
-		}
-		return potentialMatches;
-	}
-
-	/**
-	 * Returns whether or not the specified {@link File} has an extension that
-	 * makes it a possible thumbnail file that should be considered a thumbnail
-	 * resource belonging to another file or folder.
-	 *
-	 * @param file the {@link File} to evaluate.
-	 * @return {@code true} if {@code file} has one of the predefined
-	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
-	 *         otherwise.
-	 */
-	public static boolean isPotentialThumbnail(File file) {
-		return file != null && file.isFile() && isPotentialThumbnail(file.getName());
-	}
-
-	/**
-	 * Returns whether or not {@code fileName} has an extension that makes it a
-	 * possible thumbnail file that should be considered a thumbnail resource
-	 * belonging to another file or folder.
-	 *
-	 * @param fileName the file name to evaluate.
-	 * @return {@code true} if {@code fileName} has one of the predefined
-	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
-	 *         otherwise.
-	 */
-	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
-	}
-
-	/**
-	 * Returns whether {@code fileName} has an extension that is not on our
-	 * list of extensions that can't be media files.
-	 *
-	 * @param fileName the file name to evaluate.
-	 * @return {@code true} if {@code fileName} has not the one of the predefined
-	 *         {@link MapFile#EXTENSIONS_DENYLIST} extensions, {@code false}
-	 *         otherwise.
-	 */
-	public static boolean isPotentialMediaFile(String fileName) {
-		return !MapFile.EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
-	}
-
 	private void manageFile(File f, boolean isAddGlobally) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
@@ -285,6 +153,13 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
+	}
+
+	private File getPath() {
+		if (this instanceof RealFile) {
+			return ((RealFile) this).getFile();
+		}
+		return null;
 	}
 
 	private List<File> getFilesListForDirectories() {
@@ -502,6 +377,46 @@ public class MapFile extends DLNAResource {
 		}
 	}
 
+	public void doRefreshChildren(String str, boolean isAddGlobally) {
+		getChildren().clear();
+		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
+		discoverable = null;
+		discoverChildren(str, isAddGlobally);
+		analyzeChildren(-1, isAddGlobally);
+	}
+
+	/**
+	 * @return the conf
+	 * @since 1.50
+	 */
+	protected MapFileConfiguration getConf() {
+		return conf;
+	}
+
+	/**
+	 * @param conf the conf to set
+	 * @since 1.50
+	 */
+	protected void setConf(MapFileConfiguration conf) {
+		this.conf = conf;
+	}
+
+	/**
+	 * @return the potentialCover
+	 * @since 1.50
+	 */
+	public File getPotentialCover() {
+		return potentialCover;
+	}
+
+	/**
+	 * @param potentialCover the potentialCover to set
+	 * @since 1.50
+	 */
+	public void setPotentialCover(File potentialCover) {
+		this.potentialCover = potentialCover;
+	}
+
 	@Override
 	public boolean isRefreshNeeded() {
 		long modified = 0;
@@ -538,12 +453,14 @@ public class MapFile extends DLNAResource {
 		doRefreshChildren(str, true);
 	}
 
-	public void doRefreshChildren(String str, boolean isAddGlobally) {
-		getChildren().clear();
-		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
-		discoverable = null;
-		discoverChildren(str, isAddGlobally);
-		analyzeChildren(-1, isAddGlobally);
+	@Override
+	public boolean isSearched() {
+		return (getParent() instanceof SearchFolder);
+	}
+
+	@Override
+	public boolean isAddToMediaLibrary() {
+		return getConf().isAddToMediaLibrary();
 	}
 
 	@Override
@@ -604,52 +521,135 @@ public class MapFile extends DLNAResource {
 	}
 
 	/**
-	 * @return the conf
-	 * @since 1.50
+	 * Returns the first {@link File} in a specified folder that is considered a
+	 * "folder thumbnail" by naming convention.
+	 *
+	 * @param folder the folder to search for a folder thumbnail.
+	 * @return The first "folder thumbnail" file in {@code folder} or
+	 *         {@code null} if none was found.
 	 */
-	protected MapFileConfiguration getConf() {
-		return conf;
-	}
-
-	/**
-	 * @param conf the conf to set
-	 * @since 1.50
-	 */
-	protected void setConf(MapFileConfiguration conf) {
-		this.conf = conf;
-	}
-
-	/**
-	 * @return the potentialCover
-	 * @since 1.50
-	 */
-	public File getPotentialCover() {
-		return potentialCover;
-	}
-
-	/**
-	 * @param potentialCover the potentialCover to set
-	 * @since 1.50
-	 */
-	public void setPotentialCover(File potentialCover) {
-		this.potentialCover = potentialCover;
-	}
-
-	@Override
-	public boolean isSearched() {
-		return (getParent() instanceof SearchFolder);
-	}
-
-	private File getPath() {
-		if (this instanceof RealFile) {
-			return ((RealFile) this).getFile();
+	public static File getFolderThumbnail(File folder) {
+		if (folder == null || !folder.isDirectory()) {
+			return null;
+		}
+		try {
+			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
+				Path fileNamePath = entry.getFileName();
+				if (fileNamePath == null) {
+					return false;
+				}
+				String fileName = fileNamePath.toString().toLowerCase(Locale.ROOT);
+				if (fileName.startsWith("folder.") || fileName.contains("albumart")) {
+					return isPotentialThumbnail(fileName);
+				}
+				return false;
+			});
+			for (Path folderThumbnail : folderThumbnails) {
+				// We don't have any rule to prioritize between them; return the first
+				return folderThumbnail.toFile();
+			}
+		} catch (IOException e) {
+			LOGGER.warn("An error occurred while trying to browse folder \"{}\": {}", folder.getAbsolutePath(), e.getMessage());
+			LOGGER.trace("", e);
 		}
 		return null;
 	}
 
-	@Override
-	public boolean isAddToMediaLibrary() {
-		return getConf().isAddToMediaLibrary();
+	/**
+	 * Returns whether or not the specified {@link File} is considered a
+	 * "folder thumbnail" by naming convention.
+	 *
+	 * @param file the {@link File} to evaluate.
+	 * @param evaluateExtension if {@code true} the file extension will also be
+	 *            evaluated in addition to the file name, if {@code false} only
+	 *            the file name will be evaluated.
+	 * @return {@code true} if {@code file} name matches the naming convention
+	 *         for folder thumbnails, {@code false} otherwise.
+	 */
+	public static boolean isFolderThumbnail(File file, boolean evaluateExtension) {
+		if (file == null || !file.isFile()) {
+			return false;
+		}
+
+		String fileName = file.getName();
+		if (isBlank(fileName)) {
+			return false;
+		}
+		if (evaluateExtension && !isPotentialThumbnail(fileName)) {
+			return false;
+		}
+		fileName = fileName.toLowerCase(Locale.ROOT);
+		return fileName.startsWith("folder.") || fileName.contains("albumart");
+	}
+
+	/**
+	 * Returns the potential thumbnail resources for the specified audio or
+	 * video file as a {@link Set} of {@link File}s.
+	 *
+	 * @param audioVideoFile the {@link File} for which to enumerate potential
+	 *            thumbnail files.
+	 * @param existingOnly if {@code true}, files will only be added to the
+	 *            returned {@link Set} if they {@link File#exists()}.
+	 * @return The {@link Set} of {@link File}s.
+	 */
+	public static HashSet<File> getPotentialFileThumbnails(
+		File audioVideoFile,
+		boolean existingOnly
+	) {
+		File file;
+		HashSet<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
+		for (String extension : THUMBNAIL_EXTENSIONS) {
+			file = FileUtil.replaceExtension(audioVideoFile, extension, false, true);
+			if (!existingOnly || file.exists()) {
+				potentialMatches.add(file);
+			}
+			file = new File(audioVideoFile.toString() + ".cover." + extension);
+			if (!existingOnly || file.exists()) {
+				potentialMatches.add(file);
+			}
+		}
+		return potentialMatches;
+	}
+
+	/**
+	 * Returns whether or not the specified {@link File} has an extension that
+	 * makes it a possible thumbnail file that should be considered a thumbnail
+	 * resource belonging to another file or folder.
+	 *
+	 * @param file the {@link File} to evaluate.
+	 * @return {@code true} if {@code file} has one of the predefined
+	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isPotentialThumbnail(File file) {
+		return file != null && file.isFile() && isPotentialThumbnail(file.getName());
+	}
+
+	/**
+	 * Returns whether or not {@code fileName} has an extension that makes it a
+	 * possible thumbnail file that should be considered a thumbnail resource
+	 * belonging to another file or folder.
+	 *
+	 * @param fileName the file name to evaluate.
+	 * @return {@code true} if {@code fileName} has one of the predefined
+	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isPotentialThumbnail(String fileName) {
+		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
+	}
+
+	/**
+	 * Returns whether {@code fileName} has an extension that is not on our
+	 * list of extensions that can't be media files.
+	 *
+	 * @param fileName the file name to evaluate.
+	 * @return {@code true} if {@code fileName} has not the one of the predefined
+	 *         {@link MapFile#EXTENSIONS_DENYLIST} extensions, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isPotentialMediaFile(String fileName) {
+		return !MapFile.EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
 	}
 
 }
