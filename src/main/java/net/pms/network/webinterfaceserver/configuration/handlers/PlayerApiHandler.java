@@ -522,12 +522,6 @@ public class PlayerApiHandler implements HttpHandler {
 		}
 		jMedia.addProperty("id", resource.getResourceId());
 		jMedia.addProperty("name", resource.resumeName());
-		if (CONFIGURATION.getUseCache()) {
-			JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
-			if (apiMetadata != null) {
-				jMedia.add("metadata", apiMetadata);
-			}
-		}
 		return jMedia;
 	}
 
