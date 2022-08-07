@@ -459,9 +459,9 @@ public class PlayerApiHandler implements HttpHandler {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, true, root);
-					if (apiMetadatas != null) {
-						result.add("metadatas", apiMetadatas);
+					JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, true, root);
+					if (apiMetadata != null) {
+						result.add("metadata", apiMetadata);
 					}
 				}
 
@@ -523,9 +523,9 @@ public class PlayerApiHandler implements HttpHandler {
 		jMedia.addProperty("id", resource.getResourceId());
 		jMedia.addProperty("name", resource.resumeName());
 		if (CONFIGURATION.getUseCache()) {
-			JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
-			if (apiMetadatas != null) {
-				jMedia.add("metadatas", apiMetadatas);
+			JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(resource, false, root);
+			if (apiMetadata != null) {
+				jMedia.add("metadata", apiMetadata);
 			}
 		}
 		return jMedia;
@@ -616,8 +616,8 @@ public class PlayerApiHandler implements HttpHandler {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject apiMetadatas = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
-					media.add("metadatas", apiMetadatas);
+					JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
+					media.add("metadata", apiMetadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
 				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {

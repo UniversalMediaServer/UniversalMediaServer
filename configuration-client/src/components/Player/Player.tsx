@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -236,13 +236,133 @@ export const Player = () => {
 
   const getMediaSelections = () => {
     if (data.mediasSelections) {
-		return <>
-		  {getMediasSelection(data.mediasSelections.recentlyAdded, 'RecentlyAddedVideos')}
-		  {getMediasSelection(data.mediasSelections.inProgress, 'InProgressVideos')}
-		  {getMediasSelection(data.mediasSelections.recentlyPlayed, 'RecentlyPlayedVideos')}
-		  {getMediasSelection(data.mediasSelections.mostPlayed, 'MostPlayedVideos')}
-		</>;
-	}
+      return <>
+        {getMediasSelection(data.mediasSelections.recentlyAdded, 'RecentlyAddedVideos')}
+        {getMediasSelection(data.mediasSelections.inProgress, 'InProgressVideos')}
+        {getMediasSelection(data.mediasSelections.recentlyPlayed, 'RecentlyPlayedVideos')}
+        {getMediasSelection(data.mediasSelections.mostPlayed, 'MostPlayedVideos')}
+      </>;
+    }
+  }
+
+  const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
+    if (mediaList && mediaList.length > 0) {
+      return (<Group><Text weight={700} color="#fff">{i18n.get[title]}:</Text>
+        { mediaList.map((media: BaseMedia) => {
+          return (
+            <Badge
+              onClick={() => askBrowseId(media.id)}
+              style={{cursor:'pointer'}}
+            >
+              {media.name}
+            </Badge>);
+        })}
+      </Group>);
+    }
+  }
+
+  const getMetadataString = (title:string, mediaString?:string) => {
+    if (mediaString) {
+      return (<div><Text weight={700} color="#fff">{i18n.get[title]}: </Text><Text color="#fff">{mediaString}</Text></div>);
+    }
+  }
+
+  const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
+    if (ratingsList && ratingsList.length > 0) {
+      return (<><Group><Text weight={700} color="#fff">{i18n.get['Ratings']}: </Text></Group>
+        <List withPadding color="#fff">
+          { ratingsList.map((media: MediaRating) => {
+            return (<List.Item>{media.source}: {media.value}</List.Item>);
+          })}
+        </List>
+      </>);
+    }
+  }
+
+  function getMetadataImages() {
+    let background, logo, poster;
+    if (data.metadata && data.metadata.images && data.metadata.images.length > 0) {
+      const iso639 = i18n.language.substring(0,2);
+      let apiImagesList = data.metadata.images[0];
+      // Set the page background and color scheme
+      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
+        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
+        if (backgrounds.length === 0) {
+          // TODO: Support i18n for backgrounds
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
+        }
+        if (backgrounds.length === 0) {
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
+        }
+        if (backgrounds.length > 0) {
+          var randomBackground = Math.floor(Math.random() * (backgrounds.length));
+          background = data.metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+        }
+      }
+      // Set a logo as the heading
+      if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
+        let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
+		if (logos.length === 0) {
+          logos = apiImagesList.logos.filter(logo => !logo.iso_639_1);
+        }
+        if (logos.length === 0) {
+          logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === 'en');
+        }
+        if (logos.length > 0) {
+          let random = Math.floor(Math.random() * (logos.length));
+          logo = (<Image style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} src={data.metadata.imageBaseURL + 'w500' + logos[random].file_path} ></Image>);
+        }
+      }
+      if (!logo) {
+        logo = (<Text>{data.metadata.originalTitle}</Text>);
+      }
+      // Set a poster
+      if (apiImagesList && apiImagesList.posters && apiImagesList.posters.length > 0) {
+        let posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === iso639);
+        if (posters.length === 0) {
+          posters = apiImagesList.posters.filter(poster => !poster.iso_639_1);
+        }
+        if (posters.length === 0) {
+          posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === 'en');
+        }
+        if (posters.length > 0) {
+          let random = Math.floor(Math.random() * (posters.length));
+          poster = (<Image style={{ maxHeight: 500 }} fit="contain" src={data.metadata.imageBaseURL + 'w500' + posters[random].file_path} ></Image>);
+        }
+      }
+      if (!poster && data.metadata.poster) {
+        poster = (<Image style={{ maxHeight: 500 }} fit="contain" src={data.metadata.poster} />);
+      }
+    }
+    return {background:background, logo:logo, poster:poster};
+  }
+
+  const images = getMetadataImages();
+  const getBrowseMetadata = () => {
+	  if (data.goal === 'browse' && data.metadata) {
+          
+          return (<>
+            <Grid.Col span={12}>
+                <Grid columns={20} justify="center">
+                  <Grid.Col span={6}>
+                    { images.poster }
+                  </Grid.Col>
+                  <Grid.Col span={12} style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} >
+                    <Box p="xl">
+                      { images.logo }
+                      { getMetadataBaseMediaList('Actors', data.metadata.actors) }
+                      { getMetadataString('Awards', data.metadata.awards) }
+                      { getMetadataBaseMediaList('Country', data.metadata.countries) }
+                      { getMetadataBaseMediaList('Director', data.metadata.directors) }
+                      { getMetadataBaseMediaList('Genres', data.metadata.genres) }
+                      { getMetadataString('Plot', data.metadata.plot) }
+                      { getMetadataRatingList(data.metadata.ratings) }
+                    </Box>
+                  </Grid.Col>
+                </Grid>
+            </Grid.Col>
+          </>);
+      }
   }
 
   useEffect(() => {
@@ -293,13 +413,8 @@ export const Player = () => {
     }
   }, [token, playId]);
 
-  useEffect(() => {
-
-  }, [data]);
-
-
   return (
-    <Box mx="auto">
+    <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
       <LoadingOverlay visible={loading} />
       <Grid>
         <Grid.Col md={3} style={{height: 'calc(100vh - 60px)'}}>
@@ -321,6 +436,7 @@ export const Player = () => {
              : (
               <Grid>
                 {getMediaSelections()}
+				{getBrowseMetadata()}
                 {getMedias()}
               </Grid>
             )}
@@ -354,6 +470,7 @@ interface BaseBrowse {
   medias: BaseMedia[],
   mediaLibraryFolders?: BaseMedia[],
   mediasSelections?: MediasSelections,
+  metadata?: VideoMetadata,
   useWebControl: boolean,
 }
 
@@ -375,18 +492,19 @@ interface MediaRating {
   value: string,
 }
 
-interface VideoMetadatas {
+interface VideoMetadata {
   actors?: BaseMedia[],
   awards: string,
-  country?: BaseMedia,
+  countries?: BaseMedia[],
   createdBy?: string,
   credits?: string,
-  director?: BaseMedia,
+  directors?: BaseMedia[],
   externalIDs?: string,
   firstAirDate?: string,
   genres?: BaseMedia[],
   homepage?: string,
-  images?: string,
+  images?: VideoMetadataImages[],
+  imageBaseURL: string,
   imdbID?: string,
   inProduction?: boolean,
   languages?: string,
@@ -412,10 +530,26 @@ interface VideoMetadatas {
   totalSeasons?: number,
 }
 
+interface VideoMetadataImages {
+	backdrops?: VideoMetadataImage[],
+	logos?: VideoMetadataImage[],
+	posters?: VideoMetadataImage[],
+}
+
+interface VideoMetadataImage {
+  aspect_ratio?: number,
+  height?: number,
+  iso_639_1?: string,
+  file_path?: string,
+  vote_average?: number,
+  vote_count?: number,
+  width?: number,
+}
+
 export interface VideoMedia extends PlayMedia {
   height: number,
   isVideoWithChapters: boolean,
-  metadatas?: VideoMetadatas,
+  metadata?: VideoMetadata,
   mime: string,
   resumePosition?: number,
   sub?: string,

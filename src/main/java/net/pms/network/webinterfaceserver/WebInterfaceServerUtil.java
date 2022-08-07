@@ -759,7 +759,6 @@ public class WebInterfaceServerUtil {
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
 		JsonObject result = getAPIMetadataAsJsonObject(resource, isTVSeries, rootFolder);
 		if (result != null) {
-			result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 			result.addProperty("actorsTranslation", WebInterfaceServerUtil.getMsgString("Actors", language));
 			result.addProperty("awardsTranslation", WebInterfaceServerUtil.getMsgString("Awards", language));
 			result.addProperty("countryTranslation", WebInterfaceServerUtil.getMsgString("Country", language));
@@ -852,6 +851,7 @@ public class WebInterfaceServerUtil {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
 		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 
 		return result;
 	}
