@@ -1,5 +1,85 @@
 # Changelog
 
+### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
+
+### General:
+- Enabled UPnP searching, with the ability to disable for problematic renderers
+- Improved performance when scanning and browsing by up to 3,563%
+- Improved performance when handling API metadata
+- Improved performance with many audio files
+- Fixed broken translations
+- Fixed some API metadata handling bugs
+- Fixed macOS startup crash
+- Fixed running as a service on x64 Windows
+
+### Translation updates via Crowdin
+- Catalan (99%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Danish (100%) (thanks, NCAA!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- German (99%) (thanks, pipin!)
+- Italian (100%) (thanks, Oscar Zambotti!)
+- Korean (100%) (thanks, VenusGirl!)
+- Spanish (96%) (thanks, edwardalvarez2011!)
+- Persian (84%) (thanks, Sadra Imam!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Updated JRE to 17.0.4
+- Updated junit5 to 5.9.0
+- Updated maven-assembly-plugin to 3.4.2
+- Updated maven-project-info-reports-plugin 3.4.0
+- Updated maven-resources-plugin to 3.3.0
+- Updated oshi-core to 6.2.2
+- Updated spotbugs-maven-plugin to 4.7.1.1
+
+### [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
+
+### General
+- Sign and notarize macOS releases, for easier installation
+- Adding/removing shared folders updates instantly
+- Fixed autoupdater on Apple ARM build
+- Renamed all translation keys for more readable code
+- Fixed broken sleep prevention during playback on macOS
+- Fixed macOS version compatibility warning in log viewer
+- Fixed web browser video/audio playback on some systems and browsers
+
+### Renderers
+- Send date metadata for audio on nextcp/2
+
+### Translation updates via Crowdin
+- Bulgarian (93%) (thanks, Иво Иванов and Dremski!)
+- Catalan (98%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Danish (100%) (thanks, GurliGebis and NCAA!)
+- Dutch (91%) (thanks, DJ_eMPe!)
+- English (United Kingdom) (17%) (thanks, DJ_eMPe!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Archaos!)
+- German (99%) (thanks, pipin!)
+- Hebrew (23%) (thanks, shayh!)
+- Hungarian (91%) (thanks, promi!)
+- Italian (100%) (thanks, Oscar Zambotti!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (100%) (thanks, mariopinto and RPargana!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Serbian (Cyrillic) (92%) (thanks, silevb!)
+- Spanish (96%) (thanks, edwardalvarez2011!)
+- Swedish (99%) (thanks, Erik Karlsson and Lorien aka the First One!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (29%) (thanks, Paul Furlet!)
+
+### Dependencies
+- Updated appbundler to 5946207
+- Updated exec-maven-plugin to v3.1.0
+- Updated maven-assembly-plugin to v3.4.1
+- Updated moment.js to v2.29.4
+- Updated spotbugs-maven-plugin to v4.7.1.0
+
 ### [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
 
 ### General

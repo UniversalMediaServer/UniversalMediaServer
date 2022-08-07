@@ -125,7 +125,6 @@ public class RequestV2 extends HTTPResource {
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	private PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -348,7 +347,7 @@ public class RequestV2 extends HTTPResource {
 				// Retrieve the DLNAresource itself.
 				if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 					try {
-						dlna = dbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
+						dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 					} catch (Exception e) {
 						LOGGER.error("", e);
 					}
@@ -758,7 +757,7 @@ public class RequestV2 extends HTTPResource {
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 					response.append(getSortCapabilitiesHandler());
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-					response.append(getSearchCapabilitiesHandler());
+					response.append(getSearchCapabilitiesHandler(mediaRenderer));
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
 					response.append(browseHandler());
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
@@ -885,8 +884,12 @@ public class RequestV2 extends HTTPResource {
 		return createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE).toString();
 	}
 
-	private String getSearchCapabilitiesHandler() {
-		return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+	private String getSearchCapabilitiesHandler(RendererConfiguration mediaRenderer) {
+		if (mediaRenderer.isUpnpSearchCapsEnabled()) {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
+		} else {
+			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE_SEARCH_DEACTIVATED).toString();
+		}
 	}
 
 	private String getProtocolInfoHandler() {

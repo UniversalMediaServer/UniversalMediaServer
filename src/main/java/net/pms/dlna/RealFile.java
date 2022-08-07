@@ -310,6 +310,7 @@ public class RealFile extends MapFile {
 				try {
 					if (connection != null) {
 						connection.commit();
+						connection.setAutoCommit(true);
 					}
 				} catch (SQLException e) {
 					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
@@ -451,14 +452,14 @@ public class RealFile extends MapFile {
 			String mbReleaseId = getMedia().getAudioTracksList().get(0).getMbidRecord();
 			if (!StringUtils.isAllBlank(mbReleaseId)) {
 				try {
-					AudioFile af;
-					if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
-						af = AudioFileIO.readAs(getFile(), "mp3");
-					} else {
-						af = AudioFileIO.read(getFile());
-					}
-					Tag t = af.getTag();
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
+						AudioFile af;
+						if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
+							af = AudioFileIO.readAs(getFile(), "mp3");
+						} else {
+							af = AudioFileIO.read(getFile());
+						}
+						Tag t = af.getTag();
 						LOGGER.trace("no artwork in MediaTableCoverArtArchive table");
 						if (t.getFirstArtwork() != null) {
 							byte[] artBytes = t.getFirstArtwork().getBinaryData();

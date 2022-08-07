@@ -32,6 +32,16 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableFailedLookups extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFailedLookups.class);
 	public static final String TABLE_NAME = "FAILED_LOOKUPS";
+	private static final String COL_LASTATTEMPT = "LASTATTEMPT";
+	public static final String TABLE_COL_LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
+	public static final String TABLE_COL_FAILUREDETAILS = TABLE_NAME + ".FAILUREDETAILS";
+	public static final String TABLE_COL_FILENAME = TABLE_NAME + ".FILENAME";
+	public static final String TABLE_COL_VERSION = TABLE_NAME + ".VERSION";
+	private static final String SQL_GET_LASTATTEMPT = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_GET_LASTATTEMPT_VERSION = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_VERSION + " = ? LIMIT 1";
+	private static final String SQL_GET_FILENAME = "SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_FAILUREDETAILS + ", " + TABLE_COL_VERSION + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_DELETE_FILENAME = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ?";
+	private static final String SQL_DELETE_FILENAME_LIKE = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " LIKE ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -90,7 +100,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 				case 1:
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR2");
+							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
 							statement.execute("CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)");
 						}
 					} catch (SQLException e) {
@@ -118,11 +128,11 @@ public final class MediaTableFailedLookups extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID               IDENTITY                   PRIMARY KEY, " +
-				"FILENAME         VARCHAR2(1024)             NOT NULL, " +
-				"FAILUREDETAILS   VARCHAR2(20000)            NOT NULL, " +
-				"VERSION          VARCHAR2(1024)             NOT NULL, " +
-				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP" +
+				"ID               IDENTITY                   PRIMARY KEY               , " +
+				"FILENAME         VARCHAR(1024)              NOT NULL                  , " +
+				"FAILUREDETAILS   VARCHAR(20000)             NOT NULL                  , " +
+				"VERSION          VARCHAR(1024)              NOT NULL                  , " +
+				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP   " +
 			")",
 			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
 			"CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)"
@@ -137,39 +147,44 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 */
 	public static boolean hasLookupFailedRecently(final Connection connection, final String fullPathToFile, final boolean isVideo) {
 		boolean removeAfter = false;
-		String latestVersion;
-		if (isVideo) {
-			latestVersion = APIUtils.getApiDataVideoVersion();
+		String latestVersion = null;
+		if (CONFIGURATION.getExternalNetwork()) {
+			if (isVideo) {
+				latestVersion = APIUtils.getApiDataVideoVersion();
+			} else {
+				latestVersion = APIUtils.getApiDataSeriesVersion();
+			}
+		}
+		String sql;
+		if (latestVersion != null) {
+			sql = SQL_GET_LASTATTEMPT_VERSION;
 		} else {
-			latestVersion = APIUtils.getApiDataSeriesVersion();
+			sql = SQL_GET_LASTATTEMPT;
 		}
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT LASTATTEMPT FROM " + TABLE_NAME + " WHERE FILENAME = ").append(sqlQuote(fullPathToFile)).append(" ");
-		if (latestVersion != null && CONFIGURATION.getExternalNetwork()) {
-			sql.append(" AND VERSION = ").append(sqlQuote(latestVersion)).append(" ");
-		}
-		sql.append("LIMIT 1");
 
-		try (
-			PreparedStatement selectStatement = connection.prepareStatement(sql.toString());
-			ResultSet rs = selectStatement.executeQuery()
-		) {
-			if (rs.next()) {
-				LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
+		try (PreparedStatement selectStatement = connection.prepareStatement(sql)) {
+			selectStatement.setString(1, fullPathToFile);
+			if (latestVersion != null) {
+				selectStatement.setString(2, latestVersion);
+			}
+			try (ResultSet rs = selectStatement.executeQuery()) {
+				if (rs.next()) {
+					LOGGER.trace("We have failed a lookup for {} so let's see if it was recent", fullPathToFile);
 
-				OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-				OffsetDateTime lastAttempt = rs.getObject("LASTATTEMPT", OffsetDateTime.class);
-				if (lastAttempt.plusWeeks(1).isAfter(now)) {
-					// The last attempt happened in the last week
-					return true;
+					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+					OffsetDateTime lastAttempt = rs.getObject(COL_LASTATTEMPT, OffsetDateTime.class);
+					if (lastAttempt.plusWeeks(1).isAfter(now)) {
+						// The last attempt happened in the last week
+						return true;
+					} else {
+						// The last attempt happened over a week ago, let's remove it so it can be tried again
+						removeAfter = true;
+						return false;
+					}
 				} else {
-					// The last attempt happened over a week ago, let's remove it so it can be tried again
-					removeAfter = true;
+					LOGGER.trace("We have no failed lookups stored for {}", fullPathToFile);
 					return false;
 				}
-			} else {
-				LOGGER.trace("We have no failed lookups stored for {}", fullPathToFile);
-				return false;
 			}
 		} catch (Exception e) {
 			LOGGER.error(
@@ -199,7 +214,6 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * @param isVideo
 	 */
 	public static void set(final Connection connection, final String fullPathToFile, final String failureDetails, final boolean isVideo) {
-		boolean trace = LOGGER.isTraceEnabled();
 		String latestVersion;
 		if (isVideo) {
 			latestVersion = APIUtils.getApiDataVideoVersion();
@@ -208,25 +222,21 @@ public final class MediaTableFailedLookups extends MediaTable {
 		}
 
 		try {
-			String query = "SELECT FILENAME, FAILUREDETAILS, VERSION FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				if (result.next()) {
-					result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-					result.updateString("VERSION", left(latestVersion, 1024));
-					result.updateRow();
-				} else {
-					result.moveToInsertRow();
-					result.updateString("FILENAME", left(fullPathToFile, 1024));
-					result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-					result.updateString("VERSION", left(latestVersion, 1024));
-					result.insertRow();
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAME, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, fullPathToFile);
+				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", statement);
+				try (ResultSet result = statement.executeQuery()) {
+					if (result.next()) {
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
+						result.updateRow();
+					} else {
+						result.moveToInsertRow();
+						result.updateString("FILENAME", left(fullPathToFile, 1024));
+						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
+						result.updateString("VERSION", left(latestVersion, 1024));
+						result.insertRow();
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -250,11 +260,10 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 */
 	public static void remove(final Connection connection, final String filename, boolean useLike) {
 		try {
-			String query =
-				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
-				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
-			try (Statement statement = connection.createStatement()) {
-				int rows = statement.executeUpdate(query);
+			String sql = useLike ? SQL_DELETE_FILENAME_LIKE : SQL_DELETE_FILENAME;
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
+				statement.setString(1, filename);
+				int rows = statement.executeUpdate();
 				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
 			}
 		} catch (SQLException e) {

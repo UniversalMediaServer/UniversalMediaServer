@@ -647,10 +647,7 @@ public class VLCVideo extends Player {
 		pw.attachProcess(pipeProcess);
 
 		// TODO: Why is this here?
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
 		configuration = prev;

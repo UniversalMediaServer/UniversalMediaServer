@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -72,6 +72,7 @@ import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -2309,19 +2310,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (media != null) {
-			if (media.isTVEpisode()) {
-				if (isNotBlank(media.getTVSeason())) {
-					addXMLTagAndAttribute(sb, "upnp:episodeSeason", media.getTVSeason());
+		if (media != null && media.hasVideoMetadata()) {
+			DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+			if (videoMetadata.isTVEpisode()) {
+				if (isNotBlank(videoMetadata.getTVSeason())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTVSeason());
 				}
-				if (isNotBlank(media.getTVEpisodeNumber())) {
-					addXMLTagAndAttribute(sb, "upnp:episodeNumber", media.getTVEpisodeNumberUnpadded());
+				if (isNotBlank(videoMetadata.getTVEpisodeNumber())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeNumber", videoMetadata.getTVEpisodeNumberUnpadded());
 				}
-				if (isNotBlank(media.getMovieOrShowName())) {
-					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(media.getMovieOrShowName()));
+				if (isNotBlank(videoMetadata.getMovieOrShowName())) {
+					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(videoMetadata.getMovieOrShowName()));
 				}
-				if (isNotBlank(media.getTVEpisodeName())) {
-					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(media.getTVEpisodeName()));
+				if (isNotBlank(videoMetadata.getTVEpisodeName())) {
+					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
 				}
 			}
 
@@ -2611,7 +2613,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else if (media != null && (media.isTVEpisode() || isNotBlank(media.getYear()))) {
+		} else if (media != null && media.hasVideoMetadata() && (media.getVideoMetadata().isTVEpisode() || isNotBlank(media.getVideoMetadata().getYear()))) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
 		} else {
@@ -3969,9 +3971,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							connection.setAutoCommit(false);
+							//handle autocommit
+							boolean currentAutoCommit = connection.getAutoCommit();
+							if (currentAutoCommit) {
+								connection.setAutoCommit(false);
+							}
 							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), media);
-							connection.commit();
+							if (currentAutoCommit) {
+								connection.commit();
+								connection.setAutoCommit(true);
+							}
 						}
 					} catch (SQLException e) {
 						LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", file,
@@ -5011,7 +5020,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private void setMetadataFromFileName(File file) {
 		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
-			if (isBlank(media.getMovieOrShowName())) {
+			if (!media.hasVideoMetadata()) {
+				DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
 				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
 				String titleFromFilename = metadataFromFilename[0];
 				String yearFromFilename = metadataFromFilename[1];
@@ -5021,40 +5031,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String tvEpisodeNameFromFilename = metadataFromFilename[5];
 				String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
 
-				media.setMovieOrShowName(titleFromFilename);
-				media.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
+				videoMetadata.setMovieOrShowName(titleFromFilename);
+				videoMetadata.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 
 				// Apply the metadata from the filename.
 				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
-					media.setTVSeason(tvSeasonFromFilename);
+					videoMetadata.setTVSeason(tvSeasonFromFilename);
 					if (isNotBlank(tvEpisodeNumberFromFilename)) {
-						media.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+						videoMetadata.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 					}
 					if (isNotBlank(tvEpisodeNameFromFilename)) {
-						media.setTVEpisodeName(tvEpisodeNameFromFilename);
+						videoMetadata.setTVEpisodeName(tvEpisodeNameFromFilename);
 					}
 
-					media.setIsTVEpisode(true);
+					videoMetadata.setIsTVEpisode(true);
 				}
 
 				if (yearFromFilename != null) {
-					if (media.isTVEpisode()) {
-						media.setTVSeriesStartYear(yearFromFilename);
+					if (videoMetadata.isTVEpisode()) {
+						videoMetadata.setTVSeriesStartYear(yearFromFilename);
 					} else {
-						media.setYear(yearFromFilename);
+						videoMetadata.setYear(yearFromFilename);
 					}
 				}
 
 				if (extraInformationFromFilename != null) {
-					media.setExtraInformation(extraInformationFromFilename);
+					videoMetadata.setExtraInformation(extraInformationFromFilename);
 				}
 
 				if (configuration.getUseCache() && MediaDatabase.isAvailable()) {
-					Connection connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
+					try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 						if (connection != null) {
-							if (media.isTVEpisode()) {
+							if (videoMetadata.isTVEpisode()) {
 								/**
 								* Overwrite the title from the filename if it's very similar to one
 								* we already have in our database. This is to avoid minor
@@ -5064,22 +5072,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								String titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(connection, titleFromFilename);
 								String titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
 								if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-									media.setMovieOrShowName(titleFromDatabase);
+									videoMetadata.setMovieOrShowName(titleFromDatabase);
 								}
 							}
-							// TODO: Make sure this does not happen if ANY version already exists, before doing this
-							MediaTableFiles.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
+							media.setVideoMetadata(videoMetadata);
+							MediaTableVideoMetadata.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API
-							if (media.isTVEpisode()) {
+							if (videoMetadata.isTVEpisode()) {
 								// TODO: Make this check if it already exists instead of always setting it
-								MediaTableTVSeries.set(connection, null, media.getMovieOrShowName());
+								MediaTableTVSeries.set(connection, null, videoMetadata.getMovieOrShowName());
 							}
 						}
-					} finally {
-						MediaDatabase.close(connection);
 					}
+				} else {
+					media.setVideoMetadata(videoMetadata);
 				}
 			}
 		} catch (SQLException e) {
@@ -5106,9 +5114,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null && !MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
-					connection.setAutoCommit(false);
+					//handle autocommit
+					boolean currentAutoCommit = connection.getAutoCommit();
+					if (currentAutoCommit) {
+						connection.setAutoCommit(false);
+					}
 					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
-					connection.commit();
+					if (currentAutoCommit) {
+						connection.commit();
+						connection.setAutoCommit(true);
+					}
 				}
 			} catch (SQLException e) {
 				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());

@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -236,13 +236,151 @@ export const Player = () => {
 
   const getMediaSelections = () => {
     if (data.mediasSelections) {
-		return <>
-		  {getMediasSelection(data.mediasSelections.recentlyAdded, 'RecentlyAddedVideos')}
-		  {getMediasSelection(data.mediasSelections.inProgress, 'InProgressVideos')}
-		  {getMediasSelection(data.mediasSelections.recentlyPlayed, 'RecentlyPlayedVideos')}
-		  {getMediasSelection(data.mediasSelections.mostPlayed, 'MostPlayedVideos')}
-		</>;
-	}
+      return <>
+        {getMediasSelection(data.mediasSelections.recentlyAdded, 'RecentlyAddedVideos')}
+        {getMediasSelection(data.mediasSelections.inProgress, 'InProgressVideos')}
+        {getMediasSelection(data.mediasSelections.recentlyPlayed, 'RecentlyPlayedVideos')}
+        {getMediasSelection(data.mediasSelections.mostPlayed, 'MostPlayedVideos')}
+      </>;
+    }
+  }
+
+  const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
+    if (mediaList && mediaList.length > 0) {
+      return (<Group spacing="xs" mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+			<Text weight={700}>{i18n.get[title]}: </Text>
+        { mediaList.map((media: BaseMedia) => {
+          return (
+            <Badge
+              sx={(theme) => ({
+                cursor: 'pointer',
+                color: theme.colorScheme === 'dark' ? 'white' : 'black',
+				backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                '&:hover': {
+                  backgroundColor:
+                  theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
+                },
+              })}
+              onClick={() => askBrowseId(media.id)}
+            >
+              {media.name}
+            </Badge>);
+        })}
+      </Group>);
+    }
+  }
+
+  const getMetadataString = (title:string, mediaString?:string) => {
+    if (mediaString) {
+      return (<Group mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}><Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text></Group>);
+    }
+  }
+
+  const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
+    if (ratingsList && ratingsList.length > 0) {
+      return (<><Group mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+	  <Text weight={700}>{i18n.get['Ratings']}: </Text></Group>
+        <List withPadding>
+          { ratingsList.map((media: MediaRating) => {
+            return (<List.Item>{media.source}: {media.value}</List.Item>);
+          })}
+        </List>
+      </>);
+    }
+  }
+
+  function getMetadataImages() {
+    let background, logo, poster;
+    if (data.metadata && data.metadata.images && data.metadata.images.length > 0) {
+      const iso639 = i18n.language.substring(0,2);
+      let apiImagesList = data.metadata.images[0];
+      // Set the page background and color scheme
+      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
+        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
+        if (backgrounds.length === 0) {
+          // TODO: Support i18n for backgrounds
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
+        }
+        if (backgrounds.length === 0) {
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
+        }
+        if (backgrounds.length > 0) {
+          var randomBackground = Math.floor(Math.random() * (backgrounds.length));
+          background = data.metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+        }
+      }
+      // Set a logo as the heading
+      if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
+        let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
+		if (logos.length === 0) {
+          logos = apiImagesList.logos.filter(logo => !logo.iso_639_1);
+        }
+        if (logos.length === 0) {
+          logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === 'en');
+        }
+        if (logos.length > 0) {
+          let betterLogo = logos.reduce((previousValue, currentValue) => {
+            return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
+          });
+          logo = (
+		  <div>
+			<img src={data.metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={data.metadata.originalTitle}></img>
+		  </div>
+		  );
+        }
+      }
+      if (!logo) {
+        logo = (<Text>{data.metadata.originalTitle}</Text>);
+      }
+      // Set a poster
+      if (apiImagesList && apiImagesList.posters && apiImagesList.posters.length > 0) {
+        let posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === iso639);
+        if (posters.length === 0) {
+          posters = apiImagesList.posters.filter(poster => !poster.iso_639_1);
+        }
+        if (posters.length === 0) {
+          posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === 'en');
+        }
+        if (posters.length > 0) {
+          let betterPoster = posters.reduce((previousValue, currentValue) => {
+            return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
+          });
+          poster = (<Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={data.metadata.imageBaseURL + 'w500' + betterPoster.file_path} ></Image>);
+        }
+      }
+      if (!poster && data.metadata.poster) {
+        poster = (<Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={data.metadata.poster} />);
+      }
+    }
+    return {background:background, logo:logo, poster:poster};
+  }
+
+  const images = getMetadataImages();
+  const getBrowseMetadata = () => {
+	  if (data.goal === 'browse' && data.metadata) {
+          
+          return (<>
+            <Grid.Col span={12}>
+                <Grid columns={20} justify="center">
+                  <Grid.Col span={6}>
+                    { images.poster }
+                  </Grid.Col>
+                  <Grid.Col span={12}  >
+                    <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                      { images.logo }
+                      { getMetadataBaseMediaList('Actors', data.metadata.actors) }
+                      { getMetadataString('Awards', data.metadata.awards) }
+                      { getMetadataBaseMediaList('Country', data.metadata.countries) }
+                      { getMetadataBaseMediaList('Director', data.metadata.directors) }
+                      { getMetadataBaseMediaList('Genres', data.metadata.genres) }
+                      { getMetadataString('Plot', data.metadata.plot) }
+                      { getMetadataRatingList(data.metadata.ratings) }
+                    </Card>
+                  </Grid.Col>
+                </Grid>
+            </Grid.Col>
+          </>);
+      }
   }
 
   useEffect(() => {
@@ -255,6 +393,7 @@ export const Player = () => {
       axios.post(baseUrl + 'browse', {token:token,id:browseId})
       .then(function (response: any) {
         setData(response.data);
+        window.scrollTo(0,0);
       })
       .catch(function (error: Error) {
         showNotification({
@@ -277,6 +416,7 @@ export const Player = () => {
       axios.post(baseUrl + 'play', {token:token,id:playId})
       .then(function (response: any) {
         setData(response.data);
+        window.scrollTo(0,0);
       })
       .catch(function (error: Error) {
         showNotification({
@@ -293,13 +433,8 @@ export const Player = () => {
     }
   }, [token, playId]);
 
-  useEffect(() => {
-
-  }, [data]);
-
-
   return (
-    <Box mx="auto">
+    <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
       <LoadingOverlay visible={loading} />
       <Grid>
         <Grid.Col md={3} style={{height: 'calc(100vh - 60px)'}}>
@@ -321,6 +456,7 @@ export const Player = () => {
              : (
               <Grid>
                 {getMediaSelections()}
+				{getBrowseMetadata()}
                 {getMedias()}
               </Grid>
             )}
@@ -354,6 +490,7 @@ interface BaseBrowse {
   medias: BaseMedia[],
   mediaLibraryFolders?: BaseMedia[],
   mediasSelections?: MediasSelections,
+  metadata?: VideoMetadata,
   useWebControl: boolean,
 }
 
@@ -375,18 +512,19 @@ interface MediaRating {
   value: string,
 }
 
-interface VideoMetadatas {
+interface VideoMetadata {
   actors?: BaseMedia[],
   awards: string,
-  country?: BaseMedia,
+  countries?: BaseMedia[],
   createdBy?: string,
   credits?: string,
-  director?: BaseMedia,
+  directors?: BaseMedia[],
   externalIDs?: string,
   firstAirDate?: string,
   genres?: BaseMedia[],
   homepage?: string,
-  images?: string,
+  images?: VideoMetadataImages[],
+  imageBaseURL: string,
   imdbID?: string,
   inProduction?: boolean,
   languages?: string,
@@ -412,10 +550,26 @@ interface VideoMetadatas {
   totalSeasons?: number,
 }
 
+interface VideoMetadataImages {
+	backdrops?: VideoMetadataImage[],
+	logos?: VideoMetadataImage[],
+	posters?: VideoMetadataImage[],
+}
+
+interface VideoMetadataImage {
+  aspect_ratio?: number,
+  height?: number,
+  iso_639_1?: string,
+  file_path?: string,
+  vote_average: number,
+  vote_count?: number,
+  width?: number,
+}
+
 export interface VideoMedia extends PlayMedia {
   height: number,
   isVideoWithChapters: boolean,
-  metadatas?: VideoMetadatas,
+  metadata?: VideoMetadata,
   mime: string,
   resumePosition?: number,
   sub?: string,

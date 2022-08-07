@@ -624,10 +624,7 @@ public class UMSUtils {
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
 			new String[] {configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = () -> {
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-			}
+			sleep(10000);
 
 			pw.stopProcess();
 		};

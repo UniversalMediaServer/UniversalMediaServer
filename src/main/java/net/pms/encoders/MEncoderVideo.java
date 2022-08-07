@@ -2268,9 +2268,7 @@ public class MEncoderVideo extends Player {
 				pw.attachProcess(audioPipeProcess);
 				videoPipeProcess.runInNewThread();
 				audioPipeProcess.runInNewThread();
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) { }
+				UMSUtils.sleep(50);
 				videoPipe.deleteLater();
 				audioPipe.deleteLater();
 			} else {
@@ -2441,10 +2439,7 @@ public class MEncoderVideo extends Player {
 				pw.attachProcess(pipeProcess);
 				pipeProcess.runInNewThread();
 
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(50);
 
 				pipe.deleteLater();
 				params.getInputPipes()[0] = pipe;
@@ -2453,10 +2448,7 @@ public class MEncoderVideo extends Player {
 				pw.attachProcess(ffPipeProcess);
 				ffPipeProcess.runInNewThread();
 
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(50);
 
 				ffAudioPipe.deleteLater();
 				pw.attachProcess(ffAudio);
@@ -2501,10 +2493,7 @@ public class MEncoderVideo extends Player {
 
 		pw.runInNewThread();
 
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(100);
 
 		configuration = prev;
 		return pw;

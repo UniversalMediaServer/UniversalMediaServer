@@ -17,6 +17,7 @@
  */
 package net.pms.network.webinterfaceserver.handlers;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -52,7 +53,6 @@ public class BrowseHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServer parent;
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	public BrowseHandler(WebInterfaceServerHttpServer parent) {
 		this.parent = parent;
@@ -350,10 +350,10 @@ public class BrowseHandler implements HttpHandler {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					String apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJavaScriptVars(rootResource, language, true, root);
+					JsonObject apiMetadataAsJavaScriptVars = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, language, true, root);
 					if (apiMetadataAsJavaScriptVars != null) {
 						mustacheVars.put("isTVSeriesWithAPIData", true);
-						mustacheVars.put("javascriptVarsScript", apiMetadataAsJavaScriptVars);
+						mustacheVars.put("javascriptVarsScript", "apiMetadata=" + apiMetadataAsJavaScriptVars.toString() + ";");
 					}
 				}
 
@@ -396,7 +396,7 @@ public class BrowseHandler implements HttpHandler {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = dbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

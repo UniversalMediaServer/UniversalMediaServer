@@ -41,10 +41,26 @@ import net.pms.dlna.DLNAMediaInfo;
 public class MediaTableAudiotracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableAudiotracks.class);
 	public static final String TABLE_NAME = "AUDIOTRACKS";
-	private static final String MBID_RECORD = "MBID_RECORD";
-	private static final String MBID_TRACK = "MBID_TRACK";
-	private static final String LIKE_SONG = "LIKESONG";
-	private static final String DISC = "DISC";
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_MBID_RECORD = "MBID_RECORD";
+	private static final String COL_MBID_TRACK = "MBID_TRACK";
+	private static final String COL_LIKE_SONG = "LIKESONG";
+	private static final String COL_DISC = "DISC";
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+	public static final String TABLE_COL_ALBUM = TABLE_NAME + ".ALBUM";
+	public static final String TABLE_COL_ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
+	public static final String TABLE_COL_ARTIST = TABLE_NAME + ".ARTIST";
+	public static final String TABLE_COL_GENRE = TABLE_NAME + ".GENRE";
+	public static final String TABLE_COL_MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
+	public static final String TABLE_COL_MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
+	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + ".MEDIA_YEAR";
+	public static final String TABLE_COL_TRACK = TABLE_NAME + ".TRACK";
+
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
 	private static final int SIZE_MUXINGMODE = 32;
@@ -88,16 +104,16 @@ public class MediaTableAudiotracks extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1:
-					if (!isColumnExist(connection, TABLE_NAME, MBID_RECORD)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_RECORD + " UUID");
+					if (!isColumnExist(connection, TABLE_NAME, COL_MBID_RECORD)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_MBID_RECORD + " UUID");
 					}
-					if (!isColumnExist(connection, TABLE_NAME, MBID_TRACK)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + MBID_TRACK + " UUID");
+					if (!isColumnExist(connection, TABLE_NAME, COL_MBID_TRACK)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_MBID_TRACK + " UUID");
 					}
 					break;
 				case 2:
-					if (!isColumnExist(connection, TABLE_NAME, DISC)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + DISC + " INT");
+					if (!isColumnExist(connection, TABLE_NAME, COL_DISC)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_DISC + " INT");
 					}
 					break;
 				case 3:
@@ -111,22 +127,22 @@ public class MediaTableAudiotracks extends MediaTable {
 					}
 					break;
 				case 4:
-					if (!isColumnExist(connection, TABLE_NAME, LIKE_SONG)) {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + LIKE_SONG + " BOOLEAN");
-						LOGGER.trace("Adding " + LIKE_SONG + " to table " + TABLE_NAME);
-						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG on " + TABLE_NAME + " (" + LIKE_SONG + ");");
-						LOGGER.trace("Indexing column " + LIKE_SONG + " on table " + TABLE_NAME);
+					if (!isColumnExist(connection, TABLE_NAME, COL_LIKE_SONG)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_LIKE_SONG + " BOOLEAN");
+						LOGGER.trace("Adding " + COL_LIKE_SONG + " to table " + TABLE_NAME);
+						executeUpdate(connection, "CREATE INDEX IDX_LIKE_SONG ON " + TABLE_NAME + " (" + COL_LIKE_SONG + ");");
+						LOGGER.trace("Indexing column " + COL_LIKE_SONG + " on table " + TABLE_NAME);
 					}
 					break;
 				case 5:
-					executeUpdate(connection, "CREATE INDEX IDX_MBID on AUDIOTRACKS (MBID_TRACK);");
+					executeUpdate(connection, "CREATE INDEX IDX_MBID ON " + TABLE_NAME + " (MBID_TRACK);");
 					LOGGER.trace("Indexing column MBID_TRACK on table " + TABLE_NAME);
 					break;
 				case 6:
 					if (!isColumnExist(connection, TABLE_NAME, "RATING")) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD RATING INT");
 						LOGGER.trace("added column RATING on table " + TABLE_NAME);
-						executeUpdate(connection, "CREATE INDEX IDX_RATING on " + TABLE_NAME + " (RATING);");
+						executeUpdate(connection, "CREATE INDEX IDX_RATING ON " + TABLE_NAME + " (RATING);");
 						LOGGER.trace("Indexing column RATING on table " + TABLE_NAME);
 					}
 					break;
@@ -134,10 +150,10 @@ public class MediaTableAudiotracks extends MediaTable {
 					connection.setAutoCommit(false);
 					try (
 						Statement stmt =  DATABASE.getConnection().createStatement()) {
-						stmt.execute("ALTER TABLE audiotracks ADD COLUMN AUDIOTRACK_ID int auto_increment");
-						stmt.execute("update audiotracks set AUDIOTRACK_ID = ROWNUM()");
-						stmt.execute("SET @mv = select max(AUDIOTRACK_ID) from audiotracks + 1");
-						stmt.execute("ALTER TABLE audiotracks ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
+						stmt.execute("ALTER TABLE " + TABLE_NAME + " ADD COLUMN AUDIOTRACK_ID INTEGER AUTO_INCREMENT");
+						stmt.execute("UPDATE " + TABLE_NAME + " SET AUDIOTRACK_ID = ROWNUM()");
+						stmt.execute("SET @mv = SELECT MAX(AUDIOTRACK_ID) FROM " + TABLE_NAME + " + 1");
+						stmt.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN AUDIOTRACK_ID RESTART WITH @mv");
 						connection.commit();
 						connection.setAutoCommit(true);
 					} catch (Exception e) {
@@ -164,33 +180,33 @@ public class MediaTableAudiotracks extends MediaTable {
 		try (Statement statement = connection.createStatement()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                INT              NOT NULL");
+			sb.append("  ID                INTEGER          NOT NULL");
 			sb.append(", FILEID            BIGINT           NOT NULL");
 			sb.append(", MBID_RECORD       UUID");
 			sb.append(", MBID_TRACK        UUID");
-			sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(')');
-			sb.append(", TITLE             VARCHAR2(").append(SIZE_MAX).append(')');
+			sb.append(", LANG              VARCHAR(").append(SIZE_LANG).append(')');
+			sb.append(", TITLE             VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", NRAUDIOCHANNELS   NUMERIC");
-			sb.append(", SAMPLEFREQ        VARCHAR2(").append(SIZE_SAMPLEFREQ).append(')');
-			sb.append(", CODECA            VARCHAR2(").append(SIZE_CODECA).append(')');
-			sb.append(", BITSPERSAMPLE     INT");
-			sb.append(", ALBUM             VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ARTIST            VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ALBUMARTIST       VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", SONGNAME          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", GENRE             VARCHAR2(").append(SIZE_GENRE).append(')');
-			sb.append(", MEDIA_YEAR        INT");
-			sb.append(", TRACK             INT");
-			sb.append(", DISC              INT");
-			sb.append(", DELAY             INT");
-			sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-			sb.append(", BITRATE           INT");
+			sb.append(", SAMPLEFREQ        VARCHAR(").append(SIZE_SAMPLEFREQ).append(')');
+			sb.append(", CODECA            VARCHAR(").append(SIZE_CODECA).append(')');
+			sb.append(", BITSPERSAMPLE     INTEGER");
+			sb.append(", ALBUM             VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ARTIST            VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", ALBUMARTIST       VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", SONGNAME          VARCHAR(").append(SIZE_MAX).append(')');
+			sb.append(", GENRE             VARCHAR(").append(SIZE_GENRE).append(')');
+			sb.append(", MEDIA_YEAR        INTEGER");
+			sb.append(", TRACK             INTEGER");
+			sb.append(", DISC              INTEGER");
+			sb.append(", DELAY             INTEGER");
+			sb.append(", MUXINGMODE        VARCHAR(").append(SIZE_MUXINGMODE).append(')');
+			sb.append(", BITRATE           INTEGER");
 			sb.append(", LIKE_SONG         BOOLEAN");
-			sb.append(", RATING            INT");
-			sb.append(", AUDIOTRACK_ID     INT 				AUTO_INCREMENT");
+			sb.append(", RATING            INTEGER");
+			sb.append(", AUDIOTRACK_ID     INTEGER          AUTO_INCREMENT");
 			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
 			sb.append(", FOREIGN KEY(FILEID)");
-			sb.append("    REFERENCES FILES(ID)");
+			sb.append("    REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID)");
 			sb.append("    ON DELETE CASCADE");
 			sb.append(')');
 
@@ -236,13 +252,13 @@ public class MediaTableAudiotracks extends MediaTable {
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DISC, " +
 					"DELAY, MUXINGMODE, BITRATE, RATING " +
-				"FROM " + MediaTableAudiotracks.TABLE_NAME + " " +
+				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILEID = ? AND ID = ?",
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			);
-			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO " + MediaTableAudiotracks.TABLE_NAME + " (" + columns + ")" +
+			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO " + TABLE_NAME + " (" + columns + ")" +
 				createDefaultValueForInsertStatement(columns)
 			);
 		) {

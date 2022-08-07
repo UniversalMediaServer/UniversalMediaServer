@@ -28,12 +28,15 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.ProcessUtil;
+import net.pms.util.UMSUtils;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
+
+	private final File file;
+	private final boolean isVideoTS;
+
 	private String volumeId;
-	private File file;
-	private boolean isVideoTS;
 
 	private static String getName(File file) {
 		return String.format(NAME, getFileName(file));
@@ -115,10 +118,7 @@ public class DVDISOFile extends VirtualFolder {
 		params.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = () -> {
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(10000);
 			pw.stopProcess();
 		};
 

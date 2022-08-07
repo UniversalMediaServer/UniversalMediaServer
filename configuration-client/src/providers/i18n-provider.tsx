@@ -23,7 +23,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
   });
 
   const getI18nString = (value: string) => {
-    if (value.startsWith('i18n@')) {
+    if (value && value.startsWith('i18n@')) {
       return i18n[value.substring(5)];
     } else {
       return value;

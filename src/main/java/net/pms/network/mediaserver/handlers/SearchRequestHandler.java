@@ -50,7 +50,6 @@ public class SearchRequestHandler {
 		.compile("(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
 	private final AtomicInteger updateID = new AtomicInteger(1);
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	public SearchRequestHandler() {
 	}
@@ -241,7 +240,7 @@ public class SearchRequestHandler {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
-			sb.append(String.format("LOWER(%s) regexp '.*%s.*'", getField(property, requestType), val.toLowerCase()));
+			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", getField(property, requestType), val.toLowerCase()));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
@@ -386,7 +385,7 @@ public class SearchRequestHandler {
 												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
 												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
-											dbIdResourceLocator.appendAlbumInformation(album, albumFolder);
+											DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
 										}

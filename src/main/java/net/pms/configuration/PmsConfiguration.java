@@ -160,6 +160,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
+	protected static final String KEY_DATABASE_MEDIA_CACHE_SIZE_KB = "database_media_cache_size";
+	protected static final String KEY_DATABASE_MEDIA_USE_CACHE_SOFT = "database_media_use_cache_soft";
+	protected static final String KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES = "database_media_use_memory_indexes";
 	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
@@ -3573,6 +3576,29 @@ public class PmsConfiguration extends RendererConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
+	/**
+	 * @return available fully played actions as a JSON array
+	 */
+	public synchronized static JsonArray getFullyPlayedActionsAsJsonArray() {
+		String[] values = new String[]{
+			FullyPlayedAction.NO_ACTION.toString(),
+			FullyPlayedAction.MARK.toString(),
+			FullyPlayedAction.HIDE_MEDIA.toString(),
+			FullyPlayedAction.MOVE_FOLDER.toString(),
+			FullyPlayedAction.MOVE_FOLDER_AND_MARK.toString(),
+			FullyPlayedAction.MOVE_TRASH.toString()
+		};
+		String[] labels = new String[]{
+			"i18n@DoNothing",
+			"i18n@MarkMedia",
+			"i18n@HideMedia",
+			"i18n@MoveFileToDifferentFolder",
+			"i18n@MoveFileDifferentFolderMark",
+			"i18n@MoveFileRecycleTrashBin"
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public synchronized static JsonArray getSubtitlesCodepageArray() {
 		String[] values = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
@@ -3585,48 +3611,48 @@ public class PmsConfiguration extends RendererConfiguration {
 			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
 		};
 		String[] labels = new String[]{
-			Messages.getString("Generic.AutoDetect"),
-			Messages.getString("CharacterSet.874"),
-			Messages.getString("CharacterSet.932"),
-			Messages.getString("CharacterSet.936"),
-			Messages.getString("CharacterSet.949"),
-			Messages.getString("CharacterSet.950"),
-			Messages.getString("CharacterSet.1250"),
-			Messages.getString("CharacterSet.1251"),
-			Messages.getString("CharacterSet.1252"),
-			Messages.getString("CharacterSet.1253"),
-			Messages.getString("CharacterSet.1254"),
-			Messages.getString("CharacterSet.1255"),
-			Messages.getString("CharacterSet.1256"),
-			Messages.getString("CharacterSet.1257"),
-			Messages.getString("CharacterSet.1258"),
-			Messages.getString("CharacterSet.2022-CN"),
-			Messages.getString("CharacterSet.2022-JP"),
-			Messages.getString("CharacterSet.2022-KR"),
-			Messages.getString("CharacterSet.8859-1"),
-			Messages.getString("CharacterSet.8859-2"),
-			Messages.getString("CharacterSet.8859-3"),
-			Messages.getString("CharacterSet.8859-4"),
-			Messages.getString("CharacterSet.8859-5"),
-			Messages.getString("CharacterSet.8859-6"),
-			Messages.getString("CharacterSet.8859-7"),
-			Messages.getString("CharacterSet.8859-8"),
-			Messages.getString("CharacterSet.8859-9"),
-			Messages.getString("CharacterSet.8859-10"),
-			Messages.getString("CharacterSet.8859-11"),
-			Messages.getString("CharacterSet.8859-13"),
-			Messages.getString("CharacterSet.8859-14"),
-			Messages.getString("CharacterSet.8859-15"),
-			Messages.getString("CharacterSet.8859-16"),
-			Messages.getString("CharacterSet.Big5"),
-			Messages.getString("CharacterSet.EUC-JP"),
-			Messages.getString("CharacterSet.EUC-KR"),
-			Messages.getString("CharacterSet.GB18030"),
-			Messages.getString("CharacterSet.IBM420"),
-			Messages.getString("CharacterSet.IBM424"),
-			Messages.getString("CharacterSet.KOI8-R"),
-			Messages.getString("CharacterSet.ShiftJIS"),
-			Messages.getString("CharacterSet.TIS-620")
+			"i18n@AutoDetect",
+			"i18n@CharacterSet.874",
+			"i18n@CharacterSet.932",
+			"i18n@CharacterSet.936",
+			"i18n@CharacterSet.949",
+			"i18n@CharacterSet.950",
+			"i18n@CharacterSet.1250",
+			"i18n@CharacterSet.1251",
+			"i18n@CharacterSet.1252",
+			"i18n@CharacterSet.1253",
+			"i18n@CharacterSet.1254",
+			"i18n@CharacterSet.1255",
+			"i18n@CharacterSet.1256",
+			"i18n@CharacterSet.1257",
+			"i18n@CharacterSet.1258",
+			"i18n@CharacterSet.2022-CN",
+			"i18n@CharacterSet.2022-JP",
+			"i18n@CharacterSet.2022-KR",
+			"i18n@CharacterSet.8859-1",
+			"i18n@CharacterSet.8859-2",
+			"i18n@CharacterSet.8859-3",
+			"i18n@CharacterSet.8859-4",
+			"i18n@CharacterSet.8859-5",
+			"i18n@CharacterSet.8859-6",
+			"i18n@CharacterSet.8859-7",
+			"i18n@CharacterSet.8859-8",
+			"i18n@CharacterSet.8859-9",
+			"i18n@CharacterSet.8859-10",
+			"i18n@CharacterSet.8859-11",
+			"i18n@CharacterSet.8859-13",
+			"i18n@CharacterSet.8859-14",
+			"i18n@CharacterSet.8859-15",
+			"i18n@CharacterSet.8859-16",
+			"i18n@CharacterSet.Big5",
+			"i18n@CharacterSet.EUC-JP",
+			"i18n@CharacterSet.EUC-KR",
+			"i18n@CharacterSet.GB18030",
+			"i18n@CharacterSet.IBM420",
+			"i18n@CharacterSet.IBM424",
+			"i18n@CharacterSet.KOI8-R",
+			"i18n@CharacterSet.ShiftJIS",
+			"i18n@CharacterSet.TIS-620"
 		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
@@ -4690,6 +4716,38 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getDatabaseLogging() {
 		boolean dbLog = getBoolean(KEY_LOG_DATABASE, false);
 		return dbLog || PMS.getLogDB();
+	}
+
+	/**
+	 * Get the embedded Media database cache size.
+	 * @return the cache size in Kb
+	 */
+	public int getDatabaseMediaCacheSize() {
+		return getInt(KEY_DATABASE_MEDIA_CACHE_SIZE_KB, -1);
+	}
+
+	/**
+	 * Set the embedded Media database cache size.
+	 * @param value the cache size in Kb
+	 */
+	public void setDatabaseMediaCacheSize(int value) {
+		configuration.setProperty(KEY_DATABASE_MEDIA_CACHE_SIZE_KB, value);
+	}
+
+	/**
+	 * Return whether the embedded Media database table indexes should sit in memory.
+	 * @return true if table indexes should sit on memory
+	 */
+	public boolean isDatabaseMediaUseMemoryIndexes() {
+		return getBoolean(KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES, false);
+	}
+
+	/**
+	 * Return whether the embedded Media database use soft cache.
+	 * @return true if table use soft cache
+	 */
+	public boolean isDatabaseMediaUseCacheSoft() {
+		return getBoolean(KEY_DATABASE_MEDIA_USE_CACHE_SOFT, false);
 	}
 
 	public boolean isVlcUseHardwareAccel() {

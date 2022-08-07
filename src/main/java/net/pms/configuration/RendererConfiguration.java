@@ -41,6 +41,7 @@ import net.pms.util.FormattableColor;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
@@ -224,6 +225,7 @@ public class RendererConfiguration extends Renderer {
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 	protected static final String DISABLE_UMS_RESUME = "DisableUmsResume";
+	protected static final String UPNP_ENABLE_SEARCHCAPS = "UpnpSearchCapsEnabled";
 
 	private static int maximumBitrateTotal = 0;
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -335,6 +337,10 @@ public class RendererConfiguration extends Renderer {
 
 	public int getInt(String key, int def) {
 		return configurationReader.getInt(key, def);
+	}
+
+	public boolean isUpnpSearchCapsEnabled() {
+		return getBoolean(UPNP_ENABLE_SEARCHCAPS, true);
 	}
 
 	public long getLong(String key, long def) {
@@ -2877,10 +2883,7 @@ public class RendererConfiguration extends Renderer {
 						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 					}
 					alert();
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
+					UMSUtils.sleep(1000);
 				}
 				// Reset only if another item hasn't already begun playing
 				if (renderer.getPlayingRes() == null) {

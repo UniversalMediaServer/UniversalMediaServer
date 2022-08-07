@@ -35,7 +35,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.*;
@@ -45,8 +44,8 @@ import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -61,7 +60,6 @@ import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -323,29 +321,25 @@ public class WebInterfaceServerUtil {
 	 * the codecs within. For example, most browsers support
 	 * MP4 with H.264, but do not support it with H.265 (HEVC)
 	 *
+	 * @param mime
+	 * @return
 	 * @todo refactor to be more specific
 	 */
 	public static boolean directmime(String mime) {
-		if (
-			mime != null &&
-			(
-				mime.equals(HTTPResource.MP4_TYPEMIME) ||
-				mime.equals(HTTPResource.WEBM_TYPEMIME) ||
-				mime.equals(HTTPResource.OGG_TYPEMIME) ||
-				mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
-				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
-				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
-				mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
-				mime.equals(HTTPResource.BMP_TYPEMIME) ||
-				mime.equals(HTTPResource.PNG_TYPEMIME) ||
-				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
-				mime.equals(HTTPResource.GIF_TYPEMIME)
-			)
-		) {
-			return true;
-		}
-
-		return false;
+		return mime != null &&
+		(
+			mime.equals(HTTPResource.MP4_TYPEMIME) ||
+			mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+			mime.equals(HTTPResource.OGG_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+			mime.equals(HTTPResource.BMP_TYPEMIME) ||
+			mime.equals(HTTPResource.PNG_TYPEMIME) ||
+			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+			mime.equals(HTTPResource.GIF_TYPEMIME)
+		);
 	}
 
 	public static String userName(HttpExchange t) {
@@ -428,27 +422,25 @@ public class WebInterfaceServerUtil {
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {
-		JsonObject jObject = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
 			if (jElem.isJsonObject()) {
-				jObject = jElem.getAsJsonObject();
+				return jElem.getAsJsonObject();
 			}
 		} catch (JsonSyntaxException je) {
 		}
-		return jObject;
+		return null;
 	}
 
 	private static JsonArray jsonArrayFromString(String str) {
-		JsonArray jArray = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
 			if (jElem.isJsonArray()) {
-				jArray = jElem.getAsJsonArray();
+				return jElem.getAsJsonArray();
 			}
 		} catch (JsonSyntaxException je) {
 		}
-		return jArray;
+		return null;
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {
@@ -650,6 +642,7 @@ public class WebInterfaceServerUtil {
 		/**
 		 * Register a file as servable.
 		 *
+		 * @param f
 		 * @return its hashcode (for use as a 'filename' in an http path)
 		 */
 		public int add(File f) {
@@ -659,6 +652,8 @@ public class WebInterfaceServerUtil {
 
 		/**
 		 * Retrieve a servable file by its hashcode.
+		 * @param hash
+		 * @return
 		 */
 		public File getFile(String hash) {
 			try {
@@ -684,6 +679,10 @@ public class WebInterfaceServerUtil {
 
 		/**
 		 * Write the given resource as an http response body.
+		 * @param filename
+		 * @param t
+		 * @return
+		 * @throws java.io.IOException
 		 */
 		public boolean write(String filename, HttpExchange t) throws IOException {
 			InputStream stream = getInputStream(filename);
@@ -710,6 +709,8 @@ public class WebInterfaceServerUtil {
 
 		/**
 		 * Retrieve the given mustache template, compiling as necessary.
+		 * @param filename
+		 * @return
 		 */
 		public Template getTemplate(String filename) {
 			Template t = null;
@@ -720,7 +721,7 @@ public class WebInterfaceServerUtil {
 				if (url != null) {
 					t = compile(getInputStream(filename));
 					templates.put(filename, t);
-					PMS.getFileWatcher().add(new FileWatcher.Watch(url.getFile(), recompiler));
+					FileWatcher.add(new FileWatcher.Watch(url.getFile(), recompiler));
 				} else {
 					LOGGER.warn("Couldn't find web template \"{}\"", filename);
 				}
@@ -751,436 +752,25 @@ public class WebInterfaceServerUtil {
 	 * @param language
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
 	 * @param rootFolder the root folder, used for looking up IDs
-	 * @return a JavaScript string to be used by a web browser which includes
+	 * @return a JsonObject to be used by a web browser which includes
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	public static String getAPIMetadataAsJavaScriptVars(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
-		String javascriptVarsScript = "";
-
-		try {
-			List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
-
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					if (isTVSeries) {
-						String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-						resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
-					} else {
-						resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
-					}
-				}
-			} catch (Exception e) {
-				LOGGER.error("Error while getting metadata for web interface");
-				LOGGER.debug("", e);
-			} finally {
-				MediaDatabase.close(connection);
-			}
-
-			if (resourceMetadataFromDatabase == null) {
-				return null;
-			}
-
-			HashSet<String> actors = new HashSet();
-			String startYear = "";
-			String awards = "";
-			String country = "{}";
-			String director = "{}";
-			HashSet<String> genres = new HashSet();
-			String imdbID = "";
-			String rated = "{}";
-			List<HashMap<String, String>> ratings = new ArrayList<>();
-			String plot = "";
-			String poster = "";
-			Double totalSeasons = null;
-
-			// TMDB metadata added in V11
-			String createdBy = "";
-			String credits = "";
-			String externalIDs = "";
-			String firstAirDate = "";
-			String homepage = "";
-			String images = "[]";
-			Boolean inProduction = null;
-			String languages = "";
-			String lastAirDate = "";
-			String networks = "";
-			Double numberOfEpisodes = null;
-			String numberOfSeasons = "";
-			String originCountry = "";
-			String originalLanguage = "";
-			String originalTitle = "";
-			String productionCompanies = "";
-			String productionCountries = "";
-			String seasons = "";
-			String seriesImages = "[]";
-			String seriesType = "";
-			String spokenLanguages = "";
-			String status = "";
-			String tagline = "";
-
-
-			Boolean hasAPIMetadata = false;
-
-			DLNAResource actorsFolder = null;
-			DLNAResource countryFolder = null;
-			DLNAResource directorFolder = null;
-			DLNAResource genresFolder = null;
-			DLNAResource ratedFolder = null;
-
-			List<DLNAResource> actorsChildren = null;
-			List<DLNAResource> genresChildren = null;
-
-			Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
-			while (i.hasNext()) {
-				if (genresFolder == null) {
-					// prepare to get IDs of certain metadata resources, to make them clickable
-					List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
-					UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
-					if (rootFolderChildren.isEmpty()) {
-						return null;
-					}
-					DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
-
-					List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
-					UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
-					DLNAResource videoFolder = mediaLibraryChildren.get(0);
-
-					boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-					String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-					List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-					UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
-					DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
-
-					List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
-					UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
-					DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
-
-					List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
-
-					for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-						DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-						if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
-							actorsFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
-							countryFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
-							directorFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
-							genresFolder = filterByInformationChild;
-						} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
-							ratedFolder = filterByInformationChild;
-						}
-					}
-
-					hasAPIMetadata = true;
-				}
-
-				HashMap<String, Object> row = i.next();
-				if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
-					awards = (String) row.get("AWARD");
-				}
-				if (StringUtils.isNotBlank((String) row.get("COUNTRY")) && "{}".equals(country) && countryFolder != null) {
-					String countryValue = (String) row.get("COUNTRY");
-					List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
-					UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
-					if (countriesChildren.isEmpty()) {
-						country = "{ }";
-					} else {
-						DLNAResource filteredCountryFolder = countriesChildren.get(0);
-
-						String countryId = filteredCountryFolder.getId();
-						String countryIdForWeb = URLEncoder.encode(countryId, "UTF-8");
-
-						country = "{ id: \"" + countryIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(countryValue) + "\" }";
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("DIRECTOR")) && "{}".equals(director) && directorFolder != null) {
-					String directorValue = (String) row.get("DIRECTOR");
-					List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
-					UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
-					if (directorsChildren.isEmpty()) {
-						/**
-						* This is usually caused by TV episodes that have a director saved
-						* that is not the director of the TV series. One possible fix for
-						* that is to populate the TV series data with the episode data in
-						* that case, which would mean we need to support multiple directors
-						* as we do for actors and genres.
-						*
-						* For now we stop the code from erroring by ignoring the mismatch.
-						*
-						* @todo do the above fix, and the same fix for other similar folders.
-						*/
-						director = "{ }";
-					} else {
-						DLNAResource filteredDirectorFolder = directorsChildren.get(0);
-
-						String directorId = filteredDirectorFolder.getId();
-						String directorIdForWeb = URLEncoder.encode(directorId, "UTF-8");
-
-						director = "{ id: \"" + directorIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(directorValue) + "\" }";
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
-					imdbID = (String) row.get("IMDBID");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
-					plot = (String) row.get("PLOT");
-				}
-				if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
-					poster = (String) row.get("POSTER");
-				}
-				if (StringUtils.isNotBlank((String) row.get("RATING")) && "{}".equals(rated) && ratedFolder != null) {
-					String ratedValue = (String) row.get("RATING");
-					List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
-					UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
-					if (ratedChildren.isEmpty()) {
-						rated = "{ }";
-					} else {
-						DLNAResource filteredRatedFolder = ratedChildren.get(0);
-
-						String ratedId = filteredRatedFolder.getId();
-						String ratedIdForWeb = URLEncoder.encode(ratedId, "UTF-8");
-
-						rated = "{ id: \"" + ratedIdForWeb + "\", name: \"" + StringEscapeUtils.escapeEcmaScript(ratedValue) + "\" }";
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
-					HashMap<String, String> ratingToInsert = new HashMap();
-					ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
-					ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
-					if (!ratings.contains(ratingToInsert)) {
-						ratings.add(ratingToInsert);
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
-					startYear = (String) row.get("STARTYEAR");
-				}
-				if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
-					totalSeasons = (Double) row.get("TOTALSEASONS");
-				}
-
-				// TMDB metadata added in V11
-				if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
-					createdBy = (String) row.get("CREATEDBY");
-				}
-				if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
-					credits = (String) row.get("CREDITS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
-					externalIDs = (String) row.get("EXTERNALIDS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
-					firstAirDate = (String) row.get("FIRSTAIRDATE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
-					homepage = (String) row.get("HOMEPAGE");
-				}
-
-				if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
-					connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
-						if (connection != null) {
-							String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
-							List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
-							Iterator<HashMap<String, Object>> seriesIterator = optionalSeriesMetadataFromDatabase.iterator();
-							if (optionalSeriesMetadataFromDatabase != null) {
-								HashMap<String, Object> seriesRow = seriesIterator.next();
-								if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
-									seriesImages = (String) seriesRow.get("IMAGES");
-								}
-							}
-						}
-					} catch (Exception e) {
-						LOGGER.error("Error while getting series metadata for web interface");
-						LOGGER.debug("", e);
-					} finally {
-						MediaDatabase.close(connection);
-					}
-				}
-
-				if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
-					images = (String) row.get("IMAGES");
-				}
-				if (row.get("INPRODUCTION") != null) {
-					inProduction = (Boolean) row.get("INPRODUCTION");
-				}
-				if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
-					languages = (String) row.get("LANGUAGES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
-					lastAirDate = (String) row.get("LASTAIRDATE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
-					networks = (String) row.get("NETWORKS");
-				}
-				if (row.get("NUMBEROFEPISODES") != null) {
-					numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
-					numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
-					originCountry = (String) row.get("ORIGINCOUNTRY");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
-					originalLanguage = (String) row.get("ORIGINALLANGUAGE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
-					originalTitle = (String) row.get("ORIGINALTITLE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
-					productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
-					productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
-					seasons = (String) row.get("SEASONS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
-					seriesType = (String) row.get("SERIESTYPE");
-				}
-				if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
-					spokenLanguages = (String) row.get("SPOKENLANGUAGES");
-				}
-				if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
-					status = (String) row.get("STATUS");
-				}
-				if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
-					tagline = (String) row.get("TAGLINE");
-				}
-
-				// These are for records that can have multiple results
-				if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
-					String actor = (String) row.get("ACTOR");
-					String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(actor) + "\"";
-					if (!actors.contains(namePartOfJSObject)) {
-						if (actorsChildren == null) {
-							actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actor);
-						}
-						for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
-							DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
-							if (filterByInformationChild.getDisplayName().equals(actor)) {
-								DLNAResource actorFolder = filterByInformationChild;
-
-								String actorId = actorFolder.getId();
-								String actorIdForWeb = URLEncoder.encode(actorId, "UTF-8");
-
-								actors.add("{ id: \"" + actorIdForWeb + "\"" + namePartOfJSObject + " }");
-								break;
-							}
-						}
-					}
-				}
-				if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
-					String genre = (String) row.get("GENRE");
-					String namePartOfJSObject = ", name: \"" + StringEscapeUtils.escapeEcmaScript(genre) + "\"";
-					if (!genres.contains(namePartOfJSObject)) {
-						if (genresChildren == null) {
-							genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genre);
-						}
-						for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
-							DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
-							if (filterByInformationChild.getDisplayName().equals(genre)) {
-								DLNAResource genreFolder = filterByInformationChild;
-
-								String genreId = genreFolder.getId();
-								String genreIdForWeb = URLEncoder.encode(genreId, "UTF-8");
-
-								genres.add("{ id: \"" + genreIdForWeb + "\"" + namePartOfJSObject + " }");
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			if (!hasAPIMetadata) {
-				return null;
-			}
-
-			javascriptVarsScript = "";
-			javascriptVarsScript += "var awards = \"" + StringEscapeUtils.escapeEcmaScript(awards) + "\";";
-			javascriptVarsScript += "var awardsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Awards", language) + "\";";
-			javascriptVarsScript += "var country = " + country + ";";
-			javascriptVarsScript += "var countryTranslation = \"" + WebInterfaceServerUtil.getMsgString("Country", language) + "\";";
-			javascriptVarsScript += "var director = " + director + ";";
-			javascriptVarsScript += "var directorTranslation = \"" + WebInterfaceServerUtil.getMsgString("Director", language) + "\";";
-			javascriptVarsScript += "var imdbID = \"" + StringEscapeUtils.escapeEcmaScript(imdbID) + "\";";
-			javascriptVarsScript += "var plot = \"" + StringEscapeUtils.escapeEcmaScript(plot) + "\";";
-			javascriptVarsScript += "var plotTranslation = \"" + WebInterfaceServerUtil.getMsgString("Plot", language) + "\";";
-			javascriptVarsScript += "var poster = \"" + StringEscapeUtils.escapeEcmaScript(poster) + "\";";
-			javascriptVarsScript += "var rated = " + rated + ";";
-			javascriptVarsScript += "var ratedTranslation = \"" + WebInterfaceServerUtil.getMsgString("Rated", language) + "\";";
-			javascriptVarsScript += "var startYear = \"" + StringEscapeUtils.escapeEcmaScript(startYear) + "\";";
-			javascriptVarsScript += "var yearStartedTranslation = \"" + WebInterfaceServerUtil.getMsgString("YearStarted", language) + "\";";
-			javascriptVarsScript += "var totalSeasons = " + totalSeasons + ";";
-			javascriptVarsScript += "var totalSeasonsTranslation = \"" + WebInterfaceServerUtil.getMsgString("TotalSeasons", language) + "\";";
-
-			// TMDB metadata added in V11
-			javascriptVarsScript += "var createdBy = \"" + StringEscapeUtils.escapeEcmaScript(createdBy) + "\";";
-			javascriptVarsScript += "var credits = \"" + StringEscapeUtils.escapeEcmaScript(credits) + "\";";
-			javascriptVarsScript += "var externalIDs = \"" + StringEscapeUtils.escapeEcmaScript(externalIDs) + "\";";
-			javascriptVarsScript += "var firstAirDate = \"" + StringEscapeUtils.escapeEcmaScript(firstAirDate) + "\";";
-			javascriptVarsScript += "var homepage = \"" + StringEscapeUtils.escapeEcmaScript(homepage) + "\";";
-			javascriptVarsScript += "var imageBaseURL = \"" + APIUtils.getApiImageBaseURL() + "\";";
-			javascriptVarsScript += "var images = " + images + ";";
-			javascriptVarsScript += "var inProduction = " + inProduction + ";";
-			javascriptVarsScript += "var languages = \"" + StringEscapeUtils.escapeEcmaScript(languages) + "\";";
-			javascriptVarsScript += "var lastAirDate = \"" + StringEscapeUtils.escapeEcmaScript(lastAirDate) + "\";";
-			javascriptVarsScript += "var networks = \"" + StringEscapeUtils.escapeEcmaScript(networks) + "\";";
-			javascriptVarsScript += "var numberOfEpisodes = " + numberOfEpisodes + ";";
-			javascriptVarsScript += "var numberOfSeasons = \"" + StringEscapeUtils.escapeEcmaScript(numberOfSeasons) + "\";";
-			javascriptVarsScript += "var originCountry = \"" + StringEscapeUtils.escapeEcmaScript(originCountry) + "\";";
-			javascriptVarsScript += "var originalLanguage = \"" + StringEscapeUtils.escapeEcmaScript(originalLanguage) + "\";";
-			javascriptVarsScript += "var originalTitle = \"" + StringEscapeUtils.escapeEcmaScript(originalTitle) + "\";";
-			javascriptVarsScript += "var productionCompanies = \"" + StringEscapeUtils.escapeEcmaScript(productionCompanies) + "\";";
-			javascriptVarsScript += "var productionCountries = \"" + StringEscapeUtils.escapeEcmaScript(productionCountries) + "\";";
-			javascriptVarsScript += "var seasons = \"" + StringEscapeUtils.escapeEcmaScript(seasons) + "\";";
-			javascriptVarsScript += "var seriesImages = " + seriesImages + ";";
-			javascriptVarsScript += "var seriesType = \"" + StringEscapeUtils.escapeEcmaScript(seriesType) + "\";";
-			javascriptVarsScript += "var spokenLanguages = \"" + StringEscapeUtils.escapeEcmaScript(spokenLanguages) + "\";";
-			javascriptVarsScript += "var status = \"" + StringEscapeUtils.escapeEcmaScript(status) + "\";";
-			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
-			javascriptVarsScript += "var tagline = \"" + StringEscapeUtils.escapeEcmaScript(tagline) + "\";";
-
-			javascriptVarsScript += "var actorsTranslation = \"" + WebInterfaceServerUtil.getMsgString("Actors", language) + "\";";
-			String actorsArrayJavaScript = "var actors = [";
-			for (String actor : actors) {
-				actorsArrayJavaScript += actor + ",";
-			}
-			actorsArrayJavaScript += "];";
-			javascriptVarsScript += actorsArrayJavaScript;
-
-			javascriptVarsScript += "var genresTranslation = \"" + WebInterfaceServerUtil.getMsgString("Genres", language) + "\";";
-			String genresArrayJavaScript = "var genres = [";
-			for (String genre : genres) {
-				genresArrayJavaScript += genre + ",";
-			}
-			genresArrayJavaScript += "];";
-			javascriptVarsScript += genresArrayJavaScript;
-
-			String ratingsArrayJavaScript = "var ratings = [";
-			javascriptVarsScript += "var ratingsTranslation= \"" + WebInterfaceServerUtil.getMsgString("Ratings", language) + "\";";
-			if (!ratings.isEmpty()) {
-				Iterator<HashMap<String, String>> ratingsIterator = ratings.iterator();
-				while (ratingsIterator.hasNext()) {
-					HashMap<String, String> rating = ratingsIterator.next();
-					ratingsArrayJavaScript += "{ \"source\": \"" + StringEscapeUtils.escapeEcmaScript(rating.get("source")) + "\", \"value\": \"" + StringEscapeUtils.escapeEcmaScript(rating.get("value")) + "\"},";
-				}
-			}
-			ratingsArrayJavaScript += "];";
-			javascriptVarsScript += ratingsArrayJavaScript;
-		} catch (Exception e) {
-			LOGGER.error("Caught exception in getAPIMetadataAsJavaScriptVars: {}", e.getMessage());
-			LOGGER.debug("{}", e);
+	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
+		JsonObject result = getAPIMetadataAsJsonObject(resource, isTVSeries, rootFolder);
+		if (result != null) {
+			result.addProperty("actorsTranslation", WebInterfaceServerUtil.getMsgString("Actors", language));
+			result.addProperty("awardsTranslation", WebInterfaceServerUtil.getMsgString("Awards", language));
+			result.addProperty("countryTranslation", WebInterfaceServerUtil.getMsgString("Country", language));
+			result.addProperty("directorTranslation", WebInterfaceServerUtil.getMsgString("Director", language));
+			result.addProperty("genresTranslation", WebInterfaceServerUtil.getMsgString("Genres", language));
+			result.addProperty("ratedTranslation", WebInterfaceServerUtil.getMsgString("Rated", language));
+			result.addProperty("ratingsTranslation", WebInterfaceServerUtil.getMsgString("Ratings", language));
+			result.addProperty("totalSeasonsTranslation", WebInterfaceServerUtil.getMsgString("TotalSeasons", language));
+			result.addProperty("plotTranslation", WebInterfaceServerUtil.getMsgString("Plot", language));
+			result.addProperty("yearStartedTranslation", WebInterfaceServerUtil.getMsgString("YearStarted", language));
 		}
-
-		return javascriptVarsScript;
+		return result;
 	}
 
 	/**
@@ -1195,392 +785,118 @@ public class WebInterfaceServerUtil {
 	 *         when there is no metadata
 	 */
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
-		List<HashMap<String, Object>> resourceMetadataFromDatabase = null;
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
+		JsonObject result = null;
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					resourceMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedTitle);
+					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle);
 				} else {
-					resourceMetadataFromDatabase = MediaTableFiles.getAPIResultsByFilenameIncludingExternalTables(connection, resource.getFileName());
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
 				}
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error while getting metadata for web interface");
 			LOGGER.debug("", e);
-		} finally {
-			MediaDatabase.close(connection);
 		}
-		if (resourceMetadataFromDatabase == null) {
+		if (result == null) {
 			return null;
 		}
-		JsonObject result = new JsonObject();
-		HashMap<String, String> actors = new HashMap<>();
-		HashMap<String, String> genres = new HashMap();
-		String startYear = "";
-		String awards = "";
-		JsonObject country = null;
-		JsonObject director = null;
-		String imdbID = "";
-		JsonObject rated = null;
-		List<HashMap<String, String>> ratings = new ArrayList<>();
-		String plot = "";
-		String poster = "";
-		Double totalSeasons = null;
-
-		// TMDB metadata added in V11
-		String createdBy = "";
-		JsonObject credits = null;
-		JsonObject externalIDs = null;
-		String firstAirDate = "";
-		String homepage = "";
-		JsonObject images = null;
-		Boolean inProduction = null;
-		String languages = "";
-		String lastAirDate = "";
-		String networks = "";
-		Double numberOfEpisodes = null;
-		String numberOfSeasons = "";
-		String originCountry = "";
-		String originalLanguage = "";
-		String originalTitle = "";
-		String productionCompanies = "";
-		String productionCountries = "";
-		String seasons = "";
-		String seriesImages = "[]";
-		String seriesType = "";
-		String spokenLanguages = "";
-		String status = "";
-		String tagline = "";
-		Boolean hasAPIMetadata = false;
 		DLNAResource actorsFolder = null;
-		DLNAResource countryFolder = null;
-		DLNAResource directorFolder = null;
+		DLNAResource countriesFolder = null;
+		DLNAResource directorsFolder = null;
 		DLNAResource genresFolder = null;
 		DLNAResource ratedFolder = null;
-		List<DLNAResource> actorsChildren = null;
-		List<DLNAResource> genresChildren = null;
-		Iterator<HashMap<String, Object>> i = resourceMetadataFromDatabase.iterator();
-		while (i.hasNext()) {
-			if (genresFolder == null) {
-				// prepare to get IDs of certain metadata resources, to make them clickable
-				List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
-				UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
-				if (rootFolderChildren.isEmpty()) {
-					return null;
-				}
-				DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
-				List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
-				UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
-				DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-				boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
-				String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-				List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
-				UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
-				DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+		// prepare to get IDs of certain metadata resources, to make them clickable
+		List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+		UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
+		if (rootFolderChildren.isEmpty()) {
+			return null;
+		}
+		DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
+		List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+		UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
+		DLNAResource videoFolder = mediaLibraryChildren.get(0);
 
-				List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
-				UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
-				DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+		boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+		String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
+		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
+		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
+		DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-				List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
+		List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+		UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
+		DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-				for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-					DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-					if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
-						actorsFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
-						countryFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
-						directorFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
-						genresFolder = filterByInformationChild;
-					} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
-						ratedFolder = filterByInformationChild;
-					}
-				}
+		List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
 
-				hasAPIMetadata = true;
+		for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+			DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+			if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
+				actorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
+				countriesFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
+				directorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
+				genresFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
+				ratedFolder = filterByInformationChild;
 			}
+		}
 
-			HashMap<String, Object> row = i.next();
-			if (StringUtils.isNotBlank((String) row.get("AWARD"))) {
-				awards = (String) row.get("AWARD");
-			}
-			String countryValue = (String) row.get("COUNTRY");
-			if (country == null && StringUtils.isNotBlank(countryValue) && countryFolder != null) {
-				List<DLNAResource> countriesChildren = countryFolder.getDLNAResources(countryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), countryValue);
-				UMSUtils.filterResourcesByName(countriesChildren, countryValue, true, true);
-				country = new JsonObject();
-				if (!countriesChildren.isEmpty()) {
-					country.addProperty("id", countriesChildren.get(0).getId());
-					country.addProperty("name", countryValue);
-					result.add("country", country);
-				}
-			}
-			String directorValue = (String) row.get("DIRECTOR");
-			if (director == null && StringUtils.isNotBlank(directorValue) && directorFolder != null) {
-				List<DLNAResource> directorsChildren = directorFolder.getDLNAResources(directorFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), directorValue);
-				UMSUtils.filterResourcesByName(directorsChildren, directorValue, true, true);
-				director = new JsonObject();
-				if (!directorsChildren.isEmpty()) {
-					director.addProperty("id", directorsChildren.get(0).getId());
-					director.addProperty("name", countryValue);
-					result.add("director", director);
-				}
-				/**
-				 * Empty is usually caused by TV episodes that have a director saved
-				 * that is not the director of the TV series. One possible fix for
-				 * that is to populate the TV series data with the episode data in
-				 * that case, which would mean we need to support multiple directors
-				 * as we do for actors and genres.
-				 *
-				 * For now we stop the code from erroring by ignoring the mismatch.
-				 *
-				 * @todo do the above fix, and the same fix for other similar folders.
-				 */
-			}
-			if (StringUtils.isNotBlank((String) row.get("IMDBID"))) {
-				imdbID = (String) row.get("IMDBID");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PLOT"))) {
-				plot = (String) row.get("PLOT");
-			}
-			if (StringUtils.isNotBlank((String) row.get("POSTER"))) {
-				poster = (String) row.get("POSTER");
-			}
-			String ratedValue = (String) row.get("RATING");
-			if (StringUtils.isNotBlank(ratedValue) && rated == null && ratedFolder != null) {
-				List<DLNAResource> ratedChildren = ratedFolder.getDLNAResources(ratedFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), ratedValue);
-				UMSUtils.filterResourcesByName(ratedChildren, ratedValue, true, true);
-				rated = new JsonObject();
-				if (!ratedChildren.isEmpty()) {
-					rated.addProperty("id", ratedChildren.get(0).getId());
-					rated.addProperty("name", ratedValue);
-					result.add("rated", rated);
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("RATINGVALUE")) && StringUtils.isNotBlank((String) row.get("RATINGSOURCE"))) {
-				HashMap<String, String> ratingToInsert = new HashMap();
-				ratingToInsert.put("source", (String) row.get("RATINGSOURCE"));
-				ratingToInsert.put("value", (String) row.get("RATINGVALUE"));
-				if (!ratings.contains(ratingToInsert)) {
-					ratings.add(ratingToInsert);
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("STARTYEAR"))) {
-				startYear = (String) row.get("STARTYEAR");
-			}
-			if (row.get("TOTALSEASONS") != null && (Double) row.get("TOTALSEASONS") != 0.0) {
-				totalSeasons = (Double) row.get("TOTALSEASONS");
-			}
+		addJsonArrayDlnaIds(result, "actors", actorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "countries", countriesFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
+		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 
-			// TMDB metadata added in V11
-			if (StringUtils.isNotBlank((String) row.get("CREATEDBY"))) {
-				createdBy = (String) row.get("CREATEDBY");
-			}
-			if (StringUtils.isNotBlank((String) row.get("CREDITS"))) {
-				//fix credits json as it is wrongly stored in db
-				//it's not a json object
-				credits = null;
-			}
-			if (StringUtils.isNotBlank((String) row.get("EXTERNALIDS"))) {
-				//fix external ids json as it is wrongly stored in db
-				String externalIDsStr = (String) row.get("EXTERNALIDS");
-				if (externalIDsStr.endsWith(",")) {
-					externalIDsStr = externalIDsStr.substring(0, externalIDsStr.length() - 1);
-				}
-				//should return an object ??? why an array ???
-				JsonArray jExternalIDs = jsonArrayFromString(externalIDsStr);
-				if (jExternalIDs != null && !jExternalIDs.isEmpty()) {
-					if (jExternalIDs.size() > 1) {
-						//check if their is only one and that the datas in db should be stored as an object.
-						LOGGER.warn("There is more than 1 externalIDs in array");
-					}
-					externalIDs = jExternalIDs.get(0).getAsJsonObject();
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("FIRSTAIRDATE"))) {
-				firstAirDate = (String) row.get("FIRSTAIRDATE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("HOMEPAGE"))) {
-				homepage = (String) row.get("HOMEPAGE");
-			}
+		return result;
+	}
 
-			if (row.get("ISTVEPISODE") != null && (Boolean) row.get("ISTVEPISODE") && StringUtils.isNotBlank((String) row.get("MOVIEORSHOWNAME"))) {
-				connection = null;
-				try {
-					connection = MediaDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						String simplifiedShowName = FileUtil.getSimplifiedShowName((String) row.get("MOVIEORSHOWNAME"));
-						List<HashMap<String, Object>> optionalSeriesMetadataFromDatabase = MediaTableTVSeries.getAPIResultsBySimplifiedTitleIncludingExternalTables(connection, simplifiedShowName);
-						if (optionalSeriesMetadataFromDatabase != null && !optionalSeriesMetadataFromDatabase.isEmpty()) {
-							HashMap<String, Object> seriesRow = optionalSeriesMetadataFromDatabase.get(0);
-							if (StringUtils.isNotBlank((String) seriesRow.get("IMAGES"))) {
-								seriesImages = (String) seriesRow.get("IMAGES");
+	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonArray()) {
+				JsonArray array = element.getAsJsonArray();
+				if (!array.isEmpty() && folder != null) {
+					JsonArray dlnaChilds = new JsonArray();
+					for (JsonElement child : array) {
+						if (child.isJsonPrimitive()) {
+							String value = child.getAsString();
+							List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+							UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+							if (!folderChildren.isEmpty()) {
+								JsonObject dlnaChild = new JsonObject();
+								dlnaChild.addProperty("id", folderChildren.get(0).getId());
+								dlnaChild.addProperty("name", value);
+								dlnaChilds.add(dlnaChild);
 							}
 						}
 					}
-				} catch (Exception e) {
-					LOGGER.error("Error while getting series metadata for web interface");
-					LOGGER.debug("", e);
-				} finally {
-					MediaDatabase.close(connection);
-				}
-			}
-
-			if (StringUtils.isNotBlank((String) row.get("IMAGES"))) {
-				//should return an object ??? why an array ???
-				JsonArray jImages = jsonArrayFromString((String) row.get("IMAGES"));
-				if (jImages != null && !jImages.isEmpty()) {
-					if (jImages.size() > 1) {
-						//check if their is only one and that the datas in db should be stored as an object.
-						LOGGER.warn("There is more than 1 images object in array");
-					}
-					images = jImages.get(0).getAsJsonObject();
-				}
-			}
-			if (row.get("INPRODUCTION") != null) {
-				inProduction = (Boolean) row.get("INPRODUCTION");
-			}
-			if (StringUtils.isNotBlank((String) row.get("LANGUAGES"))) {
-				languages = (String) row.get("LANGUAGES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("LASTAIRDATE"))) {
-				lastAirDate = (String) row.get("LASTAIRDATE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("NETWORKS"))) {
-				networks = (String) row.get("NETWORKS");
-			}
-			if (row.get("NUMBEROFEPISODES") != null) {
-				numberOfEpisodes = (Double) row.get("NUMBEROFEPISODES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("NUMBEROFSEASONS"))) {
-				numberOfSeasons = (String) row.get("NUMBEROFSEASONS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINCOUNTRY"))) {
-				originCountry = (String) row.get("ORIGINCOUNTRY");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINALLANGUAGE"))) {
-				originalLanguage = (String) row.get("ORIGINALLANGUAGE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("ORIGINALTITLE"))) {
-				originalTitle = (String) row.get("ORIGINALTITLE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOMPANIES"))) {
-				productionCompanies = (String) row.get("PRODUCTIONCOMPANIES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("PRODUCTIONCOUNTRIES"))) {
-				productionCountries = (String) row.get("PRODUCTIONCOUNTRIES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SEASONS"))) {
-				seasons = (String) row.get("SEASONS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SERIESTYPE"))) {
-				seriesType = (String) row.get("SERIESTYPE");
-			}
-			if (StringUtils.isNotBlank((String) row.get("SPOKENLANGUAGES"))) {
-				spokenLanguages = (String) row.get("SPOKENLANGUAGES");
-			}
-			if (StringUtils.isNotBlank((String) row.get("STATUS"))) {
-				status = (String) row.get("STATUS");
-			}
-			if (StringUtils.isNotBlank((String) row.get("TAGLINE"))) {
-				tagline = (String) row.get("TAGLINE");
-			}
-
-			// These are for records that can have multiple results
-			if (StringUtils.isNotBlank((String) row.get("ACTOR")) && actorsFolder != null) {
-				String actorName = (String) row.get("ACTOR");
-				if (!actors.containsKey(actorName)) {
-					if (actorsChildren == null) {
-						actorsChildren = actorsFolder.getDLNAResources(actorsFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), actorName);
-					}
-					for (int actorsIterator = 0; actorsIterator < actorsChildren.size(); actorsIterator++) {
-						DLNAResource filterByInformationChild = actorsChildren.get(actorsIterator);
-						if (filterByInformationChild.getDisplayName().equals(actorName)) {
-							actors.put(actorName, filterByInformationChild.getId());
-							break;
-						}
-					}
-				}
-			}
-			if (StringUtils.isNotBlank((String) row.get("GENRE")) && genresFolder != null) {
-				String genreName = (String) row.get("GENRE");
-				if (!genres.containsKey(genreName)) {
-					if (genresChildren == null) {
-						genresChildren = genresFolder.getDLNAResources(genresFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), genreName);
-					}
-					for (int genresIterator = 0; genresIterator < genresChildren.size(); genresIterator++) {
-						DLNAResource filterByInformationChild = genresChildren.get(genresIterator);
-						if (filterByInformationChild.getDisplayName().equals(genreName)) {
-							genres.put(genreName, filterByInformationChild.getId());
-							break;
-						}
-					}
+					object.add(memberName, dlnaChilds);
 				}
 			}
 		}
-		if (!hasAPIMetadata) {
-			return null;
-		}
-		JsonArray jActors = new JsonArray();
-		for (Map.Entry<String, String> actor : actors.entrySet()) {
-			JsonObject jActor = new JsonObject();
-			jActor.addProperty("id", actor.getValue());
-			jActor.addProperty("name", actor.getKey());
-			jActors.add(jActor);
-		}
-		result.add("actors", jActors);
-		result.addProperty("awards", awards);
-		result.addProperty("createdBy", createdBy);
-		result.add("credits", credits);
-		result.add("externalIDs", externalIDs);
-		result.addProperty("firstAirDate", firstAirDate);
-		JsonArray jGenres = new JsonArray();
-		for (Map.Entry<String, String> genre : genres.entrySet()) {
-			JsonObject jGenre = new JsonObject();
-			jGenre.addProperty("id", genre.getValue());
-			jGenre.addProperty("name", genre.getKey());
-			jGenres.add(jGenre);
-		}
-		result.add("genres", jGenres);
-		result.addProperty("homepage", homepage);
-		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
-		result.add("images", images);
-		result.addProperty("imdbID", imdbID);
-		result.addProperty("inProduction", inProduction);
-		result.addProperty("languages", languages);
-		result.addProperty("lastAirDate", lastAirDate);
-		result.addProperty("networks", networks);
-		result.addProperty("numberOfEpisodes", numberOfEpisodes);
-		result.addProperty("numberOfSeasons", numberOfSeasons);
-		result.addProperty("originCountry", originCountry);
-		result.addProperty("originalLanguage", originalLanguage);
-		result.addProperty("originalTitle", originalTitle);
-		result.addProperty("plot", plot);
-		result.addProperty("poster", poster);
-		result.addProperty("productionCompanies", productionCompanies);
-		result.addProperty("productionCountries", productionCountries);
-		JsonArray jRatings = new JsonArray();
-		for (Map<String, String> rating : ratings) {
-			JsonObject jRating = new JsonObject();
-			jRating.addProperty("source", rating.get("source"));
-			jRating.addProperty("value", rating.get("value"));
-			jRatings.add(jRating);
-		}
-		result.add("ratings", jRatings);
-		result.addProperty("seasons", seasons);
-		result.addProperty("seriesImages", seriesImages);
-		result.addProperty("seriesType", seriesType);
-		result.addProperty("spokenLanguages", spokenLanguages);
-		result.addProperty("startYear", startYear);
-		result.addProperty("status", status);
-		result.addProperty("tagline", tagline);
-		result.addProperty("totalSeasons", totalSeasons);
-		return result;
 	}
+
+	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonPrimitive() && folder != null) {
+				String value = element.getAsString();
+				List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+				UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+				if (!folderChildren.isEmpty()) {
+					JsonObject dlnaChild = new JsonObject();
+					dlnaChild.addProperty("id", folderChildren.get(0).getId());
+					dlnaChild.addProperty("name", value);
+					object.add(memberName, dlnaChild);
+				}
+			}
+		}
+	}
+
 }
