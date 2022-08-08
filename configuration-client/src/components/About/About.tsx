@@ -54,7 +54,7 @@ const About = () => {
 
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
-        <Tabs  defaultValue="application">
+        <Tabs defaultValue="application">
           <Tabs.List>
             <Tabs.Tab value='application'>{i18n.get["Application"]}</Tabs.Tab>
             <Tabs.Tab value='translations'>{i18n.get["Translations"]}</Tabs.Tab>

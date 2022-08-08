@@ -488,10 +488,10 @@ const Accounts = () => {
                 </Tabs.Tab>
               )}
               </Tabs.List>
-			  {session.authenticate && (
-			    <Tabs.Panel value='users'>
-			      <UsersAccordions />
-			    </Tabs.Panel>
+              {session.authenticate && (
+                <Tabs.Panel value='users'>
+                  <UsersAccordions />
+                </Tabs.Panel>
               )}
               {session.authenticate && (
                 <Tabs.Panel value='groups'>
@@ -499,9 +499,9 @@ const Accounts = () => {
                 </Tabs.Panel>
               )}
               {canModifySettings && (
-			    <Tabs.Panel value='settings'>
-			      <AuthenticationServiceButton />
-			    </Tabs.Panel>
+                <Tabs.Panel value='settings'>
+                  <AuthenticationServiceButton />
+                </Tabs.Panel>
               )}
             </Tabs>
           ) : session.authenticate ? (
