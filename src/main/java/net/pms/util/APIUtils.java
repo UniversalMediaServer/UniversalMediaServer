@@ -566,7 +566,7 @@ public class APIUtils {
 	 * @return the value or null if not exists.
 	 */
 	public static String getStringOrNull(JsonObject jsonObject, String memberName) {
-		return jsonObject != null && jsonObject.has(memberName) ? jsonObject.get(memberName).getAsString() : null;
+		return jsonObject != null && jsonObject.has(memberName) && !jsonObject.get(memberName).isJsonNull() ? jsonObject.get(memberName).getAsString() : null;
 	}
 
 	/**
