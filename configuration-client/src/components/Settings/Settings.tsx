@@ -292,6 +292,7 @@ export default function Settings() {
                   </Tooltip>
                   <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       label={i18n.get['UseInfoFromOurApi']}
                       {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
                     />
@@ -349,11 +350,12 @@ export default function Settings() {
                 <Group position="apart">
                   <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       label={i18n.get['EnableCache']}
                       {...form.getInputProps('use_cache', { type: 'checkbox' })}
                     />
                   </Tooltip>
-                  <Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
+                  {canModify && (<Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
                     <Button
                       size="xs"
                       onClick={() => resetCache()}
@@ -361,7 +363,7 @@ export default function Settings() {
                     >
                       {i18n.get['ResetCache']}
                     </Button>
-                  </Tooltip>
+                  </Tooltip>)}
                 </Group>
 				<Stack align="flex-start" mt="xs">
                   <Tooltip label={allowHtml(i18n.get['WhenEnabledPartiallyWatchVideo'])} {...defaultTooltipSettings}>
@@ -386,6 +388,7 @@ export default function Settings() {
                     />
                   </Tooltip>
                   <Checkbox
+                    disabled={!canModify}
                     label={i18n.get['BrowseCompressedArchives']}
                     {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
                   />
@@ -421,6 +424,7 @@ export default function Settings() {
               <Accordion.Control>{i18n.get['Thumbnails']}</Accordion.Control>
               <Accordion.Panel>  
                 <Checkbox
+                  disabled={!canModify}
                   label={i18n.get['GenerateThumbnails']}
                   {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
                 />
@@ -431,12 +435,14 @@ export default function Settings() {
                   {...form.getInputProps('thumbnail_seek_position')}
                 />
                 <DirectoryChooser
+                  disabled={!canModify}
                   path={form.getInputProps('alternate_thumb_folder').value}
                   callback={form.setFieldValue}
                   label={i18n.get['AlternateVideoCoverArtFolder']}
                   formKey="alternate_thumb_folder"
                 />
                 <Select
+                  disabled={!canModify}
                   label={i18n.get['AudioThumbnailsImport']}
                   data={getI18nSelectData(selectionSettings.audioCoverSuppliers)}
                   {...form.getInputProps('audio_thumbnails_method')}
@@ -448,27 +454,31 @@ export default function Settings() {
                 <Accordion.Panel>
                 <Stack align="flex-start">
                   <Select
+                    disabled={!canModify}
                     label={i18n.get['FileOrder']}
                     data={getI18nSelectData(selectionSettings.sortMethods)}
                     {...form.getInputProps('sort_method')}
                   />
                   <Checkbox
+                    disabled={!canModify}
                     label={i18n.get['IgnoreArticlesATheSorting']}
                     {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
                   />
                   <Tooltip label={allowHtml(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       label={i18n.get['PrettifyFilenames']}
                       {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
                     />
                   </Tooltip>
                   <Checkbox
                     label={i18n.get['HideFileExtensions']}
-                    disabled={form.values['prettify_filenames']}
+                    disabled={!canModify || form.values['prettify_filenames']}
                     {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                   />
                   <Tooltip label={allowHtml(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
                     <Select
+                      disabled={!canModify}
                       label={i18n.get['AddSubtitlesInformationVideoNames']}
                       data={getI18nSelectData(selectionSettings.subtitlesInfoLevels)}
                       {...form.getInputProps('subs_info_level')}
@@ -476,6 +486,7 @@ export default function Settings() {
                   </Tooltip>
                   <Tooltip label={allowHtml(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       label={i18n.get['AddEnginesNamesAfterFilenames']}
                       checked={!form.values['hide_enginenames']}
                       onChange={(event) => {
@@ -492,6 +503,7 @@ export default function Settings() {
                 <Stack>
                   <Tooltip label={allowHtml(i18n.get['MediaLibraryFolderWillAvailable'])} {...defaultTooltipSettings}>
                     <Checkbox
+                      disabled={!canModify}
                       label={i18n.get['ShowMediaLibraryFolder']}
                       {...form.getInputProps('use_cache', { type: 'checkbox' })}
                     />
@@ -502,14 +514,17 @@ export default function Settings() {
                     {...form.getInputProps('show_recently_played_folder', { type: 'checkbox' })}
                   />
                   <Checkbox
+                    disabled={!canModify}
                     label={i18n.get['ShowServerSettingsFolder']}
                     {...form.getInputProps('show_server_settings_folder', { type: 'checkbox' })}
                   />
                   <Checkbox
+                    disabled={!canModify}
                     label={i18n.get['ShowTranscodeFolder']}
                     {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
                   />
                   <Checkbox
+                    disabled={!canModify}
                     label={i18n.get['ShowLiveSubtitlesFolder']}
                     {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
                   />
@@ -574,7 +589,7 @@ export default function Settings() {
     } else if (items.includes(engine.id)) {
       return (
         <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, false); e.stopPropagation();}}>
+          <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation();}}>
             <PlayerPlay strokeWidth={2} color={'green'} size={14}/>
           </ActionIcon>
         </Tooltip>
@@ -582,7 +597,7 @@ export default function Settings() {
     }
     return (
       <Tooltip label={allowHtml(i18n.get['TranscodingEngineXDisabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-        <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {setTranscodingEngineStatus(engine.id, true); e.stopPropagation();}}>
+        <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => {canModify && setTranscodingEngineStatus(engine.id, true); e.stopPropagation();}}>
           <Ban color={'red'} size={14}/>
         </ActionIcon>
       </Tooltip>
@@ -596,7 +611,7 @@ export default function Settings() {
         lockVertically
         values={getTranscodingEnginesPriority(purpose)}
         onChange={({ oldIndex, newIndex }) => {
-          moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
+          canModify && moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
         }}
         renderList={({ children, props }) => (
           <Stack justify="flex-start" align="flex-start" spacing="xs" {...props}>
@@ -673,6 +688,7 @@ export default function Settings() {
       name="maximum_video_buffer_size"
       sx={{ flex: 1 }}
       size="xs"
+      disabled={!canModify}
       {...form.getInputProps('maximum_video_buffer_size')}
     />
     <NumberInput
@@ -680,13 +696,14 @@ export default function Settings() {
       size="xs"
       max={defaultConfiguration.number_of_cpu_cores}
       min={1}
-      disabled={false}
+      disabled={!canModify}
       {...form.getInputProps('number_of_cpu_cores')}
     />
     <Grid>
       <Grid.Col span={10}>
         <Checkbox
           size="xs"
+          disabled={!canModify}
           label={i18n.get['ChaptersSupportInTranscodeFolder']}
           {...form.getInputProps('chapter_support', { type: 'checkbox' })}
         />
@@ -695,13 +712,14 @@ export default function Settings() {
         <TextInput
           size="xs"
           sx={{ flex: 1 }}
-          disabled={!form.values['chapter_support']}
+          disabled={!canModify || !form.values['chapter_support']}
           {...form.getInputProps('chapter_interval')}
         />
       </Grid.Col>
     </Grid>
     <Checkbox
       size="xs"
+      disabled={!canModify}
       label={i18n.get['DisableSubtitles']}
       {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
     />
@@ -1194,7 +1212,6 @@ export default function Settings() {
           <Group position="center">
             <Button variant="subtle" compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
           </Group>
-          <Space h="sm"/>
           <Grid>
             <Grid.Col span={6}>
               <Text
@@ -1287,6 +1304,7 @@ export default function Settings() {
             {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
           />
           <NumberInput
+            disabled={!canModify}
             label={i18n.get['GpuDecodingThreadCount']}
             size="xs"
             max={16}
