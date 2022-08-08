@@ -19,13 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudiotracks;
+import net.pms.database.MediaTableMusicBrainzReleaseLike;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class LikeMusic implements ApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
-	private MediaDatabase db = PMS.get().getMediaDatabase();
 	private final String backupFilename;
 
 	public LikeMusic() {
@@ -35,7 +36,7 @@ public class LikeMusic implements ApiResponseHandler {
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {
-		try (Connection connection = db.getConnection()) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
 				return null;
 			}
@@ -43,10 +44,10 @@ public class LikeMusic implements ApiResponseHandler {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
-			String sql = null;
+			String sql;
 			switch (uri) {
 				case "likesong":
-					sql = "UPDATE AUDIOTRACKS set LIKESONG = true where MBID_TRACK = ?";
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = true WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -57,7 +58,7 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "likealbum":
-					sql = "MERGE INTO MUSIC_BRAINZ_RELEASE_LIKE KEY (MBID_RELEASE) values (?)";
+					sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -68,7 +69,7 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "dislikesong":
-					sql = "UPDATE AUDIOTRACKS set LIKESONG = false where MBID_TRACK = ?";
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = false WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -79,7 +80,7 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "dislikealbum":
-					sql = "DELETE FROM MUSIC_BRAINZ_RELEASE_LIKE where MBID_RELEASE = ?";
+					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					try {
 						PreparedStatement ps = connection.prepareStatement(sql);
 						ps.setString(1, content);
@@ -90,10 +91,10 @@ public class LikeMusic implements ApiResponseHandler {
 					}
 					break;
 				case "isalbumliked":
-					sql = "SELECT COUNT(*) FROM MUSIC_BRAINZ_RELEASE_LIKE where MBID_RELEASE = ?";
+					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
 				case "issongliked":
-					sql = "SELECT COUNT(*) FROM AUDIOTRACKS where MBID_TRACK = ?";
+					sql = "SELECT COUNT(*) FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
 				case "backupLikedAlbums":
 					backupLikedAlbums();
@@ -128,17 +129,17 @@ public class LikeMusic implements ApiResponseHandler {
 	}
 
 	public void backupLikedAlbums() throws SQLException {
-		try (Connection connection = db.getConnection()) {
-			Script.process(connection, backupFilename, "", "TABLE MUSIC_BRAINZ_RELEASE_LIKE");
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			Script.process(connection, backupFilename, "", "TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME);
 		}
 	}
 
 	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
 		File backupFile = new File(backupFilename);
 		if (backupFile.exists() && backupFile.isFile()) {
-			try (Connection connection = db.getConnection(); Statement stmt = connection.createStatement()) {
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable(); Statement stmt = connection.createStatement()) {
 				String sql;
-				sql = "DROP TABLE MUSIC_BRAINZ_RELEASE_LIKE";
+				sql = "DROP TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME;
 				stmt.execute(sql);
 				try {
 					RunScript.execute(connection, new FileReader(backupFilename));

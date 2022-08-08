@@ -310,6 +310,7 @@ public class RealFile extends MapFile {
 				try {
 					if (connection != null) {
 						connection.commit();
+						connection.setAutoCommit(true);
 					}
 				} catch (SQLException e) {
 					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());

@@ -66,7 +66,7 @@ public class Feed extends DLNAResource {
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
 			name = feed.getTitle();
-			if (feed.getCategories() != null && feed.getCategories().size() > 0) {
+			if (feed.getCategories() != null && !feed.getCategories().isEmpty()) {
 				SyndCategory category = feed.getCategories().get(0);
 				tempCategory = category.getName();
 			}
