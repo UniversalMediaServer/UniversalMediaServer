@@ -17,8 +17,6 @@ import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { sendAction } from '../../services/actions-service';
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState(0);
-  const [activeGeneralSettingsTab, setGeneralSettingsTab] = useState(0);
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
@@ -169,8 +167,7 @@ export default function Settings() {
   }
 
   const getGeneralSettingsTab = () => {
-    return (
-          <Tabs.Tab label={i18n.get['GeneralSettings']}>
+    return (<>
             <Select
               disabled={!canModify}
               label={i18n.get['Language']}
@@ -186,7 +183,7 @@ export default function Settings() {
                 sx={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
-              <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" wrapLines withArrow>
+              <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" multiline withArrow>
                 <Checkbox
                   disabled={!canModify}
                   mt="xl"
@@ -215,8 +212,10 @@ export default function Settings() {
               {...form.getInputProps('auto_update', { type: 'checkbox' })}
             />
 
-            <Accordion mt="xl">
-              <Accordion.Item label={i18n.get['NetworkSettingsAdvanced']}>
+            <Accordion>
+              <Accordion.Item value='NetworkSettingsAdvanced'>
+                <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
+                <Accordion.Panel>
                 <Select
                   disabled={!canModify}
                   label={i18n.get['ForceNetworkingInterface']}
@@ -262,9 +261,11 @@ export default function Settings() {
                     />
                   </Tooltip>
                 </Group>
+                </Accordion.Panel>
               </Accordion.Item>
-              <Accordion.Item label={i18n.get['AdvancedHttpSystemSettings']}>
-              
+              <Accordion.Item value='AdvancedHttpSystemSettings'>
+                <Accordion.Control>{i18n.get['AdvancedHttpSystemSettings']}</Accordion.Control>
+                <Accordion.Panel>
                 <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
                   <Select
                     disabled={!canModify}
@@ -310,10 +311,10 @@ export default function Settings() {
                     {...form.getInputProps('external_network', { type: 'checkbox' })}
                   />
                 </Tooltip>
-
+                </Accordion.Panel>
               </Accordion.Item>
             </Accordion>
-          </Tabs.Tab>
+          </>
     );
   }
 
@@ -326,7 +327,7 @@ export default function Settings() {
 
   const getNavigationSettingsTab = () => {
     return (
-          <Tabs.Tab label={i18n.get['NavigationSettings']}>
+          <>
             <Group mt="xs">
               <Checkbox
                 mt="xl"
@@ -352,8 +353,10 @@ export default function Settings() {
               label={i18n.get['AlternateVideoCoverArtFolder']}
               formKey="alternate_thumb_folder"
             ></DirectoryChooser>
-            <Accordion mt="xl">
-              <Accordion.Item label={i18n.get['FileSortingNaming']}>
+            <Accordion>
+              <Accordion.Item value='FileSortingNaming'>
+                <Accordion.Control>{i18n.get['FileSortingNaming']}</Accordion.Control>
+                <Accordion.Panel>
                 <Group mt="xs">
                   <Select
                     label={i18n.get['FileOrder']}
@@ -396,7 +399,6 @@ export default function Settings() {
                   </Tooltip>
                   <Tooltip label={allowHtml(i18n.get['IfEnabledEngineNameDisplayed'])} {...defaultTooltipSettings}>
                     <Checkbox
-                      mt="xl"
                       label={i18n.get['AddEnginesNamesAfterFilenames']}
                       checked={!form.values['hide_enginenames']}
                       onChange={(event) => {
@@ -405,8 +407,11 @@ export default function Settings() {
                     />
                   </Tooltip>
                 </Group>
+                </Accordion.Panel>
               </Accordion.Item>
-              <Accordion.Item label={i18n.get['VirtualFoldersFiles']}>
+              <Accordion.Item value='VirtualFoldersFiles'>
+                <Accordion.Control>{i18n.get['VirtualFoldersFiles']}</Accordion.Control>
+				<Accordion.Panel>
                 <Group position="apart" mt="xl">
                   <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
                     <Checkbox
@@ -504,9 +509,10 @@ export default function Settings() {
                     formKey="fully_played_output_directory"
                   ></DirectoryChooser>
                 </Group>
+                </Accordion.Panel>
               </Accordion.Item>
             </Accordion>
-          </Tabs.Tab>
+          </>
     );
   }
 
@@ -514,10 +520,8 @@ export default function Settings() {
   SHARED CONTENT
   */
   const getSharedContentTab = () => {
-    return (
-          <Tabs.Tab label={i18n.get['SharedContent']}>
-          </Tabs.Tab>
-    );
+    return (<>
+    </>);
   }
 	  
   /*
@@ -628,8 +632,9 @@ export default function Settings() {
   const getTranscodingEnginesAccordionItems = () => {
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
       return (
-        <Accordion.Item label={i18n.getI18nString(value)}>
-          {getTranscodingEnginesList(index)}
+        <Accordion.Item value={index.toString()}>
+          <Accordion.Control>{i18n.getI18nString(value)}</Accordion.Control>
+          <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>);
     });
   }
@@ -695,8 +700,13 @@ export default function Settings() {
       {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
     />
     <Space h="md"/>
-    <Tabs active={activeGeneralSettingsTab} onTabChange={setGeneralSettingsTab}>
-      <Tabs.Tab label={i18n.get['VideoSettings']}>
+    <Tabs defaultValue="VideoSettings">
+      <Tabs.List>
+        <Tabs.Tab value='VideoSettings'>{i18n.get['VideoSettings']}</Tabs.Tab>
+        <Tabs.Tab value='AudioSettings'>{i18n.get['AudioSettings']}</Tabs.Tab>
+        <Tabs.Tab value='SubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value='VideoSettings'>
         <Checkbox
           size="xs"
           label={i18n.get['EnableGpuAcceleration']}
@@ -738,8 +748,8 @@ export default function Settings() {
           sx={{ flex: 1 }}
           {...form.getInputProps('force_transcode_for_extensions')}
         />
-      </Tabs.Tab>
-      <Tabs.Tab label={i18n.get['AudioSettings']}>
+      </Tabs.Panel>
+      <Tabs.Panel value='AudioSettings'>
         <Select
           label={i18n.get['MaximumNumberAudioChannelsOutput']}
           data={[{value: '6', label: i18n.get['6Channels51']}, {value: '2', label: i18n.get['2ChannelsStereo']}]}
@@ -783,8 +793,8 @@ export default function Settings() {
           size="xs"
           {...form.getInputProps('audio_languages')}
         />
-        </Tabs.Tab>
-        <Tabs.Tab label={i18n.get['SubtitlesSettings']}>
+        </Tabs.Panel>
+        <Tabs.Panel value='SubtitlesSettings'>
           <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
             <TextInput
               label={i18n.get['SubtitlesLanguagePriority']}
@@ -902,7 +912,7 @@ export default function Settings() {
             opened={subColorModalOpened}
             onClose={() => setSubColorModalOpened(false)}
           >
-            <Group position="center" direction="column">
+            <Stack align="center">
               <ColorPicker
                 format="rgba"
                 swatches={['#25262b', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14']}
@@ -913,7 +923,7 @@ export default function Settings() {
                 size="xs"
                 onClick={() => { form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
               >{i18n.get['Confirm']}</Button>
-          </Group>
+          </Stack>
         </Modal>
         <Group>
           <TextInput
@@ -960,8 +970,8 @@ export default function Settings() {
             form.setFieldValue('3d_subtitles_depth', val);
           }}
         />
-        </Tabs.Tab>
-      </Tabs>
+      </Tabs.Panel>
+    </Tabs>
     </>);
   }
 
@@ -1328,7 +1338,6 @@ export default function Settings() {
 
   const getTranscodingSettingsTab = () => {
     return (
-          <Tabs.Tab label={i18n.get['TranscodingSettings']}>
             <Grid>
               <Grid.Col span={5}>
                 <Navbar width={{ }} p="xs">
@@ -1349,18 +1358,23 @@ export default function Settings() {
                 {getTranscodingContent()}
               </Grid.Col>
             </Grid>
-          </Tabs.Tab>
     );
   }
 
   return canView ? (
     <Box sx={{ maxWidth: 700 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Tabs active={activeTab} onTabChange={setActiveTab}>
-          { getGeneralSettingsTab() }
-          { getNavigationSettingsTab() }
-          { getSharedContentTab() }
-          { getTranscodingSettingsTab() }
+        <Tabs defaultValue="GeneralSettings">
+          <Tabs.List>
+            <Tabs.Tab value="GeneralSettings">{i18n.get['GeneralSettings']}</Tabs.Tab>
+            <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
+            <Tabs.Tab value="SharedContent">{i18n.get['SharedContent']}</Tabs.Tab>
+            <Tabs.Tab value="TranscodingSettings">{i18n.get['TranscodingSettings']}</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="GeneralSettings">{ getGeneralSettingsTab() }</Tabs.Panel>
+          <Tabs.Panel value="NavigationSettings">{ getNavigationSettingsTab() }</Tabs.Panel>
+          <Tabs.Panel value="SharedContent">{ getSharedContentTab() }</Tabs.Panel>
+          <Tabs.Panel value="TranscodingSettings">{ getTranscodingSettingsTab() }</Tabs.Panel>
         </Tabs>
         {canModify && (
           <Group position="right" mt="md">

@@ -11,7 +11,6 @@ import { havePermission } from '../../services/accounts-service';
 import MemoryBar from '../MemoryBar/MemoryBar';
 
 const About = () => {
-  const [activeTab, setActiveTab] = useState(0);
   const [aboutDatas, setAboutDatas] = useState({links:[]} as any);
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -55,8 +54,13 @@ const About = () => {
 
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
-        <Tabs active={activeTab} onTabChange={setActiveTab}>
-          <Tabs.Tab label={i18n.get["Application"]}>
+        <Tabs  defaultValue="application">
+          <Tabs.List>
+            <Tabs.Tab value='application'>{i18n.get["Application"]}</Tabs.Tab>
+            <Tabs.Tab value='translations'>{i18n.get["Translations"]}</Tabs.Tab>
+            <Tabs.Tab value='relatedLinks'>{i18n.get["RelatedLinks_title"]}</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="application" pt="xs">
             <Table striped>
               <thead>
                 <tr>
@@ -107,19 +111,19 @@ const About = () => {
                 </tbody>
             </>}
             </Table>
-          </Tabs.Tab>
-          <Tabs.Tab label={i18n.get["Translations"]}>
+          </Tabs.Panel>
+          <Tabs.Panel value='translations'>
             <Table highlightOnHover>
               <tbody>
                {languagesRows}
               </tbody>
             </Table>
-          </Tabs.Tab>
-          <Tabs.Tab label={i18n.get["RelatedLinks_title"]}>
+          </Tabs.Panel>
+          <Tabs.Panel value='relatedLinks'>
             <Table>
               {linksRows}
             </Table>
-          </Tabs.Tab>
+          </Tabs.Panel>
         </Tabs>
       </Box>
   );

@@ -84,7 +84,7 @@ export default function DirectoryChooser(props: {
           size="lg"
         >
           <Box mx="auto">
-            <Paper shadow="md" p="xs" withBorder>
+            <Paper shadow="md" withBorder>
               <Group>
                 <Breadcrumbs separator={separator}>
                   <Button
@@ -109,7 +109,7 @@ export default function DirectoryChooser(props: {
                 </Breadcrumbs>
               </Group>
             </Paper>
-            <Stack spacing="xs" align="flex-start" justify="flex-start" mt="xl">
+            <Stack spacing="xs" align="flex-start" justify="flex-start">
               {directories.map(directory => (
                 <Group key={"group" + directory.label}>
                   <Button
@@ -140,12 +140,11 @@ export default function DirectoryChooser(props: {
           </Box>
         </Modal>
 
-        {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} wrapLines={true} withArrow={true}>
+        {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} multiline withArrow={true}>
           {input()}
         </Tooltip>) : input()
         }
         <Button
-          mt="xl"
           onClick={() => { getSubdirectories(props.path); setOpened(true); }}
           leftIcon={<Folders size={18} />}
         >

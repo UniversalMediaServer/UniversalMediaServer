@@ -13,7 +13,6 @@ export const MemoryBar = ({ decorate }: { decorate?: boolean }) => {
   const BufferMemPercent = () => { return Math.floor((sse.memory.buffer / sse.memory.max) * 100)};
   const MemoryBarProgress =
     <Progress
-      mt="md"
       size="xl"
       radius="xl"
       sections={[
