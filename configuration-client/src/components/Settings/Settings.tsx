@@ -32,18 +32,18 @@ export default function Settings() {
 
   // key/value pairs for dropdowns
   const [selectionSettings, setSelectionSettings] = useState({
-    allRendererNames: [],
-    audioCoverSuppliers: [{}] as [mantineSelectData],
-    enabledRendererNames: [],
+    allRendererNames: [] as mantineSelectData[],
+    audioCoverSuppliers: [] as mantineSelectData[],
+    enabledRendererNames: [] as mantineSelectData[],
     ffmpegLoglevels: [],
-    fullyPlayedActions: [{}] as [mantineSelectData],
+    fullyPlayedActions: [] as mantineSelectData[],
     gpuAccelerationMethod: [],
     networkInterfaces: [],
-    serverEngines: [{}] as [mantineSelectData],
-    sortMethods: [{}] as [mantineSelectData],
+    serverEngines: [] as mantineSelectData[],
+    sortMethods: [] as mantineSelectData[],
     subtitlesDepth: [],
-    subtitlesCodepages: [],
-    subtitlesInfoLevels: [{}] as [mantineSelectData],
+    subtitlesCodepages: [] as mantineSelectData[],
+    subtitlesInfoLevels: [] as mantineSelectData[],
     transcodingEngines: {} as { [key: string]: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] } },
     transcodingEnginesPurposes: [],
   });
@@ -146,8 +146,8 @@ export default function Settings() {
       });
   };
 
-  const getI18nSelectData = (values: [{ value: string; label: string }]) => {
-    return values.map((value: { value: string; label: string }) => {
+  const getI18nSelectData = (values: mantineSelectData[]) => {
+    return values.map((value: mantineSelectData) => {
       return {value: value.value, label: i18n.getI18nString(value.label)};
     });
   }
@@ -305,7 +305,7 @@ export default function Settings() {
                 <Stack>
                   <MultiSelect
                     disabled={!canModify}
-                    data={selectionSettings.allRendererNames}
+                    data={getI18nSelectData(selectionSettings.allRendererNames)}
                     label={i18n.get['EnabledRenderers']}
                     {...form.getInputProps('selected_renderers')}
                   />
@@ -313,7 +313,7 @@ export default function Settings() {
                     disabled={!canModify}
                     sx={{ flex: 1 }}
                     label={i18n.get['DefaultRendererWhenAutoFails']}
-                    data={selectionSettings.enabledRendererNames}
+                    data={getI18nSelectData(selectionSettings.enabledRendererNames)}
                     {...form.getInputProps('renderer_default')}
                     searchable
                   />
@@ -598,7 +598,7 @@ export default function Settings() {
         onChange={({ oldIndex, newIndex }) => {
           moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
         }}
-        renderList={({ children, props, isDragged }) => (
+        renderList={({ children, props }) => (
           <Stack justify="flex-start" align="flex-start" spacing="xs" {...props}>
             {children}
           </Stack>
@@ -666,7 +666,8 @@ export default function Settings() {
   }
 
   const getTranscodingCommon = () => { return (<>
-    <Title order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
+    <Title mt="sm" order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
+    <Stack spacing="xs">
     <TextInput
       label={i18n.get['MaximumTranscodeBufferSize']}
       name="maximum_video_buffer_size"
@@ -682,7 +683,6 @@ export default function Settings() {
       disabled={false}
       {...form.getInputProps('number_of_cpu_cores')}
     />
-    <Space h="xs"/>
     <Grid>
       <Grid.Col span={10}>
         <Checkbox
@@ -705,7 +705,6 @@ export default function Settings() {
       label={i18n.get['DisableSubtitles']}
       {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
     />
-    <Space h="md"/>
     <Tabs defaultValue="TranscodingVideoSettings">
       <Tabs.List>
         <Tabs.Tab value='TranscodingVideoSettings'>{i18n.get['VideoSettings']}</Tabs.Tab>
@@ -713,7 +712,7 @@ export default function Settings() {
         <Tabs.Tab value='TranscodingSubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value='TranscodingVideoSettings'>
-        <Stack justify="flex-start" align="flex-start" spacing="xs">
+        <Stack spacing="xs">
         <Checkbox
           mt="xs"
           disabled={!canModify}
@@ -764,7 +763,7 @@ export default function Settings() {
         </Stack>
       </Tabs.Panel>
       <Tabs.Panel value='TranscodingAudioSettings'>
-        <Stack justify="flex-start" align="flex-start" spacing="xs">
+        <Stack spacing="xs">
         <Select
           disabled={!canModify}
           label={i18n.get['MaximumNumberAudioChannelsOutput']}
@@ -813,7 +812,7 @@ export default function Settings() {
         </Stack>
         </Tabs.Panel>
       <Tabs.Panel value='TranscodingSubtitlesSettings'>
-        <Stack justify="flex-start" align="flex-start" spacing="xs">
+        <Stack spacing="xs">
           <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
             <TextInput
               disabled={!canModify}
@@ -858,7 +857,7 @@ export default function Settings() {
             disabled={!canModify}
             size="xs"
             label={i18n.get['NonUnicodeSubtitleEncoding']}
-            data={selectionSettings.subtitlesCodepages}
+            data={getI18nSelectData(selectionSettings.subtitlesCodepages)}
             {...form.getInputProps('subtitles_codepage')}
           />
           <Checkbox
@@ -965,7 +964,7 @@ export default function Settings() {
             <ColorSwatch radius={5}
               size={30}
               color={form.getInputProps('subtitles_color').value}
-              style={{ cursor: 'pointer', marginTop: '28px'}}
+              style={{ cursor: 'pointer', marginTop: '25px'}}
               onClick={() => { if (canModify) { setSubColor(hexAToRgba(form.getInputProps('subtitles_color').value)); setSubColorModalOpened(true); } }}
             />
           </Group>
@@ -1002,6 +1001,7 @@ export default function Settings() {
         </Stack>
       </Tabs.Panel>
     </Tabs>
+    </Stack>
   </>);
   }
 
@@ -1012,19 +1012,21 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          label={i18n.get['EnableExperimentalCodecs']}
-          {...form.getInputProps('vlc_use_experimental_codecs', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          label={i18n.get['AvSyncAlternativeMethod']}
-          {...form.getInputProps('vlc_audio_sync_enabled', { type: 'checkbox' })}
-        />
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Stack justify="flex-start" align="flex-start" spacing="xs">
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['EnableExperimentalCodecs']}
+            {...form.getInputProps('vlc_use_experimental_codecs', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['AvSyncAlternativeMethod']}
+            {...form.getInputProps('vlc_audio_sync_enabled', { type: 'checkbox' })}
+          />
+        </Stack>
       </>
     );
   }

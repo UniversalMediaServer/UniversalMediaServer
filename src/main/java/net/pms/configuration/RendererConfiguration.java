@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -2410,10 +2411,19 @@ public class RendererConfiguration extends Renderer {
 		ArrayList<String> values = getAllRenderersNames();
 
 		JsonArray jsonArray = new JsonArray();
-		jsonArray.add(pmsConfigurationStatic.allRenderers);
-		jsonArray.add("i18n@None");
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("value", pmsConfigurationStatic.allRenderers);
+		jsonObject.addProperty("label", "i18n@AllRenderers");
+		jsonArray.add(jsonObject);
+		jsonObject = new JsonObject();
+		jsonObject.addProperty("value", "None");
+		jsonObject.addProperty("label", "i18n@None");
+		jsonArray.add(jsonObject);
 		for (int i = 0; i < values.size(); i++) {
-			jsonArray.add(values.get(i));
+			jsonObject = new JsonObject();
+			jsonObject.addProperty("value", values.get(i));
+			jsonObject.addProperty("label", values.get(i));
+			jsonArray.add(jsonObject);
 		}
 		return jsonArray;
 	}
@@ -2426,10 +2436,17 @@ public class RendererConfiguration extends Renderer {
 	public synchronized static JsonArray getEnabledRendererNamesAsJsonArray() {
 		ArrayList<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
 		GeneralTab.sortRendererConfigurationsByName(values);
-
 		JsonArray jsonArray = new JsonArray();
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("value", "");
+		jsonObject.addProperty("label", "i18n@UnknownRenderer");
+		jsonArray.add(jsonObject);
 		for (int i = 0; i < values.size(); i++) {
-			jsonArray.add(values.get(i).getConfName());
+			jsonObject = new JsonObject();
+			String value = values.get(i).getConfName();
+			jsonObject.addProperty("value", value);
+			jsonObject.addProperty("label", value);
+			jsonArray.add(jsonObject);
 		}
 		return jsonArray;
 	}

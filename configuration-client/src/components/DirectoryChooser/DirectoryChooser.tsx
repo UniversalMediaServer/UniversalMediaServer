@@ -150,6 +150,7 @@ export default function DirectoryChooser(props: {
         }
         {!props.disabled && (
           <Button
+            mt='24px'
             size={props.size}
             onClick={() => { getSubdirectories(props.path); setOpened(true); }}
             leftIcon={<Folders size={18} />}
