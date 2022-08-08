@@ -1038,13 +1038,15 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          label={i18n.get['AutomaticAudioResampling']}
-          {...form.getInputProps('audio_resample', { type: 'checkbox' })}
-        />
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Stack spacing="xs">
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['AutomaticAudioResampling']}
+            {...form.getInputProps('audio_resample', { type: 'checkbox' })}
+          />
+        </Stack>
       </>
     )
   }
@@ -1056,19 +1058,21 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          label={i18n.get['ForceFpsParsedFfmpeg']}
-          {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          label={i18n.get['MuxAllAudioTracks']}
-          {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
-        />
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Stack spacing="xs">
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['ForceFpsParsedFfmpeg']}
+            {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['MuxAllAudioTracks']}
+            {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
+          />
+        </Stack>
       </>
     )
   }
@@ -1080,167 +1084,158 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Title order={6}>{i18n.get['GeneralSettings']}</Title>
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['EnableMultithreading']}
-          {...form.getInputProps('mencoder_mt', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['SkipLoopFilterDeblocking']}
-          {...form.getInputProps('mencoder_skip_loop_filter', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['AvSyncAlternativeMethod']}
-          {...form.getInputProps('mencoder_nooutofsync', { type: 'checkbox' })}
-        />
-        <Grid>
-          <Grid.Col span={4}>
-            <Checkbox
-              disabled={!canModify}
-              size="xs"
-              mt="xl"
-              label={i18n.get['ChangeVideoResolution']}
-              {...form.getInputProps('mencoder_scaler', { type: 'checkbox' })}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              disabled={!canModify || !form.values['mencoder_scaler']}
-              label={i18n.get['Width']}
-              sx={{ flex: 1 }}
-              size="xs"
-              {...form.getInputProps('mencoder_scalex')}
-            />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <TextInput
-              disabled={!canModify || !form.values['mencoder_scaler']}
-              label={i18n.get['Height']}
-              size="xs"
-              {...form.getInputProps('mencoder_scaley')}
-            />
-          </Grid.Col>
-        </Grid>
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['ForceFramerateParsedFfmpeg']}
-          {...form.getInputProps('mencoder_forcefps', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['DeinterlaceFilter']}
-          {...form.getInputProps('mencoder_yadif', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['RemuxVideosTsmuxer']}
-          {...form.getInputProps('mencoder_mux_compatible ', { type: 'checkbox' })}
-        />
-        <TextInput
-          disabled={!canModify}
-          label={i18n.get['CustomOptionsVf']}
-          name="mencoder_custom_options"
-          size="xs"
-          {...form.getInputProps('mencoder_custom_options')}
-        />
-        <Modal
-          size="xl"
-          opened={mencoderAdvancedOpened}
-          onClose={() => setMencoderAdvancedOpened(false)}
-          title={i18n.get['EditCodecSpecificParameters']}
-        >
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Title mb="sm" order={6}>{i18n.get['GeneralSettings']}</Title>
+        <Stack spacing="xs">
           <Checkbox
             disabled={!canModify}
             size="xs"
-            mt="xl"
-            label={i18n.get['UseApplicationDefaults']}
-            {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
+            label={i18n.get['EnableMultithreading']}
+            {...form.getInputProps('mencoder_mt', { type: 'checkbox' })}
           />
-          <Prism language={'markup'}>{
-            i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
-            i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
-            i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
-            i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
-            i18n.get['MencoderConfigScript.5.SpecialOptions'] +
-            i18n.get['MencoderConfigScript.6.Noass'] +
-            i18n.get['MencoderConfigScript.7.Nosync'] +
-            i18n.get['MencoderConfigScript.8.Quality'] +
-            i18n.get['MencoderConfigScript.9.Nomux'] +
-            i18n.get['MencoderConfigScript.10.YouCanPut'] +
-            i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
-            i18n.get['MencoderConfigScript.12.ToRemux']}
-          </Prism>
-          <Space h="sm"/>
-          <Textarea
+          <Checkbox
             disabled={!canModify}
-            label={i18n.get['CustomParameters']}
-            name="mencoder_codec_specific_script"
             size="xs"
-            {...form.getInputProps('mencoder_codec_specific_script')}
+            label={i18n.get['SkipLoopFilterDeblocking']}
+            {...form.getInputProps('mencoder_skip_loop_filter', { type: 'checkbox' })}
           />
-        </Modal>
-        <Space h="sm"/>
-        <Group position="center">
-          <Button variant="subtle" compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
-        </Group>
-        <Space h="sm"/>
-        <Grid>
-          <Grid.Col span={6}>
-            <Text
-              size="xs"
-              style={{ marginTop: '14px'}}
-            >{i18n.get['AddBordersOverscanCompensation']}</Text>
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <TextInput
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['AvSyncAlternativeMethod']}
+            {...form.getInputProps('mencoder_nooutofsync', { type: 'checkbox' })}
+          />
+          <Grid>
+            <Grid.Col span={4}>
+              <Checkbox
+                disabled={!canModify}
+                size="xs"
+                label={i18n.get['ChangeVideoResolution']}
+                {...form.getInputProps('mencoder_scaler', { type: 'checkbox' })}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                disabled={!canModify || !form.values['mencoder_scaler']}
+                label={i18n.get['Width']}
+                sx={{ flex: 1 }}
+                size="xs"
+                {...form.getInputProps('mencoder_scalex')}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <TextInput
+                disabled={!canModify || !form.values['mencoder_scaler']}
+                label={i18n.get['Height']}
+                size="xs"
+                {...form.getInputProps('mencoder_scaley')}
+              />
+            </Grid.Col>
+          </Grid>
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['ForceFramerateParsedFfmpeg']}
+            {...form.getInputProps('mencoder_forcefps', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['DeinterlaceFilter']}
+            {...form.getInputProps('mencoder_yadif', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['RemuxVideosTsmuxer']}
+            {...form.getInputProps('mencoder_mux_compatible ', { type: 'checkbox' })}
+          />
+          <TextInput
+            disabled={!canModify}
+            label={i18n.get['CustomOptionsVf']}
+            name="mencoder_custom_options"
+            size="xs"
+            {...form.getInputProps('mencoder_custom_options')}
+          />
+          <Modal
+            size="xl"
+            opened={mencoderAdvancedOpened}
+            onClose={() => setMencoderAdvancedOpened(false)}
+            title={i18n.get['EditCodecSpecificParameters']}
+          >
+            <Checkbox
               disabled={!canModify}
-              label={i18n.get['Height'] + '(%)'}
-              sx={{ flex: 1 }}
               size="xs"
-              {...form.getInputProps('mencoder_overscan_compensation_height')}
+              label={i18n.get['UseApplicationDefaults']}
+              {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
             />
-          </Grid.Col>
-          <Grid.Col span={3}>
-            <TextInput
+            <Prism language={'markup'}>{
+              i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
+              i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
+              i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
+              i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
+              i18n.get['MencoderConfigScript.5.SpecialOptions'] +
+              i18n.get['MencoderConfigScript.6.Noass'] +
+              i18n.get['MencoderConfigScript.7.Nosync'] +
+              i18n.get['MencoderConfigScript.8.Quality'] +
+              i18n.get['MencoderConfigScript.9.Nomux'] +
+              i18n.get['MencoderConfigScript.10.YouCanPut'] +
+              i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
+              i18n.get['MencoderConfigScript.12.ToRemux']}
+            </Prism>
+            <Textarea
               disabled={!canModify}
-              label={i18n.get['Width'] + '(%)'}
+              label={i18n.get['CustomParameters']}
+              name="mencoder_codec_specific_script"
               size="xs"
-              {...form.getInputProps('mencoder_overscan_compensation_width')}
+              {...form.getInputProps('mencoder_codec_specific_script')}
             />
-          </Grid.Col>
-        </Grid>
-        <Space h="sm"/>
-        <Title order={6}>{i18n.get['SubtitlesSettings']}</Title>
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['UseAssSubtitlesStyling']}
-          {...form.getInputProps('mencoder_ass', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          size="xs"
-          mt="xl"
-          label={i18n.get['FonconfigEmbeddedFonts']}
-          {...form.getInputProps('mencoder_fontconfig', { type: 'checkbox' })}
-        />
+          </Modal>
+          <Group position="center">
+            <Button variant="subtle" compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
+          </Group>
+          <Space h="sm"/>
+          <Grid>
+            <Grid.Col span={6}>
+              <Text
+                size="xs"
+                style={{ marginTop: '14px'}}
+              >{i18n.get['AddBordersOverscanCompensation']}</Text>
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <TextInput
+                disabled={!canModify}
+                label={i18n.get['Height'] + '(%)'}
+                sx={{ flex: 1 }}
+                size="xs"
+                {...form.getInputProps('mencoder_overscan_compensation_height')}
+              />
+            </Grid.Col>
+            <Grid.Col span={3}>
+              <TextInput
+                disabled={!canModify}
+                label={i18n.get['Width'] + '(%)'}
+                size="xs"
+                {...form.getInputProps('mencoder_overscan_compensation_width')}
+              />
+            </Grid.Col>
+          </Grid>
+        </Stack>
+        <Title my='sm' order={6}>{i18n.get['SubtitlesSettings']}</Title>
+        <Stack spacing="xs">
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['UseAssSubtitlesStyling']}
+            {...form.getInputProps('mencoder_ass', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['FonconfigEmbeddedFonts']}
+            {...form.getInputProps('mencoder_fontconfig', { type: 'checkbox' })}
+          />
+        </Stack>
       </>
     )
   }
@@ -1252,55 +1247,53 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Select
-          disabled={!canModify}
-          label={i18n.get['LogLevelColon']}
-          data={selectionSettings.ffmpegLoglevels}
-          {...form.getInputProps('ffmpeg_logging_level')}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          size="xs"
-          label={i18n.get['EnableMultithreading']}
-          {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          size="xs"
-          label={i18n.get['RemuxVideosTsmuxer']}
-          {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          size="xs"
-          label={i18n.get['UseFontSettings']}
-          {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          size="xs"
-          label={i18n.get['DeferMencoderTranscodingProblematic']}
-          {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
-        />
-        <Checkbox
-          disabled={!canModify}
-          mt="xl"
-          size="xs"
-          label={i18n.get['UseSoxHigherQualityAudio']}
-          {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
-        />
-        <NumberInput
-          label={i18n.get['GpuDecodingThreadCount']}
-          size="xs"
-          max={16}
-          min={0}
-          {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
-        />
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Stack spacing="xs">
+          <Select
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['LogLevelColon']}
+            data={selectionSettings.ffmpegLoglevels}
+            {...form.getInputProps('ffmpeg_logging_level')}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['EnableMultithreading']}
+            {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['RemuxVideosTsmuxer']}
+            {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['UseFontSettings']}
+            {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['DeferMencoderTranscodingProblematic']}
+            {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
+          />
+          <Checkbox
+            disabled={!canModify}
+            size="xs"
+            label={i18n.get['UseSoxHigherQualityAudio']}
+            {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
+          />
+          <NumberInput
+            label={i18n.get['GpuDecodingThreadCount']}
+            size="xs"
+            max={16}
+            min={0}
+            {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
+          />
+        </Stack>
       </>
     )
   }
@@ -1310,10 +1303,11 @@ export default function Settings() {
     if (!currentEngine.isAvailable) {
       return (
         <>
-          <Title order={5}>{currentEngine.name}</Title>
-          <Text><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
-          <Space h="md"/>
-          <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
+          <Title my="sm" order={5}>{currentEngine.name}</Title>
+          <Stack spacing="xs">
+            <Text size="xs"><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
+            <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
+          </Stack>
         </>
       )
     }
@@ -1327,8 +1321,21 @@ export default function Settings() {
     }
     return (
       <>
-        <Title order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Text>{i18n.get['NoSettingsForNow']}</Text>
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Text size="xs">{i18n.get['NoSettingsForNow']}</Text>
+      </>
+    )
+  }
+
+  const engineNotKnown = () => {
+    const status = engineStatus();
+    if (status) {
+      return (status)
+    }
+    return (
+      <>
+        <Title my="sm" order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
+        <Text size="xs">This engine is not known yet.</Text>
       </>
     )
   }
@@ -1338,33 +1345,33 @@ export default function Settings() {
       case 'common':
         return getTranscodingCommon();
       case 'DCRaw':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'FFmpegAudio':
         return getFFMPEGAudio();
       case 'FFmpegVideo':
         return getFFMPEGVideo();
       case 'FFmpegWebVideo':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'MEncoderVideo':
         return getMEncoderVideo();
       case 'MEncoderWebVideo':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'tsMuxeRAudio':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'tsMuxeRVideo':
         return getTsMuxerVideo();
       case 'VLCAudioStreaming':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'VLCVideo':
         return getVLCWebVideo();
       case 'VLCWebVideo':
         return getVLCWebVideo();
       case 'VLCVideoStreaming':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       case 'youtubeDl':
-        return (noSettingsForNow());
+        return noSettingsForNow();
       default:
-      return null;
+      return engineNotKnown();
     }
   }
 
