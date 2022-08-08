@@ -3,7 +3,7 @@ package net.pms.dlna;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class FolderLimitLevel extends VirtualFolder {
-	private int level;
+	private final int level;
 	private DLNAResource start;
 
 	public FolderLimitLevel(int level) {

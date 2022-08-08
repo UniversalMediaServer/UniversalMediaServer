@@ -47,6 +47,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.Version;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
@@ -206,10 +207,7 @@ public class VideoLanVideoStreaming extends Player {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipeProcess);
 
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
 		configuration = prev;

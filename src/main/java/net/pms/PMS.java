@@ -679,10 +679,7 @@ public class PMS {
 		new Thread("Connection Checker") {
 			@Override
 			public void run() {
-				try {
-					Thread.sleep(7000);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
 					frame.setConnectionState(ConnectionState.DISCONNECTED);
@@ -770,6 +767,7 @@ public class PMS {
 				}
 
 				if (MediaDatabase.isInstantiated()) {
+					LOGGER.debug("Shutting down database");
 					MediaDatabase.shutdown();
 					MediaDatabase.createDatabaseReportIfNeeded();
 				}

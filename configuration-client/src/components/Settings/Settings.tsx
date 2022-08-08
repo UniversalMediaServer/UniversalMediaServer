@@ -1,4 +1,4 @@
-import { Accordion, ActionIcon, ColorSwatch, Box, Button, Checkbox, Grid, Group, Modal, MultiSelect, Navbar, NumberInput, Select, Space, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip, ColorPicker } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, MultiSelect, NavLink, NumberInput, Select, Space, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Prism } from '@mantine/prism';
 import { showNotification } from '@mantine/notifications';
@@ -60,7 +60,7 @@ export default function Settings() {
   const defaultTooltipSettings = {
     width: 350,
     color: 'blue',
-    wrapLines: true,
+    multiline: true,
     withArrow: true,
   }
 
@@ -167,55 +167,71 @@ export default function Settings() {
   }
 
   const getGeneralSettingsTab = () => {
-    return (<>
-            <Select
-              disabled={!canModify}
-              label={i18n.get['Language']}
-              data={getLanguagesSelectData()}
-              {...form.getInputProps('language')}
-            />
-
-            <Group mt="xs">
-              <TextInput
-                disabled={!canModify}
-                label={i18n.get['ServerName']}
-                name="server_name"
-                sx={{ flex: 1 }}
-                {...form.getInputProps('server_name')}
-              />
-              <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} width={350} color="blue" multiline withArrow>
-                <Checkbox
+    return (
+        <>
+          <Accordion>
+            <Accordion.Item value='Application'>
+              <Accordion.Control>{i18n.get['Application']}</Accordion.Control>
+              <Accordion.Panel>
+                <Select
                   disabled={!canModify}
-                  mt="xl"
-                  label={i18n.get['AppendProfileName']}
-                  {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+                  label={i18n.get['Language']}
+                  data={getLanguagesSelectData()}
+                  {...form.getInputProps('language')}
                 />
+                <Stack align="flex-start" mt="sm">
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['StartMinimizedSystemTray']}
+                    {...form.getInputProps('minimized', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['EnableSplashScreen']}
+                    {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
+                  />
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['CheckAutomaticallyForUpdates']}
+                    {...form.getInputProps('auto_update', { type: 'checkbox' })}
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='Services'>
+              <Accordion.Control>{i18n.get['Services']}</Accordion.Control>
+              <Accordion.Panel>
+                <Group>
+                  <TextInput
+                    disabled={!canModify}
+                    label={i18n.get['ServerName']}
+					placeholder={defaultConfiguration.server_name}
+                    name="server_name"
+                    sx={{ flex: 1 }}
+                    {...form.getInputProps('server_name')}
+                  />
+                  <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      mt="xl"
+                      label={i18n.get['AppendProfileName']}
+                      {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                </Group>
+                <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
+                  <Select
+                    disabled={!canModify}
+                    label={i18n.get['MediaServerEngine']}
+                    data={getI18nSelectData(selectionSettings.serverEngines)}
+                    {...form.getInputProps('server_engine')}
+                  />
                 </Tooltip>
-            </Group>
-            <Group mt="md">
-              <Checkbox
-                disabled={!canModify}
-                label={i18n.get['StartMinimizedSystemTray']}
-                {...form.getInputProps('minimized', { type: 'checkbox' })}
-              />
-              <Checkbox
-                disabled={!canModify}
-                label={i18n.get['EnableSplashScreen']}
-                {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
-              />
-            </Group>
-
-            <Checkbox
-              disabled={!canModify}
-              mt="xs"
-              label={i18n.get['CheckAutomaticallyForUpdates']}
-              {...form.getInputProps('auto_update', { type: 'checkbox' })}
-            />
-
-            <Accordion>
-              <Accordion.Item value='NetworkSettingsAdvanced'>
-                <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
-                <Accordion.Panel>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='NetworkSettingsAdvanced'>
+              <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
+              <Accordion.Panel>
                 <Select
                   disabled={!canModify}
                   label={i18n.get['ForceNetworkingInterface']}
@@ -261,29 +277,38 @@ export default function Settings() {
                     />
                   </Tooltip>
                 </Group>
-                </Accordion.Panel>
-              </Accordion.Item>
-              <Accordion.Item value='AdvancedHttpSystemSettings'>
-                <Accordion.Control>{i18n.get['AdvancedHttpSystemSettings']}</Accordion.Control>
-                <Accordion.Panel>
-                <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
-                  <Select
-                    disabled={!canModify}
-                    label={i18n.get['MediaServerEngine']}
-                    data={getI18nSelectData(selectionSettings.serverEngines)}
-                    {...form.getInputProps('server_engine')}
-                  />
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='ExternalOutgoingTraffic'>
+              <Accordion.Control>{i18n.get['ExternalOutgoingTraffic']}</Accordion.Control>
+              <Accordion.Panel>
+                <Stack>
+                  <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      label={i18n.get['EnableExternalNetwork']}
+                      {...form.getInputProps('external_network', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['UseInfoFromOurApi']}
+                      {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
+                    />
                 </Tooltip>
-
-                <MultiSelect
-                  disabled={!canModify}
-                  mt="xs"
-                  data={selectionSettings.allRendererNames}
-                  label={i18n.get['EnabledRenderers']}
-                  {...form.getInputProps('selected_renderers')}
-                />
-
-                <Group mt="xs">
+				</Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='Renderers'>
+              <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
+              <Accordion.Panel>
+                <Stack>
+                  <MultiSelect
+                    disabled={!canModify}
+                    data={selectionSettings.allRendererNames}
+                    label={i18n.get['EnabledRenderers']}
+                    {...form.getInputProps('selected_renderers')}
+                  />
                   <Select
                     disabled={!canModify}
                     sx={{ flex: 1 }}
@@ -292,29 +317,18 @@ export default function Settings() {
                     {...form.getInputProps('renderer_default')}
                     searchable
                   />
-
                   <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
-                      mt="xl"
                       label={i18n.get['ForceDefaultRenderer']}
                       {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
                     />
                   </Tooltip>
-                </Group>
-
-                <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
-                  <Checkbox
-                    disabled={!canModify}
-                    mt="xs"
-                    label={i18n.get['EnableExternalNetwork']}
-                    {...form.getInputProps('external_network', { type: 'checkbox' })}
-                  />
-                </Tooltip>
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
-          </>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        </>
     );
   }
 
@@ -327,69 +341,132 @@ export default function Settings() {
 
   const getNavigationSettingsTab = () => {
     return (
-          <>
-            <Group mt="xs">
-              <Checkbox
-                mt="xl"
-                label={i18n.get['GenerateThumbnails']}
-                {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
-              />
-              <TextInput
-                sx={{ flex: 1 }}
-                label={i18n.get['ThumbnailSeekingPosition']}
-                disabled={!form.values['generate_thumbnails']}
-                {...form.getInputProps('thumbnail_seek_position')}
-              />
-            </Group>
-            <Select
-              mt="xs"
-              label={i18n.get['AudioThumbnailsImport']}
-              data={getI18nSelectData(selectionSettings.audioCoverSuppliers)}
-              {...form.getInputProps('audio_thumbnails_method')}
-            />
-            <DirectoryChooser
-              path={form.getInputProps('alternate_thumb_folder').value}
-              callback={form.setFieldValue}
-              label={i18n.get['AlternateVideoCoverArtFolder']}
-              formKey="alternate_thumb_folder"
-            ></DirectoryChooser>
-            <Accordion>
-              <Accordion.Item value='FileSortingNaming'>
+        <>
+          <Accordion>
+            <Accordion.Item value='NavigationGeneralSettings'>
+              <Accordion.Control>{i18n.get['GeneralSettings']}</Accordion.Control>
+              <Accordion.Panel>
+                <Group position="apart">
+                  <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['EnableCache']}
+                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
+                    <Button
+                      size="xs"
+                      onClick={() => resetCache()}
+                      disabled={!form.values['use_cache']}
+                    >
+                      {i18n.get['ResetCache']}
+                    </Button>
+                  </Tooltip>
+                </Group>
+				<Stack align="flex-start" mt="xs">
+                  <Tooltip label={allowHtml(i18n.get['WhenEnabledPartiallyWatchVideo'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      label={i18n.get['EnableVideoResuming']}
+                      {...form.getInputProps('resume', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['ThisMakesBrowsingSlower'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      label={i18n.get['HideEmptyFolders']}
+                      {...form.getInputProps('hide_empty_folders', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Tooltip label={allowHtml(i18n.get['TreatMultipleSymbolicLinks'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      disabled={!canModify}
+                      label={i18n.get['UseTargetFileSymbolicLinks']}
+                      {...form.getInputProps('use_symlinks_target_file', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
+                  <Checkbox
+                    label={i18n.get['BrowseCompressedArchives']}
+                    {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
+                  />
+                  <Tooltip label={allowHtml(i18n.get['IfNumberItemsFolderExceeds'])} {...defaultTooltipSettings}>
+                    <NumberInput
+                      label={i18n.get['MinimumItemLimitBeforeAZ']}
+                      disabled={!canModify}
+                      {...form.getInputProps('atz_limit')}
+                    />
+                  </Tooltip>
+				</Stack>
+                <Group mt="md">
+                  <Select
+                    sx={{ flex: 1 }}
+                    disabled={!canModify}
+                    label={i18n.get['FullyPlayedAction']}
+                    data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
+                    {...form.getInputProps('fully_played_action')}
+                  />
+				  {(form.values['fully_played_action'] === "3" || form.values['fully_played_action'] === "4") && (
+                    <DirectoryChooser
+                      disabled={!canModify}
+                      label={i18n.get['DestinationFolder']}
+                      path={form.getInputProps('fully_played_output_directory').value}
+                      callback={form.setFieldValue}
+                      formKey="fully_played_output_directory"
+                    />
+				  )}
+                </Group>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='NavigationThumbnails'>
+              <Accordion.Control>{i18n.get['Thumbnails']}</Accordion.Control>
+              <Accordion.Panel>  
+                <Checkbox
+                  label={i18n.get['GenerateThumbnails']}
+                  {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
+                />
+                <TextInput
+                  sx={{ flex: 1 }}
+                  label={i18n.get['ThumbnailSeekingPosition']}
+                  disabled={!form.values['generate_thumbnails']}
+                  {...form.getInputProps('thumbnail_seek_position')}
+                />
+                <DirectoryChooser
+                  path={form.getInputProps('alternate_thumb_folder').value}
+                  callback={form.setFieldValue}
+                  label={i18n.get['AlternateVideoCoverArtFolder']}
+                  formKey="alternate_thumb_folder"
+                />
+                <Select
+                  label={i18n.get['AudioThumbnailsImport']}
+                  data={getI18nSelectData(selectionSettings.audioCoverSuppliers)}
+                  {...form.getInputProps('audio_thumbnails_method')}
+                />
+                </Accordion.Panel>
+              </Accordion.Item>
+              <Accordion.Item value='NavigationFileSortingNaming'>
                 <Accordion.Control>{i18n.get['FileSortingNaming']}</Accordion.Control>
                 <Accordion.Panel>
-                <Group mt="xs">
+                <Stack align="flex-start">
                   <Select
                     label={i18n.get['FileOrder']}
                     data={getI18nSelectData(selectionSettings.sortMethods)}
                     {...form.getInputProps('sort_method')}
                   />
                   <Checkbox
-                    mt="xl"
                     label={i18n.get['IgnoreArticlesATheSorting']}
                     {...form.getInputProps('ignore_the_word_a_and_the', { type: 'checkbox' })}
                   />
-                </Group>
-                <Tooltip label={allowHtml(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
+                  <Tooltip label={allowHtml(i18n.get['IfEnabledFilesWillAppear'])} {...defaultTooltipSettings}>
+                    <Checkbox
+                      label={i18n.get['PrettifyFilenames']}
+                      {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
+                    />
+                  </Tooltip>
                   <Checkbox
-                    mt="md"
-                    label={i18n.get['PrettifyFilenames']}
-                    {...form.getInputProps('prettify_filenames', { type: 'checkbox' })}
+                    label={i18n.get['HideFileExtensions']}
+                    disabled={form.values['prettify_filenames']}
+                    {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
                   />
-                </Tooltip>
-                <Checkbox
-                  mt="md"
-                  label={i18n.get['HideFileExtensions']}
-                  disabled={form.values['prettify_filenames']}
-                  {...form.getInputProps('hide_extensions', { type: 'checkbox' })}
-                />
-                <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
-                  <Checkbox
-                    mt="md"
-                    label={i18n.get['UseInfoFromOurApi']}
-                    {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
-                  />
-                </Tooltip>
-                <Group mt="xs">
                   <Tooltip label={allowHtml(i18n.get['AddsInformationAboutSelectedSubtitles'])} {...defaultTooltipSettings}>
                     <Select
                       label={i18n.get['AddSubtitlesInformationVideoNames']}
@@ -406,39 +483,23 @@ export default function Settings() {
                       }}
                     />
                   </Tooltip>
-                </Group>
-                </Accordion.Panel>
-              </Accordion.Item>
-              <Accordion.Item value='VirtualFoldersFiles'>
-                <Accordion.Control>{i18n.get['VirtualFoldersFiles']}</Accordion.Control>
-				<Accordion.Panel>
-                <Group position="apart" mt="xl">
-                  <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      label={i18n.get['EnableCache']}
-                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                  <Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
-                    <Button
-                      size="xs"
-                      onClick={() => resetCache()}
-                      disabled={!form.values['use_cache']}
-                    >
-                      {i18n.get['ResetCache']}
-                    </Button>
-                  </Tooltip>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+            <Accordion.Item value='NavigationVirtualFoldersFiles'>
+              <Accordion.Control>{i18n.get['VirtualFoldersFiles']}</Accordion.Control>
+                <Accordion.Panel>
+                <Stack>
                   <Tooltip label={allowHtml(i18n.get['MediaLibraryFolderWillAvailable'])} {...defaultTooltipSettings}>
                     <Checkbox
                       label={i18n.get['ShowMediaLibraryFolder']}
                       {...form.getInputProps('use_cache', { type: 'checkbox' })}
                     />
                   </Tooltip>
-                </Group>
-                <Group position="apart" mt="xl">
                   <Checkbox
-                    label={i18n.get['BrowseCompressedArchives']}
-                    {...form.getInputProps('enable_archive_browsing', { type: 'checkbox' })}
+                    disabled={!canModify}
+                    label={i18n.get['ShowRecentlyPlayedFolder']}
+                    {...form.getInputProps('show_recently_played_folder', { type: 'checkbox' })}
                   />
                   <Checkbox
                     label={i18n.get['ShowServerSettingsFolder']}
@@ -448,71 +509,15 @@ export default function Settings() {
                     label={i18n.get['ShowTranscodeFolder']}
                     {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
                   />
-                </Group>
-                <Checkbox
-                  mt="xl"
-                  label={i18n.get['ShowLiveSubtitlesFolder']}
-                  {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
-                />
-                <Group mt="md">
-                  <Tooltip label={allowHtml(i18n.get['IfNumberItemsFolderExceeds'])} {...defaultTooltipSettings}>
-                    <NumberInput
-                      label={i18n.get['MinimumItemLimitBeforeAZ']}
-                      disabled={!canModify}
-                      {...form.getInputProps('atz_limit')}
-                    />
-                  </Tooltip>
-                </Group>
-                <Tooltip label={allowHtml(i18n.get['WhenEnabledPartiallyWatchVideo'])} {...defaultTooltipSettings}>
                   <Checkbox
-                    mt="xl"
-                    disabled={!canModify}
-                    label={i18n.get['EnableVideoResuming']}
-                    {...form.getInputProps('resume', { type: 'checkbox' })}
+                    label={i18n.get['ShowLiveSubtitlesFolder']}
+                    {...form.getInputProps('show_live_subtitles_folder', { type: 'checkbox' })}
                   />
-                </Tooltip>
-                <Checkbox
-                  mt="md"
-                  disabled={!canModify}
-                  label={i18n.get['ShowRecentlyPlayedFolder']}
-                  {...form.getInputProps('show_recently_played_folder', { type: 'checkbox' })}
-                />
-                <Tooltip label={allowHtml(i18n.get['ThisMakesBrowsingSlower'])} {...defaultTooltipSettings}>
-                  <Checkbox
-                    mt="xl"
-                    disabled={!canModify}
-                    label={i18n.get['HideEmptyFolders']}
-                    {...form.getInputProps('hide_empty_folders', { type: 'checkbox' })}
-                  />
-                </Tooltip>
-                <Group mt="md">
-                  <Tooltip label={allowHtml(i18n.get['TreatMultipleSymbolicLinks'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      label={i18n.get['UseTargetFileSymbolicLinks']}
-                      {...form.getInputProps('use_symlinks_target_file', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                </Group>
-                <Group mt="md">
-                  <Select
-                    sx={{ flex: 1 }}
-                    disabled={!canModify}
-                    label={i18n.get['FullyPlayedAction']}
-                    data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
-                    {...form.getInputProps('fully_played_action')}
-                  />
-                  <DirectoryChooser
-                    label={i18n.get['DestinationFolder']}
-                    path={form.getInputProps('fully_played_output_directory').value}
-                    callback={form.setFieldValue}
-                    formKey="fully_played_output_directory"
-                  ></DirectoryChooser>
-                </Group>
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
-          </>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        </>
     );
   }
 
@@ -632,7 +637,7 @@ export default function Settings() {
   const getTranscodingEnginesAccordionItems = () => {
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index) => {
       return (
-        <Accordion.Item value={index.toString()}>
+        <Accordion.Item value={'Transcoding' + index.toString()}>
           <Accordion.Control>{i18n.getI18nString(value)}</Accordion.Control>
           <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>);
@@ -688,115 +693,130 @@ export default function Settings() {
       </Grid.Col>
       <Grid.Col span={2}>
         <TextInput
+          size="xs"
           sx={{ flex: 1 }}
           disabled={!form.values['chapter_support']}
           {...form.getInputProps('chapter_interval')}
         />
       </Grid.Col>
-     </Grid>
+    </Grid>
     <Checkbox
       size="xs"
       label={i18n.get['DisableSubtitles']}
       {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
     />
     <Space h="md"/>
-    <Tabs defaultValue="VideoSettings">
+    <Tabs defaultValue="TranscodingVideoSettings">
       <Tabs.List>
-        <Tabs.Tab value='VideoSettings'>{i18n.get['VideoSettings']}</Tabs.Tab>
-        <Tabs.Tab value='AudioSettings'>{i18n.get['AudioSettings']}</Tabs.Tab>
-        <Tabs.Tab value='SubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
+        <Tabs.Tab value='TranscodingVideoSettings'>{i18n.get['VideoSettings']}</Tabs.Tab>
+        <Tabs.Tab value='TranscodingAudioSettings'>{i18n.get['AudioSettings']}</Tabs.Tab>
+        <Tabs.Tab value='TranscodingSubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value='VideoSettings'>
+      <Tabs.Panel value='TranscodingVideoSettings'>
+        <Stack justify="flex-start" align="flex-start" spacing="xs">
         <Checkbox
+          mt="xs"
+          disabled={!canModify}
           size="xs"
           label={i18n.get['EnableGpuAcceleration']}
           {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
         />
-        <Space h="xs" />
         <Tooltip label={allowHtml(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
           <Checkbox
+            disabled={!canModify}
             size="xs"
             label={i18n.get['LosslessDvdVideoPlayback']}
             {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
           />
         </Tooltip>
-        <Space h="xs" />
         <Tooltip label={allowHtml(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityMpeg2']}
+            size="xs"
             sx={{ flex: 1 }}
-            disabled={form.values['automatic_maximum_bitrate']}
+            disabled={!canModify || form.values['automatic_maximum_bitrate']}
             {...form.getInputProps('mpeg2_main_settings')}
           />
         </Tooltip>
-        <Space h="xs" />
         <Tooltip label={allowHtml(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
           <TextInput
             label={i18n.get['TranscodingQualityH264']}
+            size="xs"
             sx={{ flex: 1 }}
-            disabled={form.values['automatic_maximum_bitrate']}
+            disabled={!canModify || form.values['automatic_maximum_bitrate']}
             {...form.getInputProps('x264_constant_rate_factor')}
           />
         </Tooltip>
         <TextInput
+          disabled={!canModify}
           label={i18n.get['SkipTranscodingFollowingExtensions']}
+          size="xs"
           sx={{ flex: 1 }}
           {...form.getInputProps('disable_transcode_for_extensions')}
         />
         <TextInput
+          disabled={!canModify}
+          size="xs"
           label={i18n.get['ForceTranscodingFollowingExtensions']}
           sx={{ flex: 1 }}
           {...form.getInputProps('force_transcode_for_extensions')}
         />
+        </Stack>
       </Tabs.Panel>
-      <Tabs.Panel value='AudioSettings'>
+      <Tabs.Panel value='TranscodingAudioSettings'>
+        <Stack justify="flex-start" align="flex-start" spacing="xs">
         <Select
+          disabled={!canModify}
           label={i18n.get['MaximumNumberAudioChannelsOutput']}
           data={[{value: '6', label: i18n.get['6Channels51']}, {value: '2', label: i18n.get['2ChannelsStereo']}]}
           size="xs"
           {...form.getInputProps('audio_channels')}
         />
-        <Space h="xs" />
         <Checkbox
+          disabled={!canModify}
           size="xs"
           label={i18n.get['UseLpcmForAudio']}
           {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
         />
-        <Space h="xs" />
         <Checkbox
+          disabled={!canModify}
           size="xs"
           label={i18n.get['KeepAc3Tracks']}
           {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
         />
-        <Space h="xs" />
         <Checkbox
+          disabled={!canModify}
           size="xs"
           label={i18n.get['KeepDtsTracks']}
           {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
         />
-        <Space h="xs" />
         <Checkbox
+          disabled={!canModify}
           size="xs"
           label={i18n.get['EncodedAudioPassthrough']}
           {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
         />
-        <Space h="xs" />
         <TextInput
-          label={i18n.get['Ac3ReencodingAudioBitrate']}
+          disabled={!canModify}
+         label={i18n.get['Ac3ReencodingAudioBitrate']}
           sx={{ flex: 1 }}
           size="xs"
           {...form.getInputProps('audio_bitrate')}
         />
         <TextInput
+          disabled={!canModify}
           label={i18n.get['AudioLanguagePriority']}
           sx={{ flex: 1 }}
           size="xs"
           {...form.getInputProps('audio_languages')}
         />
+        </Stack>
         </Tabs.Panel>
-        <Tabs.Panel value='SubtitlesSettings'>
+      <Tabs.Panel value='TranscodingSubtitlesSettings'>
+        <Stack justify="flex-start" align="flex-start" spacing="xs">
           <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
             <TextInput
+              disabled={!canModify}
               label={i18n.get['SubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
               size="xs"
@@ -804,12 +824,14 @@ export default function Settings() {
             />
           </Tooltip>
           <TextInput
+            disabled={!canModify}
             label={i18n.get['ForcedLanguage']}
             sx={{ flex: 1 }}
             size="xs"
             {...form.getInputProps('forced_subtitle_language')}
           />
           <TextInput
+            disabled={!canModify}
             label={i18n.get['ForcedTags']}
             sx={{ flex: 1 }}
             size="xs"
@@ -817,6 +839,7 @@ export default function Settings() {
           />
           <Tooltip label={allowHtml(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
             <TextInput
+              disabled={!canModify}
               label={i18n.get['AudioSubtitlesLanguagePriority']}
               sx={{ flex: 1 }}
               size="xs"
@@ -824,23 +847,29 @@ export default function Settings() {
             />
           </Tooltip>
           <DirectoryChooser
+            disabled={!canModify}
+            size="xs"
             path={form.getInputProps('alternate_subtitles_folder').value}
             callback={form.setFieldValue}
             label={i18n.get['AlternateSubtitlesFolder']}
             formKey="alternate_subtitles_folder"
           ></DirectoryChooser>
           <Select
+            disabled={!canModify}
+            size="xs"
             label={i18n.get['NonUnicodeSubtitleEncoding']}
             data={selectionSettings.subtitlesCodepages}
             {...form.getInputProps('subtitles_codepage')}
           />
-          <Space h="xs" />
           <Checkbox
+            disabled={!canModify}
             size="xs"
             label={i18n.get['FribidiMode']}
             {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
           />
           <DirectoryChooser
+            disabled={!canModify}
+            size="xs"
             tooltipText={i18n.get['ToUseFontMustBeRegistered']}
             path={form.getInputProps('subtitles_font').value}
             callback={form.setFieldValue}
@@ -848,10 +877,10 @@ export default function Settings() {
             formKey="subtitles_font"
           ></DirectoryChooser>
           <Text size="xs">{i18n.get['StyledSubtitles']}</Text>
-          <Space h="xs" />
           <Grid>
             <Grid.Col span={3}>
               <TextInput
+                disabled={!canModify}
                 label={i18n.get['FontScale']}
                 sx={{ flex: 1 }}
                 size="xs"
@@ -885,28 +914,28 @@ export default function Settings() {
           </Grid>
           <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
             <Checkbox
+              disabled={!canModify}
               size="xs"
               label={i18n.get['AutomaticallyLoadSrtSubtitles']}
               {...form.getInputProps('autoload_external_subtitles', { type: 'checkbox' })}
             />
           </Tooltip>
-          <Space h="xs" />
           <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
             <Checkbox
+              disabled={!canModify}
               size="xs"
               label={i18n.get['ForceExternalSubtitles']}
               {...form.getInputProps('force_external_subtitles', { type: 'checkbox' })}
             />
           </Tooltip>
-          <Space h="xs" />
           <Tooltip label={allowHtml(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
             <Checkbox
+              disabled={!canModify}
               size="xs"
               label={i18n.get['UseEmbeddedStyle']}
               {...form.getInputProps('use_embedded_subtitles_style', { type: 'checkbox' })}
             />
           </Tooltip>
-          <Space h="xs" />
           <Modal size="sm"
             title={i18n.get['Color']}
             opened={subColorModalOpened}
@@ -921,58 +950,59 @@ export default function Settings() {
               ></ColorPicker>
               <Button
                 size="xs"
-                onClick={() => { form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
+                onClick={() => { canModify && form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
               >{i18n.get['Confirm']}</Button>
-          </Stack>
-        </Modal>
-        <Group>
-          <TextInput
-            label={i18n.get['Color']}
-            sx={{ flex: 1 }}
-            size="xs"
-            {...form.getInputProps('subtitles_color')}
-          />
-          <ColorSwatch radius={5}
-            size={30}
-            color={form.getInputProps('subtitles_color').value}
-            style={{ cursor: 'pointer', marginTop: '28px'}}
-            onClick={() => { setSubColor(hexAToRgba(form.getInputProps('subtitles_color').value)); setSubColorModalOpened(true); }}
-          />
-        </Group>
-        <Space h="xs" />
-        <Tooltip label={allowHtml(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
-          <Checkbox
+            </Stack>
+          </Modal>
+          <Group>
+            <TextInput
+              disabled={!canModify}
+              label={i18n.get['Color']}
+              sx={{ flex: 1 }}
+              size="xs"
+              {...form.getInputProps('subtitles_color')}
+            />
+            <ColorSwatch radius={5}
+              size={30}
+              color={form.getInputProps('subtitles_color').value}
+              style={{ cursor: 'pointer', marginTop: '28px'}}
+              onClick={() => { if (canModify) { setSubColor(hexAToRgba(form.getInputProps('subtitles_color').value)); setSubColorModalOpened(true); } }}
+            />
+          </Group>
+          <Tooltip label={allowHtml(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
+            <Checkbox
+              disabled={!canModify}
+              size="xs"
+              label={i18n.get['DeleteDownloadedLiveSubtitlesAfter']}
+              checked={!form.values['live_subtitles_keep']}
+              onChange={(event) => {
+                form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked);
+              }}
+            />
+          </Tooltip>
+          <Tooltip label={allowHtml(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
+            <NumberInput
+              label={i18n.get['LimitNumberLiveSubtitlesTo']}
+              size="xs"
+              disabled={!canModify}
+              {...form.getInputProps('live_subtitles_limit')}
+            />
+          </Tooltip>
+          <Select
             disabled={!canModify}
             size="xs"
-            label={i18n.get['DeleteDownloadedLiveSubtitlesAfter']}
-            checked={!form.values['live_subtitles_keep']}
-            onChange={(event) => {
-              form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked);
+            label={i18n.get['3dSubtitlesDepth']}
+            data={selectionSettings.subtitlesDepth}
+            {...form.getInputProps('3d_subtitles_depth')}
+            value={String(form.values['3d_subtitles_depth'])}
+            onChange={(val) => {
+              form.setFieldValue('3d_subtitles_depth', val);
             }}
           />
-        </Tooltip>
-        <Space h="xs" />
-        <Tooltip label={allowHtml(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
-          <NumberInput
-            label={i18n.get['LimitNumberLiveSubtitlesTo']}
-            size="xs"
-            disabled={!canModify}
-            {...form.getInputProps('live_subtitles_limit')}
-          />
-        </Tooltip>
-        <Select
-          disabled={!canModify}
-          label={i18n.get['3dSubtitlesDepth']}
-          data={selectionSettings.subtitlesDepth}
-          {...form.getInputProps('3d_subtitles_depth')}
-          value={String(form.values['3d_subtitles_depth'])}
-          onChange={(val) => {
-            form.setFieldValue('3d_subtitles_depth', val);
-          }}
-        />
+        </Stack>
       </Tabs.Panel>
     </Tabs>
-    </>);
+  </>);
   }
 
   const getVLCWebVideo = () => {
@@ -1340,19 +1370,13 @@ export default function Settings() {
     return (
             <Grid>
               <Grid.Col span={5}>
-                <Navbar width={{ }} p="xs">
-                  <Navbar.Section>
-                    <Button variant="subtle" color="gray" size="xs" compact onClick={() => setTranscodingContent('common')}>
-                      {i18n.get['CommonTranscodeSettings']}
-                    </Button>
-                  </Navbar.Section>
-                  <Navbar.Section>
+                <Box p="xs">
+                  <NavLink variant="subtle" color="gray" label={i18n.get['CommonTranscodeSettings']} onClick={() => setTranscodingContent('common')} />
                   <Accordion>
                     {getTranscodingEnginesAccordionItems()}
                   </Accordion>
                   <Text size="xs">{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
-                  </Navbar.Section>
-                </Navbar>
+                </Box>
               </Grid.Col>
               <Grid.Col span={7}>
                 {getTranscodingContent()}

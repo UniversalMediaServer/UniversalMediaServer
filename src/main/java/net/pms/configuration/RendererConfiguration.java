@@ -41,6 +41,7 @@ import net.pms.util.FormattableColor;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
@@ -2882,10 +2883,7 @@ public class RendererConfiguration extends Renderer {
 						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
 					}
 					alert();
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
+					UMSUtils.sleep(1000);
 				}
 				// Reset only if another item hasn't already begun playing
 				if (renderer.getPlayingRes() == null) {

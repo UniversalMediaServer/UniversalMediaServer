@@ -118,8 +118,6 @@ public class RequestHandler implements HttpHandler {
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 
-	private static final DbIdResourceLocator DB_ID_RESOURCE_LOCATOR = new DbIdResourceLocator();
-
 	private static final String HTTPSERVER_REQUEST_BEGIN =  "================================== HTTPSERVER REQUEST BEGIN =====================================";
 	private static final String HTTPSERVER_REQUEST_END =    "================================== HTTPSERVER REQUEST END =======================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
@@ -396,7 +394,7 @@ public class RequestHandler implements HttpHandler {
 		// Retrieve the DLNAresource itself.
 		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
-				dlna = DB_ID_RESOURCE_LOCATOR.locateResource(id.substring(0, id.indexOf('/')));
+				dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}

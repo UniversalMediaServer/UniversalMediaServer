@@ -32,6 +32,7 @@ import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SystemUtils;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,10 +173,7 @@ public class SpeedStats {
 			SystemUtils sysUtil = BasicSystemUtils.instance;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
 			Runnable r = () -> {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(3000);
 				pw.stopProcess();
 			};
 
