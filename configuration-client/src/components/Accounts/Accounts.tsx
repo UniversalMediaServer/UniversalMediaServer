@@ -1,4 +1,4 @@
-import { Accordion, Avatar, Box, Button, Checkbox, CheckboxGroup, Divider, Group, Modal, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, Modal, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import React, { useContext, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
@@ -10,7 +10,6 @@ import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction
 import { allowHtml } from '../../utils';
 
 const Accounts = () => {
-  const [activeTab, setActiveTab] = useState(0);
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
@@ -204,11 +203,14 @@ const Accounts = () => {
     const userGroupForm = UserGroupForm(user);
     const userDeleteForm = UserDeleteForm(user);
     return (
-      <Accordion.Item label={userAccordionLabel} key={user.id}>
-        {userIdentityForm}
-        {userDisplayNameForm}
-        {userGroupForm}
-        {userDeleteForm}
+      <Accordion.Item value={user.id.toString()} key={user.id}>
+        <Accordion.Control>{userAccordionLabel}</Accordion.Control>
+        <Accordion.Panel>
+          {userIdentityForm}
+          {userDisplayNameForm}
+          {userGroupForm}
+          {userDeleteForm}
+        </Accordion.Panel>
       </Accordion.Item>
     )
   };
@@ -219,8 +221,9 @@ const Accounts = () => {
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
     const newUserForm = NewUserForm();
     return canManageUsers ? (
-        <Accordion.Item label={userAccordionLabel} key={user.id}>
-          {newUserForm}
+        <Accordion.Item value={user.id.toString()} key={user.id}>
+          <Accordion.Control>{userAccordionLabel}</Accordion.Control>
+          <Accordion.Panel>{newUserForm}</Accordion.Panel>
         </Accordion.Item>
     ) : null;
   };
@@ -231,7 +234,7 @@ const Accounts = () => {
       return UserAccordion(user);
     });
     return (
-      <Accordion initialItem={-1} iconPosition="right">
+      <Accordion defaultValue="-1">
         {newUserAccordion}
         {usersAccordions}
       </Accordion>
@@ -282,7 +285,7 @@ const Accounts = () => {
     return (
       <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
         <Divider my="sm" label={i18n.get['Permissions']} />
-        <CheckboxGroup
+        <Checkbox.Group
           value={permissions}
           onChange={setPermissions}
           orientation="vertical"
@@ -293,7 +296,7 @@ const Accounts = () => {
           <Checkbox value="groups_manage" label={i18n.get['ManageGroups']} />
           <Checkbox value="settings_view" label={i18n.get['ViewSettings']} />
           <Checkbox value="settings_modify" label={i18n.get['ModifySettings']} />
-        </CheckboxGroup>
+        </Checkbox.Group>
         <Group position="right" mt="md">
           <Button type="submit">
             {i18n.get['Update']}
@@ -342,10 +345,13 @@ const Accounts = () => {
     const groupDeleteForm = GroupDeleteForm(group);
     //perms
     return group.id > 0 ? (
-      <Accordion.Item label={groupAccordionLabel} key={group.id}>
-        {groupDisplayNameForm}
-        {groupPermissionsForm}
-        {groupDeleteForm}
+      <Accordion.Item value={group.id.toString()} key={group.id}>
+        <Accordion.Control>{groupAccordionLabel}</Accordion.Control>
+        <Accordion.Panel>
+          {groupDisplayNameForm}
+          {groupPermissionsForm}
+          {groupDeleteForm}
+        </Accordion.Panel>
       </Accordion.Item>
     ) : null;
   };
@@ -378,8 +384,9 @@ const Accounts = () => {
     const groupAccordionLabel = GroupAccordionLabel(group);
     const newGroupForm = NewGroupForm();
     return (
-      <Accordion.Item label={groupAccordionLabel} key={group.id}>
-        {newGroupForm}
+      <Accordion.Item value={group.id.toString()} key={group.id}>
+        <Accordion.Control>{groupAccordionLabel}</Accordion.Control>
+        <Accordion.Panel>{newGroupForm}</Accordion.Panel>
       </Accordion.Item>
     );
   };
@@ -390,7 +397,7 @@ const Accounts = () => {
       return GroupAccordion(group);
     });
     return (
-      <Accordion initialItem={-1} iconPosition="right">
+      <Accordion defaultValue='-1'>
         {newGroupAccordion}
         {groupsAccordions}
       </Accordion>
@@ -463,21 +470,38 @@ const Accounts = () => {
   return (
       <Box sx={{ maxWidth: 700 }} mx="auto">
           {canManageGroups ? (
-            <Tabs active={activeTab} onTabChange={setActiveTab}>
+            <Tabs defaultValue='users'>
+              <Tabs.List>
               {session.authenticate && (
-                <Tabs.Tab label={i18n.get['Users']}>
-                  <UsersAccordions />
+                <Tabs.Tab value='users'>
+                  {i18n.get['Users']}
                 </Tabs.Tab>
               )}
               {session.authenticate && (
-                <Tabs.Tab label={i18n.get['Groups']}>
-                  <GroupsAccordions />
+                <Tabs.Tab value='groups'>
+                  {i18n.get['Groups']}
                 </Tabs.Tab>
               )}
               {canModifySettings && (
-                <Tabs.Tab label={i18n.get['Settings']}>
-                   <AuthenticationServiceButton />
+                <Tabs.Tab value='settings'>
+                  {i18n.get['Settings']}
                 </Tabs.Tab>
+              )}
+              </Tabs.List>
+              {session.authenticate && (
+                <Tabs.Panel value='users'>
+                  <UsersAccordions />
+                </Tabs.Panel>
+              )}
+              {session.authenticate && (
+                <Tabs.Panel value='groups'>
+                  <GroupsAccordions />
+                </Tabs.Panel>
+              )}
+              {canModifySettings && (
+                <Tabs.Panel value='settings'>
+                  <AuthenticationServiceButton />
+                </Tabs.Panel>
               )}
             </Tabs>
           ) : session.authenticate ? (

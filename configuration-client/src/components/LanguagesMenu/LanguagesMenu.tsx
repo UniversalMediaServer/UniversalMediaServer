@@ -29,18 +29,18 @@ function LanguagesMenu() {
   });
 
   return (
-    <Menu
-      control={
-        <ActionIcon variant="default" size={30}>
+    <Menu>
+      <Menu.Target>
+         <ActionIcon variant="default" size={30}>
           <Language size={16} />
         </ActionIcon>
-      }
-      size="xl"
-    >
-      <Menu.Label>{i18n.get['Language']}</Menu.Label>
-      <ScrollArea style={{ height: 250 }}>
-        {languagesMenus}
-      </ScrollArea>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>{i18n.get['Language']}</Menu.Label>
+        <ScrollArea style={{ height: 250 }}>
+          {languagesMenus}
+        </ScrollArea>
+      </Menu.Dropdown>
     </Menu>
   );
 }

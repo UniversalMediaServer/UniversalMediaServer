@@ -1,4 +1,4 @@
-import { AppShell, Box, Center, Header, MantineProvider, Group, ActionIcon, ColorSchemeProvider, ColorScheme, Loader } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
 import React, { useEffect } from 'react'; 
@@ -43,17 +43,22 @@ function App() {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
   }
 
+  const rtlCache = createEmotionCache({
+    key: 'mantine-rtl',
+    stylisPlugins: [rtlPlugin],
+  });
+
   return (
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
       <MantineProvider
         withGlobalStyles
         withNormalizeCSS
-        emotionOptions={
+        emotionCache={
           rtl
             ? // rtl cache
-              { key: 'mantine-rtl', stylisPlugins: [rtlPlugin] }
+              rtlCache
             : // ltr cache
-              { key: 'mantine' }
+              undefined
         }
         theme={{ colorScheme, dir: rtl ? 'rtl' : 'ltr' }}
       >
