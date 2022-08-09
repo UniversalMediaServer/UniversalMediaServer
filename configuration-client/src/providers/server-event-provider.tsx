@@ -27,20 +27,6 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     }
     setStarted(true);
     let notified = false;
-    const startSse = () => {
-      setConnectionStatus(0);
-      fetchEventSource('/v1/api/sse/', {
-        headers: {
-          'Authorization': 'Bearer ' + getJwt()
-        },
-        async onopen(event: Response) { onOpen(event); },
-        onmessage(event: EventSourceMessage) {
-          onMessage(event);
-        },
-        onerror(event: Response) { onError(event); },
-        onclose() { onClose(); },
-      });
-    };
 
     const onOpen = (event: Response) => {
       if (event.ok && event.headers.get('content-type') === EventStreamContentType) {
@@ -75,6 +61,17 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         }
       }
     }
+
+    const showErrorNotification = () => {
+      showNotification({
+        id: 'connection-lost',
+        color: 'orange',
+        title: i18n.get['Warning'],
+        message: i18n.get['UniversalMediaServerUnreachable'],
+        autoClose: false
+      });
+    }
+
     const onError = (event: Response) => {
       if (!notified) {
         notified = true;
@@ -87,16 +84,6 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       setConnectionStatus(0);
     };
 
-    const showErrorNotification = () => {
-      showNotification({
-        id: 'connection-lost',
-        color: 'orange',
-        title: i18n.get['Warning'],
-        message: i18n.get['UniversalMediaServerUnreachable'],
-        autoClose: false
-      });
-    }
-
     const addNotification = (datas: any) => {
       showNotification({
         id: datas.id ? datas.id : 'sse-notification',
@@ -106,6 +93,21 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         autoClose: datas.autoClose ? datas.autoClose : true
       });
 	  
+    };
+
+    const startSse = () => {
+      setConnectionStatus(0);
+      fetchEventSource('/v1/api/sse/', {
+        headers: {
+          'Authorization': 'Bearer ' + getJwt()
+        },
+        async onopen(event: Response) { onOpen(event); },
+        onmessage(event: EventSourceMessage) {
+          onMessage(event);
+        },
+        onerror(event: Response) { onError(event); },
+        onclose() { onClose(); },
+      });
     };
 
     startSse();

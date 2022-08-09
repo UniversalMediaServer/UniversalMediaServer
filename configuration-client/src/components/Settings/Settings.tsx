@@ -1023,8 +1023,24 @@ export default function Settings() {
   </>);
   }
 
+  const getEngineStatus = () => {
+    const currentEngine = selectionSettings.transcodingEngines[transcodingContent];
+    if (!currentEngine.isAvailable) {
+      return (
+        <>
+          <Title my="sm" order={5}>{currentEngine.name}</Title>
+          <Stack spacing="xs">
+            <Text size="xs"><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
+            <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
+          </Stack>
+        </>
+      )
+    }
+    return;
+  }
+
   const getVLCWebVideo = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status);
     }
@@ -1050,7 +1066,7 @@ export default function Settings() {
   }
 
   const getFFMPEGAudio = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status);
     }
@@ -1070,7 +1086,7 @@ export default function Settings() {
   }
 
   const getTsMuxerVideo = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status);
     }
@@ -1096,7 +1112,7 @@ export default function Settings() {
   }
 
   const getMEncoderVideo = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status);
     }
@@ -1258,7 +1274,7 @@ export default function Settings() {
   }
 
   const getFFMPEGVideo = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status);
     }
@@ -1316,24 +1332,8 @@ export default function Settings() {
     )
   }
 
-  const engineStatus = () => {
-    const currentEngine = selectionSettings.transcodingEngines[transcodingContent];
-    if (!currentEngine.isAvailable) {
-      return (
-        <>
-          <Title my="sm" order={5}>{currentEngine.name}</Title>
-          <Stack spacing="xs">
-            <Text size="xs"><ExclamationMark color={'orange'} strokeWidth={3} size={14}/> {i18n.get['ThisEngineNotLoaded']}</Text>
-            <Text size="xs">{i18n.getI18nFormat(currentEngine.statusText)}</Text>
-          </Stack>
-        </>
-      )
-    }
-    return;
-  }
-
   const noSettingsForNow = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status)
     }
@@ -1346,7 +1346,7 @@ export default function Settings() {
   }
 
   const engineNotKnown = () => {
-    const status = engineStatus();
+    const status = getEngineStatus();
     if (status) {
       return (status)
     }
