@@ -1011,7 +1011,7 @@
 							<goal>yarn</goal>
 						</goals>
 						<configuration>
-							<arguments>set version latest</arguments>
+							<arguments>set version stable</arguments>
 						</configuration>
 					</execution>
 					<!-- download Node.js dependencies -->
