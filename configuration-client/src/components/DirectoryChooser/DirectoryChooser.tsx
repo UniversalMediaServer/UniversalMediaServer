@@ -1,4 +1,4 @@
-import { Button, Box, Stack, Modal, Group, TextInput, Breadcrumbs, Paper, Tooltip } from '@mantine/core';
+import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
@@ -14,6 +14,7 @@ export default function DirectoryChooser(props: {
   label?: string,
   disabled?: boolean,
   formKey: string,
+  size?: MantineSize,
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
@@ -63,6 +64,7 @@ export default function DirectoryChooser(props: {
 
   const input = (): ReactNode => {
    return <TextInput
+      size={props.size}
       label={props.label}
 	  disabled={props.disabled}
       sx={{ flex: 1 }}
@@ -86,7 +88,7 @@ export default function DirectoryChooser(props: {
           size="lg"
         >
           <Box mx="auto">
-            <Paper shadow="md" p="xs" withBorder>
+            <Paper shadow="md" withBorder>
               <Group>
                 <Breadcrumbs separator={separator}>
                   <Button
@@ -111,7 +113,7 @@ export default function DirectoryChooser(props: {
                 </Breadcrumbs>
               </Group>
             </Paper>
-            <Stack spacing="xs" align="flex-start" justify="flex-start" mt="xl">
+            <Stack spacing="xs" align="flex-start" justify="flex-start">
               {directories.map(directory => (
                 <Group key={"group" + directory.label}>
                   <Button
@@ -142,13 +144,14 @@ export default function DirectoryChooser(props: {
           </Box>
         </Modal>
 
-        {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} wrapLines={true} withArrow={true}>
-          {input()}
-        </Tooltip>) : input()
+        {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} multiline withArrow={true}>
+            {input()}
+          </Tooltip>) : input()
         }
         {!props.disabled && (
           <Button
-            mt="xl"
+            mt='24px'
+            size={props.size}
             onClick={() => { getSubdirectories(props.path); setOpened(true); }}
             leftIcon={<Folders size={18} />}
           >

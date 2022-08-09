@@ -17,13 +17,13 @@ function UserMenu() {
   };
 
   return (
-    <Menu
-      control={
+    <Menu>
+      <Menu.Target>
         <ActionIcon variant="default" size={30}>
           <Menu2 size={16} />
         </ActionIcon>
-      }
-    >
+      </Menu.Target>
+      <Menu.Dropdown>
       <Menu.Label>Settings</Menu.Label>
       {havePermission(session, "server_restart")  && (
         <Menu.Item
@@ -65,6 +65,7 @@ function UserMenu() {
           {i18n.get['LogOut']}
         </Menu.Item>
       )}
+      </Menu.Dropdown>
     </Menu>
   );
 }
