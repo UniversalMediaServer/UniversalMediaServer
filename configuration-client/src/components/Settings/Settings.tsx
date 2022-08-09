@@ -88,8 +88,7 @@ export default function Settings() {
         setConfiguration(userConfig);
         formSetValues(userConfig);
       })
-      .catch(function (error: Error) {
-        console.log(error);
+      .catch(function () {
         showNotification({
           id: 'data-loading',
           color: 'red',
@@ -132,8 +131,7 @@ export default function Settings() {
           message: i18n.get['ConfigurationSaved'],
         })
       })
-      .catch(function (error: Error) {
-        console.log(error);
+      .catch(function () {
         showNotification({
           color: 'red',
           title: i18n.get['Error'],
@@ -673,11 +671,11 @@ export default function Settings() {
   }
 
   function hexAToRgba(hex: string) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const a = parseFloat((parseInt(hex.slice(7, 9), 16) / 255).toFixed(2));
-    return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+    const red = parseInt(hex.slice(1, 3), 16);
+    const green = parseInt(hex.slice(3, 5), 16);
+    const blue = parseInt(hex.slice(5, 7), 16);
+    const alpha = parseFloat((parseInt(hex.slice(7, 9), 16) / 255).toFixed(2));
+    return "rgba(" + red.toString() + ", " + green.toString() + ", " + blue.toString() + ", " + alpha.toString() + ")";
   }
 
   const getTranscodingCommon = () => { return (<>

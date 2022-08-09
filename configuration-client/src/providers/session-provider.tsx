@@ -19,8 +19,7 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
         .then(function (response: any) {
           setSession({...response.data, initialized: true, refresh: refresh});
         })
-        .catch(function (error: Error) {
-          console.log(error);
+        .catch(function () {
           showNotification({
             id: 'data-loading',
             color: 'red',
