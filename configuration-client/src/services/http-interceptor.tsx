@@ -3,7 +3,7 @@ import { showNotification } from '@mantine/notifications';
 import { getJwt, redirectToLogin } from './auth-service';
 
 axios.interceptors.request.use(function (request) {
-  let jwt = getJwt();
+  const jwt = getJwt();
   if (jwt && request !== undefined && request.headers !== undefined) {
     request.headers.Authorization = "Bearer " + jwt;
   }

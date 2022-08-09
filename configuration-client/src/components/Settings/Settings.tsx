@@ -109,7 +109,7 @@ export default function Settings() {
     const changedValues: Record<string, any> = {};
 
     // construct an object of only changed values to send
-    for (let key in values) {
+    for (const key in values) {
       if (!_.isEqual(configuration[key], values[key])) {
         changedValues[key] = values[key];
       }
@@ -555,29 +555,29 @@ export default function Settings() {
 
   const moveTranscodingEnginesPriority = (purpose: number, oldIndex: number, newIndex: number) => {
     if (form.getInputProps('engines_priority').value instanceof Array<string>) {
-      let items = form.getInputProps('engines_priority').value as Array<string>;
-      let index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
-      let moveTo = index - oldIndex + newIndex;
+      const items = form.getInputProps('engines_priority').value as Array<string>;
+      const index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
+      const moveTo = index - oldIndex + newIndex;
       form.setFieldValue('engines_priority', arrayMove(items, index, moveTo));
     }
   }
 
   const setTranscodingEngineStatus = (id: string, enabled: boolean) => {
-    let items = (form.getInputProps('engines').value instanceof Array<string>) ?
+    const items = (form.getInputProps('engines').value instanceof Array<string>) ?
       form.getInputProps('engines').value as Array<string> :
       [form.getInputProps('engines').value];
-    let included = items.includes(id);
+    const included = items.includes(id);
     if (enabled && !included) {
-	  let updated = items.concat(id);
+      const updated = items.concat(id);
       form.setFieldValue('engines', updated);
     } else if (!enabled && included) {
-      let updated = items.filter(function(value){ return value !== id;});
+      const updated = items.filter(function(value){ return value !== id;});
       form.setFieldValue('engines', updated);
     }
   }
 
   const getTranscodingEngineStatus = (engine: {id:string,name:string,isAvailable:boolean,purpose:number,statusText:string[]}) => {
-    let items = (form.getInputProps('engines').value instanceof Array<string>) ?
+    const items = (form.getInputProps('engines').value instanceof Array<string>) ?
       form.getInputProps('engines').value as Array<string> :
       [form.getInputProps('engines').value];
     if (!engine.isAvailable) {
@@ -661,11 +661,11 @@ export default function Settings() {
 
   function rgbaToHexA(rgbaval: string) {
     if (rgbaval == null) { return '#00000000' }
-    let sep = rgbaval.indexOf(",") > -1 ? "," : " "; 
-    let rgbastr = rgbaval.substring(5).split(")")[0].split(sep);
+    const sep = rgbaval.indexOf(",") > -1 ? "," : " "; 
+    const rgbastr = rgbaval.substring(5).split(")")[0].split(sep);
     let hexa = '#';
     for (let i = 0; i < rgbastr.length; i++) {
-      let hex = (i < 3) ? parseInt(rgbastr[i]).toString(16) : Math.round(parseFloat(rgbastr[i]) * 255).toString(16);
+      const hex = (i < 3) ? parseInt(rgbastr[i]).toString(16) : Math.round(parseFloat(rgbastr[i]) * 255).toString(16);
       if (hex.length < 2) { hexa = hexa + '0' }
 	  hexa = hexa + hex;
     }
@@ -673,10 +673,10 @@ export default function Settings() {
   }
 
   function hexAToRgba(hex: string) {
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    let a = parseFloat((parseInt(hex.slice(7, 9), 16) / 255).toFixed(2));
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const a = parseFloat((parseInt(hex.slice(7, 9), 16) / 255).toFixed(2));
     return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
   }
 
