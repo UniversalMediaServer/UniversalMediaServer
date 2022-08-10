@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.newgui.util.ShortcutFileSystemView;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -70,7 +71,6 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.ShortcutFileSystemView;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

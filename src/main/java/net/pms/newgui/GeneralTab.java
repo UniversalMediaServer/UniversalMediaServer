@@ -40,7 +40,7 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.KeyedComboBoxModel;
+import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

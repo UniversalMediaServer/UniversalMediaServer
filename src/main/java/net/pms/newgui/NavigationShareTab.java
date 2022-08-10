@@ -37,7 +37,7 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.FullyPlayedAction;
-import net.pms.util.KeyedComboBoxModel;
+import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
