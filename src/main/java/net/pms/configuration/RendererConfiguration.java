@@ -31,7 +31,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
-import net.pms.newgui.IRendererGuiListener;
+import net.pms.gui.IRendererGuiListener;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;

@@ -51,7 +51,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.LooksFrame;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -308,7 +307,7 @@ public class WebInterfaceServerUtil {
 	}
 
 	public static void sendLogo(HttpExchange t) throws IOException {
-		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
+		InputStream in = PMS.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
 		dump(in, os);

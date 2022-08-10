@@ -234,7 +234,7 @@ public class NavigationShareTab {
 			isShowFolderMediaLibrary.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));
 		}
 		cacheReset.setEnabled(enabled);
-		SharedContentTab.setScanLibraryEnabled(enabled);
+		SharedContentTab.setScanLibraryEnabled(enabled, false);
 	}
 
 	private void initSimpleComponents(CellConstraints cc) {

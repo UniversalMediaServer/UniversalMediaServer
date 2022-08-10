@@ -15,11 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.newgui;
+package net.pms.gui;
 
 import java.util.ArrayList;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.newgui.StatusTab.ConnectionState;
 import org.apache.commons.lang3.StringUtils;
 
 public class DummyFrame implements IFrame {
@@ -44,7 +43,7 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void setConnectionState(ConnectionState connectionState) {
+	public void setConnectionState(EConnectionState connectionState) {
 	}
 
 	@Override
@@ -80,7 +79,7 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void setScanLibraryEnabled(boolean flag) {
+	public void setScanLibraryStatus(boolean enabled, boolean running) {
 	}
 
 	@Override

@@ -67,14 +67,14 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.DbgPacker;
-import net.pms.newgui.DummyFrame;
+import net.pms.gui.DummyFrame;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.IFrame;
 import net.pms.newgui.GuiUtil;
-import net.pms.newgui.IFrame;
 import net.pms.newgui.LanguageSelection;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.newgui.Splash;
-import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.service.Services;
@@ -129,7 +129,7 @@ public class PMS {
 
 	/**
 	 * Returns a pointer to the UMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main UMS window.
+	 * @return {@link net.pms.gui.IFrame} Main UMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -212,7 +212,7 @@ public class PMS {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
 				frame.addRenderer(renderer);
-				frame.setConnectionState(ConnectionState.CONNECTED);
+				frame.setConnectionState(EConnectionState.CONNECTED);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the UMS GUI.
+	 * {@link net.pms.gui.IFrame} object that represents the UMS GUI.
 	 */
 	private IFrame frame;
 
@@ -612,7 +612,7 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setConnectionState(ConnectionState.SEARCHING);
+		frame.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
@@ -658,9 +658,9 @@ public class PMS {
 				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
-					frame.setConnectionState(ConnectionState.DISCONNECTED);
+					frame.setConnectionState(EConnectionState.DISCONNECTED);
 				} else {
-					frame.setConnectionState(ConnectionState.CONNECTED);
+					frame.setConnectionState(EConnectionState.CONNECTED);
 				}
 			}
 		}.start();

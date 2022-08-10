@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.gui.IRendererGuiListener;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
@@ -45,6 +46,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.EConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
@@ -193,10 +195,7 @@ public class StatusTab {
 	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
-	public enum ConnectionState {
-		SEARCHING, CONNECTED, DISCONNECTED, BLOCKED, UNKNOWN
-	};
-	private ConnectionState connectionState = ConnectionState.UNKNOWN;
+	private EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
 	private final AnimatedIcon searchingIcon;
 	private final AnimatedIcon connectedIcon;
@@ -222,7 +221,7 @@ public class StatusTab {
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
-	void setConnectionState(ConnectionState connectionState) {
+	void setConnectionState(EConnectionState connectionState) {
 		if (connectionState == null) {
 			throw new IllegalArgumentException("connectionState cannot be null");
 		}
@@ -344,7 +343,7 @@ public class StatusTab {
 		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
 		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
 		// Set initial connection state
-		setConnectionState(ConnectionState.SEARCHING);
+		setConnectionState(EConnectionState.SEARCHING);
 
 		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);

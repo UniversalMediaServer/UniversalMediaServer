@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.gui.ViewLevel;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
