@@ -27,7 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
@@ -72,8 +71,6 @@ public abstract class Player {
 	protected final ExternalProgramInfo programInfo;
 
 	public abstract int purpose();
-
-	public abstract JComponent config();
 
 	public abstract PlayerId id();
 

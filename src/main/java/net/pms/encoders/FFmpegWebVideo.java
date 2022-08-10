@@ -1,6 +1,5 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008-2012 A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.ExecutableInfo;
 import net.pms.configuration.FFmpegExecutableInfo;
@@ -127,11 +125,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.trace("", e);
 		}
 		return false;
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override

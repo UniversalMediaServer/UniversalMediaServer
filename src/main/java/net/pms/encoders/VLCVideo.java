@@ -17,14 +17,7 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.ComponentOrientation;
-import java.awt.Font;
-import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -32,9 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.*;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.ExecutableInfo;
 import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
@@ -47,7 +38,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil;
 import net.pms.util.*;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -75,14 +65,6 @@ public class VLCVideo extends Player {
 	/** The {@link Configuration} key for the VLC executable type. */
 	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
 	public static final String NAME = "VLC Video";
-
-	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	protected JTextField scale;
-	protected JCheckBox experimentalCodecs;
-	protected JCheckBox audioSyncEnabled;
-	protected JTextField sampleRate;
-	protected JCheckBox sampleRateOverride;
 
 	protected boolean videoRemux;
 
@@ -655,44 +637,6 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public JComponent config() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
-		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
-		builder.opaque(false);
-
-		CellConstraints cc = new CellConstraints();
-
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		experimentalCodecs = new JCheckBox(Messages.getString("EnableExperimentalCodecs"), configuration.isVlcExperimentalCodecs());
-		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener((ItemEvent e) -> {
-			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
-		audioSyncEnabled = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), configuration.isVlcAudioSyncEnabled());
-		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener((ItemEvent e) -> {
-			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
-
-		return panel;
-	}
-
-	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// Only handle local video - not web video or audio
 		if (
@@ -745,7 +689,7 @@ public class VLCVideo extends Player {
 					return result.build();
 				}
 				if (output.getExitCode() == 0) {
-					if (output.getOutput() != null && output.getOutput().size() > 0) {
+					if (output.getOutput() != null && !output.getOutput().isEmpty()) {
 						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
 						Matcher matcher = pattern.matcher(output.getOutput().get(0));
 						if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -770,7 +714,7 @@ public class VLCVideo extends Player {
 				result.available(Boolean.FALSE);
 				LOGGER.warn(String.format(Messages.getRootString("OnlyVersionXAboveSupported"), requiredVersion, this));
 			}
-		} else if (result.available() != null && result.available().booleanValue()) {
+		} else if (result.available() != null && result.available()) {
 			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
 		}
 		return result.build();

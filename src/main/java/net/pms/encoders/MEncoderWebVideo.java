@@ -18,7 +18,6 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -39,11 +38,6 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	// Not to be instantiated by anything but PlayerFactory
 	MEncoderWebVideo() {
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override
