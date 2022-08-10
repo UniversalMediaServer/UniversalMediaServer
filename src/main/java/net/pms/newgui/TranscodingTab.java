@@ -46,6 +46,7 @@ import net.pms.newgui.components.SpinnerIntModel;
 import net.pms.util.FormLayoutUtil;
 import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.newgui.util.KeyedStringComboBoxModel;
+import net.pms.util.SubtitleColor;
 import net.pms.util.SubtitleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1056,7 +1057,7 @@ public class TranscodingTab {
 						Color newColor = jColorChooser.getColor();
 						if (newColor != null) {
 							subColor.setBackground(newColor);
-							configuration.setSubsColor(newColor);
+							configuration.setSubsColor(new SubtitleColor(newColor));
 							// Subtitle color has been changed so all temporary subtitles must be deleted
 							SubtitleUtils.deleteSubs();
 						}

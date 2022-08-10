@@ -17,6 +17,8 @@ public final class GuiUtil {
 
 	/**
 	 * Check swing availability.
+	 * It don't use use java.awt.GraphicsEnvironment.isHeadless() as some Linux
+	 * distributions seem to not handle it properly.
 	 * @return true if is headless, false if swing is available
 	 */
 	public static boolean isHeadless() {

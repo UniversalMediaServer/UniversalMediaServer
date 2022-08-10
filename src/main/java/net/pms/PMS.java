@@ -66,8 +66,16 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
-import net.pms.newgui.*;
+import net.pms.newgui.DbgPacker;
+import net.pms.newgui.DummyFrame;
+import net.pms.newgui.GuiUtil;
+import net.pms.newgui.IFrame;
+import net.pms.newgui.LanguageSelection;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.Splash;
 import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -120,8 +128,8 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	/**
-	 * Returns a pointer to the DMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
+	 * Returns a pointer to the UMS GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main UMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -167,7 +175,7 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * An array of {@link RendererConfiguration}s that have been found by UMS.
 	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
@@ -236,7 +244,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
+	 * {@link net.pms.newgui.IFrame} object that represents the UMS GUI.
 	 */
 	private IFrame frame;
 
@@ -764,7 +772,7 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS
+	 * Restarts the server. The trigger is either a button on the main UMS
 	 * window or via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
@@ -906,8 +914,8 @@ public class PMS {
 	@Nonnull
 	public static PMS get() {
 		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a DMS instance without going
-		// to the trouble of launching the DMS application, so we provide a fallback
+		// However, plugin tests may need access to a UMS instance without going
+		// to the trouble of launching the UMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
 			createInstance();
@@ -1131,8 +1139,8 @@ public class PMS {
 
 	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings for UMS. The object provides getters for all
+	 * configurable UMS settings.
 	 *
 	 * @return The configuration object
 	 */
@@ -1165,8 +1173,8 @@ public class PMS {
 
 	/**
 	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings for UMS. The object provides getters for all
+	 * configurable UMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1175,7 +1183,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the project version for DMS.
+	 * Returns the project version for UMS.
 	 *
 	 * @return The project version.
 	 */
@@ -1337,10 +1345,8 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Checks if DMS is running in headless (console) mode, since some Linux
-	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
-	 * properly.
-	 * @return true if DMS is running in headless mode
+	 * Checks if UMS is running in headless (console) mode.
+	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
 		HEADLESS_LOCK.readLock().lock();
@@ -1355,7 +1361,7 @@ public class PMS {
 	}
 
 	/**
-	 * Forces DMS to run in headless (console) mode whether a graphics
+	 * Forces UMS to run in headless (console) mode whether a graphics
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
@@ -1371,7 +1377,7 @@ public class PMS {
 	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
+	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
 	 * sensitive operations.If <code>null</code> the default {@link Locale}
 	 * is returned.
 	 * @return current {@link Locale} or default {@link Locale}
@@ -1389,7 +1395,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale}.
+	 * Sets UMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
 	public static void setLocale(Locale aLocale) {
@@ -1403,7 +1409,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1433,7 +1439,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1449,7 +1455,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
 	 * class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
