@@ -128,7 +128,7 @@ public class MEncoderVideo {
 			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			scrollPane.setPreferredSize(new Dimension(900, 100));
-			
+
 			final JTextArea textAreaDefault = new JTextArea();
 			textAreaDefault.setText(net.pms.encoders.MEncoderVideo.DEFAULT_CODEC_CONF_SCRIPT);
 			textAreaDefault.setBackground(Color.WHITE);
@@ -137,7 +137,7 @@ public class MEncoderVideo {
 			textAreaDefault.setEnabled(CONFIGURATION.isMencoderIntelligentSync());
 			JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
 			scrollPaneDefault.setPreferredSize(new Dimension(900, 450));
-			
+
 			JPanel customPanel = new JPanel(new BorderLayout());
 			intelligentsync = new JCheckBox(Messages.getString("UseApplicationDefaults"), CONFIGURATION.isMencoderIntelligentSync());
 			intelligentsync.setContentAreaFilled(false);
@@ -145,15 +145,15 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderIntelligentSync(e1.getStateChange() == ItemEvent.SELECTED);
 				textAreaDefault.setEnabled(CONFIGURATION.isMencoderIntelligentSync());
 			});
-			
+
 			JLabel label = new JLabel(Messages.getString("CustomParameters"));
 			customPanel.add(label, BorderLayout.NORTH);
 			customPanel.add(scrollPane, BorderLayout.SOUTH);
-			
+
 			codecPanel.add(intelligentsync, BorderLayout.NORTH);
 			codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
 			codecPanel.add(customPanel, BorderLayout.SOUTH);
-			
+
 			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					codecPanel, Messages.getString("EditCodecSpecificParameters"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 				String newCodecparam = textArea.getText();
@@ -170,7 +170,7 @@ public class MEncoderVideo {
 				fakemedia.setFrameRate("23.976");
 				fakemedia.getAudioTracksList().add(audio);
 				String[] result = net.pms.encoders.MEncoderVideo.getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(CONFIGURATION), "dummy.mpg", "dummy.srt", false, true);
-				
+
 				if (result.length > 0 && result[0].startsWith("@@")) {
 					String errorMessage = result[0].substring(2);
 					JOptionPane.showMessageDialog(
@@ -385,7 +385,7 @@ public class MEncoderVideo {
 				ocw.setEnabled(enabled);
 				och.setEnabled(enabled);
 				subq.setEnabled(enabled);
-				
+
 				if (enabled) {
 					ass.getItemListeners()[0].itemStateChanged(null);
 				}

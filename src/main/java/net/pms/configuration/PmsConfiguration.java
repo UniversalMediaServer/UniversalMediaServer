@@ -1075,6 +1075,19 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return The configured path to the FFmpeg executable.
+	 */
+	@Nullable
+	public String getFFmpegPath() {
+		Path executable = null;
+		ExternalProgramInfo ffmpegPaths = getFFmpegPaths();
+		if (ffmpegPaths != null) {
+			executable = ffmpegPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for MPlayer.
 	 */
 	@Nullable

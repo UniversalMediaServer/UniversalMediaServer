@@ -31,9 +31,6 @@ import javax.swing.text.JTextComponent;
  * This is a utility class for various reusable Swing methods. *
  */
 public class SwingUtils {
-	// We don't want this to be instanced, only static methods
-	private SwingUtils() {
-	}
 
 	/**
 	 * Returns the {@link Dimension} for the given {@link JTextComponent}

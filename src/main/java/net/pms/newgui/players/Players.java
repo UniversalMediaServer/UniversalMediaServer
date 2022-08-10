@@ -29,7 +29,6 @@ public class Players {
 			case net.pms.encoders.MEncoderVideo.NAME -> MEncoderVideo.config();
 			case net.pms.encoders.TsMuxeRVideo.NAME -> TsMuxeRVideo.config();
 			case net.pms.encoders.VLCVideo.NAME -> VLCVideo.config();
-				
 			default -> null;
 		};
 

@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
@@ -45,7 +44,6 @@ import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -474,28 +472,9 @@ public class PMS {
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
 			if (!configuration.isAutomaticMaximumBitrate()) {
-				Object[] yesNoOptions = {
-						Messages.getString("Yes"),
-						Messages.getString("No")
-				};
-
 				// Ask if user wants to use automatic maximum bitrate
-				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("WeImprovedAutomaticVideoQuality"),
-					Messages.getString("ImprovedFeature"),
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					yesNoOptions,
-					yesNoOptions[0]
-				);
-
-				if (whetherToUseAutomaticMaximumBitrate == JOptionPane.YES_OPTION) {
-					configuration.setAutomaticMaximumBitrate(true);
-				} else if (whetherToUseAutomaticMaximumBitrate == JOptionPane.NO_OPTION) {
-					configuration.setAutomaticMaximumBitrate(false);
-				}
+				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
+				configuration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
 			// It will be shown only once
@@ -540,7 +519,6 @@ public class PMS {
 		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
-			splash = null;
 		}
 
 		/*
@@ -603,12 +581,12 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if (!Platform.isWindows() || Platform.is64Bit()) {
+			if ((!Platform.isWindows() || Platform.is64Bit()) && configuration.getFFmpegPath() != null) {
 				ThreadedProcessWrapper.runProcessNullOutput(
 					5,
 					TimeUnit.MINUTES,
 					2000,
-					configuration.getFFmpegPaths().getDefaultPath().toString(),
+					configuration.getFFmpegPath(),
 					"-y",
 					"-f",
 					"lavfi",
@@ -1017,10 +995,7 @@ public class PMS {
 			}
 		}
 
-		try {
-			Toolkit.getDefaultToolkit();
-		} catch (AWTError t) {
-			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+		if (!GuiUtil.initDefaultToolkit()) {
 			forceHeadless();
 		}
 
@@ -1126,12 +1101,7 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				JOptionPane.showMessageDialog(
-					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
-					errorMessage,
-					Messages.getString("ErrorWhileStartingUms"),
-					JOptionPane.ERROR_MESSAGE
-				);
+				GuiUtil.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
@@ -1375,24 +1345,12 @@ public class PMS {
 	public static boolean isHeadless() {
 		HEADLESS_LOCK.readLock().lock();
 		try {
-			if (headless != null) {
-				return headless;
+			if (headless == null) {
+				headless = GuiUtil.isHeadless();
 			}
+			return headless;
 		} finally {
 			HEADLESS_LOCK.readLock().unlock();
-		}
-
-		HEADLESS_LOCK.writeLock().lock();
-		try {
-			JDialog d = new JDialog();
-			d.dispose();
-			headless = false;
-			return headless;
-		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			headless = true;
-			return headless;
-		} finally {
-			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
 
