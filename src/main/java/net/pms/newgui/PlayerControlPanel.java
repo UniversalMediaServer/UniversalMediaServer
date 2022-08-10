@@ -96,7 +96,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.disconnect(self);
 			}
 		});
-
 	}
 
 	public void addPlayControls(Container parent) {
@@ -326,7 +325,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		edited = false;
 	}
 
-	public void refresh(BasicPlayer.State state) {
+	public void refreshPlayerState(BasicPlayer.State state) {
 		if (playControl) {
 			playing = state.playback != BasicPlayer.STOPPED;
 			// update playback status
@@ -363,7 +362,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		SwingUtilities.invokeLater(() -> {
-			refresh(((BasicPlayer) e.getSource()).getState());
+			refreshPlayerState(((BasicPlayer) e.getSource()).getState());
 		});
 	}
 

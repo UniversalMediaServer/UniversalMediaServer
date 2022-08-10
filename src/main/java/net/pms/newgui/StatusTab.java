@@ -29,13 +29,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,6 +49,7 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.ServerBindMouseListener;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
@@ -67,7 +63,7 @@ public class StatusTab {
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
 	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
 
-	public static class RendererItem implements ActionListener {
+	public static class RendererItem implements ActionListener, IRendererGuiListener {
 		public ImagePanel icon;
 		public JLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
@@ -112,6 +108,18 @@ public class StatusTab {
 			}
 		}
 
+		@Override
+		public void refreshPlayerState(final BasicPlayer.State state) {
+			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
+				UMSUtils.playedDurationStr(state.position, state.duration));
+			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
+			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			if (!name.equals(n)) {
+				name = n;
+				playingLabel.setText(name);
+			}
+		}
+
 		public void addTo(Container parent) {
 			parent.add(getPanel());
 			parent.validate();
@@ -121,6 +129,7 @@ public class StatusTab {
 			playingLabel.setMaxWidth(w);
 		}
 
+		@Override
 		public void delete() {
 			try {
 				// Delete the popup if open
@@ -152,6 +161,21 @@ public class StatusTab {
 				panel = b.getPanel();
 			}
 			return panel;
+		}
+
+		@Override
+		public void updateRenderer(final RendererConfiguration renderer) {
+			icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
+			label.setText(renderer.getRendererName());
+			// Update the popup panel if it's been opened
+			if (rendererPanel != null) {
+				rendererPanel.update();
+			}
+		}
+
+		@Override
+		public void setActive(final boolean active) {
+			icon.setGrey(!active);
 		}
 	}
 
@@ -426,7 +450,7 @@ public class StatusTab {
 	public void addRenderer(final RendererConfiguration renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
-		renderer.setGuiComponents(r);
+		renderer.addGuiListener(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -460,14 +484,7 @@ public class StatusTab {
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
 		SwingUtilities.invokeLater(() -> {
-			if (renderer.gui != null) {
-				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
-				renderer.gui.label.setText(renderer.getRendererName());
-				// Update the popup panel if it's been opened
-				if (renderer.gui.rendererPanel != null) {
-					renderer.gui.rendererPanel.update();
-				}
-			}
+			renderer.updateRendererGui();
 		});
 	}
 
@@ -614,36 +631,4 @@ public class StatusTab {
 		new Thread(r).start();
 	}
 
-	private static class ServerBindMouseListener implements MouseListener {
-		private final JLabel label;
-
-		public ServerBindMouseListener(JLabel label) {
-			this.label = label;
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (label.getText() != null) {
-				StringSelection selection = new StringSelection(label.getText());
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				clipboard.setContents(selection, selection);
-			}
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
-	}
 }
