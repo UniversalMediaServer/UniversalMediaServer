@@ -69,7 +69,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
-import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
+import net.pms.network.webguiserver.handlers.SseApiHandler;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;

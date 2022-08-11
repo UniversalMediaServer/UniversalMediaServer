@@ -15,28 +15,28 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.configuration;
+package net.pms.network.webguiserver;
 
-import com.sun.net.httpserver.HttpExchange;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Helpers for HTTP methods and paths.
  */
 public class ApiHelper {
-	private final HttpExchange exchange;
+	private final HttpServletRequest req;
 	private final String basePath;
 
-	public ApiHelper(HttpExchange exchange, String path) {
-		this.exchange = exchange;
+	public ApiHelper(HttpServletRequest req, String path) {
+		this.req = req;
 		this.basePath = path;
 	}
 
 	public String getEndpoint() {
 		String endpoint = "/";
-		int pos = exchange.getRequestURI().getPath().indexOf(basePath);
+		int pos = req.getRequestURI().getPath().indexOf(basePath);
 		if (pos != -1) {
-			endpoint = exchange.getRequestURI().getPath().substring(pos + basePath.length());
+			endpoint = req.getRequestURI().getPath().substring(pos + basePath.length());
 		}
 		return endpoint;
 	}
@@ -46,7 +46,7 @@ public class ApiHelper {
 	 * @return whether this was a GET request for the specified path.
 	 */
 	public Boolean get(String path) {
-		return exchange.getRequestMethod().equals("GET") && getEndpoint().equals(path);
+		return req.getRequestMethod().equals("GET") && getEndpoint().equals(path);
 	}
 
 	/**
@@ -54,28 +54,28 @@ public class ApiHelper {
 	 * @return whether this was a POST request for the specified path.
 	 */
 	public Boolean post(String path) {
-		return exchange.getRequestMethod().equals("POST") && getEndpoint().equals(path);
+		return req.getRequestMethod().equals("POST") && getEndpoint().equals(path);
 	}
 
 	/**
 	 * @return the Remote Host String (IP).
 	 */
 	public String getRemoteHostString() {
-		return exchange.getRemoteAddress().getHostString();
+		return req.getRemoteAddress().getHostString();
 	}
 
 	/**
 	 * @return the Request Authorization Headers.
 	 */
 	public List<String> getAuthorization() {
-		return exchange.getRequestHeaders().get("Authorization");
+		return req.getRequestHeaders().get("Authorization");
 	}
 
 	/**
 	 * @return true if the Remote Host is the server.
 	 */
 	public boolean isFromLocalhost() {
-		return exchange.getRemoteAddress().getHostName().equals(exchange.getLocalAddress().getHostName());
+		return req.getRemoteAddress().getHostName().equals(exchange.getLocalAddress().getHostName());
 	}
 
 }

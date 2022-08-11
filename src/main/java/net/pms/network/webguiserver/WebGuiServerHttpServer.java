@@ -15,10 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver;
+package net.pms.network.webguiserver;
 
-import com.sun.net.httpserver.BasicAuthenticator;
-import com.sun.net.httpserver.HttpContext;
+import net.pms.network.webinterfaceserver.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -45,18 +44,13 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
-import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
-import net.pms.network.webinterfaceserver.handlers.ControlHandler;
-import net.pms.network.webinterfaceserver.handlers.DocHandler;
-import net.pms.network.webinterfaceserver.handlers.EventStreamHandler;
-import net.pms.network.webinterfaceserver.handlers.FileHandler;
-import net.pms.network.webinterfaceserver.handlers.MediaHandler;
-import net.pms.network.webinterfaceserver.handlers.PlayHandler;
-import net.pms.network.webinterfaceserver.handlers.PollHandler;
-import net.pms.network.webinterfaceserver.handlers.RawHandler;
-import net.pms.network.webinterfaceserver.handlers.StartHandler;
-import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
+import net.pms.network.webguiserver.handlers.AboutApiHandler;
+import net.pms.network.webguiserver.handlers.AccountApiHandler;
+import net.pms.network.webguiserver.handlers.ActionsApiHandler;
+import net.pms.network.webguiserver.handlers.AuthApiHandler;
+import net.pms.network.webguiserver.handlers.ConfigurationApiHandler;
+import net.pms.network.webguiserver.handlers.WebGuiServlet;
+import net.pms.network.webguiserver.handlers.SseApiHandler;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -64,20 +58,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface {
+public class WebGuiServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerHttpServer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServerHttpServer.class);
 	private KeyStore keyStore;
 	private KeyManagerFactory keyManagerFactory;
 	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
 	private SSLContext sslContext;
 
-	public WebInterfaceServerHttpServer() throws IOException {
+	public WebGuiServerHttpServer() throws IOException {
 		this(DEFAULT_PORT);
 	}
 
-	public WebInterfaceServerHttpServer(int port) throws IOException {
+	public WebGuiServerHttpServer(int port) throws IOException {
 		if (port <= 0) {
 			port = DEFAULT_PORT;
 		}
@@ -109,25 +103,14 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 
 		if (server != null) {
 			int threads = CONFIGURATION.getWebThreads();
-
-			// Add context handlers
-			addCtx("/", new StartHandler(this));
-			addCtx("/browse", new BrowseHandler(this));
-			PlayHandler playHandler = new PlayHandler(this);
-			addCtx("/play", playHandler);
-			addCtx("/playstatus", playHandler);
-			addCtx("/playlist", playHandler);
-			addCtx("/m3u8", playHandler);
-			addCtx("/media", new MediaHandler(this));
-			addCtx("/fmedia", new MediaHandler(this, true));
-			addCtx("/thumb", new ThumbHandler(this));
-			addCtx("/raw", new RawHandler(this));
-			addCtx("/files", new FileHandler(this));
-			addCtx("/doc", new DocHandler(this));
-			addCtx("/poll", new PollHandler(this));
-			addCtx("/event-stream", new EventStreamHandler(this));
-			addCtx("/bump", new ControlHandler(this));
-			addCtx("/console", new ConsoleHandler(this));
+			addCtx(WebGuiServlet.BASE_PATH, new WebGuiServlet());
+			//configuration v1 api handlers
+			addCtx(AboutApiHandler.BASE_PATH, new AboutApiHandler());
+			addCtx(AccountApiHandler.BASE_PATH, new AccountApiHandler());
+			addCtx(ActionsApiHandler.BASE_PATH, new ActionsApiHandler());
+			addCtx(AuthApiHandler.BASE_PATH, new AuthApiHandler());
+			addCtx(ConfigurationApiHandler.BASE_PATH, new ConfigurationApiHandler());
+			addCtx(SseApiHandler.BASE_PATH, new SseApiHandler());
 
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
@@ -246,16 +229,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 	}
 
 	private void addCtx(String path, HttpHandler h) {
-		HttpContext ctx = server.createContext(path, h);
-		if (CONFIGURATION.isWebAuthenticate()) {
-			ctx.setAuthenticator(new BasicAuthenticator(CONFIGURATION.getServerName()) {
-				@Override
-				public boolean checkCredentials(String user, String pwd) {
-					LOGGER.debug("authenticate " + user);
-					return PMS.verifyCred("web", PMS.getCredTag("web", user), user, pwd);
-				}
-			});
-		}
+		server.createContext(path, h);
 	}
 
 	@Override
