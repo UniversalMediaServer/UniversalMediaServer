@@ -5,12 +5,12 @@
   "proxy": "http://localhost:9001",
   "dependencies": {
     "@emotion/react": "^11.10.0",
-    "@mantine/core": "^5.0.3",
-    "@mantine/form": "^5.0.3",
-    "@mantine/hooks": "^5.0.3",
-    "@mantine/modals": "^5.0.3",
-    "@mantine/notifications": "^5.0.3",
-    "@mantine/prism": "^5.0.3",
+    "@mantine/core": "^5.1.1",
+    "@mantine/form": "^5.1.1",
+    "@mantine/hooks": "^5.1.1",
+    "@mantine/modals": "^5.1.1",
+    "@mantine/notifications": "^5.1.1",
+    "@mantine/prism": "^5.1.1",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@types/react-color": "^3.0.6",
     "axios": "^0.27.2",
@@ -24,7 +24,7 @@
     "react-router-dom": "^6.3.0",
     "stylis": "^4.1.1",
     "stylis-plugin-rtl": "^2.1.1",
-    "tabler-icons-react": "^1.49.0",
+    "tabler-icons-react": "^1.54.0",
     "typescript": "^4.7.4",
     "web-vitals": "^2.1.4"
   },
@@ -52,16 +52,16 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@3.2.1",
+  "packageManager": "yarn@3.2.2",
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.1",
+    "@testing-library/user-event": "^14.4.2",
+    "@types/jest": "^28.1.6",
     "@types/lodash": "^4.14.182",
-    "@types/node": "^16.11.36",
-    "@types/react": "^18.0.14",
-    "@types/react-dom": "^18.0.5",
+    "@types/node": "^16.11.7",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
     "react-scripts": "^5.0.1"
   }
 }

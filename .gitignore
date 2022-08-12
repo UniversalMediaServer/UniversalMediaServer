@@ -37,14 +37,11 @@ docker/jre*
 /nbactions-*
 
 # configuration client
-/configuration-client/node_modules
+/configuration-client/node/
+/configuration-client/node_modules/
 /configuration-client/.pnp.*
 /configuration-client/.yarn/*
-/configuration-client/!.yarn/patches
-/configuration-client/!.yarn/plugins
-/configuration-client/!.yarn/releases
-/configuration-client/!.yarn/sdks
-/configuration-client/!.yarn/versions
-/configuration-client/node/*
+!/configuration-client/.yarn/releases
+
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-app
