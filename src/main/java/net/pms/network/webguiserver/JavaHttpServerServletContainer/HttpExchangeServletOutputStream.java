@@ -45,7 +45,7 @@ public class HttpExchangeServletOutputStream extends ServletOutputStream {
 	}
 
 	@Override
-	public void write(byte b[], int off, int len) throws IOException {
+	public void write(byte[] b, int off, int len) throws IOException {
 		os.write(b, off, len);
 	}
 
