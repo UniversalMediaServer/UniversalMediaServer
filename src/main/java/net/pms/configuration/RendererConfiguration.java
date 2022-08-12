@@ -33,7 +33,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
-import net.pms.network.webguiserver.handlers.ConfigurationApiHandler;
+import net.pms.network.webguiserver.handlers.ConfigurationApiServlet;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
@@ -3145,13 +3145,12 @@ public class RendererConfiguration extends Renderer {
 		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
-		configurationAsProperties.forEach(
-			(key, value) -> {
+		configurationAsProperties.forEach((key, value) -> {
 				String strKey = Objects.toString(key);
-				if (ConfigurationApiHandler.haveKey(strKey)) {
+				if (ConfigurationApiServlet.haveKey(strKey)) {
 					String strValue = Objects.toString(value);
 					//do not add non acceptable empty key then it back to default
-					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(strKey)) {
+					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiServlet.acceptEmptyValueForKey(strKey)) {
 						//escape "\" char with "\\" otherwise json will fail
 						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 					}

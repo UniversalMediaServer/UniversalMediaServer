@@ -17,6 +17,10 @@
  */
 package net.pms.network.webguiserver;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,18 +34,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServletHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServletHelper.class);
+	private static final Gson GSON = new Gson();
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String HTTPSERVER_REQUEST_BEGIN =  "============================= GUI HTTPSERVER REQUEST BEGIN ================================";
 	private static final String HTTPSERVER_REQUEST_END =    "============================= GUI HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= GUI HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= GUI HTTPSERVER RESPONSE END =================================";
-	
 	private static final ResourceManager RESOURCE_MANAGER = new ResourceManager("file:" + CONFIGURATION.getWebPath() + "/");
 
 	public static boolean deny(ServletRequest req) {
@@ -65,14 +70,14 @@ public class ServletHelper {
 		header.append("HEADER:\n");
 		Enumeration<String> headerNames = req.getHeaderNames();
 		if (headerNames != null) {
-            while (headerNames.hasMoreElements()) {
+			while (headerNames.hasMoreElements()) {
 				String headerName = headerNames.nextElement();
 				Enumeration<String> headers = req.getHeaders(headerName);
 				while (headers.hasMoreElements()) {
 					String headerValue = headers.nextElement();
 					header.append("  ").append(headerName).append(": ").append(headerValue).append("\n");
 				}
-            }
+			}
 		}
 
 		String formattedContent = StringUtils.isNotEmpty(content) ? "\nCONTENT:\n" + content + "\n" : "";
@@ -228,4 +233,30 @@ public class ServletHelper {
 			filename.endsWith(".ttf") ? "font/truetype" :
 			URLConnection.guessContentTypeFromName(filename);
 	}
+
+	public static String getPostString(HttpServletRequest req) {
+		try {
+			return IOUtils.toString(req.getInputStream(), StandardCharsets.UTF_8);
+		} catch (IOException ex) {
+			return null;
+		}
+	}
+
+	public static JsonObject getJsonObjectFromPost(HttpServletRequest req) {
+		String reqBody = getPostString(req);
+		return jsonObjectFromString(reqBody);
+	}
+
+	private static JsonObject jsonObjectFromString(String str) {
+		JsonObject jObject = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem.isJsonObject()) {
+				jObject = jElem.getAsJsonObject();
+			}
+		} catch (JsonSyntaxException je) {
+		}
+		return jObject;
+	}
+
 }

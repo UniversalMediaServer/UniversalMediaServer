@@ -17,7 +17,6 @@
  */
 package net.pms.network.webguiserver;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -34,9 +33,9 @@ public class ApiHelper {
 
 	public String getEndpoint() {
 		String endpoint = "/";
-		int pos = req.getRequestURI().getPath().indexOf(basePath);
+		int pos = req.getRequestURI().indexOf(basePath);
 		if (pos != -1) {
-			endpoint = req.getRequestURI().getPath().substring(pos + basePath.length());
+			endpoint = req.getRequestURI().substring(pos + basePath.length());
 		}
 		return endpoint;
 	}
@@ -46,7 +45,7 @@ public class ApiHelper {
 	 * @return whether this was a GET request for the specified path.
 	 */
 	public Boolean get(String path) {
-		return req.getRequestMethod().equals("GET") && getEndpoint().equals(path);
+		return req.getMethod().equals("GET") && getEndpoint().equals(path);
 	}
 
 	/**
@@ -54,28 +53,28 @@ public class ApiHelper {
 	 * @return whether this was a POST request for the specified path.
 	 */
 	public Boolean post(String path) {
-		return req.getRequestMethod().equals("POST") && getEndpoint().equals(path);
+		return req.getMethod().equals("POST") && getEndpoint().equals(path);
 	}
 
 	/**
 	 * @return the Remote Host String (IP).
 	 */
 	public String getRemoteHostString() {
-		return req.getRemoteAddress().getHostString();
+		return req.getRemoteAddr();
 	}
 
 	/**
 	 * @return the Request Authorization Headers.
 	 */
-	public List<String> getAuthorization() {
-		return req.getRequestHeaders().get("Authorization");
+	public String getAuthorization() {
+		return req.getHeader("Authorization");
 	}
 
 	/**
 	 * @return true if the Remote Host is the server.
 	 */
 	public boolean isFromLocalhost() {
-		return req.getRemoteAddress().getHostName().equals(exchange.getLocalAddress().getHostName());
+		return req.getRemoteAddr().equals(req.getLocalAddr());
 	}
 
 }

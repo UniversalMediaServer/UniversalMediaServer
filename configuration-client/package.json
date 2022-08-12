@@ -2,7 +2,7 @@
   "name": "ums",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:9001",
+  "proxy": "http://localhost:9002",
   "dependencies": {
     "@emotion/react": "^11.10.0",
     "@mantine/core": "^5.1.1",

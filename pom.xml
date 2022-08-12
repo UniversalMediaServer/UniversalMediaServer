@@ -1035,7 +1035,7 @@
 						</goals>
 						<configuration>
 							<environmentVariables>
-								<PUBLIC_URL>/configuration</PUBLIC_URL>
+								<PUBLIC_URL>/</PUBLIC_URL>
 							</environmentVariables>  
 							<arguments>build</arguments>
 						</configuration>

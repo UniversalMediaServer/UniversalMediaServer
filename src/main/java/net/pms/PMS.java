@@ -68,8 +68,9 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webguiserver.WebGuiServerHttpServer;
+import net.pms.network.webguiserver.handlers.SseApiServlet;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
-import net.pms.network.webguiserver.handlers.SseApiHandler;
 import net.pms.newgui.*;
 import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
@@ -228,6 +229,11 @@ public class PMS {
 	 * Also handle utility and other stuff
 	 */
 	private WebInterfaceServer webInterfaceServer;
+
+	/**
+	 * HTTP server that serves a gui.
+	 */
+	private WebGuiServerHttpServer guiServer;
 
 	/**
 	 * User friendly name for the server.
@@ -574,19 +580,21 @@ public class PMS {
 			if (!event.isBeforeUpdate()) {
 				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-					SseApiHandler.setReloadable(true);
+					SseApiServlet.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-					SseApiHandler.setReloadable(true);
+					SseApiServlet.setReloadable(true);
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersRoot();
 				}
-				SseApiHandler.setConfigurationChanged(event.getPropertyName());
+				SseApiServlet.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
+		// GUI stuff
+		resetGuiServer();
 		// Web stuff
 		resetWebInterfaceServer();
 
@@ -809,7 +817,7 @@ public class PMS {
 	// see the comment above HttpMediaServer.stop()
 	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
-			SseApiHandler.notify("server-restart", "Server is restarting", "Server status", "red", true);
+			SseApiServlet.notify("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			resetRenderers(true);
 
@@ -823,7 +831,7 @@ public class PMS {
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
-			SseApiHandler.setReloadable(false);
+			SseApiServlet.setReloadable(false);
 			frame.setReloadable(false);
 		});
 	}
@@ -885,6 +893,33 @@ public class PMS {
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
 			}
+		}
+	}
+
+	/**
+	 * Reset the web graphical user interface server.
+	 * The trigger is init and configuration change.
+	 */
+	public void resetGuiServer() {
+		if (guiServer != null) {
+			guiServer.stop();
+		}
+		try {
+			guiServer = WebGuiServerHttpServer.createServer(WebGuiServerHttpServer.DEFAULT_PORT);
+		} catch (BindException b) {
+			try {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServerHttpServer.DEFAULT_PORT + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+				//use a random port
+				guiServer = WebGuiServerHttpServer.createServer(0);
+			} catch (IOException ex) {
+				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+			}
+		} catch (IOException ex) {
+			LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+		}
+		if (guiServer != null && guiServer.getServer() != null) {
+			LOGGER.info("GUI is available at: " + guiServer.getUrl());
 		}
 	}
 

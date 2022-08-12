@@ -29,11 +29,11 @@ import net.pms.network.webguiserver.ServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/configuration", "/about", "/accounts", "/settings"})
+@WebServlet({"/"})
 public class WebGuiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServlet.class);
 
-	public static final String BASE_PATH = "/configuration";
+	public static final String BASE_PATH = "/";
 	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
 		"/about",
 		"/accounts",
@@ -55,7 +55,14 @@ public class WebGuiServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			if (!ServletHelper.write(req, resp, "react-app/index.html")) {
+			String uri = req.getRequestURI() != null ? req.getRequestURI().toLowerCase() : "/index.html";
+			if (uri.equals("") || uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
+				uri = "/index.html";
+			}
+			if (uri.startsWith("/static")) {
+				resp.setHeader("Cache-Control", "public, max-age=604800");
+			}
+			if (!ServletHelper.write(req, resp, "react-app" + uri)) {
 				// The resource manager can't found or send the file, we need to send a response.
 				LOGGER.trace("WebGuiServlet request not available : {}", req.getRequestURI());
 				ServletHelper.respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");

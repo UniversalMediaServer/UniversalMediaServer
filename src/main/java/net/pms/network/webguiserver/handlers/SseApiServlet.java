@@ -18,89 +18,37 @@
 package net.pms.network.webguiserver.handlers;
 
 import com.google.gson.JsonObject;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
-import net.pms.network.webinterfaceserver.ServerSentEvents;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.network.webguiserver.ApiHelper;
+import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.ServerSentEvents;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SseApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiHandler.class);
+@WebServlet({"/v1/api/sse"})
+public class SseApiServlet extends HttpServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
 
-	private final Thread memoryThread;
-
-	public SseApiHandler() {
-		//let start a thread to update memory usage
-		this.memoryThread = new Thread(rUpdateMemoryUsage);
-		memoryThread.start();
-	}
-
-	/**
-	 * Handle API calls.
-	 *
-	 * @param exchange
-	 * @throws java.io.IOException
-	 */
-	@Override
-	public void handle(HttpExchange exchange) throws IOException {
-		try {
-			if (WebInterfaceServerUtil.deny(exchange)) {
-				exchange.close();
-				return;
-			}
-			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageReceived(exchange, "");
-			}
-			var api = new ApiHelper(exchange, BASE_PATH);
-			try {
-				if (api.get("/")) {
-					Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
-					if (account != null && account.getUser().getId() > 0) {
-						Headers hdr = exchange.getResponseHeaders();
-						hdr.add("Server", PMS.get().getServerName());
-						hdr.add("Content-Type", "text/event-stream");
-						hdr.add("Connection", "keep-alive");
-						hdr.add("Charset", "UTF-8");
-						hdr.add("Cache-Control", "no-transform");
-						exchange.sendResponseHeaders(200, 0);
-						ServerSentEvents sse = new ServerSentEvents(exchange.getResponseBody(), WebInterfaceServerUtil.getFirstSupportedLanguage(exchange));
-						addServerSentEventsFor(account.getUser().getId(), sse);
-					} else {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
-					}
-				} else {
-					WebInterfaceServerUtil.respond(exchange, "{}", 404, "application/json");
-				}
-			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in SseApiHandler: {}", e.getMessage());
-				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
-			}
-		} catch (Exception e) {
-			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in SseApiHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
-		}
-	}
-
-	Runnable rUpdateMemoryUsage = () -> {
+	private static final Thread UPDATE_MEMORY_USAGE_THREAD = new Thread(() -> {
 		while (true) {
 			try {
 				Thread.sleep(2000);
@@ -109,7 +57,56 @@ public class SseApiHandler implements HttpHandler {
 			}
 			updateMemoryUsage();
 		}
-	};
+	}, "SSE Api Memory Usage Updater");
+
+	public SseApiServlet() {
+		startMemoryThread();
+	}
+
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		if (ServletHelper.deny(req)) {
+			throw new IOException("Access denied");
+		}
+		if (LOGGER.isTraceEnabled()) {
+			ServletHelper.logHttpServletRequest(req, "");
+		}
+		super.service(req, resp);
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var api = new ApiHelper(req, BASE_PATH);
+			if (api.get("/")) {
+				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+				if (account != null && account.getUser().getId() > 0) {
+					resp.setHeader("Server", PMS.get().getServerName());
+					resp.setHeader("Connection", "keep-alive");
+					resp.setHeader("Cache-Control", "no-transform");
+					resp.setHeader("Charset", "UTF-8");
+					resp.setContentType("text/event-stream");
+					resp.setContentLength(0);
+					ServerSentEvents sse = new ServerSentEvents(resp.getOutputStream());
+					addServerSentEventsFor(account.getUser().getId(), sse);
+				} else {
+					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
+				}
+			} else {
+				ServletHelper.respond(req, resp, "{}", 404, "application/json");
+			}
+		} catch (RuntimeException e) {
+			LOGGER.error("RuntimeException in SseApiServlet: {}", e.getMessage());
+			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+		}
+	}
+
+	//let start a thread to update memory usage
+	private static void startMemoryThread() {
+		if (!UPDATE_MEMORY_USAGE_THREAD.isAlive()) {
+			UPDATE_MEMORY_USAGE_THREAD.start();
+		}
+	}
 
 	private static void updateMemoryUsage() {
 		if (hasServerSentEvents()) {
@@ -261,8 +258,8 @@ public class SseApiHandler implements HttpHandler {
 	}
 
 	public static void setConfigurationChanged(String key) {
-		if (ConfigurationApiHandler.haveKey(key)) { //hasServerSentEvents() &&
-			broadcastMessage(ConfigurationApiHandler.getConfigurationUpdate(key), "settings_view");
+		if (ConfigurationApiServlet.haveKey(key)) { //hasServerSentEvents() &&
+			broadcastMessage(ConfigurationApiServlet.getConfigurationUpdate(key), "settings_view");
 		}
 	}
 }
