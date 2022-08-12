@@ -1004,16 +1004,6 @@
 							<yarnVersion>v1.22.19</yarnVersion>
 						</configuration>
 					</execution>
-					<!-- update yarn to latest version -->
-					<execution>
-						<id>yarn version</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-						<configuration>
-							<arguments>set version stable</arguments>
-						</configuration>
-					</execution>
 					<!-- download Node.js dependencies -->
 					<execution>
 						<id>yarn install</id>
