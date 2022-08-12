@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.newgui.util;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -31,9 +31,6 @@ import javax.swing.text.JTextComponent;
  * This is a utility class for various reusable Swing methods. *
  */
 public class SwingUtils {
-	// We don't want this to be instanced, only static methods
-	private SwingUtils() {
-	}
 
 	/**
 	 * Returns the {@link Dimension} for the given {@link JTextComponent}

@@ -36,3 +36,8 @@ docker/jre*
 .yarn-integrity
 /nb-*
 /nbactions-*
+
+# configuration client
+/configuration-client
+# this is where the compiled client goes after "yarn build"
+/src/main/external-resources/web/react-app

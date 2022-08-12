@@ -20,8 +20,6 @@ package net.pms.configuration;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
-import java.awt.Color;
-import java.awt.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,8 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -50,6 +46,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
+import net.pms.newgui.GuiUtil;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -1072,6 +1069,19 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nullable
 	public ExternalProgramInfo getFFmpegPaths() {
 		return programPaths.getFFmpeg();
+	}
+
+	/**
+	 * @return The configured path to the FFmpeg executable.
+	 */
+	@Nullable
+	public String getFFmpegPath() {
+		Path executable = null;
+		ExternalProgramInfo ffmpegPaths = getFFmpegPaths();
+		if (ffmpegPaths != null) {
+			executable = ffmpegPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
 	}
 
 	/**
@@ -2383,13 +2393,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			} catch (IOException e) {
 				if (!FileUtil.isAdmin()) {
 					try {
-						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							Messages.getString("UmsMustRunAdministrator"),
-							Messages.getString("PermissionsError"),
-							JOptionPane.ERROR_MESSAGE
-						);
-
+						GuiUtil.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
 					} catch (NullPointerException e2) {
 						// This happens on the initial program load, ignore it
 					}
@@ -3992,10 +3996,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		return new SubtitleColor(0xFF, 0xFF, 0xFF);
-	}
-
-	public void setSubsColor(Color color) {
-		setSubsColor(new SubtitleColor(color));
 	}
 
 	public void setSubsColor(SubtitleColor color) {

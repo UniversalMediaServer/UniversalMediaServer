@@ -51,7 +51,7 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
-import net.pms.newgui.IFrame;
+import net.pms.gui.IFrame;
 import net.pms.newgui.SharedContentTab;
 import net.pms.platform.macos.NSFoundation;
 import net.pms.platform.macos.NSFoundation.NSSearchPathDirectory;
@@ -291,7 +291,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		frame.setScanLibraryEnabled(true);
+		frame.setScanLibraryStatus(configuration.getUseCache(), false);
 		frame.setStatusLine(null);
 	}
 
@@ -340,7 +340,7 @@ public class RootFolder extends DLNAResource {
 				}
 			}
 		} else {
-			frame.setScanLibraryEnabled(true);
+			frame.setScanLibraryStatus(configuration.getUseCache(), false);
 			frame.setStatusLine(null);
 		}
 	}

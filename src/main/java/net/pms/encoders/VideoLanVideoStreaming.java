@@ -26,7 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
@@ -212,11 +211,6 @@ public class VideoLanVideoStreaming extends Player {
 		pw.runInNewThread();
 		configuration = prev;
 		return pw;
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override
