@@ -1199,6 +1199,10 @@ public class PMS {
 		return webInterfaceServer;
 	}
 
+	public WebGuiServerHttpServer getGuiServer() {
+		return guiServer;
+	}
+
 	/**
 	 * Save the configuration changes immediately to the configuration
 	 * file and not wait for the automatic saving.
