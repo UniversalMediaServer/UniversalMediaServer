@@ -2272,18 +2272,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@mantine/notifications@npm:5.1.1"
+"@mantine/notifications@npm:5.1.4":
+  version: 5.1.4
+  resolution: "@mantine/notifications@npm:5.1.4"
   dependencies:
-    "@mantine/utils": 5.1.1
+    "@mantine/utils": 5.1.4
     react-transition-group: 4.4.2
   peerDependencies:
-    "@mantine/core": 5.1.1
-    "@mantine/hooks": 5.1.1
+    "@mantine/core": 5.1.4
+    "@mantine/hooks": 5.1.4
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 2b26ba60fbb29b39ccb7d0d0c48e7e44dcb144b6238461de747991259232fa99ae7bee49aeff63fbf06f77df92e338b5f827dfd1f68ea2e288e682e292dc8576
+  checksum: 4ffd3ee017ad58d6ab8974f47675ea014c9c451644bf5b4283c8fc08b88dd6a17ede16e4b929fe744925c23bf4f078750fc12cbd4e8624ee346ef946283215fc
   languageName: node
   linkType: hard
 
@@ -12529,7 +12529,7 @@ __metadata:
     "@mantine/form": 5.1.1
     "@mantine/hooks": 5.1.1
     "@mantine/modals": 5.1.1
-    "@mantine/notifications": 5.1.1
+    "@mantine/notifications": 5.1.4
     "@mantine/prism": 5.1.1
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
