@@ -2237,15 +2237,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.1.4":
-  version: 5.1.4
-  resolution: "@mantine/form@npm:5.1.4"
+"@mantine/form@npm:5.1.5":
+  version: 5.1.5
+  resolution: "@mantine/form@npm:5.1.5"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 432560b02b35fcf471cce3f12fe391325918b89890198736dd4d9071b28ec943587f86a0a5a773b246e9dc55146b79170c8abcdb2722cf2e84a412e1ee570d3a
+  checksum: be71d2189a9b748e4259d05aa97911677f077eb9a7b9f7c14efe7ca0856fc501b2babfbcffe73800c1222caeee34fc49e253664e248411ac1bbbd7efc5ac1905
   languageName: node
   linkType: hard
 
@@ -12526,11 +12526,11 @@ __metadata:
   dependencies:
     "@emotion/react": 11.10.0
     "@mantine/core": 5.1.5
-    "@mantine/form": 5.1.4
-    "@mantine/hooks": 5.1.4
-    "@mantine/modals": 5.1.4
-    "@mantine/notifications": 5.1.4
-    "@mantine/prism": 5.1.4
+    "@mantine/form": 5.1.5
+    "@mantine/hooks": 5.1.5
+    "@mantine/modals": 5.1.5
+    "@mantine/notifications": 5.1.5
+    "@mantine/prism": 5.1.5
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.3.0
