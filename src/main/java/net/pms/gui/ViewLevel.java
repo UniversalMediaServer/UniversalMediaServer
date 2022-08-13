@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see http://www.gnu.org/licenses/.
  */
-package net.pms.newgui;
+package net.pms.gui;
 
 /**
  * Defines a set of view levels for changing the complexity of the GUI:<br>

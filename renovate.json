@@ -1,5 +1,9 @@
 {
   "extends": [
     "config:base"
+  ],
+  "baseBranches": [
+    "main",
+    "3004-web-settings"
   ]
 }

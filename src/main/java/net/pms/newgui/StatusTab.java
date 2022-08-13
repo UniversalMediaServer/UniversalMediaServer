@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.gui.IRendererGuiListener;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
@@ -29,13 +30,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,10 +46,12 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.EConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
+import net.pms.newgui.components.ServerBindMouseListener;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
@@ -67,7 +65,7 @@ public class StatusTab {
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
 	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
 
-	public static class RendererItem implements ActionListener {
+	public static class RendererItem implements ActionListener, IRendererGuiListener {
 		public ImagePanel icon;
 		public JLabel label;
 		public GuiUtil.MarqueeLabel playingLabel;
@@ -112,6 +110,18 @@ public class StatusTab {
 			}
 		}
 
+		@Override
+		public void refreshPlayerState(final BasicPlayer.State state) {
+			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
+				UMSUtils.playedDurationStr(state.position, state.duration));
+			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
+			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			if (!name.equals(n)) {
+				name = n;
+				playingLabel.setText(name);
+			}
+		}
+
 		public void addTo(Container parent) {
 			parent.add(getPanel());
 			parent.validate();
@@ -121,6 +131,7 @@ public class StatusTab {
 			playingLabel.setMaxWidth(w);
 		}
 
+		@Override
 		public void delete() {
 			try {
 				// Delete the popup if open
@@ -153,6 +164,21 @@ public class StatusTab {
 			}
 			return panel;
 		}
+
+		@Override
+		public void updateRenderer(final RendererConfiguration renderer) {
+			icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
+			label.setText(renderer.getRendererName());
+			// Update the popup panel if it's been opened
+			if (rendererPanel != null) {
+				rendererPanel.update();
+			}
+		}
+
+		@Override
+		public void setActive(final boolean active) {
+			icon.setGrey(!active);
+		}
 	}
 
 	private JPanel renderers;
@@ -169,10 +195,7 @@ public class StatusTab {
 	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
-	public enum ConnectionState {
-		SEARCHING, CONNECTED, DISCONNECTED, BLOCKED, UNKNOWN
-	};
-	private ConnectionState connectionState = ConnectionState.UNKNOWN;
+	private EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
 	private final AnimatedIcon searchingIcon;
 	private final AnimatedIcon connectedIcon;
@@ -198,7 +221,7 @@ public class StatusTab {
 		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
-	void setConnectionState(ConnectionState connectionState) {
+	void setConnectionState(EConnectionState connectionState) {
 		if (connectionState == null) {
 			throw new IllegalArgumentException("connectionState cannot be null");
 		}
@@ -320,7 +343,7 @@ public class StatusTab {
 		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
 		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
 		// Set initial connection state
-		setConnectionState(ConnectionState.SEARCHING);
+		setConnectionState(EConnectionState.SEARCHING);
 
 		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);
@@ -426,7 +449,7 @@ public class StatusTab {
 	public void addRenderer(final RendererConfiguration renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
-		renderer.setGuiComponents(r);
+		renderer.addGuiListener(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -460,14 +483,7 @@ public class StatusTab {
 
 	public static void updateRenderer(final RendererConfiguration renderer) {
 		SwingUtilities.invokeLater(() -> {
-			if (renderer.gui != null) {
-				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
-				renderer.gui.label.setText(renderer.getRendererName());
-				// Update the popup panel if it's been opened
-				if (renderer.gui.rendererPanel != null) {
-					renderer.gui.rendererPanel.update();
-				}
-			}
+			renderer.updateRendererGui();
 		});
 	}
 
@@ -614,36 +630,4 @@ public class StatusTab {
 		new Thread(r).start();
 	}
 
-	private static class ServerBindMouseListener implements MouseListener {
-		private final JLabel label;
-
-		public ServerBindMouseListener(JLabel label) {
-			this.label = label;
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (label.getText() != null) {
-				StringSelection selection = new StringSelection(label.getText());
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				clipboard.setContents(selection, selection);
-			}
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
-	}
 }
