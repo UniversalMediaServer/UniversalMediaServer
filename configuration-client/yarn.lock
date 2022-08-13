@@ -2249,12 +2249,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@mantine/hooks@npm:5.1.1"
+"@mantine/hooks@npm:5.1.4":
+  version: 5.1.4
+  resolution: "@mantine/hooks@npm:5.1.4"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: c99ffcd1e5827d8922e60ecf2471eb7c5ed500c54b520f40fb6fa0b0a31a3650c1ab754c415d73af485d1e152a63742f675ff7cb714158da5735bd86a7b47d09
+  checksum: 7c51568eba95efa232a3d6b6501693f7f7d11bc7226a53d6da8339e0060bfbfa5a333aa0294c364d961d906cab0ccb2e75d4bfd9eae0023d6d55274121b7bc94
   languageName: node
   linkType: hard
 
@@ -2313,15 +2313,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 1b4e1843f3aef571b4501b717718cdfa97f078d0d4586130a055979be906f939e4f64f87225506e2d0ba30d9cf727460a443d8077eda1b10f3127a2dc7ca15f5
-  languageName: node
-  linkType: hard
-
-"@mantine/utils@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@mantine/utils@npm:5.1.1"
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: 0b8790e50ca534eb47a4997962582c5943a64fb8577b91f7c0d66800408adb7a678d615eb6dd7cd25240287c33a1731ed85c448a65e7714f9f890153223ee0c0
   languageName: node
   linkType: hard
 
@@ -12527,7 +12518,7 @@ __metadata:
     "@emotion/react": 11.10.0
     "@mantine/core": 5.1.4
     "@mantine/form": 5.1.4
-    "@mantine/hooks": 5.1.1
+    "@mantine/hooks": 5.1.4
     "@mantine/modals": 5.1.4
     "@mantine/notifications": 5.1.4
     "@mantine/prism": 5.1.4
