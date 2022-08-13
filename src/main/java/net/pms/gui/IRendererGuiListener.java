@@ -15,25 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.newgui;
+package net.pms.gui;
 
 import net.pms.configuration.RendererConfiguration;
-import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.util.BasicPlayer;
 
-public interface IFrame {
-	public void append(String msg);
-	public void updateBuffer();
-	public void setReadValue(long v, String msg);
-	public void setConnectionState(ConnectionState connectionState);
-	public void addRenderer(RendererConfiguration renderer);
-	public void updateRenderer(RendererConfiguration renderer);
-	public void setReloadable(boolean reload);
-	public void addEngines();
-	public void setStatusLine(String line);
-	public void setSecondaryStatusLine(String line);
-	public void serverReady();
-	public void updateServerStatus();
-	public void setScanLibraryEnabled(boolean flag);
-	public String getLog();
-	public void enableWebUiButton();
+public interface IRendererGuiListener {
+	public void updateRenderer(final RendererConfiguration renderer);
+	public void setActive(final boolean active);
+	public void delete();
+	public void refreshPlayerState(BasicPlayer.State state);
 }

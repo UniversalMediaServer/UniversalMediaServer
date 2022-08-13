@@ -17,18 +17,9 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Font;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
-import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,7 +29,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,39 +41,8 @@ public class FFmpegAudio extends FFMpegVideo {
 	public static final String KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE = "ffmpeg_audio_executable_type";
 	public static final String NAME = "FFmpeg Audio";
 
-	private JCheckBox noresample;
-
 	// Not to be instantiated by anything but PlayerFactory
 	FFmpegAudio() {
-	}
-
-	@Override
-	public JComponent config() {
-		FormLayout layout = new FormLayout(
-			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow"
-		);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
-		builder.opaque(false);
-
-		CellConstraints cc = new CellConstraints();
-
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), cc.xyw(2, 1, 1));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), configuration.isAudioResample());
-		noresample.setContentAreaFilled(false);
-		noresample.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(noresample), cc.xy(2, 3));
-
-		return builder.getPanel();
 	}
 
 	@Override

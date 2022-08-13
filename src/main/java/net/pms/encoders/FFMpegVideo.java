@@ -17,14 +17,7 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.Font;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,10 +27,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.ExecutableInfo;
@@ -54,7 +43,6 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
@@ -1671,148 +1659,6 @@ public class FFMpegVideo extends Player {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 		return pw;
-	}
-
-	private JComboBox<String> fFmpegLoggingLevel;
-	private JCheckBox multithreading;
-	private JCheckBox videoRemuxTsMuxer;
-	private JCheckBox fc;
-	private JCheckBox deferToMEncoderForSubtitles;
-	private JCheckBox isFFmpegSoX;
-	private JComboBox<String> fFmpegGPUDecodingAccelerationMethod;
-	private JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber;
-
-	@Override
-	public JComponent config() {
-		return config("GeneralSettings");
-	}
-
-	protected JComponent config(String languageLabel) {
-		FormLayout layout = new FormLayout(
-			"left:pref, 3dlu, pref",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
-		);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
-		builder.opaque(false);
-
-		CellConstraints cc = new CellConstraints();
-		int y = 1;
-		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(1, y, 1));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		y += 2;
-		builder.addLabel(Messages.getString("LogLevel"), cc.xy(1, y));
-		fFmpegLoggingLevel = new JComboBox<>(FFmpegLogLevels.getLabels());
-		fFmpegLoggingLevel.setSelectedItem(configuration.getFFmpegLoggingLevel());
-		fFmpegLoggingLevel.setToolTipText(Messages.getString("SetFfmpegLoggingLevelDecides"));
-		fFmpegLoggingLevel.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setFFmpegLoggingLevel((String) e.getItem());
-				}
-			}
-		});
-		fFmpegLoggingLevel.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegLoggingLevel), cc.xy(3, y));
-
-		y += 2;
-		multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), configuration.isFfmpegMultithreading());
-		multithreading.setContentAreaFilled(false);
-		multithreading.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(1, y));
-
-		y += 2;
-		videoRemuxTsMuxer = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
-		videoRemuxTsMuxer.setContentAreaFilled(false);
-		videoRemuxTsMuxer.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(videoRemuxTsMuxer), cc.xy(1, y));
-
-		y += 2;
-		fc = new JCheckBox(Messages.getString("UseFontSettings"), configuration.isFFmpegFontConfig());
-		fc.setContentAreaFilled(false);
-		fc.setToolTipText(Messages.getString("FontSettingAppliedEmbeddedExternal"));
-		fc.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(fc), cc.xy(1, y));
-
-		y += 2;
-		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("DeferMencoderTranscodingProblematic"), configuration.isFFmpegDeferToMEncoderForProblematicSubtitles());
-		deferToMEncoderForSubtitles.setContentAreaFilled(false);
-		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("MencoderMoreStableFfmpegTranscoding"));
-		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegDeferToMEncoderForProblematicSubtitles(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles), cc.xy(1, y));
-
-		y += 2;
-		isFFmpegSoX = new JCheckBox(Messages.getString("UseSoxHigherQualityAudio"), configuration.isFFmpegSoX());
-		isFFmpegSoX.setContentAreaFilled(false);
-		isFFmpegSoX.setToolTipText(Messages.getString("ThisMayIncreaseAudioQuality"));
-		isFFmpegSoX.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegSoX(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(isFFmpegSoX), cc.xy(1, y));
-
-		y += 2;
-		builder.add(new JLabel(Messages.getString("GPUDecodingAccelerationMethod")), cc.xy(1, y));
-
-		String[] keys = configuration.getFFmpegAvailableGPUDecodingAccelerationMethods();
-
-		fFmpegGPUDecodingAccelerationMethod = new JComboBox<>(keys);
-		fFmpegGPUDecodingAccelerationMethod.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationMethod());
-		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("RecommendationIsAuto"));
-		fFmpegGPUDecodingAccelerationMethod.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setFFmpegGPUDecodingAccelerationMethod((String) e.getItem());
-				}
-			}
-		});
-		fFmpegGPUDecodingAccelerationMethod.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationMethod), cc.xy(3, y));
-
-		y += 2;
-		builder.addLabel(Messages.getString("GpuDecodingThreadCount"), cc.xy(1, y));
-		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
-
-		fFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
-		fFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(configuration.getFFmpegGPUDecodingAccelerationThreadNumber());
-		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("TheNumberGpuThreads"));
-
-		fFmpegGPUDecodingAccelerationThreadNumber.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegGPUDecodingAccelerationThreadNumber((String) e.getItem());
-			}
-		});
-		fFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationThreadNumber), cc.xy(3, y));
-
-		return builder.getPanel();
 	}
 
 	/**

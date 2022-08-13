@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -45,11 +44,6 @@ public class YoutubeDl extends FFMpegVideo {
 
 	// Not to be instantiated by anything but PlayerFactory
 	YoutubeDl() {
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override

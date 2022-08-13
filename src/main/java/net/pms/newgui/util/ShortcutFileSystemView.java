@@ -1,8 +1,9 @@
-package net.pms.util;
+package net.pms.newgui.util;
 
 import java.io.File;
 import java.io.IOException;
 import javax.swing.filechooser.FileSystemView;
+import net.pms.util.FileUtil;
 
 public class ShortcutFileSystemView extends FileSystemView {
 	/**

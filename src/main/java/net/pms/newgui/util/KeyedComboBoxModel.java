@@ -40,7 +40,7 @@
  * 10-Dec-2015 : Implemented generics support
  *
  */
-package net.pms.util;
+package net.pms.newgui.util;
 
 import java.util.ArrayList;
 import javax.swing.ComboBoxModel;

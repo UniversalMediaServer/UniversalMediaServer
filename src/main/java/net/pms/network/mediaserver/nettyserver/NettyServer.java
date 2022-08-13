@@ -24,7 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.gui.EConnectionState;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
@@ -82,7 +82,7 @@ public class NettyServer extends HttpMediaServer {
 			LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 			LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 			LOGGER.trace("The error was: " + e);
-			PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
+			PMS.get().getFrame().setConnectionState(EConnectionState.BLOCKED);
 		}
 
 		LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);

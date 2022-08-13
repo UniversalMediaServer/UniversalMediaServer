@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.ExecutableInfo;
 import net.pms.configuration.FFmpegExecutableInfo;
@@ -126,11 +125,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.trace("", e);
 		}
 		return false;
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override
