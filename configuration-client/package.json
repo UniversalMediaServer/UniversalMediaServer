@@ -10,7 +10,7 @@
     "@mantine/hooks": "5.1.1",
     "@mantine/modals": "5.1.1",
     "@mantine/notifications": "5.1.4",
-    "@mantine/prism": "5.1.1",
+    "@mantine/prism": "5.1.4",
     "@microsoft/fetch-event-source": "2.0.1",
     "@types/react-color": "3.0.6",
     "axios": "0.27.2",

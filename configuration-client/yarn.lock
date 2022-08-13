@@ -2287,18 +2287,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/prism@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@mantine/prism@npm:5.1.1"
+"@mantine/prism@npm:5.1.4":
+  version: 5.1.4
+  resolution: "@mantine/prism@npm:5.1.4"
   dependencies:
-    "@mantine/utils": 5.1.1
+    "@mantine/utils": 5.1.4
     prism-react-renderer: ^1.2.1
   peerDependencies:
-    "@mantine/core": 5.1.1
-    "@mantine/hooks": 5.1.1
+    "@mantine/core": 5.1.4
+    "@mantine/hooks": 5.1.4
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: bbb9314292733e83ba7d41ab9edc3fed632c4a50334c418f8fcc07bb4bd816824889f323fdb2fb3b3c40821b5c1227d8acb20b3b646057ea6db44bc19269015a
+  checksum: 8874544f1627aad9f1e4bcc75d6256c0c941abc9b14293777945b21338fd39645a87d0821c11b2c64e52549329552617d8452a8d236d5265d49128015ce222aa
   languageName: node
   linkType: hard
 
@@ -12530,7 +12530,7 @@ __metadata:
     "@mantine/hooks": 5.1.1
     "@mantine/modals": 5.1.1
     "@mantine/notifications": 5.1.4
-    "@mantine/prism": 5.1.1
+    "@mantine/prism": 5.1.4
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.3.0
