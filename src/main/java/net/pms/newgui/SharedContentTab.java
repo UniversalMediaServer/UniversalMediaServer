@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.newgui.util.ShortcutFileSystemView;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -70,7 +71,6 @@ import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
-import net.pms.util.ShortcutFileSystemView;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -443,7 +443,7 @@ public class SharedContentTab {
 			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
-		setScanLibraryEnabled(configuration.getUseCache());
+		setScanLibraryEnabled(configuration.getUseCache(), false);
 
 		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
@@ -719,13 +719,16 @@ public class SharedContentTab {
 		column.setMinWidth(600);
 	}
 
-	public static void setScanLibraryEnabled(boolean enabled) {
+	public static void setScanLibraryEnabled(boolean enabled, boolean running) {
 		SCAN_BUTTON.setEnabled(enabled);
-		SCAN_BUTTON.setIcon(SCAN_NORMAL_ICON);
-		SCAN_BUTTON.setRolloverIcon(SCAN_ROLLOVER_ICON);
-		SCAN_BUTTON.setPressedIcon(SCAN_PRESSED_ICON);
-		SCAN_BUTTON.setDisabledIcon(SCAN_DISABLED_ICON);
-		SCAN_BUTTON.setToolTipText(Messages.getString("ScanAllSharedFolders"));
+		SCAN_BUTTON.setIcon(running ? SCAN_BUSY_ICON : SCAN_NORMAL_ICON);
+		SCAN_BUTTON.setRolloverIcon(running ? SCAN_BUSY_ROLLOVER_ICON : SCAN_ROLLOVER_ICON);
+		SCAN_BUTTON.setPressedIcon(running ? SCAN_BUSY_PRESSED_ICON : SCAN_PRESSED_ICON);
+		SCAN_BUTTON.setDisabledIcon(running ? SCAN_BUSY_DISABLED_ICON : SCAN_DISABLED_ICON);
+		SCAN_BUTTON.setToolTipText(running ?
+				Messages.getString("CancelScanningSharedFolders") :
+				Messages.getString("ScanAllSharedFolders")
+			);
 
 		if (enabled) {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
@@ -734,17 +737,6 @@ public class SharedContentTab {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(false);
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));
 		}
-	}
-
-	/**
-	 * @todo combine with setScanLibraryEnabled after we are in sync with DMS
-	 */
-	public static void setScanLibraryBusy() {
-		SCAN_BUTTON.setIcon(SCAN_BUSY_ICON);
-		SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
-		SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
-		SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
-		SCAN_BUTTON.setToolTipText(Messages.getString("CancelScanningSharedFolders"));
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {

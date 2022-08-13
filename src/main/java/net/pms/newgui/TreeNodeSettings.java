@@ -33,6 +33,7 @@ import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
 import net.pms.encoders.Player;
+import net.pms.newgui.players.Players;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +41,8 @@ import org.slf4j.LoggerFactory;
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeNodeSettings.class);
 	private static final long serialVersionUID = -337606760204027449L;
-	private Player player;
-	private JComponent otherConfigPanel;
+	private final Player player;
+	private final JComponent otherConfigPanel;
 	private JPanel warningPanel;
 
 	public Player getPlayer() {
@@ -68,7 +69,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	public JComponent getConfigPanel() {
 		if (player != null) {
 			if (player.isAvailable()) {
-				return player.config();
+				return Players.config(player.name());
 			}
 			return getWarningPanel();
 		} else if (otherConfigPanel != null) {
