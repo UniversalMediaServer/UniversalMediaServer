@@ -150,7 +150,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>3.19.2</version>
+		    <version>4.0.0</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -689,6 +689,12 @@
 			<artifactId>bcrypt</artifactId>
 			<version>0.9.0</version>
 		</dependency>
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<version>4.0.4</version>
+			<type>jar</type>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -1000,7 +1006,7 @@
 							<goal>install-node-and-yarn</goal>
 						</goals>
 						<configuration>
-							<nodeVersion>v16.15.1</nodeVersion>
+							<nodeVersion>v16.16.0</nodeVersion>
 							<yarnVersion>v1.22.19</yarnVersion>
 						</configuration>
 					</execution>
@@ -1019,7 +1025,7 @@
 						</goals>
 						<configuration>
 							<environmentVariables>
-								<PUBLIC_URL>/configuration</PUBLIC_URL>
+								<PUBLIC_URL>/</PUBLIC_URL>
 							</environmentVariables>  
 							<arguments>build</arguments>
 						</configuration>

@@ -17,6 +17,7 @@
  */
 package net.pms.newgui;
 
+import net.pms.newgui.util.SwingUtils;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -48,11 +49,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.BasicSystemUtils;
 import net.pms.newgui.components.CustomHTMLEditorKit;
-import net.pms.util.KeyedComboBoxModel;
+import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.SwingUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

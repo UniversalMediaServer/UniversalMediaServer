@@ -108,6 +108,16 @@ public class AuthService {
 		return getAccountLoggedIn(authHeaders.get(0), host);
 	}
 
+	public static Account getAccountLoggedIn(String authHeader, String host, boolean isLocalhost) {
+		if (!isEnabled() || (isLocalhost && isLocalhostAsAdmin())) {
+			return AccountService.getFakeAdminAccount();
+		}
+		if (authHeader == null) {
+			return null;
+		}
+		return getAccountLoggedIn(authHeader, host);
+	}
+
 	public static boolean isEnabled() {
 		return CONFIGURATION.isAuthenticationEnabled();
 	}

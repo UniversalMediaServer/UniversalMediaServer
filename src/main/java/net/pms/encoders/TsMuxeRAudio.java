@@ -18,7 +18,6 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-import javax.swing.JComponent;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -36,11 +35,6 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	// Not to be instantiated by anything but PlayerFactory
 	TsMuxeRAudio() {
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override

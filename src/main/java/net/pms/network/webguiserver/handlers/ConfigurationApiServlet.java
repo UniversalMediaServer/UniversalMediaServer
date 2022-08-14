@@ -15,19 +15,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.configuration.handlers;
+package net.pms.network.webguiserver.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.*;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,6 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -44,8 +46,8 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.network.webguiserver.ApiHelper;
+import net.pms.network.webguiserver.ServletHelper;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
@@ -57,8 +59,9 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 /**
  * This class handles calls to the internal API.
  */
-public class ConfigurationApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiHandler.class);
+@WebServlet({"/configuration-api"})
+public class ConfigurationApiServlet extends HttpServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
@@ -85,36 +88,30 @@ public class ConfigurationApiHandler implements HttpHandler {
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
 	public static final String BASE_PATH = "/configuration-api";
 
-	/**
-	 * Handle API calls.
-	 *
-	 * @param exchange
-	 * @throws java.io.IOException
-	 */
 	@Override
-	public void handle(HttpExchange exchange) throws IOException {
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		if (ServletHelper.deny(req)) {
+			throw new IOException("Access denied");
+		}
+		if (LOGGER.isTraceEnabled()) {
+			ServletHelper.logHttpServletRequest(req, "");
+		}
+		super.service(req, resp);
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			InetAddress ia = exchange.getRemoteAddress().getAddress();
-			if (WebInterfaceServerUtil.deny(ia)) {
-				exchange.close();
-				return;
-			}
-			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageReceived(exchange, "");
-			}
-			var api = new ApiHelper(exchange, BASE_PATH);
-			/**
-			 * API endpoints
-			 */
+			var api = new ApiHelper(req, BASE_PATH);
 			// this is called by the web interface settings React app on page load
 			if (api.get("/settings")) {
 				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;
 				}
 				if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					return;
 				}
 				JsonObject jsonResponse = new JsonObject();
@@ -147,20 +144,38 @@ public class ConfigurationApiHandler implements HttpHandler {
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
 
-				WebInterfaceServerUtil.respond(exchange, jsonResponse.toString(), 200, "application/json");
-			} else if (api.post("/settings")) {
+				ServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+			} else {
+				LOGGER.trace("ConfigurationApiServlet request not available : {}", api.getEndpoint());
+				ServletHelper.respond(req, resp, null, 404, "application/json");
+			}
+		} catch (RuntimeException e) {
+			LOGGER.trace("", e);
+			ServletHelper.respond(req, resp, null, 500, "application/json");
+		} catch (Exception e) {
+			// Nothing should get here, this is just to avoid crashing the thread
+			LOGGER.error("Unexpected error in ConfigurationApiServlet.doGet(): {}", e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var api = new ApiHelper(req, BASE_PATH);
+			if (api.post("/settings")) {
 				Configuration configuration = CONFIGURATION.getRawConfiguration();
 				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;
 				}
 				if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Forbidden\"}", 403, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
 					return;
 				}
 				// Here we possibly received some updates to config values
-				String configToSave = WebInterfaceServerUtil.getPostString(exchange);
+				String configToSave = ServletHelper.getPostString(req);
 				HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
 				for (Map.Entry configurationSetting : data.entrySet()) {
 					String key = (String) configurationSetting.getKey();
@@ -196,11 +211,11 @@ public class ConfigurationApiHandler implements HttpHandler {
 						LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 					}
 				}
-				WebInterfaceServerUtil.respond(exchange, null, 200, "application/json");
+				ServletHelper.respond(req, resp, null, 200, "application/json");
 			} else if (api.post("/i18n")) {
-				JsonObject post = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+				JsonObject post = ServletHelper.getJsonObjectFromPost(req);
 				if (post == null || !post.has("language") || !post.get("language").isJsonPrimitive()) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
 					return;
 				}
 				Locale locale = Languages.toLocale(post.get("language").getAsString());
@@ -211,30 +226,31 @@ public class ConfigurationApiHandler implements HttpHandler {
 				i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
 				i18n.add("languages", Languages.getLanguagesAsJsonArray(locale));
 				i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
-				WebInterfaceServerUtil.respond(exchange, i18n.toString(), 200, "application/json");
+				ServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
 			} else if (api.post("/directories")) {
 				//only logged users for security concerns
 				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
 				if (account == null) {
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
 					return;
 				}
-				String directoryResponse = getDirectoryResponse(exchange);
+				JsonObject post = ServletHelper.getJsonObjectFromPost(req);
+				String directoryResponse = getDirectoryResponse(post);
 				if (directoryResponse == null) {
-					WebInterfaceServerUtil.respond(exchange, "Directory does not exist", 404, "application/json");
+					ServletHelper.respond(req, resp, "Directory does not exist", 404, "application/json");
 					return;
 				}
-				WebInterfaceServerUtil.respond(exchange, directoryResponse, 200, "application/json");
+				ServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
 			} else {
-				LOGGER.trace("ConfigurationApiHandler request not available : {}", api.getEndpoint());
-				WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
+				LOGGER.trace("ConfigurationApiServlet request not available : {}", api.getEndpoint());
+				ServletHelper.respond(req, resp, null, 404, "application/json");
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebInterfaceServerUtil.respond(exchange, null, 500, "application/json");
+			ServletHelper.respond(req, resp, null, 500, "application/json");
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConfigurationApiHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in ConfigurationApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
@@ -366,8 +382,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 		return jObj;
 	}
 
-	private static String getDirectoryResponse(HttpExchange exchange) {
-		JsonObject data = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
+	private static String getDirectoryResponse(JsonObject data) {
 		String requestedDirectory;
 		if (data != null && data.has("path")) {
 			requestedDirectory = data.get("path").getAsString();
@@ -453,7 +468,7 @@ public class ConfigurationApiHandler implements HttpHandler {
 			JsonObject userConfiguration = new JsonObject();
 			if (configuration.containsKey(key)) {
 				String strValue = Objects.toString(configuration.getProperty(key));
-				if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(key)) {
+				if (StringUtils.isNotEmpty(strValue) || ConfigurationApiServlet.acceptEmptyValueForKey(key)) {
 					//escape "\" char with "\\" otherwise json will fail
 					Map<String, String> propsAsStringMap = new HashMap<>();
 					propsAsStringMap.put(key, strValue.replace("\\", "\\\\"));

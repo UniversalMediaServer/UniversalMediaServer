@@ -24,8 +24,7 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
       .then(function (response: any) {
         setAccounts(response.data);
       })
-      .catch(function (error: Error) {
-        console.log(error);
+      .catch(function () {
         showNotification({
           id: 'accounts-data-loading',
           color: 'red',

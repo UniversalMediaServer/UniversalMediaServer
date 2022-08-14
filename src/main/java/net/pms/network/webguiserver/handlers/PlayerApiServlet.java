@@ -15,29 +15,37 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webinterfaceserver.configuration.handlers;
+package net.pms.network.webguiserver.handlers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
@@ -68,8 +76,9 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.configuration.ApiHelper;
+import net.pms.network.webguiserver.ApiHelper;
+import net.pms.network.webguiserver.ServletHelper;
+import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
@@ -80,153 +89,161 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PlayerApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiHandler.class);
+@WebServlet({"/v1/api/player"})
+public class PlayerApiServlet extends HttpServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Map<String, RootFolder> ROOTS = new HashMap<>();
+	private static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 
 	public static final String BASE_PATH = "/v1/api/player";
 
-	/**
-	 * Handle API calls.
-	 *
-	 * @param exchange
-	 * @throws java.io.IOException
-	 */
 	@Override
-	public void handle(HttpExchange exchange) throws IOException {
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		if (ServletHelper.deny(req)) {
+			throw new IOException("Access denied");
+		}
+		if (LOGGER.isTraceEnabled()) {
+			ServletHelper.logHttpServletRequest(req, "");
+		}
+		super.service(req, resp);
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			if (WebInterfaceServerUtil.deny(exchange)) {
-				exchange.close();
-				return;
-			}
-			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageReceived(exchange, "");
-			}
-			var api = new ApiHelper(exchange, BASE_PATH);
-			try {
-				if (api.get("/")) {
-					String token = createRoot(exchange, null);
-					WebInterfaceServerUtil.respond(exchange, "{\"token\":\"" + token + "\"}", 200, "application/json");
-				} else if (api.post("/browse")) {
-					JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
-					if (action.has("token") && action.has("id")) {
-						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(exchange, token);
-						if (root != null) {
-							String id = action.get("id").getAsString();
-							String search = action.has("search") ? action.get("search").getAsString() : null;
-							JsonObject browse = getBrowsePage(root, id, search);
-							if (browse != null) {
-								WebInterfaceServerUtil.respond(exchange, browse.toString(), 200, "application/json");
-							}
-						}
-					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.post("/play")) {
-					JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
-					if (action.has("token") && action.has("id")) {
-						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(exchange, token);
-						if (root != null) {
-							String id = action.get("id").getAsString();
-							JsonObject play = getPlayPage(root, id);
-							if (play != null) {
-								WebInterfaceServerUtil.respond(exchange, play.toString(), 200, "application/json");
-							}
-						}
-					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.post("/status")) {
-					JsonObject action = WebInterfaceServerUtil.getJsonObjectFromPost(exchange);
-					if (action.has("token")) {
-						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(exchange, token);
-						if (root != null) {
-							WebRender renderer = (WebRender) root.getDefaultRenderer();
-							((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
-							WebInterfaceServerUtil.respond(exchange, "", 200, "application/json");
-						} else {
-							LOGGER.debug("root not found");
-							WebInterfaceServerUtil.respond(exchange, "", 403, "application/json");
-						}
-					} else {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-					}
-				} else if (api.getIn("/thumb/")) {
-					String[] thumbData = api.getEndpoint().split("/");
-					if (thumbData.length == 4) {
-						RootFolder root = getRoot(exchange, thumbData[2]);
-						if (root != null) {
-							DLNAResource resource = root.getDLNAResource(thumbData[3], null);
-							DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
-							if (thumb != null) {
-								Headers hdr = exchange.getResponseHeaders();
-								hdr.add("Content-Type", ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-								hdr.add("Accept-Ranges", "bytes");
-								hdr.add("Connection", "keep-alive");
-								exchange.sendResponseHeaders(200, thumb.getSize());
-								OutputStream os = exchange.getResponseBody();
-								WebInterfaceServerUtil.dump(thumb, os);
-								return;
-							}
-						}
-					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.getIn("/image/")) {
-					String[] imageData = api.getEndpoint().split("/");
-					if (imageData.length == 4) {
-						RootFolder root = getRoot(exchange, imageData[2]);
-						if (root != null && sendImageMedia(exchange, root, imageData[3])) {
+			var api = new ApiHelper(req, BASE_PATH);
+			if (api.get("/")) {
+				String token = createRoot(req, null);
+				ServletHelper.respond(req, resp, "{\"token\":\"" + token + "\"}", 200, "application/json");
+			} else if (api.getIn("/thumb/")) {
+				String[] thumbData = api.getEndpoint().split("/");
+				if (thumbData.length == 4) {
+					RootFolder root = getRoot(req, thumbData[2]);
+					if (root != null) {
+						DLNAResource resource = root.getDLNAResource(thumbData[3], null);
+						DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
+						if (thumb != null) {
+							resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+							resp.setHeader("Accept-Ranges", "bytes");
+							resp.setHeader("Connection", "keep-alive");
+							resp.setStatus(200);
+							resp.setContentLengthLong(thumb.getSize());
+							OutputStream os = resp.getOutputStream();
+							ServletHelper.dump(thumb, os);
 							return;
 						}
 					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.getIn("/raw/")) {
-					String[] rawData = api.getEndpoint().split("/");
-					if (rawData.length == 4) {
-						RootFolder root = getRoot(exchange, rawData[2]);
-						if (root != null && sendRawMedia(exchange, root, rawData[3], false)) {
-							return;
-						}
-					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.getIn("/download/")) {
-					String[] rawData = api.getEndpoint().split("/");
-					if (rawData.length == 4) {
-						RootFolder root = getRoot(exchange, rawData[2]);
-						if (root != null && sendDownloadMedia(exchange, root, rawData[3])) {
-							return;
-						}
-					}
-					WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-				} else if (api.getIn("/media/")) {
-					if (!sendMedia(exchange, api)) {
-						WebInterfaceServerUtil.respond(exchange, "{\"error\": \"Bad Request\"}", 400, "application/json");
-					}
-				} else {
-					LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
-					WebInterfaceServerUtil.respond(exchange, null, 404, "application/json");
 				}
-			} catch (RuntimeException e) {
-				LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
-				WebInterfaceServerUtil.respond(exchange, "Internal server error", 500, "application/json");
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.getIn("/image/")) {
+				String[] imageData = api.getEndpoint().split("/");
+				if (imageData.length == 4) {
+					RootFolder root = getRoot(req, imageData[2]);
+					if (root != null && sendImageMedia(req, resp, root, imageData[3])) {
+						return;
+					}
+				}
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.getIn("/raw/")) {
+				String[] rawData = api.getEndpoint().split("/");
+				if (rawData.length == 4) {
+					RootFolder root = getRoot(req, rawData[2]);
+					if (root != null && sendRawMedia(req, resp, root, rawData[3], false)) {
+						return;
+					}
+				}
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.getIn("/download/")) {
+				String[] rawData = api.getEndpoint().split("/");
+				if (rawData.length == 4) {
+					RootFolder root = getRoot(req, rawData[2]);
+					if (root != null && sendDownloadMedia(req, resp, root, rawData[3])) {
+						return;
+					}
+				}
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.getIn("/media/")) {
+				if (!sendMedia(req, resp, api)) {
+					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				}
+			} else {
+				LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
+				ServletHelper.respond(req, resp, null, 404, "application/json");
 			}
-		} catch (IOException | InterruptedException e) {
-			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in PlayerApiHandler.handle(): {}", e.getMessage());
-			LOGGER.trace("", e);
+		} catch (RuntimeException e) {
+			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
+			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
 		}
 	}
 
-	static private RootFolder getRoot(HttpExchange exchange, String token) {
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var api = new ApiHelper(req, BASE_PATH);
+			if (api.post("/browse")) {
+				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
+				if (action.has("token") && action.has("id")) {
+					String token = action.get("token").getAsString();
+					RootFolder root = getRoot(req, token);
+					if (root != null) {
+						String id = action.get("id").getAsString();
+						String search = action.has("search") ? action.get("search").getAsString() : null;
+						JsonObject browse = getBrowsePage(root, id, search);
+						if (browse != null) {
+							ServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
+						}
+					}
+				}
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.post("/play")) {
+				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
+				if (action.has("token") && action.has("id")) {
+					String token = action.get("token").getAsString();
+					RootFolder root = getRoot(req, token);
+					if (root != null) {
+						String id = action.get("id").getAsString();
+						JsonObject play = getPlayPage(root, id);
+						if (play != null) {
+							ServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+						}
+					}
+				}
+				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+			} else if (api.post("/status")) {
+				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
+				if (action.has("token")) {
+					String token = action.get("token").getAsString();
+					RootFolder root = getRoot(req, token);
+					if (root != null) {
+						WebRender renderer = (WebRender) root.getDefaultRenderer();
+						((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
+						ServletHelper.respond(req, resp, "", 200, "application/json");
+					} else {
+						LOGGER.debug("root not found");
+						ServletHelper.respond(req, resp, "", 403, "application/json");
+					}
+				} else {
+					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				}
+			} else {
+				LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
+				ServletHelper.respond(req, resp, null, 404, "application/json");
+			}
+		} catch (RuntimeException | InterruptedException e) {
+			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
+			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+		}
+	}
+	
+	static private RootFolder getRoot(HttpServletRequest req, String token) {
 		synchronized (ROOTS) {
 			if (ROOTS.containsKey(token)) {
 				return ROOTS.get(token);
 			}
 		}
 		if (isValidToken(token)) {
-			createRoot(exchange, token);
+			createRoot(req, token);
 			synchronized (ROOTS) {
 				if (ROOTS.containsKey(token)) {
 					return ROOTS.get(token);
@@ -245,7 +262,7 @@ public class PlayerApiHandler implements HttpHandler {
 		}
 	}
 
-	static private String createRoot(HttpExchange exchange, String givenToken) {
+	static private String createRoot(HttpServletRequest req, String givenToken) {
 		RootFolder root = new RootFolder();
 		String token = null;
 		if (givenToken != null && isValidToken(givenToken)) {
@@ -269,12 +286,12 @@ public class PlayerApiHandler implements HttpHandler {
 			WebRender render = new WebRender("");
 			root.setDefaultRenderer(render);
 			render.setRootFolder(root);
-			render.associateIP(exchange.getRemoteAddress().getAddress());
-			render.associatePort(exchange.getRemoteAddress().getPort());
+			render.associateIP(ServletHelper.getInetAddress(req.getRemoteAddr()));
+			render.associatePort(req.getRemotePort());
 			if (CONFIGURATION.useWebSubLang()) {
-				render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(exchange), ","));
+				render.setSubLang(ServletHelper.getLangs(req));
 			}
-			render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", exchange), exchange.getRequestHeaders().getFirst("User-agent"));
+			render.setBrowserInfo(ServletHelper.getCookie(req, "UMSINFO").toString(), req.getHeader("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
 			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -459,7 +476,7 @@ public class PlayerApiHandler implements HttpHandler {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, true, root);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, true, root);
 					if (apiMetadata != null) {
 						result.add("metadata", apiMetadata);
 					}
@@ -610,7 +627,7 @@ public class PlayerApiHandler implements HttpHandler {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject apiMetadata = WebInterfaceServerUtil.getAPIMetadataAsJsonObject(rootResource, false, root);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, false, root);
 					media.add("metadata", apiMetadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
@@ -620,9 +637,9 @@ public class PlayerApiHandler implements HttpHandler {
 					}
 				}
 
-				if (!WebInterfaceServerUtil.directmime(mime) || WebInterfaceServerUtil.transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
+				if (!directmime(mime) || transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 					WebRender render = (WebRender) rootResource.getDefaultRenderer();
-					mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
+					mime = render != null ? render.getVideoMimeType() : MIME_TRANS;
 				}
 				if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
 					media.addProperty("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
@@ -762,7 +779,7 @@ public class PlayerApiHandler implements HttpHandler {
 		return in;
 	}
 
-	private boolean sendRawMedia(HttpExchange exchange, RootFolder root, String id, boolean isDownload) {
+	private boolean sendRawMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id, boolean isDownload) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -774,41 +791,43 @@ public class PlayerApiHandler implements HttpHandler {
 			DLNAResource dlna = res.get(0);
 			long len = dlna.length();
 			dlna.setPlayer(null);
-			Range.Byte range = WebInterfaceServerUtil.parseRange(exchange.getRequestHeaders(), len);
+			Range.Byte range = parseRange(req, len);
 			InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 			if (len == 0) {
 				// For web resources actual length may be unknown until we open the stream
 				len = dlna.length();
 			}
 			String mime = root.getDefaultRenderer().getMimeType(dlna);
-			Headers hdr = exchange.getResponseHeaders();
-			hdr.add("Content-Type", mime);
-			hdr.add("Accept-Ranges", "bytes");
-			hdr.add("Server", PMS.get().getServerName());
-			hdr.add("Connection", "keep-alive");
-			hdr.add("Transfer-Encoding", "chunked");
+			resp.setContentType(mime);
+			resp.setHeader("Accept-Ranges", "bytes");
+			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Connection", "keep-alive");
+			resp.setHeader("Transfer-Encoding", "chunked");
+			
 			if (isDownload) {
-				hdr.add("Content-Disposition", "attachment; filename=\"" + new File(dlna.getFileName()).getName() + "\"");
+				resp.setHeader("Content-Disposition", "attachment; filename=\"" + new File(dlna.getFileName()).getName() + "\"");
 			}
 			if (in != null && in.available() != len) {
-				hdr.add("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
-				exchange.sendResponseHeaders(206, in.available());
+				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
+				resp.setStatus(206);
+				resp.setContentLength(in.available());
 			} else {
-				exchange.sendResponseHeaders(200, 0);
+				resp.setStatus(200);
+				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+				ServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
-			OutputStream os = new BufferedOutputStream(exchange.getResponseBody(), 512 * 1024);
+			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 			LOGGER.debug("start raw dump");
-			WebInterfaceServerUtil.dump(in, os);
+			ServletHelper.dump(in, os);
 		} catch (IOException ex) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean sendDownloadMedia(HttpExchange exchange, RootFolder root, String id) {
+	private boolean sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -820,17 +839,17 @@ public class PlayerApiHandler implements HttpHandler {
 			DLNAResource dlna = res.get(0);
 			File media = new File(dlna.getFileName());
 			String mime = root.getDefaultRenderer().getMimeType(dlna);
-			Headers hdr = exchange.getResponseHeaders();
-			hdr.add("Content-Type", mime);
-			hdr.add("Server", PMS.get().getServerName());
-			hdr.add("Connection", "keep-alive");
-			hdr.add("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
-			exchange.sendResponseHeaders(200, media.length());
+			resp.setContentType(mime);
+			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Connection", "keep-alive");
+			resp.setHeader("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
+			resp.setStatus(200);
+			resp.setContentLengthLong(media.length());
 			InputStream in = dlna.getInputStream();
 			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+				ServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
-			OutputStream os = exchange.getResponseBody();
+			OutputStream os = resp.getOutputStream();
 			byte[] buffer = new byte[32 * 1024];
 			int bytes;
 			while ((bytes = in.read(buffer)) != -1) {
@@ -843,7 +862,7 @@ public class PlayerApiHandler implements HttpHandler {
 		return true;
 	}
 
-	private boolean sendImageMedia(HttpExchange exchange, RootFolder root, String id) {
+	private boolean sendImageMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -891,38 +910,39 @@ public class PlayerApiHandler implements HttpHandler {
 			} else {
 				return false;
 			}
-			Headers hdr = exchange.getResponseHeaders();
-			hdr.add("Content-Type", mime);
-			hdr.add("Accept-Ranges", "bytes");
-			hdr.add("Server", PMS.get().getServerName());
-			hdr.add("Connection", "keep-alive");
-			hdr.add("Transfer-Encoding", "chunked");
+			resp.setContentType(mime);
+			resp.setHeader("Accept-Ranges", "bytes");
+			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Connection", "keep-alive");
+			resp.setHeader("Transfer-Encoding", "chunked");
 			if (in != null && in.available() != len) {
-				hdr.add("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
-				exchange.sendResponseHeaders(206, in.available());
+				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
+				resp.setStatus(206);
+				resp.setContentLength(in.available());
 			} else {
-				exchange.sendResponseHeaders(200, 0);
+				resp.setStatus(200);
+				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+				ServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
-			OutputStream os = new BufferedOutputStream(exchange.getResponseBody(), 512 * 1024);
-			WebInterfaceServerUtil.dump(in, os);
+			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
+			ServletHelper.dump(in, os);
 		} catch (IOException ex) {
 			return false;
 		}
 		return true;
 	}
 
-	private static boolean sendMedia(HttpExchange exchange, ApiHelper api) {
+	private static boolean sendMedia(HttpServletRequest req, HttpServletResponse resp, ApiHelper api) {
 		String[] rawData = api.getEndpoint().split("/");
 		if (rawData.length < 4) {
 			return false;
 		}
 		String sessionId = rawData[2];
 		String resourceId = rawData[3];
-		String uri = exchange.getRequestURI().getPath();
-		RootFolder root = getRoot(exchange, sessionId);
+		String uri = req.getRequestURI();
+		RootFolder root = getRoot(req, sessionId);
 		RendererConfiguration renderer = root.getDefaultRenderer();
 		DLNAResource resource = root.getDLNAResource(resourceId, renderer);
 		if (resource == null) {
@@ -944,7 +964,7 @@ public class PlayerApiHandler implements HttpHandler {
 		int code = 200;
 		resource.setDefaultRenderer(renderer);
 		if (resource.getFormat().isVideo()) {
-			if (!WebInterfaceServerUtil.directmime(mimeType) || WebInterfaceServerUtil.transMp4(mimeType, media)) {
+			if (!directmime(mimeType) || transMp4(mimeType, media)) {
 				mimeType = render.getVideoMimeType();
 				// TODO: Use normal engine priorities instead of the following hacks
 				if (FileUtil.isUrl(resource.getSystemName())) {
@@ -969,7 +989,7 @@ public class PlayerApiHandler implements HttpHandler {
 			}
 		}
 
-		if (!WebInterfaceServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
+		if (!directmime(mimeType) && resource.getFormat().isAudio()) {
 			resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
 			code = 206;
 		}
@@ -977,78 +997,79 @@ public class PlayerApiHandler implements HttpHandler {
 		try {
 			//hls part
 			if (resource.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {
-				Headers headers = exchange.getResponseHeaders();
-				headers.add("Server", PMS.get().getServerName());
+				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = DLNAMediaChapter.getWebVtt(resource);
-					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+					ServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
 					String response = DLNAMediaChapter.getHls(resource);
-					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.JSON_TYPEMIME);
+					ServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
 						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, BASE_PATH + "/media/" + sessionId + "/", rendition);
-						WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.HLS_TYPEMIME);
+						ServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						InputStream in = HlsHelper.getInputStream(uri, resource, renderer);
 
 						if (in != null) {
-							headers.add("Connection", "keep-alive");
+							resp.setHeader("Connection", "keep-alive");
 							if (uri.endsWith(".ts")) {
-								headers.add("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+								resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 							} else if (uri.endsWith(".vtt")) {
-								headers.add("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
-							OutputStream os = exchange.getResponseBody();
-							exchange.sendResponseHeaders(200, 0); //chunked
+							OutputStream os = resp.getOutputStream();
+							resp.setStatus(200);
+							resp.setContentLength(0);
 							((WebRender) renderer).start(resource);
 							if (LOGGER.isTraceEnabled()) {
-								WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+								ServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
-							WebInterfaceServerUtil.dump(in, os);
+							ServletHelper.dump(in, os);
 						} else {
-							exchange.sendResponseHeaders(500, -1);
+							resp.setStatus(500);
+							resp.setContentLength(-1);
 						}
 					}
 				} else {
 					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), BASE_PATH + "/media/" + sessionId + "/");
-					WebInterfaceServerUtil.respond(exchange, response, 200, HTTPResource.HLS_TYPEMIME);
+					ServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
 				media.setMimeType(mimeType);
-				Range.Byte range = WebInterfaceServerUtil.parseRange(exchange.getRequestHeaders(), resource.length());
+				Range.Byte range = parseRange(req, resource.length());
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 				InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 				if (range.getEnd() == 0) {
 					// For web resources actual length may be unknown until we open the stream
 					range.setEnd(resource.length());
 				}
-				Headers headers = exchange.getResponseHeaders();
-				headers.add("Content-Type", mimeType);
-				headers.add("Accept-Ranges", "bytes");
+				resp.setContentType(mimeType);
+				resp.setHeader("Accept-Ranges", "bytes");
 				long end = range.getEnd();
 				long start = range.getStart();
 				String rStr = start + "-" + end + "/*";
-				headers.add("Content-Range", "bytes " + rStr);
+				resp.setHeader("Content-Range", "bytes " + rStr);
 				if (start != 0) {
 					code = 206;
 				}
 
-				headers.add("Server", PMS.get().getServerName());
-				headers.add("Connection", "keep-alive");
-				exchange.sendResponseHeaders(code, 0);
+				resp.setHeader("Server", PMS.get().getServerName());
+				resp.setHeader("Connection", "keep-alive");
+				resp.setStatus(code);
+				resp.setContentLength(0);
 				if (LOGGER.isTraceEnabled()) {
-					WebInterfaceServerUtil.logMessageSent(exchange, null, in);
+					ServletHelper.logHttpServletResponse(req, resp, null, in);
 				}
-				OutputStream os = exchange.getResponseBody();
+				OutputStream os = resp.getOutputStream();
 				render.start(resource);
 				if (sid != null) {
 					resource.setMediaSubtitle(sid);
 				}
-				WebInterfaceServerUtil.dump(in, os);
+				ServletHelper.dump(in, os);
 			}
 		} catch (IOException ex) {
 			return false;
@@ -1072,4 +1093,175 @@ public class PlayerApiHandler implements HttpHandler {
 			ROOTS.clear();
 		}
 	}
+
+	/**
+	 * Gets metadata from our database, which may be there from our API, for
+	 * this resource, which could be a TV series, TV episode, or movie.
+	 *
+	 * @param resource
+	 * @param isTVSeries whether this is a TV series, or an episode/movie
+	 * @param rootFolder the root folder, used for looking up IDs
+	 * @return a JsonObject to be used by a web browser which includes
+	 *         metadata names and when applicable, associated IDs, or null
+	 *         when there is no metadata
+	 */
+	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
+		JsonObject result = null;
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection != null) {
+				if (isTVSeries) {
+					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
+					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle);
+				} else {
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while getting metadata for web interface");
+			LOGGER.debug("", e);
+		}
+		if (result == null) {
+			return null;
+		}
+		DLNAResource actorsFolder = null;
+		DLNAResource countriesFolder = null;
+		DLNAResource directorsFolder = null;
+		DLNAResource genresFolder = null;
+		DLNAResource ratedFolder = null;
+
+		// prepare to get IDs of certain metadata resources, to make them clickable
+		List<DLNAResource> rootFolderChildren = rootFolder.getDLNAResources("0", true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("MediaLibrary"));
+		UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
+		if (rootFolderChildren.isEmpty()) {
+			return null;
+		}
+		DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
+		List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Video"));
+		UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
+		DLNAResource videoFolder = mediaLibraryChildren.get(0);
+
+		boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+		String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
+		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), folderName);
+		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
+		DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+
+		List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("FilterByInformation"));
+		UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
+		DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+
+		List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), Messages.getString("Genres"));
+
+		for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+			DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+			if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
+				actorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
+				countriesFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
+				directorsFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
+				genresFolder = filterByInformationChild;
+			} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
+				ratedFolder = filterByInformationChild;
+			}
+		}
+
+		addJsonArrayDlnaIds(result, "actors", actorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "countries", countriesFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
+		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
+		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
+
+		return result;
+	}
+
+	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonArray()) {
+				JsonArray array = element.getAsJsonArray();
+				if (!array.isEmpty() && folder != null) {
+					JsonArray dlnaChilds = new JsonArray();
+					for (JsonElement child : array) {
+						if (child.isJsonPrimitive()) {
+							String value = child.getAsString();
+							List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+							UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+							if (!folderChildren.isEmpty()) {
+								JsonObject dlnaChild = new JsonObject();
+								dlnaChild.addProperty("id", folderChildren.get(0).getId());
+								dlnaChild.addProperty("name", value);
+								dlnaChilds.add(dlnaChild);
+							}
+						}
+					}
+					object.add(memberName, dlnaChilds);
+				}
+			}
+		}
+	}
+
+	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+		if (object.has(memberName)) {
+			JsonElement element = object.remove(memberName);
+			if (element.isJsonPrimitive() && folder != null) {
+				String value = element.getAsString();
+				List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, rootFolder.getDefaultRenderer(), value);
+				UMSUtils.filterResourcesByName(folderChildren, value, true, true);
+				if (!folderChildren.isEmpty()) {
+					JsonObject dlnaChild = new JsonObject();
+					dlnaChild.addProperty("id", folderChildren.get(0).getId());
+					dlnaChild.addProperty("name", value);
+					object.add(memberName, dlnaChild);
+				}
+			}
+		}
+	}
+
+	private static Range.Byte parseRange(HttpServletRequest req, long len) {
+		String range = req.getHeader("Range");
+		if (range == null || "".equals(range)) {
+			return new Range.Byte(0L, len);
+		}
+		String[] tmp = range.split("=")[1].split("-");
+		long start = Long.parseLong(tmp[0]);
+		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
+		return new Range.Byte(start, end);
+	}
+
+	/**
+	 * Whether the MIME type is supported by all browsers.
+	 * Note: This is a flawed approach because while browsers
+	 * may support the container format, they may not support
+	 * the codecs within. For example, most browsers support
+	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 *
+	 * @param mime
+	 * @return
+	 * @todo refactor to be more specific
+	 */
+	private static boolean directmime(String mime) {
+		return mime != null &&
+		(
+			mime.equals(HTTPResource.MP4_TYPEMIME) ||
+			mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+			mime.equals(HTTPResource.OGG_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+			mime.equals(HTTPResource.BMP_TYPEMIME) ||
+			mime.equals(HTTPResource.PNG_TYPEMIME) ||
+			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+			mime.equals(HTTPResource.GIF_TYPEMIME)
+		);
+	}
+
+	public static boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile " + media.getH264Profile());
+		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+	}
+
 }

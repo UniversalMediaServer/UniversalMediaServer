@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -33,9 +34,9 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
-import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
+import net.pms.network.webguiserver.handlers.ConfigurationApiServlet;
+import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.GeneralTab;
-import net.pms.newgui.StatusTab;
 import net.pms.util.BasicPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
@@ -80,7 +81,9 @@ public class RendererConfiguration extends Renderer {
 	protected List<String> identifiers = null;
 	protected BasicPlayer player;
 
-	public StatusTab.RendererItem gui;
+	protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
+	protected final LinkedHashSet<IRendererGuiListener> guiListeners = new LinkedHashSet<>();
+
 	public boolean loaded = false;
 	public boolean fileless = false;
 
@@ -1667,8 +1670,68 @@ public class RendererConfiguration extends Renderer {
 	@Override
 	public void setActive(boolean b) {
 		super.setActive(b);
-		if (gui != null) {
-			gui.icon.setGrey(!active);
+		refreshActiveGui(b);
+	}
+
+	public void addGuiListener(IRendererGuiListener gui) {
+		listenersLock.readLock().lock();
+		try {
+			guiListeners.add(gui);
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void removeGuiListener(IRendererGuiListener gui) {
+		listenersLock.readLock().lock();
+		try {
+			guiListeners.remove(gui);
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void updateRendererGui() {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.updateRenderer(this);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshActiveGui(boolean b) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setActive(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshPlayerStateGui(BasicPlayer.State state) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.refreshPlayerState(state);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void deleteGuis() {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.delete();
+			}
+		} finally {
+			listenersLock.readLock().unlock();
 		}
 	}
 
@@ -1683,9 +1746,7 @@ public class RendererConfiguration extends Renderer {
 			// Make sure we haven't been reactivated while asleep
 			if (!r.isActive()) {
 				LOGGER.debug("Deleting renderer " + r);
-				if (r.gui != null) {
-					r.gui.delete();
-				}
+				r.deleteGuis();
 				PMS.get().getFoundRenderers().remove(r);
 				UPNPHelper.getInstance().removeRenderer(r);
 				InetAddress ia = r.getAddress();
@@ -1697,14 +1758,6 @@ public class RendererConfiguration extends Renderer {
 		});
 		t.setRepeats(false);
 		t.start();
-	}
-
-	public void setGuiComponents(StatusTab.RendererItem item) {
-		gui = item;
-	}
-
-	public StatusTab.RendererItem getGuiComponents() {
-		return gui;
 	}
 
 	/**
@@ -3145,13 +3198,12 @@ public class RendererConfiguration extends Renderer {
 		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
-		configurationAsProperties.forEach(
-			(key, value) -> {
+		configurationAsProperties.forEach((key, value) -> {
 				String strKey = Objects.toString(key);
-				if (ConfigurationApiHandler.haveKey(strKey)) {
+				if (ConfigurationApiServlet.haveKey(strKey)) {
 					String strValue = Objects.toString(value);
 					//do not add non acceptable empty key then it back to default
-					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiHandler.acceptEmptyValueForKey(strKey)) {
+					if (StringUtils.isNotEmpty(strValue) || ConfigurationApiServlet.acceptEmptyValueForKey(strKey)) {
 						//escape "\" char with "\\" otherwise json will fail
 						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 					}

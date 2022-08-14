@@ -23,7 +23,7 @@ import ch.qos.logback.core.status.ErrorStatus;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.newgui.IFrame;
+import net.pms.gui.IFrame;
 
 /**
  * Special Logback appender to 'print' log messages on the UMS GUI.

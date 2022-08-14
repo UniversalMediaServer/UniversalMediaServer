@@ -404,6 +404,37 @@ const Accounts = () => {
     );
   };
 
+  function AuthenticateLocalhostAdmin() {
+    const [localhostOpened, setLocalhostOpened] = useState(false);
+    const handleAuthenticateLocalhostToggle = () => {
+      const data = {operation:'localhost', enabled:!accounts.localhost};
+      postAccountAuthAction(data, i18n.get['AuthenticationServiceNotToggled']);
+    }
+    return accounts.localhost ? (
+      <Group position='left' mt='md'>
+        <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Disable']}</Button>
+        <Text>{i18n.get['AuthenticateLocalhostAdminEnabled']}</Text>
+      </Group>
+    ) : (<>
+      <Group position='left' mt='md'>
+        <Modal
+          centered
+          opened={localhostOpened}
+          onClose={() => setLocalhostOpened(false)}
+          title={i18n.get['Warning']}
+        >
+          <Text>{i18n.get['EnablingAuthenticateLocalhost']}</Text>
+          <Group position='right' mt='md'>
+            <Button onClick={() => setLocalhostOpened(false)}>{i18n.get['Cancel']}</Button>
+            <Button color="red" onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Confirm']}</Button>
+          </Group>
+        </Modal>
+        <Button onClick={() => setLocalhostOpened(true)}>{i18n.get['Enable']}</Button>
+        <Text>{i18n.get['AuthenticateLocalhostAdminDisabled']}</Text>
+      </Group>
+    </>)
+  };
+
   function AuthenticationServiceButton() {
     const [authOpened, setAuthOpened] = useState(false);
     const handleAuthenticationToggle = () => {
@@ -434,37 +465,6 @@ const Accounts = () => {
         <Text>{i18n.get['AuthenticationServiceDisabled']}</Text>
       </Group>
     );
-  };
-
-  function AuthenticateLocalhostAdmin() {
-    const [localhostOpened, setLocalhostOpened] = useState(false);
-    const handleAuthenticateLocalhostToggle = () => {
-      const data = {operation:'localhost', enabled:!accounts.localhost};
-      postAccountAuthAction(data, i18n.get['AuthenticationServiceNotToggled']);
-    }
-    return accounts.localhost ? (
-      <Group position='left' mt='md'>
-        <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Disable']}</Button>
-        <Text>{i18n.get['AuthenticateLocalhostAdminEnabled']}</Text>
-      </Group>
-    ) : (<>
-      <Group position='left' mt='md'>
-        <Modal
-          centered
-          opened={localhostOpened}
-          onClose={() => setLocalhostOpened(false)}
-          title={i18n.get['Warning']}
-        >
-          <Text>{i18n.get['EnablingAuthenticateLocalhost']}</Text>
-          <Group position='right' mt='md'>
-            <Button onClick={() => setLocalhostOpened(false)}>{i18n.get['Cancel']}</Button>
-            <Button color="red" onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Confirm']}</Button>
-          </Group>
-        </Modal>
-        <Button onClick={() => setLocalhostOpened(true)}>{i18n.get['Enable']}</Button>
-        <Text>{i18n.get['AuthenticateLocalhostAdminDisabled']}</Text>
-      </Group>
-    </>)
   };
 
   return (

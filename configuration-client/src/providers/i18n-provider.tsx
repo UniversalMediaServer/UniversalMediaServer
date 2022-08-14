@@ -34,8 +34,9 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
     if (value == null || value.length < 1) { return "";}
     let result = getI18nString(value[0]);
     for (let i = 1; i < value.length; i++) {
-      if (value[i].includes('%' + i + '$s')) {
-        result = result.replace('%' + i + '$s', getI18nString(value[i]));
+      const str = '%' + i.toString() + '$s';
+      if (value[i].includes(str)) {
+        result = result.replace(str, getI18nString(value[i]));
       } else if (value[i].includes('%s')) {
         result = result.replace('%s', getI18nString(value[i]));
       }
@@ -50,8 +51,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
         setI18n(response.data.i18n);
         setRtl(response.data.isRtl);
       })
-      .catch(function (error: Error) {
-        console.log(error);
+      .catch(function () {
         showNotification({
           id: 'data-loading',
           color: 'red',

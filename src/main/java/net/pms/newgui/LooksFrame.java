@@ -17,6 +17,8 @@
  */
 package net.pms.newgui;
 
+import net.pms.gui.IFrame;
+import net.pms.gui.ViewLevel;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
@@ -44,10 +46,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.EConnectionState;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
@@ -674,7 +676,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setConnectionState(final ConnectionState connectionState) {
+	public void setConnectionState(final EConnectionState connectionState) {
 		SwingUtilities.invokeLater(() -> {
 			st.setConnectionState(connectionState);
 		});
@@ -806,8 +808,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void setScanLibraryEnabled(boolean flag) {
-		getSharedContentTab().setScanLibraryEnabled(flag);
+	public void setScanLibraryStatus(boolean enabled, boolean running) {
+		SharedContentTab.setScanLibraryEnabled(enabled, running);
 	}
 
 	@Override

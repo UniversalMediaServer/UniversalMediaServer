@@ -41,7 +41,7 @@ const About = () => {
       .then(function (response: any) {
         setAboutDatas(response.data);
       })
-      .catch(function (error: Error) {
+      .catch(function () {
         showNotification({
           id: 'about-data-loading',
           color: 'red',
