@@ -541,7 +541,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 			if (split.length > 1 && split[1].contains("q=")) {
 				try {
 					factor = Float.parseFloat(split[1].substring(2));
-				} catch(NumberFormatException e) {
+				} catch (NumberFormatException e) {
 				}
 			}
 			result.put(locale, factor);
@@ -553,7 +553,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 		Collections.sort(listOfEntries, valueComparator);
 		locales = new ArrayList<>();
 		locales.add(PMS.getLocale());
-		for(Entry<Locale, Float> entry : listOfEntries){
+		for (Entry<Locale, Float> entry : listOfEntries) {
 			locales.add(entry.getKey());
 		}
 	}

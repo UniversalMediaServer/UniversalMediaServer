@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -235,7 +235,7 @@ public class PlayerApiServlet extends HttpServlet {
 			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
 		}
 	}
-	
+
 	static private RootFolder getRoot(HttpServletRequest req, String token) {
 		synchronized (ROOTS) {
 			if (ROOTS.containsKey(token)) {
@@ -291,7 +291,8 @@ public class PlayerApiServlet extends HttpServlet {
 			if (CONFIGURATION.useWebSubLang()) {
 				render.setSubLang(ServletHelper.getLangs(req));
 			}
-			render.setBrowserInfo(ServletHelper.getCookie(req, "UMSINFO").toString(), req.getHeader("User-agent"));
+			Cookie cookie = ServletHelper.getCookie(req, "UMSINFO");
+			render.setBrowserInfo(cookie != null ? cookie.toString() : "", req.getHeader("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
 			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -803,7 +804,7 @@ public class PlayerApiServlet extends HttpServlet {
 			resp.setHeader("Server", PMS.get().getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			resp.setHeader("Transfer-Encoding", "chunked");
-			
+
 			if (isDownload) {
 				resp.setHeader("Content-Disposition", "attachment; filename=\"" + new File(dlna.getFileName()).getName() + "\"");
 			}
@@ -1105,7 +1106,7 @@ public class PlayerApiServlet extends HttpServlet {
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
+	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
 		JsonObject result = null;
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
@@ -1259,7 +1260,7 @@ public class PlayerApiServlet extends HttpServlet {
 		);
 	}
 
-	public static boolean transMp4(String mime, DLNAMediaInfo media) {
+	private static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
 		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}

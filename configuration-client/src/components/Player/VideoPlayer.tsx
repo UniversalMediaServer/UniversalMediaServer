@@ -94,7 +94,7 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
         }
       }
 	  if (vpOptions.media.mime === 'application/x-mpegURL') {
-        videoPlayer.hlsQualitySelector();
+        //videoPlayer.hlsQualitySelector();
 	  }
     };
 

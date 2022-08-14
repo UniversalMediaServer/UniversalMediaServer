@@ -271,9 +271,11 @@ public class ServletHelper {
 
 	public static Cookie getCookie(HttpServletRequest req, String name) {
 		Cookie[] cookies = req.getCookies();
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equalsIgnoreCase(name)) {
-				return cookie;
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equalsIgnoreCase(name)) {
+					return cookie;
+				}
 			}
 		}
 		return null;
