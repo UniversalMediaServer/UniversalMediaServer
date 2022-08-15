@@ -305,8 +305,14 @@ public class HttpExchangeServletResponse implements HttpServletResponse {
 				printWriter.flush();
 			}
 			if (servletOutputStream != null) {
-				servletOutputStream.flush();
-				servletOutputStream.close();
+				try {
+					servletOutputStream.flush();
+				} catch (IOException ex) {
+				}
+				try {
+					servletOutputStream.close();
+				} catch (IOException ex) {
+				}
 			}
 		} finally {
 			super.finalize();

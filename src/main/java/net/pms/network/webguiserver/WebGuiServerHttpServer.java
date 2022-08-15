@@ -34,7 +34,6 @@ import net.pms.network.webguiserver.servlets.AccountApiServlet;
 import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
 import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
-import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import org.slf4j.Logger;
@@ -75,7 +74,6 @@ public class WebGuiServerHttpServer implements WebInterfaceServerInterface {
 				container.createServlet(ActionsApiServlet.class);
 				container.createServlet(AuthApiServlet.class);
 				container.createServlet(ConfigurationApiServlet.class);
-				container.createServlet(PlayerApiServlet.class);
 				container.createServlet(SseApiServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());

@@ -210,7 +210,7 @@ public class ConfigurationApiServlet extends HttpServlet {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, null, 200, "application/json");
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/i18n" -> {
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
