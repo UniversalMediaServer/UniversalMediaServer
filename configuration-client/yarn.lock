@@ -2281,18 +2281,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:5.1.5":
-  version: 5.1.5
-  resolution: "@mantine/notifications@npm:5.1.5"
+"@mantine/notifications@npm:5.1.6":
+  version: 5.1.6
+  resolution: "@mantine/notifications@npm:5.1.6"
   dependencies:
-    "@mantine/utils": 5.1.5
+    "@mantine/utils": 5.1.6
     react-transition-group: 4.4.2
   peerDependencies:
-    "@mantine/core": 5.1.5
-    "@mantine/hooks": 5.1.5
+    "@mantine/core": 5.1.6
+    "@mantine/hooks": 5.1.6
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: b43b4804b1640d4ef15b0b74fdb38af9d76ec8edf18de85ff7d3cca4b937a057ef48e804f65eb81d05d037cd011c96cb386adac6e4e3a2841ff586f8a61fd281
+  checksum: ed4fe2cf2067d6bcca35b15d15d8d0b1b08388e4c3f99c449aaff3a8dafe253d3716d008c24dfbe5fe37b5671b454c8bd7ce819420a1f1865cf8fc0947b465e8
   languageName: node
   linkType: hard
 
