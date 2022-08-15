@@ -2246,15 +2246,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.1.5":
-  version: 5.1.5
-  resolution: "@mantine/form@npm:5.1.5"
+"@mantine/form@npm:5.1.6":
+  version: 5.1.6
+  resolution: "@mantine/form@npm:5.1.6"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: be71d2189a9b748e4259d05aa97911677f077eb9a7b9f7c14efe7ca0856fc501b2babfbcffe73800c1222caeee34fc49e253664e248411ac1bbbd7efc5ac1905
+  checksum: e3b2945011021f601243c76f5d21efd93990c5d52f68e697cced075b0e8e5d98e022bc4e66b6cb414bf394ea02a74ac9551549cad301af164f4d9c3db6e6625c
   languageName: node
   linkType: hard
 
@@ -2322,15 +2322,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: b538fb69666135a5c2f0490bd9157474cfffdfe69dd12d1d0961e5559909394d3aac73da0e40f6882171d39d6cfb6243c18e2845afe1623336534a7bff64fbcc
-  languageName: node
-  linkType: hard
-
-"@mantine/utils@npm:5.1.5":
-  version: 5.1.5
-  resolution: "@mantine/utils@npm:5.1.5"
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: 5732f365cb593925579a8e5b23f9e08c77473896697638fc56fbef5ac54fef38c99c1df09f9d61b18461e9be6b78ba98d56f5a4cfbe6f4aa259ffc7da3cc8a61
   languageName: node
   linkType: hard
 
