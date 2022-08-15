@@ -2325,15 +2325,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/utils@npm:5.1.6":
-  version: 5.1.6
-  resolution: "@mantine/utils@npm:5.1.6"
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: 7c62f013a5d32b03819b6a95ee6b076158e972f2d65d7debe716b81c5829580c49057d4ec16cf03cecd76171dc47771cfc9f4a7ea2eadae83a9f2f2079657e2a
-  languageName: node
-  linkType: hard
-
 "@microsoft/fetch-event-source@npm:2.0.1":
   version: 2.0.1
   resolution: "@microsoft/fetch-event-source@npm:2.0.1"
