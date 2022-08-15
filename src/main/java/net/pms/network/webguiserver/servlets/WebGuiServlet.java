@@ -29,7 +29,7 @@ import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/"})
+@WebServlet(name = "WebGuiServlet", urlPatterns = {"/"}, displayName = "Web Gui Servlet")
 public class WebGuiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServlet.class);
 
@@ -37,7 +37,6 @@ public class WebGuiServlet extends HttpServlet {
 	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
 		"/about",
 		"/accounts",
-		"/player",
 		"/settings"
 	));
 
