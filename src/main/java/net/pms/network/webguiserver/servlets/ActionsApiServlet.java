@@ -15,9 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -31,74 +30,68 @@ import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
-import net.pms.network.webguiserver.ApiHelper;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/v1/api/actions"})
+@WebServlet(name = "ActionsApiServlet", urlPatterns = {"/v1/api/actions"}, displayName = "Actions Api Servlet")
 public class ActionsApiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
 
-	public static final String BASE_PATH = "/v1/api/actions";
-
-	private final Gson gson = new Gson();
-
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		var api = new ApiHelper(req, BASE_PATH);
+		var path = req.getPathInfo();
 		try {
-			if (api.post("/")) {
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+			if (path.equals("/")) {
+				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
-					JsonObject data = ServletHelper.getJsonObjectFromPost(req);
+					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
 					String operation = data.has("operation") ? data.get("operation").getAsString() : null;
 					if (operation != null) {
 						switch (operation) {
-							case "Server.Restart":
+							case "Server.Restart" -> {
 								if (account.havePermission(Permissions.SERVER_RESTART)) {
 									PMS.get().resetMediaServer();
-									ServletHelper.respond(req, resp, "{}", 200, "application/json");
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 								} else {
-									ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
+									WebGuiServletHelper.respondForbidden(req, resp);
 								}
-								break;
-							case "Server.ResetCache":
+							}
+							case "Server.ResetCache" -> {
 								MediaDatabase.initForce();
 								try {
 									MediaDatabase.resetCache();
 								} catch (SQLException e) {
 									LOGGER.debug("Error when re-initializing after manual cache reset:", e);
 								}
-								ServletHelper.respond(req, resp, "{}", 200, "application/json");
-								break;
-							default:
-								ServletHelper.respond(req, resp, "{\"error\": \"Operation not configured\"}", 400, "application/json");
+								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+							}
+							default -> WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
 						}
 					} else {
-						ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
 				} else {
-					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					WebGuiServletHelper.respondUnauthorized(req, resp);
 				}
 			} else {
-				LOGGER.trace("ActionsApiHandler request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+				LOGGER.trace("ActionsApiHandler request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in ActionsApiHandler: {}", e.getMessage());
-			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 

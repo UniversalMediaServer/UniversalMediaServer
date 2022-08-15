@@ -24,20 +24,19 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.JavaHttpServerServletContainer.HttpHandlerServlet;
-import net.pms.network.webguiserver.handlers.AboutApiServlet;
-import net.pms.network.webguiserver.handlers.AccountApiServlet;
-import net.pms.network.webguiserver.handlers.ActionsApiServlet;
-import net.pms.network.webguiserver.handlers.AuthApiServlet;
-import net.pms.network.webguiserver.handlers.ConfigurationApiServlet;
-import net.pms.network.webguiserver.handlers.PlayerApiServlet;
-import net.pms.network.webguiserver.handlers.WebGuiServlet;
-import net.pms.network.webguiserver.handlers.SseApiServlet;
+import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
+import net.pms.network.webguiserver.servlets.AboutApiServlet;
+import net.pms.network.webguiserver.servlets.AccountApiServlet;
+import net.pms.network.webguiserver.servlets.ActionsApiServlet;
+import net.pms.network.webguiserver.servlets.AuthApiServlet;
+import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
+import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,35 +67,21 @@ public class WebGuiServerHttpServer implements WebInterfaceServerInterface {
 
 		if (server != null) {
 			int threads = CONFIGURATION.getWebThreads();
-
-			addServlet(new WebGuiServlet());
-			//configuration v1 api handlers
-			addServlet(new AboutApiServlet());
-			addServlet(new AccountApiServlet());
-			addServlet(new ActionsApiServlet());
-			addServlet(new AuthApiServlet());
-			addServlet(new ConfigurationApiServlet());
-			addServlet(new PlayerApiServlet());
-			addServlet(new SseApiServlet());
-
+			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/react-app/");
+			try {
+				container.createServlet(WebGuiServlet.class);
+				container.createServlet(AboutApiServlet.class);
+				container.createServlet(AccountApiServlet.class);
+				container.createServlet(ActionsApiServlet.class);
+				container.createServlet(AuthApiServlet.class);
+				container.createServlet(ConfigurationApiServlet.class);
+				container.createServlet(PlayerApiServlet.class);
+				container.createServlet(SseApiServlet.class);
+			} catch (ServletException ex) {
+				LOGGER.error(ex.getMessage());
+			}
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
-		}
-	}
-
-	private void addServlet(HttpServlet servlet) {
-		WebServlet webServlet = servlet.getClass().getAnnotation(WebServlet.class);
-		String[] urlPatterns = webServlet.urlPatterns();
-		if (urlPatterns.length == 0) {
-			urlPatterns = webServlet.value();
-		}
-		if (urlPatterns.length > 0) {
-			HttpHandlerServlet handler = new HttpHandlerServlet(servlet);
-			for (String urlPattern : urlPatterns) {
-				server.createContext(urlPattern, handler);
-			}
-		} else {
-			LOGGER.error("Class {} does not include any pattern.", servlet.getClass().getName());
 		}
 	}
 

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -76,8 +76,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
-import net.pms.network.webguiserver.ApiHelper;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -89,22 +88,20 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/v1/api/player"})
+@WebServlet(name = "PlayerApiServlet", urlPatterns = {"/v1/api/player"}, displayName = "Player Api Servlet")
 public class PlayerApiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Map<String, RootFolder> ROOTS = new HashMap<>();
 	private static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 
-	public static final String BASE_PATH = "/v1/api/player";
-
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
@@ -112,12 +109,12 @@ public class PlayerApiServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var api = new ApiHelper(req, BASE_PATH);
-			if (api.get("/")) {
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
 				String token = createRoot(req, null);
-				ServletHelper.respond(req, resp, "{\"token\":\"" + token + "\"}", 200, "application/json");
-			} else if (api.getIn("/thumb/")) {
-				String[] thumbData = api.getEndpoint().split("/");
+				WebGuiServletHelper.respond(req, resp, "{\"token\":\"" + token + "\"}", 200, "application/json");
+			} else if (path.startsWith("/thumb/")) {
+				String[] thumbData = path.split("/");
 				if (thumbData.length == 4) {
 					RootFolder root = getRoot(req, thumbData[2]);
 					if (root != null) {
@@ -130,109 +127,117 @@ public class PlayerApiServlet extends HttpServlet {
 							resp.setStatus(200);
 							resp.setContentLengthLong(thumb.getSize());
 							OutputStream os = resp.getOutputStream();
-							ServletHelper.dump(thumb, os);
+							WebGuiServletHelper.copyStreamThreaded(thumb, os);
 							return;
 						}
 					}
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.getIn("/image/")) {
-				String[] imageData = api.getEndpoint().split("/");
+				WebGuiServletHelper.respondBadRequest(req, resp);
+			} else if (path.startsWith("/image/")) {
+				String[] imageData = path.split("/");
 				if (imageData.length == 4) {
 					RootFolder root = getRoot(req, imageData[2]);
 					if (root != null && sendImageMedia(req, resp, root, imageData[3])) {
 						return;
 					}
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.getIn("/raw/")) {
-				String[] rawData = api.getEndpoint().split("/");
+				WebGuiServletHelper.respondBadRequest(req, resp);
+			} else if (path.startsWith("/raw/")) {
+				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
 					RootFolder root = getRoot(req, rawData[2]);
 					if (root != null && sendRawMedia(req, resp, root, rawData[3], false)) {
 						return;
 					}
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.getIn("/download/")) {
-				String[] rawData = api.getEndpoint().split("/");
+				WebGuiServletHelper.respondBadRequest(req, resp);
+			} else if (path.startsWith("/download/")) {
+				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
 					RootFolder root = getRoot(req, rawData[2]);
 					if (root != null && sendDownloadMedia(req, resp, root, rawData[3])) {
 						return;
 					}
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.getIn("/media/")) {
-				if (!sendMedia(req, resp, api)) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
+				WebGuiServletHelper.respondBadRequest(req, resp);
+			} else if (path.startsWith("/media/")) {
+				if (!sendMedia(req, resp, path)) {
+					WebGuiServletHelper.respondBadRequest(req, resp);
 				}
 			} else {
-				LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+				LOGGER.trace("PlayerApiHandler request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
-			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var api = new ApiHelper(req, BASE_PATH);
-			if (api.post("/browse")) {
-				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
-				if (action.has("token") && action.has("id")) {
-					String token = action.get("token").getAsString();
-					RootFolder root = getRoot(req, token);
-					if (root != null) {
-						String id = action.get("id").getAsString();
-						String search = action.has("search") ? action.get("search").getAsString() : null;
-						JsonObject browse = getBrowsePage(root, id, search);
-						if (browse != null) {
-							ServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
+			var path = req.getPathInfo();
+			switch (path) {
+				case "/browse" -> {
+					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (action.has("token") && action.has("id")) {
+						String token = action.get("token").getAsString();
+						RootFolder root = getRoot(req, token);
+						if (root != null) {
+							String id = action.get("id").getAsString();
+							String search = action.has("search") ? action.get("search").getAsString() : null;
+							JsonObject browse = getBrowsePage(root, id, search);
+							if (browse != null) {
+								WebGuiServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
+								return;
+							}
 						}
 					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.post("/play")) {
-				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
-				if (action.has("token") && action.has("id")) {
-					String token = action.get("token").getAsString();
-					RootFolder root = getRoot(req, token);
-					if (root != null) {
-						String id = action.get("id").getAsString();
-						JsonObject play = getPlayPage(root, id);
-						if (play != null) {
-							ServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+				case "/play" -> {
+					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (action.has("token") && action.has("id")) {
+						String token = action.get("token").getAsString();
+						RootFolder root = getRoot(req, token);
+						if (root != null) {
+							String id = action.get("id").getAsString();
+							JsonObject play = getPlayPage(root, id);
+							if (play != null) {
+								WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+								return;
+							}
 						}
 					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
 				}
-				ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-			} else if (api.post("/status")) {
-				JsonObject action = ServletHelper.getJsonObjectFromPost(req);
-				if (action.has("token")) {
-					String token = action.get("token").getAsString();
-					RootFolder root = getRoot(req, token);
-					if (root != null) {
-						WebRender renderer = (WebRender) root.getDefaultRenderer();
-						((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
-						ServletHelper.respond(req, resp, "", 200, "application/json");
+				case "/status" -> {
+					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (action.has("token")) {
+						String token = action.get("token").getAsString();
+						RootFolder root = getRoot(req, token);
+						if (root != null) {
+							WebRender renderer = (WebRender) root.getDefaultRenderer();
+							((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
+							WebGuiServletHelper.respond(req, resp, "", 200, "application/json");
+						} else {
+							LOGGER.debug("root not found");
+							WebGuiServletHelper.respondForbidden(req, resp);
+						}
 					} else {
-						LOGGER.debug("root not found");
-						ServletHelper.respond(req, resp, "", 403, "application/json");
+						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
-				} else {
-					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
 				}
-			} else {
-				LOGGER.trace("PlayerApiHandler request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+				default -> {
+					LOGGER.trace("PlayerApiHandler request not available : {}", path);
+					WebGuiServletHelper.respondNotFound(req, resp);
+				}
+
 			}
 		} catch (RuntimeException | InterruptedException e) {
 			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
-			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 
@@ -286,12 +291,12 @@ public class PlayerApiServlet extends HttpServlet {
 			WebRender render = new WebRender("");
 			root.setDefaultRenderer(render);
 			render.setRootFolder(root);
-			render.associateIP(ServletHelper.getInetAddress(req.getRemoteAddr()));
+			render.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
 			render.associatePort(req.getRemotePort());
 			if (CONFIGURATION.useWebSubLang()) {
-				render.setSubLang(ServletHelper.getLangs(req));
+				render.setSubLang(WebGuiServletHelper.getLangs(req));
 			}
-			Cookie cookie = ServletHelper.getCookie(req, "UMSINFO");
+			Cookie cookie = WebGuiServletHelper.getCookie(req, "UMSINFO");
 			render.setBrowserInfo(cookie != null ? cookie.toString() : "", req.getHeader("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
@@ -817,11 +822,11 @@ public class PlayerApiServlet extends HttpServlet {
 				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				ServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 			LOGGER.debug("start raw dump");
-			ServletHelper.dump(in, os);
+			WebGuiServletHelper.copyStreamThreaded(in, os);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -848,7 +853,7 @@ public class PlayerApiServlet extends HttpServlet {
 			resp.setContentLengthLong(media.length());
 			InputStream in = dlna.getInputStream();
 			if (LOGGER.isTraceEnabled()) {
-				ServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = resp.getOutputStream();
 			byte[] buffer = new byte[32 * 1024];
@@ -925,18 +930,18 @@ public class PlayerApiServlet extends HttpServlet {
 				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				ServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-			ServletHelper.dump(in, os);
+			WebGuiServletHelper.copyStreamThreaded(in, os);
 		} catch (IOException ex) {
 			return false;
 		}
 		return true;
 	}
 
-	private static boolean sendMedia(HttpServletRequest req, HttpServletResponse resp, ApiHelper api) {
-		String[] rawData = api.getEndpoint().split("/");
+	private static boolean sendMedia(HttpServletRequest req, HttpServletResponse resp, String path) {
+		String[] rawData = path.split("/");
 		if (rawData.length < 4) {
 			return false;
 		}
@@ -1001,16 +1006,16 @@ public class PlayerApiServlet extends HttpServlet {
 				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = DLNAMediaChapter.getWebVtt(resource);
-					ServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
 					String response = DLNAMediaChapter.getHls(resource);
-					ServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
+					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, BASE_PATH + "/media/" + sessionId + "/", rendition);
-						ServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, req.getContextPath() + "/media/" + sessionId + "/", rendition);
+						WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						InputStream in = HlsHelper.getInputStream(uri, resource, renderer);
@@ -1027,17 +1032,17 @@ public class PlayerApiServlet extends HttpServlet {
 							resp.setContentLength(0);
 							((WebRender) renderer).start(resource);
 							if (LOGGER.isTraceEnabled()) {
-								ServletHelper.logHttpServletResponse(req, resp, null, in);
+								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
-							ServletHelper.dump(in, os);
+							WebGuiServletHelper.copyStreamThreaded(in, os);
 						} else {
 							resp.setStatus(500);
 							resp.setContentLength(-1);
 						}
 					}
 				} else {
-					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), BASE_PATH + "/media/" + sessionId + "/");
-					ServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), req.getContextPath() + "/media/" + sessionId + "/");
+					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
 				media.setMimeType(mimeType);
@@ -1063,14 +1068,14 @@ public class PlayerApiServlet extends HttpServlet {
 				resp.setStatus(code);
 				resp.setContentLength(0);
 				if (LOGGER.isTraceEnabled()) {
-					ServletHelper.logHttpServletResponse(req, resp, null, in);
+					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 				}
 				OutputStream os = resp.getOutputStream();
 				render.start(resource);
 				if (sid != null) {
 					resource.setMediaSubtitle(sid);
 				}
-				ServletHelper.dump(in, os);
+				WebGuiServletHelper.copyStreamThreaded(in, os);
 			}
 		} catch (IOException ex) {
 			return false;

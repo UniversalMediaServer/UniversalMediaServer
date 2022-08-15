@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
@@ -41,20 +40,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServletHelper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ServletHelper.class);
+public class WebGuiServletHelper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServletHelper.class);
 	private static final Gson GSON = new Gson();
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String HTTPSERVER_REQUEST_BEGIN =  "============================= GUI HTTPSERVER REQUEST BEGIN ================================";
 	private static final String HTTPSERVER_REQUEST_END =    "============================= GUI HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= GUI HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= GUI HTTPSERVER RESPONSE END =================================";
-	private static final ResourceManager RESOURCE_MANAGER = new ResourceManager("file:" + CONFIGURATION.getWebPath() + "/");
 
 	public static boolean deny(ServletRequest req) {
 		try {
 			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());
-			return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress) || !PMS.isReady();
+			return !CONFIGURATION.getIpFiltering().allowed(inetAddress) || !PMS.isReady();
 		} catch (UnknownHostException ex) {
 			return true;
 		}
@@ -153,10 +151,10 @@ public class ServletHelper {
 	 * @throws java.io.IOException
 	*/
 	public static boolean write(HttpServletRequest req, HttpServletResponse resp, String filename) throws IOException {
-		InputStream stream = RESOURCE_MANAGER.getInputStream(filename);
+		InputStream stream = req.getServletContext().getResourceAsStream(filename);
 		if (stream != null) {
 			if (resp.getContentType() == null) {
-				String mime = getContentType(filename);
+				String mime = req.getServletContext().getMimeType(filename);
 				if (mime != null) {
 					resp.setContentType(mime);
 				}
@@ -166,13 +164,13 @@ public class ServletHelper {
 			resp.setContentLength(stream.available());
 			resp.setStatus(200);
 			logHttpServletResponse(req, resp, null, stream);
-			dump(stream, resp.getOutputStream());
+			copyStreamThreaded(stream, resp.getOutputStream());
 			return true;
 		}
 		return false;
 	}
 
-	public static void dump(final InputStream in, final OutputStream os) {
+	public static void copyStreamThreaded(final InputStream in, final OutputStream os) {
 		Runnable r = () -> {
 			byte[] buffer = new byte[32 * 1024];
 			int bytes;
@@ -228,15 +226,59 @@ public class ServletHelper {
 		}
 	}
 
-	public static String getContentType(String filename) {
-		return filename.endsWith(".html") ? "text/html" :
-			filename.endsWith(".css") ? "text/css" :
-			filename.endsWith(".js") ? "text/javascript" :
-			filename.endsWith(".ttf") ? "font/truetype" :
-			URLConnection.guessContentTypeFromName(filename);
+	public static void respondBadRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		respondBadRequest(req, resp, null);
 	}
 
-	public static String getPostString(HttpServletRequest req) {
+	public static void respondBadRequest(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, 400, msg);
+	}
+
+	public static void respondUnauthorized(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		respondUnauthorized(req, resp, null);
+	}
+
+	public static void respondUnauthorized(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, 401, msg);
+	}
+
+	public static void respondForbidden(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		respondForbidden(req, resp, null);
+	}
+
+	public static void respondForbidden(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, 403, msg);
+	}
+
+	public static void respondNotFound(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		respondNotFound(req, resp, null);
+	}
+
+	public static void respondNotFound(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, 404, msg);
+	}
+
+	public static void respondInternalServerError(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		respondInternalServerError(req, resp, null);
+	}
+
+	public static void respondInternalServerError(HttpServletRequest req, HttpServletResponse resp, String msg) throws IOException {
+		respondError(req, resp, 500, msg);
+	}
+
+	private static void respondError(HttpServletRequest req, HttpServletResponse resp, int status, String msg) throws IOException {
+		if (LOGGER.isTraceEnabled()) {
+			resp.setStatus(status);
+			logHttpServletResponse(req, resp, msg, null);
+		}
+		if (msg != null) {
+			resp.sendError(status, msg);
+		} else {
+			resp.sendError(status);
+		}
+	}
+
+	public static String getBodyAsString(HttpServletRequest req) {
 		try {
 			return IOUtils.toString(req.getInputStream(), StandardCharsets.UTF_8);
 		} catch (IOException ex) {
@@ -244,8 +286,8 @@ public class ServletHelper {
 		}
 	}
 
-	public static JsonObject getJsonObjectFromPost(HttpServletRequest req) {
-		String reqBody = getPostString(req);
+	public static JsonObject getJsonObjectFromBody(HttpServletRequest req) {
+		String reqBody = getBodyAsString(req);
 		return jsonObjectFromString(reqBody);
 	}
 
@@ -253,7 +295,7 @@ public class ServletHelper {
 		JsonObject jObject = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
-			if (jElem.isJsonObject()) {
+			if (jElem != null && jElem.isJsonObject()) {
 				jObject = jElem.getAsJsonObject();
 			}
 		} catch (JsonSyntaxException je) {

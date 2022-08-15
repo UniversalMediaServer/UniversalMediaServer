@@ -25,6 +25,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Date;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
@@ -106,6 +107,19 @@ public class AuthService {
 			return null;
 		}
 		return getAccountLoggedIn(authHeaders.get(0), host);
+	}
+
+	public static Account getAccountLoggedIn(HttpServletRequest req) {
+		if (!isEnabled() ||
+			(req.getRemoteAddr().equals(req.getLocalAddr()) && isLocalhostAsAdmin())
+			) {
+			return AccountService.getFakeAdminAccount();
+		}
+		String authHeader = req.getHeader("Authorization");
+		if (authHeader == null) {
+			return null;
+		}
+		return getAccountLoggedIn(authHeader, req.getRemoteAddr());
 	}
 
 	public static Account getAccountLoggedIn(String authHeader, String host, boolean isLocalhost) {

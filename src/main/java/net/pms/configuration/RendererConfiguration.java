@@ -34,7 +34,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.mediaserver.UPNPPlayer;
-import net.pms.network.webguiserver.handlers.ConfigurationApiServlet;
+import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.GeneralTab;
 import net.pms.util.BasicPlayer;

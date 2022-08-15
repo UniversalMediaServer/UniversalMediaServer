@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -46,8 +46,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.ApiHelper;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.Configuration;
@@ -59,7 +58,7 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 /**
  * This class handles calls to the internal API.
  */
-@WebServlet({"/configuration-api"})
+@WebServlet(name = "ConfigurationApiServlet", urlPatterns = {"/configuration-api"}, displayName = "Configuration Api Servlet")
 public class ConfigurationApiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -86,15 +85,14 @@ public class ConfigurationApiServlet extends HttpServlet {
 		"renderer_default"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
-	public static final String BASE_PATH = "/configuration-api";
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
@@ -102,16 +100,16 @@ public class ConfigurationApiServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var api = new ApiHelper(req, BASE_PATH);
+			var path = req.getPathInfo();
 			// this is called by the web interface settings React app on page load
-			if (api.get("/settings")) {
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+			if (path.equals("/settings")) {
+				Account account = AuthService.getAccountLoggedIn(req.getHeader("Authorization"), req.getRemoteAddr(), req.getRemoteAddr().equals(req.getLocalAddr()));
 				if (account == null) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
+					WebGuiServletHelper.respondUnauthorized(req, resp);
 					return;
 				}
 				if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
+					WebGuiServletHelper.respondForbidden(req, resp);
 					return;
 				}
 				JsonObject jsonResponse = new JsonObject();
@@ -144,14 +142,14 @@ public class ConfigurationApiServlet extends HttpServlet {
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
 
-				ServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
-				LOGGER.trace("ConfigurationApiServlet request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+				LOGGER.trace("ConfigurationApiServlet request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			ServletHelper.respond(req, resp, null, 500, "application/json");
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in ConfigurationApiServlet.doGet(): {}", e.getMessage());
@@ -162,92 +160,98 @@ public class ConfigurationApiServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var api = new ApiHelper(req, BASE_PATH);
-			if (api.post("/settings")) {
-				Configuration configuration = CONFIGURATION.getRawConfiguration();
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
-				if (account == null) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
-					return;
-				}
-				if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
-					return;
-				}
-				// Here we possibly received some updates to config values
-				String configToSave = ServletHelper.getPostString(req);
-				HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
-				for (Map.Entry configurationSetting : data.entrySet()) {
-					String key = (String) configurationSetting.getKey();
-					if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
-						LOGGER.trace("The key {} is not allowed", key);
-						continue;
+			var path = req.getPathInfo();
+			switch (path) {
+				case "/settings" -> {
+					Configuration configuration = CONFIGURATION.getRawConfiguration();
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondUnauthorized(req, resp);
+						return;
 					}
-
-					if (configurationSetting.getValue() instanceof String) {
-						LOGGER.trace("Saving key {} and String value {}", key, configurationSetting.getValue());
-						configuration.setProperty(key, (String) configurationSetting.getValue());
-					} else if (configurationSetting.getValue() instanceof Boolean) {
-						LOGGER.trace("Saving key {} and Boolean value {}", key, configurationSetting.getValue());
-						configuration.setProperty(key, (Boolean) configurationSetting.getValue());
-					} else if (configurationSetting.getValue() instanceof Integer) {
-						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
-						configuration.setProperty(key, (Integer) configurationSetting.getValue());
-					} else if (configurationSetting.getValue() instanceof Long) {
-						LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
-						configuration.setProperty(key, (Long) configurationSetting.getValue());
-					} else if (configurationSetting.getValue() instanceof ArrayList) {
-						ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
-						LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());
-						String arrayAsCommaDelimitedString = "";
-						for (int i = 0; i < incomingArrayList.size(); i++) {
-							if (i != 0) {
-								arrayAsCommaDelimitedString += ",";
-							}
-							arrayAsCommaDelimitedString += incomingArrayList.get(i);
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					// Here we possibly received some updates to config values
+					String configToSave = WebGuiServletHelper.getBodyAsString(req);
+					HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
+					for (Map.Entry configurationSetting : data.entrySet()) {
+						String key = (String) configurationSetting.getKey();
+						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
+							LOGGER.trace("The key {} is not allowed", key);
+							continue;
 						}
-						configuration.setProperty(key, arrayAsCommaDelimitedString);
-					} else {
-						LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
+
+						if (configurationSetting.getValue() instanceof String) {
+							LOGGER.trace("Saving key {} and String value {}", key, configurationSetting.getValue());
+							configuration.setProperty(key, (String) configurationSetting.getValue());
+						} else if (configurationSetting.getValue() instanceof Boolean) {
+							LOGGER.trace("Saving key {} and Boolean value {}", key, configurationSetting.getValue());
+							configuration.setProperty(key, (Boolean) configurationSetting.getValue());
+						} else if (configurationSetting.getValue() instanceof Integer) {
+							LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
+							configuration.setProperty(key, (Integer) configurationSetting.getValue());
+						} else if (configurationSetting.getValue() instanceof Long) {
+							LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
+							configuration.setProperty(key, (Long) configurationSetting.getValue());
+						} else if (configurationSetting.getValue() instanceof ArrayList) {
+							ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
+							LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());
+							String arrayAsCommaDelimitedString = "";
+							for (int i = 0; i < incomingArrayList.size(); i++) {
+								if (i != 0) {
+									arrayAsCommaDelimitedString += ",";
+								}
+								arrayAsCommaDelimitedString += incomingArrayList.get(i);
+							}
+							configuration.setProperty(key, arrayAsCommaDelimitedString);
+						} else {
+							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
+						}
 					}
+					WebGuiServletHelper.respond(req, resp, null, 200, "application/json");
 				}
-				ServletHelper.respond(req, resp, null, 200, "application/json");
-			} else if (api.post("/i18n")) {
-				JsonObject post = ServletHelper.getJsonObjectFromPost(req);
-				if (post == null || !post.has("language") || !post.get("language").isJsonPrimitive()) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Bad Request\"}", 400, "application/json");
-					return;
+				case "/i18n" -> {
+					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (post == null || !post.has("language") || !post.get("language").isJsonPrimitive()) {
+						WebGuiServletHelper.respondBadRequest(req, resp);
+						return;
+					}
+					Locale locale = Languages.toLocale(post.get("language").getAsString());
+					if (locale == null) {
+						locale = PMS.getLocale();
+					}
+					JsonObject i18n = new JsonObject();
+					i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
+					i18n.add("languages", Languages.getLanguagesAsJsonArray(locale));
+					i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
+					WebGuiServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
 				}
-				Locale locale = Languages.toLocale(post.get("language").getAsString());
-				if (locale == null) {
-					locale = PMS.getLocale();
+				case "/directories" -> 					{
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					String directoryResponse = getDirectoryResponse(post);
+					if (directoryResponse == null) {
+						WebGuiServletHelper.respondNotFound(req, resp, "Directory does not exist");
+						return;
+					}
+					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
 				}
-				JsonObject i18n = new JsonObject();
-				i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
-				i18n.add("languages", Languages.getLanguagesAsJsonArray(locale));
-				i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
-				ServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
-			} else if (api.post("/directories")) {
-				//only logged users for security concerns
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
-				if (account == null) {
-					ServletHelper.respond(req, resp, "{\"error\": \"Unauthorized\"}", 401, "application/json");
-					return;
+				default -> {
+					LOGGER.trace("ConfigurationApiServlet request not available : {}", path);
+					WebGuiServletHelper.respondNotFound(req, resp);
 				}
-				JsonObject post = ServletHelper.getJsonObjectFromPost(req);
-				String directoryResponse = getDirectoryResponse(post);
-				if (directoryResponse == null) {
-					ServletHelper.respond(req, resp, "Directory does not exist", 404, "application/json");
-					return;
-				}
-				ServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
-			} else {
-				LOGGER.trace("ConfigurationApiServlet request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			ServletHelper.respond(req, resp, null, 500, "application/json");
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in ConfigurationApiServlet.doPost(): {}", e.getMessage());

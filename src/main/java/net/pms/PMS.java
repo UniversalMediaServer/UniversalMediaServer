@@ -67,7 +67,7 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.WebGuiServerHttpServer;
-import net.pms.network.webguiserver.handlers.SseApiServlet;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.gui.DummyFrame;

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +43,12 @@ public class WebGuiServlet extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		LOGGER.debug("Handling web gui server file request \"{}\"", req.getRequestURI());
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
@@ -56,17 +56,17 @@ public class WebGuiServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String uri = req.getRequestURI() != null ? req.getRequestURI().toLowerCase() : "/index.html";
-			if (uri.equals("") || uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
+			String uri = req.getPathInfo() != null ? req.getPathInfo().toLowerCase() : "/index.html";
+			if (uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
 				uri = "/index.html";
 			}
-			if (uri.startsWith("/static")) {
+			if (uri.startsWith("/static/")) {
 				resp.setHeader("Cache-Control", "public, max-age=604800");
 			}
-			if (!ServletHelper.write(req, resp, "react-app" + uri)) {
+			if (!WebGuiServletHelper.write(req, resp, uri.substring(1))) {
 				// The resource manager can't found or send the file, we need to send a response.
 				LOGGER.trace("WebGuiServlet request not available : {}", req.getRequestURI());
-				ServletHelper.respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
+				WebGuiServletHelper.respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
 			}
 		} catch (IOException e) {
 			throw e;

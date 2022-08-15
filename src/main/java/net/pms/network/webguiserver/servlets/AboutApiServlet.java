@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,8 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
-import net.pms.network.webguiserver.ApiHelper;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SystemInformation;
@@ -41,30 +40,29 @@ import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 
-@WebServlet({"/v1/api/about"})
+@WebServlet(name = "AboutApiServlet", urlPatterns = {"/v1/api/about"}, displayName = "About Api Servlet")
 public class AboutApiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AboutApiServlet.class);
-	public static final String BASE_PATH = "/v1/api/about";
 
-	private SystemInfo systemInfo;
-	private HardwareAbstractionLayer hardware;
+	private static SystemInfo systemInfo;
+	private static HardwareAbstractionLayer hardware;
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		var api = new ApiHelper(req, BASE_PATH);
 		try {
-			if (api.get("/")) {
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.addProperty("app", PropertiesUtil.getProjectProperties().get("project.name"));
 				jsonResponse.addProperty("version", PMS.getVersion());
@@ -86,43 +84,44 @@ public class AboutApiServlet extends HttpServlet {
 				jsonlinks.add(toJsonObject("SVP", "https://www.svp-team.com/"));
 				jsonlinks.add(toJsonObject("OpenSubtitles.org", "https://www.opensubtitles.org/"));
 				jsonResponse.add("links", jsonlinks);
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && (account.havePermission("settings_view") || account.havePermission("settings_modify"))) {
 					jsonResponse.addProperty("operatingSystem", getOperatingSystem());
 					jsonResponse.addProperty("systemMemorySize", getSystemMemorySize());
 					jsonResponse.addProperty("jvmMemoryMax", getJavaMemoryMax());
 				}
-				ServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
-				LOGGER.trace("AboutApiHandler request not available : {}", api.getEndpoint());
-				ServletHelper.respond(req, resp, null, 404, "application/json");
+				LOGGER.trace("AboutApiServlet request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.error("RuntimeException in AboutApiHandler: {}", e.getMessage());
-			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+			LOGGER.error("RuntimeException in AboutApiServlet: {}", e.getMessage());
+			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 
-	private JsonObject toJsonObject(String key, String value) {
+	private static JsonObject toJsonObject(String key, String value) {
 		JsonObject result = new JsonObject();
 		result.addProperty("key", key);
 		result.addProperty("value", value);
 		return result;
 	}
 
-	private void initSystemInfo() {
+	private static void initSystemInfo() {
 		if (systemInfo == null) {
 			systemInfo =  new SystemInfo();
 		}
 	}
-	private void initHardwareInfo() {
+
+	private static void initHardwareInfo() {
 		initSystemInfo();
 		if (hardware == null) {
 			hardware =  systemInfo.getHardware();
 		}
 	}
 
-	private String getOperatingSystem() {
+	private static String getOperatingSystem() {
 		initSystemInfo();
 		OperatingSystem os = systemInfo.getOperatingSystem();
 		StringBuilder sb = new StringBuilder();
@@ -135,7 +134,7 @@ public class AboutApiServlet extends HttpServlet {
 		return sb.toString();
 	}
 
-	private String getSystemMemorySize() {
+	private static String getSystemMemorySize() {
 		initHardwareInfo();
 		GlobalMemory memory = hardware.getMemory();
 		if (memory != null) {
@@ -144,7 +143,7 @@ public class AboutApiServlet extends HttpServlet {
 		return "-";
 	}
 
-	private String getJavaMemoryMax() {
+	private static String getJavaMemoryMax() {
 		long jvmMemory = Runtime.getRuntime().maxMemory();
 		if (jvmMemory == Long.MAX_VALUE) {
 			return ("-");

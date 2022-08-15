@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.handlers;
+package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -34,14 +34,13 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
-import net.pms.network.webguiserver.ApiHelper;
-import net.pms.network.webguiserver.ServletHelper;
+import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.network.webguiserver.ServerSentEvents;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/v1/api/sse"})
+@WebServlet(name = "SseApiServlet", urlPatterns = {"/v1/api/sse"}, displayName = "Sse Api Servlet")
 public class SseApiServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
@@ -65,11 +64,11 @@ public class SseApiServlet extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (ServletHelper.deny(req)) {
+		if (WebGuiServletHelper.deny(req)) {
 			throw new IOException("Access denied");
 		}
 		if (LOGGER.isTraceEnabled()) {
-			ServletHelper.logHttpServletRequest(req, "");
+			WebGuiServletHelper.logHttpServletRequest(req, "");
 		}
 		super.service(req, resp);
 	}
@@ -77,9 +76,9 @@ public class SseApiServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var api = new ApiHelper(req, BASE_PATH);
-			if (api.get("/")) {
-				Account account = AuthService.getAccountLoggedIn(api.getAuthorization(), api.getRemoteHostString(), api.isFromLocalhost());
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
+				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && account.getUser().getId() > 0) {
 					resp.setHeader("Server", PMS.get().getServerName());
 					resp.setHeader("Connection", "keep-alive");
@@ -90,14 +89,14 @@ public class SseApiServlet extends HttpServlet {
 					ServerSentEvents sse = new ServerSentEvents(resp.getOutputStream());
 					addServerSentEventsFor(account.getUser().getId(), sse);
 				} else {
-					ServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
+					WebGuiServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
 				}
 			} else {
-				ServletHelper.respond(req, resp, "{}", 404, "application/json");
+				WebGuiServletHelper.respond(req, resp, "{}", 404, "application/json");
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in SseApiServlet: {}", e.getMessage());
-			ServletHelper.respond(req, resp, "Internal server error", 500, "application/json");
+			WebGuiServletHelper.respond(req, resp, null, 500, "application/json");
 		}
 	}
 

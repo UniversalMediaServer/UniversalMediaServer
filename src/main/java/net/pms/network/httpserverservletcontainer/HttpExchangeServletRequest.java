@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.JavaHttpServerServletContainer;
+package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpExchange;
 import java.io.BufferedReader;
@@ -70,12 +70,12 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	private ServletInputStream servletInputStream;
 	private Cookie[] cookies;
 	private List<Locale> locales;
+	private String pathInfo;
 
 	public HttpExchangeServletRequest(HttpServlet servlet, HttpExchange exchange) {
 		this.servlet = servlet;
 		this.exchange = exchange;
 		parseContentType();
-		parseCookies();
 		parseQueryParameters();
 		if (contentType != null && contentType.equals("application/x-www-form-urlencoded")) {
 			parsePostParameters();
@@ -141,9 +141,17 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getPathInfo() {
-		String servpath = getServletContext().getContext(getRequestURI()).getContextPath();
-		String path = exchange.getRequestURI().getPath();
-		return path.replace(servpath, "");
+		if (pathInfo == null) {
+			String servpath = getServletContext().getContextPath();
+			//String servpath = getServletContext().getContext(getRequestURI()).getContextPath();
+			String path = exchange.getRequestURI().getPath();
+			String pInfo = path.replaceFirst(servpath, "");
+			if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
+				pInfo = "/" + pInfo;
+			}
+			pathInfo = pInfo;
+		}
+		return pathInfo.isEmpty() ? null : pathInfo;
 	}
 
 	@Override
@@ -163,6 +171,9 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	@Override
 	public Cookie[] getCookies() {
+		if (cookies == null) {
+			parseCookies();
+		}
 		return cookies;
 	}
 
@@ -494,12 +505,32 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	private void parseCookies() {
+		List<Cookie> cookiesList = new ArrayList<>();
 		Enumeration<String> cookiesStr = getHeaders("Cookie");
 		while (cookiesStr.hasMoreElements()) {
 			String cookieStr = cookiesStr.nextElement();
-			HttpCookie.parse(cookieStr);
-
+			List<HttpCookie> httpCookies = HttpCookie.parse(cookieStr);
+			for (HttpCookie httpCookie : httpCookies) {
+				Cookie cookie = new Cookie(httpCookie.getName(), httpCookie.getValue());
+				if (httpCookie.getComment() != null) {
+					cookie.setComment(httpCookie.getComment());
+				}
+				if (httpCookie.getDomain() != null) {
+					cookie.setDomain(httpCookie.getDomain());
+				}
+				cookie.setHttpOnly(httpCookie.isHttpOnly());
+				if (httpCookie.getMaxAge() > -1) {
+					cookie.setMaxAge((int) httpCookie.getMaxAge());
+				}
+				if (httpCookie.getPath() != null) {
+					cookie.setPath(httpCookie.getPath());
+				}
+				cookie.setSecure(httpCookie.getSecure());
+				cookie.setVersion(httpCookie.getVersion());
+				cookiesList.add(cookie);
+			}
 		}
+		cookies = cookiesList.toArray(Cookie[]::new);
 	}
 
 	private void parseContentType() {

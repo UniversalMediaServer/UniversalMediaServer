@@ -26,7 +26,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
-import net.pms.network.webguiserver.handlers.PlayerApiServlet;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
