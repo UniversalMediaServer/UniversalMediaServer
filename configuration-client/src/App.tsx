@@ -1,7 +1,7 @@
 import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { useEffect } from 'react'; 
+import { lazy, useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
@@ -24,7 +24,8 @@ import { AccountsProvider } from './providers/accounts-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
-import Player from './components/Player/Player';
+
+const Player = lazy(() => import('./components/Player/Player'));
 
 function App() {
   useEffect(() => {

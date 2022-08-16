@@ -1,23 +1,29 @@
 import axios from 'axios';
 import { useEffect } from 'react';
 import videojs, { VideoJsPlayerOptions } from 'video.js';
-import hlsQualitySelector from 'videojs-hls-quality-selector';
 import 'videojs-contrib-quality-levels';
+import hlsQualitySelector from 'videojs-hls-quality-selector';
 
 import 'video.js/dist/video-js.min.css';
 import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 
 import { BaseMedia, VideoMedia } from './Player';
 
+//fix unknown hlsQualitySelector typescript
+declare module 'video.js' {
+    interface VideoJsPlayer {
+        hlsQualitySelector: typeof hlsQualitySelector;
+    }
+}
+
+videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
+
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 
   useEffect(() => {
-    if (!videojs.getPlugin('hlsQualitySelector')) {
-      videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
-    }
-	let videoElem = document.createElement('video');
-	videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
-	document.getElementById('videodiv')?.appendChild(videoElem);
+    let videoElem = document.createElement('video');
+    videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
+    document.getElementById('videodiv')?.appendChild(videoElem);
 
     let options = {} as VideoJsPlayerOptions;
     options.liveui = true;
@@ -39,7 +45,7 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
       if (status[key] !== value) {
         status[key] = value;
         if (! wait) {
-          axios.post(vpOptions.baseUrl + 'status', JSON.stringify(status));
+          axios.post(vpOptions.baseUrl + 'status', status);
         }
       }
     }
@@ -93,9 +99,9 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
           placeholder.className = 'vjs-icon-placeholder vjs-icon-previous-item';
         }
       }
-	  if (vpOptions.media.mime === 'application/x-mpegURL') {
+      if (vpOptions.media.mime === 'application/x-mpegURL') {
         videoPlayer.hlsQualitySelector();
-	  }
+      }
     };
 
     const videoPlayer = videojs(videoElem, options, onready as videojs.ReadyCallback);

@@ -32,7 +32,7 @@ export const Player = () => {
         sessionStorage.setItem('player', response.data.token);
         setToken(response.data.token);
       })
-      .catch(function (error: Error) {
+      .catch(function () {
         showNotification({
           id: 'player-data-loading',
           color: 'red',
@@ -395,7 +395,7 @@ export const Player = () => {
         setData(response.data);
         window.scrollTo(0,0);
       })
-      .catch(function (error: Error) {
+      .catch(function () {
         showNotification({
           id: 'player-data-loading',
           color: 'red',
@@ -418,7 +418,7 @@ export const Player = () => {
         setData(response.data);
         window.scrollTo(0,0);
       })
-      .catch(function (error: Error) {
+      .catch(function () {
         showNotification({
           id: 'player-data-loading',
           color: 'red',
