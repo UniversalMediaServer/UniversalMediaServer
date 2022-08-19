@@ -2,7 +2,7 @@
   "name": "ums",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:9001",
+  "proxy": "http://localhost:9002",
   "dependencies": {
     "@emotion/react": "11.10.0",
     "@mantine/core": "5.1.6",
@@ -12,7 +12,6 @@
     "@mantine/notifications": "5.1.6",
     "@mantine/prism": "5.1.6",
     "@microsoft/fetch-event-source": "2.0.1",
-    "@types/react-color": "3.0.6",
     "axios": "0.27.2",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
@@ -61,6 +60,7 @@
     "@types/lodash": "4.14.183",
     "@types/node": "16.11.49",
     "@types/react": "18.0.17",
+    "@types/react-color": "3.0.6",
     "@types/react-dom": "18.0.6",
     "react-scripts": "5.0.1"
   }

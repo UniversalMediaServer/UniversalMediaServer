@@ -45,13 +45,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webinterfaceserver.configuration.handlers.AboutApiHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.AccountApiHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.ActionsApiHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.AuthApiHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationApiHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.ConfigurationClientHandler;
-import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
 import net.pms.network.webinterfaceserver.handlers.ConsoleHandler;
 import net.pms.network.webinterfaceserver.handlers.ControlHandler;
@@ -121,7 +114,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/", new StartHandler(this));
 			addCtx("/browse", new BrowseHandler(this));
 			PlayHandler playHandler = new PlayHandler(this);
-			addCtx("/play", playHandler);
+			addCtx("/play/", playHandler);
 			addCtx("/playstatus", playHandler);
 			addCtx("/playlist", playHandler);
 			addCtx("/m3u8", playHandler);
@@ -135,15 +128,6 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/event-stream", new EventStreamHandler(this));
 			addCtx("/bump", new ControlHandler(this));
 			addCtx("/console", new ConsoleHandler(this));
-
-			//configuration v1 api handlers
-			addCtx(AboutApiHandler.BASE_PATH, new AboutApiHandler());
-			addCtx(AccountApiHandler.BASE_PATH, new AccountApiHandler());
-			addCtx(ActionsApiHandler.BASE_PATH, new ActionsApiHandler());
-			addCtx(AuthApiHandler.BASE_PATH, new AuthApiHandler());
-			addCtx(ConfigurationApiHandler.BASE_PATH, new ConfigurationApiHandler());
-			addCtx(ConfigurationClientHandler.BASE_PATH, new ConfigurationClientHandler(this));
-			addCtx(SseApiHandler.BASE_PATH, new SseApiHandler());
 
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();

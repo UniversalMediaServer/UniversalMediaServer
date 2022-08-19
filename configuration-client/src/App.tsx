@@ -1,7 +1,7 @@
 import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import React, { useEffect } from 'react'; 
+import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
