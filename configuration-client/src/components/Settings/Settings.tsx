@@ -1,4 +1,4 @@
-import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, MultiSelect, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, MultiSelect, NavLink, NumberInput, Select, Stack, Switch, Table, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { Prism } from '@mantine/prism';
 import { showNotification } from '@mantine/notifications';
@@ -6,7 +6,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay, Search, SquareX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -85,6 +85,19 @@ export default function Settings() {
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 
+        // convert the folders and folders_monitored strings into a more usable structure
+        const sharedContentTemp = [];
+        for (let i = 0; i < userConfig.folders.length; i++) {
+          const sharedFolder = userConfig.folders[i];
+          const isMonitored = userConfig.folders_monitored.indexOf(sharedFolder) > -1;
+          sharedContentTemp.push({
+            directory: sharedFolder,
+            isMonitored,
+          });
+        }
+        sharedContentTemp.push({ directory: '', isMonitored: true } as sharedDirectory);
+
+        setSharedDirectories(sharedContentTemp);
         setConfiguration(userConfig);
         formSetValues(userConfig);
       })
@@ -539,9 +552,156 @@ export default function Settings() {
   /*
   SHARED CONTENT
   */
+  const [sharedDirectories, setSharedDirectories] = useState([] as sharedDirectory[]);
+  interface sharedDirectory {
+    directory: string;
+    isMonitored: boolean;
+  }
+
   const getSharedContentTab = () => {
-    return (<>
-    </>);
+    return (
+      <Accordion mt="xl">
+        <Accordion.Item value="SharedFolders">
+          <Accordion.Control>{i18n.get['SharedFolders']}</Accordion.Control>
+          <Accordion.Panel>
+            <Group>
+              <ActionIcon size="xl" variant="light" color="blue" title={i18n.get['ScanAllSharedFolders']}><Search /></ActionIcon>
+            </Group>
+            <List
+              lockVertically
+              values={sharedDirectories}
+              onChange={({ oldIndex, newIndex }) => {
+                canModify && moveSharedDirectory(oldIndex, newIndex);
+              }}
+              renderList={
+                ({ children, props }) => {
+                  return (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th>{i18n.get['Folder']}</th>
+                          <th>{i18n.get['MonitorPlayedStatusFiles']}</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody {...props}>
+                        {children}
+                      </tbody>
+                    </Table>
+                  )
+                }
+              }
+              renderItem={
+                ({ value, props, isDragged, isSelected }) => {
+                  return (
+                    <tr {...props}>
+                      <td>
+                        <Group>
+                          <ActionIcon
+                            data-movable-handle
+                            size={20}
+                            style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
+                            variant={isDragged || isSelected ? 'outline' : 'subtle'}
+                            disabled={!canModify || !value.directory}
+                          >
+                            <ArrowsVertical />
+                          </ActionIcon>
+                          <DirectoryChooser
+                            disabled={!canModify}
+                            size="xs"
+                            path={value.directory}
+                            callback={(directory: string) => setDirectory(value, directory)}
+                          ></DirectoryChooser>
+                        </Group>
+                      </td>
+                      <td>
+                        <Switch
+                          disabled={!canModify || !value.directory}
+                          checked={value.isMonitored}
+                          onChange={(event) => toggleMonitored(value, event.currentTarget.checked)}
+                        />
+                      </td>
+                      <td>
+                        <ActionIcon
+                          color="red"
+                          variant="transparent"
+                          disabled={!canModify || !value.directory}
+                          onClick={() => removeDirectory(value)}
+                        >
+                          <SquareX />
+                        </ActionIcon>
+                      </td>
+                    </tr>
+                  )
+                }
+              }
+            />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="WebContent">
+          <Accordion.Control>{i18n.get['WebContent']}</Accordion.Control>
+        </Accordion.Item>
+      </Accordion>
+    );
+  }
+
+  /**
+   * Convert our shared directory structure to what the API wants.
+   */
+  const updateSharedDirectoriesToSave = (sharedDirectoriesTemp: sharedDirectory[]) => {
+    setSharedDirectories(sharedDirectoriesTemp);
+
+    const sharedDirectoriesArray = [] as string[];
+    const monitoredDirectoriesArray = [] as string[];
+    _.each(sharedDirectoriesTemp, (sharedDirectory) => {
+      if (sharedDirectory.directory) {
+        sharedDirectoriesArray.push(sharedDirectory.directory);
+      }
+      if (sharedDirectory.isMonitored) {
+        monitoredDirectoriesArray.push(sharedDirectory.directory);
+      }
+    });
+    form.setFieldValue('folders', sharedDirectoriesArray);
+    form.setFieldValue('folders_monitored', monitoredDirectoriesArray);
+  }
+
+  const toggleMonitored = (item: sharedDirectory, isMonitored: boolean) => {
+    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
+    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
+      return realItem.directory === item.directory;
+    });
+    sharedDirectoriesTemp[index].isMonitored = isMonitored;
+    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
+  }
+
+  const setDirectory = (item: sharedDirectory, directory: string) => {
+    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
+    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
+      return realItem.directory === item.directory;
+    });
+    sharedDirectoriesTemp[index].directory = directory;
+
+    // ensure there is always an empty entry at the bottom
+    if (index === sharedDirectoriesTemp.length - 1) {
+      sharedDirectoriesTemp.push({ directory: '', isMonitored: true } as sharedDirectory);
+    }
+    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
+  }
+
+  const removeDirectory = (item: sharedDirectory) => {
+    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
+    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
+      return realItem.directory === item.directory;
+    });
+    console.log(2,index);
+    sharedDirectoriesTemp.splice(index, 1);
+    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
+  }
+
+  const moveSharedDirectory = (oldIndex: number, newIndex: number) => {
+    let sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
+    sharedDirectoriesTemp = arrayMove(sharedDirectoriesTemp, oldIndex, newIndex);
+    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
   }
 	  
   /*

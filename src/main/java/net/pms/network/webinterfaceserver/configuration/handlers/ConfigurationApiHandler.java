@@ -287,6 +287,8 @@ public class ConfigurationApiHandler implements HttpHandler {
 		jObj.addProperty("ffmpeg_multithreading", "");
 		jObj.addProperty("ffmpeg_mux_tsmuxer_compatible", false);
 		jObj.addProperty("fmpeg_sox", true);
+		jObj.addProperty("folders", "");
+		jObj.addProperty("folders_monitored", "");
 		jObj.addProperty("force_external_subtitles", true);
 		jObj.addProperty("forced_subtitle_language", "");
 		jObj.addProperty("forced_subtitle_tags", "forced");

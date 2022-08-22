@@ -13,7 +13,7 @@ export default function DirectoryChooser(props: {
   callback: any,
   label?: string,
   disabled?: boolean,
-  formKey: string,
+  formKey?: string,
   size?: MantineSize,
 }) {
   const [isLoading, setLoading] = useState(true);
@@ -27,7 +27,11 @@ export default function DirectoryChooser(props: {
 
   const selectAndCloseModal = () => {
     if (selectedDirectory) {
-      props.callback(props.formKey, selectedDirectory);
+      if (props.formKey) {
+        props.callback(props.formKey, selectedDirectory);
+      } else {
+        props.callback(selectedDirectory);
+      }
       return setOpened(false);
     }
     showNotification({
@@ -66,7 +70,7 @@ export default function DirectoryChooser(props: {
    return <TextInput
       size={props.size}
       label={props.label}
-	  disabled={props.disabled}
+      disabled={props.disabled}
       sx={{ flex: 1 }}
       value={props.path}
       readOnly
@@ -88,7 +92,7 @@ export default function DirectoryChooser(props: {
           size="lg"
         >
           <Box mx="auto">
-            <Paper shadow="md" withBorder>
+            <Paper shadow="md" p="xs" withBorder>
               <Group>
                 <Breadcrumbs separator={separator}>
                   <Button
@@ -113,7 +117,7 @@ export default function DirectoryChooser(props: {
                 </Breadcrumbs>
               </Group>
             </Paper>
-            <Stack spacing="xs" align="flex-start" justify="flex-start">
+            <Stack spacing="xs" align="flex-start" justify="flex-start" mt="sm">
               {directories.map(directory => (
                 <Group key={"group" + directory.label}>
                   <Button
@@ -150,7 +154,7 @@ export default function DirectoryChooser(props: {
         }
         {!props.disabled && (
           <Button
-            mt='24px'
+            mt={props.label ? '24px' : undefined}
             size={props.size}
             onClick={() => { getSubdirectories(props.path); setOpened(true); }}
             leftIcon={<Folders size={18} />}
