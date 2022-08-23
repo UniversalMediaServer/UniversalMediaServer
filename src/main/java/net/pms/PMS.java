@@ -22,7 +22,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
@@ -45,7 +44,6 @@ import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -68,10 +66,19 @@ import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webguiserver.WebGuiServerHttpServer;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
-import net.pms.network.webinterfaceserver.configuration.handlers.SseApiHandler;
-import net.pms.newgui.*;
-import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.newgui.DbgPacker;
+import net.pms.gui.DummyFrame;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.IFrame;
+import net.pms.newgui.GuiUtil;
+import net.pms.newgui.LanguageSelection;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.Splash;
+import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -124,8 +131,8 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	/**
-	 * Returns a pointer to the DMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
+	 * Returns a pointer to the UMS GUI's main window.
+	 * @return {@link net.pms.gui.IFrame} Main UMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -171,7 +178,7 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * An array of {@link RendererConfiguration}s that have been found by UMS.
 	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
@@ -208,7 +215,7 @@ public class PMS {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
 				frame.addRenderer(renderer);
-				frame.setConnectionState(ConnectionState.CONNECTED);
+				frame.setConnectionState(EConnectionState.CONNECTED);
 			}
 		}
 	}
@@ -230,6 +237,11 @@ public class PMS {
 	private WebInterfaceServer webInterfaceServer;
 
 	/**
+	 * HTTP server that serves a gui.
+	 */
+	private WebGuiServerHttpServer guiServer;
+
+	/**
 	 * User friendly name for the server.
 	 */
 	private String serverName;
@@ -240,7 +252,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
+	 * {@link net.pms.gui.IFrame} object that represents the UMS GUI.
 	 */
 	private IFrame frame;
 
@@ -481,28 +493,9 @@ public class PMS {
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
 			if (!configuration.isAutomaticMaximumBitrate()) {
-				Object[] yesNoOptions = {
-						Messages.getString("Yes"),
-						Messages.getString("No")
-				};
-
 				// Ask if user wants to use automatic maximum bitrate
-				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("WeImprovedAutomaticVideoQuality"),
-					Messages.getString("ImprovedFeature"),
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					yesNoOptions,
-					yesNoOptions[0]
-				);
-
-				if (whetherToUseAutomaticMaximumBitrate == JOptionPane.YES_OPTION) {
-					configuration.setAutomaticMaximumBitrate(true);
-				} else if (whetherToUseAutomaticMaximumBitrate == JOptionPane.NO_OPTION) {
-					configuration.setAutomaticMaximumBitrate(false);
-				}
+				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
+				configuration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
 			// It will be shown only once
@@ -547,7 +540,6 @@ public class PMS {
 		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
-			splash = null;
 		}
 
 		/*
@@ -574,19 +566,21 @@ public class PMS {
 			if (!event.isBeforeUpdate()) {
 				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-					SseApiHandler.setReloadable(true);
+					SseApiServlet.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
-					SseApiHandler.setReloadable(true);
+					SseApiServlet.setReloadable(true);
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersRoot();
 				}
-				SseApiHandler.setConfigurationChanged(event.getPropertyName());
+				SseApiServlet.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
+		// GUI stuff
+		resetGuiServer();
 		// Web stuff
 		resetWebInterfaceServer();
 
@@ -613,12 +607,12 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if (!Platform.isWindows() || Platform.is64Bit()) {
+			if ((!Platform.isWindows() || Platform.is64Bit()) && configuration.getFFmpegPath() != null) {
 				ThreadedProcessWrapper.runProcessNullOutput(
 					5,
 					TimeUnit.MINUTES,
 					2000,
-					configuration.getFFmpegPaths().getDefaultPath().toString(),
+					configuration.getFFmpegPath(),
 					"-y",
 					"-f",
 					"lavfi",
@@ -636,7 +630,7 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setConnectionState(ConnectionState.SEARCHING);
+		frame.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
@@ -682,9 +676,9 @@ public class PMS {
 				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
-					frame.setConnectionState(ConnectionState.DISCONNECTED);
+					frame.setConnectionState(EConnectionState.DISCONNECTED);
 				} else {
-					frame.setConnectionState(ConnectionState.CONNECTED);
+					frame.setConnectionState(EConnectionState.CONNECTED);
 				}
 			}
 		}.start();
@@ -802,14 +796,14 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS
+	 * Restarts the server. The trigger is either a button on the main UMS
 	 * window or via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
 	// see the comment above HttpMediaServer.stop()
 	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
-			SseApiHandler.notify("server-restart", "Server is restarting", "Server status", "red", true);
+			SseApiServlet.notify("server-restart", "Server is restarting", "Server status", "red", true);
 			MediaServer.stop();
 			resetRenderers(true);
 
@@ -823,7 +817,7 @@ public class PMS {
 			// re-create the server because may happened the
 			// change of the used interface
 			MediaServer.start();
-			SseApiHandler.setReloadable(false);
+			SseApiServlet.setReloadable(false);
 			frame.setReloadable(false);
 		});
 	}
@@ -889,6 +883,33 @@ public class PMS {
 	}
 
 	/**
+	 * Reset the web graphical user interface server.
+	 * The trigger is init and configuration change.
+	 */
+	public void resetGuiServer() {
+		if (guiServer != null) {
+			guiServer.stop();
+		}
+		try {
+			guiServer = WebGuiServerHttpServer.createServer(WebGuiServerHttpServer.DEFAULT_PORT);
+		} catch (BindException b) {
+			try {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServerHttpServer.DEFAULT_PORT + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+				//use a random port
+				guiServer = WebGuiServerHttpServer.createServer(0);
+			} catch (IOException ex) {
+				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+			}
+		} catch (IOException ex) {
+			LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+		}
+		if (guiServer != null && guiServer.getServer() != null) {
+			LOGGER.info("GUI is available at: " + guiServer.getUrl());
+		}
+	}
+
+	/**
 	 * Creates a new random {@link #uuid}. These are used to uniquely identify the server to renderers (i.e.
 	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
@@ -945,8 +966,8 @@ public class PMS {
 	@Nonnull
 	public static PMS get() {
 		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a DMS instance without going
-		// to the trouble of launching the DMS application, so we provide a fallback
+		// However, plugin tests may need access to a UMS instance without going
+		// to the trouble of launching the UMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
 			createInstance();
@@ -1034,10 +1055,7 @@ public class PMS {
 			}
 		}
 
-		try {
-			Toolkit.getDefaultToolkit();
-		} catch (AWTError t) {
-			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+		if (!GuiUtil.initDefaultToolkit()) {
 			forceHeadless();
 		}
 
@@ -1143,12 +1161,7 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				JOptionPane.showMessageDialog(
-					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
-					errorMessage,
-					Messages.getString("ErrorWhileStartingUms"),
-					JOptionPane.ERROR_MESSAGE
-				);
+				GuiUtil.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
@@ -1162,6 +1175,10 @@ public class PMS {
 	@Nullable
 	public WebInterfaceServer getWebInterfaceServer() {
 		return webInterfaceServer;
+	}
+
+	public WebGuiServerHttpServer getGuiServer() {
+		return guiServer;
 	}
 
 	/**
@@ -1212,8 +1229,8 @@ public class PMS {
 
 	/**
 	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings for UMS. The object provides getters for all
+	 * configurable UMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1222,7 +1239,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the project version for DMS.
+	 * Returns the project version for UMS.
 	 *
 	 * @return The project version.
 	 */
@@ -1384,37 +1401,23 @@ public class PMS {
 	private static Boolean headless = null;
 
 	/**
-	 * Checks if DMS is running in headless (console) mode, since some Linux
-	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
-	 * properly.
-	 * @return true if DMS is running in headless mode
+	 * Checks if UMS is running in headless (console) mode.
+	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
 		HEADLESS_LOCK.readLock().lock();
 		try {
-			if (headless != null) {
-				return headless;
+			if (headless == null) {
+				headless = GuiUtil.isHeadless();
 			}
+			return headless;
 		} finally {
 			HEADLESS_LOCK.readLock().unlock();
-		}
-
-		HEADLESS_LOCK.writeLock().lock();
-		try {
-			JDialog d = new JDialog();
-			d.dispose();
-			headless = false;
-			return headless;
-		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			headless = true;
-			return headless;
-		} finally {
-			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Forces DMS to run in headless (console) mode whether a graphics
+	 * Forces UMS to run in headless (console) mode whether a graphics
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
@@ -1448,7 +1451,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale}.
+	 * Sets UMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
 	public static void setLocale(Locale aLocale) {
@@ -1462,7 +1465,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1492,7 +1495,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1508,7 +1511,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
 	 * class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *

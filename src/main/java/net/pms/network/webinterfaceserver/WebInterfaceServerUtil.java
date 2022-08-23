@@ -51,7 +51,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.LooksFrame;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -308,7 +307,7 @@ public class WebInterfaceServerUtil {
 	}
 
 	public static void sendLogo(HttpExchange t) throws IOException {
-		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
+		InputStream in = PMS.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
 		dump(in, os);
@@ -422,15 +421,25 @@ public class WebInterfaceServerUtil {
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {
-		JsonObject jObject = null;
 		try {
 			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
 			if (jElem.isJsonObject()) {
-				jObject = jElem.getAsJsonObject();
+				return jElem.getAsJsonObject();
 			}
 		} catch (JsonSyntaxException je) {
 		}
-		return jObject;
+		return null;
+	}
+
+	private static JsonArray jsonArrayFromString(String str) {
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem.isJsonArray()) {
+				return jElem.getAsJsonArray();
+			}
+		} catch (JsonSyntaxException je) {
+		}
+		return null;
 	}
 
 	public static WebRender matchRenderer(String user, HttpExchange t) {
@@ -749,7 +758,6 @@ public class WebInterfaceServerUtil {
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
 		JsonObject result = getAPIMetadataAsJsonObject(resource, isTVSeries, rootFolder);
 		if (result != null) {
-			result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 			result.addProperty("actorsTranslation", WebInterfaceServerUtil.getMsgString("Actors", language));
 			result.addProperty("awardsTranslation", WebInterfaceServerUtil.getMsgString("Awards", language));
 			result.addProperty("countryTranslation", WebInterfaceServerUtil.getMsgString("Country", language));
@@ -842,6 +850,7 @@ public class WebInterfaceServerUtil {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
 		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 
 		return result;
 	}

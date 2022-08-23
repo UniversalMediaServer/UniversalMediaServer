@@ -47,8 +47,7 @@ export const postAccountAction = (data: any, title: string, message: string, err
         message: message,
       })
     })
-    .catch(function (error: Error) {
-        console.log(error);
+    .catch(function () {
         showNotification({
           color: 'red',
           title: 'Error',
@@ -63,8 +62,7 @@ export const postAccountAuthAction = (data: any, errormessage: string) => {
         clearJwt();
         window.location.reload();
     })
-    .catch(function (error: Error) {
-        console.log(error);
+    .catch(function () {
         showNotification({
           color: 'red',
           title: 'Error',

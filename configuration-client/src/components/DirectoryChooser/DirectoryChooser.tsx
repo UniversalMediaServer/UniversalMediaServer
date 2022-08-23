@@ -50,8 +50,7 @@ export default function DirectoryChooser(props: {
         setDirectories(directoriesResponse.children);
         setParents(directoriesResponse.parents.reverse());
       })
-      .catch(function (error: Error) {
-        console.log(error);
+      .catch(function () {
         showNotification({
           id: 'data-loading',
           color: 'red',
