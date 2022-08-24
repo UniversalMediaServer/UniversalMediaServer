@@ -43,7 +43,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String uri = req.getServletPath()!= null ? req.getServletPath().toLowerCase() : "/index.html";
+			String uri = req.getServletPath() != null ? req.getServletPath().toLowerCase() : "/index.html";
 			if (uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
 				uri = "/index.html";
 			}
