@@ -26,6 +26,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,12 +96,14 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 				roots.put(cookie, root);
 			}
 		}
+		PlayerApiServlet.resetAllRenderers();
 	}
 
 	public void deleteAllRenderers() {
 		synchronized (roots) {
 			roots.clear();
 		}
+		PlayerApiServlet.deleteAllRenderers();
 	}
 
 	public static WebInterfaceServer createServer(int port) throws IOException {
