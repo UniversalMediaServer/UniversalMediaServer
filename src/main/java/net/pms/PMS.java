@@ -60,19 +60,19 @@ import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.YoutubeDl;
+import net.pms.gui.DummyFrame;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.IFrame;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.WebGuiServerHttpServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.DbgPacker;
-import net.pms.gui.DummyFrame;
-import net.pms.gui.EConnectionState;
-import net.pms.gui.IFrame;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.LanguageSelection;
 import net.pms.newgui.LooksFrame;
@@ -239,7 +239,7 @@ public class PMS {
 	/**
 	 * HTTP server that serves a gui.
 	 */
-	private WebGuiServerHttpServer guiServer;
+	private WebGuiServer guiServer;
 
 	/**
 	 * User friendly name for the server.
@@ -891,13 +891,13 @@ public class PMS {
 			guiServer.stop();
 		}
 		try {
-			guiServer = WebGuiServerHttpServer.createServer(WebGuiServerHttpServer.DEFAULT_PORT);
+			guiServer = WebGuiServer.createServer(WebGuiServer.DEFAULT_PORT);
 		} catch (BindException b) {
 			try {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServerHttpServer.DEFAULT_PORT + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServer.DEFAULT_PORT + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 				//use a random port
-				guiServer = WebGuiServerHttpServer.createServer(0);
+				guiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
 			}
@@ -1177,7 +1177,7 @@ public class PMS {
 		return webInterfaceServer;
 	}
 
-	public WebGuiServerHttpServer getGuiServer() {
+	public WebGuiServer getGuiServer() {
 		return guiServer;
 	}
 

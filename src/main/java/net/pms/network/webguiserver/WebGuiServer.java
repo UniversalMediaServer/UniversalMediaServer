@@ -15,29 +15,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.httpserverservletcontainer;
+package net.pms.network.webguiserver;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class HttpHandlerServlet implements HttpHandler {
+public abstract class WebGuiServer {
+	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
+	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static final int DEFAULT_PORT = 9002; //CONFIGURATION.getGuiServerPort();
 
-	private final HttpServlet servlet;
+	public abstract Object getServer();
+	public abstract int getPort();
+	public abstract String getAddress();
+	public abstract String getUrl();
+	public abstract boolean isSecure();
+	public abstract void stop();
 
-	public HttpHandlerServlet(HttpServlet servlet) {
-		this.servlet = servlet;
-	}
-
-	@Override
-	public void handle(final HttpExchange exchange) throws IOException {
-		HttpExchangeServletRequest req = new HttpExchangeServletRequest(servlet, exchange);
-		try {
-			servlet.service(req, req.getServletResponse());
-		} catch (ServletException e) {
-			throw new IOException(e);
-		}
+	public static WebGuiServer createServer(int port) throws IOException {
+		return WebGuiServerHttpServer.createServer(port);
 	}
 }

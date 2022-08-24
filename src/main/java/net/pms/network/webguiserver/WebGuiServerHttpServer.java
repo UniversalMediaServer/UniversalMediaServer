@@ -17,7 +17,6 @@
  */
 package net.pms.network.webguiserver;
 
-import net.pms.network.webinterfaceserver.*;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
 import java.io.IOException;
@@ -25,8 +24,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
@@ -36,14 +33,10 @@ import net.pms.network.webguiserver.servlets.AuthApiServlet;
 import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebGuiServerHttpServer implements WebInterfaceServerInterface {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServerHttpServer.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final int DEFAULT_PORT = 9002; //CONFIGURATION.getGuiServerPort();
+public class WebGuiServerHttpServer extends WebGuiServer {
+
 	private HttpServer server;
 
 	public WebGuiServerHttpServer() throws IOException {
