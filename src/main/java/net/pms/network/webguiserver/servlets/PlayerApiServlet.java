@@ -31,10 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.servlet.ServletException;
+import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
@@ -76,6 +75,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
@@ -89,22 +89,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "PlayerApiServlet", urlPatterns = {"/v1/api/player"}, displayName = "Player Api Servlet")
-public class PlayerApiServlet extends HttpServlet {
+public class PlayerApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Map<String, RootFolder> ROOTS = new HashMap<>();
 	private static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
-
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -119,6 +108,7 @@ public class PlayerApiServlet extends HttpServlet {
 					RootFolder root = getRoot(req, thumbData[2]);
 					if (root != null) {
 						DLNAResource resource = root.getDLNAResource(thumbData[3], null);
+						AsyncContext async = req.startAsync();
 						DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
 						if (thumb != null) {
 							resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
@@ -127,7 +117,7 @@ public class PlayerApiServlet extends HttpServlet {
 							resp.setStatus(200);
 							resp.setContentLengthLong(thumb.getSize());
 							OutputStream os = resp.getOutputStream();
-							WebGuiServletHelper.copyStreamThreaded(thumb, os);
+							WebGuiServletHelper.copyStreamAsync(thumb, os, async);
 							return;
 						}
 					}
@@ -798,6 +788,7 @@ public class PlayerApiServlet extends HttpServlet {
 			long len = dlna.length();
 			dlna.setPlayer(null);
 			Range.Byte range = parseRange(req, len);
+			AsyncContext async = req.startAsync();
 			InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 			if (len == 0) {
 				// For web resources actual length may be unknown until we open the stream
@@ -826,7 +817,7 @@ public class PlayerApiServlet extends HttpServlet {
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 			LOGGER.debug("start raw dump");
-			WebGuiServletHelper.copyStreamThreaded(in, os);
+			WebGuiServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -916,6 +907,7 @@ public class PlayerApiServlet extends HttpServlet {
 			} else {
 				return false;
 			}
+			AsyncContext async = req.startAsync();
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Server", PMS.get().getServerName());
@@ -933,7 +925,7 @@ public class PlayerApiServlet extends HttpServlet {
 				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-			WebGuiServletHelper.copyStreamThreaded(in, os);
+			WebGuiServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -1014,10 +1006,11 @@ public class PlayerApiServlet extends HttpServlet {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, req.getContextPath() + "/media/" + sessionId + "/", rendition);
+						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
 						WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
+						AsyncContext async = req.startAsync();
 						InputStream in = HlsHelper.getInputStream(uri, resource, renderer);
 
 						if (in != null) {
@@ -1027,24 +1020,26 @@ public class PlayerApiServlet extends HttpServlet {
 							} else if (uri.endsWith(".vtt")) {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
-							OutputStream os = resp.getOutputStream();
 							resp.setStatus(200);
-							resp.setContentLength(0);
+							//resp.setContentLength(0);
 							((WebRender) renderer).start(resource);
 							if (LOGGER.isTraceEnabled()) {
 								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
-							WebGuiServletHelper.copyStreamThreaded(in, os);
+							OutputStream os = resp.getOutputStream();
+							WebGuiServletHelper.copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);
 							resp.setContentLength(-1);
+							async.complete();
 						}
 					}
 				} else {
-					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), req.getContextPath() + "/media/" + sessionId + "/");
+					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), req.getServletPath() + "/media/" + sessionId + "/");
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
+				AsyncContext async = req.startAsync();
 				media.setMimeType(mimeType);
 				Range.Byte range = parseRange(req, resource.length());
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
@@ -1075,7 +1070,7 @@ public class PlayerApiServlet extends HttpServlet {
 				if (sid != null) {
 					resource.setMediaSubtitle(sid);
 				}
-				WebGuiServletHelper.copyStreamThreaded(in, os);
+				WebGuiServletHelper.copyStreamAsync(in, os, async);
 			}
 		} catch (IOException ex) {
 			return false;

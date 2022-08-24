@@ -17,7 +17,6 @@
  */
 package net.pms.network.webguiserver.servlets;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -26,9 +25,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.database.UserDatabase;
@@ -38,6 +35,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
 import net.pms.iam.User;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,20 +44,8 @@ import org.slf4j.LoggerFactory;
  * Create/modify/view accounts Api Handler.
  */
 @WebServlet(name = "AccountApiServlet", urlPatterns = {"/v1/api/account"}, displayName = "Account Api Servlet")
-public class AccountApiServlet extends HttpServlet {
+public class AccountApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AccountApiServlet.class);
-	private static final Gson GSON = new Gson();
-
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

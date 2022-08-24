@@ -20,6 +20,7 @@ package net.pms.network.webguiserver;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Timestamp;
+import javax.servlet.AsyncContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +31,16 @@ public class ServerSentEvents {
 
 	private Thread pingThread;
 	private OutputStream os;
+	private AsyncContext context;
 
-	public ServerSentEvents(OutputStream os) {
-		addEventStream(os);
-	}
-
-	public final void addEventStream(OutputStream os) {
-		//clean current OutputStream in case of....
-		stopPing();
-		close();
+	public ServerSentEvents(AsyncContext context) {
+		this.context = context;
 		synchronized (osLock) {
-			this.os = os;
+			try {
+				addEventStream(this.context.getResponse().getOutputStream());
+			} catch (IOException ex) {
+			}
 		}
-		LOGGER.debug("ServerSentEvents OutputStream was set");
-		startPing();
 	}
 
 	public boolean isOpened() {
@@ -65,9 +62,23 @@ public class ServerSentEvents {
 					os.close();
 				} catch (IOException ex) {
 				}
+				if (context != null) {
+					context.complete();
+				}
 				os = null;
 			}
 		}
+	}
+
+	private void addEventStream(OutputStream os) {
+		//clean current OutputStream in case of....
+		stopPing();
+		close();
+		synchronized (osLock) {
+			this.os = os;
+		}
+		LOGGER.debug("ServerSentEvents OutputStream was set");
+		startPing();
 	}
 
 	private boolean send(String response) {

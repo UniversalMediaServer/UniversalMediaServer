@@ -25,10 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Locale;
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +53,15 @@ public class WebGuiServletHelper {
 	private static final String HTTPSERVER_REQUEST_END =    "============================= GUI HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= GUI HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= GUI HTTPSERVER RESPONSE END =================================";
+	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[] { getUrl("file:" + CONFIGURATION.getWebPath() + "/react-app/") });
+	
+	private static URL getUrl(String url) {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			return null;
+		}
+	}
 
 	public static boolean deny(ServletRequest req) {
 		try {
@@ -151,10 +165,10 @@ public class WebGuiServletHelper {
 	 * @throws java.io.IOException
 	*/
 	public static boolean write(HttpServletRequest req, HttpServletResponse resp, String filename) throws IOException {
-		InputStream stream = req.getServletContext().getResourceAsStream(filename);
+		InputStream stream = CLASS_LOADER.getResourceAsStream(filename);
 		if (stream != null) {
 			if (resp.getContentType() == null) {
-				String mime = req.getServletContext().getMimeType(filename);
+				String mime = getMimeType(filename);
 				if (mime != null) {
 					resp.setContentType(mime);
 				}
@@ -164,40 +178,74 @@ public class WebGuiServletHelper {
 			resp.setContentLength(stream.available());
 			resp.setStatus(200);
 			logHttpServletResponse(req, resp, null, stream);
-			copyStreamThreaded(stream, resp.getOutputStream());
+			copyStream(stream, resp.getOutputStream());
 			return true;
 		}
 		return false;
 	}
 
-	public static void copyStreamThreaded(final InputStream in, final OutputStream os) {
+	/**
+	 * Write the given resource as an HttpServletResponse body.
+	 * @param req
+	 * @param resp
+	 * @param filename
+	 * @return
+	 * @throws java.io.IOException
+	*/
+	public static boolean writeAsync(HttpServletRequest req, HttpServletResponse resp, String filename) throws IOException {
+		InputStream stream = CLASS_LOADER.getResourceAsStream(filename);
+		if (stream != null) {
+			AsyncContext async = req.startAsync();
+			if (resp.getContentType() == null) {
+				String mime = getMimeType(filename);
+				if (mime != null) {
+					resp.setContentType(mime);
+				}
+			}
+			// Note: available() isn't officially guaranteed to return the full
+			// stream length but effectively seems to do so in our context.
+			resp.setContentLength(stream.available());
+			resp.setStatus(200);
+			logHttpServletResponse(req, resp, null, stream);
+			copyStreamAsync(stream, resp.getOutputStream(), async);
+			return true;
+		}
+		return false;
+	}
+
+	public static void copyStream(final InputStream in, final OutputStream os) {
+		byte[] buffer = new byte[32 * 1024];
+		int bytes;
+		int sendBytes = 0;
+
+		try {
+			while ((bytes = in.read(buffer)) != -1) {
+				sendBytes += bytes;
+				os.write(buffer, 0, bytes);
+				os.flush();
+			}
+			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
+		} catch (IOException e) {
+			LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+			}
+		}
+
+		try {
+			os.close();
+		} catch (IOException e) {
+		}
+	}
+
+	public static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context) {
 		Runnable r = () -> {
-			byte[] buffer = new byte[32 * 1024];
-			int bytes;
-			int sendBytes = 0;
-
-			try {
-				while ((bytes = in.read(buffer)) != -1) {
-					sendBytes += bytes;
-					os.write(buffer, 0, bytes);
-					os.flush();
-				}
-				LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
-			} catch (IOException e) {
-				LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-			} finally {
-				try {
-					in.close();
-				} catch (IOException e) {
-				}
-			}
-
-			try {
-				os.close();
-			} catch (IOException e) {
-			}
+			copyStream(in, os);
+			context.complete();
 		};
-		new Thread(r).start();
+		context.start(r);
 	}
 
 	public static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime) {
@@ -337,4 +385,11 @@ public class WebGuiServletHelper {
 		return result;
 	}
 
+	public static String getMimeType(String file) {
+		return file.endsWith(".html") ? "text/html" :
+		file.endsWith(".css") ? "text/css" :
+		file.endsWith(".js") ? "text/javascript" :
+		file.endsWith(".ttf") ? "font/truetype" :
+		URLConnection.guessContentTypeFromName(file);
+	}
 }
