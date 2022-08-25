@@ -15,29 +15,31 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.httpserverservletcontainer;
+package net.pms.network.webguiserver;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class HttpHandlerServlet implements HttpHandler {
-
-	private final HttpServlet servlet;
-
-	public HttpHandlerServlet(HttpServlet servlet) {
-		this.servlet = servlet;
-	}
+public class GuiHttpServlet extends HttpServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(GuiHttpServlet.class);
+	protected static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
 	@Override
-	public void handle(final HttpExchange exchange) throws IOException {
-		HttpExchangeServletRequest req = new HttpExchangeServletRequest(servlet, exchange);
-		try {
-			servlet.service(req, req.getServletResponse());
-		} catch (ServletException e) {
-			throw new IOException(e);
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		if (WebGuiServletHelper.deny(req)) {
+			return;
 		}
+		if (LOGGER.isTraceEnabled()) {
+			WebGuiServletHelper.logHttpServletRequest(req, "");
+		}
+		super.service(req, resp);
 	}
 }

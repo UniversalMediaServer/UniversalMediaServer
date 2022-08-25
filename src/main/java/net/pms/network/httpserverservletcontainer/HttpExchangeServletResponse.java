@@ -294,26 +294,34 @@ public class HttpExchangeServletResponse implements HttpServletResponse {
 		}
 	}
 
+	public void close() {
+		if (!isCommitted()) {
+			try {
+				exchange.sendResponseHeaders(status, contentLength);
+			} catch (IOException ex) {
+			} finally {
+				committed = true;
+			}
+		}
+		if (printWriter != null) {
+			printWriter.flush();
+		}
+		if (servletOutputStream != null) {
+			try {
+				servletOutputStream.flush();
+			} catch (IOException ex) {
+			}
+			try {
+				servletOutputStream.close();
+			} catch (IOException ex) {
+			}
+		}
+	}
+
 	@Override
 	public void finalize() throws IOException, Throwable {
 		try {
-			if (!isCommitted()) {
-				exchange.sendResponseHeaders(status, contentLength);
-				committed = true;
-			}
-			if (printWriter != null) {
-				printWriter.flush();
-			}
-			if (servletOutputStream != null) {
-				try {
-					servletOutputStream.flush();
-				} catch (IOException ex) {
-				}
-				try {
-					servletOutputStream.close();
-				} catch (IOException ex) {
-				}
-			}
+			close();
 		} finally {
 			super.finalize();
 		}
