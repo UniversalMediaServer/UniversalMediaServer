@@ -70,11 +70,11 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>158</binary-revision>
+		<binary-revision>159</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<maven-javadoc-plugin-version>3.4.0</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>3.4.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
@@ -1041,7 +1041,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.4.0</version>
+				<version>3.4.1</version>
 				<reportSets>
 					<reportSet>
 						<reports>
