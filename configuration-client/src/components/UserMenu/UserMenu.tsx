@@ -1,6 +1,6 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import React, { useContext } from 'react';
-import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
+import { InfoCircle, Logout, Menu2, PlayerPlay, Refresh, Settings, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -46,6 +46,13 @@ function UserMenu() {
         onClick={() => { window.location.href = '/accounts'; }}
       >
         {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+      </Menu.Item>
+      <Menu.Item
+        color="blue"
+        icon={<PlayerPlay size={14} />}
+        onClick={() => { window.location.href = '/player'; }}
+      >
+        {i18n.getI18nString("Player")}
       </Menu.Item>
       <Menu.Item
         color="yellow"
