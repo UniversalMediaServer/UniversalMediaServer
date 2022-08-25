@@ -20,6 +20,7 @@ package net.pms.network.webguiserver;
 import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,14 @@ public abstract class WebGuiServer {
 	public abstract String getUrl();
 	public abstract boolean isSecure();
 	public abstract void stop();
+
+	public static void resetAllRenderers() {
+		PlayerApiServlet.resetAllRenderers();
+	}
+
+	public static void deleteAllRenderers() {
+		PlayerApiServlet.deleteAllRenderers();
+	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
 		return WebGuiServerHttpServer.createServer(port);

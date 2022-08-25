@@ -834,6 +834,7 @@ public class PMS {
 			if (webInterfaceServer != null) {
 				webInterfaceServer.deleteAllRenderers();
 			}
+			WebGuiServer.deleteAllRenderers();
 		}
 	}
 
@@ -857,6 +858,7 @@ public class PMS {
 		if (webInterfaceServer != null) {
 			webInterfaceServer.resetAllRenderers();
 		}
+		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 
