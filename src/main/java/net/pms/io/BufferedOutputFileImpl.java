@@ -795,7 +795,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					if (getCurrentInputStream() != null) {
 						rc = getCurrentInputStream().getReadCount();
-						GuiManager.setReadValue(rc, "");
+						GuiManager.setReadValue(rc);
 					}
 
 					long space = (writeCount - rc);
@@ -820,7 +820,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	@Override
 	public void detachInputStream() {
 		if (!hidebuffer) {
-			GuiManager.setReadValue(0, "");
+			GuiManager.setReadValue(0);
 		}
 
 		if (attachedThread != null) {

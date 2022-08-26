@@ -671,11 +671,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void setReadValue(long v, String msg) {
-		st.setReadValue(v, msg);
-	}
-
-	@Override
 	public void setConnectionState(final EConnectionState connectionState) {
 		SwingUtilities.invokeLater(() -> {
 			st.setConnectionState(connectionState);
@@ -683,8 +678,13 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void updateBuffer() {
-		st.updateCurrentBitrate();
+	public void setCurrentBitrate(int sizeinMb) {
+		st.setCurrentBitrate(sizeinMb);
+	}
+
+	@Override
+	public void setPeakBitrate(int sizeinMb) {
+		st.setPeakBitrate(sizeinMb);
 	}
 
 	/**
@@ -789,7 +789,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void serverReady() {
-		st.updateMemoryUsage();
 		generalSettingsTab.addRenderers();
 	}
 
@@ -829,6 +828,11 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void setConfigurationChanged(String key) {
+	}
+
+	@Override
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
+		st.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
 	}
 
 }

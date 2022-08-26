@@ -21,8 +21,9 @@ import net.pms.configuration.RendererConfiguration;
 
 public interface IGui {
 	public void appendLog(String msg);
-	public void updateBuffer();
-	public void setReadValue(long v, String msg);
+	public void setCurrentBitrate(int sizeinMb);
+	public void setPeakBitrate(int sizeinMb);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory);
 	public void setConnectionState(EConnectionState connectionState);
 	public void addRenderer(RendererConfiguration renderer);
 	public void updateRenderer(RendererConfiguration renderer);
