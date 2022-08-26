@@ -29,8 +29,8 @@ import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.dlna.MediaMonitor;
+import net.pms.gui.GuiManager;
 import net.pms.util.FileUtil;
 
 /**
@@ -361,7 +361,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 		String pathWithWildcard = sqlLikeEscape(FileUtil.appendPathSeparator(fullPathToFolder)) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("MarkContentsFullyPlayed") : Messages.getString("MarkContentsUnplayed");
-		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
+		GuiManager.setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try {
 			String query = "SELECT ID, FILENAME FROM " + MediaTableFiles.TABLE_NAME + " WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
@@ -389,7 +389,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 			);
 			LOGGER.trace("", e);
 		} finally {
-			PMS.get().getFrame().setStatusLine(null);
+			GuiManager.setStatusLine(null);
 		}
 	}
 

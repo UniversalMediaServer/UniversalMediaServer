@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.IFrame;
 import net.pms.gui.ViewLevel;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
@@ -62,8 +61,9 @@ import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.gui.IGui;
 
-public class LooksFrame extends JFrame implements IFrame, Observer {
+public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
 	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
@@ -664,7 +664,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void append(final String msg) {
+	public void appendLog(final String msg) {
 		SwingUtilities.invokeLater(() -> {
 			tt.append(msg);
 		});
@@ -812,8 +812,23 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		SharedContentTab.setScanLibraryEnabled(enabled, running);
 	}
 
+	/**
+	 * Show error message with swing
+	 * @param message the message to display
+	 * @param title the title string for the dialog
+	 */
 	@Override
-	public String getLog() {
-		return getTt().getList().getText();
+	public void showErrorMessage(String message, String title) {
+		JOptionPane.showMessageDialog(
+			(SwingUtilities.getWindowAncestor(this)),
+			message,
+			title,
+			JOptionPane.ERROR_MESSAGE
+		);
 	}
+
+	@Override
+	public void setConfigurationChanged(String key) {
+	}
+
 }

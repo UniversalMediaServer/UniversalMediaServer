@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -457,7 +456,7 @@ public class StatusTab {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(() -> {
 					if (r.frame == null) {
-						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+						JFrame top = (JFrame) SwingUtilities.getWindowAncestor(r.getPanel());
 						// We're using JFrame instead of JDialog here so as to
 						// have a minimize button. Since the player panel
 						// is intrinsically a freestanding module this approach
@@ -468,7 +467,7 @@ public class StatusTab {
 						r.frame.add(r.rendererPanel);
 						r.rendererPanel.update();
 						r.frame.setResizable(false);
-						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+						r.frame.setIconImage(top.getIconImage());
 						r.frame.setLocationRelativeTo(top);
 						r.frame.setVisible(true);
 					} else {

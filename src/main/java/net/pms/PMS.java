@@ -61,15 +61,13 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.YoutubeDl;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
-import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.DbgPacker;
-import net.pms.gui.DummyFrame;
 import net.pms.gui.EConnectionState;
-import net.pms.gui.IFrame;
+import net.pms.gui.GuiManager;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.LanguageSelection;
 import net.pms.newgui.LooksFrame;
@@ -126,14 +124,6 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
-
-	/**
-	 * Returns a pointer to the UMS GUI's main window.
-	 * @return {@link net.pms.gui.IFrame} Main UMS window.
-	 */
-	public IFrame getFrame() {
-		return frame;
-	}
 
 	/**
 	 * A lock to prevent heavy IO tasks from causing browsing to be less
@@ -211,15 +201,15 @@ public class PMS {
 			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
-				frame.addRenderer(renderer);
-				frame.setConnectionState(EConnectionState.CONNECTED);
+				GuiManager.addRenderer(renderer);
+				GuiManager.setConnectionState(EConnectionState.CONNECTED);
 			}
 		}
 	}
 
 	public void updateRenderer(RendererConfiguration renderer) {
 		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
-		frame.updateRenderer(renderer);
+		GuiManager.updateRenderer(renderer);
 	}
 
 	/**
@@ -242,11 +232,6 @@ public class PMS {
 
 	private PMS() {
 	}
-
-	/**
-	 * {@link net.pms.gui.IFrame} object that represents the UMS GUI.
-	 */
-	private IFrame frame;
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
@@ -517,11 +502,10 @@ public class PMS {
 		}
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
+			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
-			frame = new DummyFrame();
 		}
 
 		// Close splash screen
@@ -547,19 +531,20 @@ public class PMS {
 		 * would be cleaner and could support other lifecycle
 		 * notifications (see above).
 		 */
-		FrameAppender.setFrame(frame);
+		//FrameAppender.setFrame(frame);
 
 		configuration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
 				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersRoot();
 				}
+				GuiManager.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
@@ -612,7 +597,7 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setConnectionState(EConnectionState.SEARCHING);
+		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
@@ -647,7 +632,7 @@ public class PMS {
 		PlayerFactory.initialize();
 
 		// Any plugin-defined players are now registered, create the gui view.
-		frame.addEngines();
+		GuiManager.addEngines();
 
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		MediaServer.start();
@@ -658,15 +643,15 @@ public class PMS {
 				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
-					frame.setConnectionState(EConnectionState.DISCONNECTED);
+					GuiManager.setConnectionState(EConnectionState.DISCONNECTED);
 				} else {
-					frame.setConnectionState(EConnectionState.CONNECTED);
+					GuiManager.setConnectionState(EConnectionState.CONNECTED);
 				}
 			}
 		}.start();
 
 		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
-			frame.enableWebUiButton();
+			GuiManager.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
 		}
 
@@ -684,7 +669,7 @@ public class PMS {
 			APIUtils.setApiImageBaseURL();
 		}
 
-		frame.serverReady();
+		GuiManager.serverReady();
 		ready = true;
 
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
@@ -793,7 +778,7 @@ public class PMS {
 			// change of the used interface
 			MediaServer.start();
 
-			frame.setReloadable(false);
+			GuiManager.setReloadable(false);
 		});
 	}
 
@@ -847,7 +832,7 @@ public class PMS {
 		if (configuration.useWebInterfaceServer()) {
 			try {
 				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
-				getFrame().updateServerStatus();
+				GuiManager.updateServerStatus();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -1109,7 +1094,7 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				GuiUtil.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
+				GuiManager.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup

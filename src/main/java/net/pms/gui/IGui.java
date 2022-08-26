@@ -19,8 +19,8 @@ package net.pms.gui;
 
 import net.pms.configuration.RendererConfiguration;
 
-public interface IFrame {
-	public void append(String msg);
+public interface IGui {
+	public void appendLog(String msg);
 	public void updateBuffer();
 	public void setReadValue(long v, String msg);
 	public void setConnectionState(EConnectionState connectionState);
@@ -33,6 +33,7 @@ public interface IFrame {
 	public void serverReady();
 	public void updateServerStatus();
 	public void setScanLibraryStatus(boolean enabled, boolean running);
-	public String getLog();
 	public void enableWebUiButton();
+	public void showErrorMessage(String message, String title);
+	public void setConfigurationChanged(String key);
 }
