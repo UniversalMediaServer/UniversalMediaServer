@@ -5423,8 +5423,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
 		PmsConfiguration configuration = PMS.getConfiguration();
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
+		File webConf = new File(configuration.getWebConfPath());
 		if (!webConf.exists()) {
 			configuration.writeWebConfigurationFile();
 		}
