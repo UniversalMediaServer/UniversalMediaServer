@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.ViewLevel;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;

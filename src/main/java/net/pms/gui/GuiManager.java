@@ -31,6 +31,9 @@ public class GuiManager {
 	private static long readCount = 0;
 	private static int currentBitrate = 0;
 	private static int peakBitrate = 0;
+	private static int maxMemory;
+	private static int usedMemory;
+	private static int bufferMemory;
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
 
@@ -42,11 +45,22 @@ public class GuiManager {
 					// fill the log
 					dumpCurrentLog(gui);
 				}
+				startMemoryThread();
 				gui.setConnectionState(connectionState);
 				gui.setCurrentBitrate(currentBitrate);
 				gui.setPeakBitrate(peakBitrate);
 				gui.setReloadable(reloadable);
+				gui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+				if (serverReady) {
+					gui.serverReady();
+				}
 			}
+		}
+	}
+
+	private static boolean hasGui() {
+		synchronized (GUI_INSTANCES) {
+			return (!GUI_INSTANCES.isEmpty());
 		}
 	}
 
@@ -160,7 +174,6 @@ public class GuiManager {
 		synchronized (GUI_INSTANCES) {
 			if (!serverReady) {
 				serverReady = true;
-				startMemoryThread();
 				if (!GUI_INSTANCES.isEmpty()) {
 					for (IGui guiInstance : GUI_INSTANCES) {
 						guiInstance.serverReady();
@@ -278,29 +291,27 @@ public class GuiManager {
 		}
 	}
 
-	private static int maxMemory;
-	private static int usedMemory;
-	private static int bufferMemory;
-
 	private static void updateMemoryUsage() {
-		maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1048576);
-		usedMemory = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576);
-		long buf = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : foundRenderers) {
-				buf += (r.getBuffer());
+		if (hasGui()) {
+			maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1048576);
+			usedMemory = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576);
+			long buf = 0;
+			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			synchronized (foundRenderers) {
+				for (RendererConfiguration r : foundRenderers) {
+					buf += (r.getBuffer());
+				}
 			}
-		}
-		if (buf == 0 && currentBitrate != 0) {
-			currentBitrate = 0;
-			updateCurrentBitrate();
-		}
-		bufferMemory = (int) buf;
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+			if (buf == 0 && currentBitrate != 0) {
+				currentBitrate = 0;
+				updateCurrentBitrate();
+			}
+			bufferMemory = (int) buf;
+			synchronized (GUI_INSTANCES) {
+				if (!GUI_INSTANCES.isEmpty()) {
+					for (IGui guiInstance : GUI_INSTANCES) {
+						guiInstance.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+					}
 				}
 			}
 		}
@@ -312,15 +323,17 @@ public class GuiManager {
 		}
 	}
 
-	private static final Thread UPDATE_MEMORY_USAGE_THREAD = new Thread(() -> {
+	private static final Runnable UPDATE_MEMORY_USAGE_RUNNABLE = () -> {
 		while (true) {
+			updateMemoryUsage();
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				return;
 			}
-			updateMemoryUsage();
 		}
-	}, "GuiManager Memory Usage Updater");
+	};
+
+	private static final Thread UPDATE_MEMORY_USAGE_THREAD = new Thread(UPDATE_MEMORY_USAGE_RUNNABLE, "GuiManager Memory Usage Updater");
 
 }
