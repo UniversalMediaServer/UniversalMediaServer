@@ -113,11 +113,11 @@ public class SharedContentTab {
 		Messages.getString("VideoStream"),
 	};
 
-	private static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[2];
-	private static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[1];
-	private static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[0];
-	private static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
-	private static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
+	public static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[2];
+	public static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[1];
+	public static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[0];
+	public static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
+	public static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
 
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;

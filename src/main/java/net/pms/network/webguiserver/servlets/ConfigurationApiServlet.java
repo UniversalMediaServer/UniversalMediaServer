@@ -115,6 +115,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
+				jsonResponse.add("sharedWebContent", PmsConfiguration.getAllSharedWebContentAsJsonArray());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
