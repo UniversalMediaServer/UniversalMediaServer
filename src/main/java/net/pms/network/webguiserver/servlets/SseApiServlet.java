@@ -66,7 +66,7 @@ public class SseApiServlet extends GuiHttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
 			var path = req.getPathInfo();
-			if (path.equals("/")) {
+			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && account.getUser().getId() > 0) {
 					resp.setHeader("Server", PMS.get().getServerName());
