@@ -2246,15 +2246,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.2.3":
-  version: 5.2.3
-  resolution: "@mantine/form@npm:5.2.3"
+"@mantine/form@npm:5.2.4":
+  version: 5.2.4
+  resolution: "@mantine/form@npm:5.2.4"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: e7285c99700d85657860dce516af29366d42fdc621f479069d648e6228e953513e19aa1bceab8f439990f9934c8cd74cd6468e608152c618808a434488796fa4
+  checksum: dc452f5fcd5107ed45bacc4e5ce0607efe327ffd99946ab054451d3f0436bb975c171170bdf6796360621c5b4470048acda4c4b38dfc6e129736413fe073d4f4
   languageName: node
   linkType: hard
 
@@ -2267,17 +2267,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:5.2.3":
-  version: 5.2.3
-  resolution: "@mantine/modals@npm:5.2.3"
+"@mantine/modals@npm:5.2.4":
+  version: 5.2.4
+  resolution: "@mantine/modals@npm:5.2.4"
   dependencies:
-    "@mantine/utils": 5.2.3
+    "@mantine/utils": 5.2.4
   peerDependencies:
-    "@mantine/core": 5.2.3
-    "@mantine/hooks": 5.2.3
+    "@mantine/core": 5.2.4
+    "@mantine/hooks": 5.2.4
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 37742fd4f4c740b3a7ff7b5ced1855391ccf8279be7dfe6d24410762fe39168e6eb715fb37b39b3dca7b213e013721939993932cd205836dd694812f86c39761
+  checksum: 62c60229ca9fb3178167d9c4add00e96577d682a768dcd421802b4291d5d8d3b51bb88185ae35f5936b12f55562cccb6bb0af985bc9816b09c8aefdf79dd77ab
   languageName: node
   linkType: hard
 
@@ -2322,15 +2322,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 8a0dee38931285d04bf022349a0cadaf812ee1a4d239b3c8246454002b9e5f37079d3fa5eef6706d610408c5fde06f5b82fd604177812169d3de3f9c8196900f
-  languageName: node
-  linkType: hard
-
-"@mantine/utils@npm:5.2.3":
-  version: 5.2.3
-  resolution: "@mantine/utils@npm:5.2.3"
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: bac3a5637efc2163b8308d42bbb4bc828b0cbeecfcbcb81dfb4b252afd728197b5a96abd37b0f0c7a432be2ab30e0525bbdefbe3f89f35bf321c168464af4a01
   languageName: node
   linkType: hard
 
