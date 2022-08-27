@@ -17,12 +17,10 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.IRendererGuiListener;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -39,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
@@ -47,6 +44,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
+import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
@@ -197,8 +195,6 @@ public class StatusTab {
 	private JLabel currentBitrateLabel;
 	private JLabel peakBitrate;
 	private JLabel peakBitrateLabel;
-	private long rc = 0;
-	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
 	private EConnectionState connectionState = EConnectionState.UNKNOWN;
@@ -274,19 +270,6 @@ public class StatusTab {
 				default:
 					connectionStatus.setIcon(null);
 			}
-		}
-	}
-
-	public void updateCurrentBitrate() {
-		long total = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : foundRenderers) {
-				total += r.getBuffer();
-			}
-		}
-		if (total == 0) {
-			currentBitrate.setText("0");
 		}
 	}
 
@@ -420,7 +403,6 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		startMemoryUpdater();
 		return scrollPane;
 	}
 
@@ -436,20 +418,12 @@ public class StatusTab {
 		});
 	}
 
-	public void setReadValue(long v, String msg) {
-		if (v < rc) {
-			rc = v;
-		} else {
-			int sizeinMb = (int) ((v - rc) / 125) / 1024;
+	public void setCurrentBitrate(int sizeinMb) {
+		currentBitrate.setText(formatter.format(sizeinMb));
+	}
 
-			if (sizeinMb > peak) {
-				peak = sizeinMb;
-			}
-
-			currentBitrate.setText(formatter.format(sizeinMb));
-			peakBitrate.setText(formatter.format(peak));
-			rc = v;
-		}
+	public void setPeakBitrate(int sizeinMb) {
+		peakBitrate.setText(formatter.format(sizeinMb));
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {
@@ -463,7 +437,7 @@ public class StatusTab {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(() -> {
 					if (r.frame == null) {
-						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+						JFrame top = (JFrame) SwingUtilities.getWindowAncestor(r.getPanel());
 						// We're using JFrame instead of JDialog here so as to
 						// have a minimize button. Since the player panel
 						// is intrinsically a freestanding module this approach
@@ -474,7 +448,7 @@ public class StatusTab {
 						r.frame.add(r.rendererPanel);
 						r.rendererPanel.update();
 						r.frame.setResizable(false);
-						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+						r.frame.setIconImage(top.getIconImage());
 						r.frame.setLocationRelativeTo(top);
 						r.frame.setVisible(true);
 					} else {
@@ -606,34 +580,10 @@ public class StatusTab {
 		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
-	public void updateMemoryUsage() {
-		final long max = Runtime.getRuntime().maxMemory() / 1048576;
-		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-		long buf = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-				buf += (r.getBuffer());
-			}
-		}
-		final long buffer = buf;
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
 		SwingUtilities.invokeLater(() -> {
-			memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
+			memBarUI.setValues(0, maxMemory, (usedMemory - bufferMemory), bufferMemory);
 		});
-	}
-
-	private void startMemoryUpdater() {
-		Runnable r = () -> {
-			for (;;) {
-				updateMemoryUsage();
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-		};
-		new Thread(r).start();
 	}
 
 }

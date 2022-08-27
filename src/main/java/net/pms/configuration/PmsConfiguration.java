@@ -51,7 +51,7 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
-import net.pms.newgui.GuiUtil;
+import net.pms.gui.GuiManager;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -2413,7 +2413,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			} catch (IOException e) {
 				if (!FileUtil.isAdmin()) {
 					try {
-						GuiUtil.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
+						GuiManager.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
 					} catch (NullPointerException e2) {
 						// This happens on the initial program load, ignore it
 					}

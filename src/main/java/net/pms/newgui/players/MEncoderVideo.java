@@ -24,7 +24,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -154,7 +153,7 @@ public class MEncoderVideo {
 			codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
 			codecPanel.add(customPanel, BorderLayout.SOUTH);
 
-			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor(codecPanel),
 					codecPanel, Messages.getString("EditCodecSpecificParameters"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 				String newCodecparam = textArea.getText();
 				DLNAMediaInfo fakemedia = new DLNAMediaInfo();
@@ -174,7 +173,7 @@ public class MEncoderVideo {
 				if (result.length > 0 && result[0].startsWith("@@")) {
 					String errorMessage = result[0].substring(2);
 					JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+							SwingUtilities.getWindowAncestor(codecPanel),
 							errorMessage,
 							Messages.getString("Error"),
 							JOptionPane.ERROR_MESSAGE
