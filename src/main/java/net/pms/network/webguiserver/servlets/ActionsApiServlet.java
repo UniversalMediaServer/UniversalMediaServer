@@ -20,9 +20,7 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
@@ -30,30 +28,20 @@ import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "ActionsApiServlet", urlPatterns = {"/v1/api/actions"}, displayName = "Actions Api Servlet")
-public class ActionsApiServlet extends HttpServlet {
+public class ActionsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
 
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
-
-	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		var path = req.getPathInfo();
 		try {
-			if (path.equals("/")) {
+			var path = req.getPathInfo();
+			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
 					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);

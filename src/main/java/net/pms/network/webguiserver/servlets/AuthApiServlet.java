@@ -17,15 +17,12 @@
  */
 package net.pms.network.webguiserver.servlets;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.sql.Connection;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.database.UserDatabase;
@@ -33,6 +30,7 @@ import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,20 +39,8 @@ import org.slf4j.LoggerFactory;
  * This class handles calls to the internal API.
  */
 @WebServlet(name = "AuthApiServlet", urlPatterns = {"/v1/api/auth"}, displayName = "Auth Api Servlet")
-public class AuthApiServlet extends HttpServlet {
+public class AuthApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiServlet.class);
-	private static final Gson GSON = new Gson();
-
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

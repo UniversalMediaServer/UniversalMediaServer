@@ -20,14 +20,13 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
@@ -41,22 +40,11 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 
 @WebServlet(name = "AboutApiServlet", urlPatterns = {"/v1/api/about"}, displayName = "About Api Servlet")
-public class AboutApiServlet extends HttpServlet {
+public class AboutApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AboutApiServlet.class);
 
 	private static SystemInfo systemInfo;
 	private static HardwareAbstractionLayer hardware;
-
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

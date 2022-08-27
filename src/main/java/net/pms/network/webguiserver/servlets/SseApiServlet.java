@@ -24,9 +24,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletException;
+import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
@@ -34,6 +33,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.network.webguiserver.ServerSentEvents;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "SseApiServlet", urlPatterns = {"/v1/api/sse"}, displayName = "Sse Api Servlet")
-public class SseApiServlet extends HttpServlet {
+public class SseApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
@@ -63,21 +63,10 @@ public class SseApiServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
-
-	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
 			var path = req.getPathInfo();
-			if (path.equals("/")) {
+			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && account.getUser().getId() > 0) {
 					resp.setHeader("Server", PMS.get().getServerName());
@@ -85,8 +74,8 @@ public class SseApiServlet extends HttpServlet {
 					resp.setHeader("Cache-Control", "no-transform");
 					resp.setHeader("Charset", "UTF-8");
 					resp.setContentType("text/event-stream");
-					resp.setContentLength(0);
-					ServerSentEvents sse = new ServerSentEvents(resp.getOutputStream());
+					AsyncContext async = req.startAsync();
+					ServerSentEvents sse = new ServerSentEvents(async);
 					addServerSentEventsFor(account.getUser().getId(), sse);
 				} else {
 					WebGuiServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");

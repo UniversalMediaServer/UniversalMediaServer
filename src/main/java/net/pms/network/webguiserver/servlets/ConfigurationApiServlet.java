@@ -17,7 +17,6 @@
  */
 package net.pms.network.webguiserver.servlets;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -32,9 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
@@ -46,6 +43,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.Languages;
@@ -59,10 +57,9 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
  * This class handles calls to the internal API.
  */
 @WebServlet(name = "ConfigurationApiServlet", urlPatterns = {"/configuration-api"}, displayName = "Configuration Api Servlet")
-public class ConfigurationApiServlet extends HttpServlet {
+public class ConfigurationApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
 
@@ -85,17 +82,6 @@ public class ConfigurationApiServlet extends HttpServlet {
 		"renderer_default"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
-
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		if (WebGuiServletHelper.deny(req)) {
-			throw new IOException("Access denied");
-		}
-		if (LOGGER.isTraceEnabled()) {
-			WebGuiServletHelper.logHttpServletRequest(req, "");
-		}
-		super.service(req, resp);
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -210,7 +196,7 @@ public class ConfigurationApiServlet extends HttpServlet {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					WebGuiServletHelper.respond(req, resp, null, 200, "application/json");
 				}
 				case "/i18n" -> {
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);

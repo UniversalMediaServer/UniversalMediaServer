@@ -65,12 +65,16 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	private final Map<String, String[]> parameters = new HashMap<>();
 	private final List<String> attributesName = new ArrayList<>();
+	private final HttpExchangeServletResponse servletResponse;
+
 	private String contentType;
 	private String characterEncoding;
 	private ServletInputStream servletInputStream;
 	private Cookie[] cookies;
 	private List<Locale> locales;
 	private String pathInfo;
+	private String servletPath;
+	private HttpExchangeAsyncContext asyncContext;
 
 	public HttpExchangeServletRequest(HttpServlet servlet, HttpExchange exchange) {
 		this.servlet = servlet;
@@ -80,6 +84,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 		if (contentType != null && contentType.equals("application/x-www-form-urlencoded")) {
 			parsePostParameters();
 		}
+		servletResponse = new HttpExchangeServletResponse(exchange);
 	}
 
 	@Override
@@ -143,7 +148,9 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	public String getPathInfo() {
 		if (pathInfo == null) {
 			String servpath = getServletContext().getContextPath();
-			//String servpath = getServletContext().getContext(getRequestURI()).getContextPath();
+			if ("/".equals(servpath)) {
+				return null;
+			}
 			String path = exchange.getRequestURI().getPath();
 			String pInfo = path.replaceFirst(servpath, "");
 			if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
@@ -229,7 +236,16 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getServletPath() {
-		return getServletContext().getContext(getRequestURI()).getContextPath();
+		if (servletPath == null) {
+			String contextPath = getServletContext().getContext(getRequestURI()).getContextPath();
+			if ("/".equals(contextPath)) {
+				servletPath = exchange.getRequestURI().getPath();
+			} else {
+				servletPath = contextPath;
+			}
+		}
+		return servletPath;
+
 	}
 
 	@Override
@@ -461,32 +477,48 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	@Override
 	public AsyncContext startAsync() throws IllegalStateException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		return startAsync(this, servletResponse);
 	}
 
 	@Override
 	public AsyncContext startAsync(ServletRequest sr, ServletResponse sr1) throws IllegalStateException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		if (!isAsyncSupported()) {
+			throw new IllegalStateException("This request does not support asynchronous operations.");
+		}
+		if (servletResponse.isCommitted()) {
+			throw new IllegalStateException("The response has already been closed.");
+		}
+		if (asyncContext == null) {
+			asyncContext = new HttpExchangeAsyncContext((HttpExchangeServletRequest) sr, (HttpExchangeServletResponse) sr1);
+		}
+		return asyncContext;
 	}
 
 	@Override
 	public boolean isAsyncStarted() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		return asyncContext != null;
 	}
 
 	@Override
 	public boolean isAsyncSupported() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		return true;
 	}
 
 	@Override
 	public AsyncContext getAsyncContext() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		if (isAsyncStarted()) {
+			return asyncContext;
+		}
+		throw new IllegalStateException("This request has not been put into asynchronous mode.");
 	}
 
 	@Override
 	public DispatcherType getDispatcherType() {
 		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	}
+
+	public HttpExchangeServletResponse getServletResponse() {
+		return servletResponse;
 	}
 
 	private void parseQueryParameters() {
