@@ -33,10 +33,16 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import net.pms.network.HTTPResource;
 
 public class Feed extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Feed.class);
 	private static final int REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
+	private static final Map<String, String> FEED_TITLES_CACHE = Collections.synchronizedMap(new HashMap<>());
+
 	private String name;
 	private String url;
 	private String tempItemTitle;
@@ -276,4 +282,31 @@ public class Feed extends DLNAResource {
 	protected void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * @param url feed URL
+	 * @return a feed title from its URL
+	 * @throws Exception
+	 */
+	public static String getFeedTitle(String url) throws Exception {
+		// Check cache first
+		String feedTitle = FEED_TITLES_CACHE.get(url);
+		if (feedTitle != null) {
+			return feedTitle;
+		}
+
+		SyndFeedInput input = new SyndFeedInput();
+		byte[] b = HTTPResource.downloadAndSendBinary(url);
+		if (b != null) {
+			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
+			feedTitle = feed.getTitle();
+			if (StringUtils.isNotBlank(feedTitle)) {
+				FEED_TITLES_CACHE.put(url, feedTitle);
+				return feedTitle;
+			}
+		}
+
+		return null;
+	}
+
 }

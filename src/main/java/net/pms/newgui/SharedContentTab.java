@@ -22,9 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
 import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -35,7 +32,6 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -47,10 +43,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -63,8 +56,8 @@ import net.pms.configuration.PmsConfiguration.SharedFolder;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
+import net.pms.dlna.Feed;
 import net.pms.dlna.LibraryScanner;
-import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.newgui.components.AnimatedIcon;
@@ -72,7 +65,6 @@ import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.util.FormLayoutUtil;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -605,7 +597,7 @@ public class SharedContentTab {
 									temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 								}
 
-								resourceName = getFeedTitle(temporarySource);
+								resourceName = Feed.getFeedTitle(temporarySource);
 							} else if (
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_STREAM ||
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_STREAM
@@ -1011,7 +1003,7 @@ public class SharedContentTab {
 												if (uri.contains("youtube.com/channel/")) {
 													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 												}
-												resourceName = getFeedTitle(uri);
+												resourceName = Feed.getFeedTitle(uri);
 												break;
 											case "videostream":
 											case "audiostream":
@@ -1054,34 +1046,6 @@ public class SharedContentTab {
 			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 			SharedContentTab.webContentList.setEnabled(true);
 		}
-	}
-
-	private static Map<String, String> feedTitlesCache = Collections.synchronizedMap(new HashMap<>());
-
-	/**
-	 * @param url feed URL
-	 * @return a feed title from its URL
-	 * @throws Exception
-	 */
-	public static String getFeedTitle(String url) throws Exception {
-		// Check cache first
-		String feedTitle = feedTitlesCache.get(url);
-		if (feedTitle != null) {
-			return feedTitle;
-		}
-
-		SyndFeedInput input = new SyndFeedInput();
-		byte[] b = HTTPResource.downloadAndSendBinary(url);
-		if (b != null) {
-			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			feedTitle = feed.getTitle();
-			if (StringUtils.isNotBlank(feedTitle)) {
-				feedTitlesCache.put(url, feedTitle);
-				return feedTitle;
-			}
-		}
-
-		return null;
 	}
 
 	@SuppressWarnings("rawtypes")
