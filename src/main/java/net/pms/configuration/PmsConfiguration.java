@@ -48,9 +48,8 @@ import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.Feed;
 import net.pms.dlna.RootFolder;
-import static net.pms.dlna.RootFolder.parseFeedKey;
-import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -58,7 +57,6 @@ import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
 import net.pms.newgui.GuiUtil;
-import net.pms.newgui.SharedContentTab;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -5465,7 +5463,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * This parses the web config and returns it as a JSON array.
 	 *
-	 * @param webConf
+	 * @return
 	 */
 	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
 		PmsConfiguration configuration = PMS.getConfiguration();
@@ -5481,14 +5479,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
-				JsonObject jsonObject = new JsonObject();
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
 					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
 						String key = line.substring(0, line.indexOf('='));
 						String value = line.substring(line.indexOf('=') + 1);
-						String[] keys = parseFeedKey(key);
+						String[] keys = RootFolder.parseFeedKey(key);
 						String sourceType = keys[0];
 						String folderName = keys[1] == null ? null : keys[1];
 
@@ -5500,7 +5497,7 @@ public class PmsConfiguration extends RendererConfiguration {
 								sourceType.equals("audiostream") ||
 								sourceType.equals("videostream")
 							) {
-								String[] values = parseFeedValue(value);
+								String[] values = RootFolder.parseFeedValue(value);
 								String uri = values[0];
 
 								// If the resource does not yet have a name, attempt to get one now
@@ -5517,7 +5514,7 @@ public class PmsConfiguration extends RendererConfiguration {
 												if (uri.contains("youtube.com/channel/")) {
 													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 												}
-												resourceName = SharedContentTab.getFeedTitle(uri);
+												resourceName = Feed.getFeedTitle(uri);
 												break;
 											case "videostream":
 											case "audiostream":
@@ -5532,7 +5529,7 @@ public class PmsConfiguration extends RendererConfiguration {
 									}
 								}
 
-								jsonObject = new JsonObject();
+								JsonObject jsonObject = new JsonObject();
 								jsonObject.addProperty("name", resourceName);
 								jsonObject.addProperty("type", sourceType);
 								jsonObject.addProperty("folders", folderName);

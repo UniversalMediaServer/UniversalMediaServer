@@ -82,6 +82,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 		"renderer_default"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
+	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -125,6 +126,14 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						String value = configurationAsJson.get(key).getAsString();
 						configurationAsJson.add(key, new JsonPrimitive(value));
+					}
+				}
+				for (String key : ARRAY_KEYS) {
+					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
+						JsonPrimitive value = configurationAsJson.get(key).getAsJsonPrimitive();
+						JsonArray array = new JsonArray();
+						array.add(value);
+						configurationAsJson.add(key, array);
 					}
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
@@ -304,8 +313,8 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 		jObj.addProperty("ffmpeg_multithreading", "");
 		jObj.addProperty("ffmpeg_mux_tsmuxer_compatible", false);
 		jObj.addProperty("fmpeg_sox", true);
-		jObj.addProperty("folders", "");
-		jObj.addProperty("folders_monitored", "");
+		jObj.add("folders", new JsonArray());
+		jObj.add("folders_monitored", new JsonArray());
 		jObj.addProperty("force_external_subtitles", true);
 		jObj.addProperty("forced_subtitle_language", "");
 		jObj.addProperty("forced_subtitle_tags", "forced");
