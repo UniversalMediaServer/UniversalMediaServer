@@ -215,7 +215,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
 					WebGuiServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
 				}
-				case "/directories" -> 					{
+				case "/directories" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
@@ -230,11 +230,21 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					}
 					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
 				}
+				case "/shared-web-content" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonArray post = WebGuiServletHelper.getJsonArrayFromBody(req);
+					CONFIGURATION.writeWebConfigurationFile(post);
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+				}
 				default -> {
 					LOGGER.trace("ConfigurationApiServlet request not available : {}", path);
 					WebGuiServletHelper.respondNotFound(req, resp);
 				}
-
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);

@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
@@ -5305,7 +5306,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	public void writeWebConfigurationFile() {
+	public void writeDefaultWebConfigurationFile() {
 		List<String> defaultWebConfContents = new ArrayList<>();
 		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
 		defaultWebConfContents.addAll(Arrays.asList(
@@ -5345,6 +5346,51 @@ public class PmsConfiguration extends RendererConfiguration {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
+	}
+
+	public synchronized void writeWebConfigurationFile(JsonArray fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+
+		List<String> entries = new ArrayList<>();
+		for (JsonElement webContentItem : fileContents) {
+			JsonObject webContentItemObject = webContentItem.getAsJsonObject();
+			String name = webContentItemObject.get("name").getAsString();
+			String type = webContentItemObject.get("type").getAsString();
+			String folders = webContentItemObject.get("folders").getAsString();
+			String source = webContentItemObject.get("source").getAsString();
+
+			StringBuilder entryToAdd = new StringBuilder();
+			entryToAdd.append(type).append(".").append(folders).append("=");
+
+			switch (type) {
+				case "imagefeed":
+				case "videofeed":
+				case "audiofeed":
+					entryToAdd.append(source);
+
+					if (name != null) {
+						entryToAdd.append(",,,").append(name);
+					}
+					break;
+				default:
+					if (name != null) {
+						entryToAdd.append(name).append(",").append(source);
+					}
+					break;
+			}
+
+			entries.add(entryToAdd.toString());
+		}
+
+		contentsToWrite.addAll(entries);
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
@@ -5425,7 +5471,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		PmsConfiguration configuration = PMS.getConfiguration();
 		File webConf = new File(configuration.getWebConfPath());
 		if (!webConf.exists()) {
-			configuration.writeWebConfigurationFile();
+			configuration.writeDefaultWebConfigurationFile();
 		}
 		JsonArray jsonArray = new JsonArray();
 		if (!configuration.getExternalNetwork() || !webConf.exists()) {

@@ -212,7 +212,7 @@ public class SharedContentTab {
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
 		if (!webConf.exists()) {
-			configuration.writeWebConfigurationFile();
+			configuration.writeDefaultWebConfigurationFile();
 		}
 		if (webConf.exists() && configuration.getExternalNetwork()) {
 			setWebContentGUIFromWebConfFile(webConf, webContentList.getSelectedRow());

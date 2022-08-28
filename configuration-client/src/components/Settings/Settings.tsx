@@ -118,44 +118,56 @@ export default function Settings() {
 	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
-  const handleSubmit = (values: typeof form.values) => {
-    const changedValues: Record<string, any> = {};
-
-    // construct an object of only changed values to send
-    for (const key in values) {
-      if (!_.isEqual(configuration[key], values[key])) {
-        changedValues[key] = values[key];
-      }
-    };
-
-    if (_.isEmpty(changedValues)) {
-      showNotification({
-        title: i18n.get['Saved'],
-        message: i18n.get['ConfigurationHasNoChanges'],
-      })
-      return;
-    }
-
+  const handleSubmit = async(values: typeof form.values) => {
     setLoading(true);
-    axios.post('/configuration-api/settings', changedValues)
-      .then(function () {
+    try {
+      const changedValues: Record<string, any> = {};
+  
+      // construct an object of only changed values to send
+      for (const key in values) {
+        if (!_.isEqual(configuration[key], values[key])) {
+          changedValues[key] = values[key];
+        }
+      };
+  
+      if (_.isEmpty(changedValues)) {
+        showNotification({
+          title: i18n.get['Saved'],
+          message: i18n.get['ConfigurationHasNoChanges'],
+        })
+      } else {
+        await axios.post('/configuration-api/settings', changedValues);
         setConfiguration(values);
         showNotification({
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationSaved'],
         })
+      }
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
       })
-      .catch(function () {
-        showNotification({
-          color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
-          onClick: () => { openGitHubNewIssue(); },
-        })
+    }
+
+    try {
+      await axios.post('/configuration-api/shared-web-content', sharedWebContent);
+      setConfiguration(values);
+      showNotification({
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationSaved'],
       })
-      .then(function () {
-        setLoading(false);
-      });
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
+    }
+    setLoading(false);
   };
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
@@ -827,7 +839,6 @@ export default function Settings() {
     const index = _.findIndex(sharedWebContentTemp, (realItem) => {
       return realItem.source === item.source;
     });
-    console.log(2,index);
     sharedWebContentTemp.splice(index, 1);
     setSharedWebContent(sharedWebContentTemp);
   }
