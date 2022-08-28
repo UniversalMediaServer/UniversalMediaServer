@@ -5465,7 +5465,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * This parses the web config and returns it as a JSON array.
 	 *
-	 * @param webConf
+	 * @return
 	 */
 	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
 		PmsConfiguration configuration = PMS.getConfiguration();
@@ -5481,7 +5481,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
-				JsonObject jsonObject = new JsonObject();
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
@@ -5532,7 +5531,7 @@ public class PmsConfiguration extends RendererConfiguration {
 									}
 								}
 
-								jsonObject = new JsonObject();
+								JsonObject jsonObject = new JsonObject();
 								jsonObject.addProperty("name", resourceName);
 								jsonObject.addProperty("type", sourceType);
 								jsonObject.addProperty("folders", folderName);
