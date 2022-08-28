@@ -39,9 +39,9 @@ public class ActionsApiServlet extends GuiHttpServlet {
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		var path = req.getPathInfo();
 		try {
-			if (path.equals("/")) {
+			var path = req.getPathInfo();
+			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
 					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
