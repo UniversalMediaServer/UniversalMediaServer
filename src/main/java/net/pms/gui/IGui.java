@@ -26,7 +26,6 @@ public interface IGui {
 	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory);
 	public void setConnectionState(EConnectionState connectionState);
 	public void addRenderer(RendererConfiguration renderer);
-	public void updateRenderer(RendererConfiguration renderer);
 	public void setReloadable(boolean reload);
 	public void addEngines();
 	public void setStatusLine(String line);

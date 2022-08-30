@@ -171,12 +171,14 @@ public class StatusTab {
 
 		@Override
 		public void updateRenderer(final RendererConfiguration renderer) {
-			icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
-			label.setText(renderer.getRendererName());
-			// Update the popup panel if it's been opened
-			if (rendererPanel != null) {
-				rendererPanel.update();
-			}
+			SwingUtilities.invokeLater(() -> {
+				icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
+				label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (rendererPanel != null) {
+					rendererPanel.update();
+				}
+			});
 		}
 
 		@Override
@@ -458,12 +460,6 @@ public class StatusTab {
 					}
 				});
 			}
-		});
-	}
-
-	public static void updateRenderer(final RendererConfiguration renderer) {
-		SwingUtilities.invokeLater(() -> {
-			renderer.updateRendererGui();
 		});
 	}
 

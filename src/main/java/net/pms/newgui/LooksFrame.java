@@ -782,11 +782,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void updateRenderer(RendererConfiguration renderer) {
-		StatusTab.updateRenderer(renderer);
-	}
-
-	@Override
 	public void serverReady() {
 		generalSettingsTab.addRenderers();
 	}
