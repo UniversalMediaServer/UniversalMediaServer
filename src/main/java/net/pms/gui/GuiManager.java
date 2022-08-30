@@ -117,16 +117,6 @@ public class GuiManager {
 		}
 	}
 
-	public static void updateRenderer(RendererConfiguration renderer) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.updateRenderer(renderer);
-				}
-			}
-		}
-	}
-
 	public static void setReloadable(boolean value) {
 		synchronized (GUI_INSTANCES) {
 			if (reloadable != value) {

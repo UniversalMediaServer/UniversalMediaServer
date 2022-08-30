@@ -207,11 +207,6 @@ public class PMS {
 		}
 	}
 
-	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
-		GuiManager.updateRenderer(renderer);
-	}
-
 	/**
 	 * UPnP mediaServer that serves the XML files, media files and broadcast messages needed by UPnP Service.
 	 */
@@ -512,26 +507,6 @@ public class PMS {
 		if (splash != null) {
 			splash.dispose();
 		}
-
-		/*
-		 * we're here:
-		 *
-		 *     main() -> createInstance() -> init()
-		 *
-		 * which means we haven't created the instance returned by get()
-		 * yet, so the frame appender can't access the frame in the
-		 * standard way i.e. PMS.get().getFrame(). we solve it by
-		 * inverting control ("don't call us; we'll call you") i.e.
-		 * we notify the appender when the frame is ready rather than
-		 * e.g. making getFrame() static and requiring the frame
-		 * appender to poll it.
-		 *
-		 * XXX an event bus (e.g. MBassador or Guava EventBus
-		 * (if they fix the memory-leak issue)) notification
-		 * would be cleaner and could support other lifecycle
-		 * notifications (see above).
-		 */
-		//FrameAppender.setFrame(frame);
 
 		configuration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
