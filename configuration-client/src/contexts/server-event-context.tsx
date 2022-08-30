@@ -8,6 +8,8 @@ export const serverEventContext: Context<{
   reloadable: boolean;
   userConfiguration: any;
   setUserConfiguration: (config: any) => void;
+  hasRendererAction : boolean;
+  getRendererAction : () => any;
 }> = createContext({
   connectionStatus : 0,
   memory : {max:0,used:0,buffer:0},
@@ -15,7 +17,9 @@ export const serverEventContext: Context<{
   setUpdateAccounts : (updateAccounts: boolean) => {},
   reloadable : false as boolean,
   userConfiguration : null,
-  setUserConfiguration : (config: any) => {}
+  setUserConfiguration : (config: any) => {},
+  hasRendererAction : false as boolean,
+  getRendererAction : () => null,
 });
 
 export default serverEventContext;

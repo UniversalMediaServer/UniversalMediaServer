@@ -54,6 +54,12 @@ public class GuiManager {
 				if (serverReady) {
 					gui.serverReady();
 				}
+				List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+				synchronized (foundRenderers) {
+					for (RendererConfiguration renderer : foundRenderers) {
+						gui.addRenderer(renderer);
+					}
+				}
 			}
 		}
 	}
@@ -120,16 +126,6 @@ public class GuiManager {
 			if (!GUI_INSTANCES.isEmpty()) {
 				for (IGui guiInstance : GUI_INSTANCES) {
 					guiInstance.addRenderer(renderer);
-				}
-			}
-		}
-	}
-
-	public static void updateRenderer(RendererConfiguration renderer) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.updateRenderer(renderer);
 				}
 			}
 		}

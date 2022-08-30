@@ -210,11 +210,6 @@ public class PMS {
 		}
 	}
 
-	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
-		GuiManager.updateRenderer(renderer);
-	}
-
 	/**
 	 * UPnP mediaServer that serves the XML files, media files and broadcast messages needed by UPnP Service.
 	 */

@@ -108,7 +108,7 @@ public class UPNPHelper extends UPNPControl {
 				rendererMap.put(uuid, "0", r);
 				r.details = getDeviceDetails(d);
 				// Update gui
-				PMS.get().updateRenderer(r);
+				r.updateRendererGui();
 				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", r, r.details);
 			} else {
 				// It's brand new

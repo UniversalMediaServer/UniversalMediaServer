@@ -18,8 +18,10 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
+  const [hasRendererAction, setRendererAction] = useState(false);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
+  const [rendererActions] = useState([] as any[]);
 
   useEffect(() => {
     if (started || session.account === undefined) {
@@ -78,6 +80,12 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'set_configuration_changed':
             setUserConfiguration(datas.value);
             break;
+          case 'renderer_add':
+          case 'renderer_delete':
+          case 'renderer_update':
+            rendererActions.push(datas);
+            setRendererAction(true);
+            break;
         }
       }
     }
@@ -112,6 +120,15 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     startSse();
   }, [started, session, i18n]);
 
+  const getRendererAction = () => {
+    let result = null;
+    if (rendererActions.length > 0) {
+      result = rendererActions.shift();
+      setRendererAction(rendererActions.length > 0);
+    }
+    return result;
+  };
+
   const { Provider } = serverEventContext;
   return(
     <Provider value={{
@@ -122,6 +139,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       reloadable:reloadable,
       userConfiguration:userConfiguration,
       setUserConfiguration:setUserConfiguration,
+      hasRendererAction:hasRendererAction,
+      getRendererAction:getRendererAction,
     }}>
       {children}
     </Provider>

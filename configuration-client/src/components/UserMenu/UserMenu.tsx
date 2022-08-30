@@ -1,6 +1,6 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import React, { useContext } from 'react';
-import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
+import { Home, InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -25,6 +25,13 @@ function UserMenu() {
       </Menu.Target>
       <Menu.Dropdown>
       <Menu.Label>Settings</Menu.Label>
+      <Menu.Item
+        color="green"
+        icon={<Home size={14} />}
+        onClick={() => { window.location.href = '/'; }}
+      >
+        {i18n.get['Overview']}
+      </Menu.Item>
       {havePermission(session, "server_restart")  && (
         <Menu.Item
           icon={<Refresh size={14} />}

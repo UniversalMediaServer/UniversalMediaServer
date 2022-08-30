@@ -62,10 +62,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void addRenderer(RendererConfiguration renderer) {
-	}
-
-	@Override
-	public void updateRenderer(RendererConfiguration renderer) {
+		RendererStatus.addRenderer(renderer);
 	}
 
 	@Override

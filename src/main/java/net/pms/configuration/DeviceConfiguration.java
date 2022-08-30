@@ -109,7 +109,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public void reset() {
 		try {
 			inherit(ref);
-			PMS.get().updateRenderer(this);
+			updateRendererGui();
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading device configuration {}: {}", this, e);
 		}

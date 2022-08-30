@@ -16,6 +16,7 @@ import About from './components/About/About'
 import Accounts from './components/Accounts/Accounts'
 import Login from './components/Login/Login'
 import Settings from './components/Settings/Settings';
+import Status from './components/Status/Status';
 import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
@@ -96,7 +97,7 @@ function App() {
                               <Route path='about' element={<About />}></Route>
                               <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
                               <Route path='settings' element={<Settings />}></Route>
-                              <Route index element={<Settings />} />
+                              <Route index element={<Status />} />
                               <Route
                                 path="/*"
                                 element={<Navigate replace to="/" />}
