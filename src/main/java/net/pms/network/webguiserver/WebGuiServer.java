@@ -65,10 +65,6 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void updateRenderer(RendererConfiguration renderer) {
-	}
-
-	@Override
 	public void setReloadable(boolean reload) {
 		SseApiServlet.setReloadable(reload);
 	}
