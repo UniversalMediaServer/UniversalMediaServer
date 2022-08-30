@@ -118,7 +118,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     startSse();
-  }, [started, session, i18n]);
+  }, [started, session, i18n, rendererActions]);
 
   const getRendererAction = () => {
     let result = null;

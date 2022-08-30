@@ -66,7 +66,7 @@ const Status = () => {
       }
     }
     setRenderers(renderersTemp);
-  }, [sse.hasRendererAction]);
+  }, [renderers, sse]);
 
   const renderersCards = renderers.map((renderer:Renderer) => (
     <Grid.Col span={12} xs={6}>
