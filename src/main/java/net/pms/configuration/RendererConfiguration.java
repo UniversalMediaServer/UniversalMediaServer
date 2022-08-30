@@ -1688,7 +1688,7 @@ public class RendererConfiguration extends Renderer {
 		listenersLock.readLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
-					gui.updateRenderer(this);
+				gui.updateRenderer(this);
 			}
 		} finally {
 			listenersLock.readLock().unlock();
