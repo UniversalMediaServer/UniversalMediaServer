@@ -463,12 +463,6 @@ public class StatusTab {
 		});
 	}
 
-	public static void updateRenderer(final RendererConfiguration renderer) {
-		SwingUtilities.invokeLater(() -> {
-			renderer.updateRendererGui();
-		});
-	}
-
 	public static ImagePanel addRendererIcon(String icon, String overlays) {
 		BufferedImage bi = getRendererIcon(icon, overlays);
 		return bi != null ? new ImagePanel(bi) : null;
