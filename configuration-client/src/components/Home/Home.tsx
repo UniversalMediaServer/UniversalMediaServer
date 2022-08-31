@@ -4,7 +4,7 @@ import { useContext } from 'react';
 import Renderers from './Renderers';
 import I18nContext from '../../contexts/i18n-context';
 
-const Status = () => {
+const Home = () => {
   const i18n = useContext(I18nContext);
 
   return (
@@ -18,11 +18,10 @@ const Status = () => {
             <Renderers/>
           </Tabs.Panel>
           <Tabs.Panel value="logs" pt="xs">
-            <Renderers/>
           </Tabs.Panel>
         </Tabs>
       </Box>
   );
 };
 
-export default Status;
+export default Home;

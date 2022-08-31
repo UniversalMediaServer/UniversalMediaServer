@@ -31,9 +31,9 @@ import net.pms.network.webguiserver.servlets.AccountApiServlet;
 import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
 import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
-import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.network.webguiserver.servlets.StatusApiServlet;
+import net.pms.network.webguiserver.servlets.WebGuiServlet;
 
 @SuppressWarnings("restriction")
 public class WebGuiServerHttpServer extends WebGuiServer {
@@ -68,8 +68,8 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(ActionsApiServlet.class);
 				container.createServlet(AuthApiServlet.class);
 				container.createServlet(ConfigurationApiServlet.class);
+				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SseApiServlet.class);
-				container.createServlet(StatusApiServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
