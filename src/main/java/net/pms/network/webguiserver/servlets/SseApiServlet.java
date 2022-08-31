@@ -29,7 +29,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
@@ -46,21 +45,6 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
-
-	private static final Thread UPDATE_MEMORY_USAGE_THREAD = new Thread(() -> {
-		while (true) {
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				return;
-			}
-			updateMemoryUsage();
-		}
-	}, "SSE Api Memory Usage Updater");
-
-	public SseApiServlet() {
-		startMemoryThread();
-	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -89,29 +73,6 @@ public class SseApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	//let start a thread to update memory usage
-	private static void startMemoryThread() {
-		if (!UPDATE_MEMORY_USAGE_THREAD.isAlive()) {
-			UPDATE_MEMORY_USAGE_THREAD.start();
-		}
-	}
-
-	private static void updateMemoryUsage() {
-		if (hasServerSentEvents()) {
-			final long max = Runtime.getRuntime().maxMemory() / 1048576;
-			final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-			long buffer = 0;
-			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-			synchronized (foundRenderers) {
-				for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-					buffer += (r.getBuffer());
-				}
-			}
-			String json = "{\"action\":\"update_memory\",\"max\":" + (int) max + ",\"used\":" + (int) used + ",\"buffer\":" + (int) buffer + "}";
-			broadcastMessage(json);
-		}
-	}
-
 	private static void addServerSentEventsFor(int id, ServerSentEvents sse) {
 		if (id > 0) {
 			synchronized (SSE_INSTANCES) {
@@ -123,7 +84,7 @@ public class SseApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	public static boolean hasServerSentEvents() {
+	private static boolean hasServerSentEvents() {
 		synchronized (SSE_INSTANCES) {
 			return !SSE_INSTANCES.isEmpty();
 		}
@@ -250,4 +211,10 @@ public class SseApiServlet extends GuiHttpServlet {
 			broadcastMessage(ConfigurationApiServlet.getConfigurationUpdate(key), "settings_view");
 		}
 	}
+
+	public static void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
+		String json = "{\"action\":\"update_memory\",\"max\":" + maxMemory + ",\"used\":" + usedMemory + ",\"buffer\":" + bufferMemory + "}";
+		broadcastMessage(json);
+	}
+
 }

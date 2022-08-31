@@ -20,8 +20,8 @@ package net.pms.io;
 import java.io.IOException;
 import java.io.InputStream;
 
-class WaitBufferedInputStream extends InputStream {
-	private BufferedOutputFile outputStream;
+public class WaitBufferedInputStream extends InputStream {
+	private final BufferedOutputFile outputStream;
 	private long readCount;
 	private boolean firstRead;
 

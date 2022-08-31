@@ -19,13 +19,13 @@ package net.pms.gui;
 
 import net.pms.configuration.RendererConfiguration;
 
-public interface IFrame {
-	public void append(String msg);
-	public void updateBuffer();
-	public void setReadValue(long v, String msg);
+public interface IGui {
+	public void appendLog(String msg);
+	public void setCurrentBitrate(int sizeinMb);
+	public void setPeakBitrate(int sizeinMb);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory);
 	public void setConnectionState(EConnectionState connectionState);
 	public void addRenderer(RendererConfiguration renderer);
-	public void updateRenderer(RendererConfiguration renderer);
 	public void setReloadable(boolean reload);
 	public void addEngines();
 	public void setStatusLine(String line);
@@ -33,6 +33,7 @@ public interface IFrame {
 	public void serverReady();
 	public void updateServerStatus();
 	public void setScanLibraryStatus(boolean enabled, boolean running);
-	public String getLog();
 	public void enableWebUiButton();
+	public void showErrorMessage(String message, String title);
+	public void setConfigurationChanged(String key);
 }

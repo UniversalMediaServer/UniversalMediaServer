@@ -82,7 +82,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       }
     }
 
-    const onError = (event: Response) => {
+    const onError = () => {
       if (!notified) {
         notified = true;
         showErrorNotification();
@@ -104,7 +104,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         onmessage(event: EventSourceMessage) {
           onMessage(event);
         },
-        onerror(event: Response) { onError(event); },
+        onerror(event: Response) { onError(); },
         onclose() { onClose(); },
       });
     };

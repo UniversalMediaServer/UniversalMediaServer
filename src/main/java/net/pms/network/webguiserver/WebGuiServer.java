@@ -20,11 +20,15 @@ package net.pms.network.webguiserver;
 import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.IGui;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class WebGuiServer {
+public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final int DEFAULT_PORT = 9002; //CONFIGURATION.getGuiServerPort();
@@ -35,6 +39,73 @@ public abstract class WebGuiServer {
 	public abstract String getUrl();
 	public abstract boolean isSecure();
 	public abstract void stop();
+
+	@Override
+	public void appendLog(String msg) {
+	}
+
+	@Override
+	public void setCurrentBitrate(int sizeinMb) {
+	}
+
+	@Override
+	public void setPeakBitrate(int sizeinMb) {
+	}
+
+	@Override
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
+		SseApiServlet.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+	}
+
+	@Override
+	public void setConnectionState(EConnectionState connectionState) {
+	}
+
+	@Override
+	public void addRenderer(RendererConfiguration renderer) {
+	}
+
+	@Override
+	public void setReloadable(boolean reload) {
+		SseApiServlet.setReloadable(reload);
+	}
+
+	@Override
+	public void addEngines() {
+	}
+
+	@Override
+	public void setStatusLine(String line) {
+	}
+
+	@Override
+	public void setSecondaryStatusLine(String line) {
+	}
+
+	@Override
+	public void serverReady() {
+	}
+
+	@Override
+	public void updateServerStatus() {
+	}
+
+	@Override
+	public void setScanLibraryStatus(boolean enabled, boolean running) {
+	}
+
+	@Override
+	public void enableWebUiButton() {
+	}
+
+	@Override
+	public void showErrorMessage(String message, String title) {
+	}
+
+	@Override
+	public void setConfigurationChanged(String key) {
+		SseApiServlet.setConfigurationChanged(key);
+	}
 
 	public static void resetAllRenderers() {
 		PlayerApiServlet.resetAllRenderers();
