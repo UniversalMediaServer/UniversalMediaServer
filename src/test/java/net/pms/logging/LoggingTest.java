@@ -148,6 +148,7 @@ public class LoggingTest {
 
 	/**
 	 * Test
+	 * @throws ConfigurationException
 	 * @throws InterruptedException
 	 *
 	 */
@@ -310,17 +311,17 @@ public class LoggingTest {
 
 		// Test setTracesFilter()
 		configuration.setLoggingFilterLogsTab(Level.WARN);
-		FrameAppender<ILoggingEvent> frameAppender = new FrameAppender<>();
-		frameAppender.setContext(context);
+		GuiManagerAppender<ILoggingEvent> guiAppender = new GuiManagerAppender<>();
+		guiAppender.setContext(context);
 		patternEncoder = new PatternLayoutEncoder();
 		patternEncoder.setPattern("%msg%n");
 		patternEncoder.setContext(context);
 		patternEncoder.start();
-		frameAppender.setEncoder(patternEncoder);
-		frameAppender.start();
-		rootLogger.addAppender(frameAppender);
+		guiAppender.setEncoder(patternEncoder);
+		guiAppender.start();
+		rootLogger.addAppender(guiAppender);
 		LoggingConfig.setTracesFilter();
-		filterList = frameAppender.getCopyOfAttachedFiltersList();
+		filterList = guiAppender.getCopyOfAttachedFiltersList();
 		assertEquals("NumberOfTracesFilters", filterList.size(), 1);
 		assertTrue("TracesFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
@@ -329,14 +330,14 @@ public class LoggingTest {
 		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.WARN);
 		configuration.setLoggingFilterLogsTab(Level.TRACE);
 		LoggingConfig.setTracesFilter();
-		filterList = frameAppender.getCopyOfAttachedFiltersList();
+		filterList = guiAppender.getCopyOfAttachedFiltersList();
 		assertEquals("NumberOfTracesFilters", filterList.size(), 1);
 		assertTrue("TracesFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
 		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.TRACE);
-		rootLogger.detachAppender(frameAppender);
+		rootLogger.detachAppender(guiAppender);
 
 		// Test isSyslogDisabled()
 		if (syslogAppenderFound(rootLogger.iteratorForAppenders())) {

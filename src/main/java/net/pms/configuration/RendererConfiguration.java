@@ -725,7 +725,7 @@ public class RendererConfiguration extends Renderer {
 					}
 					r.inherit(ref);
 					// update gui
-					PMS.get().updateRenderer(r);
+					r.updateRendererGui();
 				}
 			} else if (!UPNPHelper.isNonRenderer(ia)) {
 				// It's brand new
@@ -1130,7 +1130,7 @@ public class RendererConfiguration extends Renderer {
 			init(f);
 			// update gui
 			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
-				PMS.get().updateRenderer(d);
+				d.updateRendererGui();
 			}
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
