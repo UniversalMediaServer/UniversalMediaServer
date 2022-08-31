@@ -24,7 +24,7 @@
 	</define>
 
 	<!-- Appender for messages in the UMS "Traces" tab -->
-	<appender name="traces" class="net.pms.logging.FrameAppender">
+	<appender name="traces" class="net.pms.logging.GuiManagerAppender">
 		<!-- No threshold filtering, log everything the root logger allows -->
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<charset>UTF-8</charset>

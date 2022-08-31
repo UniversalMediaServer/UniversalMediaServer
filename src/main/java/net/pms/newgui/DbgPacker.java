@@ -190,7 +190,7 @@ public class DbgPacker extends net.pms.util.DbgPacker implements ActionListener 
 		// Rebuild and restart
 		LOGGER.debug("Reloading...");
 		((Window) c.getTopLevelAncestor()).dispose();
-		JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), config(),
+		JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor(openZip), config(),
 				Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null,
 				null);
 	}
