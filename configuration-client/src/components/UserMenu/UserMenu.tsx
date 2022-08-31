@@ -24,14 +24,15 @@ function UserMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-      <Menu.Label>Settings</Menu.Label>
       <Menu.Item
         color="green"
         icon={<Home size={14} />}
         onClick={() => { window.location.href = '/'; }}
       >
-        {i18n.get['Overview']}
+        {i18n.get['Home']}
       </Menu.Item>
+      <Menu.Divider />
+      <Menu.Label>{i18n.get['Settings']}</Menu.Label>
       {havePermission(session, "server_restart")  && (
         <Menu.Item
           icon={<Refresh size={14} />}
@@ -54,6 +55,7 @@ function UserMenu() {
       >
         {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
       </Menu.Item>
+      <Menu.Divider />
       <Menu.Item
         color="yellow"
         icon={<InfoCircle size={14} />}
