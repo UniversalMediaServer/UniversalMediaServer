@@ -25,6 +25,7 @@ import net.pms.newgui.LooksFrame;
 
 public class GuiManager {
 	private static final List<String> LOG_BUFFER = new ArrayList<>();
+	private static final int LOG_BUFFER_SIZE = 5000;
 	private static final List<IGui> GUI_INSTANCES = new ArrayList<>();
 
 	private static EConnectionState connectionState = EConnectionState.UNKNOWN;
@@ -36,6 +37,7 @@ public class GuiManager {
 	private static int bufferMemory;
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
+	private static boolean needLogFile = false;
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
@@ -92,6 +94,10 @@ public class GuiManager {
 	public static void appendLog(String msg) {
 		synchronized (LOG_BUFFER) {
 			LOG_BUFFER.add(msg);
+			if (LOG_BUFFER.size() > LOG_BUFFER_SIZE) {
+				needLogFile = true;
+				LOG_BUFFER.remove(0);
+			}
 		}
 		synchronized (GUI_INSTANCES) {
 			if (!GUI_INSTANCES.isEmpty()) {
@@ -104,8 +110,12 @@ public class GuiManager {
 
 	public static String[] getLogLines() {
 		synchronized (LOG_BUFFER) {
-			return (String[]) LOG_BUFFER.toArray();
+			return LOG_BUFFER.toArray(String[]::new);
 		}
+	}
+
+	public static boolean hasMoreLogLines() {
+		return needLogFile;
 	}
 
 	public static void setConnectionState(EConnectionState value) {

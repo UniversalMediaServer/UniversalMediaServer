@@ -31,6 +31,7 @@ import net.pms.network.webguiserver.servlets.AccountApiServlet;
 import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
 import net.pms.network.webguiserver.servlets.ConfigurationApiServlet;
+import net.pms.network.webguiserver.servlets.LogsApiServlet;
 import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
@@ -68,6 +69,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(ActionsApiServlet.class);
 				container.createServlet(AuthApiServlet.class);
 				container.createServlet(ConfigurationApiServlet.class);
+				container.createServlet(LogsApiServlet.class);
 				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SseApiServlet.class);
 			} catch (ServletException ex) {

@@ -18,6 +18,7 @@
 package net.pms.network.webguiserver;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -337,6 +338,10 @@ public class WebGuiServletHelper {
 	public static JsonObject getJsonObjectFromBody(HttpServletRequest req) {
 		String reqBody = getBodyAsString(req);
 		return jsonObjectFromString(reqBody);
+	}
+
+	public static JsonArray getJsonArrayFromStringArray(String[] array) {
+		return GSON.toJsonTree(array).getAsJsonArray();
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {

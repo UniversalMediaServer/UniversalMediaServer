@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,8 +32,6 @@ import net.pms.iam.AuthService;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.RendererItem;
 import net.pms.network.webguiserver.WebGuiServletHelper;
-import static net.pms.network.webguiserver.WebGuiServletHelper.copyStreamAsync;
-import static net.pms.network.webguiserver.WebGuiServletHelper.getMimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +121,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				 * RendererIcon = /path/to/foo.png
 				 */
 
-				String mime = getMimeType(icon);
+				String mime = WebGuiServletHelper.getMimeType(icon);
 				File f = new File(icon);
 
 				if (!f.isAbsolute() && f.getParent() == null) {
@@ -132,31 +129,31 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
 					if (f.isFile()) {
 						is = new FileInputStream(f);
-						mime = getMimeType(f.getName());
+						mime = WebGuiServletHelper.getMimeType(f.getName());
 					} else {
 						//try renderers dir
 						f = new File(RendererConfiguration.getRenderersDir(), icon);
 						if (f.isFile()) {
 							is = new FileInputStream(f);
-							mime = getMimeType(f.getName());
+							mime = WebGuiServletHelper.getMimeType(f.getName());
 						}
 					}
 				}
 
 				if (is == null) {
 					is = RenderersApiServlet.class.getResourceAsStream("/resources/images/clients/" + icon);
-					mime = getMimeType(icon);
+					mime = WebGuiServletHelper.getMimeType(icon);
 				}
 
 				if (is == null) {
 					is = RenderersApiServlet.class.getResourceAsStream("/renderers/" + icon);
-					mime = getMimeType(icon);
+					mime = WebGuiServletHelper.getMimeType(icon);
 				}
 
 				if (is == null) {
 					LOGGER.debug("Unable to read icon \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
 					is = RenderersApiServlet.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.UNKNOWN_ICON);
-					mime = getMimeType(RendererConfiguration.UNKNOWN_ICON);
+					mime = WebGuiServletHelper.getMimeType(RendererConfiguration.UNKNOWN_ICON);
 				}
 
 				if (is != null) {
@@ -166,7 +163,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					}
 					resp.setContentLength(is.available());
 					resp.setStatus(200);
-					copyStreamAsync(is, resp.getOutputStream(), async);
+					WebGuiServletHelper.copyStreamAsync(is, resp.getOutputStream(), async);
 					return true;
 				}
 			} catch (IOException e) {

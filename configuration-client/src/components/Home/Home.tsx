@@ -1,6 +1,7 @@
 import { Box, Tabs } from '@mantine/core';
 import { useContext } from 'react';
 
+import Logs from './Logs';
 import Renderers from './Renderers';
 import I18nContext from '../../contexts/i18n-context';
 
@@ -18,6 +19,7 @@ const Home = () => {
             <Renderers/>
           </Tabs.Panel>
           <Tabs.Panel value="logs" pt="xs">
+            <Logs/>
           </Tabs.Panel>
         </Tabs>
       </Box>
