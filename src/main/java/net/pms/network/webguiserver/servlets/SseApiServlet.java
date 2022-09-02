@@ -95,6 +95,10 @@ public class SseApiServlet extends GuiHttpServlet {
 	 * @param message
 	 */
 	public static void broadcastMessage(String message) {
+		broadcastMessage(message, true);
+	}
+
+	public static void broadcastMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
 				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
@@ -103,7 +107,7 @@ public class SseApiServlet extends GuiHttpServlet {
 					if (!sse.isOpened()) {
 						sseIterator.remove();
 					} else {
-						sse.sendMessage(message);
+						sse.sendMessage(message, log);
 					}
 				}
 				if (entry.getValue().isEmpty()) {
@@ -217,4 +221,10 @@ public class SseApiServlet extends GuiHttpServlet {
 		broadcastMessage(json);
 	}
 
+	public static void appendLog(String msg) {
+		JsonObject result = new JsonObject();
+		result.addProperty("action", "log_line");
+		result.addProperty("value", msg);
+		broadcastMessage(result.toString(), false);
+	}
 }

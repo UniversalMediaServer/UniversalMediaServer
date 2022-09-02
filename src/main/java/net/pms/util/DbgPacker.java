@@ -1,11 +1,14 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -92,6 +95,22 @@ public class DbgPacker {
 	public Set<File> getItems() {
 		poll();
 		return items.keySet();
+	}
+
+	public static void writeToZip(ZipOutputStream out, File f) throws Exception {
+		byte[] buf = new byte[1024];
+		int len;
+		if (!f.exists()) {
+			LOGGER.debug("DbgPack file {} does not exist - ignoring", f.getAbsolutePath());
+			return;
+		}
+		try (FileInputStream in = new FileInputStream(f)) {
+			out.putNextEntry(new ZipEntry(f.getName()));
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			out.closeEntry();
+		}
 	}
 
 }

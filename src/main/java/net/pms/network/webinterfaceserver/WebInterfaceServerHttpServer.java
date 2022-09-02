@@ -115,7 +115,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/browse", new BrowseHandler(this));
 			PlayHandler playHandler = new PlayHandler(this);
 			addCtx("/play/", playHandler);
-			addCtx("/playstatus", playHandler);
+			addCtx("/playerstatus", playHandler);
 			addCtx("/playlist", playHandler);
 			addCtx("/m3u8", playHandler);
 			addCtx("/media", new MediaHandler(this));

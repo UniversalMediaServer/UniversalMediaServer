@@ -41,6 +41,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void appendLog(String msg) {
+		SseApiServlet.appendLog(msg);
 	}
 
 	@Override

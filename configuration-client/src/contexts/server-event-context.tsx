@@ -10,6 +10,8 @@ export const serverEventContext: Context<{
   setUserConfiguration: (config: any) => void;
   hasRendererAction : boolean;
   getRendererAction : () => any;
+  hasNewLogLine : boolean;
+  getNewLogLine : () => any;
 }> = createContext({
   connectionStatus : 0,
   memory : {max:0,used:0,buffer:0},
@@ -20,6 +22,8 @@ export const serverEventContext: Context<{
   setUserConfiguration : (config: any) => {},
   hasRendererAction : false as boolean,
   getRendererAction : () => null,
+  hasNewLogLine : false as boolean,
+  getNewLogLine : () => null,
 });
 
 export default serverEventContext;

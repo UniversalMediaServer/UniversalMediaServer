@@ -19,9 +19,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
   const [hasRendererAction, setRendererAction] = useState(false);
+  const [rendererActions] = useState([] as any[]);
+  const [hasNewLogLine, setNewLogLine] = useState(false);
+  const [newLogLines] = useState([] as string[]);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
-  const [rendererActions] = useState([] as any[]);
 
   useEffect(() => {
     if (started || session.account === undefined) {
@@ -86,6 +88,10 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
             rendererActions.push(datas);
             setRendererAction(true);
             break;
+          case 'log_line':
+            newLogLines.push(datas.value);
+            setNewLogLine(true);
+            break;
         }
       }
     }
@@ -118,13 +124,22 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     startSse();
-  }, [started, session, i18n, rendererActions]);
+  }, [started, session, i18n, rendererActions, newLogLines]);
 
   const getRendererAction = () => {
     let result = null;
     if (rendererActions.length > 0) {
       result = rendererActions.shift();
       setRendererAction(rendererActions.length > 0);
+    }
+    return result;
+  };
+
+  const getNewLogLine = () => {
+    let result = null;
+    if (newLogLines.length > 0) {
+      result = newLogLines.shift();
+      setNewLogLine(rendererActions.length > 0);
     }
     return result;
   };
@@ -141,6 +156,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       setUserConfiguration:setUserConfiguration,
       hasRendererAction:hasRendererAction,
       getRendererAction:getRendererAction,
+      hasNewLogLine:hasNewLogLine,
+      getNewLogLine:getNewLogLine,
     }}>
       {children}
     </Provider>

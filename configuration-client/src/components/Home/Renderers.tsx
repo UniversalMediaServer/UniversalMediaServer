@@ -1,4 +1,4 @@
-import { ActionIcon, Card, Grid, Group, Image, Menu, Modal, Table, Text } from '@mantine/core';
+import { ActionIcon, Card, Grid, Group, Image, Menu, Modal, Progress, Table, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -47,7 +47,6 @@ const Renderers = () => {
       if (rendererAction === null) {
         break;
       }
-      console.log(2,rendererAction);
       switch(rendererAction.action) {
         case 'renderer_add':
           renderersTemp.push(rendererAction);
@@ -118,6 +117,19 @@ const Renderers = () => {
         { renderer.address && 
           <Text align="center" size="sm" color="dimmed" >
             {renderer.address}
+          </Text>
+        }
+        { renderer.playing && 
+          <Progress value={renderer.progressPercent} />
+        }
+        { renderer.playing && 
+          <Text align="center" size="sm" color="dimmed" >
+            {renderer.playing}
+          </Text>
+        }
+        { renderer.time && 
+          <Text align="center" size="sm" color="dimmed" >
+            {renderer.time}
           </Text>
         }
       </Card>

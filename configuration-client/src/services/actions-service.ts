@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const PERMITTED_ACTIONS = [
+  'Process.Reboot.Trace',
   'Server.ResetCache',
   'Server.Restart',
 ];
