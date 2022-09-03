@@ -158,13 +158,13 @@ const Logs = () => {
     axios.post(apiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
       .then(function (response: any) {
         let fileName = response.headers["content-disposition"].split("filename=")[1];
-		const type = response.headers['content-type']
-		const blob = new Blob([response.data], { type: type })
-		const link = document.createElement('a')
-		link.href = window.URL.createObjectURL(blob)
-		link.download = fileName
-		link.click()
-        document.removeChild(link);
+		const type = response.headers['content-type'];
+		const blob = new Blob([response.data], { type: type });
+		const link = document.createElement('a');
+		link.href = window.URL.createObjectURL(blob);
+		link.download = fileName;
+		link.click();
+		link.remove();
       }
     );
   }
