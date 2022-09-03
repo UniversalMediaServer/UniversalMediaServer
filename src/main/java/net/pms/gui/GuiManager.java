@@ -270,6 +270,7 @@ public class GuiManager {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				return;
 			}
 		}

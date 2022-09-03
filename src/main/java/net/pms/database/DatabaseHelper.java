@@ -163,12 +163,13 @@ public class DatabaseHelper {
 					"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
 					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
 			}
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			rs = stmt.executeQuery();
+			try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+				rs = stmt.executeQuery();
 
-			while (rs.next()) {
-				try (Statement statement = connection.createStatement()) {
-					statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+				while (rs.next()) {
+					try (Statement statement = connection.createStatement()) {
+						statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+					}
 				}
 			}
 		} catch (SQLException e) {
