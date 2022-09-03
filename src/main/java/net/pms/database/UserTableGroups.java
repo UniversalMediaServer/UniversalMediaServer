@@ -99,8 +99,8 @@ public final class UserTableGroups extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
-				"DISPLAY_NAME		VARCHAR2(255)	UNIQUE" +
+				"ID                 INT             PRIMARY KEY AUTO_INCREMENT, " +
+				"DISPLAY_NAME       VARCHAR2(255)   UNIQUE" +
 			")"
 		);
 		// create an initial group for admin in the table

@@ -116,14 +116,14 @@ public final class UserTableUsers extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
-				"USERNAME			VARCHAR2(255)	UNIQUE, " +
-				"PASSWORD			VARCHAR2(255)	NOT NULL, " +
-				"DISPLAY_NAME		VARCHAR2(255), " +
-				"GROUP_ID			INT				DEFAULT 0, " +
-				"LAST_LOGIN_TIME	BIGINT			DEFAULT 0, " +
-				"LOGIN_FAIL_TIME	BIGINT			DEFAULT 0, " +
-				"LOGIN_FAIL_COUNT	INT				DEFAULT 0" +
+				"ID                 INT             PRIMARY KEY AUTO_INCREMENT, " +
+				"USERNAME           VARCHAR2(255)   UNIQUE, " +
+				"PASSWORD           VARCHAR2(255)   NOT NULL, " +
+				"DISPLAY_NAME       VARCHAR2(255), " +
+				"GROUP_ID           INT             DEFAULT 0, " +
+				"LAST_LOGIN_TIME    BIGINT          DEFAULT 0, " +
+				"LOGIN_FAIL_TIME    BIGINT          DEFAULT 0, " +
+				"LOGIN_FAIL_COUNT   INT             DEFAULT 0" +
 			")"
 		);
 	}
