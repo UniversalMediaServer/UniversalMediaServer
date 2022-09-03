@@ -1718,7 +1718,7 @@ export default function Settings() {
   }
 
   return canView ? (
-    <Box sx={{ maxWidth: 700 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs defaultValue="GeneralSettings">
           <Tabs.List>
@@ -1742,7 +1742,7 @@ export default function Settings() {
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 700 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
       <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );

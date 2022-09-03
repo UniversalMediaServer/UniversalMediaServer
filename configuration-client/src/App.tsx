@@ -107,7 +107,7 @@ function App() {
                           <Login />
                         ) : (
                           <Center>
-                            <Box sx={{ maxWidth: 700 }} mx="auto">
+                            <Box sx={{ maxWidth: 1024 }} mx="auto">
                               <Loader size="xl" variant="dots" sx={{marginTop: '150px'}}/>
                             </Box>
                           </Center>
