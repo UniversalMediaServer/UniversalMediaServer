@@ -132,7 +132,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 						return;
 					}
 					ArrayList<String> items = new ArrayList();
-					for(JsonElement item : data.getAsJsonArray("items")) {
+					for (JsonElement item : data.getAsJsonArray("items")) {
 						items.add(item.getAsString());
 					}
 

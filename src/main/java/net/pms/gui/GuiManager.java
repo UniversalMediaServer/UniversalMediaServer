@@ -100,8 +100,12 @@ public class GuiManager {
 				LOG_BUFFER.remove(0);
 			}
 		}
-		if (swingFrame != null) { swingFrame.appendLog(msg); }
-		if (webGui != null) { webGui.appendLog(msg); }
+		if (swingFrame != null) {
+			swingFrame.appendLog(msg);
+		}
+		if (webGui != null) {
+			webGui.appendLog(msg);
+		}
 	}
 
 	public static String[] getLogLines() {
@@ -117,60 +121,100 @@ public class GuiManager {
 	public static void setConnectionState(EConnectionState value) {
 		if (!value.equals(connectionState)) {
 			connectionState = value;
-			if (swingFrame != null) { swingFrame.setConnectionState(connectionState); }
-			if (webGui != null) { webGui.setConnectionState(connectionState); }
+			if (swingFrame != null) {
+				swingFrame.setConnectionState(connectionState);
+			}
+			if (webGui != null) {
+				webGui.setConnectionState(connectionState);
+			}
 		}
 	}
 
 	public static void addRenderer(RendererConfiguration renderer) {
-		if (swingFrame != null) { swingFrame.addRenderer(renderer); }
-		if (webGui != null) { webGui.addRenderer(renderer); }
+		if (swingFrame != null) {
+			swingFrame.addRenderer(renderer);
+		}
+		if (webGui != null) {
+			webGui.addRenderer(renderer);
+		}
 	}
 
 	public static void setReloadable(boolean value) {
 		if (reloadable != value) {
 			reloadable = value;
-			if (swingFrame != null) { swingFrame.setReloadable(reloadable); }
-			if (webGui != null) { webGui.setReloadable(reloadable); }
+			if (swingFrame != null) {
+				swingFrame.setReloadable(reloadable);
+			}
+			if (webGui != null) {
+				webGui.setReloadable(reloadable);
+			}
 		}
 	}
 
 	public static void addEngines() {
-		if (swingFrame != null) { swingFrame.addEngines(); }
-		if (webGui != null) { webGui.addEngines(); }
+		if (swingFrame != null) {
+			swingFrame.addEngines();
+		}
+		if (webGui != null) {
+			webGui.addEngines();
+		}
 	}
 
 	public static void setStatusLine(String line) {
-		if (swingFrame != null) { swingFrame.setStatusLine(line); }
-		if (webGui != null) { webGui.setStatusLine(line); }
+		if (swingFrame != null) {
+			swingFrame.setStatusLine(line);
+		}
+		if (webGui != null) {
+			webGui.setStatusLine(line);
+		}
 	}
 
 	public static void setSecondaryStatusLine(String line) {
-		if (swingFrame != null) { swingFrame.setSecondaryStatusLine(line); }
-		if (webGui != null) { webGui.setSecondaryStatusLine(line); }
+		if (swingFrame != null) {
+			swingFrame.setSecondaryStatusLine(line);
+		}
+		if (webGui != null) {
+			webGui.setSecondaryStatusLine(line);
+		}
 	}
 
 	public static void serverReady() {
 		if (!serverReady) {
 			serverReady = true;
-			if (swingFrame != null) { swingFrame.serverReady(); }
-			if (webGui != null) { webGui.serverReady(); }
+			if (swingFrame != null) {
+				swingFrame.serverReady();
+			}
+			if (webGui != null) {
+				webGui.serverReady();
+			}
 		}
 	}
 
 	public static void updateServerStatus() {
-		if (swingFrame != null) { swingFrame.updateServerStatus(); }
-		if (webGui != null) { webGui.updateServerStatus(); }
+		if (swingFrame != null) {
+			swingFrame.updateServerStatus();
+		}
+		if (webGui != null) {
+			webGui.updateServerStatus();
+		}
 	}
 
 	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		if (swingFrame != null) { swingFrame.setScanLibraryStatus(enabled, running); }
-		if (webGui != null) { webGui.setScanLibraryStatus(enabled, running); }
+		if (swingFrame != null) {
+			swingFrame.setScanLibraryStatus(enabled, running);
+		}
+		if (webGui != null) {
+			webGui.setScanLibraryStatus(enabled, running);
+		}
 	}
 
 	public static void enableWebUiButton() {
-		if (swingFrame != null) { swingFrame.enableWebUiButton(); }
-		if (webGui != null) { webGui.enableWebUiButton(); }
+		if (swingFrame != null) {
+			swingFrame.enableWebUiButton();
+		}
+		if (webGui != null) {
+			webGui.enableWebUiButton();
+		}
 	}
 
 	/**
@@ -179,8 +223,12 @@ public class GuiManager {
 	 * @param title the title string for the dialog
 	 */
 	public static void showErrorMessage(String message, String title) {
-		if (swingFrame != null) { swingFrame.showErrorMessage(message, title); }
-		if (webGui != null) { webGui.showErrorMessage(message, title); }
+		if (swingFrame != null) {
+			swingFrame.showErrorMessage(message, title);
+		}
+		if (webGui != null) {
+			webGui.showErrorMessage(message, title);
+		}
 	}
 
 	/**
@@ -188,8 +236,12 @@ public class GuiManager {
 	 * @param key the configuration key
 	 */
 	public static void setConfigurationChanged(String key) {
-		if (swingFrame != null) { swingFrame.setConfigurationChanged(key); }
-		if (webGui != null) { webGui.setConfigurationChanged(key); }
+		if (swingFrame != null) {
+			swingFrame.setConfigurationChanged(key);
+		}
+		if (webGui != null) {
+			webGui.setConfigurationChanged(key);
+		}
 	}
 
 	public static void updateBuffer() {
@@ -222,13 +274,21 @@ public class GuiManager {
 	}
 
 	private static void updateCurrentBitrate() {
-		if (swingFrame != null) { swingFrame.setCurrentBitrate(currentBitrate); }
-		if (webGui != null) { webGui.setCurrentBitrate(currentBitrate); }
+		if (swingFrame != null) {
+			swingFrame.setCurrentBitrate(currentBitrate);
+		}
+		if (webGui != null) {
+			webGui.setCurrentBitrate(currentBitrate);
+		}
 	}
 
 	private static void updatePeakBitrate() {
-		if (swingFrame != null) { swingFrame.setPeakBitrate(peakBitrate); }
-		if (webGui != null) { webGui.setPeakBitrate(peakBitrate); }
+		if (swingFrame != null) {
+			swingFrame.setPeakBitrate(peakBitrate);
+		}
+		if (webGui != null) {
+			webGui.setPeakBitrate(peakBitrate);
+		}
 	}
 
 	private static void updateMemoryUsage() {
@@ -247,8 +307,12 @@ public class GuiManager {
 				updateCurrentBitrate();
 			}
 			bufferMemory = (int) buf;
-			if (swingFrame != null) { swingFrame.setMemoryUsage(maxMemory, usedMemory, bufferMemory); }
-			if (webGui != null) { webGui.setMemoryUsage(maxMemory, usedMemory, bufferMemory); }
+			if (swingFrame != null) {
+				swingFrame.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+			}
+			if (webGui != null) {
+				webGui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+			}
 		}
 	}
 

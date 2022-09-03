@@ -124,7 +124,7 @@ public class RendererItem implements IRendererGuiListener {
 				detailsArray.add(entryObject);
 			}
 		}
-		result.add("details", detailsArray);	
+		result.add("details", detailsArray);
 		return result;
 	}
 
