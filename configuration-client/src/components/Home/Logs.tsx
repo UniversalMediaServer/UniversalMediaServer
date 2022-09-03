@@ -125,9 +125,11 @@ const Logs = () => {
     const logsTemp = _.clone(logs);
     while (sse.hasNewLogLine) {
       const logLine = sse.getNewLogLine();
-      console.log('log : ', logLine);
       if (logLine === null) {
         break;
+      }
+      if (logsTemp.length > 10000) {
+        logsTemp.slice(0, logsTemp.length - 10000);
       }
       logsTemp.push(logLine);
     }

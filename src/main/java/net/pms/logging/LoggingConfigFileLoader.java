@@ -18,6 +18,7 @@
 package net.pms.logging;
 
 import java.util.HashMap;
+import net.pms.logging.LoggingConfig;
 
 /*
  * This class is just a backwards compatible wrapper for LoggingConfig. It can

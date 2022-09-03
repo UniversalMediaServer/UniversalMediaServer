@@ -86,10 +86,16 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'renderer_delete':
           case 'renderer_update':
             rendererActions.push(datas);
+            if (rendererActions.length > 20) {
+              rendererActions.slice(0, rendererActions.length - 20);
+            }
             setRendererAction(true);
             break;
           case 'log_line':
             newLogLines.push(datas.value);
+            if (newLogLines.length > 20) {
+              newLogLines.slice(0, newLogLines.length - 20);
+            }
             setNewLogLine(true);
             break;
         }
