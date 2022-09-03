@@ -532,8 +532,7 @@ public class MapFile extends DLNAResource {
 		if (folder == null || !folder.isDirectory()) {
 			return null;
 		}
-		try {
-			DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
+		try (DirectoryStream<Path> folderThumbnails = Files.newDirectoryStream(folder.toPath(), (Path entry) -> {
 				Path fileNamePath = entry.getFileName();
 				if (fileNamePath == null) {
 					return false;
@@ -543,7 +542,7 @@ public class MapFile extends DLNAResource {
 					return isPotentialThumbnail(fileName);
 				}
 				return false;
-			});
+			})) {
 			for (Path folderThumbnail : folderThumbnails) {
 				// We don't have any rule to prioritize between them; return the first
 				return folderThumbnail.toFile();
