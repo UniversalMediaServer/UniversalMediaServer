@@ -591,13 +591,7 @@ public class SharedContentTab {
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_FEED ||
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_FEED
 							) {
-								String temporarySource = newEntrySource.getText();
-								// Convert YouTube channel URIs to their feed URIs
-								if (temporarySource.contains("youtube.com/channel/")) {
-									temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-								}
-
-								resourceName = Feed.getFeedTitle(temporarySource);
+								resourceName = Feed.getFeedTitle(newEntrySource.getText());
 							} else if (
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_STREAM ||
 								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_STREAM

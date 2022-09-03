@@ -289,6 +289,11 @@ public class Feed extends DLNAResource {
 	 * @throws Exception
 	 */
 	public static String getFeedTitle(String url) throws Exception {
+		// Convert YouTube channel URIs to their feed URIs
+		if (url.contains("youtube.com/channel/")) {
+			url = url.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+		}
+
 		// Check cache first
 		String feedTitle = FEED_TITLES_CACHE.get(url);
 		if (feedTitle != null) {

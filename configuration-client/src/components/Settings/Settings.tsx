@@ -4,9 +4,9 @@ import { Prism } from '@mantine/prism';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useReducer, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay, Search, SquareX } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay, Search, SquareCheck, SquareX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -15,6 +15,7 @@ import { havePermission } from '../../services/accounts-service';
 import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { sendAction } from '../../services/actions-service';
+import React from 'react';
 
 export default function Settings() {
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
@@ -24,6 +25,7 @@ export default function Settings() {
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   interface mantineSelectData {
     value: string;
@@ -81,6 +83,9 @@ export default function Settings() {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
         setDefaultConfiguration(settingsResponse.userSettingsDefaults);
+        if (!_.isEmpty(settingsResponse.sharedWebContent)) {
+          settingsResponse.sharedWebContent.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,' } as SharedWebContentItem);
+        }
         setSharedWebContent(settingsResponse.sharedWebContent);
 
         // merge defaults with what we receive, which might only be non-default values
@@ -719,7 +724,7 @@ export default function Settings() {
                           ]}
                           size="xs"
                           value={value.type}
-                          onChange={(itemValue) => setSharedWebContentItemType(value, itemValue)}
+                          onChange={(itemValue) => setSharedWebContentItemAttribute('type', value, itemValue)}
                         />
                       </td>
                       <td>
@@ -727,6 +732,7 @@ export default function Settings() {
                           size="xs"
                           disabled={!canModify}
                           value={value.folders}
+                          onChange={(event) => setSharedWebContentItemAttribute('folders', value, event.currentTarget.value)}
                         />
                       </td>
                       <td>
@@ -734,17 +740,29 @@ export default function Settings() {
                           size="xs"
                           disabled={!canModify}
                           value={value.source}
+                          onChange={(event) => setSharedWebContentItemAttribute('source', value, event.currentTarget.value)}
                         />
                       </td>
                       <td>
-                        <ActionIcon
-                          color="red"
-                          variant="transparent"
-                          disabled={!canModify || !value.name}
-                          onClick={() => removeSharedWebContentItem(value)}
-                        >
-                          <SquareX />
-                        </ActionIcon>
+                        {value.name ? (
+                          <ActionIcon
+                            color="red"
+                            variant="transparent"
+                            disabled={!canModify}
+                            onClick={() => removeSharedWebContentItem(value)}
+                          >
+                            <SquareX />
+                          </ActionIcon>
+                        ) : (
+                          <ActionIcon
+                            color="green"
+                            variant="transparent"
+                            disabled={!canModify}
+                            onClick={() => addSharedWebContentItem()}
+                          >
+                            <SquareCheck />
+                          </ActionIcon>
+                        )}
                       </td>
                     </tr>
                   )
@@ -805,7 +823,6 @@ export default function Settings() {
     const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
       return realItem.directory === item.directory;
     });
-    console.log(2,index);
     sharedDirectoriesTemp.splice(index, 1);
     updateSharedDirectoriesToSave(sharedDirectoriesTemp);
   }
@@ -816,24 +833,43 @@ export default function Settings() {
     updateSharedDirectoriesToSave(sharedDirectoriesTemp);
   }
 
-  const setSharedWebContentItemType = (item: SharedWebContentItem, source: string | null) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
+  const setSharedWebContentItemAttribute = (attribute: 'name' | 'folders' | 'source' | 'type', item: SharedWebContentItem, value: string | null) => {
+    let sharedWebContentTemp = sharedWebContent;
     const index = _.findIndex(sharedWebContentTemp, (realItem) => {
       return realItem.source === item.source;
     });
-    if (source) {
-      sharedWebContentTemp[index].source = source;
+    if (value && sharedWebContentTemp[index][attribute] !== value) {
+      sharedWebContentTemp[index][attribute] = value;
+      setSharedWebContent(sharedWebContentTemp);
+      forceUpdate();
     }
+  }
 
-    // ensure there is always an empty entry at the bottom
-    if (index === sharedWebContentTemp.length - 1) {
-      sharedWebContentTemp.push({ source: '', name: '', type: '', folders: '' } as SharedWebContentItem);
+  const addSharedWebContentItem = async () => {
+    setLoading(true);
+    try {
+      const response: { data: { name: string } } = await axios.post('/configuration-api/web-content-name', { source: sharedWebContent[sharedWebContent.length - 1].source });
+      sharedWebContent[sharedWebContent.length - 1].name = response.data?.name;
+
+      showNotification({
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationSaved'],
+      })
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
     }
-    setSharedWebContent(sharedWebContentTemp);
+    setLoading(false);
+    sharedWebContent.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,' } as SharedWebContentItem);
+    setSharedWebContent(sharedWebContent);
   }
 
   const removeSharedWebContentItem = (item: SharedWebContentItem) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
+    const sharedWebContentTemp = sharedWebContent;
     const index = _.findIndex(sharedWebContentTemp, (realItem) => {
       return realItem.source === item.source;
     });
@@ -842,8 +878,7 @@ export default function Settings() {
   }
 
   const moveSharedWebContentItem = (oldIndex: number, newIndex: number) => {
-    let sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    sharedWebContentTemp = arrayMove(sharedWebContentTemp, oldIndex, newIndex);
+    const sharedWebContentTemp = arrayMove(sharedWebContent, oldIndex, newIndex);
     setSharedWebContent(sharedWebContentTemp);
   }
 	  

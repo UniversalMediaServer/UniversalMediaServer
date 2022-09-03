@@ -38,6 +38,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.Feed;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -249,6 +250,21 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					JsonArray post = WebGuiServletHelper.getJsonArrayFromBody(req);
 					CONFIGURATION.writeWebConfigurationFile(post);
 					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+				}
+				case "/web-content-name" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
+
+					String webContentName = "";
+					if (request.has("source")) {
+						webContentName = Feed.getFeedTitle(request.get("source").getAsString());
+					}
+					WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("ConfigurationApiServlet request not available : {}", path);
