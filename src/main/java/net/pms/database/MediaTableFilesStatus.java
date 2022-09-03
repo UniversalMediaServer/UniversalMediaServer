@@ -124,8 +124,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 								if (!fileStatusEntries.contains(filename)) {
 									fileStatusEntries.add(filename);
 									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-									Statement statement2 = connection.createStatement();
-									statement2.execute(query);
+									try (Statement statement2 = connection.createStatement()) {
+										statement2.execute(query);
+									}
 									LOGGER.info("Updating fully played entry for " + filename);
 								}
 							}
@@ -178,12 +179,11 @@ public final class MediaTableFilesStatus extends MediaTable {
 					stmt = connection.prepareStatement(sql);
 					rs = stmt.executeQuery();
 
-					while (rs.next()) {
+					if (rs.next()) {
 						throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
 					}
-
-					stmt.close();
-					rs.close();
+					close(rs);
+					close(stmt);
 
 					version = 8;
 					break;

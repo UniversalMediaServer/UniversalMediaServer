@@ -1651,6 +1651,7 @@ public class XMLRPCUtil {
 						} else {
 							throw new XMLRPCException("XML-RPC: Invalid <array> element");
 						}
+						break;
 					default:
 						// Ignore
 				}

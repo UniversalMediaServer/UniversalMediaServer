@@ -48,8 +48,7 @@ public class LikeMusic implements ApiResponseHandler {
 			switch (uri) {
 				case "likesong":
 					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = true WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
 						ps.executeUpdate();
 					} catch (SQLException e) {
@@ -59,8 +58,7 @@ public class LikeMusic implements ApiResponseHandler {
 					break;
 				case "likealbum":
 					sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
 						ps.executeUpdate();
 					} catch (SQLException e) {
@@ -70,8 +68,7 @@ public class LikeMusic implements ApiResponseHandler {
 					break;
 				case "dislikesong":
 					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = false WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
 						ps.executeUpdate();
 					} catch (SQLException e) {
@@ -81,8 +78,7 @@ public class LikeMusic implements ApiResponseHandler {
 					break;
 				case "dislikealbum":
 					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
 						ps.executeUpdate();
 					} catch (SQLException e) {
