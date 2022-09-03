@@ -1687,6 +1687,7 @@ public class RendererConfiguration extends Renderer {
 	public void updateRendererGui() {
 		listenersLock.readLock().lock();
 		try {
+			LOGGER.debug("Updating status button for {}", getRendererName());
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.updateRenderer(this);
 			}

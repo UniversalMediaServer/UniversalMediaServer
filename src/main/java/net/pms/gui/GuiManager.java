@@ -18,14 +18,16 @@
 package net.pms.gui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.newgui.LooksFrame;
 
 public class GuiManager {
-	private static final List<String> LOG_BUFFER = new ArrayList<>();
-	private static final List<IGui> GUI_INSTANCES = new ArrayList<>();
+	private static final List<String> LOG_BUFFER = Collections.synchronizedList(new ArrayList<>());
+	private static final int LOG_BUFFER_SIZE = 5000;
+	private static IGui swingFrame;
 
 	private static EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private static long readCount = 0;
@@ -36,32 +38,37 @@ public class GuiManager {
 	private static int bufferMemory;
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
+	private static boolean needLogFile = false;
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
-			synchronized (GUI_INSTANCES) {
-				GUI_INSTANCES.add(gui);
-				if (gui instanceof LooksFrame) {
-					// fill the log
-					dumpCurrentLog(gui);
-				}
-				startMemoryThread();
-				gui.setConnectionState(connectionState);
-				gui.setCurrentBitrate(currentBitrate);
-				gui.setPeakBitrate(peakBitrate);
-				gui.setReloadable(reloadable);
-				gui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
-				if (serverReady) {
-					gui.serverReady();
+			if (gui instanceof LooksFrame) {
+				// fill the log
+				dumpCurrentLog(gui);
+				swingFrame = gui;
+			} else {
+				return;
+			}
+			startMemoryThread();
+			gui.setConnectionState(connectionState);
+			gui.setCurrentBitrate(currentBitrate);
+			gui.setPeakBitrate(peakBitrate);
+			gui.setReloadable(reloadable);
+			gui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+			if (serverReady) {
+				gui.serverReady();
+			}
+			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			synchronized (foundRenderers) {
+				for (RendererConfiguration renderer : foundRenderers) {
+					gui.addRenderer(renderer);
 				}
 			}
 		}
 	}
 
 	private static boolean hasGui() {
-		synchronized (GUI_INSTANCES) {
-			return (!GUI_INSTANCES.isEmpty());
-		}
+		return (swingFrame != null);
 	}
 
 	// fill gui with current log
@@ -78,128 +85,92 @@ public class GuiManager {
 	public static void appendLog(String msg) {
 		synchronized (LOG_BUFFER) {
 			LOG_BUFFER.add(msg);
-		}
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.appendLog(msg);
-				}
+			if (LOG_BUFFER.size() > LOG_BUFFER_SIZE) {
+				needLogFile = true;
+				LOG_BUFFER.remove(0);
 			}
+		}
+		if (swingFrame != null) {
+			swingFrame.appendLog(msg);
 		}
 	}
 
 	public static String[] getLogLines() {
 		synchronized (LOG_BUFFER) {
-			return (String[]) LOG_BUFFER.toArray();
+			return LOG_BUFFER.toArray(String[]::new);
 		}
 	}
 
+	public static boolean hasMoreLogLines() {
+		return needLogFile;
+	}
+
 	public static void setConnectionState(EConnectionState value) {
-		synchronized (GUI_INSTANCES) {
-			if (!value.equals(connectionState)) {
-				connectionState = value;
-				if (!GUI_INSTANCES.isEmpty()) {
-					for (IGui guiInstance : GUI_INSTANCES) {
-						guiInstance.setConnectionState(connectionState);
-					}
-				}
+		if (!value.equals(connectionState)) {
+			connectionState = value;
+			if (swingFrame != null) {
+				swingFrame.setConnectionState(connectionState);
 			}
 		}
 	}
 
 	public static void addRenderer(RendererConfiguration renderer) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.addRenderer(renderer);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.addRenderer(renderer);
 		}
 	}
 
 	public static void setReloadable(boolean value) {
-		synchronized (GUI_INSTANCES) {
-			if (reloadable != value) {
-				reloadable = value;
-				if (!GUI_INSTANCES.isEmpty()) {
-					for (IGui guiInstance : GUI_INSTANCES) {
-						guiInstance.setReloadable(reloadable);
-					}
-				}
+		if (reloadable != value) {
+			reloadable = value;
+			if (swingFrame != null) {
+				swingFrame.setReloadable(reloadable);
 			}
 		}
 	}
 
 	public static void addEngines() {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.addEngines();
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.addEngines();
 		}
 	}
 
 	public static void setStatusLine(String line) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setStatusLine(line);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setStatusLine(line);
 		}
 	}
 
 	public static void setSecondaryStatusLine(String line) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setSecondaryStatusLine(line);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setSecondaryStatusLine(line);
 		}
 	}
 
 	public static void serverReady() {
-		synchronized (GUI_INSTANCES) {
-			if (!serverReady) {
-				serverReady = true;
-				if (!GUI_INSTANCES.isEmpty()) {
-					for (IGui guiInstance : GUI_INSTANCES) {
-						guiInstance.serverReady();
-					}
-				}
+		if (!serverReady) {
+			serverReady = true;
+			if (swingFrame != null) {
+				swingFrame.serverReady();
 			}
 		}
 	}
 
 	public static void updateServerStatus() {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.updateServerStatus();
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.updateServerStatus();
 		}
 	}
 
 	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setScanLibraryStatus(enabled, running);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setScanLibraryStatus(enabled, running);
 		}
 	}
 
 	public static void enableWebUiButton() {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.enableWebUiButton();
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.enableWebUiButton();
 		}
 	}
 
@@ -209,12 +180,8 @@ public class GuiManager {
 	 * @param title the title string for the dialog
 	 */
 	public static void showErrorMessage(String message, String title) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.showErrorMessage(message, title);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.showErrorMessage(message, title);
 		}
 	}
 
@@ -223,12 +190,8 @@ public class GuiManager {
 	 * @param key the configuration key
 	 */
 	public static void setConfigurationChanged(String key) {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setConfigurationChanged(key);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setConfigurationChanged(key);
 		}
 	}
 
@@ -262,22 +225,14 @@ public class GuiManager {
 	}
 
 	private static void updateCurrentBitrate() {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setCurrentBitrate(currentBitrate);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setCurrentBitrate(currentBitrate);
 		}
 	}
 
 	private static void updatePeakBitrate() {
-		synchronized (GUI_INSTANCES) {
-			if (!GUI_INSTANCES.isEmpty()) {
-				for (IGui guiInstance : GUI_INSTANCES) {
-					guiInstance.setPeakBitrate(peakBitrate);
-				}
-			}
+		if (swingFrame != null) {
+			swingFrame.setPeakBitrate(peakBitrate);
 		}
 	}
 
@@ -297,12 +252,8 @@ public class GuiManager {
 				updateCurrentBitrate();
 			}
 			bufferMemory = (int) buf;
-			synchronized (GUI_INSTANCES) {
-				if (!GUI_INSTANCES.isEmpty()) {
-					for (IGui guiInstance : GUI_INSTANCES) {
-						guiInstance.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
-					}
-				}
+			if (swingFrame != null) {
+				swingFrame.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
 			}
 		}
 	}
