@@ -134,8 +134,8 @@ public final class UserTableUsers extends UserTable {
 		}
 		LOGGER.info("Creating user: {}", username);
 		try (PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
-				Statement.RETURN_GENERATED_KEYS)) {
+			"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
+			Statement.RETURN_GENERATED_KEYS)) {
 			insertStatement.clearParameters();
 			insertStatement.setString(1, left(username, 255));
 			insertStatement.setString(2, left(password, 255));
