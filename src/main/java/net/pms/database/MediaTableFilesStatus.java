@@ -154,34 +154,36 @@ public final class MediaTableFilesStatus extends MediaTable {
 				case 5:
 				case 6:
 				case 7:
-					// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+				// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
 					String sql;
-					try (ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null)) {
-						if (rs.next()) {
-							sql = "SELECT CONSTRAINT_NAME " +
-								"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
-						} else {
-							sql = "SELECT CONSTRAINT_NAME " +
-								"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-								"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
-						}
+					ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+					if (rs.next()) {
+						sql = "SELECT CONSTRAINT_NAME " +
+							"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
+					} else {
+						sql = "SELECT CONSTRAINT_NAME " +
+							"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
+							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+					}
 
-						try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-							try (ResultSet rs2 = stmt.executeQuery()) {
-								while (rs2.next()) {
-									try (Statement statement = connection.createStatement()) {
-										statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
-									}
-								}
-							}
-							try (ResultSet rs2 = stmt.executeQuery()) {
-								if (rs2.next()) {
-									throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
-								}
-							}
+					PreparedStatement stmt = connection.prepareStatement(sql);
+					rs = stmt.executeQuery();
+
+					while (rs.next()) {
+						try (Statement statement = connection.createStatement()) {
+							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
 						}
 					}
+
+					stmt = connection.prepareStatement(sql);
+					rs = stmt.executeQuery();
+
+					if (rs.next()) {
+						throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
+					}
+					close(rs);
+					close(stmt);
 
 					version = 8;
 					break;
