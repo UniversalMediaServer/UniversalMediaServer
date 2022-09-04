@@ -95,6 +95,10 @@ public class SseApiServlet extends GuiHttpServlet {
 	 * @param message
 	 */
 	public static void broadcastMessage(String message) {
+		broadcastMessage(message, true);
+	}
+
+	public static void broadcastMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
 				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();

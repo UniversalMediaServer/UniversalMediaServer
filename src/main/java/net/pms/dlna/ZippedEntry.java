@@ -94,28 +94,20 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = () -> {
-			InputStream in = null;
-
 			try {
 				int n = -1;
 				byte[] data = new byte[65536];
 				zipFile = new ZipFile(file);
 				ZipEntry ze = zipFile.getEntry(zeName);
-				in = zipFile.getInputStream(ze);
-
-				while ((n = in.read(data)) > -1) {
-					out.write(data, 0, n);
+				try (InputStream in = zipFile.getInputStream(ze)) {
+					while ((n = in.read(data)) > -1) {
+						out.write(data, 0, n);
+					}
 				}
-
-				in.close();
-				in = null;
 			} catch (Exception e) {
 				LOGGER.error("Unpack error. Possibly harmless.", e);
 			} finally {
 				try {
-					if (in != null) {
-						in.close();
-					}
 					zipFile.close();
 					out.close();
 				} catch (IOException e) {
