@@ -263,10 +263,9 @@ public class WebGuiServletHelper {
 				resp.setContentLength(bytes.length);
 				resp.setStatus(status);
 				if (LOGGER.isTraceEnabled()) {
-					logHttpServletResponse(req, resp, response, null);
+					logHttpServletResponse(req, resp, logBody ? response : "Not logged", null);
 				}
 				os.write(bytes);
-				os.close();
 			} catch (Exception e) {
 				LOGGER.debug("Error sending response: " + e);
 			}

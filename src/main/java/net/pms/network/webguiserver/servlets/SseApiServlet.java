@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -100,8 +101,8 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	public static void broadcastMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
-			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
-				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
 				for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
 					ServerSentEvents sse = sseIterator.next();
 					if (!sse.isOpened()) {
@@ -125,8 +126,8 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastMessage(String message, String permission) {
 		synchronized (SSE_INSTANCES) {
-			for (Iterator<Map.Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
-				Map.Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
 				Account account = AccountService.getAccountByUserId(entry.getKey());
 				if (account.havePermission(permission)) {
 					for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
