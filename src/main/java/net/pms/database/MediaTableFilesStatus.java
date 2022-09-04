@@ -154,7 +154,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 				case 5:
 				case 6:
 				case 7:
-				// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
+					// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
 					String sql;
 					ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
 					if (rs.next()) {
