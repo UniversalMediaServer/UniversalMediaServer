@@ -116,14 +116,14 @@ public final class UserTableUsers extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID					INT				PRIMARY KEY AUTO_INCREMENT, " +
-				"USERNAME			VARCHAR2(255)	UNIQUE, " +
-				"PASSWORD			VARCHAR2(255)	NOT NULL, " +
-				"DISPLAY_NAME		VARCHAR2(255), " +
-				"GROUP_ID			INT				DEFAULT 0, " +
-				"LAST_LOGIN_TIME	BIGINT			DEFAULT 0, " +
-				"LOGIN_FAIL_TIME	BIGINT			DEFAULT 0, " +
-				"LOGIN_FAIL_COUNT	INT				DEFAULT 0" +
+				"ID                 INT             PRIMARY KEY AUTO_INCREMENT, " +
+				"USERNAME           VARCHAR2(255)   UNIQUE, " +
+				"PASSWORD           VARCHAR2(255)   NOT NULL, " +
+				"DISPLAY_NAME       VARCHAR2(255), " +
+				"GROUP_ID           INT             DEFAULT 0, " +
+				"LAST_LOGIN_TIME    BIGINT          DEFAULT 0, " +
+				"LOGIN_FAIL_TIME    BIGINT          DEFAULT 0, " +
+				"LOGIN_FAIL_COUNT   INT             DEFAULT 0" +
 			")"
 		);
 	}
@@ -132,20 +132,18 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null || username == null || "".equals(username) || password == null || "".equals(password)) {
 			return;
 		}
-		try {
-			LOGGER.info("Creating user: {}", username);
-			PreparedStatement insertStatement = connection.prepareStatement(
-					"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
-					Statement.RETURN_GENERATED_KEYS);
-
+		LOGGER.info("Creating user: {}", username);
+		try (PreparedStatement insertStatement = connection.prepareStatement(
+			"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
+			Statement.RETURN_GENERATED_KEYS)) {
 			insertStatement.clearParameters();
 			insertStatement.setString(1, left(username, 255));
 			insertStatement.setString(2, left(password, 255));
 			insertStatement.setString(3, left(displayName, 255));
 			insertStatement.setInt(4, groupId);
 			insertStatement.executeUpdate();
-			try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
-				if (rs2.next()) {
+			try (ResultSet rs = insertStatement.getGeneratedKeys()) {
+				if (rs.next()) {
 					LOGGER.info("Created user successfully in " + UserTableUsers.TABLE_NAME);
 				}
 			}
@@ -158,8 +156,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null || id < 1) {
 			return;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "DELETE " + TABLE_NAME + " " +
 					"WHERE ID='" + id + "'";
 			statement.executeUpdate(sql);
@@ -172,8 +169,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null || displayName == null) {
 			return false;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "UPDATE " + TABLE_NAME + " " +
 					"SET DISPLAY_NAME = " + sqlQuote(displayName) + ", " +
 					"GROUP_ID = " + groupId + " " +
@@ -190,8 +186,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null || username == null || "".equals(username) || password == null || "".equals(password)) {
 			return false;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "UPDATE " + TABLE_NAME + " " +
 					"SET USERNAME = " + sqlQuote(username) + ", " +
 					"PASSWORD = " + sqlQuote(password) + " " +
@@ -208,8 +203,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null) {
 			return;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "UPDATE " + TABLE_NAME + " " +
 					"SET LOGIN_FAIL_COUNT='0' " +
 					"WHERE ID='" + id + "'";
@@ -223,8 +217,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null) {
 			return;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "UPDATE " + TABLE_NAME + " " +
 				"SET LAST_LOGIN_TIME='" + time + "', " +
 				"LOGIN_FAIL_TIME='0', LOGIN_FAIL_COUNT='0' " +
@@ -239,8 +232,7 @@ public final class UserTableUsers extends UserTable {
 		if (connection == null) {
 			return;
 		}
-		try {
-			Statement statement = connection.createStatement();
+		try (Statement statement = connection.createStatement()) {
 			String sql = "UPDATE " + UserTableUsers.TABLE_NAME + " " +
 					"SET LOGIN_FAIL_TIME='" + time + "', " +
 					"LOGIN_FAIL_COUNT=LOGIN_FAIL_COUNT+1 " +

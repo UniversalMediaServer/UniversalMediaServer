@@ -256,7 +256,6 @@ public class LoggingConfig {
 		setConfigurableFilters(true, true);
 
 		StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
-		return;
 	}
 
 	private static synchronized void setConfigurableFilters(boolean setConsole, boolean setTraces) {
