@@ -32,12 +32,14 @@ import java.util.HashMap;
  * @author Nadahar
  * @since 5.2.3
  */
+@Deprecated
 public class LoggingConfigFileLoader {
 
 	/**
 	 * @deprecated Use {@link LoggingConfig#getLogFilePaths()}
 	 * @return
 	 */
+	@Deprecated
 	public static HashMap<String, String> getLogFilePaths() {
 		HashMap<String, String> logFilePaths = new HashMap<>();
 		// Copy logFilePaths from LoggingConfig and change "default.log" to "debug.log" for backwards compatibility.
