@@ -266,7 +266,6 @@ public class WebGuiServletHelper {
 					logHttpServletResponse(req, resp, logBody ? response : "Not logged", null);
 				}
 				os.write(bytes);
-				os.close();
 			} catch (Exception e) {
 				LOGGER.debug("Error sending response: " + e);
 			}
