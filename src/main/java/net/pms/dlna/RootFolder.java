@@ -261,11 +261,12 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public void scan() {
+	public void startScan() {
 		if (!configuration.getUseCache()) {
 			throw new IllegalStateException("Can't scan when cache is disabled");
 		}
 		running = true;
+		GuiManager.setScanLibraryStatus(true, true);
 
 		if (!isDiscovered()) {
 			discoverChildren(false);
@@ -287,6 +288,7 @@ public class RootFolder extends DLNAResource {
 			} finally {
 				MediaDatabase.close(connection);
 			}
+			running = false;
 		}
 
 		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
@@ -294,7 +296,10 @@ public class RootFolder extends DLNAResource {
 	}
 
 	public void stopScan() {
-		running = false;
+		if (running) {
+			GuiManager.setScanLibraryStatus(false, true);
+			running = false;
+		}
 	}
 
 	public void scan(DLNAResource resource) {
@@ -338,7 +343,6 @@ public class RootFolder extends DLNAResource {
 				}
 			}
 		} else {
-			GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 			GuiManager.setStatusLine(null);
 		}
 	}

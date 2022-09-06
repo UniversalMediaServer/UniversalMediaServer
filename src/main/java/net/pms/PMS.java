@@ -509,6 +509,7 @@ public class PMS {
 			configuration.setHasRunOnce();
 		}
 
+		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 		if (!isHeadless()) {
 			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {

@@ -8,6 +8,7 @@ export const serverEventContext: Context<{
   reloadable: boolean;
   userConfiguration: any;
   setUserConfiguration: (config: any) => void;
+  scanLibrary: {enabled:boolean,running:boolean};
 }> = createContext({
   connectionStatus : 0,
   memory : {max:0,used:0,buffer:0},
@@ -15,7 +16,8 @@ export const serverEventContext: Context<{
   setUpdateAccounts : (updateAccounts: boolean) => {},
   reloadable : false as boolean,
   userConfiguration : null,
-  setUserConfiguration : (config: any) => {}
+  setUserConfiguration : (config: any) => {},
+  scanLibrary : {enabled: false as boolean,running: false as boolean}
 });
 
 export default serverEventContext;
