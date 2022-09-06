@@ -6,7 +6,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useReducer, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, EyeCheck, EyeOff, ListSearch, Loader, PlayerPlay, Search, SquareCheck, SquareX } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, EyeCheck, EyeOff, ListSearch, Loader, PlayerPlay, SquareCheck, SquareX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
