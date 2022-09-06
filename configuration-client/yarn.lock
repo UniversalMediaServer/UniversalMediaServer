@@ -2300,17 +2300,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@mantine/modals@npm:5.2.5"
+"@mantine/modals@npm:5.2.6":
+  version: 5.2.6
+  resolution: "@mantine/modals@npm:5.2.6"
   dependencies:
-    "@mantine/utils": 5.2.5
+    "@mantine/utils": 5.2.6
   peerDependencies:
-    "@mantine/core": 5.2.5
-    "@mantine/hooks": 5.2.5
+    "@mantine/core": 5.2.6
+    "@mantine/hooks": 5.2.6
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 30ffe8f4862b3e90cec4561fa479619ec75da072e198e0b25a4320f588ad6cb9f622eebb949056f51c56468fefb7b0e99025929e251ea3d755bf14487e56f169
+  checksum: cd637518b41a2b72906c75389fb522ba0a974372005f0c6dfc93908c9102057f85a3014dd416801e184b69e23401ef2467b32cd862c9edc8391ca3118aaa78de
   languageName: node
   linkType: hard
 
@@ -2364,6 +2364,15 @@ __metadata:
   peerDependencies:
     react: ">=16.8.0"
   checksum: 9ee266a9eb5c877a8b3fb4cbf918e5ee0a816ab8f459f13d6a31ba4eae45c1321e6f7bc0fa910019f781f6c8e0ae53737ed1084e6e34d9768b78de1bae4a69ee
+  languageName: node
+  linkType: hard
+
+"@mantine/utils@npm:5.2.6":
+  version: 5.2.6
+  resolution: "@mantine/utils@npm:5.2.6"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 0628b1ac8a2b4a852e91c1a60cf832b12eaf4ce4b6903c21ae775a377e0f2d5292b8948a2b6af0f34608a6463d73d29b46b3bacd6093ab8399a10d09f363cc6d
   languageName: node
   linkType: hard
 
@@ -12675,7 +12684,7 @@ __metadata:
     "@mantine/core": 5.2.5
     "@mantine/form": 5.2.5
     "@mantine/hooks": 5.2.5
-    "@mantine/modals": 5.2.5
+    "@mantine/modals": 5.2.6
     "@mantine/notifications": 5.2.5
     "@mantine/prism": 5.2.5
     "@microsoft/fetch-event-source": 2.0.1
