@@ -48,9 +48,15 @@ public class ServerSentEvents {
 	}
 
 	public boolean sendMessage(String message) {
+		return sendMessage(message, true);
+	}
+
+	public boolean sendMessage(String message, boolean log) {
 		String response = "event: message\n";
 		response += "data: " + message + "\n\n";
-		LOGGER.trace("ServerSentEvents send message: {}", message);
+		if (log) {
+			LOGGER.trace("ServerSentEvents send message: {}", message);
+		}
 		return send(response);
 	}
 

@@ -1254,9 +1254,9 @@ public class ImagesUtil {
 			return null;
 		}
 		if (
-			(inputByteArray != null & inputImage != null) ||
-			(inputByteArray != null & inputStream != null) ||
-			(inputImage != null & inputStream != null)
+			(inputByteArray != null && inputImage != null) ||
+			(inputByteArray != null && inputStream != null) ||
+			(inputImage != null && inputStream != null)
 		) {
 			throw new IllegalArgumentException("Use either inputByteArray, inputImage or inputStream");
 		}

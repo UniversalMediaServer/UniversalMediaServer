@@ -32,22 +32,6 @@ public final class GuiUtil {
 	}
 
 	/**
-	 * Show error message with swing
-	 * @param message the message to display
-	 * @param title the title string for the dialog
-	 */
-	public static void showErrorMessage(Object message, String title) {
-		if (!PMS.isHeadless() && PMS.get().getFrame() != null) {
-			JOptionPane.showMessageDialog(
-				(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-				message,
-				title,
-				JOptionPane.ERROR_MESSAGE
-			);
-		}
-	}
-
-	/**
 	 * Brings up a dialog with a yes/no choice
 	 * @param message the message to display
 	 * @param title the title string for the dialog
@@ -55,7 +39,7 @@ public final class GuiUtil {
 	 * @return an boolean indicating the option chosen by the user
 	 */
 	public static boolean askYesNoMessage(Object message, String title, boolean defaultValue) {
-		if (!PMS.isHeadless() && PMS.get().getFrame() != null) {
+		if (!PMS.isHeadless()) {
 			Object[] yesNoOptions = {
 				Messages.getString("Yes"),
 				Messages.getString("No")

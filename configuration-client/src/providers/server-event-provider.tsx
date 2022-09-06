@@ -18,6 +18,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
+  const [scanLibrary, setScanLibrary] = useState<{enabled:boolean,running:boolean}>({enabled:true,running:false});
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
 
@@ -78,11 +79,14 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'set_configuration_changed':
             setUserConfiguration(datas.value);
             break;
+          case 'set_scanlibrary_status':
+            setScanLibrary({'enabled':datas.enabled, 'running':datas.running});
+            break;
         }
       }
     }
 
-    const onError = (event: Response) => {
+    const onError = () => {
       if (!notified) {
         notified = true;
         showErrorNotification();
@@ -104,8 +108,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         onmessage(event: EventSourceMessage) {
           onMessage(event);
         },
-        onerror(event: Response) { onError(event); },
+        onerror(event: Response) { onError(); },
         onclose() { onClose(); },
+        openWhenHidden: true,
       });
     };
 
@@ -122,6 +127,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       reloadable:reloadable,
       userConfiguration:userConfiguration,
       setUserConfiguration:setUserConfiguration,
+	  scanLibrary:scanLibrary,
     }}>
       {children}
     </Provider>

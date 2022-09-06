@@ -49,9 +49,9 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
+import net.pms.gui.GuiManager;
 import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
-import net.pms.gui.IFrame;
 import net.pms.newgui.SharedContentTab;
 import net.pms.platform.macos.NSFoundation;
 import net.pms.platform.macos.NSFoundation.NSSearchPathDirectory;
@@ -261,13 +261,12 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	private IFrame frame = PMS.get().getFrame();
-
-	public void scan() {
+	public void startScan() {
 		if (!configuration.getUseCache()) {
 			throw new IllegalStateException("Can't scan when cache is disabled");
 		}
 		running = true;
+		GuiManager.setScanLibraryStatus(true, true);
 
 		if (!isDiscovered()) {
 			discoverChildren(false);
@@ -289,14 +288,18 @@ public class RootFolder extends DLNAResource {
 			} finally {
 				MediaDatabase.close(connection);
 			}
+			running = false;
 		}
 
-		frame.setScanLibraryStatus(configuration.getUseCache(), false);
-		frame.setStatusLine(null);
+		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
+		GuiManager.setStatusLine(null);
 	}
 
 	public void stopScan() {
-		running = false;
+		if (running) {
+			GuiManager.setScanLibraryStatus(false, true);
+			running = false;
+		}
 	}
 
 	public void scan(DLNAResource resource) {
@@ -313,7 +316,7 @@ public class RootFolder extends DLNAResource {
 					String childName = child.getName();
 					if (child instanceof RealFile) {
 						LOGGER.debug("Scanning folder: " + childName);
-						frame.setStatusLine(Messages.getString("ScanningFolder") + " " + childName);
+						GuiManager.setStatusLine(Messages.getString("ScanningFolder") + " " + childName);
 					}
 
 					if (child.isDiscovered()) {
@@ -340,8 +343,7 @@ public class RootFolder extends DLNAResource {
 				}
 			}
 		} else {
-			frame.setScanLibraryStatus(configuration.getUseCache(), false);
-			frame.setStatusLine(null);
+			GuiManager.setStatusLine(null);
 		}
 	}
 

@@ -22,7 +22,6 @@ export default function Settings() {
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [isLoading, setLoading] = useState(true);
-  const [isScanningSharedFolders, setScanningSharedFolders] = useState(false);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
@@ -605,29 +604,18 @@ export default function Settings() {
                           <th>{i18n.get['MonitorPlayedStatusFiles']}</th>
                           <th>
                             <Group position="right">
-                              <Tooltip label={i18n.get['ScanAllSharedFolders']}>
-                                {isScanningSharedFolders ? (
-                                  <ActionIcon
-                                    size="xl"
-                                    variant="transparent"
-                                    color="blue"
-                                    title={i18n.get['ScanAllSharedFolders']}
-                                    onClick={() => scanAllSharedFoldersCancel()}
-                                  >
-                                    <ListSearch />
-                                    <Loader />
-                                  </ActionIcon>
-                                ) : (
-                                  <ActionIcon
-                                    size="xl"
-                                    variant="transparent"
-                                    color="blue"
-                                    title={i18n.get['ScanAllSharedFolders']}
-                                    onClick={() => scanAllSharedFolders()}
-                                  >
-                                    <ListSearch />
-                                  </ActionIcon>
-                                )}
+                              <Tooltip label={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}>
+                                <ActionIcon
+                                  size="xl"
+                                  disabled={!canModify || !sse.scanLibrary.enabled || (!configuration.use_cache && !sse.scanLibrary.running)}
+                                  variant="transparent"
+                                  color={sse.scanLibrary.running ? "red" : "blue"}
+                                  title={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
+                                  onClick={() => sse.scanLibrary.running ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+                                >
+                                  <ListSearch />
+                                  {sse.scanLibrary.running  && (<Loader />)}
+                                </ActionIcon>
                               </Tooltip>
                             </Group>
                           </th>
@@ -876,33 +864,21 @@ export default function Settings() {
   }
 
   const scanAllSharedFolders = async () => {
-    if (isScanningSharedFolders) {
-      return;
-    }
-
     setLoading(true);
     try {
       await sendAction('Server.ScanAllSharedFolders');
-      setScanningSharedFolders(true);
     } catch (err) {
       console.error(err);
-      setScanningSharedFolders(false);
     }
     setLoading(false);
   }
 
   const scanAllSharedFoldersCancel = async () => {
-    if (!isScanningSharedFolders) {
-      return;
-    }
-
     setLoading(true);
     try {
       await sendAction('Server.ScanAllSharedFoldersCancel');
-      setScanningSharedFolders(false);
     } catch (err) {
       console.error(err);
-      setScanningSharedFolders(true);
     }
     setLoading(false);
   }

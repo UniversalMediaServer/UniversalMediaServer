@@ -66,9 +66,9 @@ import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.gui.IFrame;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -80,7 +80,6 @@ import org.slf4j.LoggerFactory;
 public class APIUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(APIUtils.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final IFrame FRAME = PMS.get().getFrame();
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
 
 	// Minimum number of threads in pool
@@ -315,7 +314,7 @@ public class APIUtils {
 					return;
 				}
 
-				FRAME.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
+				GuiManager.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
 				connection.setAutoCommit(false);
 				JsonObject metadataFromAPI;
 
@@ -557,7 +556,7 @@ public class APIUtils {
 				LOGGER.trace("", e);
 			}
 		}
-		FRAME.setSecondaryStatusLine(null);
+		GuiManager.setSecondaryStatusLine(null);
 	}
 
 	/**

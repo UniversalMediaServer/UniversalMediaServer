@@ -29,8 +29,8 @@ import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.dlna.MediaMonitor;
+import net.pms.gui.GuiManager;
 import net.pms.util.FileUtil;
 
 /**
@@ -124,8 +124,9 @@ public final class MediaTableFilesStatus extends MediaTable {
 								if (!fileStatusEntries.contains(filename)) {
 									fileStatusEntries.add(filename);
 									String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-									Statement statement2 = connection.createStatement();
-									statement2.execute(query);
+									try (Statement statement2 = connection.createStatement()) {
+										statement2.execute(query);
+									}
 									LOGGER.info("Updating fully played entry for " + filename);
 								}
 							}
@@ -178,12 +179,11 @@ public final class MediaTableFilesStatus extends MediaTable {
 					stmt = connection.prepareStatement(sql);
 					rs = stmt.executeQuery();
 
-					while (rs.next()) {
+					if (rs.next()) {
 						throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
 					}
-
-					stmt.close();
-					rs.close();
+					close(rs);
+					close(stmt);
 
 					version = 8;
 					break;
@@ -361,7 +361,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 		boolean trace = LOGGER.isTraceEnabled();
 		String pathWithWildcard = sqlLikeEscape(FileUtil.appendPathSeparator(fullPathToFolder)) + "%";
 		String statusLineString = isFullyPlayed ? Messages.getString("MarkContentsFullyPlayed") : Messages.getString("MarkContentsUnplayed");
-		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
+		GuiManager.setStatusLine(statusLineString + ": " + fullPathToFolder);
 
 		try {
 			String query = "SELECT ID, FILENAME FROM " + MediaTableFiles.TABLE_NAME + " WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
@@ -389,7 +389,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 			);
 			LOGGER.trace("", e);
 		} finally {
-			PMS.get().getFrame().setStatusLine(null);
+			GuiManager.setStatusLine(null);
 		}
 	}
 
