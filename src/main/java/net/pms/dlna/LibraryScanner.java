@@ -18,6 +18,7 @@
 package net.pms.dlna;
 
 import net.pms.PMS;
+import net.pms.gui.GuiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
