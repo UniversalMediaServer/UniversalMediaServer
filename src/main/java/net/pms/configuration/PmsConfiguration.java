@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
@@ -47,9 +48,8 @@ import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.Feed;
 import net.pms.dlna.RootFolder;
-import static net.pms.dlna.RootFolder.parseFeedKey;
-import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -57,7 +57,6 @@ import net.pms.encoders.PlayerId;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
 import net.pms.newgui.GuiUtil;
-import net.pms.newgui.SharedContentTab;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -5305,7 +5304,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	public void writeWebConfigurationFile() {
+	public void writeDefaultWebConfigurationFile() {
 		List<String> defaultWebConfContents = new ArrayList<>();
 		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
 		defaultWebConfContents.addAll(Arrays.asList(
@@ -5345,6 +5344,51 @@ public class PmsConfiguration extends RendererConfiguration {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
+	}
+
+	public synchronized void writeWebConfigurationFile(JsonArray fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+
+		List<String> entries = new ArrayList<>();
+		for (JsonElement webContentItem : fileContents) {
+			JsonObject webContentItemObject = webContentItem.getAsJsonObject();
+			String name = webContentItemObject.get("name").getAsString();
+			String type = webContentItemObject.get("type").getAsString();
+			String folders = webContentItemObject.get("folders").getAsString();
+			String source = webContentItemObject.get("source").getAsString();
+
+			StringBuilder entryToAdd = new StringBuilder();
+			entryToAdd.append(type).append(".").append(folders).append("=");
+
+			switch (type) {
+				case "imagefeed":
+				case "videofeed":
+				case "audiofeed":
+					entryToAdd.append(source);
+
+					if (name != null) {
+						entryToAdd.append(",,,").append(name);
+					}
+					break;
+				default:
+					if (name != null) {
+						entryToAdd.append(name).append(",").append(source);
+					}
+					break;
+			}
+
+			entries.add(entryToAdd.toString());
+		}
+
+		contentsToWrite.addAll(entries);
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
@@ -5419,13 +5463,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * This parses the web config and returns it as a JSON array.
 	 *
-	 * @param webConf
+	 * @return
 	 */
 	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
 		PmsConfiguration configuration = PMS.getConfiguration();
 		File webConf = new File(configuration.getWebConfPath());
 		if (!webConf.exists()) {
-			configuration.writeWebConfigurationFile();
+			configuration.writeDefaultWebConfigurationFile();
 		}
 		JsonArray jsonArray = new JsonArray();
 		if (!configuration.getExternalNetwork() || !webConf.exists()) {
@@ -5435,14 +5479,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		try {
 			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
 				String line;
-				JsonObject jsonObject = new JsonObject();
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
 					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
 						String key = line.substring(0, line.indexOf('='));
 						String value = line.substring(line.indexOf('=') + 1);
-						String[] keys = parseFeedKey(key);
+						String[] keys = RootFolder.parseFeedKey(key);
 						String sourceType = keys[0];
 						String folderName = keys[1] == null ? null : keys[1];
 
@@ -5454,7 +5497,7 @@ public class PmsConfiguration extends RendererConfiguration {
 								sourceType.equals("audiostream") ||
 								sourceType.equals("videostream")
 							) {
-								String[] values = parseFeedValue(value);
+								String[] values = RootFolder.parseFeedValue(value);
 								String uri = values[0];
 
 								// If the resource does not yet have a name, attempt to get one now
@@ -5471,7 +5514,7 @@ public class PmsConfiguration extends RendererConfiguration {
 												if (uri.contains("youtube.com/channel/")) {
 													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 												}
-												resourceName = SharedContentTab.getFeedTitle(uri);
+												resourceName = Feed.getFeedTitle(uri);
 												break;
 											case "videostream":
 											case "audiostream":
@@ -5486,7 +5529,7 @@ public class PmsConfiguration extends RendererConfiguration {
 									}
 								}
 
-								jsonObject = new JsonObject();
+								JsonObject jsonObject = new JsonObject();
 								jsonObject.addProperty("name", resourceName);
 								jsonObject.addProperty("type", sourceType);
 								jsonObject.addProperty("folders", folderName);

@@ -18,6 +18,7 @@
 package net.pms.network.webguiserver;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -349,6 +350,24 @@ public class WebGuiServletHelper {
 		} catch (JsonSyntaxException je) {
 		}
 		return jObject;
+	}
+
+	public static JsonArray getJsonArrayFromBody(HttpServletRequest req) {
+		String reqBody = getBodyAsString(req);
+		return jsonArrayFromString(reqBody);
+	}
+
+	private static JsonArray jsonArrayFromString(String str) {
+		JsonArray jArray = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem != null && jElem.isJsonArray()) {
+				jArray = jElem.getAsJsonArray();
+			}
+		} catch (JsonSyntaxException je) {
+			LOGGER.error("", je);
+		}
+		return jArray;
 	}
 
 	public static InetAddress getInetAddress(String host) {

@@ -1,5 +1,33 @@
 # Changelog
 
+### [11.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.0...11.4.1) (2022-08-26)
+
+### General:
+- Improved support for split episodes (e.g. S01E02a, S01E02.5)
+- Improved anime episode matching
+- Fixed dc:date not sending to renderers for videos (#3215)
+- Fixed shutdown consistency
+- Performance and stability improvements
+- Improved local build speed during development
+- Improved GitHub Actions build speed
+
+### Translation updates via Crowdin
+- French (100%) (thanks, Archaos!)
+- Persian (84%) (thanks, Sadra Imam!)
+- Ukrainian (30%) (thanks, Василь «CVI» Чефранов!)
+
+### Dependencies
+- Updated checkstyle to v10.3.2
+- Updated gson to v2.9.1
+- Updated JRE to 17.0.4.1`
+- Updated junrar to v7.5.3
+- Updated maven-checkstyle-plugin to 3.2.0
+- Updated maven-javadoc-plugin to v3.4.1
+- Updated maven-pmd-plugin from 3.17.0 to 3.18.0
+- Updated maven-project-info-reports-plugin to v3.4.1
+- Updated maven-site-plugin to v3.12.1
+- Updated twelvemonkeys-imageio-version to v3.8.3
+
 ### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
 
 ### General:

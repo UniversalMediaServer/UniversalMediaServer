@@ -24,7 +24,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.dlna.LibraryScanner;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -36,12 +38,13 @@ import org.slf4j.LoggerFactory;
 @WebServlet(name = "ActionsApiServlet", urlPatterns = {"/v1/api/actions"}, displayName = "Actions Api Servlet")
 public class ActionsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		var path = req.getPathInfo();
 		try {
-			if (path.equals("/")) {
+			var path = req.getPathInfo();
+			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
 					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
@@ -62,6 +65,18 @@ public class ActionsApiServlet extends GuiHttpServlet {
 									MediaDatabase.resetCache();
 								} catch (SQLException e) {
 									LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+								}
+								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+							}
+							case "Server.ScanAllSharedFolders" -> {
+								if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
+									LibraryScanner.scanLibrary();
+								}
+								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+							}
+							case "Server.ScanAllSharedFoldersCancel" -> {
+								if (CONFIGURATION.getUseCache() && LibraryScanner.isScanLibraryRunning()) {
+									LibraryScanner.stopScanLibrary();
 								}
 								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							}

@@ -4,9 +4,9 @@ import { Prism } from '@mantine/prism';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useReducer, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay, Search, SquareX } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, EyeCheck, EyeOff, ListSearch, Loader, PlayerPlay, SquareCheck, SquareX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -15,15 +15,18 @@ import { havePermission } from '../../services/accounts-service';
 import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { sendAction } from '../../services/actions-service';
+import React from 'react';
 
 export default function Settings() {
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [isLoading, setLoading] = useState(true);
+  const [isScanningSharedFolders, setScanningSharedFolders] = useState(false);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   interface mantineSelectData {
     value: string;
@@ -81,6 +84,9 @@ export default function Settings() {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
         setDefaultConfiguration(settingsResponse.userSettingsDefaults);
+        if (!_.isEmpty(settingsResponse.sharedWebContent)) {
+          settingsResponse.sharedWebContent.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,' } as SharedWebContentItem);
+        }
         setSharedWebContent(settingsResponse.sharedWebContent);
 
         // merge defaults with what we receive, which might only be non-default values
@@ -118,44 +124,56 @@ export default function Settings() {
 	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
-  const handleSubmit = (values: typeof form.values) => {
-    const changedValues: Record<string, any> = {};
-
-    // construct an object of only changed values to send
-    for (const key in values) {
-      if (!_.isEqual(configuration[key], values[key])) {
-        changedValues[key] = values[key];
-      }
-    };
-
-    if (_.isEmpty(changedValues)) {
-      showNotification({
-        title: i18n.get['Saved'],
-        message: i18n.get['ConfigurationHasNoChanges'],
-      })
-      return;
-    }
-
+  const handleSubmit = async(values: typeof form.values) => {
     setLoading(true);
-    axios.post('/configuration-api/settings', changedValues)
-      .then(function () {
+    try {
+      const changedValues: Record<string, any> = {};
+  
+      // construct an object of only changed values to send
+      for (const key in values) {
+        if (!_.isEqual(configuration[key], values[key])) {
+          changedValues[key] = values[key];
+        }
+      };
+  
+      if (_.isEmpty(changedValues)) {
+        showNotification({
+          title: i18n.get['Saved'],
+          message: i18n.get['ConfigurationHasNoChanges'],
+        })
+      } else {
+        await axios.post('/configuration-api/settings', changedValues);
         setConfiguration(values);
         showNotification({
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationSaved'],
         })
+      }
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
       })
-      .catch(function () {
-        showNotification({
-          color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
-          onClick: () => { openGitHubNewIssue(); },
-        })
+    }
+
+    try {
+      await axios.post('/configuration-api/shared-web-content', sharedWebContent);
+      setConfiguration(values);
+      showNotification({
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationSaved'],
       })
-      .then(function () {
-        setLoading(false);
-      });
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
+    }
+    setLoading(false);
   };
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
@@ -180,168 +198,168 @@ export default function Settings() {
 
   const getGeneralSettingsTab = () => {
     return (
-        <>
-          <Accordion>
-            <Accordion.Item value='Application'>
-              <Accordion.Control>{i18n.get['Application']}</Accordion.Control>
-              <Accordion.Panel>
-                <Select
+      <>
+        <Accordion>
+          <Accordion.Item value='Application'>
+            <Accordion.Control>{i18n.get['Application']}</Accordion.Control>
+            <Accordion.Panel>
+              <Select
+                disabled={!canModify}
+                label={i18n.get['Language']}
+                data={getLanguagesSelectData()}
+                {...form.getInputProps('language')}
+              />
+              <Stack align="flex-start" mt="sm">
+                <Checkbox
                   disabled={!canModify}
-                  label={i18n.get['Language']}
-                  data={getLanguagesSelectData()}
-                  {...form.getInputProps('language')}
+                  label={i18n.get['StartMinimizedSystemTray']}
+                  {...form.getInputProps('minimized', { type: 'checkbox' })}
                 />
-                <Stack align="flex-start" mt="sm">
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['EnableSplashScreen']}
+                  {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['CheckAutomaticallyForUpdates']}
+                  {...form.getInputProps('auto_update', { type: 'checkbox' })}
+                />
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value='Services'>
+            <Accordion.Control>{i18n.get['Services']}</Accordion.Control>
+            <Accordion.Panel>
+              <Group>
+                <TextInput
+                  disabled={!canModify}
+                  label={i18n.get['ServerName']}
+                  placeholder={defaultConfiguration.server_name}
+                  name="server_name"
+                  sx={{ flex: 1 }}
+                  {...form.getInputProps('server_name')}
+                />
+                <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
-                    label={i18n.get['StartMinimizedSystemTray']}
-                    {...form.getInputProps('minimized', { type: 'checkbox' })}
-                  />
-                  <Checkbox
-                    disabled={!canModify}
-                    label={i18n.get['EnableSplashScreen']}
-                    {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
-                  />
-                  <Checkbox
-                    disabled={!canModify}
-                    label={i18n.get['CheckAutomaticallyForUpdates']}
-                    {...form.getInputProps('auto_update', { type: 'checkbox' })}
-                  />
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value='Services'>
-              <Accordion.Control>{i18n.get['Services']}</Accordion.Control>
-              <Accordion.Panel>
-                <Group>
-                  <TextInput
-                    disabled={!canModify}
-                    label={i18n.get['ServerName']}
-					placeholder={defaultConfiguration.server_name}
-                    name="server_name"
-                    sx={{ flex: 1 }}
-                    {...form.getInputProps('server_name')}
-                  />
-                  <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      mt="xl"
-                      label={i18n.get['AppendProfileName']}
-                      {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                </Group>
-                <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
-                  <Select
-                    disabled={!canModify}
-                    label={i18n.get['MediaServerEngine']}
-                    data={getI18nSelectData(selectionSettings.serverEngines)}
-                    {...form.getInputProps('server_engine')}
+                    mt="xl"
+                    label={i18n.get['AppendProfileName']}
+                    {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
                   />
                 </Tooltip>
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value='NetworkSettingsAdvanced'>
-              <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
-              <Accordion.Panel>
+              </Group>
+              <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
                 <Select
                   disabled={!canModify}
-                  label={i18n.get['ForceNetworkingInterface']}
-                  data={selectionSettings.networkInterfaces}
-                  {...form.getInputProps('network_interface')}
+                  label={i18n.get['MediaServerEngine']}
+                  data={getI18nSelectData(selectionSettings.serverEngines)}
+                  {...form.getInputProps('server_engine')}
                 />
+              </Tooltip>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value='NetworkSettingsAdvanced'>
+            <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
+            <Accordion.Panel>
+              <Select
+                disabled={!canModify}
+                label={i18n.get['ForceNetworkingInterface']}
+                data={selectionSettings.networkInterfaces}
+                {...form.getInputProps('network_interface')}
+              />
 
+              <TextInput
+                disabled={!canModify}
+                mt="xs"
+                label={i18n.get['ForceIpServer']}
+                {...form.getInputProps('hostname')}
+              />
+
+              <TextInput
+                disabled={!canModify}
+                mt="xs"
+                label={i18n.get['ForcePortServer']}
+                {...form.getInputProps('port')}
+              />
+
+              <TextInput
+                disabled={!canModify}
+                mt="xs"
+                label={i18n.get['UseIpFilter']}
+                {...form.getInputProps('ip_filter')}
+              />
+
+              <Group mt="xs">
                 <TextInput
-                  disabled={!canModify}
-                  mt="xs"
-                  label={i18n.get['ForceIpServer']}
-                  {...form.getInputProps('hostname')}
+                  sx={{ flex: 1 }}
+                  label={i18n.get['MaximumBandwidthMbs']}
+                  disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                  {...form.getInputProps('maximum_bitrate')}
                 />
-
-                <TextInput
-                  disabled={!canModify}
-                  mt="xs"
-                  label={i18n.get['ForcePortServer']}
-                  {...form.getInputProps('port')}
-                />
-
-                <TextInput
-                  disabled={!canModify}
-                  mt="xs"
-                  label={i18n.get['UseIpFilter']}
-                  {...form.getInputProps('ip_filter')}
-                />
-
-                <Group mt="xs">
-                  <TextInput
-                    sx={{ flex: 1 }}
-                    label={i18n.get['MaximumBandwidthMbs']}
-                    disabled={!canModify || form.values['automatic_maximum_bitrate']}
-                    {...form.getInputProps('maximum_bitrate')}
+                
+                <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    disabled={!canModify}
+                    mt="xl"
+                    label={i18n.get['UseAutomaticMaximumBandwidth']}
+                    {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
                   />
-                  
-                  <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      mt="xl"
-                      label={i18n.get['UseAutomaticMaximumBandwidth']}
-                      {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                </Group>
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value='ExternalOutgoingTraffic'>
-              <Accordion.Control>{i18n.get['ExternalOutgoingTraffic']}</Accordion.Control>
-              <Accordion.Panel>
-                <Stack>
-                  <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      label={i18n.get['EnableExternalNetwork']}
-                      {...form.getInputProps('external_network', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                  <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      label={i18n.get['UseInfoFromOurApi']}
-                      {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
-                    />
                 </Tooltip>
-				</Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-            <Accordion.Item value='Renderers'>
-              <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
-              <Accordion.Panel>
-                <Stack>
-                  <MultiSelect
+              </Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value='ExternalOutgoingTraffic'>
+            <Accordion.Control>{i18n.get['ExternalOutgoingTraffic']}</Accordion.Control>
+            <Accordion.Panel>
+              <Stack>
+                <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
+                  <Checkbox
                     disabled={!canModify}
-                    data={getI18nSelectData(selectionSettings.allRendererNames)}
-                    label={i18n.get['EnabledRenderers']}
-                    {...form.getInputProps('selected_renderers')}
+                    label={i18n.get['EnableExternalNetwork']}
+                    {...form.getInputProps('external_network', { type: 'checkbox' })}
                   />
-                  <Select
+                </Tooltip>
+                <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
+                  <Checkbox
                     disabled={!canModify}
-                    sx={{ flex: 1 }}
-                    label={i18n.get['DefaultRendererWhenAutoFails']}
-                    data={getI18nSelectData(selectionSettings.enabledRendererNames)}
-                    {...form.getInputProps('renderer_default')}
-                    searchable
+                    label={i18n.get['UseInfoFromOurApi']}
+                    {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
                   />
-                  <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
-                    <Checkbox
-                      disabled={!canModify}
-                      label={i18n.get['ForceDefaultRenderer']}
-                      {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
-                    />
-                  </Tooltip>
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
-        </>
+                </Tooltip>
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value='Renderers'>
+            <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
+            <Accordion.Panel>
+              <Stack>
+                <MultiSelect
+                  disabled={!canModify}
+                  data={getI18nSelectData(selectionSettings.allRendererNames)}
+                  label={i18n.get['EnabledRenderers']}
+                  {...form.getInputProps('selected_renderers')}
+                />
+                <Select
+                  disabled={!canModify}
+                  sx={{ flex: 1 }}
+                  label={i18n.get['DefaultRendererWhenAutoFails']}
+                  data={getI18nSelectData(selectionSettings.enabledRendererNames)}
+                  {...form.getInputProps('renderer_default')}
+                  searchable
+                />
+                <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['ForceDefaultRenderer']}
+                    {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      </>
     );
   }
 
@@ -377,7 +395,7 @@ export default function Settings() {
                     </Button>
                   </Tooltip>)}
                 </Group>
-				<Stack align="flex-start" mt="xs">
+                <Stack align="flex-start" mt="xs">
                   <Tooltip label={allowHtml(i18n.get['WhenEnabledPartiallyWatchVideo'])} {...defaultTooltipSettings}>
                     <Checkbox
                       disabled={!canModify}
@@ -411,7 +429,7 @@ export default function Settings() {
                       {...form.getInputProps('atz_limit')}
                     />
                   </Tooltip>
-				</Stack>
+                </Stack>
                 <Group mt="md">
                   <Select
                     sx={{ flex: 1 }}
@@ -420,7 +438,7 @@ export default function Settings() {
                     data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
                     {...form.getInputProps('fully_played_action')}
                   />
-				  {(form.values['fully_played_action'] === "3" || form.values['fully_played_action'] === "4") && (
+                  {(form.values['fully_played_action'] === "3" || form.values['fully_played_action'] === "4") && (
                     <DirectoryChooser
                       disabled={!canModify}
                       label={i18n.get['DestinationFolder']}
@@ -428,7 +446,7 @@ export default function Settings() {
                       callback={form.setFieldValue}
                       formKey="fully_played_output_directory"
                     />
-				  )}
+                  )}
                 </Group>
               </Accordion.Panel>
             </Accordion.Item>
@@ -570,9 +588,6 @@ export default function Settings() {
         <Accordion.Item value="SharedFolders">
           <Accordion.Control>{i18n.get['SharedFolders']}</Accordion.Control>
           <Accordion.Panel>
-            <Group>
-              <ActionIcon size="xl" variant="light" color="blue" title={i18n.get['ScanAllSharedFolders']}><Search /></ActionIcon>
-            </Group>
             <List
               lockVertically
               values={sharedDirectories}
@@ -588,7 +603,34 @@ export default function Settings() {
                           <th></th>
                           <th>{i18n.get['Folder']}</th>
                           <th>{i18n.get['MonitorPlayedStatusFiles']}</th>
-                          <th></th>
+                          <th>
+                            <Group position="right">
+                              <Tooltip label={i18n.get['ScanAllSharedFolders']}>
+                                {isScanningSharedFolders ? (
+                                  <ActionIcon
+                                    size="xl"
+                                    variant="transparent"
+                                    color="blue"
+                                    title={i18n.get['ScanAllSharedFolders']}
+                                    onClick={() => scanAllSharedFoldersCancel()}
+                                  >
+                                    <ListSearch />
+                                    <Loader />
+                                  </ActionIcon>
+                                ) : (
+                                  <ActionIcon
+                                    size="xl"
+                                    variant="transparent"
+                                    color="blue"
+                                    title={i18n.get['ScanAllSharedFolders']}
+                                    onClick={() => scanAllSharedFolders()}
+                                  >
+                                    <ListSearch />
+                                  </ActionIcon>
+                                )}
+                              </Tooltip>
+                            </Group>
+                          </th>
                         </tr>
                       </thead>
                       <tbody {...props}>
@@ -628,15 +670,37 @@ export default function Settings() {
                           onChange={(event) => toggleMonitored(value, event.currentTarget.checked)}
                         />
                       </td>
-                      <td>
-                        <ActionIcon
-                          color="red"
-                          variant="transparent"
-                          disabled={!canModify || !value.directory}
-                          onClick={() => removeDirectory(value)}
-                        >
-                          <SquareX />
-                        </ActionIcon>
+                      <td align="right">
+                        <Group position="right">
+                          <Tooltip label={i18n.get['MarkContentsFullyPlayed']}>
+                            <ActionIcon
+                              color="blue"
+                              variant="transparent"
+                              disabled={!canModify || !value.directory}
+                              onClick={() => markDirectoryFullyPlayed(value, true)}
+                            >
+                              <EyeCheck />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Tooltip label={i18n.get['MarkContentsUnplayed']}>
+                            <ActionIcon
+                              color="green"
+                              variant="transparent"
+                              disabled={!canModify || !value.directory}
+                              onClick={() => markDirectoryFullyPlayed(value, false)}
+                            >
+                              <EyeOff />
+                            </ActionIcon>
+                          </Tooltip>
+                          <ActionIcon
+                            color="red"
+                            variant="transparent"
+                            disabled={!canModify || !value.directory}
+                            onClick={() => removeDirectory(value)}
+                          >
+                            <SquareX />
+                          </ActionIcon>
+                        </Group>
                       </td>
                     </tr>
                   )
@@ -708,34 +772,45 @@ export default function Settings() {
                           withinPortal={true}
                           size="xs"
                           value={value.type}
-                          onChange={(itemValue) => setSharedWebContentItemType(value, itemValue)}
+                          onChange={(itemValue) => setSharedWebContentItemAttribute('type', value, itemValue)}
                         />
                       </td>
                       <td>
                         <TextInput
-                          sx={{ flex: 1 }}
                           size="xs"
                           disabled={!canModify}
                           value={value.folders}
+                          onChange={(event) => setSharedWebContentItemAttribute('folders', value, event.currentTarget.value)}
                         />
                       </td>
                       <td>
                         <TextInput
-                          sx={{ flex: 1 }}
                           size="xs"
                           disabled={!canModify}
                           value={value.source}
+                          onChange={(event) => setSharedWebContentItemAttribute('source', value, event.currentTarget.value)}
                         />
                       </td>
                       <td>
-                        <ActionIcon
-                          color="red"
-                          variant="transparent"
-                          disabled={!canModify || !value.name}
-                          onClick={() => removeSharedWebContentItem(value)}
-                        >
-                          <SquareX />
-                        </ActionIcon>
+                        {value.name ? (
+                          <ActionIcon
+                            color="red"
+                            variant="transparent"
+                            disabled={!canModify}
+                            onClick={() => removeSharedWebContentItem(value)}
+                          >
+                            <SquareX />
+                          </ActionIcon>
+                        ) : (
+                          <ActionIcon
+                            color="green"
+                            variant="transparent"
+                            disabled={!canModify}
+                            onClick={() => addSharedWebContentItem()}
+                          >
+                            <SquareCheck />
+                          </ActionIcon>
+                        )}
                       </td>
                     </tr>
                   )
@@ -796,9 +871,62 @@ export default function Settings() {
     const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
       return realItem.directory === item.directory;
     });
-    console.log(2,index);
     sharedDirectoriesTemp.splice(index, 1);
     updateSharedDirectoriesToSave(sharedDirectoriesTemp);
+  }
+
+  const scanAllSharedFolders = async () => {
+    if (isScanningSharedFolders) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendAction('Server.ScanAllSharedFolders');
+      setScanningSharedFolders(true);
+    } catch (err) {
+      console.error(err);
+      setScanningSharedFolders(false);
+    }
+    setLoading(false);
+  }
+
+  const scanAllSharedFoldersCancel = async () => {
+    if (!isScanningSharedFolders) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendAction('Server.ScanAllSharedFoldersCancel');
+      setScanningSharedFolders(false);
+    } catch (err) {
+      console.error(err);
+      setScanningSharedFolders(true);
+    }
+    setLoading(false);
+  }
+
+  const markDirectoryFullyPlayed = async (item: SharedDirectory, isPlayed: boolean) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        '/configuration-api/mark-directory',
+        { directory: item.directory, isPlayed },
+      );
+
+      showNotification({
+        message: i18n.get['Saved'],
+      })
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
+    }
+    setLoading(false);
   }
 
   const moveSharedDirectory = (oldIndex: number, newIndex: number) => {
@@ -807,35 +935,52 @@ export default function Settings() {
     updateSharedDirectoriesToSave(sharedDirectoriesTemp);
   }
 
-  const setSharedWebContentItemType = (item: SharedWebContentItem, source: string | null) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
+  const setSharedWebContentItemAttribute = (attribute: 'name' | 'folders' | 'source' | 'type', item: SharedWebContentItem, value: string | null) => {
+    let sharedWebContentTemp = sharedWebContent;
     const index = _.findIndex(sharedWebContentTemp, (realItem) => {
       return realItem.source === item.source;
     });
-    if (source) {
-      sharedWebContentTemp[index].source = source;
+    if (value && sharedWebContentTemp[index][attribute] !== value) {
+      sharedWebContentTemp[index][attribute] = value;
+      setSharedWebContent(sharedWebContentTemp);
+      forceUpdate();
     }
+  }
 
-    // ensure there is always an empty entry at the bottom
-    if (index === sharedWebContentTemp.length - 1) {
-      sharedWebContentTemp.push({ source: '', name: '', type: '', folders: '' } as SharedWebContentItem);
+  const addSharedWebContentItem = async () => {
+    setLoading(true);
+    try {
+      const response: { data: { name: string } } = await axios.post('/configuration-api/web-content-name', { source: sharedWebContent[sharedWebContent.length - 1].source });
+      sharedWebContent[sharedWebContent.length - 1].name = response.data?.name;
+
+      showNotification({
+        title: i18n.get['Saved'],
+        message: i18n.get['ConfigurationSaved'],
+      })
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
     }
-    setSharedWebContent(sharedWebContentTemp);
+    setLoading(false);
+    sharedWebContent.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,' } as SharedWebContentItem);
+    setSharedWebContent(sharedWebContent);
   }
 
   const removeSharedWebContentItem = (item: SharedWebContentItem) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
+    const sharedWebContentTemp = sharedWebContent;
     const index = _.findIndex(sharedWebContentTemp, (realItem) => {
       return realItem.source === item.source;
     });
-    console.log(2,index);
     sharedWebContentTemp.splice(index, 1);
     setSharedWebContent(sharedWebContentTemp);
   }
 
   const moveSharedWebContentItem = (oldIndex: number, newIndex: number) => {
-    let sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    sharedWebContentTemp = arrayMove(sharedWebContentTemp, oldIndex, newIndex);
+    const sharedWebContentTemp = arrayMove(sharedWebContent, oldIndex, newIndex);
     setSharedWebContent(sharedWebContentTemp);
   }
 	  
@@ -1708,7 +1853,7 @@ export default function Settings() {
   }
 
   return canView ? (
-    <Box sx={{ maxWidth: 700 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs defaultValue="GeneralSettings">
           <Tabs.List>
@@ -1732,7 +1877,7 @@ export default function Settings() {
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 700 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
       <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );
