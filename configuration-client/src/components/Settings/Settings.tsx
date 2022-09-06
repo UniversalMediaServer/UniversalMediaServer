@@ -705,6 +705,7 @@ export default function Settings() {
                             {value: 'audiostream', label: i18n.get['AudioStream']},
                             {value: 'videostream', label: i18n.get['VideoStream']},
                           ]}
+                          withinPortal={true}
                           size="xs"
                           value={value.type}
                           onChange={(itemValue) => setSharedWebContentItemType(value, itemValue)}
