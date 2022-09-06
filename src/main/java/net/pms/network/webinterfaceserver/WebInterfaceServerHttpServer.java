@@ -32,7 +32,7 @@ import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import javax.net.ssl.KeyManagerFactory;
@@ -114,8 +114,8 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/", new StartHandler(this));
 			addCtx("/browse", new BrowseHandler(this));
 			PlayHandler playHandler = new PlayHandler(this);
-			addCtx("/play/", playHandler);
-			addCtx("/playstatus", playHandler);
+			addCtx("/play", playHandler);
+			addCtx("/playerstatus", playHandler);
 			addCtx("/playlist", playHandler);
 			addCtx("/m3u8", playHandler);
 			addCtx("/media", new MediaHandler(this));
@@ -198,7 +198,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 					// this ip but for some reason we didn't get a cookie match.
 					RootFolder validRoot = valid.getRootFolder();
 					// Do a reverse lookup to see if it's been registered
-					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
+					for (Entry<String, RootFolder> entry : roots.entrySet()) {
 						if (entry.getValue() == validRoot) {
 							// Found
 							root = validRoot;

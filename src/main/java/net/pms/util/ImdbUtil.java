@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -101,14 +100,10 @@ public class ImdbUtil {
 			Path parent = nfoFile.getParent();
 			if (isNotBlank(nfoFileName) && parent != null) {
 				HashMap<Path, Double> candidates = new HashMap<>();
-				try {
-					DirectoryStream<Path> nfoFiles =  Files.newDirectoryStream(parent, new DirectoryStream.Filter<Path>() {
-						@Override
-						public boolean accept(Path entry) throws IOException {
-							String extension = FileUtil.getExtension(entry.getFileName());
-							return "nfo".equals(extension) || "NFO".equals(extension);
-						}
-					});
+				try (DirectoryStream<Path> nfoFiles =  Files.newDirectoryStream(parent, (Path entry) -> {
+					String extension = FileUtil.getExtension(entry.getFileName());
+					return "nfo".equals(extension) || "NFO".equals(extension);
+				})) {
 					for (Path entry : nfoFiles) {
 						Path entryFileNamePath = entry.getFileName();
 						String entryName = entryFileNamePath == null ? null : entryFileNamePath.toString();
@@ -124,12 +119,7 @@ public class ImdbUtil {
 						ArrayList<Entry<Path, Double>> candidatesList = new ArrayList<>(candidates.entrySet());
 						if (candidatesList.size() > 1) {
 							// Sort by score
-							Collections.sort(candidatesList, new Comparator<Entry<Path, Double>>() {
-								@Override
-								public int compare(Entry<Path, Double> o1, Entry<Path, Double> o2) {
-									return o2.getValue().compareTo(o1.getValue());
-								}
-							});
+							Collections.sort(candidatesList, (Entry<Path, Double> o1, Entry<Path, Double> o2) -> o2.getValue().compareTo(o1.getValue()));
 						}
 						nfoFile = candidatesList.get(0).getKey();
 					}

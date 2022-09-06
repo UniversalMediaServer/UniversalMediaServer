@@ -21,7 +21,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -73,7 +72,7 @@ public class AviSynthFFmpeg {
 			CONFIGURATION.setFfmpegAvisynthInterFrame(interframe.isSelected());
 			if (CONFIGURATION.getFfmpegAvisynthInterFrame()) {
 				JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+						SwingUtilities.getWindowAncestor(interframe),
 						Messages.getString("ThisFeatureVeryCpuintensive"),
 						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE

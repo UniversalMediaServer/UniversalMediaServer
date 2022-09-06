@@ -29,6 +29,7 @@ import java.sql.Statement;
 import java.util.Properties;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.gui.GuiManager;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.h2.engine.Constants;
@@ -143,13 +144,7 @@ public class DatabaseEmbedded {
 	 */
 	private static void migrateDatabaseVersion2(boolean deleteBackup, String dbName) {
 		LOGGER.info("Migrating database to v{}", Constants.VERSION);
-		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
-			try {
-				PMS.get().getFrame().setStatusLine("Migrating database to v" + Constants.VERSION);
-			} catch (NullPointerException e) {
-				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
-			}
-		}
+		GuiManager.setStatusLine("Migrating database to v" + Constants.VERSION);
 		String dbDir = getDbDir();
 		String oldUrl = Constants.START_URL + dbDir + File.separator + dbName;
 		Properties prprts = new Properties();

@@ -31,6 +31,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.GuiManager;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.newgui.components.CheckTreeManager;
@@ -40,12 +41,12 @@ import org.slf4j.LoggerFactory;
 public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
-	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<String> savedSelectedRenderers = configuration.getSelectedRenderers();
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final String ALL_RENDERERS_TREE_NAME = CONFIGURATION.allRenderers;
+	private static List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
-	private static final String ALL_RENDERERS_TREE_NAME = configuration.allRenderers;
 	private boolean init = false;
 
 	public SelectRenderers() {
@@ -109,7 +110,7 @@ public class SelectRenderers extends JPanel {
 
 		srvTree.validate();
 		// Refresh setting if modified
-		savedSelectedRenderers = configuration.getSelectedRenderers();
+		savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
@@ -136,7 +137,7 @@ public class SelectRenderers extends JPanel {
 		}
 
 		int selectRenderers = JOptionPane.showOptionDialog(
-			(Component) PMS.get().getFrame(),
+			this,
 			this,
 			Messages.getString("SelectRenderers"),
 			JOptionPane.OK_CANCEL_OPTION,
@@ -149,15 +150,15 @@ public class SelectRenderers extends JPanel {
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
 			if (selected.length == 0) {
-				if (configuration.setSelectedRenderers("")) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers("")) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			} else if (
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				if (configuration.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
@@ -185,8 +186,8 @@ public class SelectRenderers extends JPanel {
 				}
 
 				Collections.sort(selectedRenderers);
-				if (configuration.setSelectedRenderers(selectedRenderers)) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers(selectedRenderers)) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			}
 		}

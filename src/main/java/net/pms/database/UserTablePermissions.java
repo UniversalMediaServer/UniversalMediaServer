@@ -101,8 +101,8 @@ public final class UserTablePermissions extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"GROUP_ID			INT, " +
-				"NAME				VARCHAR2(255)" +
+				"GROUP_ID           INT, " +
+				"NAME               VARCHAR2(255)" +
 			")"
 		);
 		// allow full access to admin group (1)

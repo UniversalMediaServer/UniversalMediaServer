@@ -22,7 +22,6 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -79,7 +78,7 @@ public class AviSynthMEncoder {
 			CONFIGURATION.setAvisynthInterFrame(interframe.isSelected());
 			if (CONFIGURATION.getAvisynthInterFrame()) {
 				JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+						SwingUtilities.getWindowAncestor(interframe),
 						Messages.getString("ThisFeatureVeryCpuintensive"),
 						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE

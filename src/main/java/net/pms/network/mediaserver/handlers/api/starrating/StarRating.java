@@ -89,13 +89,13 @@ public class StarRating implements ApiResponseHandler {
 					break;
 				case "getrating":
 					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.MBID_TRACK = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
-						ResultSet rs = ps.executeQuery();
-						if (rs.next()) {
-							int ratingVal = rs.getInt(1);
-							return Integer.toString(ratingVal);
+						try (ResultSet rs = ps.executeQuery()) {
+							if (rs.next()) {
+								int ratingVal = rs.getInt(1);
+								return Integer.toString(ratingVal);
+							}
 						}
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
@@ -114,13 +114,13 @@ public class StarRating implements ApiResponseHandler {
 					break;
 				case "getratingbyaudiotrackid":
 					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
-						ResultSet rs = ps.executeQuery();
-						if (rs.next()) {
-							int ratingVal = rs.getInt(1);
-							return Integer.toString(ratingVal);
+						try (ResultSet rs = ps.executeQuery()) {
+							if (rs.next()) {
+								int ratingVal = rs.getInt(1);
+								return Integer.toString(ratingVal);
+							}
 						}
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
@@ -178,25 +178,27 @@ public class StarRating implements ApiResponseHandler {
 	public void setDatabaseRatingByMusicbrainzId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		String sql;
 		sql = "UPDATE AUDIOTRACKS set rating = ? where MBID_TRACK = ?";
-		PreparedStatement ps = connection.prepareStatement(sql);
-		ps.setInt(1, ratingInStars);
-		ps.setString(2, musicBrainzTrackId);
-		ps.executeUpdate();
-		connection.commit();
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			ps.setString(2, musicBrainzTrackId);
+			ps.executeUpdate();
+			connection.commit();
+		}
 	}
 
 	public void setDatabaseRatingByAudiotracksId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
 		String sql;
 		sql = "UPDATE AUDIOTRACKS set rating = ? where AUDIOTRACK_ID = ?";
-		PreparedStatement ps = connection.prepareStatement(sql);
-		ps.setInt(1, ratingInStars);
-		if (audiotracksId == null) {
-			ps.setNull(2, Types.INTEGER);
-		} else {
-			ps.setInt(2, audiotracksId);
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			if (audiotracksId == null) {
+				ps.setNull(2, Types.INTEGER);
+			} else {
+				ps.setInt(2, audiotracksId);
+			}
+			ps.executeUpdate();
+			connection.commit();
 		}
-		ps.executeUpdate();
-		connection.commit();
 	}
 
 	private List<FilenameIdVO> getFilenameIdList(Connection connection, String trackId) {
