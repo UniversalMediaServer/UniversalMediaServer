@@ -18,6 +18,7 @@
 package net.pms.network.webguiserver;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -249,6 +250,10 @@ public class WebGuiServletHelper {
 	}
 
 	public static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime) {
+		respond(req, resp, response, status, mime, true);
+	}
+
+	public static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime, boolean logBody) {
 		if (response != null) {
 			if (mime != null) {
 				resp.setContentType(mime);
@@ -258,10 +263,9 @@ public class WebGuiServletHelper {
 				resp.setContentLength(bytes.length);
 				resp.setStatus(status);
 				if (LOGGER.isTraceEnabled()) {
-					logHttpServletResponse(req, resp, response, null);
+					logHttpServletResponse(req, resp, logBody ? response : "Not logged", null);
 				}
 				os.write(bytes);
-				os.close();
 			} catch (Exception e) {
 				LOGGER.debug("Error sending response: " + e);
 			}
@@ -337,6 +341,10 @@ public class WebGuiServletHelper {
 	public static JsonObject getJsonObjectFromBody(HttpServletRequest req) {
 		String reqBody = getBodyAsString(req);
 		return jsonObjectFromString(reqBody);
+	}
+
+	public static JsonArray getJsonArrayFromStringArray(String[] array) {
+		return GSON.toJsonTree(array).getAsJsonArray();
 	}
 
 	private static JsonObject jsonObjectFromString(String str) {

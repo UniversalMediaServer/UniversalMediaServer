@@ -39,7 +39,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import net.pms.gui.ViewLevel;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.CustomJSpinner;

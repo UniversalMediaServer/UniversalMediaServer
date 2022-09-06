@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.ViewLevel;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
