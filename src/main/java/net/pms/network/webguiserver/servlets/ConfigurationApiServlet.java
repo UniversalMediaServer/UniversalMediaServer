@@ -24,6 +24,7 @@ import com.google.gson.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.Feed;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
@@ -265,6 +268,28 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 						webContentName = Feed.getFeedTitle(request.get("source").getAsString());
 					}
 					WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
+				}
+				case "/mark-directory" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
+
+					String directory = request.get("directory").getAsString();
+					Boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							MediaTableFilesStatus.setDirectoryFullyPlayed(connection, directory, isPlayed);
+						}
+					} finally {
+						MediaDatabase.close(connection);
+					}
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("ConfigurationApiServlet request not available : {}", path);

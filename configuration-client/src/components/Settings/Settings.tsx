@@ -6,7 +6,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useReducer, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay, Search, SquareCheck, SquareX } from 'tabler-icons-react';
+import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, EyeCheck, EyeOff, ListSearch, Loader, PlayerPlay, Search, SquareCheck, SquareX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -22,6 +22,7 @@ export default function Settings() {
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [isLoading, setLoading] = useState(true);
+  const [isScanningSharedFolders, setScanningSharedFolders] = useState(false);
   const [transcodingContent, setTranscodingContent] = useState('common');
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
@@ -587,9 +588,6 @@ export default function Settings() {
         <Accordion.Item value="SharedFolders">
           <Accordion.Control>{i18n.get['SharedFolders']}</Accordion.Control>
           <Accordion.Panel>
-            <Group>
-              <ActionIcon size="xl" variant="light" color="blue" title={i18n.get['ScanAllSharedFolders']}><Search /></ActionIcon>
-            </Group>
             <List
               lockVertically
               values={sharedDirectories}
@@ -605,7 +603,34 @@ export default function Settings() {
                           <th></th>
                           <th>{i18n.get['Folder']}</th>
                           <th>{i18n.get['MonitorPlayedStatusFiles']}</th>
-                          <th></th>
+                          <th>
+                            <Group position="right">
+                              <Tooltip label={i18n.get['ScanAllSharedFolders']}>
+                                {isScanningSharedFolders ? (
+                                  <ActionIcon
+                                    size="xl"
+                                    variant="transparent"
+                                    color="blue"
+                                    title={i18n.get['ScanAllSharedFolders']}
+                                    onClick={() => scanAllSharedFoldersCancel()}
+                                  >
+                                    <ListSearch />
+                                    <Loader />
+                                  </ActionIcon>
+                                ) : (
+                                  <ActionIcon
+                                    size="xl"
+                                    variant="transparent"
+                                    color="blue"
+                                    title={i18n.get['ScanAllSharedFolders']}
+                                    onClick={() => scanAllSharedFolders()}
+                                  >
+                                    <ListSearch />
+                                  </ActionIcon>
+                                )}
+                              </Tooltip>
+                            </Group>
+                          </th>
                         </tr>
                       </thead>
                       <tbody {...props}>
@@ -645,15 +670,37 @@ export default function Settings() {
                           onChange={(event) => toggleMonitored(value, event.currentTarget.checked)}
                         />
                       </td>
-                      <td>
-                        <ActionIcon
-                          color="red"
-                          variant="transparent"
-                          disabled={!canModify || !value.directory}
-                          onClick={() => removeDirectory(value)}
-                        >
-                          <SquareX />
-                        </ActionIcon>
+                      <td align="right">
+                        <Group position="right">
+                          <Tooltip label={i18n.get['MarkContentsFullyPlayed']}>
+                            <ActionIcon
+                              color="blue"
+                              variant="transparent"
+                              disabled={!canModify || !value.directory}
+                              onClick={() => markDirectoryFullyPlayed(value, true)}
+                            >
+                              <EyeCheck />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Tooltip label={i18n.get['MarkContentsUnplayed']}>
+                            <ActionIcon
+                              color="green"
+                              variant="transparent"
+                              disabled={!canModify || !value.directory}
+                              onClick={() => markDirectoryFullyPlayed(value, false)}
+                            >
+                              <EyeOff />
+                            </ActionIcon>
+                          </Tooltip>
+                          <ActionIcon
+                            color="red"
+                            variant="transparent"
+                            disabled={!canModify || !value.directory}
+                            onClick={() => removeDirectory(value)}
+                          >
+                            <SquareX />
+                          </ActionIcon>
+                        </Group>
                       </td>
                     </tr>
                   )
@@ -825,6 +872,60 @@ export default function Settings() {
     });
     sharedDirectoriesTemp.splice(index, 1);
     updateSharedDirectoriesToSave(sharedDirectoriesTemp);
+  }
+
+  const scanAllSharedFolders = async () => {
+    if (isScanningSharedFolders) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendAction('Server.ScanAllSharedFolders');
+      setScanningSharedFolders(true);
+    } catch (err) {
+      console.error(err);
+      setScanningSharedFolders(false);
+    }
+    setLoading(false);
+  }
+
+  const scanAllSharedFoldersCancel = async () => {
+    if (!isScanningSharedFolders) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendAction('Server.ScanAllSharedFoldersCancel');
+      setScanningSharedFolders(false);
+    } catch (err) {
+      console.error(err);
+      setScanningSharedFolders(true);
+    }
+    setLoading(false);
+  }
+
+  const markDirectoryFullyPlayed = async (item: SharedDirectory, isPlayed: boolean) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        '/configuration-api/mark-directory',
+        { directory: item.directory, isPlayed },
+      );
+
+      showNotification({
+        message: i18n.get['Saved'],
+      })
+    } catch (err) {
+      showNotification({
+        color: 'red',
+        title: i18n.get['Error'],
+        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        onClick: () => { openGitHubNewIssue(); },
+      })
+    }
+    setLoading(false);
   }
 
   const moveSharedDirectory = (oldIndex: number, newIndex: number) => {
