@@ -502,13 +502,14 @@ public class PMS {
 			String webConfPath = configuration.getWebConfPath();
 			File webConf = new File(webConfPath);
 			if (!webConf.exists()) {
-				configuration.writeWebConfigurationFile();
+				configuration.writeDefaultWebConfigurationFile();
 			}
 
 			// Ensure this only happens once
 			configuration.setHasRunOnce();
 		}
 
+		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 		if (!isHeadless()) {
 			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {

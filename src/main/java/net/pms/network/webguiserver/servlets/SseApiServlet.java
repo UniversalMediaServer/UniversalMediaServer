@@ -222,4 +222,7 @@ public class SseApiServlet extends GuiHttpServlet {
 		broadcastMessage(json);
 	}
 
+	public static void setScanLibraryStatus(boolean enabled, boolean running) {
+		broadcastMessage("{\"action\":\"set_scanlibrary_status\",\"enabled\":" + (enabled ? "true" : "false") + ",\"running\":" + (running ? "true" : "false") + "}");
+	}
 }

@@ -468,7 +468,7 @@ const Accounts = () => {
   };
 
   return (
-      <Box sx={{ maxWidth: 700 }} mx="auto">
+      <Box sx={{ maxWidth: 1024 }} mx="auto">
           {canManageGroups ? (
             <Tabs defaultValue='users'>
               <Tabs.List>
@@ -507,7 +507,7 @@ const Accounts = () => {
           ) : session.authenticate ? (
             <UsersAccordions />
           ) : (
-            <Box sx={{ maxWidth: 700 }} mx="auto">
+            <Box sx={{ maxWidth: 1024 }} mx="auto">
               <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
             </Box>
           )}

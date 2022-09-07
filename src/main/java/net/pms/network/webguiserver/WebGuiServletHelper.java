@@ -359,6 +359,24 @@ public class WebGuiServletHelper {
 		return jObject;
 	}
 
+	public static JsonArray getJsonArrayFromBody(HttpServletRequest req) {
+		String reqBody = getBodyAsString(req);
+		return jsonArrayFromString(reqBody);
+	}
+
+	private static JsonArray jsonArrayFromString(String str) {
+		JsonArray jArray = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem != null && jElem.isJsonArray()) {
+				jArray = jElem.getAsJsonArray();
+			}
+		} catch (JsonSyntaxException je) {
+			LOGGER.error("", je);
+		}
+		return jArray;
+	}
+
 	public static InetAddress getInetAddress(String host) {
 		try {
 			return InetAddress.getByName(host);
