@@ -18,6 +18,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
+  const [scanLibrary, setScanLibrary] = useState<{enabled:boolean,running:boolean}>({enabled:true,running:false});
   const [hasRendererAction, setRendererAction] = useState(false);
   const [rendererActions] = useState([] as any[]);
   const [hasNewLogLine, setNewLogLine] = useState(false);
@@ -82,6 +83,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'set_configuration_changed':
             setUserConfiguration(datas.value);
             break;
+          case 'set_scanlibrary_status':
+            setScanLibrary({'enabled':datas.enabled, 'running':datas.running});
+            break;
           case 'renderer_add':
           case 'renderer_delete':
           case 'renderer_update':
@@ -126,6 +130,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         },
         onerror(event: Response) { onError(); },
         onclose() { onClose(); },
+        openWhenHidden: true,
       });
     };
 
@@ -160,6 +165,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       reloadable:reloadable,
       userConfiguration:userConfiguration,
       setUserConfiguration:setUserConfiguration,
+	  scanLibrary:scanLibrary,
       hasRendererAction:hasRendererAction,
       getRendererAction:getRendererAction,
       hasNewLogLine:hasNewLogLine,

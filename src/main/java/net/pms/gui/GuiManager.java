@@ -41,6 +41,8 @@ public class GuiManager {
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
 	private static boolean needLogFile = false;
+	private static boolean libraryScanEnabled = false;
+	private static boolean libraryScanRunning = false;
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
@@ -59,6 +61,7 @@ public class GuiManager {
 			gui.setPeakBitrate(peakBitrate);
 			gui.setReloadable(reloadable);
 			gui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+			gui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
 			if (serverReady) {
 				gui.serverReady();
 			}
@@ -200,11 +203,15 @@ public class GuiManager {
 	}
 
 	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		if (swingFrame != null) {
-			swingFrame.setScanLibraryStatus(enabled, running);
-		}
-		if (webGui != null) {
-			webGui.setScanLibraryStatus(enabled, running);
+		if (enabled != libraryScanEnabled || running != libraryScanRunning) {
+			libraryScanEnabled = enabled;
+			libraryScanRunning = running;
+			if (swingFrame != null) {
+				swingFrame.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+			}
+			if (webGui != null) {
+				webGui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+			}
 		}
 	}
 

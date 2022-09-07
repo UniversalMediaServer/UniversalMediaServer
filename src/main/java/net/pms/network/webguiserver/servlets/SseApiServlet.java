@@ -223,9 +223,15 @@ public class SseApiServlet extends GuiHttpServlet {
 	}
 
 	public static void appendLog(String msg) {
-		JsonObject result = new JsonObject();
-		result.addProperty("action", "log_line");
-		result.addProperty("value", msg);
-		broadcastMessage(result.toString(), false);
+		if (hasServerSentEvents()) {
+			JsonObject result = new JsonObject();
+			result.addProperty("action", "log_line");
+			result.addProperty("value", msg);
+			broadcastMessage(result.toString(), false);
+		}
+	}
+
+	public static void setScanLibraryStatus(boolean enabled, boolean running) {
+		broadcastMessage("{\"action\":\"set_scanlibrary_status\",\"enabled\":" + (enabled ? "true" : "false") + ",\"running\":" + (running ? "true" : "false") + "}");
 	}
 }

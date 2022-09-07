@@ -4,6 +4,8 @@ const PERMITTED_ACTIONS = [
   'Process.Reboot.Trace',
   'Server.ResetCache',
   'Server.Restart',
+  'Server.ScanAllSharedFolders',
+  'Server.ScanAllSharedFoldersCancel',
 ];
 
 export const sendAction = async(operation: string) => {

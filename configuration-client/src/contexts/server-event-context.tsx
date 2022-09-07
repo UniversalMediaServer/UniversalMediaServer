@@ -8,6 +8,7 @@ export const serverEventContext: Context<{
   reloadable: boolean;
   userConfiguration: any;
   setUserConfiguration: (config: any) => void;
+  scanLibrary: {enabled:boolean,running:boolean};
   hasRendererAction : boolean;
   getRendererAction : () => any;
   hasNewLogLine : boolean;
@@ -20,6 +21,7 @@ export const serverEventContext: Context<{
   reloadable : false as boolean,
   userConfiguration : null,
   setUserConfiguration : (config: any) => {},
+  scanLibrary : {enabled: false as boolean,running: false as boolean},
   hasRendererAction : false as boolean,
   getRendererAction : () => null,
   hasNewLogLine : false as boolean,

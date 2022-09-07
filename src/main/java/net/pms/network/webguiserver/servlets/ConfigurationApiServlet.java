@@ -24,6 +24,7 @@ import com.google.gson.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,9 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.dlna.Feed;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -82,6 +86,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 		"renderer_default"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
+	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -115,6 +120,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
+				jsonResponse.add("sharedWebContent", PmsConfiguration.getAllSharedWebContentAsJsonArray());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -124,6 +130,14 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						String value = configurationAsJson.get(key).getAsString();
 						configurationAsJson.add(key, new JsonPrimitive(value));
+					}
+				}
+				for (String key : ARRAY_KEYS) {
+					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
+						JsonPrimitive value = configurationAsJson.get(key).getAsJsonPrimitive();
+						JsonArray array = new JsonArray();
+						array.add(value);
+						configurationAsJson.add(key, array);
 					}
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
@@ -214,7 +228,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
 					WebGuiServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
 				}
-				case "/directories" -> 					{
+				case "/directories" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
@@ -229,11 +243,58 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					}
 					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
 				}
+				case "/shared-web-content" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonArray post = WebGuiServletHelper.getJsonArrayFromBody(req);
+					CONFIGURATION.writeWebConfigurationFile(post);
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+				}
+				case "/web-content-name" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
+
+					String webContentName = "";
+					if (request.has("source")) {
+						webContentName = Feed.getFeedTitle(request.get("source").getAsString());
+					}
+					WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
+				}
+				case "/mark-directory" -> {
+					//only logged users for security concerns
+					Account account = AuthService.getAccountLoggedIn(req);
+					if (account == null) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
+
+					String directory = request.get("directory").getAsString();
+					Boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					Connection connection = null;
+					try {
+						connection = MediaDatabase.getConnectionIfAvailable();
+						if (connection != null) {
+							MediaTableFilesStatus.setDirectoryFullyPlayed(connection, directory, isPlayed);
+						}
+					} finally {
+						MediaDatabase.close(connection);
+					}
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+				}
 				default -> {
 					LOGGER.trace("ConfigurationApiServlet request not available : {}", path);
 					WebGuiServletHelper.respondNotFound(req, resp);
 				}
-
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
@@ -293,6 +354,8 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 		jObj.addProperty("ffmpeg_multithreading", "");
 		jObj.addProperty("ffmpeg_mux_tsmuxer_compatible", false);
 		jObj.addProperty("fmpeg_sox", true);
+		jObj.add("folders", new JsonArray());
+		jObj.add("folders_monitored", new JsonArray());
 		jObj.addProperty("force_external_subtitles", true);
 		jObj.addProperty("forced_subtitle_language", "");
 		jObj.addProperty("forced_subtitle_tags", "forced");
