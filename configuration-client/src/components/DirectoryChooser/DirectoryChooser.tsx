@@ -5,7 +5,7 @@ import { useContext, useState, ReactNode } from 'react';
 import { Devices2, Folder, Folders } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import { openGitHubNewIssue } from '../../utils';
+import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 
 export default function DirectoryChooser(props: {
   tooltipText: string,
@@ -43,7 +43,7 @@ export default function DirectoryChooser(props: {
   };
 
   const getSubdirectories = (path: string) => {
-    axios.post('/configuration-api/directories', {path:(path)?path:''})
+    axios.post(settingsApiUrl + 'directories', {path:(path)?path:''})
       .then(function (response: any) {
         const directoriesResponse = response.data;
         setSeparator(directoriesResponse.separator);

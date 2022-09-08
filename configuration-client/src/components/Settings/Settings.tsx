@@ -12,9 +12,9 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import {allowHtml, openGitHubNewIssue} from '../../utils';
-import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { sendAction } from '../../services/actions-service';
+import {allowHtml, openGitHubNewIssue, settingsApiUrl} from '../../utils';
+import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function Settings() {
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
@@ -77,7 +77,7 @@ export default function Settings() {
 
   // Code here will run just like componentDidMount
   useEffect(() => {
-    canView && axios.get('/configuration-api/settings')
+    canView && axios.get(settingsApiUrl)
       .then(function (response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
@@ -140,7 +140,7 @@ export default function Settings() {
           message: i18n.get['ConfigurationHasNoChanges'],
         })
       } else {
-        await axios.post('/configuration-api/settings', changedValues);
+        await axios.post(settingsApiUrl, changedValues);
         setConfiguration(values);
         showNotification({
           title: i18n.get['Saved'],
@@ -157,7 +157,7 @@ export default function Settings() {
     }
 
     try {
-      await axios.post('/configuration-api/shared-web-content', sharedWebContent);
+      await axios.post(settingsApiUrl + 'shared-web-content', sharedWebContent);
       setConfiguration(values);
       showNotification({
         title: i18n.get['Saved'],
@@ -886,7 +886,7 @@ export default function Settings() {
     setLoading(true);
     try {
       await axios.post(
-        '/configuration-api/mark-directory',
+        settingsApiUrl + 'mark-directory',
         { directory: item.directory, isPlayed },
       );
 
@@ -925,7 +925,7 @@ export default function Settings() {
   const addSharedWebContentItem = async () => {
     setLoading(true);
     try {
-      const response: { data: { name: string } } = await axios.post('/configuration-api/web-content-name', { source: sharedWebContent[sharedWebContent.length - 1].source });
+      const response: { data: { name: string } } = await axios.post(settingsApiUrl + 'web-content-name', { source: sharedWebContent[sharedWebContent.length - 1].source });
       sharedWebContent[sharedWebContent.length - 1].name = response.data?.name;
 
       showNotification({

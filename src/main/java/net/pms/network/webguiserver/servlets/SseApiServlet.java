@@ -262,8 +262,8 @@ public class SseApiServlet extends GuiHttpServlet {
 	}
 
 	public static void setConfigurationChanged(String key) {
-		if (hasServerSentEvents() && ConfigurationApiServlet.haveKey(key)) {
-			broadcastMessageWithPermission(ConfigurationApiServlet.getConfigurationUpdate(key), Permissions.SETTINGS_VIEW);
+		if (hasServerSentEvents() && SettingsApiServlet.haveKey(key)) {
+			broadcastMessageWithPermission(SettingsApiServlet.getConfigurationUpdate(key), Permissions.SETTINGS_VIEW);
 		}
 	}
 
