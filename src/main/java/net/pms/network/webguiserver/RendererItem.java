@@ -161,9 +161,11 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void sendRendererAction(String action) {
-		JsonObject result = toJsonObject();
-		result.addProperty("action", action);
-		SseApiServlet.broadcastMessage(result.toString());
+		if (SseApiServlet.hasHomeServerSentEvents()) {
+			JsonObject result = toJsonObject();
+			result.addProperty("action", action);
+			SseApiServlet.broadcastHomeMessage(result.toString());
+		}
 	}
 
 	public static void addRenderer(RendererConfiguration renderer) {

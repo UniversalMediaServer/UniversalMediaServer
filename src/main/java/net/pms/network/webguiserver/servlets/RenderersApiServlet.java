@@ -52,7 +52,6 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				String[] splitted = path.split("/");
 				if (splitted.length == 4) {
 					String rId = splitted[2];
-					String filename = splitted[3];
 					try {
 						renderer = RendererItem.getRenderer(Integer.parseInt(rId));
 					} catch (NumberFormatException e) {

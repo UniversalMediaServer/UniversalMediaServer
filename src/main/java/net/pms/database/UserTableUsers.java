@@ -84,7 +84,7 @@ public final class UserTableUsers extends UserTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD NAME VARCHAR2(255)");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD GROUP_ID INT DEFAULT 0");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD LAST_LOGIN_TIME BIGINT DEFAULT 0");
@@ -93,20 +93,19 @@ public final class UserTableUsers extends UserTable {
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=0");
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-					break;
-				case 2:
+				}
+				case 2 -> {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS GROUP_ID SET DEFAULT 0");
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET GROUP_ID=1 WHERE ID=1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-					break;
-				case 3:
+				}
+				case 3 -> {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS NAME RENAME TO DISPLAY_NAME");
 					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME='" + AccountService.DEFAULT_ADMIN_GROUP + "' WHERE ID=1");					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-					break;
-				default:
-					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-					);
+				}
+				default -> throw new IllegalStateException(
+					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+				);
 			}
 		}
 		UserTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -116,14 +115,14 @@ public final class UserTableUsers extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                 INT             PRIMARY KEY AUTO_INCREMENT, " +
+				"ID                 INTEGER         PRIMARY KEY AUTO_INCREMENT, " +
 				"USERNAME           VARCHAR2(255)   UNIQUE, " +
 				"PASSWORD           VARCHAR2(255)   NOT NULL, " +
 				"DISPLAY_NAME       VARCHAR2(255), " +
-				"GROUP_ID           INT             DEFAULT 0, " +
+				"GROUP_ID           INTEGER         DEFAULT 0, " +
 				"LAST_LOGIN_TIME    BIGINT          DEFAULT 0, " +
 				"LOGIN_FAIL_TIME    BIGINT          DEFAULT 0, " +
-				"LOGIN_FAIL_COUNT   INT             DEFAULT 0" +
+				"LOGIN_FAIL_COUNT   INTEGER         DEFAULT 0" +
 			")"
 		);
 	}
@@ -134,7 +133,7 @@ public final class UserTableUsers extends UserTable {
 		}
 		LOGGER.info("Creating user: {}", username);
 		try (PreparedStatement insertStatement = connection.prepareStatement(
-			"INSERT INTO " + UserTableUsers.TABLE_NAME + "(USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
+			"INSERT INTO " + TABLE_NAME + " (USERNAME, PASSWORD, DISPLAY_NAME, GROUP_ID) " + "VALUES(?, ?, ?, ?)",
 			Statement.RETURN_GENERATED_KEYS)) {
 			insertStatement.clearParameters();
 			insertStatement.setString(1, left(username, 255));

@@ -7,14 +7,14 @@ import { Edit, EditOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import MemoryBar from '../MemoryBar/MemoryBar';
 
 const About = () => {
   const [aboutDatas, setAboutDatas] = useState({links:[]} as any);
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-  const canView = havePermission(session, "settings_view") || havePermission(session, "settings_modify");
+  const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
   const languagesRows = i18n.languages.map((language) => (
     <tr>
       <td><Group style={{cursor: 'default'}}><ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em'}}/><Text>{language.name}</Text></Group></td>

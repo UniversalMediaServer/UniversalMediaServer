@@ -14,10 +14,14 @@ export interface UmsUser {
   loginFailedCount : number,
 }
 
+export interface UmsGroupPermissions {
+  value : number,
+}
+
 export interface UmsGroup {
   id : number,
   displayName : string,
-  permissions : string[],
+  permissions? : UmsGroupPermissions,
 }
 
 export interface UmsAccount {

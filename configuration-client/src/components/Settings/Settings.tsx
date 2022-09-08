@@ -11,11 +11,10 @@ import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, E
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import {allowHtml, openGitHubNewIssue} from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { sendAction } from '../../services/actions-service';
-import React from 'react';
 
 export default function Settings() {
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
@@ -56,8 +55,8 @@ export default function Settings() {
   const form = useForm({ initialValues: {} as any });
   const formSetValues = form.setValues;
 
-  const canModify = havePermission(session, "settings_modify");
-  const canView = canModify || havePermission(session, "settings_view");
+  const canModify = havePermission(session, Permissions.settings_modify);
+  const canView = canModify || havePermission(session, Permissions.settings_view);
 
   const defaultTooltipSettings = {
     width: 350,
@@ -460,7 +459,7 @@ export default function Settings() {
                 <TextInput
                   sx={{ flex: 1 }}
                   label={i18n.get['ThumbnailSeekingPosition']}
-                  disabled={!form.values['generate_thumbnails']}
+                  disabled={!canModify || !form.values['generate_thumbnails']}
                   {...form.getInputProps('thumbnail_seek_position')}
                 />
                 <DirectoryChooser

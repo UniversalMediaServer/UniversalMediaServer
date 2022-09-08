@@ -8,13 +8,13 @@ import { Dots, ListDetails, ScreenShare, Settings } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 
 const Renderers = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
-  const canModify = havePermission(session, "settings_modify");
+  const canModify = havePermission(session, Permissions.settings_modify);
   const canControlRenderers = canModify; //should be a separate perm
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [askInfos, setAskInfos] = useState(-1);

@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.PropertiesUtil;
@@ -73,7 +74,7 @@ public class AboutApiServlet extends GuiHttpServlet {
 				jsonlinks.add(toJsonObject("OpenSubtitles.org", "https://www.opensubtitles.org/"));
 				jsonResponse.add("links", jsonlinks);
 				Account account = AuthService.getAccountLoggedIn(req);
-				if (account != null && (account.havePermission("settings_view") || account.havePermission("settings_modify"))) {
+				if (account != null && (account.havePermission(Permissions.SETTINGS_VIEW | Permissions.SETTINGS_MODIFY))) {
 					jsonResponse.addProperty("operatingSystem", getOperatingSystem());
 					jsonResponse.addProperty("systemMemorySize", getSystemMemorySize());
 					jsonResponse.addProperty("jvmMemoryMax", getJavaMemoryMax());

@@ -2,6 +2,7 @@ import { Button, Checkbox, Divider, Group, Modal, Pagination, ScrollArea, Select
 import { showNotification } from '@mantine/notifications';
 import { Prism } from '@mantine/prism';
 import axios from 'axios';
+import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { Activity, FileDescription, FileZip, Filter } from 'tabler-icons-react';
 
@@ -9,16 +10,15 @@ import './prism-ums';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
-import _ from 'lodash';
 import { sendAction } from '../../services/actions-service';
 
 const Logs = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
-  const canModify = havePermission(session, "settings_modify");
+  const canModify = havePermission(session, Permissions.settings_modify);
   const [rootLogLevel, setRootLogLevel] = useState(0);
   const [guiLogLevel, setGuiLogLevel] = useState(0);
   const [logLevel, setLogLevel] = useState(0);
