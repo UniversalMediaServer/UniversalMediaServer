@@ -301,7 +301,7 @@ const Accounts = () => {
         </Stack>
         {group.id > 1 && (
           <Group position="right" mt="md">
-            <Button disabled={group.id < 2} type="submit">
+            <Button type="submit">
               {i18n.get['Update']}
             </Button>
           </Group>
