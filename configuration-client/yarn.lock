@@ -2279,15 +2279,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.2.6":
-  version: 5.2.6
-  resolution: "@mantine/form@npm:5.2.6"
+"@mantine/form@npm:5.2.7":
+  version: 5.2.7
+  resolution: "@mantine/form@npm:5.2.7"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: c99faf6f06890988b5732a954ae42d5dc94759f9ac1fb6d276492a650eee8c8ff9a6f9aff1307f78ea569a9038f2ed05faeb22c6df6b129c9d738ca50f8f6d63
+  checksum: 10704d93f9f3071953313567fd82f79d19bb8d9ef992e98308545d2c0e1b889a00a90f0f149cf755b5ac9c2349b71350ffbcb518df27c6bad5f33b11704442af
   languageName: node
   linkType: hard
 
@@ -12673,7 +12673,7 @@ __metadata:
   dependencies:
     "@emotion/react": 11.10.4
     "@mantine/core": 5.2.6
-    "@mantine/form": 5.2.6
+    "@mantine/form": 5.2.7
     "@mantine/hooks": 5.2.6
     "@mantine/modals": 5.2.6
     "@mantine/notifications": 5.2.6
