@@ -7,7 +7,7 @@
     "@emotion/react": "11.10.4",
     "@mantine/core": "5.2.6",
     "@mantine/form": "5.2.6",
-    "@mantine/hooks": "5.2.6",
+    "@mantine/hooks": "5.2.7",
     "@mantine/modals": "5.2.6",
     "@mantine/notifications": "5.2.6",
     "@mantine/prism": "5.2.6",
