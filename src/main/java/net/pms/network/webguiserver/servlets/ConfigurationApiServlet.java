@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -99,7 +100,7 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					WebGuiServletHelper.respondUnauthorized(req, resp);
 					return;
 				}
-				if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
+				if (!account.havePermission(Permissions.SETTINGS_VIEW | Permissions.SETTINGS_MODIFY)) {
 					WebGuiServletHelper.respondForbidden(req, resp);
 					return;
 				}
@@ -176,8 +177,8 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					// Here we possibly received some updates to config values
 					String configToSave = WebGuiServletHelper.getBodyAsString(req);
 					HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
-					for (Map.Entry configurationSetting : data.entrySet()) {
-						String key = (String) configurationSetting.getKey();
+					for (Entry<String, ?> configurationSetting : data.entrySet()) {
+						String key = configurationSetting.getKey();
 						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
 							LOGGER.trace("The key {} is not allowed", key);
 							continue;
@@ -232,6 +233,10 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
+						WebGuiServletHelper.respondUnauthorized(req, resp);
+						return;
+					}
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
 					}
@@ -247,6 +252,10 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
+						WebGuiServletHelper.respondUnauthorized(req, resp);
+						return;
+					}
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
 					}
@@ -258,6 +267,10 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
+						WebGuiServletHelper.respondUnauthorized(req, resp);
+						return;
+					}
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
 					}
@@ -273,6 +286,10 @@ public class ConfigurationApiServlet extends GuiHttpServlet {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
+						WebGuiServletHelper.respondUnauthorized(req, resp);
+						return;
+					}
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
 					}

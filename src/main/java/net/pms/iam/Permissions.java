@@ -17,11 +17,45 @@
  */
 package net.pms.iam;
 
+/**
+ * Adding new permissions should be duplicated on the react side.
+ * integer allows 32 permissions, that should be enough for our purposes.
+ * otherwise we can easily switch to long (64 bits).
+ */
 public class Permissions {
-	public static final String ALL = "*";
-	public static final String SERVER_RESTART = "server_restart";
-	public static final String USERS_MANAGE = "users_manage";
-	public static final String GROUPS_MANAGE = "groups_manage";
-	public static final String SETTINGS_VIEW = "settings_view";
-	public static final String SETTINGS_MODIFY = "settings_modify";
+	//Identity and Access Management
+	public static final int USERS_MANAGE = 1;
+	public static final int GROUPS_MANAGE = 1 << 1;
+	//Settings
+	public static final int SETTINGS_VIEW = 1 << 10;
+	public static final int SETTINGS_MODIFY = 1 << 11;
+	//Actions
+	public static final int SERVER_RESTART = 1 << 20;
+	public static final int ALL = 0xFFFFFFFF;
+
+	private int value;
+	public Permissions(int permissions) {
+		value = permissions;
+	}
+
+	public void setValue(int permissions) {
+		value = permissions;
+	}
+
+	public int getValue() {
+		return value;
+	}
+
+	public void addPermission(int permission) {
+		value |= permission;
+	}
+
+	public void removePermission(int permission) {
+		value |= permission;
+	}
+
+	public boolean havePermission(int permission) {
+		return (value & permission) != 0;
+	}
+
 }

@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -69,7 +68,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 					}
 					jObject.add("users", jUsers);
 					JsonArray jGroups = new JsonArray();
-					if (account.havePermission(Permissions.USERS_MANAGE) || account.havePermission(Permissions.GROUPS_MANAGE)) {
+					if (account.havePermission(Permissions.USERS_MANAGE | Permissions.GROUPS_MANAGE)) {
 						jObject.add("groupsManage", new JsonPrimitive(true));
 						for (Group group : AccountService.getAllGroups()) {
 							jGroups.add(groupToJsonObject(group));
@@ -268,7 +267,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 										//we need name
 										if (action.has("name")) {
 											String cgName = action.get("name").getAsString();
-											AccountService.createGroup(connection, cgName);
+											AccountService.createGroup(connection, cgName, 0);
 											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setUpdateAccounts();
 										} else {
@@ -321,23 +320,12 @@ public class AccountApiServlet extends GuiHttpServlet {
 										//we need groupid, permissions
 										if (action.has("groupid") && action.has("permissions")) {
 											int upGroupId = action.get("groupid").getAsInt();
-											List<String> upPermissions = null;
-											if (action.get("permissions").isJsonArray()) {
-												upPermissions = new ArrayList<>();
-												JsonArray jPermissions = action.get("permissions").getAsJsonArray();
-												for (JsonElement jPermission : jPermissions) {
-													upPermissions.add(jPermission.getAsString());
-												}
-											}
-											if (upPermissions != null) {
-												List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
-												AccountService.updatePermissions(connection, upGroupId, upPermissions);
-												WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
-												SseApiServlet.setRefreshSessions(userIds);
-												SseApiServlet.setUpdateAccounts();
-											} else {
-												WebGuiServletHelper.respondBadRequest(req, resp);
-											}
+											int upPermissions = action.get("permissions").getAsInt();
+											List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
+											AccountService.updatePermissions(connection, upGroupId, upPermissions);
+											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											SseApiServlet.setRefreshSessions(userIds);
+											SseApiServlet.setUpdateAccounts();
 										} else {
 											WebGuiServletHelper.respondBadRequest(req, resp);
 										}
@@ -345,6 +333,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to update permissions", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
+									break;
 								default:
 									WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
 							}

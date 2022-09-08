@@ -1,12 +1,12 @@
-import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, Modal, PasswordInput, Select, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
 
 import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
-import { getUserGroup, getUserGroupsSelection, havePermission, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
+import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
 import { allowHtml } from '../../utils';
 
 const Accounts = () => {
@@ -14,9 +14,9 @@ const Accounts = () => {
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
   const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['None']);
-  const canModifySettings = havePermission(session, "settings_modify");
-  const canManageUsers = havePermission(session, "users_manage");
-  const canManageGroups = havePermission(session, "groups_manage");
+  const canModifySettings = havePermission(session, Permissions.settings_modify);
+  const canManageUsers = havePermission(session, Permissions.users_manage);
+  const canManageGroups = havePermission(session, Permissions.groups_manage);
 
   function UserAccordionLabel(user: UmsUser, group: UmsGroup) {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -276,7 +276,13 @@ const Accounts = () => {
   };
 
   function GroupPermissionsForm(group: UmsGroup) {
-    const [permissions, setPermissions] = useState<string[]>(group.permissions);
+    const [permissions, setPermissions] = useState<number>(group.permissions?group.permissions.value:0);
+    const addPermission = (permission : number) => {
+      setPermissions(permissions | permission);
+    }
+    const removePermission = (permission : number) => {
+      setPermissions(permissions & ~permission);
+    }
     const groupPermissionsForm = useForm({ initialValues: {id:group.id} });
     const handleGroupPermissionsSubmit = (values: typeof groupPermissionsForm.values) => {
       const data = {operation:'updatepermission', groupid:group.id, permissions:permissions};
@@ -285,23 +291,21 @@ const Accounts = () => {
     return (
       <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
         <Divider my="sm" label={i18n.get['Permissions']} />
-        <Checkbox.Group
-          value={permissions}
-          onChange={setPermissions}
-          orientation="vertical"
-        >
-          <Checkbox value="*" label={i18n.get['AllPermissions']} />
-          <Checkbox value="server_restart" label={i18n.get['RestartServer']} />
-          <Checkbox value="users_manage" label={i18n.get['ManageUsers']} />
-          <Checkbox value="groups_manage" label={i18n.get['ManageGroups']} />
-          <Checkbox value="settings_view" label={i18n.get['ViewSettings']} />
-          <Checkbox value="settings_modify" label={i18n.get['ModifySettings']} />
-        </Checkbox.Group>
-        <Group position="right" mt="md">
-          <Button type="submit">
-            {i18n.get['Update']}
-          </Button>
-        </Group>
+        <Stack>
+          <Checkbox disabled={group.id < 2} label={i18n.get['AllPermissions']} checked={(permissions & Permissions.all) === Permissions.all} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.all) : removePermission(Permissions.all)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['RestartServer']} checked={(permissions & Permissions.server_restart) === Permissions.server_restart} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.server_restart) : removePermission(Permissions.server_restart)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['ManageUsers']} checked={(permissions & Permissions.users_manage) === Permissions.users_manage} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.users_manage) : removePermission(Permissions.users_manage)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['ManageGroups']} checked={(permissions & Permissions.groups_manage) === Permissions.groups_manage} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.groups_manage) : removePermission(Permissions.groups_manage)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['ViewSettings']} checked={(permissions & Permissions.settings_view) === Permissions.settings_view} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.settings_view) : removePermission(Permissions.settings_view)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['ModifySettings']} checked={(permissions & Permissions.settings_modify) === Permissions.settings_modify} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.settings_modify) : removePermission(Permissions.settings_modify)} />
+        </Stack>
+        {group.id > 1 && (
+          <Group position="right" mt="md">
+            <Button disabled={group.id < 2} type="submit">
+              {i18n.get['Update']}
+            </Button>
+          </Group>
+        )}
       </form>
     )
   };

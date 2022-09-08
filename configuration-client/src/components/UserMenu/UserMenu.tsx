@@ -4,7 +4,7 @@ import { InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'table
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
 import { redirectToLogin } from '../../services/auth-service';
 
@@ -25,7 +25,7 @@ function UserMenu() {
       </Menu.Target>
       <Menu.Dropdown>
       <Menu.Label>Settings</Menu.Label>
-      {havePermission(session, "server_restart")  && (
+      {havePermission(session, Permissions.server_restart)  && (
         <Menu.Item
           icon={<Refresh size={14} />}
           onClick={restartServer}
@@ -33,7 +33,7 @@ function UserMenu() {
           {i18n.get['RestartServer']}
         </Menu.Item>
       )}
-      {havePermission(session, "settings_view")  && (
+      {havePermission(session, Permissions.settings_view)  && (
         <Menu.Item
           icon={<Settings size={14} />}
           onClick={() => { window.location.href = '/settings'; }}
@@ -42,10 +42,10 @@ function UserMenu() {
         </Menu.Item>
       )}
       <Menu.Item
-        icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
+        icon={havePermission(session, Permissions.users_manage) ? <Users size={14} /> : <User size={14} />}
         onClick={() => { window.location.href = '/accounts'; }}
       >
-        {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+        {havePermission(session, Permissions.users_manage) ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
       </Menu.Item>
       <Menu.Item
         color="yellow"

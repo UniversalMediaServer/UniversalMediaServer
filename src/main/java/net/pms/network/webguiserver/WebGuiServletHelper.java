@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
@@ -409,6 +411,18 @@ public class WebGuiServletHelper {
 			}
 		}
 		return result;
+	}
+
+	public static URI getRequestReferer(HttpServletRequest req) {
+		String referer = req.getHeader("Referer");
+		if (referer != null) {
+			try {
+				return new URI(referer);
+			} catch (URISyntaxException x) {
+				//bad referer url
+			}
+		}
+		return null;
 	}
 
 	public static String getMimeType(String file) {

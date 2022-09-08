@@ -20,6 +20,7 @@ package net.pms.network.webguiserver.servlets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,11 +34,14 @@ public class WebGuiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServlet.class);
 
 	public static final String BASE_PATH = "/";
-	public static final ArrayList<String> ROUTES = new ArrayList<>(Arrays.asList(
-		"/about",
-		"/accounts",
-		"/player",
-		"/settings"
+	public static final String ABOUT_BASE_PATH = BASE_PATH + "about";
+	public static final String ACCOUNTS_BASE_PATH = BASE_PATH + "accounts";
+	public static final String SETTINGS_BASE_PATH = BASE_PATH + "settings";
+
+	private static final List<String> ROUTES = new ArrayList<>(Arrays.asList(
+		ABOUT_BASE_PATH,
+		ACCOUNTS_BASE_PATH,
+		SETTINGS_BASE_PATH
 	));
 
 	@Override
