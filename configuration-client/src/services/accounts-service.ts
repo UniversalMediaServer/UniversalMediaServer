@@ -5,15 +5,23 @@ import { clearJwt } from './auth-service';
 import { UmsAccounts } from '../contexts/accounts-context';
 import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 
-export const accountHavePermission = (account: UmsAccount, permission: string) => {
+export const Permissions = {
+  'users_manage': 1,
+  'groups_manage': 1 << 1,
+  'settings_view': 1 << 10,
+  'settings_modify': 1 << 11,
+  'server_restart': 1 << 20,
+  'all': -1
+};
+
+export const accountHavePermission = (account: UmsAccount, permission: number) => {
   return (typeof account.group !== "undefined"
 	&& typeof account.group.permissions !== "undefined"
-	&& (account.group.permissions.includes("*") ||
-	account.group.permissions.includes(permission))
+	&& (account.group.permissions.value & permission) !== 0
   );
 }
 
-export const havePermission = (session: UmsSession, permission: string) => {
+export const havePermission = (session: UmsSession, permission: number) => {
   return (typeof session.account !== "undefined"
     && accountHavePermission(session.account, permission)
   );
@@ -25,7 +33,7 @@ export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
       return group;
     }
   });
-  return {id:0,displayName:"",permissions:[]} as UmsGroup;
+  return {id:0,displayName:""} as UmsGroup;
 };
 
 export const getUserGroupsSelection = (accounts: UmsAccounts, none: string) => {

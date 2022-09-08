@@ -60,25 +60,37 @@ public class ActionsApiServlet extends GuiHttpServlet {
 								}
 							}
 							case "Server.ResetCache" -> {
-								MediaDatabase.initForce();
-								try {
-									MediaDatabase.resetCache();
-								} catch (SQLException e) {
-									LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									MediaDatabase.initForce();
+									try {
+										MediaDatabase.resetCache();
+									} catch (SQLException e) {
+										LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
 								}
-								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							}
 							case "Server.ScanAllSharedFolders" -> {
-								if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
-									LibraryScanner.scanLibrary();
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
+										LibraryScanner.scanLibrary();
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
 								}
-								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							}
 							case "Server.ScanAllSharedFoldersCancel" -> {
-								if (CONFIGURATION.getUseCache() && LibraryScanner.isScanLibraryRunning()) {
-									LibraryScanner.stopScanLibrary();
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									if (LibraryScanner.isScanLibraryRunning()) {
+										LibraryScanner.stopScanLibrary();
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
 								}
-								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							}
 							default -> WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
 						}

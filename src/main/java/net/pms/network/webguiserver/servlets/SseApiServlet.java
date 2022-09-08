@@ -19,6 +19,7 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.network.webguiserver.ServerSentEvents;
@@ -44,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public class SseApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
+	private static final List<ServerSentEvents> SSE_ABOUT_INSTANCES = new ArrayList<>();
+	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
 
@@ -54,6 +58,11 @@ public class SseApiServlet extends GuiHttpServlet {
 			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && account.getUser().getId() > 0) {
+					String sseType = null;
+					URI referer = WebGuiServletHelper.getRequestReferer(req);
+					if (referer != null) {
+						sseType = referer.getPath();
+					}
 					resp.setHeader("Server", PMS.get().getServerName());
 					resp.setHeader("Connection", "keep-alive");
 					resp.setHeader("Cache-Control", "no-transform");
@@ -61,7 +70,7 @@ public class SseApiServlet extends GuiHttpServlet {
 					resp.setContentType("text/event-stream");
 					AsyncContext async = req.startAsync();
 					ServerSentEvents sse = new ServerSentEvents(async);
-					addServerSentEventsFor(account.getUser().getId(), sse);
+					addServerSentEventsFor(account.getUser().getId(), sse, sseType);
 				} else {
 					WebGuiServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
 				}
@@ -74,13 +83,20 @@ public class SseApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static void addServerSentEventsFor(int id, ServerSentEvents sse) {
+	private static void addServerSentEventsFor(int id, ServerSentEvents sse, String sseType) {
 		if (id > 0) {
 			synchronized (SSE_INSTANCES) {
 				if (!SSE_INSTANCES.containsKey(id)) {
 					SSE_INSTANCES.put(id, new ArrayList<>());
 				}
 				SSE_INSTANCES.get(id).add(sse);
+				if (sseType != null) {
+					switch (sseType) {
+						case WebGuiServlet.BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
+						case WebGuiServlet.SETTINGS_BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
+						case WebGuiServlet.ABOUT_BASE_PATH -> SSE_ABOUT_INSTANCES.add(sse);
+					}
+				}
 			}
 		}
 	}
@@ -97,6 +113,40 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastMessage(String message) {
 		broadcastMessage(message, true);
+	}
+
+	/**
+	 * Broadcast a message to settings page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastSettingsMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_SETTINGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					sse.sendMessage(message);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to about page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastAboutMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_ABOUT_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					sse.sendMessage(message);
+				}
+			}
+		}
 	}
 
 	public static void broadcastMessage(String message, boolean log) {
@@ -124,7 +174,7 @@ public class SseApiServlet extends GuiHttpServlet {
 	 * @param message
 	 * @param permission
 	 */
-	public static void broadcastMessage(String message, String permission) {
+	public static void broadcastMessageWithPermission(String message, int permission) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
 				Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
@@ -212,17 +262,17 @@ public class SseApiServlet extends GuiHttpServlet {
 	}
 
 	public static void setConfigurationChanged(String key) {
-		if (ConfigurationApiServlet.haveKey(key)) { //hasServerSentEvents() &&
-			broadcastMessage(ConfigurationApiServlet.getConfigurationUpdate(key), "settings_view");
+		if (hasServerSentEvents() && ConfigurationApiServlet.haveKey(key)) {
+			broadcastMessageWithPermission(ConfigurationApiServlet.getConfigurationUpdate(key), Permissions.SETTINGS_VIEW);
 		}
 	}
 
 	public static void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
 		String json = "{\"action\":\"update_memory\",\"max\":" + maxMemory + ",\"used\":" + usedMemory + ",\"buffer\":" + bufferMemory + "}";
-		broadcastMessage(json);
+		broadcastAboutMessage(json);
 	}
 
 	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		broadcastMessage("{\"action\":\"set_scanlibrary_status\",\"enabled\":" + (enabled ? "true" : "false") + ",\"running\":" + (running ? "true" : "false") + "}");
+		broadcastSettingsMessage("{\"action\":\"set_scanlibrary_status\",\"enabled\":" + (enabled ? "true" : "false") + ",\"running\":" + (running ? "true" : "false") + "}");
 	}
 }

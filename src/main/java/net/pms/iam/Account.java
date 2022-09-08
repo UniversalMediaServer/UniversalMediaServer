@@ -41,8 +41,8 @@ public class Account {
 		return user.getUsername();
 	}
 
-	public boolean havePermission(String name) {
-		return (this.group != null && this.group.havePermission(name));
+	public boolean havePermission(int permission) {
+		return (this.group != null && this.group.havePermission(permission));
 	}
 
 	@Override

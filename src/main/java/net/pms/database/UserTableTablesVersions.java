@@ -125,4 +125,13 @@ public class UserTableTablesVersions extends UserTable {
 			}
 		}
 	}
+
+	protected static final void removeTableVersion(final Connection connection, final String tableName) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(
+			"DELETE FROM " + TABLE_NAME + " WHERE TABLE_NAME = ?"
+		)) {
+			statement.setString(1, tableName);
+			statement.executeUpdate();
+		}
+	}
 }

@@ -17,12 +17,10 @@
  */
 package net.pms.iam;
 
-import java.util.List;
-
 public class Group {
 	private int id;
 	private String displayName;
-	private List<String> permissions;
+	private Permissions permissions;
 
 	public int getId() {
 		return id;
@@ -40,18 +38,15 @@ public class Group {
 		this.displayName = name;
 	}
 
-	public List<String> getPermissions() {
-		return permissions;
+	public int getPermissions() {
+		return permissions != null ? permissions.getValue() : 0;
 	}
 
-	public void setPermissions(List<String> permissions) {
-		this.permissions = permissions;
+	public void setPermissions(int permissions) {
+		this.permissions = new Permissions(permissions);
 	}
 
-	public boolean havePermission(String name) {
-		return (this.permissions != null &&
-				((this.permissions.contains(Permissions.ALL)) ||
-				(this.permissions.contains(name))
-				));
+	public boolean havePermission(int permission) {
+		return permissions != null && permissions.havePermission(permission);
 	}
 }

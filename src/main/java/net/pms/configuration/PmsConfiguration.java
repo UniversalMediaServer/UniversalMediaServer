@@ -698,9 +698,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			maxMaxMemoryBufferSize = (int) usableMemory;
 		}
 
-		if (getJwtSecret().equals("")) {
-			String uuid = UUID.randomUUID().toString();
-			setJwtSecret(uuid.substring(0, uuid.indexOf("-")));
+		if ("".equals(getJwtSecret())) {
+			String randomUuid = UUID.randomUUID().toString();
+			setJwtSecret(randomUuid.substring(0, randomUuid.indexOf("-")));
 		}
 	}
 
@@ -1340,11 +1340,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_API_KEY, "");
 	}
 
-	public String getJwtSecret() {
-		return getString(KEY_JWT_SIGNER_SECRET, "");
+	public final String getJwtSecret() {
+		//don't use RendererConfiguration.getString as it will log the value
+		//jwt_secret can elevate users !!!
+		return configuration.getString(KEY_JWT_SIGNER_SECRET, "");
 	}
 
-	public void setJwtSecret(String value) {
+	public final void setJwtSecret(String value) {
 		configuration.setProperty(KEY_JWT_SIGNER_SECRET, value);
 	}
 	/**
