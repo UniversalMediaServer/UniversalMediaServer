@@ -137,7 +137,7 @@ export default function Settings() {
             <Tabs.Tab value="GeneralSettings">{i18n.get['GeneralSettings']}</Tabs.Tab>
             { advancedSettings &&
               <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
-			}
+            }
             <Tabs.Tab value="SharedContent">{i18n.get['SharedContent']}</Tabs.Tab>
             <Tabs.Tab value="TranscodingSettings">{i18n.get['TranscodingSettings']}</Tabs.Tab>
           </Tabs.List>
