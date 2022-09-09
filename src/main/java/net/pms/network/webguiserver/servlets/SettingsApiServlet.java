@@ -18,13 +18,13 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -117,7 +117,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
-				jsonResponse.add("sharedWebContent", PmsConfiguration.getAllSharedWebContentAsJsonArray());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -137,6 +136,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						configurationAsJson.add(key, array);
 					}
 				}
+				configurationAsJson.add("shared_web_content", PmsConfiguration.getAllSharedWebContentAsJsonArray());
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
@@ -171,43 +171,47 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						return;
 					}
 					// Here we possibly received some updates to config values
-					String configToSave = WebGuiServletHelper.getBodyAsString(req);
-					HashMap<String, ?> data = GSON.fromJson(configToSave, HashMap.class);
-					for (Entry<String, ?> configurationSetting : data.entrySet()) {
+					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					for (Entry<String, JsonElement> configurationSetting : data.entrySet()) {
 						String key = configurationSetting.getKey();
 						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
-							LOGGER.trace("The key {} is not allowed", key);
+							if (key.equals("shared_web_content")) {
+								if (configurationSetting.getValue() instanceof JsonArray array) {
+									CONFIGURATION.writeWebConfigurationFile(array);
+								}
+							} else {
+								LOGGER.trace("The key {} is not allowed", key);
+							}
 							continue;
 						}
-
-						if (configurationSetting.getValue() instanceof String) {
-							LOGGER.trace("Saving key {} and String value {}", key, configurationSetting.getValue());
-							configuration.setProperty(key, (String) configurationSetting.getValue());
-						} else if (configurationSetting.getValue() instanceof Boolean) {
-							LOGGER.trace("Saving key {} and Boolean value {}", key, configurationSetting.getValue());
-							configuration.setProperty(key, (Boolean) configurationSetting.getValue());
-						} else if (configurationSetting.getValue() instanceof Integer) {
-							LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
-							configuration.setProperty(key, (Integer) configurationSetting.getValue());
-						} else if (configurationSetting.getValue() instanceof Long) {
-							LOGGER.trace("Saving key {} and Integer value {}", key, configurationSetting.getValue());
-							configuration.setProperty(key, (Long) configurationSetting.getValue());
-						} else if (configurationSetting.getValue() instanceof ArrayList) {
-							ArrayList<String> incomingArrayList = (ArrayList<String>) configurationSetting.getValue();
-							LOGGER.trace("Saving key {} and ArrayList value {}", key, configurationSetting.getValue());
-							String arrayAsCommaDelimitedString = "";
-							for (int i = 0; i < incomingArrayList.size(); i++) {
-								if (i != 0) {
-									arrayAsCommaDelimitedString += ",";
-								}
-								arrayAsCommaDelimitedString += incomingArrayList.get(i);
+						if (configurationSetting.getValue() instanceof JsonPrimitive element) {
+							if (element.isBoolean()) {
+								LOGGER.trace("Saving key {} and Boolean value {}", key, element);
+								configuration.setProperty(key, element.getAsBoolean());
+							} else if (element.isNumber()) {
+								LOGGER.trace("Saving key {} and Number value {}", key, element);
+								configuration.setProperty(key, element.getAsNumber());
+							} else if (element.isString()) {
+								LOGGER.trace("Saving key {} and String value {}", key, element);
+								configuration.setProperty(key, element.getAsString());
+							} else {
+								LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 							}
-							configuration.setProperty(key, arrayAsCommaDelimitedString);
+						} else if (configurationSetting.getValue() instanceof JsonArray element) {
+							//assume only ArrayList<String> as before
+							StringBuilder arrayAsCommaDelimitedString = new StringBuilder();
+							for (int i = 0; i < element.size(); i++) {
+								if (i != 0) {
+									arrayAsCommaDelimitedString.append(",");
+								}
+								arrayAsCommaDelimitedString.append(element.get(i).getAsString());
+							}
+							configuration.setProperty(key, arrayAsCommaDelimitedString.toString());
 						} else {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, null, 200, "application/json");
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/directories" -> {
 					//only logged users for security concerns
@@ -228,21 +232,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 					}
 					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
 				}
-				case "/shared-web-content" -> {
-					//only logged users for security concerns
-					Account account = AuthService.getAccountLoggedIn(req);
-					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
-						return;
-					}
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
-					JsonArray post = WebGuiServletHelper.getJsonArrayFromBody(req);
-					CONFIGURATION.writeWebConfigurationFile(post);
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
-				}
 				case "/web-content-name" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
@@ -255,12 +244,17 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						return;
 					}
 					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
-
-					String webContentName = "";
 					if (request.has("source")) {
-						webContentName = Feed.getFeedTitle(request.get("source").getAsString());
+						String webContentName;
+						try {
+							webContentName = Feed.getFeedTitle(request.get("source").getAsString());
+						} catch (Exception e) {
+							webContentName = "";
+						}
+						WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
+					} else {
+						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
-					WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
 				}
 				case "/mark-directory" -> {
 					//only logged users for security concerns
