@@ -102,7 +102,7 @@ export default function Settings() {
           changedValues[key] = values[key];
         }
       };
-  
+
       if (_.isEmpty(changedValues)) {
         showNotification({
           title: i18n.get['Saved'],
