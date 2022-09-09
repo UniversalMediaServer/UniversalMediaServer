@@ -8,6 +8,7 @@ import { Edit, EditOff } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { aboutApiUrl } from '../../utils';
 import MemoryBar from '../MemoryBar/MemoryBar';
 
 const About = () => {
@@ -37,7 +38,7 @@ const About = () => {
   ));
 
   useEffect(() => {
-    axios.get('/v1/api/about/')
+    axios.get(aboutApiUrl)
       .then(function (response: any) {
         setAboutDatas(response.data);
       })

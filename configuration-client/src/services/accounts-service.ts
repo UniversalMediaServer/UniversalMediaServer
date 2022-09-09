@@ -1,9 +1,10 @@
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { clearJwt } from './auth-service';
 
 import { UmsAccounts } from '../contexts/accounts-context';
 import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
+import { accountApiUrl } from '../utils';
+import { clearJwt } from './auth-service';
 
 export const Permissions = {
   'users_manage': 1,
@@ -48,7 +49,7 @@ export const getUserGroupsSelection = (accounts: UmsAccounts, none: string) => {
 };
 
 export const postAccountAction = (data: any, title: string, message: string, errormessage: string) => {
-  return axios.post('/v1/api/account/action', data)
+  return axios.post(accountApiUrl + 'action', data)
     .then(function () {
       showNotification({
         title: title,
@@ -65,7 +66,7 @@ export const postAccountAction = (data: any, title: string, message: string, err
 };
 
 export const postAccountAuthAction = (data: any, errormessage: string) => {
-  return axios.post('/v1/api/account/action', data)
+  return axios.post(accountApiUrl + 'action', data)
     .then(function () {
         clearJwt();
         window.location.reload();

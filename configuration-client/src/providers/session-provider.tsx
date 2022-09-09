@@ -4,6 +4,7 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
 import { sessionContext, UmsSession } from '../contexts/session-context';
+import { authApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
@@ -15,7 +16,7 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
 
   useEffect(() => {
     const refresh = () => {
-      axios.get('/v1/api/auth/session')
+      axios.get(authApiUrl + 'session')
         .then(function (response: any) {
           setSession({...response.data, initialized: true, refresh: refresh});
         })

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
+import { authApiUrl } from '../utils';
 
 const storeJwtInLocalStorage = (jwt: string) => {
   localStorage.setItem('user', jwt);
@@ -11,7 +12,7 @@ const storeJwtInLocalStorage = (jwt: string) => {
 
 export const login = async (username: string, password: string) => {
   const response = await axios
-    .post('/v1/api/auth/login', {
+    .post(authApiUrl + 'login', {
       username,
       password,
     });
@@ -26,7 +27,7 @@ export const login = async (username: string, password: string) => {
 
 export const create = async (username: string, password: string) => {
   const response = await axios
-    .post('/v1/api/auth/create', {
+    .post(authApiUrl + 'create', {
       username,
       password,
     });
@@ -40,12 +41,12 @@ export const create = async (username: string, password: string) => {
 };
 
 export const disable = async () => {
-  return await axios.get('/v1/api/auth/disable');
+  return await axios.get(authApiUrl + 'disable');
 };
 
 export const refreshToken = async () => {
   const response = await axios
-    .post('/v1/api/auth/refresh', {});
+    .post(authApiUrl + 'refresh', {});
   if (response.data.token) {
     storeJwtInLocalStorage(response.data.token);
   }

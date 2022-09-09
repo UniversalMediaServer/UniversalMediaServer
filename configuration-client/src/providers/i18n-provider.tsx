@@ -3,6 +3,7 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
 import { i18nContext, LanguageValue } from '../contexts/i18n-context';
+import { i18nApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
@@ -45,7 +46,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
   }
 
   useEffect(() => {
-    axios.post('/configuration-api/i18n', {language:language})
+    axios.post(i18nApiUrl, {language:language})
       .then(function (response: any) {
         setLanguages(response.data.languages);
         setI18n(response.data.i18n);

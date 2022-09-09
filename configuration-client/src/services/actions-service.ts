@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { actionsApiUrl } from '../utils';
 
 const PERMITTED_ACTIONS = [
   'Process.Reboot.Trace',
@@ -11,7 +12,7 @@ const PERMITTED_ACTIONS = [
 export const sendAction = async(operation: string) => {
   if (PERMITTED_ACTIONS.includes(operation)) {
     return axios
-      .post('/v1/api/actions/', {
+      .post(actionsApiUrl, {
         operation,
       })
       .then((response) => {
