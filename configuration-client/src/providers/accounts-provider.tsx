@@ -5,6 +5,7 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 import { accountsContext, UmsAccounts } from '../contexts/accounts-context';
 import I18nContext from '../contexts/i18n-context';
 import ServerEventContext from '../contexts/server-event-context';
+import { accountApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
@@ -20,7 +21,7 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
       return;
     }
 	sse.setUpdateAccounts(false);
-    axios.get('/v1/api/account/accounts')
+    axios.get(accountApiUrl + 'accounts')
       .then(function (response: any) {
         setAccounts(response.data);
       })

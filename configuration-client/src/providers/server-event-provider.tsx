@@ -6,6 +6,7 @@ import I18nContext from '../contexts/i18n-context';
 import { serverEventContext } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
+import { sseApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
@@ -120,7 +121,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
 
     const startSse = () => {
       setConnectionStatus(0);
-      fetchEventSource('/v1/api/sse/', {
+      fetchEventSource(sseApiUrl, {
         headers: {
           'Authorization': 'Bearer ' + getJwt()
         },
