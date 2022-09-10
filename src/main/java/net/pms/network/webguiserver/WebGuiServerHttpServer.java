@@ -24,7 +24,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
-import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.AccountApiServlet;
@@ -90,7 +89,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 
 	@Override
 	public String getAddress() {
-		return MediaServer.getHost() + ":" + getPort();
+		return "localhost:" + getPort();
 	}
 
 	@Override
