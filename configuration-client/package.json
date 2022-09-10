@@ -59,7 +59,7 @@
     "@types/jest": "29.0.0",
     "@types/lodash": "4.14.184",
     "@types/node": "16.11.58",
-    "@types/react": "18.0.18",
+    "@types/react": "18.0.19",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.0.6",
     "react-scripts": "5.0.1"
