@@ -31,6 +31,9 @@ public class Permissions {
 	public static final int SETTINGS_MODIFY = 1 << 11;
 	//Actions
 	public static final int SERVER_RESTART = 1 << 20;
+	public static final int APPLICATION_RESTART = 1 << 21;
+	public static final int APPLICATION_SHUTDOWN = 1 << 22;
+
 	public static final int ALL = 0xFFFFFFFF;
 
 	private int value;

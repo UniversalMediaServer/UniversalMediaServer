@@ -73,10 +73,26 @@ public class ActionsApiServlet extends GuiHttpServlet {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}
 							}
+							case "Process.Reboot" -> {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									ProcessUtil.reboot();
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
 							case "Process.Reboot.Trace" -> {
-								if (account.havePermission(Permissions.SERVER_RESTART)) {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 									ProcessUtil.reboot("trace");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Exit" -> {
+								if (account.havePermission(Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									PMS.quit();
 								} else {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}

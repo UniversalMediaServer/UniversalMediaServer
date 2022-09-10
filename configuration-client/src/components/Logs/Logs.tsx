@@ -1,4 +1,4 @@
-import { Button, Checkbox, Divider, Group, Modal, Pagination, ScrollArea, Select, Stack, Tooltip } from '@mantine/core';
+import { Box, Button, Checkbox, Divider, Group, Modal, Pagination, ScrollArea, Select, Stack, Text, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { Prism } from '@mantine/prism';
 import axios from 'axios';
@@ -6,13 +6,13 @@ import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { Activity, FileDescription, FileZip, Filter } from 'tabler-icons-react';
 
-import './prism-ums';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
 import { sendAction } from '../../services/actions-service';
+import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
+import './prism-ums';
 
 const Logs = () => {
   const i18n = useContext(I18nContext);
@@ -34,14 +34,13 @@ const Logs = () => {
   const [packerOpened, setPackerOpened] = useState(false);
   const [packerItems, setPackerItems] = useState([] as PackerItem[]);
   const [packerFiles, setPackerFiles] = useState([] as string[]);
-  const apiUrl = '/v1/api/logs/';
 
   useEffect(() => {
     if (!canModify) {
       setLogs([]);
       return;
     }
-    axios.get(apiUrl)
+    axios.get(logsApiUrl)
       .then(function (response: any) {
 		setLogs(response.data.logs);
         setRootLogLevel(getLogLevel(response.data.rootLogLevel));
@@ -140,7 +139,7 @@ const Logs = () => {
     if (!packerOpened) {
       return;
     }
-    axios.get(apiUrl + 'packer')
+    axios.get(logsApiUrl + 'packer')
       .then(function (response: any) {
         const items = response.data as PackerItem[];
         let selItems = [];
@@ -155,7 +154,7 @@ const Logs = () => {
   }, [packerOpened]);
 
   const getPackerZip = () => {
-    axios.post(apiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
+    axios.post(logsApiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
       .then(function (response: any) {
         let fileName = response.headers["content-disposition"].split("filename=")[1];
 		const type = response.headers['content-type'];
@@ -175,8 +174,8 @@ const Logs = () => {
     ));	
   }
 
-  return (
-    <>
+  return canModify ? (
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
       <Modal
         centered
         opened={filterOpened}
@@ -268,8 +267,12 @@ const Logs = () => {
           {activeLogs.join('')}
         </Prism>
 	  </ScrollArea>
-    </>
-  );
+    </Box>
+  ) : (
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
+      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
+    </Box>
+  )
 };
 
 interface PackerItem {

@@ -14,10 +14,12 @@ import { MoonStars, Sun } from 'tabler-icons-react';
 import './services/http-interceptor';
 import About from './components/About/About'
 import Accounts from './components/Accounts/Accounts'
-import Login from './components/Login/Login'
-import Settings from './components/Settings/Settings';
+import Actions from './components/Actions/Actions';
 import Home from './components/Home/Home';
 import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
+import Login from './components/Login/Login'
+import Logs from './components/Logs/Logs'
+import Settings from './components/Settings/Settings';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
@@ -96,6 +98,8 @@ function App() {
                             <Routes>
                               <Route path='about' element={<About />}></Route>
                               <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
+                              <Route path='actions' element={<Actions />}></Route>
+                              <Route path='logs' element={<Logs />}></Route>
                               <Route path='settings' element={<Settings />}></Route>
                               <Route index element={<Home />} />
                               <Route

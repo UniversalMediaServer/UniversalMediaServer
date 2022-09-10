@@ -9,6 +9,7 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import { renderersApiUrl } from '../../utils';
 
 const Renderers = () => {
   const i18n = useContext(I18nContext);
@@ -19,10 +20,10 @@ const Renderers = () => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
-  const apiUrl = '/v1/api/renderers/';
+
 
   useEffect(() => {
-    axios.get(apiUrl)
+    axios.get(renderersApiUrl)
       .then(function (response: any) {
 		setRenderers(response.data.renderers);
       })
@@ -73,7 +74,7 @@ const Renderers = () => {
       setInfos(null);
       return;
     }
-    axios.post(apiUrl + 'infos', {'id' : askInfos})
+    axios.post(renderersApiUrl + 'infos', {'id' : askInfos})
       .then(function (response: any) {
         setInfos(response.data);
       })
@@ -108,7 +109,7 @@ const Renderers = () => {
         </Card.Section>
         <Card.Section>
           <Image
-            src={apiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
+            src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
             height={160}
             fit="contain"
             alt={renderer.name}

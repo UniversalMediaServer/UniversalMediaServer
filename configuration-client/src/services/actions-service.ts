@@ -2,10 +2,13 @@ import axios from 'axios';
 import { actionsApiUrl } from '../utils';
 
 const PERMITTED_ACTIONS = [
+  'Process.Exit',
+  'Process.Reboot',
   'Process.Reboot.Trace',
   'Server.ResetCache',
   'Server.Restart',
   'Server.ScanAllSharedFolders',
+  'Server.ScanAllSharedFoldersCancel',
   'Server.ScanAllSharedFoldersCancel',
 ];
 

@@ -12,6 +12,8 @@ export const Permissions = {
   'settings_view': 1 << 10,
   'settings_modify': 1 << 11,
   'server_restart': 1 << 20,
+  'application_restart': 1 << 21,
+  'application_shutdown': 1 << 21,
   'all': -1
 };
 

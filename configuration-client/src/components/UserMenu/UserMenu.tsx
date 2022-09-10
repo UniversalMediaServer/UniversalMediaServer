@@ -1,20 +1,15 @@
 import { Menu, ActionIcon } from '@mantine/core';
-import React, { useContext } from 'react';
-import { Home, InfoCircle, Logout, Menu2, Refresh, Settings, User, Users } from 'tabler-icons-react';
+import { useContext } from 'react';
+import { Activity, Home, InfoCircle, Logout, Menu2, Settings, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { sendAction } from '../../services/actions-service';
 import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
-  const restartServer = async () => {
-    await sendAction('Server.Restart');
-  };
 
   return (
     <Menu>
@@ -33,12 +28,12 @@ function UserMenu() {
       </Menu.Item>
       <Menu.Divider />
       <Menu.Label>{i18n.get['Settings']}</Menu.Label>
-      {havePermission(session, Permissions.server_restart)  && (
+      {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (
         <Menu.Item
-          icon={<Refresh size={14} />}
-          onClick={restartServer}
+          icon={<Activity size={14} />}
+          onClick={() => { window.location.href = '/actions'; }}
         >
-          {i18n.get['RestartServer']}
+          {i18n.get['ServerActivity']}
         </Menu.Item>
       )}
       {havePermission(session, Permissions.settings_view)  && (

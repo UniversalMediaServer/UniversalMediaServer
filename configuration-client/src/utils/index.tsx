@@ -18,5 +18,7 @@ export const actionsApiUrl = '/v1/api/actions/';
 export const accountApiUrl = '/v1/api/account/';
 export const authApiUrl = '/v1/api/auth/';
 export const i18nApiUrl = '/v1/api/i18n/';
+export const logsApiUrl = '/v1/api/logs/';
+export const renderersApiUrl = '/v1/api/renderers/';
 export const settingsApiUrl = '/v1/api/settings/';
 export const sseApiUrl = '/v1/api/sse/';

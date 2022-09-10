@@ -20,7 +20,6 @@ package net.pms.io;
 import com.sun.jna.Platform;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -43,7 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BasicSystemUtils implements SystemUtils {
-	private final static Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	/** The singleton platform dependent {@link SystemUtils} instance */
 	public static SystemUtils instance = BasicSystemUtils.createInstance();
@@ -116,27 +115,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	@Override
 	public boolean browseURI(String url) {
-		try {
-			URI uri = new URI(url);
-			if (Platform.isLinux() && (Runtime.getRuntime().exec(new String[] {"which", "xdg-open"}).getInputStream().read() != -1)) {
-				// Workaround for Linux as Desktop.browse() doesn't work on some Linux
-				Runtime.getRuntime().exec(new String[] {"xdg-open", uri.toString()});
-				return true;
-			} else if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-				Desktop.getDesktop().browse(uri);
-				return true;
-			} else if (Platform.isMac()) {
-				// On OS X, open the given URI with the "open" command.
-				// This will open HTTP URLs in the default browser.
-				Runtime.getRuntime().exec(new String[] {"open", uri.toString() });
-				return true;
-			} else {
-				LOGGER.error("Action BROWSE isn't supported on this platform");
-			}
-		} catch (IOException | URISyntaxException e) {
-			LOGGER.trace("Unable to open the given URI: " + url + ".");
-		}
-		return false;
+		return browseUrl((url));
 	}
 
 	@Override
@@ -155,37 +134,25 @@ public class BasicSystemUtils implements SystemUtils {
 			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
 			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
 
-			defaultItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.quit();
-				}
+			defaultItem.addActionListener((ActionEvent e) -> {
+				PMS.quit();
 			});
 
-			traceItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.setVisible(true);
-				}
+			traceItem.addActionListener((ActionEvent e) -> {
+				frame.setVisible(true);
 			});
 
 			if (PMS.getConfiguration().useWebInterfaceServer()) {
 				MenuItem webInterfaceItem = new MenuItem(Messages.getString("WebInterface"));
-				webInterfaceItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						browseURI(PMS.get().getWebInterfaceServer().getUrl());
-					}
+				webInterfaceItem.addActionListener((ActionEvent e) -> {
+					browseURI(PMS.get().getWebInterfaceServer().getUrl());
 				});
 				popup.add(webInterfaceItem);
 			}
 
 			MenuItem settingsItem = new MenuItem(Messages.getString("Settings"));
-			settingsItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					browseURI(PMS.get().getGuiServer().getUrl());
-				}
+			settingsItem.addActionListener((ActionEvent e) -> {
+				browseURI(PMS.get().getGuiServer().getUrl());
 			});
 			popup.add(settingsItem);
 			popup.add(traceItem);
@@ -194,12 +161,9 @@ public class BasicSystemUtils implements SystemUtils {
 			final TrayIcon trayIcon = new TrayIcon(trayIconImage, PropertiesUtil.getProjectProperties().get("project.name"), popup);
 
 			trayIcon.setImageAutoSize(true);
-			trayIcon.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.setVisible(true);
-					frame.setFocusable(true);
-				}
+			trayIcon.addActionListener((ActionEvent e) -> {
+				frame.setVisible(true);
+				frame.setFocusable(true);
 			});
 			try {
 				tray.add(trayIcon);
@@ -303,5 +267,29 @@ public class BasicSystemUtils implements SystemUtils {
 	@Override
 	public Double getWindowsVersion() {
 		return null;
+	}
+
+	public static boolean browseUrl(String url) {
+		try {
+			URI uri = new URI(url);
+			if (Platform.isLinux() && (Runtime.getRuntime().exec(new String[] {"which", "xdg-open"}).getInputStream().read() != -1)) {
+				// Workaround for Linux as Desktop.browse() doesn't work on some Linux
+				Runtime.getRuntime().exec(new String[] {"xdg-open", uri.toString()});
+				return true;
+			} else if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+				Desktop.getDesktop().browse(uri);
+				return true;
+			} else if (Platform.isMac()) {
+				// On OS X, open the given URI with the "open" command.
+				// This will open HTTP URLs in the default browser.
+				Runtime.getRuntime().exec(new String[] {"open", uri.toString() });
+				return true;
+			} else {
+				LOGGER.error("Action BROWSE isn't supported on this platform");
+			}
+		} catch (IOException | URISyntaxException e) {
+			LOGGER.trace("Unable to open the given URI: " + url + ".");
+		}
+		return false;
 	}
 }

@@ -667,6 +667,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (Platform.isWindows()) {
+						WindowsNamedPipe.setLoop(false);
+					}
 					//Stop network scanner
 					NetworkConfiguration.stop();
 
@@ -1204,6 +1207,13 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**

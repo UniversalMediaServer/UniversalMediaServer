@@ -46,7 +46,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.io.BasicSystemUtils;
-import net.pms.io.WindowsNamedPipe;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -533,7 +532,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 				PMS.get().resetMediaServer();
 			}
 		});
-		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+		reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
@@ -543,7 +542,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				quit();
+				PMS.quit();
 			}
 		});
 		toolBar.add(quit);
@@ -644,18 +643,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		return button;
 	}
 
-	public void quit() {
-		WindowsNamedPipe.setLoop(false);
-		windowProperties.dispose();
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			LOGGER.error("Interrupted during shutdown: {}", e);
-		}
-
-		System.exit(0);
-	}
-
 	@Override
 	public void dispose() {
 		windowProperties.dispose();
@@ -707,7 +694,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			} else {
 				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
-					reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}

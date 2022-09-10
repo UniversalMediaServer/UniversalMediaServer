@@ -48,6 +48,7 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 	private static final List<ServerSentEvents> SSE_ABOUT_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_HOME_INSTANCES = new ArrayList<>();
+	private static final List<ServerSentEvents> SSE_LOGS_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
@@ -94,6 +95,7 @@ public class SseApiServlet extends GuiHttpServlet {
 				if (sseType != null) {
 					switch (sseType) {
 						case WebGuiServlet.BASE_PATH -> SSE_HOME_INSTANCES.add(sse);
+						case WebGuiServlet.LOGS_BASE_PATH -> SSE_LOGS_INSTANCES.add(sse);
 						case WebGuiServlet.SETTINGS_BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
 						case WebGuiServlet.ABOUT_BASE_PATH -> SSE_ABOUT_INSTANCES.add(sse);
 					}
@@ -111,6 +113,12 @@ public class SseApiServlet extends GuiHttpServlet {
 	public static boolean hasHomeServerSentEvents() {
 		synchronized (SSE_INSTANCES) {
 			return !SSE_HOME_INSTANCES.isEmpty();
+		}
+	}
+
+	public static boolean hasLogsServerSentEvents() {
+		synchronized (SSE_INSTANCES) {
+			return !SSE_LOGS_INSTANCES.isEmpty();
 		}
 	}
 
@@ -161,15 +169,6 @@ public class SseApiServlet extends GuiHttpServlet {
 	 * @param message
 	 */
 	public static void broadcastHomeMessage(String message) {
-		broadcastHomeMessage(message, true);
-	}
-
-	/**
-	 * Broadcast a message to home page Server Sent Events Streams
-	 * @param message
-	 * @param log
-	 */
-	public static void broadcastHomeMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<ServerSentEvents> sseIterator = SSE_HOME_INSTANCES.iterator(); sseIterator.hasNext();) {
 				ServerSentEvents sse = sseIterator.next();
@@ -177,6 +176,24 @@ public class SseApiServlet extends GuiHttpServlet {
 					sseIterator.remove();
 				} else {
 					sse.sendMessage(message);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to logs page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastLogsMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_LOGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					//never log a log message
+					sse.sendMessage(message, false);
 				}
 			}
 		}
@@ -306,11 +323,11 @@ public class SseApiServlet extends GuiHttpServlet {
 	}
 
 	public static void appendLog(String msg) {
-		if (hasHomeServerSentEvents()) {
+		if (hasLogsServerSentEvents()) {
 			JsonObject result = new JsonObject();
 			result.addProperty("action", "log_line");
 			result.addProperty("value", msg);
-			broadcastHomeMessage(result.toString(), false);
+			broadcastLogsMessage(result.toString());
 		}
 	}
 
