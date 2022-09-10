@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -104,6 +105,17 @@ public class RenderersApiServlet extends GuiHttpServlet {
 		if (icon != null) {
 			try {
 				InputStream is = null;
+				String mime = WebGuiServletHelper.getMimeType(icon);
+				if (icon.matches(".*\\S+://.*")) {
+					try {
+						URL url = new URL(icon);
+						is = url.openStream();
+						mime = WebGuiServletHelper.getMimeType(url.getPath());
+					} catch (IOException e) {
+						LOGGER.debug("Unable to read icon url \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
+						icon = RendererConfiguration.UNKNOWN_ICON;
+					}
+				}
 
 				/**
 				 * Check for a custom icon file first
@@ -120,21 +132,21 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				 * RendererIcon = /path/to/foo.png
 				 */
 
-				String mime = WebGuiServletHelper.getMimeType(icon);
-				File f = new File(icon);
-
-				if (!f.isAbsolute() && f.getParent() == null) {
-					// filename, try profile renderers dir
-					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
-					if (f.isFile()) {
-						is = new FileInputStream(f);
-						mime = WebGuiServletHelper.getMimeType(f.getName());
-					} else {
-						//try renderers dir
-						f = new File(RendererConfiguration.getRenderersDir(), icon);
-						if (f.isFile()) {
+				if (is == null) {
+					File f = new File(icon);
+					if (!f.isAbsolute() && f.getParent() == null) {
+						// filename, try profile renderers dir
+						f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+						if (f.isFile() && f.exists()) {
 							is = new FileInputStream(f);
 							mime = WebGuiServletHelper.getMimeType(f.getName());
+						} else {
+							//try renderers dir
+							f = new File(RendererConfiguration.getRenderersDir(), icon);
+							if (f.isFile() && f.exists()) {
+								is = new FileInputStream(f);
+								mime = WebGuiServletHelper.getMimeType(f.getName());
+							}
 						}
 					}
 				}
