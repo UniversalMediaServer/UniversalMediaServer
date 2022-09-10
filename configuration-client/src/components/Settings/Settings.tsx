@@ -1,5 +1,6 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -15,9 +16,11 @@ import SharedContentSettings from './SharedContentSettings';
 import TranscodingSettings from './TranscodingSettings';
 
 export default function Settings() {
-
+  const [advancedSettings] = useLocalStorage<boolean>({
+    key: 'mantine-advanced-settings',
+    defaultValue: false,
+  });
   const [isLoading, setLoading] = useState(true);
-
   const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
 
@@ -99,7 +102,7 @@ export default function Settings() {
           changedValues[key] = values[key];
         }
       };
-  
+
       if (_.isEmpty(changedValues)) {
         showNotification({
           title: i18n.get['Saved'],
@@ -132,16 +135,20 @@ export default function Settings() {
         <Tabs defaultValue="GeneralSettings">
           <Tabs.List>
             <Tabs.Tab value="GeneralSettings">{i18n.get['GeneralSettings']}</Tabs.Tab>
-            <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
+            { advancedSettings &&
+              <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
+            }
             <Tabs.Tab value="SharedContent">{i18n.get['SharedContent']}</Tabs.Tab>
             <Tabs.Tab value="TranscodingSettings">{i18n.get['TranscodingSettings']}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="GeneralSettings">
             {GeneralSettings(form,defaultConfiguration,selectionSettings)}
           </Tabs.Panel>
-          <Tabs.Panel value="NavigationSettings">
-            {NavigationSettings(form,selectionSettings)}
-          </Tabs.Panel>
+          { advancedSettings &&
+            <Tabs.Panel value="NavigationSettings">
+              {NavigationSettings(form,selectionSettings)}
+            </Tabs.Panel>
+          }
           <Tabs.Panel value="SharedContent">
             { SharedContentSettings(form,configuration) }
           </Tabs.Panel>
