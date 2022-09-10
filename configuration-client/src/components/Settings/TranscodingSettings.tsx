@@ -1,5 +1,6 @@
 import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
+import { useLocalStorage } from '@mantine/hooks';
 import { Prism } from '@mantine/prism';
 import { useContext, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
@@ -20,6 +21,10 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
   const [subColor, setSubColor] = useState('rgba(255, 255, 255, 255)');
   const [subColorModalOpened, setSubColorModalOpened] = useState(false);
   const [mencoderAdvancedOpened, setMencoderAdvancedOpened] = useState(false);
+  const [advancedSettings] = useLocalStorage<boolean>({
+    key: 'mantine-advanced-settings',
+    defaultValue: false,
+  });
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
     return values.map((value: mantineSelectData) => {
@@ -503,6 +508,19 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
   </>);
   }
 
+  const getSimpleTranscodingCommon = () => { return (<>
+    <Title mt="sm" order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
+    <Stack spacing="xs">
+      <Checkbox
+        size="xs"
+        disabled={!canModify}
+        label={i18n.get['DisableSubtitles']}
+        {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+      />
+    </Stack>
+  </>);
+  }
+
   const getEngineStatus = () => {
     const currentEngine = selectionSettings.transcodingEngines[transcodingContent];
     if (!currentEngine.isAvailable) {
@@ -873,20 +891,20 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
     }
   }
 
-  return (
-            <Grid>
-              <Grid.Col span={5}>
-                <Box p="xs">
-                  <NavLink variant="subtle" color="gray" label={i18n.get['CommonTranscodeSettings']} onClick={() => setTranscodingContent('common')} />
-                  <Accordion>
-                    {getTranscodingEnginesAccordionItems()}
-                  </Accordion>
-                  <Text size="xs">{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
-                </Box>
-              </Grid.Col>
-              <Grid.Col span={7}>
-                {getTranscodingContent()}
-              </Grid.Col>
-            </Grid>
-          );
+  return advancedSettings ? (
+    <Grid>
+      <Grid.Col span={5}>
+        <Box p="xs">
+          <NavLink variant="subtle" color="gray" label={i18n.get['CommonTranscodeSettings']} onClick={() => setTranscodingContent('common')} />
+          <Accordion>
+            {getTranscodingEnginesAccordionItems()}
+          </Accordion>
+          <Text size="xs">{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
+        </Box>
+      </Grid.Col>
+      <Grid.Col span={7}>
+        {getTranscodingContent()}
+      </Grid.Col>
+    </Grid>
+  ) : getSimpleTranscodingCommon();
 }

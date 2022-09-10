@@ -1,5 +1,6 @@
 import { Accordion, Checkbox, Group, MultiSelect, Select, Stack, TextInput, Tooltip } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
+import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -12,6 +13,10 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
+  const [advancedSettings, setAdvancedSettings] = useLocalStorage<boolean>({
+    key: 'mantine-advanced-settings',
+    defaultValue: false,
+  });
 
   const getI18nSelectData = (values: mantineSelectData[]) => {
     return values.map((value: mantineSelectData) => {
@@ -35,6 +40,11 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
           <Accordion.Item value='Application'>
             <Accordion.Control>{i18n.get['Application']}</Accordion.Control>
             <Accordion.Panel>
+              <Checkbox
+                label={i18n.get['ShowAdvancedSettings']}
+                checked={advancedSettings}
+                onChange={(event) => setAdvancedSettings(event.currentTarget.checked)}
+              />
               <Select
                 disabled={!canModify}
                 label={i18n.get['Language']}
@@ -60,6 +70,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>
+          { advancedSettings && (
           <Accordion.Item value='Services'>
             <Accordion.Control>{i18n.get['Services']}</Accordion.Control>
             <Accordion.Panel>
@@ -91,6 +102,8 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               </Tooltip>
             </Accordion.Panel>
           </Accordion.Item>
+          ) }
+          { advancedSettings && (
           <Accordion.Item value='NetworkSettingsAdvanced'>
             <Accordion.Control>{i18n.get['NetworkSettingsAdvanced']}</Accordion.Control>
             <Accordion.Panel>
@@ -141,10 +154,12 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               </Group>
             </Accordion.Panel>
           </Accordion.Item>
+          ) }
           <Accordion.Item value='ExternalOutgoingTraffic'>
             <Accordion.Control>{i18n.get['ExternalOutgoingTraffic']}</Accordion.Control>
             <Accordion.Panel>
               <Stack>
+                { advancedSettings && (
                 <Tooltip label={allowHtml(i18n.get['ThisControlsWhetherUmsTry'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
@@ -152,6 +167,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                     {...form.getInputProps('external_network', { type: 'checkbox' })}
                   />
                 </Tooltip>
+                ) }
                 <Tooltip label={allowHtml(i18n.get['UsesInformationApiAllowBrowsing'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
@@ -162,6 +178,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>
+          { advancedSettings && (
           <Accordion.Item value='Renderers'>
             <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
             <Accordion.Panel>
@@ -190,6 +207,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>
+          ) }
         </Accordion>
       );
 }
