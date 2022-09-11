@@ -25,6 +25,7 @@ import java.sql.Connection;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.pms.PMS;
 import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
@@ -65,6 +66,9 @@ public class AuthApiServlet extends GuiHttpServlet {
 							WebGuiServletHelper.respondInternalServerError(req, resp, "User database not available");
 							return;
 						}
+					}
+					if (PMS.get().getWebPlayerServer() != null) {
+						jObject.add("player", new JsonPrimitive(PMS.get().getWebPlayerServer().getUrl()));
 					}
 					WebGuiServletHelper.respond(req, resp, jObject.toString(), 200, "application/json");
 				}

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver.servlets;
+package net.pms.network.webplayerserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -56,7 +56,6 @@ import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
-import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFmpegWebVideo;
@@ -67,6 +66,9 @@ import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.iam.Account;
+import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
@@ -75,8 +77,11 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
-import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.network.webplayerserver.PlayerHttpServlet;
+import net.pms.network.webplayerserver.WebPlayerRootFolder;
+import net.pms.network.webplayerserver.WebPlayerServletHelper;
+
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -89,10 +94,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "PlayerApiServlet", urlPatterns = {"/v1/api/player"}, displayName = "Player Api Servlet")
-public class PlayerApiServlet extends GuiHttpServlet {
+public class PlayerApiServlet extends PlayerHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final Map<String, RootFolder> ROOTS = new HashMap<>();
+	private static final Map<String, WebPlayerRootFolder> ROOTS = new HashMap<>();
 	private static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 
 	@Override
@@ -100,13 +105,22 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			var path = req.getPathInfo();
 			if (path.equals("/")) {
+				Account account = AuthService.getAccountLoggedIn(req);
+				if (account == null) {
+					WebGuiServletHelper.respondUnauthorized(req, resp);
+					return;
+				}
+				if (!account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+					WebGuiServletHelper.respondForbidden(req, resp);
+					return;
+				}
 				String token = createRoot(req, null);
-				WebGuiServletHelper.respond(req, resp, "{\"token\":\"" + token + "\"}", 200, "application/json");
+				WebPlayerServletHelper.respond(req, resp, "{\"token\":\"" + token + "\"}", 200, "application/json");
 			} else if (path.startsWith("/thumb/")) {
 				String[] thumbData = path.split("/");
 				if (thumbData.length == 4) {
-					RootFolder root = getRoot(req, thumbData[2]);
-					if (root != null) {
+					WebPlayerRootFolder root = getRoot(req, thumbData[2]);
+					if (root != null && root.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 						DLNAResource resource = root.getDLNAResource(thumbData[3], null);
 						AsyncContext async = req.startAsync();
 						DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
@@ -117,121 +131,130 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							resp.setStatus(200);
 							resp.setContentLengthLong(thumb.getSize());
 							OutputStream os = resp.getOutputStream();
-							WebGuiServletHelper.copyStreamAsync(thumb, os, async);
+							WebPlayerServletHelper.copyStreamAsync(thumb, os, async);
 							return;
 						}
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				WebPlayerServletHelper.respondBadRequest(req, resp);
 			} else if (path.startsWith("/image/")) {
 				String[] imageData = path.split("/");
 				if (imageData.length == 4) {
-					RootFolder root = getRoot(req, imageData[2]);
-					if (root != null && sendImageMedia(req, resp, root, imageData[3])) {
+					WebPlayerRootFolder root = getRoot(req, imageData[2]);
+					if (root != null  && root.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendImageMedia(req, resp, root, imageData[3])) {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				WebPlayerServletHelper.respondBadRequest(req, resp);
 			} else if (path.startsWith("/raw/")) {
 				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
-					RootFolder root = getRoot(req, rawData[2]);
-					if (root != null && sendRawMedia(req, resp, root, rawData[3], false)) {
+					WebPlayerRootFolder root = getRoot(req, rawData[2]);
+					if (root != null && root.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendRawMedia(req, resp, root, rawData[3], false)) {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				WebPlayerServletHelper.respondBadRequest(req, resp);
 			} else if (path.startsWith("/download/")) {
 				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
-					RootFolder root = getRoot(req, rawData[2]);
-					if (root != null && sendDownloadMedia(req, resp, root, rawData[3])) {
+					WebPlayerRootFolder root = getRoot(req, rawData[2]);
+					if (root != null && root.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && sendDownloadMedia(req, resp, root, rawData[3])) {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				WebPlayerServletHelper.respondBadRequest(req, resp);
 			} else if (path.startsWith("/media/")) {
 				if (!sendMedia(req, resp, path)) {
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					WebPlayerServletHelper.respondBadRequest(req, resp);
 				}
 			} else {
 				LOGGER.trace("PlayerApiHandler request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				WebPlayerServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			WebPlayerServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
+			Account account = AuthService.getAccountLoggedIn(req.getHeader("Authorization"), req.getRemoteAddr(), req.getRemoteAddr().equals(req.getLocalAddr()));
+			if (account == null) {
+				WebGuiServletHelper.respondUnauthorized(req, resp);
+				return;
+			}
+			if (!account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+				WebGuiServletHelper.respondForbidden(req, resp);
+				return;
+			}
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/browse" -> {
-					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject action = WebPlayerServletHelper.getJsonObjectFromBody(req);
 					if (action.has("token") && action.has("id")) {
 						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(req, token);
+						WebPlayerRootFolder root = getRoot(req, token);
 						if (root != null) {
 							String id = action.get("id").getAsString();
 							String search = action.has("search") ? action.get("search").getAsString() : null;
 							JsonObject browse = getBrowsePage(root, id, search);
 							if (browse != null) {
-								WebGuiServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
+								WebPlayerServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
 								return;
 							}
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					WebPlayerServletHelper.respondBadRequest(req, resp);
 				}
 				case "/play" -> {
-					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject action = WebPlayerServletHelper.getJsonObjectFromBody(req);
 					if (action.has("token") && action.has("id")) {
 						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(req, token);
+						WebPlayerRootFolder root = getRoot(req, token);
 						if (root != null) {
 							String id = action.get("id").getAsString();
 							JsonObject play = getPlayPage(root, id);
 							if (play != null) {
-								WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+								WebPlayerServletHelper.respond(req, resp, play.toString(), 200, "application/json");
 								return;
 							}
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					WebPlayerServletHelper.respondBadRequest(req, resp);
 				}
 				case "/status" -> {
-					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject action = WebPlayerServletHelper.getJsonObjectFromBody(req);
 					if (action.has("token")) {
 						String token = action.get("token").getAsString();
-						RootFolder root = getRoot(req, token);
+						WebPlayerRootFolder root = getRoot(req, token);
 						if (root != null) {
 							WebRender renderer = (WebRender) root.getDefaultRenderer();
 							((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
-							WebGuiServletHelper.respond(req, resp, "", 200, "application/json");
+							WebPlayerServletHelper.respond(req, resp, "", 200, "application/json");
 						} else {
 							LOGGER.debug("root not found");
-							WebGuiServletHelper.respondForbidden(req, resp);
+							WebPlayerServletHelper.respondForbidden(req, resp);
 						}
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						WebPlayerServletHelper.respondBadRequest(req, resp);
 					}
 				}
 				default -> {
 					LOGGER.trace("PlayerApiHandler request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					WebPlayerServletHelper.respondNotFound(req, resp);
 				}
 
 			}
 		} catch (RuntimeException | InterruptedException e) {
 			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			WebPlayerServletHelper.respondInternalServerError(req, resp);
 		}
 	}
 
-	static private RootFolder getRoot(HttpServletRequest req, String token) {
+	private static WebPlayerRootFolder getRoot(HttpServletRequest req, String token) {
 		synchronized (ROOTS) {
 			if (ROOTS.containsKey(token)) {
 				return ROOTS.get(token);
@@ -248,7 +271,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return null;
 	}
 
-	static private boolean isValidToken(String token) {
+	private static boolean isValidToken(String token) {
 		try {
 			UUID.fromString(token);
 			return true;
@@ -257,9 +280,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	static private String createRoot(HttpServletRequest req, String givenToken) {
-		RootFolder root = new RootFolder();
+	private static String createRoot(HttpServletRequest req, String givenToken) {
 		String token = null;
+		Account account = AuthService.getAccountLoggedIn(req);
+		if (account == null || !account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+			return token;
+		}
+		WebPlayerRootFolder root = new WebPlayerRootFolder(account.getUser().getId());
 		if (givenToken != null && isValidToken(givenToken)) {
 			synchronized (ROOTS) {
 				if (!ROOTS.containsKey(token)) {
@@ -281,12 +308,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			WebRender render = new WebRender("");
 			root.setDefaultRenderer(render);
 			render.setRootFolder(root);
-			render.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
+			render.associateIP(WebPlayerServletHelper.getInetAddress(req.getRemoteAddr()));
 			render.associatePort(req.getRemotePort());
 			if (CONFIGURATION.useWebSubLang()) {
-				render.setSubLang(WebGuiServletHelper.getLangs(req));
+				render.setSubLang(WebPlayerServletHelper.getLangs(req));
 			}
-			Cookie cookie = WebGuiServletHelper.getCookie(req, "UMSINFO");
+			Cookie cookie = WebPlayerServletHelper.getCookie(req, "UMSINFO");
 			render.setBrowserInfo(cookie != null ? cookie.toString() : "", req.getHeader("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
@@ -299,7 +326,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return token;
 	}
 
-	private JsonObject getBrowsePage(RootFolder root, String id, String search) throws IOException, InterruptedException {
+	private JsonObject getBrowsePage(WebPlayerRootFolder root, String id, String search) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -526,7 +553,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getMediaJsonObject(DLNAResource resource, RootFolder root) {
+	private JsonObject getMediaJsonObject(DLNAResource resource, WebPlayerRootFolder root) {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
@@ -561,7 +588,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	private JsonArray getMediaLibraryFolderChilds(
 		DLNAResource videoFolder,
-		RootFolder root,
+		WebPlayerRootFolder root,
 		String folderName
 	) throws IOException {
 		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, root.getDefaultRenderer(), folderName);
@@ -584,7 +611,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jLibraryVideos;
 	}
 
-	private JsonObject getPlayPage(RootFolder root, String id) throws IOException, InterruptedException {
+	private JsonObject getPlayPage(WebPlayerRootFolder root, String id) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make play page " + id);
@@ -653,7 +680,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			media.addProperty("id", id);
 			media.addProperty("autoContinue", CONFIGURATION.getWebAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
-			media.addProperty("isDownload", true);
+			media.addProperty("isDownload", root.havePermission(Permissions.WEB_PLAYER_DOWNLOAD));
+
 			media.add("surroundMedias", getSurroundingByType(rootResource));
 
 			if (isImage) {
@@ -775,7 +803,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return in;
 	}
 
-	private boolean sendRawMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id, boolean isDownload) {
+	private boolean sendRawMedia(HttpServletRequest req, HttpServletResponse resp, WebPlayerRootFolder root, String id, boolean isDownload) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -813,18 +841,18 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebPlayerServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 			LOGGER.debug("start raw dump");
-			WebGuiServletHelper.copyStreamAsync(in, os, async);
+			WebPlayerServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id) {
+	private boolean sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp, WebPlayerRootFolder root, String id) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -844,7 +872,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			resp.setContentLengthLong(media.length());
 			InputStream in = dlna.getInputStream();
 			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebPlayerServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = resp.getOutputStream();
 			byte[] buffer = new byte[32 * 1024];
@@ -859,7 +887,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return true;
 	}
 
-	private boolean sendImageMedia(HttpServletRequest req, HttpServletResponse resp, RootFolder root, String id) {
+	private boolean sendImageMedia(HttpServletRequest req, HttpServletResponse resp, WebPlayerRootFolder root, String id) {
 		List<DLNAResource> res;
 		try {
 			res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
@@ -922,10 +950,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				WebPlayerServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-			WebGuiServletHelper.copyStreamAsync(in, os, async);
+			WebPlayerServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -940,7 +968,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		String sessionId = rawData[2];
 		String resourceId = rawData[3];
 		String uri = req.getRequestURI();
-		RootFolder root = getRoot(req, sessionId);
+		WebPlayerRootFolder root = getRoot(req, sessionId);
+		if (root == null || !root.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+			return false;
+		}
 		RendererConfiguration renderer = root.getDefaultRenderer();
 		DLNAResource resource = root.getDLNAResource(resourceId, renderer);
 		if (resource == null) {
@@ -998,16 +1029,16 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = DLNAMediaChapter.getWebVtt(resource);
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+					WebPlayerServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
 					String response = DLNAMediaChapter.getHls(resource);
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
+					WebPlayerServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
 						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
-						WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+						WebPlayerServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						AsyncContext async = req.startAsync();
@@ -1024,10 +1055,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							//resp.setContentLength(0);
 							((WebRender) renderer).start(resource);
 							if (LOGGER.isTraceEnabled()) {
-								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+								WebPlayerServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
 							OutputStream os = resp.getOutputStream();
-							WebGuiServletHelper.copyStreamAsync(in, os, async);
+							WebPlayerServletHelper.copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);
 							resp.setContentLength(-1);
@@ -1036,7 +1067,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				} else {
 					String response = HlsHelper.getHLSm3u8(resource, root.getDefaultRenderer(), req.getServletPath() + "/media/" + sessionId + "/");
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+					WebPlayerServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
 				AsyncContext async = req.startAsync();
@@ -1063,14 +1094,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resp.setStatus(code);
 				resp.setContentLength(0);
 				if (LOGGER.isTraceEnabled()) {
-					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+					WebPlayerServletHelper.logHttpServletResponse(req, resp, null, in);
 				}
 				OutputStream os = resp.getOutputStream();
 				render.start(resource);
 				if (sid != null) {
 					resource.setMediaSubtitle(sid);
 				}
-				WebGuiServletHelper.copyStreamAsync(in, os, async);
+				WebPlayerServletHelper.copyStreamAsync(in, os, async);
 			}
 		} catch (IOException ex) {
 			return false;
@@ -1082,7 +1113,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		synchronized (ROOTS) {
 			for (String token : ROOTS.keySet()) {
 				RendererConfiguration conf = ROOTS.get(token).getDefaultRenderer();
-				RootFolder root = new RootFolder();
+				int userId = ROOTS.get(token).getUserId();
+				WebPlayerRootFolder root = new WebPlayerRootFolder(userId);
 				root.setDefaultRenderer(conf);
 				ROOTS.put(token, root);
 			}
@@ -1106,7 +1138,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, RootFolder rootFolder) {
+	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, WebPlayerRootFolder rootFolder) {
 		JsonObject result = null;
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
@@ -1178,7 +1210,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final WebPlayerRootFolder rootFolder) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonArray()) {
@@ -1204,7 +1236,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final RootFolder rootFolder) {
+	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final WebPlayerRootFolder rootFolder) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonPrimitive() && folder != null) {

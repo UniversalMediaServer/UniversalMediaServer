@@ -4,18 +4,19 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
 import { sessionContext, UmsSession } from '../contexts/session-context';
+import { authApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
 }
 
 export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({noAdminFound:false, authenticate:true, initialized: false} as UmsSession)
+  const [session, setSession] = useState({authenticate:true, initialized: false} as UmsSession)
   const i18n = useContext(I18nContext);
 
   useEffect(() => {
     const refresh = () => {
-      axios.get('/v1/api/auth/session')
+      axios.get(authApiUrl + 'session')
         .then(function (response: any) {
           setSession({...response.data, initialized: true, refresh: refresh});
         })

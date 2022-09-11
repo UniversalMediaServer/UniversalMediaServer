@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.webguiserver;
+package net.pms.network.webplayerserver;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
@@ -26,27 +26,21 @@ import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
-import net.pms.network.webguiserver.servlets.AboutApiServlet;
-import net.pms.network.webguiserver.servlets.AccountApiServlet;
-import net.pms.network.webguiserver.servlets.ActionsApiServlet;
-import net.pms.network.webguiserver.servlets.AuthApiServlet;
-import net.pms.network.webguiserver.servlets.I18nApiServlet;
-import net.pms.network.webguiserver.servlets.LogsApiServlet;
-import net.pms.network.webguiserver.servlets.RenderersApiServlet;
-import net.pms.network.webguiserver.servlets.SettingsApiServlet;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.network.webplayerserver.servlets.AuthApiServlet;
+import net.pms.network.webplayerserver.servlets.I18nApiServlet;
+import net.pms.network.webplayerserver.servlets.PlayerApiServlet;
+import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
 
 @SuppressWarnings("restriction")
-public class WebGuiServerHttpServer extends WebGuiServer {
+public class WebPlayerServerHttpServer extends WebPlayerServer {
 
 	private HttpServer server;
 
-	public WebGuiServerHttpServer() throws IOException {
+	public WebPlayerServerHttpServer() throws IOException {
 		this(DEFAULT_PORT);
 	}
 
-	public WebGuiServerHttpServer(int port) throws IOException {
+	public WebPlayerServerHttpServer(int port) throws IOException {
 		if (port < 0) {
 			port = DEFAULT_PORT;
 		}
@@ -62,18 +56,12 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 
 		if (server != null) {
 			int threads = CONFIGURATION.getWebThreads();
-			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/gui/");
+			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/player/");
 			try {
-				container.createServlet(WebGuiServlet.class);
-				container.createServlet(AboutApiServlet.class);
-				container.createServlet(AccountApiServlet.class);
-				container.createServlet(ActionsApiServlet.class);
 				container.createServlet(AuthApiServlet.class);
 				container.createServlet(I18nApiServlet.class);
-				container.createServlet(LogsApiServlet.class);
-				container.createServlet(RenderersApiServlet.class);
-				container.createServlet(SettingsApiServlet.class);
-				container.createServlet(SseApiServlet.class);
+				container.createServlet(PlayerApiServlet.class);
+				container.createServlet(WebPlayerServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
@@ -121,8 +109,8 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 		}
 	}
 
-	public static WebGuiServerHttpServer createServer(int port) throws IOException {
+	public static WebPlayerServerHttpServer createServer(int port) throws IOException {
 		LOGGER.debug("Using httpserver as gui server");
-		return new WebGuiServerHttpServer(port);
+		return new WebPlayerServerHttpServer(port);
 	}
 }

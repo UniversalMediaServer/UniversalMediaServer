@@ -12,15 +12,11 @@ import rtlPlugin from 'stylis-plugin-rtl';
 import { MoonStars, Sun } from 'tabler-icons-react';
 
 import './services/http-interceptor';
-import About from './components/About/About'
-import Accounts from './components/Accounts/Accounts'
 import Login from './components/Login/Login'
-import Settings from './components/Settings/Settings';
 import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import UserMenu from './components/UserMenu/UserMenu';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
-import { AccountsProvider } from './providers/accounts-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
@@ -72,13 +68,6 @@ function App() {
                     <div dir={rtl ? 'rtl' : 'ltr'}>
                       <AppShell
                         padding="md"
-                        // navbar={<Navbar width={{
-                        //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
-                        //   sm: 200,
-
-                        //   // When other breakpoints do not match base width is used, defaults to 100%
-                        //   base: 100,
-                        // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
                         header={<Header height={50} p="xs">{
                           <Group position="right">
                             <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
@@ -92,14 +81,10 @@ function App() {
                           main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
                         })}
                       >
-                        {session.account ? (
+                        {!session.authenticate || session.account ? (
                           <Router>
                             <Routes>
-                              <Route path='about' element={<About />}></Route>
-                              <Route path='accounts' element={<AccountsProvider><Accounts /></AccountsProvider>}></Route>
-                              <Route path='settings' element={<Settings />}></Route>
-                              <Route path='player' element={<Player />}></Route>
-                              <Route index element={<Settings />} />
+                              <Route index element={<Player />} />
                               <Route
                                 path="/*"
                                 element={<Navigate replace to="/" />}

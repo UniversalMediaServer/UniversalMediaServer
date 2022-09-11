@@ -996,8 +996,8 @@
 				<artifactId>frontend-maven-plugin</artifactId>
 				<version>1.12.1</version>
 				<configuration>
-					<installDirectory>configuration-client</installDirectory>
-					<workingDirectory>configuration-client</workingDirectory>
+					<installDirectory>web-gui-client</installDirectory>
+					<workingDirectory>web-gui-client</workingDirectory>
 				</configuration>
 				<executions>
 					<execution>
@@ -1048,7 +1048,7 @@
 						<configuration>
 							<workingDirectory>web-player-client</workingDirectory>
 							<environmentVariables>
-								<PUBLIC_URL>/player</PUBLIC_URL>
+								<PUBLIC_URL>/</PUBLIC_URL>
 							</environmentVariables>
 							<arguments>build</arguments>
 						</configuration>

@@ -26,13 +26,15 @@ function UserMenu() {
       >
         {i18n.get['Home']}
       </Menu.Item>
-      <Menu.Item
-        color="blue"
-        icon={<PlayerPlay size={14} />}
-        onClick={() => { window.location.href = '/player'; }}
-      >
-        {i18n.getI18nString("Player")}
-      </Menu.Item>
+      {session.player && (
+        <Menu.Item
+          color="blue"
+          icon={<PlayerPlay size={14} />}
+          onClick={() => { if (session.player) { window.location.href = session.player } }}
+        >
+          {i18n.getI18nString("Player")}
+        </Menu.Item>
+      )}
       <Menu.Divider />
       <Menu.Label>{i18n.get['Settings']}</Menu.Label>
       {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (

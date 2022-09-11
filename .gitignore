@@ -36,12 +36,12 @@ docker/jre*
 /nb-*
 /nbactions-*
 
-# configuration client
-/configuration-client/node/
-/configuration-client/node_modules/
-/configuration-client/.pnp.*
-/configuration-client/.yarn/*
-!/configuration-client/.yarn/releases
+# web clients
+/web-gui-client/node/
+/web-gui-client/node_modules/
+/web-gui-client/.pnp.*
+/web-gui-client/.yarn/*
+!/web-gui-client/.yarn/releases
 /web-player-client/node/
 /web-player-client/node_modules/
 /web-player-client/.pnp.*

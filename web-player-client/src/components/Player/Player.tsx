@@ -5,9 +5,11 @@ import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
 import { ArrowBigLeft, ArrowBigRight, Folder, Home, Movie, Music, Photo, QuestionMark } from 'tabler-icons-react';
 
+import I18nContext from '../../contexts/i18n-context';
+import SessionContext from '../../contexts/session-context';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import { AudioPlayer } from './AudioPlayer';
 import { VideoPlayer } from './VideoPlayer';
-import I18nContext from '../../contexts/i18n-context';
 
 export const Player = () => {
   const baseUrl = '/v1/api/player/';
@@ -17,6 +19,7 @@ export const Player = () => {
   const [playId, setPlayId] = useState('');
   const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
+  const session = useContext(SessionContext);
 
   const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
@@ -384,8 +387,8 @@ export const Player = () => {
   }
 
   useEffect(() => {
-    getToken();
-  }, []);
+    ((!session.authenticate || havePermission(session, Permissions.web_player_browse) && getToken()))
+  }, [session]);
 
   useEffect(() => {
     if (token && browseId) {
@@ -433,7 +436,7 @@ export const Player = () => {
     }
   }, [token, playId]);
 
-  return (
+  return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
       <LoadingOverlay visible={loading} />
       <Grid>
@@ -463,6 +466,10 @@ export const Player = () => {
           </ScrollArea>
         </Grid.Col>
       </Grid>
+    </Box>
+  ) : (
+    <Box sx={{ maxWidth: 1024 }} mx="auto">
+      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );
 };

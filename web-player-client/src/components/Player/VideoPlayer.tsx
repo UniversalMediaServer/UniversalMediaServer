@@ -19,7 +19,6 @@ declare module 'video.js' {
 videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
 
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
-
   useEffect(() => {
     let videoElem = document.createElement('video');
     videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
