@@ -1030,6 +1030,16 @@
 							<arguments>build</arguments>
 						</configuration>
 					</execution>
+					<!-- download Node.js dependencies -->
+					<execution>
+						<id>yarn install player</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<configuration>
+							<workingDirectory>web-player-client</workingDirectory>
+						</configuration>
+					</execution>
 					<execution>
 						<id>yarn build player</id>
 						<goals>

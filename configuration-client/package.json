@@ -1,5 +1,5 @@
 {
-  "name": "ums",
+  "name": "ums gui",
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:9002",
@@ -62,8 +62,6 @@
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "29.0.0",
     "@types/lodash": "4.14.184",
-    "@types/node": "16.11.56",
-    "@types/react": "18.0.18",
     "@types/node": "16.11.58",
     "@types/react": "18.0.19",
     "@types/react-color": "3.0.6",
