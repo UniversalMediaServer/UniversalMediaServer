@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { showNotification } from '@mantine/notifications';
 import { getJwt, redirectToLogin } from './auth-service';
+import { authApiUrl } from '../utils';
 
 axios.interceptors.request.use(function (request) {
   const jwt = getJwt();
@@ -16,7 +17,7 @@ axios.interceptors.request.use(function (request) {
 axios.interceptors.response.use(function (response) {
   return response;
 }, function (error) {
-  if (error?.response?.status === 401 && error?.config?.url !== "/v1/api/auth/login") {
+  if (error?.response?.status === 401 && error?.config?.url !== authApiUrl + 'login') {
     showNotification({
       id: 'authentication-error',
       color: 'red',

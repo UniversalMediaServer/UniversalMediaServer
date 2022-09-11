@@ -18,7 +18,6 @@
 package net.pms.dlna;
 
 import net.pms.PMS;
-import net.pms.gui.GuiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,7 @@ public class LibraryScanner {
 			Runnable scan = () -> {
 				try {
 					long start = System.currentTimeMillis();
-					PMS.get().getRootFolder(null).scan();
+					PMS.get().getRootFolder(null).startScan();
 					LOGGER.info("Library scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
@@ -47,7 +46,6 @@ public class LibraryScanner {
 			scanner = new Thread(scan, "Library Scanner");
 			scanner.setPriority(Thread.MIN_PRIORITY);
 			scanner.start();
-			GuiManager.setScanLibraryStatus(true, true);
 		}
 	}
 

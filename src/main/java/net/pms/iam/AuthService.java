@@ -35,20 +35,19 @@ public class AuthService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final String JWT_SECRET = PMS.getConfiguration().getJwtSecret();
+	private static final String JWT_SECRET = CONFIGURATION.getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 	private static final String JWT_ISSUER = "UMS";
 
 	public static String signJwt(int id, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
-			String token = JWT.create()
-					.withIssuer(JWT_ISSUER)
-					.withSubject(host)
-					.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
-					.withClaim("id", id)
-					.sign(algorithm);
-			return token;
+			return JWT.create()
+				.withIssuer(JWT_ISSUER)
+				.withSubject(host)
+				.withExpiresAt(new Date(System.currentTimeMillis() + TWO_HOURS_IN_MS))
+				.withClaim("id", id)
+				.sign(algorithm);
 		} catch (JWTCreationException e) {
 			LOGGER.error("Error signing JWT: {}", e.getMessage());
 		}
@@ -57,8 +56,7 @@ public class AuthService {
 
 	private static DecodedJWT decodeJwt(String token) {
 		try {
-			DecodedJWT jwt = JWT.decode(token);
-			return jwt;
+			return JWT.decode(token);
 		} catch (JWTDecodeException e) {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
@@ -79,9 +77,9 @@ public class AuthService {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
-					.withIssuer(JWT_ISSUER)
-					.withSubject(host)
-					.build();
+				.withIssuer(JWT_ISSUER)
+				.withSubject(host)
+				.build();
 			verifier.verify(token);
 			return true;
 		} catch (JWTVerificationException e) {

@@ -69,7 +69,7 @@ public class UserDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public synchronized final void checkTables(boolean force) throws SQLException {
+	public final synchronized void checkTables(boolean force) throws SQLException {
 		if (tablesChecked && !force) {
 			LOGGER.debug("Database tables have already been checked, aborting check");
 		} else {
@@ -77,7 +77,6 @@ public class UserDatabase extends Database {
 			try (Connection connection = getConnection()) {
 				UserTableTablesVersions.checkTable(connection);
 				UserTableGroups.checkTable(connection);
-				UserTablePermissions.checkTable(connection);
 				UserTableUsers.checkTable(connection);
 			}
 			tablesChecked = true;
@@ -90,7 +89,7 @@ public class UserDatabase extends Database {
 	 *
 	 * @return {@link net.pms.database.UserDatabase}
 	 */
-	public synchronized static UserDatabase get() {
+	public static synchronized UserDatabase get() {
 		if (instance == null) {
 			instance = new UserDatabase();
 		}
@@ -101,7 +100,7 @@ public class UserDatabase extends Database {
 	 * Initialize the UserDatabase instance.
 	 * Will initialize the database instance as needed.
 	 */
-	public synchronized static void init() {
+	public static synchronized void init() {
 		get().init(false);
 	}
 
@@ -110,7 +109,7 @@ public class UserDatabase extends Database {
 	 * Will initialize the database instance as needed.
 	 * Will check all tables.
 	 */
-	public synchronized static void initForce() {
+	public static synchronized void initForce() {
 		get().init(true);
 	}
 
@@ -166,7 +165,7 @@ public class UserDatabase extends Database {
 	/**
 	 * Shutdown the UserDatabase database.
 	 */
-	public synchronized static void shutdown() {
+	public static synchronized void shutdown() {
 		if (instance != null) {
 			instance.close();
 		}

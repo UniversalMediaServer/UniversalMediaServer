@@ -18,6 +18,7 @@
 package net.pms.network.webguiserver;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -26,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
@@ -249,6 +252,10 @@ public class WebGuiServletHelper {
 	}
 
 	public static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime) {
+		respond(req, resp, response, status, mime, true);
+	}
+
+	public static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime, boolean logBody) {
 		if (response != null) {
 			if (mime != null) {
 				resp.setContentType(mime);
@@ -258,10 +265,9 @@ public class WebGuiServletHelper {
 				resp.setContentLength(bytes.length);
 				resp.setStatus(status);
 				if (LOGGER.isTraceEnabled()) {
-					logHttpServletResponse(req, resp, response, null);
+					logHttpServletResponse(req, resp, logBody ? response : "Not logged", null);
 				}
 				os.write(bytes);
-				os.close();
 			} catch (Exception e) {
 				LOGGER.debug("Error sending response: " + e);
 			}
@@ -339,6 +345,10 @@ public class WebGuiServletHelper {
 		return jsonObjectFromString(reqBody);
 	}
 
+	public static JsonArray getJsonArrayFromStringArray(String[] array) {
+		return GSON.toJsonTree(array).getAsJsonArray();
+	}
+
 	private static JsonObject jsonObjectFromString(String str) {
 		JsonObject jObject = null;
 		try {
@@ -349,6 +359,24 @@ public class WebGuiServletHelper {
 		} catch (JsonSyntaxException je) {
 		}
 		return jObject;
+	}
+
+	public static JsonArray getJsonArrayFromBody(HttpServletRequest req) {
+		String reqBody = getBodyAsString(req);
+		return jsonArrayFromString(reqBody);
+	}
+
+	private static JsonArray jsonArrayFromString(String str) {
+		JsonArray jArray = null;
+		try {
+			JsonElement jElem = GSON.fromJson(str, JsonElement.class);
+			if (jElem != null && jElem.isJsonArray()) {
+				jArray = jElem.getAsJsonArray();
+			}
+		} catch (JsonSyntaxException je) {
+			LOGGER.error("", je);
+		}
+		return jArray;
 	}
 
 	public static InetAddress getInetAddress(String host) {
@@ -383,6 +411,18 @@ public class WebGuiServletHelper {
 			}
 		}
 		return result;
+	}
+
+	public static URI getRequestReferer(HttpServletRequest req) {
+		String referer = req.getHeader("Referer");
+		if (referer != null) {
+			try {
+				return new URI(referer);
+			} catch (URISyntaxException x) {
+				//bad referer url
+			}
+		}
+		return null;
 	}
 
 	public static String getMimeType(String file) {

@@ -319,7 +319,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse {
 	}
 
 	@Override
-	public void finalize() throws IOException, Throwable {
+	protected void finalize() throws Throwable {
 		try {
 			close();
 		} finally {

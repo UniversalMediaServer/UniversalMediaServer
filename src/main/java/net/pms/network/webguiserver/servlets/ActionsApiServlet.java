@@ -24,18 +24,22 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.dlna.LibraryScanner;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "ActionsApiServlet", urlPatterns = {"/v1/api/actions"}, displayName = "Actions Api Servlet")
 public class ActionsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -57,13 +61,61 @@ public class ActionsApiServlet extends GuiHttpServlet {
 								}
 							}
 							case "Server.ResetCache" -> {
-								MediaDatabase.initForce();
-								try {
-									MediaDatabase.resetCache();
-								} catch (SQLException e) {
-									LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									MediaDatabase.initForce();
+									try {
+										MediaDatabase.resetCache();
+									} catch (SQLException e) {
+										LOGGER.debug("Error when re-initializing after manual cache reset:", e);
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
 								}
-								WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+							}
+							case "Process.Reboot" -> {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									ProcessUtil.reboot();
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Reboot.Trace" -> {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									ProcessUtil.reboot("trace");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Exit" -> {
+								if (account.havePermission(Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									PMS.quit();
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Server.ScanAllSharedFolders" -> {
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
+										LibraryScanner.scanLibrary();
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Server.ScanAllSharedFoldersCancel" -> {
+								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
+									if (LibraryScanner.isScanLibraryRunning()) {
+										LibraryScanner.stopScanLibrary();
+									}
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
 							}
 							default -> WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
 						}

@@ -1,20 +1,15 @@
 import { Menu, ActionIcon } from '@mantine/core';
-import React, { useContext } from 'react';
-import { InfoCircle, Logout, Menu2, PlayerPlay, Refresh, Settings, User, Users } from 'tabler-icons-react';
+import { useContext } from 'react';
+import { Activity, Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
-import { havePermission } from '../../services/accounts-service';
-import { sendAction } from '../../services/actions-service';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import { redirectToLogin } from '../../services/auth-service';
 
 function UserMenu() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-
-  const restartServer = async () => {
-    await sendAction('Server.Restart');
-  };
 
   return (
     <Menu>
@@ -24,28 +19,12 @@ function UserMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-      <Menu.Label>Settings</Menu.Label>
-      {havePermission(session, "server_restart")  && (
-        <Menu.Item
-          icon={<Refresh size={14} />}
-          onClick={restartServer}
-        >
-          {i18n.get['RestartServer']}
-        </Menu.Item>
-      )}
-      {havePermission(session, "settings_view")  && (
-        <Menu.Item
-          icon={<Settings size={14} />}
-          onClick={() => { window.location.href = '/settings'; }}
-        >
-          {i18n.get['ServerSettings']}
-        </Menu.Item>
-      )}
       <Menu.Item
-        icon={havePermission(session, "users_manage") ? <Users size={14} /> : <User size={14} />}
-        onClick={() => { window.location.href = '/accounts'; }}
+        color="green"
+        icon={<Home size={14} />}
+        onClick={() => { window.location.href = '/'; }}
       >
-        {havePermission(session, "users_manage") ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+        {i18n.get['Home']}
       </Menu.Item>
       <Menu.Item
         color="blue"
@@ -54,6 +33,31 @@ function UserMenu() {
       >
         {i18n.getI18nString("Player")}
       </Menu.Item>
+      <Menu.Divider />
+      <Menu.Label>{i18n.get['Settings']}</Menu.Label>
+      {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (
+        <Menu.Item
+          icon={<Activity size={14} />}
+          onClick={() => { window.location.href = '/actions'; }}
+        >
+          {i18n.get['ServerActivity']}
+        </Menu.Item>
+      )}
+      {havePermission(session, Permissions.settings_view)  && (
+        <Menu.Item
+          icon={<Settings size={14} />}
+          onClick={() => { window.location.href = '/settings'; }}
+        >
+          {i18n.get['ServerSettings']}
+        </Menu.Item>
+      )}
+      <Menu.Item
+        icon={havePermission(session, Permissions.users_manage) ? <Users size={14} /> : <User size={14} />}
+        onClick={() => { window.location.href = '/accounts'; }}
+      >
+        {havePermission(session, Permissions.users_manage) ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+      </Menu.Item>
+      <Menu.Divider />
       <Menu.Item
         color="yellow"
         icon={<InfoCircle size={14} />}

@@ -6,6 +6,7 @@ import I18nContext from '../contexts/i18n-context';
 import { serverEventContext } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
+import { sseApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode
@@ -18,6 +19,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
+  const [scanLibrary, setScanLibrary] = useState<{enabled:boolean,running:boolean}>({enabled:true,running:false});
+  const [hasRendererAction, setRendererAction] = useState(false);
+  const [rendererActions] = useState([] as any[]);
+  const [hasNewLogLine, setNewLogLine] = useState(false);
+  const [newLogLines] = useState([] as string[]);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
 
@@ -78,6 +84,25 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
           case 'set_configuration_changed':
             setUserConfiguration(datas.value);
             break;
+          case 'set_scanlibrary_status':
+            setScanLibrary({'enabled':datas.enabled, 'running':datas.running});
+            break;
+          case 'renderer_add':
+          case 'renderer_delete':
+          case 'renderer_update':
+            rendererActions.push(datas);
+            if (rendererActions.length > 20) {
+              rendererActions.slice(0, rendererActions.length - 20);
+            }
+            setRendererAction(true);
+            break;
+          case 'log_line':
+            newLogLines.push(datas.value);
+            if (newLogLines.length > 20) {
+              newLogLines.slice(0, newLogLines.length - 20);
+            }
+            setNewLogLine(true);
+            break;
         }
       }
     }
@@ -96,7 +121,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
 
     const startSse = () => {
       setConnectionStatus(0);
-      fetchEventSource('/v1/api/sse/', {
+      fetchEventSource(sseApiUrl, {
         headers: {
           'Authorization': 'Bearer ' + getJwt()
         },
@@ -106,11 +131,30 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
         },
         onerror(event: Response) { onError(); },
         onclose() { onClose(); },
+        openWhenHidden: true,
       });
     };
 
     startSse();
-  }, [started, session, i18n]);
+  }, [started, session, i18n, rendererActions, newLogLines]);
+
+  const getRendererAction = () => {
+    let result = null;
+    if (rendererActions.length > 0) {
+      result = rendererActions.shift();
+      setRendererAction(rendererActions.length > 0);
+    }
+    return result;
+  };
+
+  const getNewLogLine = () => {
+    let result = null;
+    if (newLogLines.length > 0) {
+      result = newLogLines.shift();
+      setNewLogLine(rendererActions.length > 0);
+    }
+    return result;
+  };
 
   const { Provider } = serverEventContext;
   return(
@@ -122,6 +166,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       reloadable:reloadable,
       userConfiguration:userConfiguration,
       setUserConfiguration:setUserConfiguration,
+	  scanLibrary:scanLibrary,
+      hasRendererAction:hasRendererAction,
+      getRendererAction:getRendererAction,
+      hasNewLogLine:hasNewLogLine,
+      getNewLogLine:getNewLogLine,
     }}>
       {children}
     </Provider>

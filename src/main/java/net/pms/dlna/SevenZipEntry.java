@@ -102,8 +102,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = () -> {
-			InputStream in = null;
-
 			try {
 				// byte data[] = new byte[65536];
 				RandomAccessFile rf = new RandomAccessFile(file, "r");
@@ -141,9 +139,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 				LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
 			} finally {
 				try {
-					if (in != null) {
-						in.close();
-					}
 					arc.close();
 					out.close();
 				} catch (IOException e) {

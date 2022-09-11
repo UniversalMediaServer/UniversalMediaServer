@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import net.pms.database.UserDatabase;
 import net.pms.database.UserTableGroups;
-import net.pms.database.UserTablePermissions;
 import net.pms.database.UserTableUsers;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
@@ -75,7 +74,6 @@ public class AccountService {
 			if (connection != null) {
 				Group group = UserTableGroups.getGroupById(connection, groupId);
 				//here, group id may have falled back to no group (0)
-				group.setPermissions(UserTablePermissions.getPermissionsForGroupId(connection, group.getId()));
 				if (group.getId() == groupId) {
 					GROUPS.put(group.getId(), group);
 				}
@@ -115,7 +113,6 @@ public class AccountService {
 		} else {
 			Group group = UserTableGroups.getGroupById(connection, groupId);
 			//here, group id may have falled back to no group (0)
-			group.setPermissions(UserTablePermissions.getPermissionsForGroupId(connection, group.getId()));
 			GROUPS.put(group.getId(), group);
 			account.setGroup(group);
 			if (account.getUser().getGroupId() != account.getGroup().getId() && account.getGroup().getId() == 0) {
@@ -208,14 +205,14 @@ public class AccountService {
 		return bcryptHash;
 	}
 
-	public static void createGroup(final Connection connection, final String name) {
+	public static void createGroup(final Connection connection, final String name, final int permissions) {
 		LOGGER.info("Creating group: {}", name);
-		UserTableGroups.addGroup(connection, name);
+		UserTableGroups.addGroup(connection, name, permissions);
 	}
 
 	public static void updateGroup(final Connection connection, final int groupId, final String name) {
 		LOGGER.info("Updating group: {}", groupId);
-		if (UserTableGroups.updateGroup(connection, groupId, name) && GROUPS.containsKey(groupId)) {
+		if (UserTableGroups.updateGroupName(connection, groupId, name) && GROUPS.containsKey(groupId)) {
 			GROUPS.get(groupId).setDisplayName(name);
 		}
 	}
@@ -227,9 +224,9 @@ public class AccountService {
 		}
 	}
 
-	public static void updatePermissions(final Connection connection, final int groupId, final List<String> permissions) {
+	public static void updatePermissions(final Connection connection, final int groupId, final int permissions) {
 		LOGGER.info("Updating permissions to group id {}", groupId);
-		if (UserTablePermissions.updateGroup(connection, groupId, permissions) && GROUPS.containsKey(groupId)) {
+		if (UserTableGroups.updateGroupPermissions(connection, groupId, permissions) && GROUPS.containsKey(groupId)) {
 			GROUPS.get(groupId).setPermissions(permissions);
 		}
 	}
@@ -262,7 +259,6 @@ public class AccountService {
 			for (Group group : groups) {
 				if (!GROUPS.containsKey(group.getId())) {
 					//load the perms
-					group.setPermissions(UserTablePermissions.getPermissionsForGroupId(connection, group.getId()));
 					GROUPS.put(group.getId(), group);
 				}
 			}
@@ -288,7 +284,7 @@ public class AccountService {
 	private static Account setFakeAdminAccount() {
 		Account account = new Account();
 		Group group = new Group();
-		group.setPermissions(List.of("*"));
+		group.setPermissions(Permissions.ALL);
 		group.setId(Integer.MAX_VALUE);
 		account.setGroup(group);
 		User user = new User();

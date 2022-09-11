@@ -502,13 +502,14 @@ public class PMS {
 			String webConfPath = configuration.getWebConfPath();
 			File webConf = new File(webConfPath);
 			if (!webConf.exists()) {
-				configuration.writeWebConfigurationFile();
+				configuration.writeDefaultWebConfigurationFile();
 			}
 
 			// Ensure this only happens once
 			configuration.setHasRunOnce();
 		}
 
+		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 		if (!isHeadless()) {
 			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {
@@ -666,6 +667,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (Platform.isWindows()) {
+						WindowsNamedPipe.setLoop(false);
+					}
 					//Stop network scanner
 					NetworkConfiguration.stop();
 
@@ -1205,6 +1209,13 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**

@@ -45,8 +45,8 @@ public class UserTableTablesVersions extends UserTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"TABLE_NAME			VARCHAR(50)		PRIMARY KEY, " +
-				"TABLE_VERSION		INT				NOT NULL" +
+				"TABLE_NAME         VARCHAR(50)     PRIMARY KEY, " +
+				"TABLE_VERSION      INT             NOT NULL" +
 			")"
 		);
 	}
@@ -123,6 +123,15 @@ public class UserTableTablesVersions extends UserTable {
 					}
 				}
 			}
+		}
+	}
+
+	protected static final void removeTableVersion(final Connection connection, final String tableName) throws SQLException {
+		try (PreparedStatement statement = connection.prepareStatement(
+			"DELETE FROM " + TABLE_NAME + " WHERE TABLE_NAME = ?"
+		)) {
+			statement.setString(1, tableName);
+			statement.executeUpdate();
 		}
 	}
 }

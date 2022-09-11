@@ -21,14 +21,18 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -44,6 +48,7 @@ import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.Feed;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.Player;
@@ -693,9 +698,9 @@ public class PmsConfiguration extends RendererConfiguration {
 			maxMaxMemoryBufferSize = (int) usableMemory;
 		}
 
-		if (getJwtSecret().equals("")) {
-			String uuid = UUID.randomUUID().toString();
-			setJwtSecret(uuid.substring(0, uuid.indexOf("-")));
+		if ("".equals(getJwtSecret())) {
+			String randomUuid = UUID.randomUUID().toString();
+			setJwtSecret(randomUuid.substring(0, randomUuid.indexOf("-")));
 		}
 	}
 
@@ -1335,11 +1340,13 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_API_KEY, "");
 	}
 
-	public String getJwtSecret() {
-		return getString(KEY_JWT_SIGNER_SECRET, "");
+	public final String getJwtSecret() {
+		//don't use RendererConfiguration.getString as it will log the value
+		//jwt_secret can elevate users !!!
+		return configuration.getString(KEY_JWT_SIGNER_SECRET, "");
 	}
 
-	public void setJwtSecret(String value) {
+	public final void setJwtSecret(String value) {
 		configuration.setProperty(KEY_JWT_SIGNER_SECRET, value);
 	}
 	/**
@@ -4492,7 +4499,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
 
-	/* Start without external netowrk (increase startup speed) */
+	/* Start without external network (increase startup speed) */
 	public static final String KEY_EXTERNAL_NETWORK = "external_network";
 
 	public boolean getExternalNetwork() {
@@ -5299,7 +5306,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	public void writeWebConfigurationFile() {
+	public void writeDefaultWebConfigurationFile() {
 		List<String> defaultWebConfContents = new ArrayList<>();
 		defaultWebConfContents.addAll(getWebConfigurationFileHeader());
 		defaultWebConfContents.addAll(Arrays.asList(
@@ -5339,6 +5346,51 @@ public class PmsConfiguration extends RendererConfiguration {
 		List<String> contentsToWrite = new ArrayList<>();
 		contentsToWrite.addAll(getWebConfigurationFileHeader());
 		contentsToWrite.addAll(fileContents);
+
+		try {
+			Path webConfFilePath = Paths.get(getWebConfPath());
+			Files.write(webConfFilePath, contentsToWrite, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		}
+	}
+
+	public synchronized void writeWebConfigurationFile(JsonArray fileContents) {
+		List<String> contentsToWrite = new ArrayList<>();
+		contentsToWrite.addAll(getWebConfigurationFileHeader());
+
+		List<String> entries = new ArrayList<>();
+		for (JsonElement webContentItem : fileContents) {
+			JsonObject webContentItemObject = webContentItem.getAsJsonObject();
+			String name = webContentItemObject.get("name").getAsString();
+			String type = webContentItemObject.get("type").getAsString();
+			String folders = webContentItemObject.get("folders").getAsString();
+			String source = webContentItemObject.get("source").getAsString();
+
+			StringBuilder entryToAdd = new StringBuilder();
+			entryToAdd.append(type).append(".").append(folders).append("=");
+
+			switch (type) {
+				case "imagefeed":
+				case "videofeed":
+				case "audiofeed":
+					entryToAdd.append(source);
+
+					if (name != null) {
+						entryToAdd.append(",,,").append(name);
+					}
+					break;
+				default:
+					if (name != null) {
+						entryToAdd.append(name).append(",").append(source);
+					}
+					break;
+			}
+
+			entries.add(entryToAdd.toString());
+		}
+
+		contentsToWrite.addAll(entries);
 
 		try {
 			Path webConfFilePath = Paths.get(getWebConfPath());
@@ -5410,6 +5462,100 @@ public class PmsConfiguration extends RendererConfiguration {
 		return result;
 	}
 
+	/**
+	 * This parses the web config and returns it as a JSON array.
+	 *
+	 * @return
+	 */
+	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
+		PmsConfiguration configuration = PMS.getConfiguration();
+		File webConf = new File(configuration.getWebConfPath());
+		if (!webConf.exists()) {
+			configuration.writeDefaultWebConfigurationFile();
+		}
+		JsonArray jsonArray = new JsonArray();
+		if (!configuration.getExternalNetwork() || !webConf.exists()) {
+			return jsonArray;
+		}
+
+		try {
+			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+
+					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
+						String key = line.substring(0, line.indexOf('='));
+						String value = line.substring(line.indexOf('=') + 1);
+						String[] keys = RootFolder.parseFeedKey(key);
+						String sourceType = keys[0];
+						String folderName = keys[1] == null ? null : keys[1];
+
+						try {
+							if (
+								sourceType.equals("imagefeed") ||
+								sourceType.equals("audiofeed") ||
+								sourceType.equals("videofeed") ||
+								sourceType.equals("audiostream") ||
+								sourceType.equals("videostream")
+							) {
+								String[] values = RootFolder.parseFeedValue(value);
+								String uri = values[0];
+
+								// If the resource does not yet have a name, attempt to get one now
+								String resourceName = values.length > 3 && values[3] != null ? values[3] : null;
+								if (isBlank(resourceName)) {
+									try {
+										switch (sourceType) {
+											case "imagefeed":
+											case "videofeed":
+											case "audiofeed":
+												resourceName = values.length > 3 && values[3] != null ? values[3] : null;
+
+												// Convert YouTube channel URIs to their feed URIs
+												if (uri.contains("youtube.com/channel/")) {
+													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+												}
+												resourceName = Feed.getFeedTitle(uri);
+												break;
+											case "videostream":
+											case "audiostream":
+												resourceName = values.length > -1 && values[0] != null ? values[0] : null;
+												uri = values.length > 1 && values[1] != null ? values[1] : null;
+												break;
+											default:
+												break;
+										}
+									} catch (Exception e) {
+										LOGGER.debug("Error while getting feed title: " + e);
+									}
+								}
+
+								JsonObject jsonObject = new JsonObject();
+								jsonObject.addProperty("name", resourceName);
+								jsonObject.addProperty("type", sourceType);
+								jsonObject.addProperty("folders", folderName);
+								jsonObject.addProperty("source", uri);
+								jsonArray.add(jsonObject);
+							}
+						} catch (ArrayIndexOutOfBoundsException e) {
+							// catch exception here and go with parsing
+							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
+							LOGGER.debug(null, e);
+						}
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
+		} catch (IOException e) {
+			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
+			LOGGER.debug("", e);
+		}
+
+		return jsonArray;
+	}
+
 	public synchronized static JsonArray getAllEnginesAsJsonArray() {
 		JsonArray result = new JsonArray();
 		for (PlayerId playerId : StandardPlayerId.ALL) {
@@ -5429,10 +5575,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public synchronized static JsonArray getSubtitlesDepthArray() {
-
 		String[] values = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
 		String[] labels = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
-
 }

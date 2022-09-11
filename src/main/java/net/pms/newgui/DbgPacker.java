@@ -5,14 +5,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -76,22 +74,6 @@ public class DbgPacker extends net.pms.util.DbgPacker implements ActionListener 
 		c.weightx = 0.0;
 		top.add(openZip, c);
 		return top;
-	}
-
-	private void writeToZip(ZipOutputStream out, File f) throws Exception {
-		byte[] buf = new byte[1024];
-		int len;
-		if (!f.exists()) {
-			LOGGER.debug("DbgPack file {} does not exist - ignoring", f.getAbsolutePath());
-			return;
-		}
-		try (FileInputStream in = new FileInputStream(f)) {
-			out.putNextEntry(new ZipEntry(f.getName()));
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			out.closeEntry();
-		}
 	}
 
 	private boolean saveDialog() {

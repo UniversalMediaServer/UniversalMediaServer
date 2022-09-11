@@ -42,6 +42,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void appendLog(String msg) {
+		SseApiServlet.appendLog(msg);
 	}
 
 	@Override
@@ -63,6 +64,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void addRenderer(RendererConfiguration renderer) {
+		RendererItem.addRenderer(renderer);
 	}
 
 	@Override
@@ -92,6 +94,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setScanLibraryStatus(boolean enabled, boolean running) {
+		SseApiServlet.setScanLibraryStatus(enabled, running);
 	}
 
 	@Override
