@@ -56,7 +56,7 @@ public class WebGuiServletHelper {
 	private static final String HTTPSERVER_REQUEST_END =    "============================= GUI HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= GUI HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= GUI HTTPSERVER RESPONSE END =================================";
-	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[] {getUrl("file:" + CONFIGURATION.getWebPath() + "/react-app/")});
+	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[] {getUrl("file:" + CONFIGURATION.getWebPath() + "/gui/")});
 
 	private static URL getUrl(String url) {
 		try {
