@@ -42,6 +42,11 @@ docker/jre*
 /configuration-client/.pnp.*
 /configuration-client/.yarn/*
 !/configuration-client/.yarn/releases
-
+/web-player-client/node/
+/web-player-client/node_modules/
+/web-player-client/.pnp.*
+/web-player-client/.yarn/*
+!/web-player-client/.yarn/releases
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-app
+/src/main/external-resources/web/player
