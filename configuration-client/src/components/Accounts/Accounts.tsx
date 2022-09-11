@@ -293,11 +293,13 @@ const Accounts = () => {
         <Divider my="sm" label={i18n.get['Permissions']} />
         <Stack>
           <Checkbox disabled={group.id < 2} label={i18n.get['AllPermissions']} checked={(permissions & Permissions.all) === Permissions.all} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.all) : removePermission(Permissions.all)} />
-          <Checkbox disabled={group.id < 2} label={i18n.get['RestartServer']} checked={(permissions & Permissions.server_restart) === Permissions.server_restart} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.server_restart) : removePermission(Permissions.server_restart)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['ManageUsers']} checked={(permissions & Permissions.users_manage) === Permissions.users_manage} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.users_manage) : removePermission(Permissions.users_manage)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['ManageGroups']} checked={(permissions & Permissions.groups_manage) === Permissions.groups_manage} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.groups_manage) : removePermission(Permissions.groups_manage)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['ViewSettings']} checked={(permissions & Permissions.settings_view) === Permissions.settings_view} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.settings_view) : removePermission(Permissions.settings_view)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['ModifySettings']} checked={(permissions & Permissions.settings_modify) === Permissions.settings_modify} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.settings_modify) : removePermission(Permissions.settings_modify)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['RestartServer']} checked={(permissions & Permissions.server_restart) === Permissions.server_restart} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.server_restart) : removePermission(Permissions.server_restart)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['RestartApplication']} checked={(permissions & Permissions.application_restart) === Permissions.application_restart} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.application_restart) : removePermission(Permissions.application_restart)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['ShutdownApplication']} checked={(permissions & Permissions.application_shutdown) === Permissions.application_shutdown} onChange={(event) => event.currentTarget.checked ? addPermission(Permissions.application_shutdown) : removePermission(Permissions.application_shutdown)} />
         </Stack>
         {group.id > 1 && (
           <Group position="right" mt="md">
