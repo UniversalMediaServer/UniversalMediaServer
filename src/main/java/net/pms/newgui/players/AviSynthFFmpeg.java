@@ -37,19 +37,24 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthFFmpeg {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static JCheckBox useffmpegsource2;
 	private static JCheckBox interframegpu;
 	private static JCheckBox multithreading;
+	private static JCheckBox avisynthplusmode;
 	private static JCheckBox interframe;
 	private static JCheckBox convertfps;
+	private static JCheckBox convert2dTo3d;
 
 	public static JComponent config() {
 		return config("GeneralSettings");
 	}
 
 	protected static JComponent config(String languageLabel) {
+		
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu");
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu");
+					
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
 		builder.opaque(false);
@@ -59,13 +64,27 @@ public class AviSynthFFmpeg {
 		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		
+		useffmpegsource2 = new JCheckBox(Messages.getString("EnableAvisynthUseFFMpegSource2"), CONFIGURATION.getFfmpegAvisynthUseFfmpegSource2());
+		useffmpegsource2.setContentAreaFilled(false);
+		useffmpegsource2.addItemListener((ItemEvent e) -> {
+			CONFIGURATION.setFfmpegAvisynthUseFfmpegSource2(e.getStateChange() == ItemEvent.SELECTED);
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(useffmpegsource2), cc.xy(2, 3));
 
 		multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.isFfmpegAviSynthMultithreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 5));
+		
+		avisynthplusmode = new JCheckBox(Messages.getString("EnableAviSynthPlusMode"), CONFIGURATION.isFfmpegAviSynthPlusMode());
+		avisynthplusmode.setContentAreaFilled(false);
+		avisynthplusmode.addItemListener((ItemEvent e) -> {
+			CONFIGURATION.setFfmpegAviSynthPlusMode(e.getStateChange() == ItemEvent.SELECTED);
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), cc.xy(2, 7));
 
 		interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), CONFIGURATION.getFfmpegAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
@@ -73,28 +92,35 @@ public class AviSynthFFmpeg {
 			CONFIGURATION.setFfmpegAvisynthInterFrame(interframe.isSelected());
 			if (CONFIGURATION.getFfmpegAvisynthInterFrame()) {
 				JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+						SwingUtilities.getWindowAncestor(interframe),
 						Messages.getString("ThisFeatureVeryCpuintensive"),
 						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 				);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 9));
 
 		interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), CONFIGURATION.getFfmpegAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 11));
 
 		convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), CONFIGURATION.getFfmpegAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 13));
+		
+		convert2dTo3d = new JCheckBox(Messages.getString("EnableAvisynth2Dto3DConversion"), CONFIGURATION.getFfmpegAvisynth2Dto3D());
+		convert2dTo3d.setContentAreaFilled(false);
+		convert2dTo3d.addItemListener((ItemEvent e) -> {
+			CONFIGURATION.setFfmpegAvisynth2Dto3D((e.getStateChange() == ItemEvent.SELECTED));
+		});
+		builder.add(GuiUtil.getPreferredSizeComponent(convert2dTo3d), cc.xy(2, 15));
 
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
 			if (event.getPropertyName() == null) {
@@ -107,5 +133,4 @@ public class AviSynthFFmpeg {
 
 		return builder.getPanel();
 	}
-
 }

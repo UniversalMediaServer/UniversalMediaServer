@@ -172,6 +172,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	protected static final String KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2 = "ffmpeg_use_ffmpegsource2_instead_of_directshowsource";
+	protected static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
+	protected static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";	
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
@@ -2703,7 +2706,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value True if we should pass the flag.
 	 */
 	public void setFfmpegAvisynthConvertFps(boolean value) {
-		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, value);
 	}
 
 	/**
@@ -2729,6 +2732,63 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getFfmpegAvisynthInterFrameGPU() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
+	}
+
+	/**
+	 * Whether we should use FFmpegSource2 instead of DirectShowSource in AviSynth.
+	 *
+	 * @param value True if we should use FFmpegSource2 instead of DirectShowSource
+	 *              in AviSynth.
+	 */
+	public void setFfmpegAvisynthUseFfmpegSource2(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2, value);
+	}
+
+	/**
+	 * Returns true if we should use FFmpegSource2 instead of DirectShowSource in
+	 * AviSynth.
+	 *
+	 * @return True if we should use FFmpegSource2 instead of DirectShowSource in
+	 *         AviSynth.
+	 */
+	public boolean getFfmpegAvisynthUseFfmpegSource2() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2, false);
+	}
+
+	/**
+	 * Whether we should generate AviSynth+ compatible AVS scripts.
+	 *
+	 * @param value True if we should generate AviSynth+ compatible AVS scripts.
+	 */
+	public void setFfmpegAviSynthPlusMode(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, value);
+	}
+
+	/**
+	 * Returns true if we should generate AviSynth+ compatible AVS scripts.
+	 *
+	 * @return True if we should generate AviSynth+ compatible AVS scripts.
+	 */
+	public boolean isFfmpegAviSynthPlusMode() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
+	}
+
+	/**
+	 * Whether we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @param value True if we should pass the flag.
+	 */
+	public void setFfmpegAvisynth2Dto3D(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns true if we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @return True if we should convert 2D video to 3D in AviSynth.
+	 */
+	public boolean getFfmpegAvisynth2Dto3D() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 	}
 
 	public boolean isMencoderNoOutOfSync() {

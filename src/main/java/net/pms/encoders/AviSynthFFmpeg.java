@@ -17,12 +17,19 @@
  */
 package net.pms.encoders;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -31,8 +38,6 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
@@ -79,6 +84,27 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return getAVSScript(filename, subTrack, -1, -1, null, null, CONFIGURATION);
 	}
 
+	private static String get2Dto3DScriptTemplate() {
+		
+		String template = "";
+		
+		InputStream is = AviSynthFFmpeg.class.getClassLoader().getResourceAsStream("resources/2d-to-3d-template.txt");
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		String line = null;
+
+		try {
+			while ((line = br.readLine()) != null) {
+					template += line + "\n";
+			}
+
+			br.close();
+		} catch (IOException e) {
+			LOGGER.error("Error while retrieving 2D to 3D script template", e);
+		}
+		
+		return template;
+	}
+	
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
@@ -106,38 +132,90 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				frameRateNumber = "23.976";
 			}
 
-			String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
-
-			String directShowFPS = "";
-			if (!"0".equals(frameRateNumber)) {
-				directShowFPS = ", fps=" + frameRateNumber;
-			}
-
-			String convertfps = "";
-			if (configuration.getFfmpegAvisynthConvertFps()) {
-				convertfps = ", convertfps=true";
-			}
-
 			File f = new File(filename);
 			if (f.exists()) {
 				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
 			}
 
-			String movieLine       = "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			String movieLine       = "";
 			String mtLine1         = "";
-			String mtLine2         = "";
+			String mtLine2		   = "";
+			String mtPrefetchLine  = "";
 			String interframeLines = null;
 			String interframePath  = configuration.getInterFramePath();
+			
+			if (configuration.getFfmpegAvisynth2Dto3D())
+			{
+				movieLine += "video2d = ";
+			}
 
+			if (configuration.getFfmpegAvisynthUseFfmpegSource2()) {
+				
+				// See documentation for FFmpegSource2 here: http://avisynth.nl/index.php/FFmpegSource
+				
+				String fpsNum   = "fpsnum=" + numerator;
+				String fpsDen   = "fpsden=" + denominator;
+				
+				String convertfps = "";
+				
+				if (configuration.getFfmpegAvisynthConvertFps()) {
+					convertfps = ", " + fpsNum + ", " + fpsDen;
+				}	
+				
+				// atrack:
+				// A value of -1 means select the first available audio track. Default (-2) means audio is disabled.
+				
+				int audioTrack = -1;
+				
+				// seekmode:
+				// 1: Safe normal (the default). Bases seeking decisions on the keyframe positions reported by libavformat.
+				// 2: Unsafe normal. Same as mode 1, but no error will be thrown if the exact seek destination has to be guessed. 
+							
+				int seekMode   = 2; 
+				
+				movieLine      += "FFmpegSource2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
+			}
+			else
+			{
+				String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
+
+				String directShowFPS = "";
+				if (!"0".equals(frameRateNumber)) {
+					directShowFPS = ", fps=" + frameRateNumber;
+				}
+
+				String convertfps = "";
+				if (configuration.getFfmpegAvisynthConvertFps()) {
+					convertfps = ", convertfps=true";
+				}
+
+				movieLine       += "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			}
+			
 			int cores = 1;
 			if (configuration.isFfmpegAviSynthMultithreading()) {
+				
 				cores = configuration.getNumberOfCpuCores();
 
-				// Goes at the start of the file to initiate multithreading
-				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
-
-				// Goes after the input line to make multithreading more efficient
-				mtLine2 = "SetMTMode(2)";
+				if (configuration.isFfmpegAviSynthPlusMode())
+				{
+					// AviSynth+ multi-threading
+					
+					// Goes at the start of the file to initiate multithreading
+					mtLine1 = "SetFilterMTMode(\"DEFAULT_MT_MODE\", 2)\n";
+				
+					// Goes at the end of the script file
+					mtPrefetchLine = "Prefetch(" + cores + ")\n";
+				}
+				else
+				{
+					// AviSynth multi-threading
+					
+					// Goes at the start of the file to initiate multithreading
+					mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
+					// Goes after the input line to make multithreading more efficient
+					mtLine2 = "SetMTMode(2)";
+				}
 			}
 
 			// True Motion
@@ -192,11 +270,20 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				lines.add(line);
 			}
 
+			if (configuration.getFfmpegAvisynth2Dto3D()) {
+				String convert2Dto3DLines = get2Dto3DScriptTemplate();
+				lines.add(convert2Dto3DLines);
+			}
+			
 			if (configuration.getFfmpegAvisynthInterFrame()) {
 				lines.add(mtLine2);
 				lines.add(interframeLines);
 			}
-
+			
+			if (configuration.isFfmpegAviSynthMultithreading() && configuration.isFfmpegAviSynthPlusMode()) {
+				lines.add(mtPrefetchLine);				
+			}
+			
 			if (fullyManaged) {
 				for (String s : lines) {
 					if (s.contains("<moviefilename>")) {
