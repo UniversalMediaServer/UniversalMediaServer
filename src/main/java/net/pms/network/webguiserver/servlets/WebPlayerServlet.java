@@ -29,25 +29,17 @@ import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/"})
-public class WebGuiServlet extends GuiHttpServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServlet.class);
+@WebServlet(name = "WebPlayerServlet", urlPatterns = {"/"}, displayName = "Player Servlet")
+public class WebPlayerServlet extends GuiHttpServlet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServlet.class);
 
-	public static final String BASE_PATH = "/";
-	public static final String ABOUT_BASE_PATH = BASE_PATH + "about";
-	public static final String ACCOUNTS_BASE_PATH = BASE_PATH + "accounts";
-	public static final String ACTIONS_BASE_PATH = BASE_PATH + "actions";
-	public static final String LOGS_BASE_PATH = BASE_PATH + "logs";
-	public static final String PLAYER_BASE_PATH = BASE_PATH + "player";
-	public static final String SETTINGS_BASE_PATH = BASE_PATH + "settings";
+	private static final String BASE_PATH = "/";
+	private static final String ABOUT_BASE_PATH = BASE_PATH + "about";
+	private static final String PLAYER_BASE_PATH = BASE_PATH + "player";
 
 	private static final List<String> ROUTES = new ArrayList<>(Arrays.asList(
 		ABOUT_BASE_PATH,
-		ACCOUNTS_BASE_PATH,
-		ACTIONS_BASE_PATH,
-		LOGS_BASE_PATH,
-		PLAYER_BASE_PATH,
-		SETTINGS_BASE_PATH
+		PLAYER_BASE_PATH
 	));
 
 	@Override
@@ -62,14 +54,14 @@ public class WebGuiServlet extends GuiHttpServlet {
 			}
 			if (!WebGuiServletHelper.writeAsync(req, resp, uri.substring(1))) {
 				// The resource manager can't found or send the file, we need to send a response.
-				LOGGER.trace("WebGuiServlet request not available : {}", req.getRequestURI());
+				LOGGER.trace("WebPlayerServlet request not available : {}", req.getRequestURI());
 				WebGuiServletHelper.respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
 			}
 		} catch (IOException e) {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConfigurationClientHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in WebPlayerServlet: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

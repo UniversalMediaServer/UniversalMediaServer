@@ -66,8 +66,10 @@ public class RendererItem implements IRendererGuiListener {
 	@Override
 	public void setActive(boolean active) {
 		//we can use renderer itself as it's a pointer to real renderer object
-		isActive = renderer.isActive();
-		sendRendererAction("renderer_update");
+		if (isActive != renderer.isActive()) {
+			isActive = renderer.isActive();
+			sendRendererAction("renderer_update");
+		}
 	}
 
 	@Override

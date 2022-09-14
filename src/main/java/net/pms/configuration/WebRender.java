@@ -46,6 +46,7 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
+import net.pms.network.IServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
@@ -568,8 +569,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return json;
 	}
 
-	private ServerSentEvents sse;
-	public void addServerSentEvents(ServerSentEvents sse) {
+	private IServerSentEvents sse;
+	public void addServerSentEvents(IServerSentEvents sse) {
 		if (this.sse != null && this.sse.isOpened()) {
 			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "", ""}));
 			this.sse.close();

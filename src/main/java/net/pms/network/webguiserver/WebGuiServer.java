@@ -23,6 +23,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +109,14 @@ public abstract class WebGuiServer implements IGui {
 	@Override
 	public void setConfigurationChanged(String key) {
 		SseApiServlet.setConfigurationChanged(key);
+	}
+
+	public static void resetAllRenderers() {
+		PlayerApiServlet.resetAllRenderers();
+	}
+
+	public static void deleteAllRenderers() {
+		PlayerApiServlet.deleteAllRenderers();
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {

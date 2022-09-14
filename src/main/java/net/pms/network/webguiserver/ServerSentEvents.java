@@ -21,32 +21,39 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Timestamp;
 import javax.servlet.AsyncContext;
+import net.pms.network.IServerSentEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServerSentEvents {
+public class ServerSentEvents implements IServerSentEvents {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerSentEvents.class);
 
 	private final Object osLock = new Object();
-
-	private Thread pingThread;
+	private final AsyncContext context;
+	private final Runnable callback;
 	private OutputStream os;
-	private AsyncContext context;
+	private Thread pingThread;
 
 	public ServerSentEvents(AsyncContext context) {
+		this(context, null);
+	}
+
+	public ServerSentEvents(AsyncContext context, Runnable callback) {
 		this.context = context;
-		synchronized (osLock) {
-			try {
-				addEventStream(this.context.getResponse().getOutputStream());
-			} catch (IOException ex) {
-			}
+		this.callback = callback;
+		try {
+			addEventStream(this.context.getResponse().getOutputStream());
+		} catch (IOException ex) {
+			close();
 		}
 	}
 
+	@Override
 	public boolean isOpened() {
 		return this.os != null;
 	}
 
+	@Override
 	public boolean sendMessage(String message) {
 		return sendMessage(message, true);
 	}
@@ -60,7 +67,8 @@ public class ServerSentEvents {
 		return send(response);
 	}
 
-	public void close() {
+	@Override
+	public final void close() {
 		synchronized (osLock) {
 			if (os != null) {
 				LOGGER.debug("ServerSentEvents close OutputStream");
@@ -72,14 +80,14 @@ public class ServerSentEvents {
 					context.complete();
 				}
 				os = null;
+				if (callback != null) {
+					callback.run();
+				}
 			}
 		}
 	}
 
 	private void addEventStream(OutputStream os) {
-		//clean current OutputStream in case of....
-		stopPing();
-		close();
 		synchronized (osLock) {
 			this.os = os;
 		}
@@ -118,6 +126,7 @@ public class ServerSentEvents {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					close();
 					return;
 				}

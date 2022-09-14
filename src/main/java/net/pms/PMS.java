@@ -802,7 +802,7 @@ public class PMS {
 			if (webInterfaceServer != null) {
 				webInterfaceServer.deleteAllRenderers();
 			}
-			WebPlayerServer.deleteAllRenderers();
+			WebGuiServer.deleteAllRenderers();
 		}
 	}
 
@@ -826,7 +826,7 @@ public class PMS {
 		if (webInterfaceServer != null) {
 			webInterfaceServer.resetAllRenderers();
 		}
-		WebPlayerServer.resetAllRenderers();
+		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 

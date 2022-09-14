@@ -32,6 +32,7 @@ import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.LogsApiServlet;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
@@ -62,7 +63,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 
 		if (server != null) {
 			int threads = CONFIGURATION.getWebThreads();
-			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/gui/");
+			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/react-client/");
 			try {
 				container.createServlet(WebGuiServlet.class);
 				container.createServlet(AboutApiServlet.class);
@@ -71,6 +72,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(AuthApiServlet.class);
 				container.createServlet(I18nApiServlet.class);
 				container.createServlet(LogsApiServlet.class);
+				container.createServlet(PlayerApiServlet.class);
 				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SettingsApiServlet.class);
 				container.createServlet(SseApiServlet.class);

@@ -36,17 +36,11 @@ docker/jre*
 /nb-*
 /nbactions-*
 
-# web clients
-/web-gui-client/node/
-/web-gui-client/node_modules/
-/web-gui-client/.pnp.*
-/web-gui-client/.yarn/*
-!/web-gui-client/.yarn/releases
-/web-player-client/node/
-/web-player-client/node_modules/
-/web-player-client/.pnp.*
-/web-player-client/.yarn/*
-!/web-player-client/.yarn/releases
-# this is where the compiled clients goes after "yarn build"
-/src/main/external-resources/web/gui
-/src/main/external-resources/web/player
+# react web client
+/react-client/node/
+/react-client/node_modules/
+/react-client/.pnp.*
+/react-client/.yarn/*
+!/react-client/.yarn/releases
+# this is where the compiled client goes after "yarn build"
+/src/main/external-resources/web/react-client

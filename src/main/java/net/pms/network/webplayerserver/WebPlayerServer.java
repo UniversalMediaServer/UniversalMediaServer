@@ -20,14 +20,13 @@ package net.pms.network.webplayerserver;
 import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.network.webplayerserver.servlets.PlayerApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebPlayerServer {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-    //Should be CONFIGURATION.getPlayerServerPort()
+	//Should be CONFIGURATION.getPlayerServerPort()
 	public static final int DEFAULT_PORT = 9003;
 
 	public abstract Object getServer();
@@ -36,14 +35,6 @@ public abstract class WebPlayerServer {
 	public abstract String getUrl();
 	public abstract boolean isSecure();
 	public abstract void stop();
-
-	public static void resetAllRenderers() {
-		PlayerApiServlet.resetAllRenderers();
-	}
-
-	public static void deleteAllRenderers() {
-		PlayerApiServlet.deleteAllRenderers();
-	}
 
 	public static WebPlayerServer createServer(int port) throws IOException {
 		return WebPlayerServerHttpServer.createServer(port);

@@ -26,10 +26,11 @@ import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
-import net.pms.network.webplayerserver.servlets.AuthApiServlet;
-import net.pms.network.webplayerserver.servlets.I18nApiServlet;
-import net.pms.network.webplayerserver.servlets.PlayerApiServlet;
-import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
+import net.pms.network.webguiserver.servlets.AboutApiServlet;
+import net.pms.network.webguiserver.servlets.I18nApiServlet;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
+import net.pms.network.webguiserver.servlets.WebPlayerServlet;
+import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
 
 @SuppressWarnings("restriction")
 public class WebPlayerServerHttpServer extends WebPlayerServer {
@@ -56,11 +57,12 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 
 		if (server != null) {
 			int threads = CONFIGURATION.getWebThreads();
-			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/player/");
+			HttpServerServletContainer container = new HttpServerServletContainer(server, "file:" + CONFIGURATION.getWebPath() + "/react-client/");
 			try {
-				container.createServlet(AuthApiServlet.class);
+				container.createServlet(AboutApiServlet.class);
 				container.createServlet(I18nApiServlet.class);
 				container.createServlet(PlayerApiServlet.class);
+				container.createServlet(PlayerAuthApiServlet.class);
 				container.createServlet(WebPlayerServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
