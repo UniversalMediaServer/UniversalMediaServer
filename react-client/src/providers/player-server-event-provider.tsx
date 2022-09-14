@@ -1,4 +1,3 @@
-import { useSessionStorage } from '@mantine/hooks';
 import { hideNotification, showNotification } from '@mantine/notifications';
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
 import { ReactNode, useContext, useEffect, useState } from 'react';
@@ -26,16 +25,6 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     }
     setStarted(true);
     let notified = false;
-
-    const addNotification = (datas: any) => {
-      showNotification({
-        id: datas.id ? datas.id : 'sse-notification',
-        color: datas.color,
-        title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
-        autoClose: datas.autoClose ? datas.autoClose : true
-      });
-    };
 
     const showErrorNotification = () => {
       showNotification({
