@@ -546,17 +546,6 @@ public class PMS {
 
 		// GUI stuff
 		resetGuiServer();
-		if (configuration.isWebGuiOnStart()) {
-			new Thread("Web GUI browser") {
-				@Override
-				public void run() {
-					UMSUtils.sleep(1000);
-					if (!BasicSystemUtils.instance.browseURI(webGuiServer.getUrl())) {
-						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
-					}
-				}
-			}.start();
-		}
 		// Web stuff
 		resetWebPlayerServer();
 		resetWebInterfaceServer();
@@ -681,7 +670,20 @@ public class PMS {
 
 		GuiManager.serverReady();
 		ready = true;
-
+		if (configuration.isWebGuiOnStart()) {
+			new Thread("Web GUI browser") {
+				@Override
+				public void run() {
+					while (!UserDatabase.isAvailable()) {
+						UMSUtils.sleep(100);
+					}
+					LOGGER.info("Launching the graphical interface on a browser");
+					if (!BasicSystemUtils.instance.browseURI(webGuiServer.getUrl())) {
+						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
+					}
+				}
+			}.start();
+		}
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {

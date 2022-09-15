@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HttpExchangeServletResponse implements HttpServletResponse {
 
-	private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 	private final HttpExchange exchange;
 
 	private String contentType;
