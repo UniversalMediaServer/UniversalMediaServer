@@ -370,6 +370,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONTROL = "web_control";
 	protected static final String KEY_WEB_ENABLE = "web_enable";
 	protected static final String KEY_WEB_FLASH = "web_flash";
+	protected static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
 	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
 	protected static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
@@ -2364,13 +2365,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Whether we should start minimized, i.e. without its window opened.
-	 * Always returns false on macOS since it makes it impossible(?) for the
-	 * program to open.
 	 *
 	 * @return whether we should start minimized
 	 */
 	public boolean isMinimized() {
-		return getBoolean(KEY_MINIMIZED, false);
+		return getBoolean(KEY_MINIMIZED, true);
 	}
 
 	/**
@@ -2380,6 +2379,24 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
+	}
+
+	/**
+	 * Whether we should open a browser.
+	 *
+	 * @return True if UMS should open the web gui on start, false otherwise.
+	 */
+	public boolean isWebGuiOnStart() {
+		return getBoolean(KEY_WEB_GUI_ON_START, true);
+	}
+
+	/**
+	 * Whether we should open a browser.
+	 *
+	 * @param value whether we should open the web gui on start.
+	 */
+	public void setWebGuiOnStart(boolean value) {
+		configuration.setProperty(KEY_WEB_GUI_ON_START, value);
 	}
 
 	/**
