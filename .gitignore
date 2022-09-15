@@ -37,7 +37,7 @@ docker/jre*
 /nb-*
 /nbactions-*
 
-# configuration client
-/configuration-client
+# upcoming react client
+/react-client
 # this is where the compiled client goes after "yarn build"
-/src/main/external-resources/web/react-app
+/src/main/external-resources/web/react-client
