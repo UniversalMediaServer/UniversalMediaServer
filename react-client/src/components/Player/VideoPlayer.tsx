@@ -10,13 +10,6 @@ import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 import { playerApiUrl } from '../../utils';
 import { BaseMedia, VideoMedia } from './Player';
 
-//fix unknown hlsQualitySelector typescript
-declare module 'video.js' {
-    interface VideoJsPlayer {
-        hlsQualitySelector: typeof hlsQualitySelector;
-    }
-}
-
 videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
 
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {

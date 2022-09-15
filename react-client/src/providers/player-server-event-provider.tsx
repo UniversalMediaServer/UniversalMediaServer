@@ -34,7 +34,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     console.log('volume', volume);
     try {
       const player = videojs.getPlayer('player');
-      player.volume(volume/100);
+      player?.volume(volume/100);
     } catch(error) {
       console.log('volume', error);
     }
@@ -44,7 +44,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     console.log('mute');
     try {
       const player = videojs.getPlayer('player');
-      player.muted(true);
+      player?.muted(true);
     } catch(error) {
       console.log('mute', error);
     }
@@ -53,7 +53,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   const pausePlayer = () => {
     try {
       const player = videojs.getPlayer('player');
-      player.pause();
+      player?.pause();
     } catch(error) {
       console.log('pausePlayer', error);
     }
@@ -62,7 +62,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   const stopPlayer = () => {
     try {
       const player = videojs.getPlayer('player');
-      player.pause();
+      player?.pause();
     } catch(error) {
       console.log('stop', error);
     }
@@ -79,7 +79,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
       //most browser does not autoplay or script play.
       try {
         const player = videojs.getPlayer('player');
-        await player.play();
+        await player?.play();
       } catch {
         showNotification({
           id: 'player-play',
