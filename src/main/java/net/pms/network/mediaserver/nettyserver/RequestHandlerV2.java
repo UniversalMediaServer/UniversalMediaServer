@@ -416,6 +416,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				HttpResponseStatus.OK
 			);
 		}
+		response.headers().add("Access-Control-Allow-Origin", "*");
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
