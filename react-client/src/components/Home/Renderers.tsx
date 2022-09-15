@@ -1,9 +1,9 @@
-import { ActionIcon, Card, Grid, Group, Image, Menu, Modal, Progress, Table, Text } from '@mantine/core';
+import { ActionIcon, Card, Grid, Group, Image, Menu, Modal, Progress, Slider, Table, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { Dots, ListDetails, ScreenShare, Settings } from 'tabler-icons-react';
+import { Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -20,7 +20,7 @@ const Renderers = () => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
-
+  const [controls, setControls] = useState(null as Renderer | null);
 
   useEffect(() => {
     axios.get(renderersApiUrl)
@@ -101,7 +101,7 @@ const Renderers = () => {
                   <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get["Settings"]}</Menu.Item>
                 )}
                 { canControlRenderers && (
-                  <Menu.Item icon={<ScreenShare size={14} />} disabled={true /* not implemented yet */ || !renderer.isControllable}>{i18n.get["Controls"]}</Menu.Item>
+                  <Menu.Item icon={<ScreenShare size={14} />} disabled={true || !renderer.isControllable} onClick={() => setControls(renderer)}>{i18n.get["Controls"]}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -137,7 +137,7 @@ const Renderers = () => {
     </Grid.Col>
   ));
 
-  const rendererDetail = (
+  const rendererDetail = () => (
     <Modal
       centered
       overflow='inside'
@@ -156,9 +156,38 @@ const Renderers = () => {
     </Modal>
   );
 
+  const sendRendererControl = (id:number, action:string, value?: any) => {
+    axios.post(renderersApiUrl + 'control', {'id':id, 'action':action, 'value':value})
+  }
+
+  const rendererControls = (renderer:Renderer) => (
+    <Modal
+      centered
+      overflow='inside'
+      opened={true}
+      onClose={() => setControls(null)}
+      title={renderer.name}
+    >
+        <Group>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'mute')}><Volume/><VolumeOff/></ActionIcon>
+          <Slider labelAlwaysOn value={renderer.id} onChangeEnd={(value: number) => sendRendererControl(renderer.id, 'volume', value)} />
+        </Group>
+        <Group position="center">
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'back')}><PlayerSkipBack/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'play')}><PlayerPlay/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'pause')}><PlayerPause/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'stop')}><PlayerStop/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'next')}><PlayerTrackNext/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'forward')}><PlayerSkipForward/></ActionIcon>
+        </Group>
+    </Modal>
+  );
+
   return (
     <>
       {rendererDetail}
+      {controls !== null && rendererControls(controls)}
       <Grid>
         {renderersCards}
       </Grid>
