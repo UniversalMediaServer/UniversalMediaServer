@@ -421,6 +421,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.addProperty("use_symlinks_target_file", true);
 		jObj.addProperty("vlc_audio_sync_enabled", false);
 		jObj.addProperty("vlc_use_experimental_codecs", false);
+		jObj.addProperty("web_gui_on_start", true);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;
