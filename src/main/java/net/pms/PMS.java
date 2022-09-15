@@ -546,6 +546,17 @@ public class PMS {
 
 		// GUI stuff
 		resetGuiServer();
+		if (configuration.isWebGuiOnStart()) {
+			new Thread("Web GUI browser") {
+				@Override
+				public void run() {
+					UMSUtils.sleep(1000);
+					if (!BasicSystemUtils.instance.browseURI(guiServer.getUrl())) {
+						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
+					}
+				}
+			}.start();
+		}
 		// Web stuff
 		resetWebPlayerServer();
 		resetWebInterfaceServer();
