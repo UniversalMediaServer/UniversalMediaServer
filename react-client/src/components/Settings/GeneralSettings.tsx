@@ -59,6 +59,11 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 />
                 <Checkbox
                   disabled={!canModify}
+                  label={i18n.get['LaunchGuiBrowserStartup']}
+                  {...form.getInputProps('web_gui_on_start', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!canModify}
                   label={i18n.get['EnableSplashScreen']}
                   {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
                 />
