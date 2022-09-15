@@ -22,6 +22,7 @@ videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     let videoElem = document.createElement('video');
+    videoElem.id='player';
     videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
     document.getElementById('videodiv')?.appendChild(videoElem);
 

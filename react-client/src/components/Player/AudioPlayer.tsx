@@ -23,7 +23,7 @@ export const AudioPlayer = (apOptions: AudioPlayerOption) => {
 
   return (
     <div>
-      <audio ref={videoRef} className="video-js vjs-default-skin vjs-fluid vjs-big-play-centered full-card card" />
+      <audio id='player' ref={videoRef} className="video-js vjs-default-skin vjs-fluid vjs-big-play-centered full-card card" />
     </div>
   );
 };

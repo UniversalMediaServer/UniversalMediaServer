@@ -6,6 +6,7 @@ import { createElement, useContext, useEffect, useState } from 'react';
 import { ArrowBigLeft, ArrowBigRight, Folder, Home, Movie, Music, Photo, QuestionMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { playerApiUrl } from '../../utils';
@@ -15,11 +16,10 @@ import { VideoPlayer } from './VideoPlayer';
 export const Player = () => {
   const [token, setToken] = useState('');
   const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[],useWebControl:false} as BaseBrowse);
-  const [browseId, setBrowseId] = useState('0');
-  const [playId, setPlayId] = useState('');
   const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
+  const sse = useContext(PlayerEventContext);
 
   const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
@@ -49,20 +49,11 @@ export const Player = () => {
 	}
   };
 
-  const askBrowseId = (id:string) => {
-	  setPlayId('');
-	  setBrowseId(id);
-  }
-
-  const askPlayId = (id:string) => {
-	  setBrowseId('');
-	  setPlayId(id);
-  }
   const getMediaLibraryFolders = () => {
     return data.mediaLibraryFolders?.map((folder) => {
       return (
         <Button
-          onClick={() => askBrowseId(folder.id)}
+          onClick={() => sse.askBrowseId(folder.id)}
           color='gray'
           variant="subtle"
           compact
@@ -85,7 +76,7 @@ export const Player = () => {
     return data.folders.map((folder) => {
       return (
         <Button
-          onClick={() => askBrowseId(folder.id)}
+          onClick={() => sse.askBrowseId(folder.id)}
           color='gray'
           variant="subtle"
           compact
@@ -120,7 +111,7 @@ export const Player = () => {
             {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
 			  <Button
                 style={breadcrumb.id ? {fontWeight: 400} : {cursor:'default'}}
-                onClick={breadcrumb.id ? () => askBrowseId(breadcrumb.id) : undefined}
+                onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
                 variant="subtle"
                 compact
@@ -137,7 +128,7 @@ export const Player = () => {
   const getVideoMediaPlayer = (media: VideoMedia) => {
     return (<Paper>
       <VideoPlayer
-        {...{media:media, token:token, askPlayId:askPlayId}}
+        {...{media:media, token:token, askPlayId:sse.askPlayId}}
       />
     </Paper>);
   }
@@ -152,7 +143,7 @@ export const Player = () => {
 
   const getImageMediaPlayer = (media: ImageMedia) => {
     if (media.delay && media.surroundMedias.next) {
-      setTimeout(() => { if (media.surroundMedias.next) askPlayId(media.surroundMedias.next.id); }, media.delay);
+      setTimeout(() => { if (media.surroundMedias.next) sse.askPlayId(media.surroundMedias.next.id); }, media.delay);
     }
     return (
       <Paper>
@@ -210,7 +201,7 @@ export const Player = () => {
     return (
       <Grid.Col span={3}>
         <Card shadow="sm" p="lg"
-          onClick={() => isPlay ? askPlayId(media.id) : askBrowseId(media.id)}
+          onClick={() => isPlay ? sse.askPlayId(media.id) : sse.askBrowseId(media.id)}
           style={{cursor:'pointer'}}
         >
           <Card.Section>
@@ -266,7 +257,7 @@ export const Player = () => {
                   theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
-              onClick={() => askBrowseId(media.id)}
+              onClick={() => sse.askBrowseId(media.id)}
             >
               {media.name}
             </Badge>);
@@ -393,9 +384,9 @@ export const Player = () => {
   }, [session]);
 
   useEffect(() => {
-    if (token && browseId) {
+    if (token && sse.browseId) {
       setLoading(true);
-      axios.post(playerApiUrl + 'browse', {token:token,id:browseId})
+      axios.post(playerApiUrl + 'browse', {token:token,id:sse.browseId})
       .then(function (response: any) {
         setData(response.data);
         window.scrollTo(0,0);
@@ -413,12 +404,12 @@ export const Player = () => {
         setLoading(false);
       });
     }
-  }, [token, browseId]);
+  }, [token, sse.browseId]);
 
   useEffect(() => {
-    if (token && playId) {
+    if (token && sse.playId) {
       setLoading(true);
-      axios.post(playerApiUrl + 'play', {token:token,id:playId})
+      axios.post(playerApiUrl + 'play', {token:token,id:sse.playId})
       .then(function (response: any) {
         setData(response.data);
         window.scrollTo(0,0);
@@ -436,7 +427,7 @@ export const Player = () => {
         setLoading(false);
       });
     }
-  }, [token, playId]);
+  }, [token, sse.playId]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
