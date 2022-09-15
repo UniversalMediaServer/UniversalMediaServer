@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
  * the old log file on startup when used with {@link UmsRollingPolicy}.
  * Use the custom {@link UmsRollingPolicy}, otherwise it will have the same effect
  * that the former {@link RollingFileAppender}.
+ * @param <E>
  */
 public class UmsFileAppender<E> extends RollingFileAppender<E> {
 

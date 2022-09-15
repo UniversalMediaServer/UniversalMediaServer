@@ -28,11 +28,12 @@ import java.util.LinkedList;
  * when told to by {@link#flush} (typically after LogBack configuration is complete).
  *
  * @author Nadahar
+ * @param <E>
  */
 public class CacheAppender<E> extends AppenderBase<E> {
 
 	private final Object eventListLock = new Object();
-	private LinkedList<E> eventList = new LinkedList<>();
+	private final LinkedList<E> eventList = new LinkedList<>();
 
 	@Override
 	protected void append(E eventObject) {

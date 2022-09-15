@@ -18,6 +18,7 @@
 package net.pms.dlna;
 
 import net.pms.PMS;
+import net.pms.gui.GuiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public class LibraryScanner {
 			scanner = new Thread(scan, "Library Scanner");
 			scanner.setPriority(Thread.MIN_PRIORITY);
 			scanner.start();
-			PMS.get().getFrame().setScanLibraryStatus(true, true);
+			GuiManager.setScanLibraryStatus(true, true);
 		}
 	}
 
