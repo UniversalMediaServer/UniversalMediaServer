@@ -47,6 +47,8 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 	private static final List<ServerSentEvents> SSE_ABOUT_INSTANCES = new ArrayList<>();
+	private static final List<ServerSentEvents> SSE_HOME_INSTANCES = new ArrayList<>();
+	private static final List<ServerSentEvents> SSE_LOGS_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
@@ -92,7 +94,8 @@ public class SseApiServlet extends GuiHttpServlet {
 				SSE_INSTANCES.get(id).add(sse);
 				if (sseType != null) {
 					switch (sseType) {
-						case WebGuiServlet.BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
+						case WebGuiServlet.BASE_PATH -> SSE_HOME_INSTANCES.add(sse);
+						case WebGuiServlet.LOGS_BASE_PATH -> SSE_LOGS_INSTANCES.add(sse);
 						case WebGuiServlet.SETTINGS_BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
 						case WebGuiServlet.ABOUT_BASE_PATH -> SSE_ABOUT_INSTANCES.add(sse);
 					}
@@ -104,6 +107,18 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static boolean hasServerSentEvents() {
 		synchronized (SSE_INSTANCES) {
 			return !SSE_INSTANCES.isEmpty();
+		}
+	}
+
+	public static boolean hasHomeServerSentEvents() {
+		synchronized (SSE_INSTANCES) {
+			return !SSE_HOME_INSTANCES.isEmpty();
+		}
+	}
+
+	public static boolean hasLogsServerSentEvents() {
+		synchronized (SSE_INSTANCES) {
+			return !SSE_LOGS_INSTANCES.isEmpty();
 		}
 	}
 
@@ -149,6 +164,41 @@ public class SseApiServlet extends GuiHttpServlet {
 		}
 	}
 
+	/**
+	 * Broadcast a message to home page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastHomeMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_HOME_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					sse.sendMessage(message);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to logs page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastLogsMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_LOGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					//never log a log message
+					sse.sendMessage(message, false);
+				}
+			}
+		}
+	}
+
 	public static void broadcastMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
@@ -158,7 +208,7 @@ public class SseApiServlet extends GuiHttpServlet {
 					if (!sse.isOpened()) {
 						sseIterator.remove();
 					} else {
-						sse.sendMessage(message);
+						sse.sendMessage(message, log);
 					}
 				}
 				if (entry.getValue().isEmpty()) {
@@ -270,6 +320,15 @@ public class SseApiServlet extends GuiHttpServlet {
 	public static void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
 		String json = "{\"action\":\"update_memory\",\"max\":" + maxMemory + ",\"used\":" + usedMemory + ",\"buffer\":" + bufferMemory + "}";
 		broadcastAboutMessage(json);
+	}
+
+	public static void appendLog(String msg) {
+		if (hasLogsServerSentEvents()) {
+			JsonObject result = new JsonObject();
+			result.addProperty("action", "log_line");
+			result.addProperty("value", msg);
+			broadcastLogsMessage(result.toString());
+		}
 	}
 
 	public static void setScanLibraryStatus(boolean enabled, boolean running) {

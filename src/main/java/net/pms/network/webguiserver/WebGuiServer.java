@@ -23,6 +23,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
+import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,8 @@ import org.slf4j.LoggerFactory;
 public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final int DEFAULT_PORT = 9002; //CONFIGURATION.getGuiServerPort();
+	//Should be CONFIGURATION.getGuiServerPort()
+	public static final int DEFAULT_PORT = 9002;
 
 	public abstract Object getServer();
 	public abstract int getPort();
@@ -41,6 +43,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void appendLog(String msg) {
+		SseApiServlet.appendLog(msg);
 	}
 
 	@Override
@@ -62,6 +65,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void addRenderer(RendererConfiguration renderer) {
+		RendererItem.addRenderer(renderer);
 	}
 
 	@Override
@@ -105,6 +109,14 @@ public abstract class WebGuiServer implements IGui {
 	@Override
 	public void setConfigurationChanged(String key) {
 		SseApiServlet.setConfigurationChanged(key);
+	}
+
+	public static void resetAllRenderers() {
+		PlayerApiServlet.resetAllRenderers();
+	}
+
+	public static void deleteAllRenderers() {
+		PlayerApiServlet.deleteAllRenderers();
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {

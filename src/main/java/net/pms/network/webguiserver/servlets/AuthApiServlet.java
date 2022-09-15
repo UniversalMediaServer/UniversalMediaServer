@@ -51,6 +51,7 @@ public class AuthApiServlet extends GuiHttpServlet {
 					JsonObject jObject = new JsonObject();
 					Account account = AuthService.getAccountLoggedIn(req);
 					jObject.add("authenticate", new JsonPrimitive(AuthService.isEnabled()));
+					jObject.add("player", new JsonPrimitive(false));
 					if (account != null) {
 						jObject.add("noAdminFound", new JsonPrimitive(false));
 						jObject.add("account", AccountApiServlet.accountToJsonObject(account));

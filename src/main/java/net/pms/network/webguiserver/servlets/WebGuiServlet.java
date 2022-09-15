@@ -36,11 +36,17 @@ public class WebGuiServlet extends GuiHttpServlet {
 	public static final String BASE_PATH = "/";
 	public static final String ABOUT_BASE_PATH = BASE_PATH + "about";
 	public static final String ACCOUNTS_BASE_PATH = BASE_PATH + "accounts";
+	public static final String ACTIONS_BASE_PATH = BASE_PATH + "actions";
+	public static final String LOGS_BASE_PATH = BASE_PATH + "logs";
+	public static final String PLAYER_BASE_PATH = BASE_PATH + "player";
 	public static final String SETTINGS_BASE_PATH = BASE_PATH + "settings";
 
 	private static final List<String> ROUTES = new ArrayList<>(Arrays.asList(
 		ABOUT_BASE_PATH,
 		ACCOUNTS_BASE_PATH,
+		ACTIONS_BASE_PATH,
+		LOGS_BASE_PATH,
+		PLAYER_BASE_PATH,
 		SETTINGS_BASE_PATH
 	));
 

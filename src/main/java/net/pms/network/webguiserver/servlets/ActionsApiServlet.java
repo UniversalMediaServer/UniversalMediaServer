@@ -32,6 +32,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,30 @@ public class ActionsApiServlet extends GuiHttpServlet {
 										LOGGER.debug("Error when re-initializing after manual cache reset:", e);
 									}
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Reboot" -> {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									ProcessUtil.reboot();
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Reboot.Trace" -> {
+								if (account.havePermission(Permissions.APPLICATION_RESTART | Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									ProcessUtil.reboot("trace");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Process.Exit" -> {
+								if (account.havePermission(Permissions.APPLICATION_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									PMS.quit();
 								} else {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}

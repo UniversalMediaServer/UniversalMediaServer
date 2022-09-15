@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -46,8 +47,8 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
+import net.pms.network.IServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -547,12 +548,26 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		subLang = s;
 	}
 
-	private final ArrayList<String[]> pushList;
+	private final ArrayList<JsonObject> pushList;
 
 	public void push(String... args) {
-		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
+		JsonObject jObject = new JsonObject();
+		jObject.addProperty("action", "player");
+		if (args.length > 0) {
+			jObject.addProperty("request", args[0]);
+			if (args.length > 1) {
+				jObject.addProperty("arg0", args[1]);
+				if (args.length > 2) {
+					jObject.addProperty("arg1", args[2]);
+					if (args.length > 3) {
+						jObject.addProperty("arg2", args[3]);
+					}
+				}
+			}
+		}
+		if (sse == null || !sse.isOpened() || !sse.sendMessage(jObject.toString())) {
 			synchronized (pushList) {
-				pushList.add(args);
+				pushList.add(jObject);
 			}
 		}
 	}
@@ -568,17 +583,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return json;
 	}
 
-	private ServerSentEvents sse;
-	public void addServerSentEvents(ServerSentEvents sse) {
+	private IServerSentEvents sse;
+	public void addServerSentEvents(IServerSentEvents sse) {
 		if (this.sse != null && this.sse.isOpened()) {
-			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "", ""}));
+			this.sse.sendMessage(gson.toJson(new String[] {"close"}));
 			this.sse.close();
 		}
 		synchronized (pushList) {
 			this.sse = sse;
 			//empty current push datas
 			while (!pushList.isEmpty() && this.sse != null && this.sse.isOpened()) {
-				if (this.sse.sendMessage(gson.toJson(pushList.get(0)))) {
+				if (this.sse.sendMessage(pushList.get(0).toString())) {
 					pushList.remove(0);
 				}
 			}
@@ -632,7 +647,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			if (item != null) {
 				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
 				if (r != null) {
-					((WebRender) renderer).push("seturl", "/play/" + r.getId());
+					((WebRender) renderer).push("setPlayId", r.getId());
+					state.uri = uri;
 					return;
 				}
 			}

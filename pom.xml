@@ -92,13 +92,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.0</slf4j-api-version>
+		<slf4j-api-version>2.0.1</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.0</logback-version>
+		<logback-version>1.4.1</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -996,8 +996,8 @@
 				<artifactId>frontend-maven-plugin</artifactId>
 				<version>1.12.1</version>
 				<configuration>
-					<installDirectory>configuration-client</installDirectory>
-					<workingDirectory>configuration-client</workingDirectory>
+					<installDirectory>react-client</installDirectory>
+					<workingDirectory>react-client</workingDirectory>
 				</configuration>
 				<executions>
 					<execution>
@@ -1017,7 +1017,7 @@
 							<goal>yarn</goal>
 						</goals>
 					</execution>
-					<!-- compile the configuration client to the web directory -->
+					<!-- compile the react client to the web directory -->
 					<execution>
 						<id>yarn build</id>
 						<goals>
@@ -1026,7 +1026,7 @@
 						<configuration>
 							<environmentVariables>
 								<PUBLIC_URL>/</PUBLIC_URL>
-							</environmentVariables>  
+							</environmentVariables>
 							<arguments>build</arguments>
 						</configuration>
 					</execution>

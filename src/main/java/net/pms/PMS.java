@@ -70,6 +70,7 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.LanguageSelection;
@@ -224,7 +225,13 @@ public class PMS {
 	/**
 	 * HTTP server that serves a gui.
 	 */
-	private WebGuiServer guiServer;
+	private WebGuiServer webGuiServer;
+
+	/**
+	 * HTTP server that serves a player of media files.
+	 * Should replace the WebInterfaceServer at end.
+	 */
+	private WebPlayerServer webPlayerServer;
 
 	/**
 	 * User friendly name for the server.
@@ -544,13 +551,14 @@ public class PMS {
 				@Override
 				public void run() {
 					UMSUtils.sleep(1000);
-					if (!BasicSystemUtils.instance.browseURI(guiServer.getUrl())) {
+					if (!BasicSystemUtils.instance.browseURI(webGuiServer.getUrl())) {
 						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
 					}
 				}
 			}.start();
 		}
 		// Web stuff
+		resetWebPlayerServer();
 		resetWebInterfaceServer();
 
 		// init Credentials
@@ -678,6 +686,9 @@ public class PMS {
 			@Override
 			public void run() {
 				try {
+					if (Platform.isWindows()) {
+						WindowsNamedPipe.setLoop(false);
+					}
 					//Stop network scanner
 					NetworkConfiguration.stop();
 
@@ -802,6 +813,7 @@ public class PMS {
 			if (webInterfaceServer != null) {
 				webInterfaceServer.deleteAllRenderers();
 			}
+			WebGuiServer.deleteAllRenderers();
 		}
 	}
 
@@ -825,6 +837,7 @@ public class PMS {
 		if (webInterfaceServer != null) {
 			webInterfaceServer.resetAllRenderers();
 		}
+		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 
@@ -852,30 +865,54 @@ public class PMS {
 
 	/**
 	 * Reset the web graphical user interface server.
-	 * The trigger is init and configuration change.
+	 * The trigger is init.
 	 */
 	public void resetGuiServer() {
-		if (guiServer != null) {
-			GuiManager.removeGui(guiServer);
-			guiServer.stop();
+		if (webGuiServer != null) {
+			GuiManager.removeGui(webGuiServer);
+			webGuiServer.stop();
 		}
 		try {
-			guiServer = WebGuiServer.createServer(WebGuiServer.DEFAULT_PORT);
+			webGuiServer = WebGuiServer.createServer(WebGuiServer.DEFAULT_PORT);
 		} catch (BindException b) {
 			try {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServer.DEFAULT_PORT + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 				//use a random port
-				guiServer = WebGuiServer.createServer(0);
+				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
 			}
 		} catch (IOException ex) {
 			LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
 		}
-		if (guiServer != null && guiServer.getServer() != null) {
-			GuiManager.addGui(guiServer);
-			LOGGER.info("GUI is available at: " + guiServer.getUrl());
+		if (webGuiServer != null && webGuiServer.getServer() != null) {
+			GuiManager.addGui(webGuiServer);
+			LOGGER.info("GUI is available at: " + webGuiServer.getUrl());
+		}
+	}
+
+	/**
+	 * Reset the web player server.
+	 * The trigger is init and configuration change.
+	 */
+	public void resetWebPlayerServer() {
+		if (webPlayerServer != null) {
+			webPlayerServer.stop();
+		}
+		//TODO : rename configuration.useWebInterfaceServer() to configuration.useWebPlayerServer()
+		if (configuration.useWebInterfaceServer()) {
+			try {
+				//TODO : rename configuration.getWebInterfaceServerPort() to configuration.getWebPlayerServerPort()
+				// and use it.
+				webPlayerServer = WebPlayerServer.createServer(WebPlayerServer.DEFAULT_PORT);
+				GuiManager.updateServerStatus();
+			} catch (BindException b) {
+				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + WebPlayerServer.DEFAULT_PORT + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			} catch (IOException ex) {
+				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
+			}
 		}
 	}
 
@@ -1148,7 +1185,11 @@ public class PMS {
 	}
 
 	public WebGuiServer getGuiServer() {
-		return guiServer;
+		return webGuiServer;
+	}
+
+	public WebPlayerServer getWebPlayerServer() {
+		return webPlayerServer;
 	}
 
 	/**
@@ -1215,6 +1256,13 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**
