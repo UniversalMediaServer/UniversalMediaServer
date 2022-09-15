@@ -551,7 +551,7 @@ public class PMS {
 				@Override
 				public void run() {
 					UMSUtils.sleep(1000);
-					if (!BasicSystemUtils.instance.browseURI(guiServer.getUrl())) {
+					if (!BasicSystemUtils.instance.browseURI(webGuiServer.getUrl())) {
 						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
 					}
 				}
