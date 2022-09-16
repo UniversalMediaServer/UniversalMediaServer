@@ -12597,12 +12597,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tabler-icons-react@npm:1.54.0":
-  version: 1.54.0
-  resolution: "tabler-icons-react@npm:1.54.0"
+"tabler-icons-react@npm:1.55.0":
+  version: 1.55.0
+  resolution: "tabler-icons-react@npm:1.55.0"
   peerDependencies:
     react: ">= 16.8.0"
-  checksum: 0913f06791fca8b4feb7e01a7e20a8b9c697a2321388f62fde01d048e9610c2f5b12bf34fe095e1fd81f84dedf272ad152c1e121042c2d4f3a5c11434ae1cf43
+  checksum: 47148d54263d8a8a4165340da5bb33520553780edf3d23bd3cf64d0386579b0cf102100e89e0c8db3b014ffa2207087616574ce3173755f9b3e5a85ec912ee85
   languageName: node
   linkType: hard
 
@@ -13015,7 +13015,7 @@ __metadata:
     react-scripts: 5.0.1
     stylis: 4.1.2
     stylis-plugin-rtl: 2.1.1
-    tabler-icons-react: 1.54.0
+    tabler-icons-react: 1.55.0
     typescript: 4.8.3
     video.js: 7.20.3
     videojs-contrib-quality-levels: 2.1.0
