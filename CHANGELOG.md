@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+## [11.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.1...11.5.0) (2022-09-17)
 
 ### General:
 - Improved video quality on Wi-Fi networks
@@ -14,13 +14,19 @@
 - Fixed sound cutting out on Panasonic TVs when transcoding
 
 ### Translation updates via Crowdin
+- German (100%) (thanks, pipin!)
+- Japanese (100%) (thanks, KEINOS!)
+- Persian (100%) (thanks, Sadra Imam!)
+- Spanish (97%) (thanks, Luis Alberto García Díaz!)
+- Ukrainian (31%) (thanks, Alexandr Opara!)
 
 ### Dependencies
 - Updated checkstyle to v10.3.3
 - Bump FFmpeg to latest
 - Bump jackson-databind from 2.13.3 to 2.13.4
-- Bump logback-version from 1.2.11 to 1.4.0
+- Bump logback-version from 1.2.11 to 1.4.1
 - Bump maven-pmd-plugin from 3.18.0 to 3.19.0
+- Bump slf4j-api from 1.7.36 to 2.0.1
 - Bump spotbugs-maven-plugin from 4.7.1.1 to 4.7.2.0
 
 ### [11.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.0...11.4.1) (2022-08-26)
