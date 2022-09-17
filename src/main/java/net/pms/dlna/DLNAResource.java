@@ -27,6 +27,7 @@ import static net.pms.util.StringUtil.endTag;
 import static net.pms.util.StringUtil.openTag;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.sun.jna.Platform;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -5016,11 +5017,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param file
 	 */
 	private void setMetadataFromFileName(File file) {
+		String absolutePath = file.getAbsolutePath();
+		if (
+			file != null &&
+			absolutePath != null &&
+			(
+				Platform.isMac() &&
+				// skip metadata extraction and API lookups for live photos (little MP4s) backed up from iPhones
+				absolutePath.contains("Photos Library.photoslibrary")
+			)
+		) {
+			return;
+		}
+
 		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
 			if (!media.hasVideoMetadata()) {
 				DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
-				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
+				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
 				String titleFromFilename = metadataFromFilename[0];
 				String yearFromFilename = metadataFromFilename[1];
 				String extraInformationFromFilename = metadataFromFilename[2];
@@ -5074,7 +5088,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							media.setVideoMetadata(videoMetadata);
-							MediaTableVideoMetadata.insertVideoMetadata(connection, file.getAbsolutePath(), file.lastModified(), media, null);
+							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), media, null);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API
