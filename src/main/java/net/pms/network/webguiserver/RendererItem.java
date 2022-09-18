@@ -17,6 +17,7 @@
  */
 package net.pms.network.webguiserver;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ public class RendererItem implements IRendererGuiListener {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
+	private static final Gson GSON = new Gson();
 	private final int id;
 	private final RendererConfiguration renderer;
 	private String name;
@@ -48,7 +50,8 @@ public class RendererItem implements IRendererGuiListener {
 	private String time;
 	private int progressPercent;
 	private boolean isActive;
-	private boolean isControllable;
+	private int controls;
+	private BasicPlayer.State state;
 
 	public RendererItem(RendererConfiguration value) {
 		id = RENDERER_ID.getAndIncrement();
@@ -85,6 +88,7 @@ public class RendererItem implements IRendererGuiListener {
 
 	@Override
 	public void refreshPlayerState(BasicPlayer.State state) {
+		this.state = state;
 		time = ((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 			UMSUtils.playedDurationStr(state.position, state.duration));
 		progressPercent = (int) (100 * state.buffer / MAX_BUFFER_SIZE);
@@ -144,7 +148,44 @@ public class RendererItem implements IRendererGuiListener {
 		icon = renderer.getRendererIcon();
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
-		isControllable = renderer.isControllable();
+		controls = renderer.controls;
+		state = renderer.getPlayer().getState();
+	}
+
+	private void playerBack() {
+		renderer.getPlayer().rewind();
+	}
+
+	private void playerPrev() {
+		renderer.getPlayer().prev();
+	}
+
+	private void playerPlay() {
+		renderer.getPlayer().play();
+	}
+
+	private void playerPause() {
+		renderer.getPlayer().pause();
+	}
+
+	private void playerStop() {
+		renderer.getPlayer().stop();
+	}
+
+	private void playerNext() {
+		renderer.getPlayer().next();
+	}
+
+	private void playerForward() {
+		renderer.getPlayer().forward();
+	}
+
+	private void playerMute() {
+		renderer.getPlayer().mute();
+	}
+
+	private void playerSetVolume(int volume) {
+		renderer.getPlayer().setVolume(volume);
 	}
 
 	private JsonObject toJsonObject() {
@@ -158,7 +199,8 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("time", time);
 		result.addProperty("progressPercent", progressPercent);
 		result.addProperty("isActive", isActive);
-		result.addProperty("isControllable", isControllable);
+		result.addProperty("controls", controls);
+		result.add("state", GSON.toJsonTree(state));
 		return result;
 	}
 
@@ -168,6 +210,60 @@ public class RendererItem implements IRendererGuiListener {
 			result.addProperty("action", action);
 			SseApiServlet.broadcastHomeMessage(result.toString());
 		}
+	}
+
+	public static boolean remoteControlRenderer(JsonObject post) {
+		if (post != null && post.has("id") && post.has("action")) {
+			int rId = post.get("id").getAsInt();
+			RendererItem renderer = RendererItem.getRenderer(rId);
+			if (renderer == null) {
+				return false;
+			}
+			String action = post.get("action").getAsString();
+			switch (action) {
+				case "back" -> {
+					renderer.playerBack();
+					return true;
+				}
+				case "prev" -> {
+					renderer.playerPrev();
+					return true;
+				}
+				case "play" -> {
+					renderer.playerPlay();
+					return true;
+				}
+				case "pause" -> {
+					renderer.playerPause();
+					return true;
+				}
+				case "stop" -> {
+					renderer.playerStop();
+					return true;
+				}
+				case "next" -> {
+					renderer.playerNext();
+					return true;
+				}
+				case "forward" -> {
+					renderer.playerForward();
+					return true;
+				}
+				case "volume" -> {
+					int volume = post.get("value").getAsInt();
+					renderer.playerSetVolume(volume);
+					return true;
+				}
+				case "mute" -> {
+					renderer.playerMute();
+					return true;
+				}
+				default -> {
+					return false;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static void addRenderer(RendererConfiguration renderer) {

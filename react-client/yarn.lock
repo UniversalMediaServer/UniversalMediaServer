@@ -2262,91 +2262,91 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/core@npm:5.3.2"
+"@mantine/core@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/core@npm:5.3.3"
   dependencies:
     "@floating-ui/react-dom-interactions": 0.6.6
-    "@mantine/styles": 5.3.2
-    "@mantine/utils": 5.3.2
+    "@mantine/styles": 5.3.3
+    "@mantine/utils": 5.3.3
     "@radix-ui/react-scroll-area": 1.0.0
     react-textarea-autosize: 8.3.4
   peerDependencies:
-    "@mantine/hooks": 5.3.2
+    "@mantine/hooks": 5.3.3
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: dec1410095fe4eb2f6e5eb57287df348b954ee0297ba049ac942c03879034a1a5307f761c3b27dc5f66603933fac9cf4658ef47a36fdaaf1e025eb6aad306039
+  checksum: e436d5eb98d213a88be2a8d66f78234113deb3f28b6776325906bdaef1ebf111d516a8b9964bd46db475c69904c22a56afe49ed5b4ae1d1c5341c85d154421bb
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/form@npm:5.3.2"
+"@mantine/form@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/form@npm:5.3.3"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 1a78dbae6b1bf3ff5ed2cb3afd86887cb63c90ffcdc109ceb25692d07f0ebe68c8b27341884bff0f7a84cfc1085afab0b18c7e3f27dfaf436b506ea38d710433
+  checksum: 5ed6cbe4bd0f2253b86672cd26b2de528835abfea465feb3e983c85e9ab431bc2cc30f83e2bea1960fa12762c87b8184b3357b5ec783d85013bd40cb3f66b424
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/hooks@npm:5.3.2"
+"@mantine/hooks@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/hooks@npm:5.3.3"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 4a9c31748b76ac515e14ec032b50d566726511c03673c211c0d88b3a9fdd2264c21dec8f6ea14a0ed2b49eb15dfcc77194c6f45b093f19323c62f4f57909da92
+  checksum: dedf7e5ae945b217e96f31852bb66ad241d818d46387dbbbc7ab54c5dad30eca57d4f74cedd33c6b74994764206ad6621c9603884bcda0c3a96ecc651726ac00
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/modals@npm:5.3.2"
+"@mantine/modals@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/modals@npm:5.3.3"
   dependencies:
-    "@mantine/utils": 5.3.2
+    "@mantine/utils": 5.3.3
   peerDependencies:
-    "@mantine/core": 5.3.2
-    "@mantine/hooks": 5.3.2
+    "@mantine/core": 5.3.3
+    "@mantine/hooks": 5.3.3
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 260c5044dada88a6fdd20738af6d2dfb5f14a8a5c85a7697fe6d44ab63a58e6e5cfbbb0a79734cc50c3aa5005254052cc3e82b509fa8f0e8805cf373101a0103
+  checksum: f50c535c01b6c1b6bc11bbac1de89071b78abc2a80b427315bc59288c6ea9eb7291c0c65496e4eda3aa9bc12cc59d25b0cd02dba90390d369b6adff18646e144
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/notifications@npm:5.3.2"
+"@mantine/notifications@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/notifications@npm:5.3.3"
   dependencies:
-    "@mantine/utils": 5.3.2
+    "@mantine/utils": 5.3.3
     react-transition-group: 4.4.2
   peerDependencies:
-    "@mantine/core": 5.3.2
-    "@mantine/hooks": 5.3.2
+    "@mantine/core": 5.3.3
+    "@mantine/hooks": 5.3.3
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 29de2655b273b825ebf933b64f835486a7e864e6811c1aa2e11212bc00710aa4fc4f754fc872520fe8d77bcd77e4771bcf8449a9200712c25272f10fab26f792
+  checksum: e69a0954ad503ccbc052dcc08d7472c5bf21975565f521ccd079835e3d80fba02b3c2d4bf8cc4385e7f35cb03542918fba8cfc4922bedb705e11de523ed2c000
   languageName: node
   linkType: hard
 
-"@mantine/prism@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/prism@npm:5.3.2"
+"@mantine/prism@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/prism@npm:5.3.3"
   dependencies:
-    "@mantine/utils": 5.3.2
+    "@mantine/utils": 5.3.3
     prism-react-renderer: ^1.2.1
   peerDependencies:
-    "@mantine/core": 5.3.2
-    "@mantine/hooks": 5.3.2
+    "@mantine/core": 5.3.3
+    "@mantine/hooks": 5.3.3
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 00b0c0d46772a54d8142c4a20aa71211db52669176643b48c7b60fd0f55fc059a9b72d4ad6950568dba0b75fdde3ae3a80b3f6568acfbdf6d4488aebfd0e94a1
+  checksum: ff2843988a793c18db5b1909371cd87101e5a4a7c543ed326f60a78545880ca99317f828eea2653fdf5c3bfd918656b9d94fc1724686354a273191393ff56ee0
   languageName: node
   linkType: hard
 
-"@mantine/styles@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/styles@npm:5.3.2"
+"@mantine/styles@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/styles@npm:5.3.3"
   dependencies:
     clsx: 1.1.1
     csstype: 3.0.9
@@ -2354,16 +2354,16 @@ __metadata:
     "@emotion/react": ">=11.9.0"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: a967153e3340053453e17aa209f43192c3ceb9fab605911bbe2eb32a88ecac4a13743a81ef6ae9e837ab51478f90d78658571fa3bccb3c4ddbddc6bc832a5600
+  checksum: 0c05c685e512a4f773ebd2ad264026fcfdb66318ab2e12f54ccd414cbadcbf2e1c208d72413107d18e955dda6d06dea506ab84630e75c5fdbb6d4d5acd4b26d6
   languageName: node
   linkType: hard
 
-"@mantine/utils@npm:5.3.2":
-  version: 5.3.2
-  resolution: "@mantine/utils@npm:5.3.2"
+"@mantine/utils@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@mantine/utils@npm:5.3.3"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: ad46f43ec67430b13b4aa08a486a9a76194666cda70e3f9576dfec9923d148e0c8b112340508e0d9e73829f8e8261b3497ecc5f16ab3a3c4bc1494467babd94b
+  checksum: 4a9f5a87c18a1c186bda5b84d404aecb9a48b457f71a2e087b07d2a868251d618e4d0db9f5ed439f598edfd325ac4217cbc92eeae2e805457ebdada047465967
   languageName: node
   linkType: hard
 
@@ -3120,13 +3120,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:29.0.2":
-  version: 29.0.2
-  resolution: "@types/jest@npm:29.0.2"
+"@types/jest@npm:29.0.3":
+  version: 29.0.3
+  resolution: "@types/jest@npm:29.0.3"
   dependencies:
     expect: ^29.0.0
     pretty-format: ^29.0.0
-  checksum: 27c46b58fad9791adf88167ba2c14ae3513cb1fe5df038faafe7fc4513ebb230dd8029a1dd0acd1abeb82aa014839ac10e0dcf1bfae9fcc0e69bc1eb1e5204f0
+  checksum: 14a8ec1954540ec59f4072c3c4dbc6b5d5ff616556c98671aca26606bdf9d49616a3f269f3e488c80cd481ee19880351575c1f6895827628818e193600c121e0
   languageName: node
   linkType: hard
 
@@ -3338,10 +3338,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/video.js@npm:*, @types/video.js@npm:7.3.47":
+"@types/video.js@npm:*":
   version: 7.3.47
   resolution: "@types/video.js@npm:7.3.47"
   checksum: a10a82f3744650ffeefcd9873439f436da183f68ca5a69e5cd14400c3e7e5712a77b1a904e475e5c943621ed3b39bd708c6f28f90d5b334721be69ac61e3bc44
+  languageName: node
+  linkType: hard
+
+"@types/video.js@npm:7.3.48":
+  version: 7.3.48
+  resolution: "@types/video.js@npm:7.3.48"
+  checksum: fe657b9f303c3b69f42e4876fbf91a6e0041e0d9a047fae360d6d74d9eb1852dcb33ad78873ecf1334e116123064b94fd42da3e1e163b8a9d55961f31ca4dabd
+  languageName: node
+  linkType: hard
+
+"@types/videojs-contrib-quality-levels@npm:2.0.1":
+  version: 2.0.1
+  resolution: "@types/videojs-contrib-quality-levels@npm:2.0.1"
+  dependencies:
+    "@types/video.js": "*"
+  checksum: 6e8e8935f86c497393b5b4df090de297e2f73a47eec8d610d27445a969077d97cfa3627de6d81047cb713de734db0d725aaa269067b791e51dca47afc7c33819
   languageName: node
   linkType: hard
 
@@ -3513,24 +3529,6 @@ __metadata:
     "@typescript-eslint/types": 5.33.0
     eslint-visitor-keys: ^3.3.0
   checksum: d7e3653de6bac6841e6fcc54226b93ad6bdca4aa76ebe7d83459c016c3eebcc50d4f65ee713174bc267d765295b642d1927a778c5de707b8389e3fcc052aa4a1
-  languageName: node
-  linkType: hard
-
-"@videojs/http-streaming@npm:2.14.2":
-  version: 2.14.2
-  resolution: "@videojs/http-streaming@npm:2.14.2"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 3.0.5
-    aes-decrypter: 3.1.3
-    global: ^4.4.0
-    m3u8-parser: 4.7.1
-    mpd-parser: 0.21.1
-    mux.js: 6.0.1
-    video.js: ^6 || ^7
-  peerDependencies:
-    video.js: ^6 || ^7
-  checksum: 917855c1498ba745d8147297516a8cef0800d8caa3024e4af1f7cb5a6cf087ea0387a031dd7ba5b7d515ba37fe671ec61b0330a17e2cc1854cd2a4b5706fb620
   languageName: node
   linkType: hard
 
@@ -12615,12 +12613,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tabler-icons-react@npm:1.54.0":
-  version: 1.54.0
-  resolution: "tabler-icons-react@npm:1.54.0"
+"tabler-icons-react@npm:1.55.0":
+  version: 1.55.0
+  resolution: "tabler-icons-react@npm:1.55.0"
   peerDependencies:
     react: ">= 16.8.0"
-  checksum: 0913f06791fca8b4feb7e01a7e20a8b9c697a2321388f62fde01d048e9610c2f5b12bf34fe095e1fd81f84dedf272ad152c1e121042c2d4f3a5c11434ae1cf43
+  checksum: 47148d54263d8a8a4165340da5bb33520553780edf3d23bd3cf64d0386579b0cf102100e89e0c8db3b014ffa2207087616574ce3173755f9b3e5a85ec912ee85
   languageName: node
   linkType: hard
 
@@ -13002,23 +13000,24 @@ __metadata:
   resolution: "ums gui@workspace:."
   dependencies:
     "@emotion/react": 11.10.4
-    "@mantine/core": 5.3.2
-    "@mantine/form": 5.3.2
-    "@mantine/hooks": 5.3.2
-    "@mantine/modals": 5.3.2
-    "@mantine/notifications": 5.3.2
-    "@mantine/prism": 5.3.2
+    "@mantine/core": 5.3.3
+    "@mantine/form": 5.3.3
+    "@mantine/hooks": 5.3.3
+    "@mantine/modals": 5.3.3
+    "@mantine/notifications": 5.3.3
+    "@mantine/prism": 5.3.3
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
-    "@types/jest": 29.0.2
+    "@types/jest": 29.0.3
     "@types/lodash": 4.14.184
     "@types/node": 16.11.59
     "@types/react": 18.0.20
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.0.6
-    "@types/video.js": 7.3.47
+    "@types/video.js": 7.3.48
+    "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
     axios: 0.27.2
     hls.js: 1.2.3
@@ -13033,12 +13032,12 @@ __metadata:
     react-scripts: 5.0.1
     stylis: 4.1.2
     stylis-plugin-rtl: 2.1.1
-    tabler-icons-react: 1.54.0
+    tabler-icons-react: 1.55.0
     typescript: 4.8.3
-    video.js: 7.20.2
-    videojs-contrib-quality-levels: 2.1.0
+    video.js: 7.20.3
+    videojs-contrib-quality-levels: 2.2.0
     videojs-hls-quality-selector: 1.1.4
-    web-vitals: 3.0.1
+    web-vitals: 3.0.2
   languageName: unknown
   linkType: soft
 
@@ -13279,28 +13278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:7.20.2":
-  version: 7.20.2
-  resolution: "video.js@npm:7.20.2"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 2.14.2
-    "@videojs/vhs-utils": ^3.0.4
-    "@videojs/xhr": 2.6.0
-    aes-decrypter: 3.1.3
-    global: ^4.4.0
-    keycode: ^2.2.0
-    m3u8-parser: 4.7.1
-    mpd-parser: 0.21.1
-    mux.js: 6.0.1
-    safe-json-parse: 4.0.0
-    videojs-font: 3.2.0
-    videojs-vtt.js: ^0.15.3
-  checksum: 0542904a3d6523aeb2503465382c804adebbe4694b39005d3afe2538eb68e3fe2b58958af350bff68cba068a4b2d5fe2438bba643479ab1235f39a6dd08e2b31
-  languageName: node
-  linkType: hard
-
-"video.js@npm:^6 || ^7, video.js@npm:^7.5.5":
+"video.js@npm:7.20.3, video.js@npm:^6 || ^7, video.js@npm:^7.5.5":
   version: 7.20.3
   resolution: "video.js@npm:7.20.3"
   dependencies:
@@ -13321,19 +13299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"videojs-contrib-quality-levels@npm:2.1.0":
-  version: 2.1.0
-  resolution: "videojs-contrib-quality-levels@npm:2.1.0"
-  dependencies:
-    global: ^4.3.2
-    video.js: ^6 || ^7
-  peerDependencies:
-    video.js: ^6 || ^7
-  checksum: 8f580a710e57d025a4e54f1a52239a2e1fe9f1e8a58b1b72055ba0b3f5a486a51297c5903ac4425de72bda9b4e4f6bf3926efa078187129bd30b5fb8fb26894f
-  languageName: node
-  linkType: hard
-
-"videojs-contrib-quality-levels@npm:^2.0.9":
+"videojs-contrib-quality-levels@npm:2.2.0, videojs-contrib-quality-levels@npm:^2.0.9":
   version: 2.2.0
   resolution: "videojs-contrib-quality-levels@npm:2.2.0"
   dependencies:
@@ -13364,7 +13330,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"videojs-vtt.js@npm:^0.15.3, videojs-vtt.js@npm:^0.15.4":
+"videojs-vtt.js@npm:^0.15.4":
   version: 0.15.4
   resolution: "videojs-vtt.js@npm:0.15.4"
   dependencies:
@@ -13419,10 +13385,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:3.0.1":
-  version: 3.0.1
-  resolution: "web-vitals@npm:3.0.1"
-  checksum: 7990d14812b599601146db6a179008deff16c165f355e93764968748a416101ef4120fd4d562d45b235b683b96ea8d00f06529bfd8708d04effcb57723949c3b
+"web-vitals@npm:3.0.2":
+  version: 3.0.2
+  resolution: "web-vitals@npm:3.0.2"
+  checksum: 012256fde3c96913b724306904bdf588893aa4e3bfaaded4b83854eb12b74e25b41ce21c5b46138b020ef462143dc03f72f697b36647dddad70c2d379df82eec
   languageName: node
   linkType: hard
 

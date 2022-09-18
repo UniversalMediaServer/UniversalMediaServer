@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
+import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.RendererItem;
 import net.pms.network.webguiserver.WebGuiServletHelper;
@@ -74,14 +75,14 @@ public class RenderersApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
+			Account account = AuthService.getAccountLoggedIn(req);
+			if (account == null) {
+				WebGuiServletHelper.respondForbidden(req, resp);
+				return;
+			}
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/infos" -> {
-					Account account = AuthService.getAccountLoggedIn(req);
-					if (account == null) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
 					JsonObject rendererInfos = getRendererInfos(post);
 					if (rendererInfos == null) {
@@ -89,6 +90,18 @@ public class RenderersApiServlet extends GuiHttpServlet {
 						return;
 					}
 					WebGuiServletHelper.respond(req, resp, rendererInfos.toString(), 200, "application/json");
+				}
+				case "/control" -> {
+					if (!account.havePermission(Permissions.DEVICES_CONTROL)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (RendererItem.remoteControlRenderer(post)) {
+						WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					} else {
+						WebGuiServletHelper.respondBadRequest(req, resp);
+					}
 				}
 				default -> {
 					LOGGER.trace("RenderersApiServlet request not available : {}", path);

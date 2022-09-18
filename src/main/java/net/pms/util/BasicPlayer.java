@@ -32,11 +32,11 @@ public interface BasicPlayer extends ActionListener {
 		public long buffer;
 	}
 
-	final static int STOPPED = 0;
-	final static int PLAYING = 1;
-	final static int PAUSED = 2;
-	final static int PLAYCONTROL = 1;
-	final static int VOLUMECONTROL = 2;
+	static final int STOPPED = 0;
+	static final int PLAYING = 1;
+	static final int PAUSED = 2;
+	static final int PLAYCONTROL = 1;
+	static final int VOLUMECONTROL = 2;
 
 	public void setURI(String uri, String metadata);
 

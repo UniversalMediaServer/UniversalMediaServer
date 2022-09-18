@@ -1,4 +1,4 @@
-import { ActionIcon, Card, Grid, Group, Image, Menu, Modal, Progress, Slider, Table, Text } from '@mantine/core';
+import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, Slider, Stack, Table, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -20,7 +20,7 @@ const Renderers = () => {
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
-  const [controls, setControls] = useState(null as Renderer | null);
+  const [controlId, setControlId] = useState(-1);
 
   useEffect(() => {
     axios.get(renderersApiUrl)
@@ -101,7 +101,7 @@ const Renderers = () => {
                   <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get["Settings"]}</Menu.Item>
                 )}
                 { canControlRenderers && (
-                  <Menu.Item icon={<ScreenShare size={14} />} disabled={true || !renderer.isControllable} onClick={() => setControls(renderer)}>{i18n.get["Controls"]}</Menu.Item>
+                  <Menu.Item icon={<ScreenShare size={14} />} disabled={true || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get["Controls"]}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -137,7 +137,7 @@ const Renderers = () => {
     </Grid.Col>
   ));
 
-  const rendererDetail = () => (
+  const rendererDetail = (
     <Modal
       centered
       overflow='inside'
@@ -160,34 +160,55 @@ const Renderers = () => {
     axios.post(renderersApiUrl + 'control', {'id':id, 'action':action, 'value':value})
   }
 
-  const rendererControls = (renderer:Renderer) => (
-    <Modal
-      centered
-      overflow='inside'
-      opened={true}
-      onClose={() => setControls(null)}
-      title={renderer.name}
+  const getRenderer = (id:number) => {
+    return renderers.find((renderer) => renderer.id === id);
+  }
+  const rendererControlled = getRenderer(controlId);
+  const rendererControls = (rendererControlled !== undefined && (
+    <Drawer
+      size='full'
+      opened={controlId > -1}
+      onClose={() => setControlId(-1)}
+      title={rendererControlled.name}
     >
-        <Group>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'mute')}><Volume/><VolumeOff/></ActionIcon>
-          <Slider labelAlwaysOn value={renderer.id} onChangeEnd={(value: number) => sendRendererControl(renderer.id, 'volume', value)} />
+      <Stack>
+      {((rendererControlled.controls & 1) === 1) &&
+        <Group spacing='xs' grow mt='md'>
+          <ActionIcon style={{flexGrow:'unset'}} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
+            {rendererControlled.state.mute ?
+              <VolumeOff/>
+            :
+              <Volume/>
+            }
+          </ActionIcon>
+          <Slider labelAlwaysOn mt='lg' style={{maxWidth:'unset', marginInlineEnd:'10px'}}
+            defaultValue={rendererControlled.state.volume}
+            onChangeEnd={(value: number) => sendRendererControl(rendererControlled.id, 'volume', value)}
+          />
         </Group>
+      }
+      {((rendererControlled.controls & 2) === 2) &&
         <Group position="center">
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'back')}><PlayerSkipBack/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'play')}><PlayerPlay/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'pause')}><PlayerPause/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'stop')}><PlayerStop/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'next')}><PlayerTrackNext/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(renderer.id, 'forward')}><PlayerSkipForward/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
+          {rendererControlled.state.playback===1 ?
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause/></ActionIcon>
+          :
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay/></ActionIcon>
+          }
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext/></ActionIcon>
+          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward/></ActionIcon>
         </Group>
-    </Modal>
-  );
+      }
+      </Stack>
+    </Drawer>
+  ));
 
   return (
     <>
       {rendererDetail}
-      {controls !== null && rendererControls(controls)}
+      {rendererControls}
       <Grid>
         {renderersCards}
       </Grid>
@@ -199,6 +220,18 @@ interface RendererAction extends Renderer {
   action:string,
 }
 
+interface RendererState {
+  mute: boolean,
+  volume: number,
+  playback: number,
+  name: string,
+  uri: string,
+  metadata: string,
+  position: string,
+  duration: string,
+  buffer: number,
+}
+
 interface Renderer {
   id : number,
   name : string,
@@ -208,7 +241,8 @@ interface Renderer {
   time : string,
   progressPercent : number,
   isActive : boolean,
-  isControllable : boolean,
+  controls : number,
+  state : RendererState,
 }
 
 interface RendererInfos {
