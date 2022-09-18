@@ -425,12 +425,12 @@ public class FFMpegVideo extends Player {
 						} else {
 							transcodeOptions.add("libx265");
 						}
-						transcodeOptions.add("-tune");
-						transcodeOptions.add("zerolatency");
+						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
 					}
 					if (!customFFmpegOptions.contains("-preset")) {
 						transcodeOptions.add("-preset");
-						transcodeOptions.add("ultrafast");
+						// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+						transcodeOptions.add("superfast");
 					}
 					if (!customFFmpegOptions.contains("-level")) {
 						transcodeOptions.add("-level");

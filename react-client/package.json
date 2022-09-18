@@ -5,12 +5,12 @@
   "proxy": "http://localhost:9002",
   "dependencies": {
     "@emotion/react": "11.10.4",
-    "@mantine/core": "5.3.2",
-    "@mantine/form": "5.3.2",
-    "@mantine/hooks": "5.3.2",
-    "@mantine/modals": "5.3.2",
-    "@mantine/notifications": "5.3.2",
-    "@mantine/prism": "5.3.2",
+    "@mantine/core": "5.3.3",
+    "@mantine/form": "5.3.3",
+    "@mantine/hooks": "5.3.3",
+    "@mantine/modals": "5.3.3",
+    "@mantine/notifications": "5.3.3",
+    "@mantine/prism": "5.3.3",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "0.27.2",
     "hls.js": "1.2.3",
@@ -67,7 +67,8 @@
     "@types/react": "18.0.20",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.0.6",
-    "@types/video.js": "7.3.47",
+    "@types/video.js": "7.3.48",
+    "@types/videojs-contrib-quality-levels": "2.0.1",
     "@types/videojs-hls-quality-selector": "1.1.0",
     "react-scripts": "5.0.1"
   }
