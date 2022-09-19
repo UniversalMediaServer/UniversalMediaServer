@@ -600,6 +600,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		}
 	}
 
+	public void updateServerSentEventsActive() {
+		setActive(this.sse != null && this.sse.isOpened());
+	}
+
 	@Override
 	public void notify(String type, String msg) {
 		push("notify", type, msg);

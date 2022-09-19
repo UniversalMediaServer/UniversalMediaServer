@@ -81,7 +81,7 @@ public class ServerSentEvents implements IServerSentEvents {
 				}
 				os = null;
 				if (callback != null) {
-					callback.run();
+					new Thread(callback, "ServerSentEvents callback").start();
 				}
 			}
 		}
