@@ -106,6 +106,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final int MENCODER_MAX_THREADS = 8;
 
 	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
+	protected static final String KEY_ACCESS_CONTROL_ALLOW_ORIGIN = "access-control-allow-origin";
 	protected static final String KEY_ALIVE_DELAY = "ALIVE_delay";
 	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
@@ -5073,6 +5074,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public void setHasRunOnce() {
 		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
+	}
+
+	public String getAccessControlAllowOrigin() {
+		return getString(KEY_ACCESS_CONTROL_ALLOW_ORIGIN, "");
 	}
 
 	/**

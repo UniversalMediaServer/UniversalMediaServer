@@ -416,7 +416,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				HttpResponseStatus.OK
 			);
 		}
-		response.headers().add("Access-Control-Allow-Origin", "*");
+
+		if (StringUtil.hasValue(PMS.getConfiguration().getAccessControlAllowOrigin())) {
+			response.headers().add("Access-Control-Allow-Origin", PMS.getConfiguration().getAccessControlAllowOrigin());
+		}
 
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 		// Attach it to the context so it can be invoked if connection is reset unexpectedly
