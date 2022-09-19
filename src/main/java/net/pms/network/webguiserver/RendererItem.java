@@ -20,13 +20,16 @@ package net.pms.network.webguiserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.util.BasicPlayer;
@@ -188,6 +191,17 @@ public class RendererItem implements IRendererGuiListener {
 		renderer.getPlayer().setVolume(volume);
 	}
 
+	private void playerSetMediaId(String id) {
+		try {
+			DLNAResource root = renderer.getRootFolder();
+			List<DLNAResource> resources = root.getDLNAResources(id, false, 0, 0, renderer);
+			if (!resources.isEmpty()) {
+				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
+			}
+		} catch (IOException ex) {
+		}
+	}
+
 	private JsonObject toJsonObject() {
 		JsonObject result = new JsonObject();
 		result.addProperty("id", id);
@@ -258,12 +272,70 @@ public class RendererItem implements IRendererGuiListener {
 					renderer.playerMute();
 					return true;
 				}
+				case "mediaid" -> {
+					String id = post.get("value").getAsString();
+					renderer.playerSetMediaId(id);
+					return true;
+				}
 				default -> {
 					return false;
 				}
 			}
 		}
 		return false;
+	}
+
+	public static JsonObject getRemoteControlBrowse(JsonObject post) {
+		if (post != null && post.has("id") && post.has("media")) {
+			try {
+				int rId = post.get("id").getAsInt();
+				RendererItem renderer = RendererItem.getRenderer(rId);
+				if (renderer == null) {
+					return null;
+				}
+				String media = post.get("media").getAsString();
+				DLNAResource root = renderer.renderer.getRootFolder();
+				JsonObject result = new JsonObject();
+				JsonArray parents = new JsonArray();
+				JsonArray childrens = new JsonArray();
+				List<DLNAResource> resources = root.getDLNAResources(media, true, 0, 0, renderer.renderer);
+				if (!resources.isEmpty()) {
+					DLNAResource parentFromResources = resources.get(0).getParent();
+					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
+						JsonObject parent = new JsonObject();
+						parent.addProperty("value", parentFromResources.getResourceId());
+						parent.addProperty("label", parentFromResources.getName());
+						parents.add(parent);
+						parentFromResources = parentFromResources.getParent();
+						if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
+							parent = new JsonObject();
+							parent.addProperty("value", parentFromResources.getResourceId());
+							parent.addProperty("label", parentFromResources.getName());
+							parents.add(parent);
+						}
+					}
+					for (DLNAResource resource : resources) {
+						if (resource == null) {
+							continue;
+						}
+						JsonObject children = new JsonObject();
+						children.addProperty("value", resource.getResourceId());
+						children.addProperty("label", resource.getName());
+						if (resource.isFolder()) {
+							children.addProperty("browsable", true);
+						} else {
+							children.addProperty("browsable", false);
+						}
+						childrens.add(children);
+					}
+				}
+				result.add("parents", parents);
+				result.add("childrens", childrens);
+				return result;
+			} catch (IOException ex) {
+			}
+		}
+		return null;
 	}
 
 	public static void addRenderer(RendererConfiguration renderer) {

@@ -127,7 +127,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						resp.setContentType("text/event-stream");
 						AsyncContext async = req.startAsync();
 						WebRender renderer = (WebRender) root.getDefaultRenderer();
-						ServerSentEvents sse = new ServerSentEvents(async, () -> renderer.setActive(false));
+						ServerSentEvents sse = new ServerSentEvents(async, () -> {
+							try {
+								Thread.sleep(1000);
+								renderer.updateServerSentEventsActive();
+							} catch (InterruptedException ex) {
+								Thread.currentThread().interrupt();
+							}
+						});
 						renderer.setActive(true);
 						renderer.addServerSentEvents(sse);
 						return;

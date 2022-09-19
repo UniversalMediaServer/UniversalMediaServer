@@ -103,6 +103,19 @@ public class RenderersApiServlet extends GuiHttpServlet {
 						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
 				}
+				case "/browse" -> {
+					if (!account.havePermission(Permissions.DEVICES_CONTROL)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+						return;
+					}
+					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject datas = RendererItem.getRemoteControlBrowse(post);
+					if (datas != null) {
+						WebGuiServletHelper.respond(req, resp, datas.toString(), 200, "application/json");
+					} else {
+						WebGuiServletHelper.respondBadRequest(req, resp);
+					}
+				}
 				default -> {
 					LOGGER.trace("RenderersApiServlet request not available : {}", path);
 					WebGuiServletHelper.respondNotFound(req, resp);

@@ -3,24 +3,26 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
+import { Cast, Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { renderersApiUrl } from '../../utils';
+import MediaChooser, { Media } from './MediaChooser';
 
 const Renderers = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
   const canModify = havePermission(session, Permissions.settings_modify);
-  const canControlRenderers = canModify; //should be a separate perm
+  const canControlRenderers = havePermission(session, Permissions.devices_control);
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
   const [controlId, setControlId] = useState(-1);
+  const [controlMedia, setControlMedia] = useState<Media|null>(null);
 
   useEffect(() => {
     axios.get(renderersApiUrl)
@@ -31,8 +33,8 @@ const Renderers = () => {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
-          title: i18n.get["Error"],
-          message: i18n.get["DatasNotReceived"],
+          title: i18n.get['Error'],
+          message: i18n.get['DatasNotReceived'],
           autoClose: 3000,
         });
       });
@@ -85,23 +87,23 @@ const Renderers = () => {
 
   const renderersCards = renderers.map((renderer:Renderer) => (
     <Grid.Col span={12} xs={6}>
-      <Card shadow="sm" p="lg" radius="md" withBorder>
-        <Card.Section withBorder inheritPadding py="xs">
-          <Group position="apart">
+      <Card shadow='sm' p='lg' radius='md' withBorder>
+        <Card.Section withBorder inheritPadding py='xs'>
+          <Group position='apart'>
             <Text weight={500} color={!renderer.isActive ? 'dimmed' : renderer.playing ? 'green' : ''}>{renderer.name}</Text>
-            <Menu withinPortal position="bottom-end" shadow="sm">
+            <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
                   <Dots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get["Info"]}</Menu.Item>
+                <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
                 { canModify && (
-                  <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get["Settings"]}</Menu.Item>
+                  <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
                 )}
                 { canControlRenderers && (
-                  <Menu.Item icon={<ScreenShare size={14} />} disabled={true || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get["Controls"]}</Menu.Item>
+                  <Menu.Item icon={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -116,7 +118,7 @@ const Renderers = () => {
           />
         </Card.Section>
         { renderer.address && 
-          <Text align="center" size="sm" color="dimmed" >
+          <Text align='center' size='sm' color='dimmed'>
             {renderer.address}
           </Text>
         }
@@ -124,12 +126,12 @@ const Renderers = () => {
           <Progress value={renderer.progressPercent} />
         }
         { renderer.playing && 
-          <Text align="center" size="sm" color="dimmed" >
+          <Text align='center' size='sm' color='dimmed'>
             {renderer.playing}
           </Text>
         }
         { renderer.time && 
-          <Text align="center" size="sm" color="dimmed" >
+          <Text align='center' size='sm' color='dimmed'>
             {renderer.time}
           </Text>
         }
@@ -163,7 +165,9 @@ const Renderers = () => {
   const getRenderer = (id:number) => {
     return renderers.find((renderer) => renderer.id === id);
   }
+
   const rendererControlled = getRenderer(controlId);
+
   const rendererControls = (rendererControlled !== undefined && (
     <Drawer
       size='full'
@@ -172,35 +176,52 @@ const Renderers = () => {
       title={rendererControlled.name}
     >
       <Stack>
-      {((rendererControlled.controls & 1) === 1) &&
-        <Group spacing='xs' grow mt='md'>
-          <ActionIcon style={{flexGrow:'unset'}} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
-            {rendererControlled.state.mute ?
-              <VolumeOff/>
+        {!rendererControlled.isActive &&
+          <Text align='center' color='red'>{i18n.get['RendererNoLongerControllable']}</Text>
+        }
+        {rendererControlled.isActive && rendererControlled.playing && (<>
+          <Text align='center' color='blue'>{rendererControlled.playing}</Text>
+          <Text align='center'>{rendererControlled.time}</Text>
+        </>)}
+        {((rendererControlled.controls & 1) === 1) && rendererControlled.isActive &&
+          <Group spacing='xs' grow mt='md'>
+            <ActionIcon style={{flexGrow:'unset'}} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
+              {rendererControlled.state.mute ?
+                <VolumeOff/>
+              :
+                <Volume/>
+              }
+            </ActionIcon>
+            <Slider labelAlwaysOn mt='lg' style={{maxWidth:'unset', marginInlineEnd:'10px'}}
+              defaultValue={rendererControlled.state.volume}
+              onChangeEnd={(value: number) => sendRendererControl(rendererControlled.id, 'volume', value)}
+            />
+          </Group>
+        }
+        {((rendererControlled.controls & 2) === 2) && rendererControlled.isActive &&
+          <Group position='center'>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack/></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
+            {rendererControlled.state.playback===1 ?
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause/></ActionIcon>
             :
-              <Volume/>
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay/></ActionIcon>
             }
-          </ActionIcon>
-          <Slider labelAlwaysOn mt='lg' style={{maxWidth:'unset', marginInlineEnd:'10px'}}
-            defaultValue={rendererControlled.state.volume}
-            onChangeEnd={(value: number) => sendRendererControl(rendererControlled.id, 'volume', value)}
-          />
-        </Group>
-      }
-      {((rendererControlled.controls & 2) === 2) &&
-        <Group position="center">
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
-          {rendererControlled.state.playback===1 ?
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause/></ActionIcon>
-          :
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay/></ActionIcon>
-          }
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext/></ActionIcon>
-          <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward/></ActionIcon>
-        </Group>
-      }
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop/></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext/></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward/></ActionIcon>
+          </Group>
+        }
+        {rendererControlled.isActive && (<Group position='center'>
+          <MediaChooser
+            disabled={!canModify}
+            size="xs"
+            id={rendererControlled.id}
+            media={controlMedia}
+            callback={(value: Media|null) => setControlMedia(value)}
+          ></MediaChooser>
+          { controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><Cast/></ActionIcon> }
+        </Group>)}
       </Stack>
     </Drawer>
   ));
