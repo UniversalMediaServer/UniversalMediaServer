@@ -108,6 +108,14 @@ public class FileHandler implements HttpHandler {
 				String url = t.getRequestURI().getQuery();
 				if (url != null) {
 					url = url.substring(2);
+					URL testUrl = new URL(url);
+					//do not allow system file or other protocol and block proxy for all websites other than required (opensubtitles)
+					if ((!"http".equals(testUrl.getProtocol()) && !"https".equals(testUrl.getProtocol())) ||
+						(!"www.opensubtitles.org".equals(testUrl.getHost()) || !"rest.opensubtitles.org".equals(testUrl.getHost()))
+						) {
+						WebInterfaceServerUtil.respond(t, response, status, mime);
+						return;
+					}
 				}
 
 				InputStream in;
