@@ -219,6 +219,7 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
 	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
+	RMDir /R /REBOOTOK "$INSTDIR\web\react-client\static"
 
 	${If} ${RunningX64}
 		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x64"
