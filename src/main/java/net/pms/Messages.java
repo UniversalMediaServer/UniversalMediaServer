@@ -133,7 +133,10 @@ public class Messages {
 	}
 
 	public static JsonObject getStringsAsJsonObject(Locale locale) {
-		ResourceBundle rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		ResourceBundle rb = null;
+		if (locale != null && !isRootEnglish(locale)) {
+			rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		}
 		if (rb == null) {
 			rb = ROOT_RESOURCE_BUNDLE;
 		}
@@ -178,7 +181,8 @@ public class Messages {
 	 * ResourceBundle default behavior</a> for more information about the
 	 * selection process.<br><br>
 	 *
-	 * For parameter and return value see {@link #getString(String)}
+	 * @param key the key for the desired string
+	 * @return the string for the given key from root (neutral)
 	 */
 	@Nonnull
 	public static String getRootString(String key) {
