@@ -46,7 +46,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.io.BasicSystemUtils;
-import net.pms.io.WindowsNamedPipe;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -645,7 +644,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	public void quit() {
-		WindowsNamedPipe.setLoop(false);
 		windowProperties.dispose();
 		try {
 			Thread.sleep(100);
@@ -653,7 +651,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			LOGGER.error("Interrupted during shutdown: {}", e);
 		}
 
-		System.exit(0);
+		PMS.quit();
 	}
 
 	@Override
