@@ -650,63 +650,7 @@ public class PMS {
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
-				try {
-					//Stop network scanner
-					NetworkConfiguration.stop();
-
-					LOGGER.debug("Shutting down the media server");
-					MediaServer.stop();
-					Thread.sleep(500);
-
-					LOGGER.debug("Shutting down all active processes");
-
-					if (Services.processManager() != null) {
-						Services.processManager().stop();
-					}
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
-						}
-					}
-				} catch (InterruptedException e) {
-					LOGGER.debug("Interrupted while shutting down..");
-					LOGGER.trace("", e);
-				}
-
-				// Destroy services
-				Services.destroy();
-
-				LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-				/**
-				 * Stopping logging gracefully (flushing logs)
-				 * No logging is available after this point
-				 */
-				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-				if (iLoggerContext instanceof LoggerContext) {
-					((LoggerContext) iLoggerContext).stop();
-				} else {
-					LOGGER.error("Unable to shut down logging gracefully");
-					System.err.println("Unable to shut down logging gracefully");
-				}
-
-				// Shut down library scanner
-				if (getConfiguration().getUseCache()) {
-					if (LibraryScanner.isScanLibraryRunning()) {
-						LOGGER.debug("LibraryScanner is still running, attempting to stop it");
-						LibraryScanner.stopScanLibrary();
-					} else {
-						LOGGER.debug("LibraryScanner already stopped");
-					}
-				}
-
-				if (MediaDatabase.isInstantiated()) {
-					LOGGER.debug("Shutting down database");
-					MediaDatabase.shutdown();
-					MediaDatabase.createDatabaseReportIfNeeded();
-				}
+				shutdown();
 			}
 		});
 
@@ -1149,6 +1093,79 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Shutdown the currently running Universal Media Server.
+	 */
+	public static void shutdown() {
+		try {
+			if (Platform.isWindows()) {
+				WindowsNamedPipe.setLoop(false);
+			}
+			//Stop network scanner
+			NetworkConfiguration.stop();
+
+			LOGGER.debug("Shutting down the media server");
+			MediaServer.stop();
+			Thread.sleep(500);
+
+			LOGGER.debug("Shutting down all active processes");
+
+			if (Services.processManager() != null) {
+				Services.processManager().stop();
+			}
+			for (Process p : get().currentProcesses) {
+				try {
+					p.exitValue();
+				} catch (IllegalThreadStateException ise) {
+					LOGGER.trace("Forcing shutdown of process: " + p);
+					ProcessUtil.destroy(p);
+				}
+			}
+		} catch (InterruptedException e) {
+			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.trace("", e);
+		}
+
+		// Destroy services
+		Services.destroy();
+
+		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		/**
+		 * Stopping logging gracefully (flushing logs)
+		 * No logging is available after this point
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext) {
+			((LoggerContext) iLoggerContext).stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
+		}
+
+		// Shut down library scanner
+		if (getConfiguration().getUseCache()) {
+			if (LibraryScanner.isScanLibraryRunning()) {
+				LOGGER.debug("LibraryScanner is still running, attempting to stop it");
+				LibraryScanner.stopScanLibrary();
+			} else {
+				LOGGER.debug("LibraryScanner already stopped");
+			}
+		}
+
+		if (MediaDatabase.isInstantiated()) {
+			LOGGER.debug("Shutting down database");
+			MediaDatabase.shutdown();
+			MediaDatabase.createDatabaseReportIfNeeded();
+		}
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**

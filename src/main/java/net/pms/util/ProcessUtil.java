@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -278,8 +279,8 @@ public class ProcessUtil {
 
 	// Shutdown UMS and either reboot or run the given command (e.g. a script to
 	// restart UMS)
-	public static void reboot(ArrayList<String> cmd, Map<String, String> env, String startdir, String... umsOptions) {
-		final ArrayList<String> reboot;
+	public static void reboot(List<String> cmd, Map<String, String> env, String startdir, String... umsOptions) {
+		final List<String> reboot;
 		String macAppPath = null;
 		if (Platform.isMac()) {
 			String libraryPath = ManagementFactory.getRuntimeMXBean().getLibraryPath();
@@ -323,31 +324,30 @@ public class ProcessUtil {
 			startdir = System.getProperty("user.dir");
 		}
 
-		System.out.println("Starting: " + StringUtils.join(cmd, " "));
-
 		final ProcessBuilder pb = new ProcessBuilder(cmd);
 		if (env != null) {
 			pb.environment().putAll(env);
 		}
 		pb.directory(new File(startdir));
-		System.out.println("In folder: " + pb.directory());
 		try {
+			LOGGER.info("Starting: " + StringUtils.join(cmd, " "));
+			LOGGER.info("In folder: " + pb.directory());
+			PMS.shutdown();
 			pb.start();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
-		System.exit(0);
+		PMS.quit();
 	}
 
 	// Reconstruct the command that started this jvm, including all options.
 	// See
 	// http://stackoverflow.com/questions/4159802/how-can-i-restart-a-java-application
 	// http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
-	public static ArrayList<String> getUMSCommand() {
-		ArrayList<String> reboot = new ArrayList<>();
+	public static List<String> getUMSCommand() {
+		List<String> reboot = new ArrayList<>();
 		File jvmPath = new File(System.getProperty("java.home"));
-		String jvmExecutableName = Platform.isWindows() && System.console() == null ? "javaw" : "java";
+		String jvmExecutableName = Platform.isWindows() && System.console() == null ? "javaw.exe" : "java";
 		File jvmExecutable = new File(jvmPath, jvmExecutableName);
 		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
 			jvmPath = new File(jvmPath, "bin");
