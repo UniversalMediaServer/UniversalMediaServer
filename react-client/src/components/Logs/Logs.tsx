@@ -134,7 +134,7 @@ const Logs = () => {
     }
     const logsTemp = logs.filter(filterLogLevel).filter(filterLogThread);
     setFilteredLogs(logsTemp);
-  }, [logs, logLevel, logLevelFilter, logThreadFilter]);
+  }, [logs, logLevel, logLevelFilter, logThreadFilter, fileMode]);
 
   const handleSearchSubmit = (values: SearchValue) => {
     if (logSearchFilter.search !== values.search || logSearchFilter.search !== values.search || logSearchFilter.search !== values.search) {
