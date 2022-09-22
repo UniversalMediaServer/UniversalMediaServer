@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	//Should be CONFIGURATION.getGuiServerPort()
+	//TODO :Should be CONFIGURATION.getGuiServerPort()
 	public static final int DEFAULT_PORT = 9002;
 
 	public abstract Object getServer();

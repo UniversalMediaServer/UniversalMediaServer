@@ -152,17 +152,6 @@ public class UserDatabase extends Database {
 	}
 
 	/**
-	 * Create the database report.
-	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
-	 * converted to the "logging_report.txt" in the database directory.
-	 */
-	public static void createReport() {
-		if (instance != null) {
-			instance.createDatabaseReport();
-		}
-	}
-
-	/**
 	 * Shutdown the UserDatabase database.
 	 */
 	public static synchronized void shutdown() {
@@ -171,4 +160,9 @@ public class UserDatabase extends Database {
 		}
 	}
 
+	public static synchronized void createDatabaseReportIfNeeded() {
+		if (instance != null && instance.isEmbedded()) {
+			instance.createDatabaseReport();
+		}
+	}
 }

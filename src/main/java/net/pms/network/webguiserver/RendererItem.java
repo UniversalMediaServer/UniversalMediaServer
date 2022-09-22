@@ -321,11 +321,7 @@ public class RendererItem implements IRendererGuiListener {
 						JsonObject children = new JsonObject();
 						children.addProperty("value", resource.getResourceId());
 						children.addProperty("label", resource.getName());
-						if (resource.isFolder()) {
-							children.addProperty("browsable", true);
-						} else {
-							children.addProperty("browsable", false);
-						}
+						children.addProperty("browsable", resource.isFolder());
 						childrens.add(children);
 					}
 				}
