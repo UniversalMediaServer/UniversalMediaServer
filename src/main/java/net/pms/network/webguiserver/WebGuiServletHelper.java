@@ -115,7 +115,7 @@ public class WebGuiServletHelper {
 		for (String headerName : resp.getHeaderNames()) {
 			for (String headerValue : resp.getHeaders(headerName)) {
 				header.append("  ").append(headerName).append(": ").append(headerValue).append("\n");
-				if (!chunked && headerValue.equals("chunked") && headerName.toLowerCase().equals("transfer-encoding")) {
+				if (!chunked && headerValue.equals("chunked") && headerName.equalsIgnoreCase("transfer-encoding")) {
 					chunked = true;
 				}
 			}

@@ -91,10 +91,10 @@ import org.slf4j.LoggerFactory;
 
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
-	private static final String NATIVELOOK = "nativelook";
-	private static final String CONSOLE = "console";
-	private static final String HEADLESS = "headless";
-	private static final String NOCONSOLE = "noconsole";
+	private static final String NATIVELOOK_ARG = "nativelook";
+	private static final String CONSOLE_ARG = "console";
+	private static final String HEADLESS_ARG = "headless";
+	private static final String NOCONSOLE_ARG = "noconsole";
 	private static final String PROFILES = "profiles";
 	private static final String PROFILE = "^(?i)profile(?::|=)([^\"*<>?]+)$";
 	private static final String TRACE = "trace";
@@ -139,7 +139,7 @@ public class PMS {
 	 * realtime task to finish, and then immediately unlock, to prevent
 	 * blocking the next realtime task from starting.
 	 */
-	public final static Lock REALTIME_LOCK = new ReentrantLock();
+	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Returns the root folder for a given renderer. There could be the case
@@ -238,7 +238,7 @@ public class PMS {
 	 */
 	private String serverName;
 
-	public ArrayList<Process> currentProcesses = new ArrayList<>();
+	public List<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
 	}
@@ -308,7 +308,7 @@ public class PMS {
 		if (lfps != null && !lfps.isEmpty()) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
-				if (entry.getKey().toLowerCase().equals("default.log")) {
+				if (entry.getKey().equalsIgnoreCase("default.log")) {
 					LOGGER.info("Logfile: {}", entry.getValue());
 				} else {
 					LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
@@ -687,72 +687,7 @@ public class PMS {
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
-				try {
-					if (Platform.isWindows()) {
-						WindowsNamedPipe.setLoop(false);
-					}
-					//Stop network scanner
-					NetworkConfiguration.stop();
-
-					LOGGER.debug("Shutting down the media server");
-					MediaServer.stop();
-					Thread.sleep(500);
-
-					LOGGER.debug("Shutting down all active processes");
-
-					if (Services.processManager() != null) {
-						Services.processManager().stop();
-					}
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
-						}
-					}
-				} catch (InterruptedException e) {
-					LOGGER.debug("Interrupted while shutting down..");
-					LOGGER.trace("", e);
-				}
-
-				// Destroy services
-				Services.destroy();
-
-				LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-				/**
-				 * Stopping logging gracefully (flushing logs)
-				 * No logging is available after this point
-				 */
-				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-				if (iLoggerContext instanceof LoggerContext) {
-					((LoggerContext) iLoggerContext).stop();
-				} else {
-					LOGGER.error("Unable to shut down logging gracefully");
-					System.err.println("Unable to shut down logging gracefully");
-				}
-
-				// Shut down library scanner
-				if (getConfiguration().getUseCache()) {
-					if (LibraryScanner.isScanLibraryRunning()) {
-						LOGGER.debug("LibraryScanner is still running, attempting to stop it");
-						LibraryScanner.stopScanLibrary();
-					} else {
-						LOGGER.debug("LibraryScanner already stopped");
-					}
-				}
-
-				if (MediaDatabase.isInstantiated()) {
-					LOGGER.debug("Shutting down database");
-					MediaDatabase.shutdown();
-					MediaDatabase.createDatabaseReportIfNeeded();
-				}
-				if (UserDatabase.isInstantiated()) {
-					UserDatabase.shutdown();
-					if (configuration.getDatabaseLogging()) {
-						UserDatabase.createReport();
-					}
-				}
+				shutdown();
 			}
 		});
 
@@ -1020,10 +955,10 @@ public class PMS {
 		CacheLogger.startCaching();
 
 		// Set headless options if given as a system property when launching the JVM
-		if (System.getProperty(CONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+		if (System.getProperty(CONSOLE_ARG, "").equalsIgnoreCase(Boolean.toString(true))) {
 			forceHeadless();
 		}
-		if (System.getProperty(NOCONSOLE, "").equalsIgnoreCase(Boolean.toString(true))) {
+		if (System.getProperty(NOCONSOLE_ARG, "").equalsIgnoreCase(Boolean.toString(true))) {
 			denyHeadless = true;
 		}
 
@@ -1031,17 +966,17 @@ public class PMS {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg.trim().toLowerCase(Locale.ROOT)) {
-					case HEADLESS:
-					case CONSOLE:
+					case HEADLESS_ARG:
+					case CONSOLE_ARG:
 						forceHeadless();
 						break;
-					case NATIVELOOK:
-						System.setProperty(NATIVELOOK, Boolean.toString(true));
+					case NATIVELOOK_ARG:
+						System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
 						break;
 					case SCROLLBARS:
 						System.setProperty(SCROLLBARS, Boolean.toString(true));
 						break;
-					case NOCONSOLE:
+					case NOCONSOLE_ARG:
 						denyHeadless = true;
 						break;
 					case PROFILES:
@@ -1228,7 +1163,7 @@ public class PMS {
 	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
 	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
+		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1258,6 +1193,77 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Shutdown the currently running Universal Media Server.
+	 */
+	public static void shutdown() {
+		try {
+			if (Platform.isWindows()) {
+				WindowsNamedPipe.setLoop(false);
+			}
+			//Stop network scanner
+			NetworkConfiguration.stop();
+
+			LOGGER.debug("Shutting down the media server");
+			MediaServer.stop();
+			Thread.sleep(500);
+
+			LOGGER.debug("Shutting down all active processes");
+
+			if (Services.processManager() != null) {
+				Services.processManager().stop();
+			}
+			for (Process p : get().currentProcesses) {
+				try {
+					p.exitValue();
+				} catch (IllegalThreadStateException ise) {
+					LOGGER.trace("Forcing shutdown of process: " + p);
+					ProcessUtil.destroy(p);
+				}
+			}
+		} catch (InterruptedException e) {
+			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.trace("", e);
+		}
+
+		// Destroy services
+		Services.destroy();
+
+		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		/**
+		 * Stopping logging gracefully (flushing logs)
+		 * No logging is available after this point
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext) {
+			((LoggerContext) iLoggerContext).stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
+		}
+
+		// Shut down library scanner
+		if (getConfiguration().getUseCache()) {
+			if (LibraryScanner.isScanLibraryRunning()) {
+				LOGGER.debug("LibraryScanner is still running, attempting to stop it");
+				LibraryScanner.stopScanLibrary();
+			} else {
+				LOGGER.debug("LibraryScanner already stopped");
+			}
+		}
+
+		if (MediaDatabase.isInstantiated()) {
+			LOGGER.debug("Shutting down media database");
+			MediaDatabase.shutdown();
+			MediaDatabase.createDatabaseReportIfNeeded();
+		}
+		if (UserDatabase.isInstantiated()) {
+			LOGGER.debug("Shutting down user database");
+			UserDatabase.shutdown();
+			UserDatabase.createDatabaseReportIfNeeded();
+		}
 	}
 
 	/**
@@ -1329,7 +1335,7 @@ public class PMS {
 		}
 
 		// remove all " and convert to common case before splitting result on ,
-		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		String[] tmp = line.toLowerCase().replace("\"", "").split(",");
 		// if the line is too short we don't kill the process
 		if (tmp.length < 9) {
 			return false;
