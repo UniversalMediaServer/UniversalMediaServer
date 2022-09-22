@@ -5019,13 +5019,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private void setMetadataFromFileName(File file) {
 		String absolutePath = file.getAbsolutePath();
 		if (
-			file != null &&
 			absolutePath != null &&
-			(
-				Platform.isMac() &&
-				// skip metadata extraction and API lookups for live photos (little MP4s) backed up from iPhones
-				absolutePath.contains("Photos Library.photoslibrary")
-			)
+			Platform.isMac() &&
+			// skip metadata extraction and API lookups for live photos (little MP4s) backed up from iPhones
+			absolutePath.contains("Photos Library.photoslibrary")
 		) {
 			return;
 		}
