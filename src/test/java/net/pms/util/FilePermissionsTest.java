@@ -28,41 +28,41 @@ import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
 
 public class FilePermissionsTest {
 	private final Class<?> CLASS = FilePermissionsTest.class;
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
 	@Test
 	public void throwsIllegalArgumentExceptionIfFileIsNull() throws FileNotFoundException {
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("file cannot be null");
-		File file = null;
-		new FilePermissions(file);
+		IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			File file = null;
+			new FilePermissions(file);
+		}, "IllegalArgumentException was expected");
+		Assertions.assertEquals("file cannot be null", thrown.getMessage());
 	}
 
 	public void throwsIllegalArgumentExceptionIfPathIsNull() throws FileNotFoundException {
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("File argument cannot be null");
-		Path path = null;
-		new FilePermissions(path);
+		IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			Path path = null;
+			new FilePermissions(path);
+		}, "IllegalArgumentException was expected");
+		Assertions.assertEquals("File argument cannot be null", thrown.getMessage());
 	}
 
 	@Test
 	public void throwsFileNotFoundExceptionIfFileDoesNotExist() throws FileNotFoundException {
-		exception.expect(FileNotFoundException.class);
-		new FilePermissions(new File("No such file"));
+		Assertions.assertThrows(FileNotFoundException.class, () -> {
+			new FilePermissions(new File("No such file"));
+		}, "FileNotFoundException was expected");
 	}
 
 	@Test
 	public void throwsFileNotFoundExceptionIfPathDoesNotExist() throws FileNotFoundException {
-		exception.expect(FileNotFoundException.class);
-		new FilePermissions(Paths.get("No such file"));
+		Assertions.assertThrows(FileNotFoundException.class, () -> {
+			new FilePermissions(Paths.get("No such file"));
+		}, "FileNotFoundException was expected");
 	}
 
 	@Test

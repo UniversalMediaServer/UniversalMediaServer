@@ -109,7 +109,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			BasicSystemUtils.instance.browseURI(Build.getReleasesPageUrl());
+			BasicSystemUtils.INSTANCE.browseURI(Build.getReleasesPageUrl());
 		}
 
 		@Override

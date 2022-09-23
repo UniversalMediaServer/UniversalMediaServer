@@ -23,7 +23,7 @@ import java.io.IOException;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +32,9 @@ public class PollHandler implements HttpHandler {
 	@SuppressWarnings("unused")
 	private static final String CRLF = "\r\n";
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public PollHandler(WebInterfaceServerHttpServer parent) {
+	public PollHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

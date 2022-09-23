@@ -204,17 +204,11 @@ public class BasicThreadFactory implements ThreadFactory {
 
 	@Override
 	public Thread newThread(Runnable runnable) {
-		String threadName;
-		switch (numVariables) {
-			case 0:
-				threadName = namePattern;
-				break;
-			case 1:
-				threadName = String.format(Locale.ROOT, namePattern, threadNumber.getAndIncrement());
-				break;
-			default:
-				threadName = String.format(Locale.ROOT, namePattern, instancePoolNumber, threadNumber.getAndIncrement());
-		}
+		String threadName = switch (numVariables) {
+			case 0 -> namePattern;
+			case 1 -> String.format(Locale.ROOT, namePattern, threadNumber.getAndIncrement());
+			default -> String.format(Locale.ROOT, namePattern, instancePoolNumber, threadNumber.getAndIncrement());
+		};
 		Thread thread = new Thread(
 			group,
 			runnable,

@@ -133,7 +133,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// VLC
-		Path vlcPath = BasicSystemUtils.instance.getVlcPath();
+		Path vlcPath = BasicSystemUtils.INSTANCE.getVlcPath();
 		if (vlcPath == null || !Files.exists(vlcPath)) {
 			vlcPath = FileUtil.findExecutableInOSPath(Paths.get("vlc.exe"));
 		}

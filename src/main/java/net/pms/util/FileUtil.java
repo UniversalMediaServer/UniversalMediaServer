@@ -2288,7 +2288,7 @@ public class FileUtil {
 			}
 
 			if (Platform.isWindows()) {
-				Double version = BasicSystemUtils.instance.getWindowsVersion();
+				Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 				if (version == null) {
 					LOGGER.error(
 						"Could not determine Windows version from {}. Administrator privileges is undetermined.",

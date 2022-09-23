@@ -36,7 +36,7 @@ import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.util.FullyPlayed;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +44,10 @@ public class ThumbHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
 
-	public ThumbHandler(WebInterfaceServerHttpServer parent) {
+	public ThumbHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

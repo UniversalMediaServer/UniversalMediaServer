@@ -173,7 +173,7 @@ public class AboutTab {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			BasicSystemUtils.instance.browseURI(link);
+			BasicSystemUtils.INSTANCE.browseURI(link);
 		}
 
 		@Override

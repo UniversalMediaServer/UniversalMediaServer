@@ -14,14 +14,14 @@ function UserMenu() {
   return (
     <Menu>
       <Menu.Target>
-        <ActionIcon variant="default" size={30}>
+        <ActionIcon variant='default' size={30}>
           <Menu2 size={16} />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
       {!session.player && 
         <Menu.Item
-          color="green"
+          color='green'
           icon={<Home size={14} />}
           onClick={() => { window.location.href = '/'; }}
         >
@@ -30,13 +30,22 @@ function UserMenu() {
       }
       {havePermission(session, Permissions.web_player_browse) && (
         <Menu.Item
-          color="blue"
+          color='blue'
           icon={<PlayerPlay size={14} />}
           onClick={() => { window.location.href = '/player'; }}
         >
           {i18n.getI18nString("Player")}
         </Menu.Item>
       )}
+      {session.player &&
+        <Menu.Item
+          color='orange'
+          icon={<PlayerPlay size={14} />}
+          onClick={() => { window.location.href = '/oldplayer'; }}
+        >
+          {i18n.getI18nString('Player') + ' (old)'}
+        </Menu.Item>
+      }
       {!session.player && <>
         <Menu.Divider />
         <Menu.Label>{i18n.get['Settings']}</Menu.Label>
@@ -65,7 +74,7 @@ function UserMenu() {
       </>}
       <Menu.Divider />
       <Menu.Item
-        color="yellow"
+        color='yellow'
         icon={<InfoCircle size={14} />}
         onClick={() => { window.location.href = '/about'; }}
       >
@@ -73,7 +82,7 @@ function UserMenu() {
       </Menu.Item>
       {session.authenticate && session.account?.user.id !== 2147483647 && (
         <Menu.Item
-          color="red"
+          color='red'
           icon={<Logout size={14} />}
           onClick={() => {
             redirectToLogin();

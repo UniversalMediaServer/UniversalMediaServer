@@ -170,7 +170,7 @@ public class SpeedStats {
 			OutputParams op = new OutputParams(null);
 			op.setLog(true);
 			op.setMaxBufferSize(1);
-			SystemUtils sysUtil = BasicSystemUtils.instance;
+			SystemUtils sysUtil = BasicSystemUtils.INSTANCE;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
 			Runnable r = () -> {
 				UMSUtils.sleep(3000);

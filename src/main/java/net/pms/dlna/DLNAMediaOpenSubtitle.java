@@ -39,7 +39,7 @@ import net.pms.util.StringUtil.LetterCase;
  *
  * @author Nadahar
  */
-public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
+public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle implements AutoCloseable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
 
@@ -316,8 +316,16 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	public void close() throws Exception {
 		deleteLiveSubtitlesFile();
-		super.finalize();
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
 	}
 }

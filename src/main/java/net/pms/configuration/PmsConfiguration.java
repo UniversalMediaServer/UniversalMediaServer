@@ -288,7 +288,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL = "playlist_auto_add_all";
 	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
 	protected static final String KEY_PLAYLIST_AUTO_PLAY = "playlist_auto_play";
-	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
@@ -368,7 +367,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
-	protected static final String KEY_WEB_ENABLE = "web_enable";
+	protected static final String KEY_WEB_PLAYER_ENABLE = "web_enable";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	protected static final String KEY_WEB_HEIGHT = "web_height";
@@ -442,8 +441,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * due to a configuration change.
 	 */
 	public static final Set<String> NEED_INTERFACE_SERVER_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(
-			KEY_WEB_ENABLE,
+		Arrays.asList(KEY_WEB_PLAYER_ENABLE,
 			KEY_WEB_HTTPS,
 			KEY_WEB_PORT
 		)
@@ -4337,14 +4335,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_WEB_CONF_PATH, webConfPath);
 	}
 
-	public String getPluginDirectory() {
-		return getString(KEY_PLUGIN_DIRECTORY, "plugins");
-	}
-
-	public void setPluginDirectory(String value) {
-		configuration.setProperty(KEY_PLUGIN_DIRECTORY, value);
-	}
-
 	public String getProfileName() {
 		if (hostName == null) { // Initialise this lazily
 			try {
@@ -4408,10 +4398,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getScriptDir() {
 		return getString(KEY_SCRIPT_DIR, null);
-	}
-
-	public String getPluginPurgeAction() {
-		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
 	}
 
 	public boolean getSearchFolder() {
@@ -4928,7 +4914,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			return getBoolean(KEY_NO_FOLDERS, false);
 		}
 
-		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		String x = (tag.toLowerCase() + ".no_shared").replace(" ", "_");
 		return getBoolean(x, false);
 	}
 
@@ -4987,12 +4973,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Default port for the web player server.
 	 * @return the port that will be used for the web player server.
 	 */
-	public int getWebInterfaceServerPort() {
+	public int getWebPlayerServerPort() {
 		return getInt(KEY_WEB_PORT, 9001);
 	}
 
-	public boolean useWebInterfaceServer() {
-		return getBoolean(KEY_WEB_ENABLE, true);
+	public boolean useWebPlayerServer() {
+		return getBoolean(KEY_WEB_PLAYER_ENABLE, true);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {

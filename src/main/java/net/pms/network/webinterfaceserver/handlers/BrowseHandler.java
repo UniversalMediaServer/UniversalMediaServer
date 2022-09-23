@@ -42,7 +42,7 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,9 +52,9 @@ public class BrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public BrowseHandler(WebInterfaceServerHttpServer parent) {
+	public BrowseHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

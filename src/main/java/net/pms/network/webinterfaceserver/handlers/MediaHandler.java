@@ -35,31 +35,31 @@ import net.pms.encoders.StandardPlayerId;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 	private final String path;
 	private final RendererConfiguration renderer;
 	private final boolean flash;
 
-	public MediaHandler(WebInterfaceServerHttpServer parent) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent) {
 		this(parent, "media/", null, false);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, boolean flash) {
 		this(parent, "fmedia/", null, flash);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, RendererConfiguration renderer) {
 		this(parent, path, renderer, false);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, RendererConfiguration renderer, boolean flash) {
 		this.parent = parent;
 		this.path = path;
 		this.renderer = renderer;

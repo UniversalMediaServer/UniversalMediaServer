@@ -400,7 +400,7 @@ public class LanguageSelection {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 					boolean error;
 					if (Desktop.isDesktopSupported()) {
-						error = !BasicSystemUtils.instance.browseURI(e.getDescription());
+						error = !BasicSystemUtils.INSTANCE.browseURI(e.getDescription());
 					} else {
 						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
 						error = true;

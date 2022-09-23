@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -51,7 +52,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.HttpUtils;
 import javax.servlet.http.Part;
 import net.pms.PMS;
 import org.apache.commons.io.IOUtils;
@@ -59,7 +59,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class HttpExchangeServletRequest implements HttpServletRequest {
 
-	private final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 	private final HttpExchange exchange;
 	private final HttpServlet servlet;
 
@@ -451,6 +451,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
+	@Deprecated
 	public boolean isRequestedSessionIdFromUrl() {
 		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
 	}
@@ -523,7 +524,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	private void parseQueryParameters() {
 		try {
-			parameters.putAll(HttpUtils.parseQueryString(exchange.getRequestURI().getQuery()));
+			parameters.putAll(parseQueryString(exchange.getRequestURI().getQuery()));
 		} catch (IllegalArgumentException e) {
 		}
 	}
@@ -531,7 +532,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	private void parsePostParameters() {
 		try {
 			String postData = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-			parameters.putAll(HttpUtils.parseQueryString(postData));
+			parameters.putAll(parseQueryString(postData));
 		} catch (IOException | IllegalArgumentException e) {
 		}
 	}
@@ -619,5 +620,70 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 		for (Entry<Locale, Float> entry : listOfEntries) {
 			locales.add(entry.getKey());
 		}
+	}
+
+	private static Map<String, String[]> parseQueryString(String s) {
+		String[] valArray;
+		if (s == null) {
+			throw new IllegalArgumentException();
+		}
+
+		Map<String, String[]> ht = new HashMap<>();
+		StringBuilder sb = new StringBuilder();
+		StringTokenizer st = new StringTokenizer(s, "&");
+		while (st.hasMoreTokens()) {
+			String pair = st.nextToken();
+			int pos = pair.indexOf('=');
+			if (pos == -1) {
+				// XXX
+				// should give more detail about the illegal argument
+				throw new IllegalArgumentException();
+			}
+			String key = parseName(pair.substring(0, pos), sb);
+			String val = parseName(pair.substring(pos + 1, pair.length()), sb);
+			if (ht.containsKey(key)) {
+				String[] oldVals = ht.get(key);
+				valArray = new String[oldVals.length + 1];
+				System.arraycopy(oldVals, 0, valArray, 0, oldVals.length);
+				valArray[oldVals.length] = val;
+			} else {
+				valArray = new String[1];
+				valArray[0] = val;
+			}
+			ht.put(key, valArray);
+		}
+
+		return ht;
+	}
+
+	/*
+	 * Parse a name in the query string.
+	 */
+	private static String parseName(String s, StringBuilder sb) {
+		sb.setLength(0);
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			switch (c) {
+				case '+' -> sb.append(' ');
+				case '%' -> {
+					try {
+						sb.append((char) Integer.parseInt(s.substring(i + 1, i + 3), 16));
+						i += 2;
+					} catch (NumberFormatException e) {
+						// XXX
+						// need to be more specific about illegal arg
+						throw new IllegalArgumentException();
+					} catch (StringIndexOutOfBoundsException e) {
+						String rest = s.substring(i);
+						sb.append(rest);
+						if (rest.length() == 2) {
+							i++;
+						}
+					}
+				}
+				default -> sb.append(c);
+			}
+		}
+		return sb.toString();
 	}
 }
