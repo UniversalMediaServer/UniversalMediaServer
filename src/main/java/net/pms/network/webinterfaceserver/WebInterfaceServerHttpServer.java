@@ -64,7 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface {
+public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface, WebInterfaceServerHttpServerInterface {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerHttpServer.class);
 	private KeyStore keyStore;
@@ -177,10 +177,12 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 		return httpsServer;
 	}
 
+	@Override
 	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
 		return getRoot(user, false, t);
 	}
 
+	@Override
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = WebInterfaceServerUtil.getCookie("UMS", t);
 		boolean setCookie = false;

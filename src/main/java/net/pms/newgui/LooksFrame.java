@@ -157,7 +157,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void enableWebUiButton() {
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface.setEnabled(true);
 		}
 	}
@@ -471,7 +471,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			setExtendedState(JFrame.ICONIFIED);
 		}
 
-		BasicSystemUtils.instance.addSystemTray(this);
+		BasicSystemUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
@@ -487,23 +487,23 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 		toolBar.add(new JPanel());
 
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					String error = null;
-					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
+					if (PMS.get().getWebPlayerServer() != null && isNotBlank(PMS.get().getWebPlayerServer().getUrl())) {
 						try {
-							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
+							URI uri = new URI(PMS.get().getWebPlayerServer().getUrl());
+							if (!BasicSystemUtils.INSTANCE.browseURI(uri.toString())) {
 								error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 							}
 						} catch (URISyntaxException se) {
 							LOGGER.error(
 								"Could not form a valid web player server URI from \"{}\": {}",
-								PMS.get().getWebInterfaceServer().getUrl(),
+								PMS.get().getWebPlayerServer().getUrl(),
 								se.getMessage()
 							);
 							LOGGER.trace("", se);
@@ -780,8 +780,8 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		} else {
 			st.setMediaServerBind("-");
 		}
-		if (PMS.get().getWebInterfaceServer() != null) {
-			st.setInterfaceServerBind(PMS.get().getWebInterfaceServer().getAddress());
+		if (PMS.get().getWebPlayerServer() != null) {
+			st.setInterfaceServerBind(PMS.get().getWebPlayerServer().getAddress());
 		} else {
 			st.setInterfaceServerBind("-");
 		}

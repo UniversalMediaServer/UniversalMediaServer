@@ -18,11 +18,22 @@
 package net.pms.network.webplayerserver;
 
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executors;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletException;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
@@ -30,7 +41,9 @@ import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.WebPlayerServlet;
+import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
+import net.pms.util.FileUtil;
 
 @SuppressWarnings("restriction")
 public class WebPlayerServerHttpServer extends WebPlayerServer {
@@ -48,11 +61,30 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 
 		// Setup the socket address
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
-
-		try {
-			server = HttpServer.create(address, 0);
-		} catch (IOException e) {
-			LOGGER.error("Failed to start web graphical user interface server : {}", e.getMessage());
+		// Initialize the HTTP(S) server
+		if (CONFIGURATION.getWebHttps()) {
+			try {
+				server = httpsServer(address);
+			} catch (IOException e) {
+				LOGGER.error("Failed to start web player server on HTTPS: {}", e.getMessage());
+				LOGGER.trace("", e);
+				if (e.getMessage().contains("UMS.jks")) {
+					LOGGER.info(
+							"To enable HTTPS please generate a self-signed keystore file " +
+							"called \"UMS.jks\" with password \"umsums\" using the java " +
+							"'keytool' commandline utility, and place it in the profile folder"
+					);
+				}
+			} catch (GeneralSecurityException e) {
+				LOGGER.error("Failed to start web player server on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		} else {
+			try {
+				server = HttpServer.create(address, 0);
+			} catch (IOException e) {
+				LOGGER.error("Failed to start web player server : {}", e.getMessage());
+			}
 		}
 
 		if (server != null) {
@@ -67,6 +99,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
+			OldPlayerServer.plug(server);
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		}
@@ -109,6 +142,49 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 		if (server != null) {
 			server.stop(0);
 		}
+	}
+
+	private static HttpServer httpsServer(InetSocketAddress address) throws IOException, GeneralSecurityException {
+		// Initialize the keystore
+		char[] password = "umsums".toCharArray();
+		KeyStore keyStore = KeyStore.getInstance("JKS");
+		try (FileInputStream fis = new FileInputStream(FileUtil.appendPathSeparator(CONFIGURATION.getProfileDirectory()) + "UMS.jks")) {
+			keyStore.load(fis, password);
+		}
+
+		// Setup the key manager factory
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		keyManagerFactory.init(keyStore, password);
+
+		// Setup the trust manager factory
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		trustManagerFactory.init(keyStore);
+
+		HttpsServer httpsServer = HttpsServer.create(address, 0);
+		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+
+		httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+
+			@Override
+			public void configure(HttpsParameters params) {
+				try {
+					// initialise the SSL context
+					SSLContext c = SSLContext.getDefault();
+					SSLEngine engine = c.createSSLEngine();
+					params.setNeedClientAuth(true);
+					params.setCipherSuites(engine.getEnabledCipherSuites());
+					params.setProtocols(engine.getEnabledProtocols());
+
+					// get the default parameters
+					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
+					params.setSSLParameters(defaultSSLParameters);
+				} catch (NoSuchAlgorithmException e) {
+					LOGGER.debug("https configure error  " + e);
+				}
+			}
+		});
+		return httpsServer;
 	}
 
 	public static WebPlayerServerHttpServer createServer(int port) throws IOException {

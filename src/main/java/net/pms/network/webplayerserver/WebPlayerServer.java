@@ -26,8 +26,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebPlayerServer {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	//Should be CONFIGURATION.getPlayerServerPort()
-	public static final int DEFAULT_PORT = 9003;
+	public static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 
 	public abstract Object getServer();
 	public abstract int getPort();

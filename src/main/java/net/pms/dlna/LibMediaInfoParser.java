@@ -115,7 +115,7 @@ public class LibMediaInfoParser {
 	public static synchronized void parse(DLNAMediaInfo media, InputFile inputFile, int type, RendererConfiguration renderer) {
 		File file = inputFile.getFile();
 		ParseLogger parseLogger = LOGGER.isTraceEnabled() ? new ParseLogger() : null;
-		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
+		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.openFile(file.getAbsolutePath()) > 0) {
 			StreamType general = StreamType.General;
 			StreamType video = StreamType.Video;
 			StreamType audio = StreamType.Audio;
@@ -610,7 +610,7 @@ public class LibMediaInfoParser {
 				LOGGER.trace("{}", parseLogger);
 			}
 
-			MI.Close();
+			MI.closeFile();
 			if (media.getContainer() == null) {
 				media.setContainer(DLNAMediaLang.UND);
 			}

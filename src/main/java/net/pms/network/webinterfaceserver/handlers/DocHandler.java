@@ -22,7 +22,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.util.HashMap;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 public class DocHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DocHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public DocHandler(final WebInterfaceServerHttpServer parent) {
+	public DocHandler(final WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

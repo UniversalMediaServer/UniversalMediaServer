@@ -28,7 +28,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.LibraryScanner;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.util.DbgPacker;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
@@ -38,9 +38,9 @@ public class ConsoleHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public ConsoleHandler(final WebInterfaceServerHttpServer parent) {
+	public ConsoleHandler(final WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 		// Make sure logs are available right away
 		getLogs(false);

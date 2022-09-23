@@ -18,8 +18,6 @@
 package net.pms.network.webinterfaceserver;
 
 import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -32,21 +30,21 @@ import org.slf4j.LoggerFactory;
 public abstract class WebInterfaceServer implements WebInterfaceServerInterface {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected static final int DEFAULT_PORT = CONFIGURATION.getWebInterfaceServerPort();
+	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
 
 	private WebInterfaceServerInterface webServer;
 
-	public WebInterfaceServer() throws IOException {
+	protected WebInterfaceServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
-		resources = AccessController.doPrivileged((PrivilegedAction<WebInterfaceServerUtil.ResourceManager>) () -> new WebInterfaceServerUtil.ResourceManager(
+		resources = new WebInterfaceServerUtil.ResourceManager(
 				"file:" + CONFIGURATION.getProfileDirectory() + "/web/",
 				"jar:file:" + CONFIGURATION.getProfileDirectory() + "/web.zip!/",
 				"file:" + CONFIGURATION.getWebPath() + "/"
-		));
+		);
 	}
 
 	public String getTag(String user) {

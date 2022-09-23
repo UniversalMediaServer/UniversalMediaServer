@@ -9,15 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
+import org.junit.jupiter.api.Assertions;
 
 public class PairTest {
-
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testPair() {
@@ -96,9 +91,10 @@ public class PairTest {
 
 	@Test
 	public void testImmutable() {
-		exception.expect(UnsupportedOperationException.class);
-		exception.expectMessage("Pair is immutable");
-		Pair<String, Double> pair = new Pair<>("Pair", Double.valueOf(99.9));
-		pair.setValue(Double.valueOf(20d));
+		UnsupportedOperationException thrown = Assertions.assertThrows(UnsupportedOperationException.class, () -> {
+			Pair<String, Double> pair = new Pair<>("Pair", Double.valueOf(99.9));
+			pair.setValue(Double.valueOf(20d));
+		}, "IllegalArgumentException was expected");
+		Assertions.assertEquals("Pair is immutable", thrown.getMessage());
 	}
 }

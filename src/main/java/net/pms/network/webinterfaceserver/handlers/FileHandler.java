@@ -39,8 +39,8 @@ import java.util.HashMap;
 import java.util.List;
 import net.pms.gui.GuiManager;
 import net.pms.network.HTTPResource;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +49,9 @@ public class FileHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public FileHandler(WebInterfaceServerHttpServer parent) {
+	public FileHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

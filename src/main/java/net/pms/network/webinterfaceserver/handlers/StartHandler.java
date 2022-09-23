@@ -26,7 +26,7 @@ import java.util.HashMap;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +35,9 @@ public class StartHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartHandler.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public StartHandler(WebInterfaceServerHttpServer parent) {
+	public StartHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

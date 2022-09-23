@@ -26,16 +26,16 @@ import net.pms.PMS;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EventStreamHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventStreamHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public EventStreamHandler(WebInterfaceServerHttpServer parent) {
+	public EventStreamHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

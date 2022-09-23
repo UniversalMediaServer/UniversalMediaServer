@@ -419,7 +419,7 @@ public class RootFolder extends DLNAResource {
 				// Lazy initialization
 				defaultFolders = new ArrayList<Path>();
 				if (Platform.isWindows()) {
-					Double version = BasicSystemUtils.instance.getWindowsVersion();
+					Double version = BasicSystemUtils.INSTANCE.getWindowsVersion();
 					if (version != null && version >= 6d) {
 						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
 							KnownFolders.FOLDERID_Music,

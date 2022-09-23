@@ -28,7 +28,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-public class HttpExchangeServletResponse implements HttpServletResponse {
+public class HttpExchangeServletResponse implements HttpServletResponse, AutoCloseable {
 
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 	private final HttpExchange exchange;
@@ -294,6 +294,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse {
 		}
 	}
 
+	@Override
 	public void close() {
 		if (!isCommitted()) {
 			try {
@@ -319,6 +320,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse {
 	}
 
 	@Override
+	@Deprecated
 	protected void finalize() throws Throwable {
 		try {
 			close();

@@ -39,16 +39,16 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RawHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public RawHandler(WebInterfaceServerHttpServer parent) {
+	public RawHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 

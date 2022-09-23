@@ -497,7 +497,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static File getRenderersDir() {
-		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
+		String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
 			if (path.trim().length() > 0) {

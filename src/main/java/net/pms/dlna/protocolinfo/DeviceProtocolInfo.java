@@ -17,17 +17,17 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+import org.apache.commons.text.translate.LookupTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAImageProfile;
@@ -82,24 +82,22 @@ public class DeviceProtocolInfo implements Serializable {
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_UNESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{"\\\\", "\\"},
-				{"\\,", ","}
-			}
-		);
+		new LookupTranslator(Map.of(
+			"\\\\", "\\",
+			"\\,", ","
+		)
+	);
 
 	/**
 	 * A {@link CharSequenceTranslator} for escaping individual
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_ESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{",", "\\,"},
-				{"\\", "\\\\"},
-			}
-		);
+		new LookupTranslator(Map.of(
+			",", "\\,",
+			"\\", "\\\\"
+		)
+	);
 
 	/** The sets lock. */
 	protected final ReentrantReadWriteLock setsLock = new ReentrantReadWriteLock();
@@ -143,7 +141,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 * @return {@code true} if this changed as a result of the call. Returns
 	 *         {@code false} this already contains the specified element(s).
 	 */
-	public boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
+	public final boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
 		if (StringUtils.isBlank(protocolInfoString)) {
 			return false;
 		}
@@ -156,11 +154,11 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
-			SortedSet<ProtocolInfo> tempSet = null;
+			SortedSet<ProtocolInfo> tempSet;
 			for (String element : elements) {
 				try {
 					tempSet = handleSpecialCaseString(element);
@@ -170,7 +168,6 @@ public class DeviceProtocolInfo implements Serializable {
 					} else {
 						// Add the special handling results
 						result |= currentSet.addAll(tempSet);
-						tempSet = null;
 					}
 				} catch (ParseException e) {
 					LOGGER.warn(
@@ -376,7 +373,7 @@ public class DeviceProtocolInfo implements Serializable {
 		} finally {
 			setsLock.readLock().unlock();
 		}
-		return result.toArray(new ProtocolInfo[result.size()]);
+		return result.toArray(ProtocolInfo[]::new);
 	}
 
 	/**
@@ -482,7 +479,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
@@ -515,7 +512,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
@@ -773,7 +770,7 @@ public class DeviceProtocolInfo implements Serializable {
 	public DLNAImageProfile[] imageProfilesToArray() {
 		setsLock.readLock().lock();
 		try {
-			return imageProfileSet.toArray(new DLNAImageProfile[imageProfileSet.size()]);
+			return imageProfileSet.toArray(DLNAImageProfile[]::new);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -911,7 +908,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 *             parsing fails.
 	 */
 	public static SortedSet<ProtocolInfo> handleSpecialCaseString(String element) throws ParseException {
-		if (isBlank(element)) {
+		if (StringUtils.isBlank(element)) {
 			return null;
 		}
 		switch (element) {

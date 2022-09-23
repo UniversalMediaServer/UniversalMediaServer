@@ -45,7 +45,7 @@ public class BasicSystemUtils implements SystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BasicSystemUtils.class);
 
 	/** The singleton platform dependent {@link SystemUtils} instance */
-	public static SystemUtils instance = BasicSystemUtils.createInstance();
+	public static final SystemUtils INSTANCE = BasicSystemUtils.createInstance();
 
 	protected Path vlcPath;
 	protected Version vlcVersion;
@@ -134,27 +134,19 @@ public class BasicSystemUtils implements SystemUtils {
 			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
 			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
 
-			defaultItem.addActionListener((ActionEvent e) -> {
-				PMS.quit();
-			});
+			defaultItem.addActionListener((ActionEvent e) -> PMS.quit());
 
-			traceItem.addActionListener((ActionEvent e) -> {
-				frame.setVisible(true);
-			});
+			traceItem.addActionListener((ActionEvent e) -> frame.setVisible(true));
 
-			if (PMS.getConfiguration().useWebInterfaceServer()) {
-				MenuItem webInterfaceItem = new MenuItem(Messages.getString("WebInterface"));
-				webInterfaceItem.addActionListener((ActionEvent e) -> {
-					browseURI(PMS.get().getWebInterfaceServer().getUrl());
-				});
-				popup.add(webInterfaceItem);
+			if (PMS.getConfiguration().useWebPlayerServer()) {
+				MenuItem webPlayerItem = new MenuItem(Messages.getString("WebPlayer"));
+				webPlayerItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getWebPlayerServer().getUrl()));
+				popup.add(webPlayerItem);
 			}
 
-			MenuItem settingsItem = new MenuItem(Messages.getString("Settings"));
-			settingsItem.addActionListener((ActionEvent e) -> {
-				browseURI(PMS.get().getGuiServer().getUrl());
-			});
-			popup.add(settingsItem);
+			MenuItem webGuiItem = new MenuItem(Messages.getString("WebInterface"));
+			webGuiItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
+			popup.add(webGuiItem);
 			popup.add(traceItem);
 			popup.add(defaultItem);
 

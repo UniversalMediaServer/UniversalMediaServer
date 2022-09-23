@@ -89,7 +89,7 @@ public class HelpTab {
 
 						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
 							// Open external links in the desktop web browser
-							BasicSystemUtils.instance.browseURI(urlString);
+							BasicSystemUtils.INSTANCE.browseURI(urlString);
 						} else {
 							// Open anchor links in the editorPane
 							editorPane.setPage(event.getURL());

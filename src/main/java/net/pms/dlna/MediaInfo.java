@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 	"checkstyle:ParameterName",
 	"checkstyle:TypeName",
 })
-public class MediaInfo {
+public class MediaInfo implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
 	static final String LIBRARY_NAME;
 
@@ -106,27 +106,27 @@ public class MediaInfo {
 		// Constructor/Destructor
 		Pointer New();
 
-		void Delete(Pointer Handle);
+		void Delete(Pointer handle);
 
 		// File
-		int Open(Pointer Handle, WString file);
+		int Open(Pointer handle, WString file);
 
-		void Close(Pointer Handle);
+		void Close(Pointer handle);
 
 		// Info
-		WString Inform(Pointer Handle);
+		WString Inform(Pointer handle);
 
-		WString Get(Pointer Handle, int streamType, int streamNumber, WString parameter, int infoType, int searchType);
+		WString Get(Pointer handle, int streamType, int streamNumber, WString parameter, int infoType, int searchType);
 
-		WString GetI(Pointer Handle, int streamType, int streamNumber, int parameterIndex, int infoType);
+		WString GetI(Pointer handle, int streamType, int streamNumber, int parameterIndex, int infoType);
 
-		int Count_Get(Pointer Handle, int streamType, int streamNumber);
+		int Count_Get(Pointer handle, int streamType, int streamNumber);
 
 		// Options
-		WString Option(Pointer Handle, WString option, WString value);
+		WString Option(Pointer handle, WString option, WString value);
 	}
 
-	private Pointer Handle;
+	private Pointer handle;
 
 	/**
 	 * An enum representing the C++ enum {@code stream_t} defined in
@@ -288,7 +288,7 @@ public class MediaInfo {
 	public MediaInfo() {
 		try {
 			LOGGER.info("Loading MediaInfo library");
-			Handle = MediaInfoDLL_Internal.INSTANCE.New();
+			handle = MediaInfoDLL_Internal.INSTANCE.New();
 			LOGGER.info("Loaded {}", Option_Static("Info_Version"));
 
 			if (!Platform.isWindows()) {
@@ -306,24 +306,29 @@ public class MediaInfo {
 	}
 
 	public boolean isValid() {
-		return Handle != null;
+		return handle != null;
 	}
 
 	public void dispose() {
-		if (Handle == null) {
+		if (handle == null) {
 			throw new IllegalStateException();
 		}
 
-		MediaInfoDLL_Internal.INSTANCE.Delete(Handle);
-		Handle = null;
+		MediaInfoDLL_Internal.INSTANCE.Delete(handle);
+		handle = null;
+	}
+
+	@Override
+	public void close() throws Exception {
+		if (handle != null) {
+			dispose();
+		}
 	}
 
 	@Override
 	protected void finalize() throws Throwable {
 		try {
-			if (Handle != null) {
-				dispose();
-			}
+			close();
 		} finally {
 			super.finalize();
 		}
@@ -336,16 +341,16 @@ public class MediaInfo {
 	 * @param File_Name full name of the file to open
 	 * @return 1 if file was opened, 0 if file was not not opened
 	 */
-	public int Open(String File_Name) {
-		return MediaInfoDLL_Internal.INSTANCE.Open(Handle, new WString(File_Name));
+	public int openFile(String File_Name) {
+		return MediaInfoDLL_Internal.INSTANCE.Open(handle, new WString(File_Name));
 	}
 
 	/**
 	 * Close a file opened before with Open().
 	 *
 	 */
-	public void Close() {
-		MediaInfoDLL_Internal.INSTANCE.Close(Handle);
+	public void closeFile() {
+		MediaInfoDLL_Internal.INSTANCE.Close(handle);
 	}
 
 	// Information
@@ -355,7 +360,7 @@ public class MediaInfo {
 	 * @return All details about a file in one string
 	 */
 	public String Inform() {
-		return MediaInfoDLL_Internal.INSTANCE.Inform(Handle).toString();
+		return MediaInfoDLL_Internal.INSTANCE.Inform(handle).toString();
 	}
 
 	/**
@@ -399,8 +404,7 @@ public class MediaInfo {
 	 * @return a string about information you search, an empty string if there is a problem
 	 */
 	public String Get(StreamType streamType, int streamNumber, String parameter, InfoType infoType, InfoType searchType) {
-		return MediaInfoDLL_Internal.INSTANCE.Get(
-			Handle,
+		return MediaInfoDLL_Internal.INSTANCE.Get(handle,
 			streamType.getValue(),
 			streamNumber,
 			new WString(parameter),
@@ -433,8 +437,7 @@ public class MediaInfo {
 	 * @return a string about information you search, an empty string if there is a problem
 	 */
 	public String Get(StreamType streamType, int streamNumber, int parameterIndex, InfoType infoType) {
-		return MediaInfoDLL_Internal.INSTANCE.GetI(
-			Handle,
+		return MediaInfoDLL_Internal.INSTANCE.GetI(handle,
 			streamType.getValue(),
 			streamNumber,
 			parameterIndex,
@@ -449,7 +452,7 @@ public class MediaInfo {
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType) {
-		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.getValue(), -1);
+		return MediaInfoDLL_Internal.INSTANCE.Count_Get(handle, streamType.getValue(), -1);
 	}
 
 	/**
@@ -461,7 +464,7 @@ public class MediaInfo {
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType, int streamNumber) {
-		return MediaInfoDLL_Internal.INSTANCE.Count_Get(Handle, streamType.getValue(), streamNumber);
+		return MediaInfoDLL_Internal.INSTANCE.Count_Get(handle, streamType.getValue(), streamNumber);
 	}
 
 	// Options
@@ -472,7 +475,7 @@ public class MediaInfo {
 	 * @return Depends on the option: by default "" (nothing) means No, other means Yes
 	 */
 	public String Option(String Option) {
-		return MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString(Option), new WString("")).toString();
+		return MediaInfoDLL_Internal.INSTANCE.Option(handle, new WString(Option), new WString("")).toString();
 	}
 
 	/**
@@ -483,7 +486,7 @@ public class MediaInfo {
 	 * @return Depends on the option: by default "" (nothing) means No, other means Yes
 	 */
 	public String Option(String Option, String Value) {
-		return MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString(Option), new WString(Value)).toString();
+		return MediaInfoDLL_Internal.INSTANCE.Option(handle, new WString(Option), new WString(Value)).toString();
 	}
 
 	/**
@@ -491,7 +494,7 @@ public class MediaInfo {
 	 * non-Windows platforms for Unicode support.
 	 */
 	public final void setUTF8() {
-		MediaInfoDLL_Internal.INSTANCE.Option(Handle, new WString("setlocale_LC_CTYPE"), new WString("UTF-8"));
+		MediaInfoDLL_Internal.INSTANCE.Option(handle, new WString("setlocale_LC_CTYPE"), new WString("UTF-8"));
 	}
 
 	/**

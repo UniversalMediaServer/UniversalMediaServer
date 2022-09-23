@@ -40,7 +40,6 @@ import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
@@ -69,7 +68,7 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.WebGuiServer;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GuiUtil;
@@ -217,18 +216,12 @@ public class PMS {
 	private MediaServer mediaServer;
 
 	/**
-	 * HTTP server that serves a brower/player of media files.
-	 * Also handle utility and other stuff
-	 */
-	private WebInterfaceServer webInterfaceServer;
-
-	/**
 	 * HTTP server that serves a gui.
 	 */
 	private WebGuiServer webGuiServer;
 
 	/**
-	 * HTTP server that serves a player of media files.
+	 * HTTP server that serves a brower/player of media files.
 	 * Should replace the WebInterfaceServer at end.
 	 */
 	private WebPlayerServer webPlayerServer;
@@ -344,7 +337,7 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebInterfaceServer()) {
+		if (configuration.useWebPlayerServer()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
@@ -546,9 +539,8 @@ public class PMS {
 
 		// GUI stuff
 		resetGuiServer();
-		// Web stuff
+		// Web player stuff
 		resetWebPlayerServer();
-		resetWebInterfaceServer();
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -599,13 +591,13 @@ public class PMS {
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
+		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -615,7 +607,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.instance.isKerioFirewall()) {
+		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -649,9 +641,9 @@ public class PMS {
 			}
 		}.start();
 
-		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
+		if (webPlayerServer != null && webPlayerServer.getServer() != null) {
 			GuiManager.enableWebUiButton();
-			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
+			LOGGER.info("Web interface is available at: " + webPlayerServer.getUrl());
 		}
 
 		// initialize the cache
@@ -678,7 +670,7 @@ public class PMS {
 						UMSUtils.sleep(100);
 					}
 					LOGGER.info("Launching the graphical interface on a browser");
-					if (!BasicSystemUtils.instance.browseURI(webGuiServer.getUrl())) {
+					if (!BasicSystemUtils.INSTANCE.browseURI(webGuiServer.getUrl())) {
 						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
 					}
 				}
@@ -747,9 +739,7 @@ public class PMS {
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		if (delete) {
 			RendererConfiguration.deleteAllConnectedRenderers();
-			if (webInterfaceServer != null) {
-				webInterfaceServer.deleteAllRenderers();
-			}
+			OldPlayerServer.deleteRenderers();
 			WebGuiServer.deleteAllRenderers();
 		}
 	}
@@ -771,33 +761,9 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		RendererConfiguration.resetAllRenderers();
-		if (webInterfaceServer != null) {
-			webInterfaceServer.resetAllRenderers();
-		}
+		OldPlayerServer.resetRenderers();
 		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
-	}
-
-	/**
-	 * Reset the web interface server.
-	 * The trigger is init and configuration change.
-	 */
-	public void resetWebInterfaceServer() {
-		// Web stuff
-		if (webInterfaceServer != null) {
-			webInterfaceServer.stop();
-		}
-		if (configuration.useWebInterfaceServer()) {
-			try {
-				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
-				GuiManager.updateServerStatus();
-			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-			} catch (IOException ex) {
-				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
-			}
-		}
 	}
 
 	/**
@@ -837,15 +803,12 @@ public class PMS {
 		if (webPlayerServer != null) {
 			webPlayerServer.stop();
 		}
-		//TODO : rename configuration.useWebInterfaceServer() to configuration.useWebPlayerServer()
-		if (configuration.useWebInterfaceServer()) {
+		if (configuration.useWebPlayerServer()) {
 			try {
-				//TODO : rename configuration.getWebInterfaceServerPort() to configuration.getWebPlayerServerPort()
-				// and use it.
-				webPlayerServer = WebPlayerServer.createServer(WebPlayerServer.DEFAULT_PORT);
+				webPlayerServer = WebPlayerServer.createServer(configuration.getWebPlayerServerPort());
 				GuiManager.updateServerStatus();
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + WebPlayerServer.DEFAULT_PORT + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + configuration.getWebPlayerServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
@@ -1114,11 +1077,6 @@ public class PMS {
 
 	public MediaServer getMediaServer() {
 		return mediaServer;
-	}
-
-	@Nullable
-	public WebInterfaceServer getWebInterfaceServer() {
-		return webInterfaceServer;
 	}
 
 	public WebGuiServer getGuiServer() {

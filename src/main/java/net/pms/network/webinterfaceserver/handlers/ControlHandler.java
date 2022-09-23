@@ -34,7 +34,7 @@ import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -47,7 +47,7 @@ public class ControlHandler implements HttpHandler {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
-	private final WebInterfaceServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 	private final HashMap<String, Logical> players;
 	private final HashMap<InetAddress, Logical> selectedPlayers;
 	private final String bumpAddress;
@@ -57,7 +57,7 @@ public class ControlHandler implements HttpHandler {
 
 	private RendererConfiguration defaultRenderer;
 
-	public ControlHandler(WebInterfaceServer parent) {
+	public ControlHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 		players = new HashMap<>();
 		selectedPlayers = new HashMap<>();
