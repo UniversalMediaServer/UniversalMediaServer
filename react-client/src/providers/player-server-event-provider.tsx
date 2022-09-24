@@ -17,17 +17,25 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
-  const [browseId, setBrowseId] = useState('0');
-  const [playId, setPlayId] = useState('');
+  const [reqId, setReqId] = useState('0');
+  const [reqType, setReqType] = useState('browse');
+
+  const askReqId = (id:string,type:string) => {
+    setReqType('');
+    setReqId(id);
+    setReqType(type);
+  }
 
   const askPlayId = (id:string) => {
-	  setBrowseId('');
-	  setPlayId(id);
+	  askReqId(id, 'play');
   }
 
   const askBrowseId = (id:string) => {
-	  setPlayId('');
-	  setBrowseId(id);
+	  askReqId(id, 'browse');
+  }
+
+  const askShowId = (id:string) => {
+	  askReqId(id, 'show');
   }
 
   const setPlayerVolume = (volume:number) => {
@@ -125,7 +133,9 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
         if (datas.action === 'player') {
           switch (datas.request) {
             case 'setPlayId':
-              askPlayId(datas.arg0);
+              setReqType('');
+              setReqId(datas.arg0);
+              setReqType('play');
               break;
             case 'notify':
               switch (datas.arg0) {
@@ -200,10 +210,12 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   return(
     <Provider value={{
       connectionStatus: connectionStatus,
-      browseId: browseId,
+      reqId: reqId,
+      reqType: reqType,
+      askReqId: askReqId,
       askBrowseId: askBrowseId,
-      playId:playId,
       askPlayId: askPlayId,
+      askShowId: askShowId,
     }}>
       {children}
     </Provider>
