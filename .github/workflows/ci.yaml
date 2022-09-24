@@ -15,8 +15,6 @@ jobs:
         xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v3
-      - uses: 8BitJonny/gh-get-current-pr@2.1.1
-        id: PR
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
