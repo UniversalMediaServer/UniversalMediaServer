@@ -17,132 +17,131 @@
  */
 package net.pms.encoders;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.sun.jna.Platform;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.concurrent.Immutable;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-
 
 /**
- * Defines identifiers for {@link Player} subclasses.
+ * Defines identifiers for {@link Engine} subclasses.
  *
  * @author Nadahar
  */
 @Immutable
 @SuppressWarnings("serial")
-public class StandardPlayerId extends PlayerId {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StandardPlayerId.class);
+public class StandardEngineId extends EngineId {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StandardEngineId.class);
 
 	/** The identifier for {@link AviSynthFFmpeg} */
-	public static final PlayerId AVI_SYNTH_FFMPEG = new StandardPlayerId("AviSynthFFmpeg");
+	public static final EngineId AVI_SYNTH_FFMPEG = new StandardEngineId("AviSynthFFmpeg");
 
 	/** The identifier for {@link AviSynthMEncoder} */
-	public static final PlayerId AVI_SYNTH_MENCODER = new StandardPlayerId("AviSynthMEncoder");
+	public static final EngineId AVI_SYNTH_MENCODER = new StandardEngineId("AviSynthMEncoder");
 
 	/** The identifier for {@link FFmpegAudio} */
-	public static final PlayerId FFMPEG_AUDIO = new StandardPlayerId("FFmpegAudio");
+	public static final EngineId FFMPEG_AUDIO = new StandardEngineId("FFmpegAudio");
 
 	/** The identifier for {@link FFMpegVideo} */
-	public static final PlayerId FFMPEG_VIDEO = new StandardPlayerId("FFmpegVideo");
+	public static final EngineId FFMPEG_VIDEO = new StandardEngineId("FFmpegVideo");
 
 	/** The identifier for {@link FFmpegWebVideo} */
-	public static final PlayerId FFMPEG_WEB_VIDEO = new StandardPlayerId("FFmpegWebVideo");
+	public static final EngineId FFMPEG_WEB_VIDEO = new StandardEngineId("FFmpegWebVideo");
 
 	/** The identifier for {@link MEncoderVideo} */
-	public static final PlayerId MENCODER_VIDEO = new StandardPlayerId("MEncoderVideo");
+	public static final EngineId MENCODER_VIDEO = new StandardEngineId("MEncoderVideo");
 
 	/** The identifier for {@link MEncoderWebVideo} */
-	public static final PlayerId MENCODER_WEB_VIDEO = new StandardPlayerId("MEncoderWebVideo");
+	public static final EngineId MENCODER_WEB_VIDEO = new StandardEngineId("MEncoderWebVideo");
 
 	/** The identifier for {@link DCRaw} */
-	public static final PlayerId DCRAW = new StandardPlayerId("DCRaw");
+	public static final EngineId DCRAW = new StandardEngineId("DCRaw");
 
 	/** The identifier for {@link TsMuxeRAudio} */
-	public static final PlayerId TSMUXER_AUDIO = new StandardPlayerId("tsMuxeRAudio");
+	public static final EngineId TSMUXER_AUDIO = new StandardEngineId("tsMuxeRAudio");
 
 	/** The identifier for {@link TsMuxeRVideo} */
-	public static final PlayerId TSMUXER_VIDEO = new StandardPlayerId("tsMuxeRVideo");
+	public static final EngineId TSMUXER_VIDEO = new StandardEngineId("tsMuxeRVideo");
 
 	/** The identifier for {@link VideoLanAudioStreaming} */
-	public static final PlayerId VLC_AUDIO_STREAMING = new StandardPlayerId("VLCAudioStreaming");
+	public static final EngineId VLC_AUDIO_STREAMING = new StandardEngineId("VLCAudioStreaming");
 
 	/** The identifier for {@link VideoLanVideoStreaming} */
-	public static final PlayerId VLC_VIDEO_STREAMING = new StandardPlayerId("VLCVideoStreaming");
+	public static final EngineId VLC_VIDEO_STREAMING = new StandardEngineId("VLCVideoStreaming");
 
 	/** The identifier for {@link VLCVideo} */
-	public static final PlayerId VLC_VIDEO = new StandardPlayerId("VLCVideo");
+	public static final EngineId VLC_VIDEO = new StandardEngineId("VLCVideo");
 
 	/** The identifier for {@link VLCWebVideo} */
-	public static final PlayerId VLC_WEB_VIDEO = new StandardPlayerId("VLCWebVideo");
+	public static final EngineId VLC_WEB_VIDEO = new StandardEngineId("VLCWebVideo");
 
 	/** The identifier for {@link YoutubeDl} */
-	public static final PlayerId YOUTUBE_DL = new StandardPlayerId("youtubeDl");
+	public static final EngineId YOUTUBE_DL = new StandardEngineId("youtubeDl");
 
-	/** A static list of all {@link StandardPlayerId}s */
-	public static final List<PlayerId> ALL;
+	/** *  A static list of all {@link StandardEngineId}s */
+	public static final List<EngineId> ALL;
 
 	static {
 		boolean windows = Platform.isWindows();
-		List<PlayerId> allPlayers = new ArrayList<>(12);
-		allPlayers.add(FFMPEG_VIDEO);
+		List<EngineId> allEngines = new ArrayList<>(12);
+		allEngines.add(FFMPEG_VIDEO);
 		if (windows) {
-			allPlayers.add(AVI_SYNTH_FFMPEG);
+			allEngines.add(AVI_SYNTH_FFMPEG);
 		}
-		allPlayers.add(MENCODER_VIDEO);
+		allEngines.add(MENCODER_VIDEO);
 		if (windows) {
-			allPlayers.add(AVI_SYNTH_MENCODER);
+			allEngines.add(AVI_SYNTH_MENCODER);
 		}
-		allPlayers.add(TSMUXER_VIDEO);
-		allPlayers.add(VLC_VIDEO);
-		allPlayers.add(FFMPEG_AUDIO);
-		allPlayers.add(TSMUXER_AUDIO);
-		allPlayers.add(FFMPEG_WEB_VIDEO);
-		allPlayers.add(VLC_WEB_VIDEO);
-		allPlayers.add(VLC_VIDEO_STREAMING);
-		allPlayers.add(MENCODER_WEB_VIDEO);
-		allPlayers.add(VLC_AUDIO_STREAMING);
-		allPlayers.add(DCRAW);
-		allPlayers.add(YOUTUBE_DL);
-		ALL = Collections.unmodifiableList(allPlayers);
+		allEngines.add(TSMUXER_VIDEO);
+		allEngines.add(VLC_VIDEO);
+		allEngines.add(FFMPEG_AUDIO);
+		allEngines.add(TSMUXER_AUDIO);
+		allEngines.add(FFMPEG_WEB_VIDEO);
+		allEngines.add(VLC_WEB_VIDEO);
+		allEngines.add(VLC_VIDEO_STREAMING);
+		allEngines.add(MENCODER_WEB_VIDEO);
+		allEngines.add(VLC_AUDIO_STREAMING);
+		allEngines.add(DCRAW);
+		allEngines.add(YOUTUBE_DL);
+		ALL = Collections.unmodifiableList(allEngines);
 	}
 
-	/** The textual representation of this {@link PlayerId} */
-	protected final String playerIdName;
+	/** *  The textual representation of this {@link EngineId} */
+	protected final String engineIdName;
 
 	/**
 	 * Not to be instantiated, use the static instances instead.
 	 *
-	 * @param the name of the {@link PlayerId} used for {@link #getName()} and
+	 * @param the name of the {@link EngineId} used for {@link #getName()} and
 	 *            {@link #toString()}.
 	 */
-	private StandardPlayerId(String playerIdName) {
-		this.playerIdName = playerIdName;
+	private StandardEngineId(String engineIdName) {
+		this.engineIdName = engineIdName;
 	}
 
 	@Override
 	public String getName() {
-		return playerIdName;
+		return engineIdName;
 	}
 
 	/**
 	 * Attempts to convert the specified {@link String} to a
-	 * {@link StandardPlayerId}. If the conversion fails, {@code null} is
+	 * {@link StandardEngineId}. If the conversion fails, {@code null} is
 	 * returned.
 	 *
-	 * @param playerIdString the {@link String} to convert.
-	 * @return The corresponding {@link StandardPlayerId} or {@code null}.
+	 * @param engineIdString the {@link String} to convert.
+	 * @return The corresponding {@link StandardEngineId} or {@code null}.
 	 */
-	public static PlayerId toPlayerID(String playerIdString) {
-		if (isBlank(playerIdString)) {
+	public static EngineId toEngineID(String engineIdString) {
+		if (StringUtils.isBlank(engineIdString)) {
 			return null;
 		}
-		playerIdString = playerIdString.trim().toUpperCase(Locale.ROOT);
-		switch (playerIdString) {
+		engineIdString = engineIdString.trim().toUpperCase(Locale.ROOT);
+		switch (engineIdString) {
 			case "AVISYNTHFFMPEG":
 				return AVI_SYNTH_FFMPEG;
 			case "AVISYNTHMENCODER":
@@ -178,7 +177,7 @@ public class StandardPlayerId extends PlayerId {
 			case "YOUTUBEDL":
 				return YOUTUBE_DL;
 			default:
-				LOGGER.warn("Could not parse player id \"{}\"", playerIdString);
+				LOGGER.warn("Could not parse engine id \"{}\"", engineIdString);
 				return null;
 		}
 	}

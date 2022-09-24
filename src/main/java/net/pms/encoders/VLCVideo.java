@@ -55,9 +55,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Leon Blakey <lord.quackstar@gmail.com>
  */
-public class VLCVideo extends Player {
+public class VLCVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -74,11 +74,11 @@ public class VLCVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -141,7 +141,7 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
-		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (
 			(
@@ -223,7 +223,7 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		/**
 		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
@@ -297,7 +297,7 @@ public class VLCVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
 			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
@@ -656,7 +656,7 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 

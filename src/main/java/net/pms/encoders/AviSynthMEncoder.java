@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_MENCODER;
+	public static final EngineId ID = StandardEngineId.AVI_SYNTH_MENCODER;
 	public static final String NAME = "AviSynth/MEncoder";
 
 	// Not to be instantiated by anything but PlayerFactory
@@ -45,11 +45,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 

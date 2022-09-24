@@ -37,8 +37,8 @@ import javax.swing.tree.TreeSelectionModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.CustomJSpinner;
@@ -201,7 +201,7 @@ public class TranscodingTab {
 			} else {
 				arrowDownButton.setEnabled(true);
 			}
-			Player player = node.getPlayer();
+			Engine player = node.getPlayer();
 			if (player.isEnabled()) {
 				toggleButton.setIconName(ToggleButtonState.On.getIconName());
 				toggleButton.setEnabled(true);
@@ -354,7 +354,7 @@ public class TranscodingTab {
 	}
 
 	public void addEngines() {
-		for (Player player : PlayerFactory.getPlayers(false, true)) {
+		for (Engine player : EngineFactory.getEngines(false, true)) {
 			if (player.isGPUAccelerationReady()) {
 				videoHWacceleration.setEnabled(true);
 				videoHWacceleration.setSelected(configuration.isGPUAcceleration());
@@ -362,7 +362,7 @@ public class TranscodingTab {
 			}
 		}
 
-		for (Player player : PlayerFactory.getAllPlayers()) {
+		for (Engine player : EngineFactory.getAllEngines()) {
 			TreeNodeSettings engine = new TreeNodeSettings(player.name(), player, null);
 
 			JComponent configPanel = engine.getConfigPanel();

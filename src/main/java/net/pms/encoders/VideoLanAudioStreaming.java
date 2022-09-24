@@ -23,7 +23,7 @@ import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web audio streaming engine */
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
-	public static final PlayerId ID = StandardPlayerId.VLC_AUDIO_STREAMING;
+	public static final EngineId ID = StandardEngineId.VLC_AUDIO_STREAMING;
 
 	/** The {@link Configuration} key for the VLC Legacy Web Audio executable type. */
 	public static final String KEY_VLC_LEGACY_AUDIO_EXECUTABLE_TYPE = "vlc_legacy_audio_executable_type";
@@ -35,11 +35,11 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 
 	@Override
 	public int purpose() {
-		return AUDIO_WEBSTREAM_PLAYER;
+		return AUDIO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 

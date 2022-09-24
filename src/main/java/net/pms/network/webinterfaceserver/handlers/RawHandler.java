@@ -31,7 +31,7 @@ import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.ImagePlayer;
+import net.pms.encoders.ImageEngine;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -97,8 +97,8 @@ public class RawHandler implements HttpHandler {
 					in = dlna.getInputStream();
 				} else {
 					InputStream imageInputStream;
-					if (dlna.getPlayer() instanceof ImagePlayer) {
-						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+					if (dlna.getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(
 							dlna,
 							dlna.getMedia(),
 							new OutputParams(PMS.getConfiguration())
@@ -113,7 +113,7 @@ public class RawHandler implements HttpHandler {
 				}
 			} else {
 				len = dlna.length();
-				dlna.setPlayer(null);
+				dlna.setEngine(null);
 				range = WebInterfaceServerUtil.parseRange(t.getRequestHeaders(), len);
 				in = dlna.getInputStream(range, root.getDefaultRenderer());
 				if (len == 0) {

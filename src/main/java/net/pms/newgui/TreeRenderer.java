@@ -24,7 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JTree;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
@@ -55,7 +55,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
 		if (leaf && value instanceof TreeNodeSettings) {
-			Player player = ((TreeNodeSettings) value).getPlayer();
+			Engine player = ((TreeNodeSettings) value).getPlayer();
 			if (player == null) {
 				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
 				setToolTipText(null);

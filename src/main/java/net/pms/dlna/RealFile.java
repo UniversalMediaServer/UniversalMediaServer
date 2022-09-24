@@ -155,7 +155,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getSize();

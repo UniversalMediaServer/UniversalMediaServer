@@ -71,7 +71,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		}
 

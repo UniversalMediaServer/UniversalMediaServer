@@ -17,6 +17,8 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -50,21 +52,19 @@ import net.pms.util.Version;
 import net.pms.util.FilePermissions.FileFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The base class for all transcoding engines.
  */
 @ThreadSafe
-public abstract class Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+public abstract class Engine {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Engine.class);
 
-	public static final int VIDEO_SIMPLEFILE_PLAYER = 0;
-	public static final int AUDIO_SIMPLEFILE_PLAYER = 1;
-	public static final int VIDEO_WEBSTREAM_PLAYER = 2;
-	public static final int AUDIO_WEBSTREAM_PLAYER = 3;
-	public static final int MISC_PLAYER = 4;
+	public static final int VIDEO_SIMPLEFILE_ENGINE = 0;
+	public static final int AUDIO_SIMPLEFILE_ENGINE = 1;
+	public static final int VIDEO_WEBSTREAM_ENGINE = 2;
+	public static final int AUDIO_WEBSTREAM_ENGINE = 3;
+	public static final int MISC_ENGINE = 4;
 
 	/** The final {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull
@@ -72,10 +72,10 @@ public abstract class Player {
 
 	public abstract int purpose();
 
-	public abstract PlayerId id();
+	public abstract EngineId id();
 
 	/**
-	 * @return The {@link Configuration} key for this {@link Player}'s custom
+	 * @return The {@link Configuration} key for this {@link Engine}'s custom
 	 *         executable path.
 	 */
 	public abstract String getConfigurablePathKey();
@@ -90,19 +90,19 @@ public abstract class Player {
 	public abstract String getExecutableTypeKey();
 
 	/**
-	 * Used to store if this {@link Player} can be used, e.g if the binary is
+	 * Used to store if this {@link Engine} can be used, e.g if the binary is
 	 * accessible. All access must be guarded with {@link #availableLock}.
 	 */
 	protected final ReentrantReadWriteLock specificErrorsLock = new ReentrantReadWriteLock();
 
 	/**
-	 * Used to store a localized error text if the {@link Player} is
+	 * Used to store a localized error text if the {@link Engine} is
 	 * unavailable. All access must be guarded with {@link #availableLock}.
 	 */
 	protected volatile ProgramExecutableType currentExecutableType;
 
 	/**
-	 * Used to store the executable version if the {@link Player} is available
+	 * Used to store the executable version if the {@link Engine} is available
 	 * and the information could be parsed. All access must be guarded with
 	 * {@link #availableLock}.
 	 */
@@ -115,7 +115,7 @@ public abstract class Player {
 	protected final ReentrantReadWriteLock enabledLock = new ReentrantReadWriteLock();
 
 	/**
-	 * Used to store if this {@link Player} is enabled in the configuration. All
+	 * Used to store if this {@link Engine} is enabled in the configuration. All
 	 * access must be guarded with {@link #enabledLock}.
 	 */
 	@GuardedBy("enabledLock")
@@ -124,7 +124,7 @@ public abstract class Player {
 	/**
 	 * Abstract constructor that sets the final {@code programInfo} variable.
 	 */
-	public Player() {
+	public Engine() {
 		programInfo = programInfo();
 		if (programInfo == null) {
 			throw new IllegalStateException(
@@ -135,7 +135,7 @@ public abstract class Player {
 
 	/**
 	 * Gets the <i>current</i> {@link ProgramExecutableType} for this
-	 * {@link Player}. For an explanation of the concept, see
+	 * {@link Engine}. For an explanation of the concept, see
 	 * {@link #currentExecutableType}.
 	 *
 	 * @return The current {@link ProgramExecutableType}
@@ -146,7 +146,7 @@ public abstract class Player {
 	}
 
 	/**
-	 * Sets the current {@link ProgramExecutableType} for this {@link Player}.
+	 * Sets the current {@link ProgramExecutableType} for this {@link Engine}.
 	 * For an explanation of the concept, see {@link #currentExecutableType}.
 	 *
 	 * @param executableType the new {@link ProgramExecutableType}.
@@ -157,18 +157,18 @@ public abstract class Player {
 
 	/**
 	 * Determines and sets the current {@link ProgramExecutableType} for this
-	 * {@link Player}. The determination starts out with the configured
+	 * {@link Engine}. The determination starts out with the configured
 	 * {@link ProgramExecutableType}.
 	 * <p>
 	 * For an explanation of the concept, see {@link #currentExecutableType}.
 	 */
 	public void determineCurrentExecutableType() {
-		determineCurrentExecutableType(configuration.getPlayerExecutableType(this));
+		determineCurrentExecutableType(configuration.getEngineExecutableType(this));
 	}
 
 	/**
 	 * Determines and sets the current {@link ProgramExecutableType} for this
-	 * {@link Player}. The determination starts out with the specified
+	 * {@link Engine}. The determination starts out with the specified
 	 * {@link ProgramExecutableType}.
 	 * <p>
 	 * For an explanation of the concept, see {@link #currentExecutableType}.
@@ -218,11 +218,11 @@ public abstract class Player {
 	public abstract String mimeType();
 
 	/**
-	 * Used to retrieve the {@link ExternalProgramInfo} for the {@link Player}
+	 * Used to retrieve the {@link ExternalProgramInfo} for the {@link Engine}
 	 * during construction.
 	 *
 	 * @return The platform and configuration dependent {@link ExecutableInfo}
-	 *         for this {@link Player}.
+	 *         for this {@link Engine}.
 	 */
 	@Nullable
 	protected abstract ExternalProgramInfo programInfo();
@@ -237,7 +237,7 @@ public abstract class Player {
 
 	/**
 	 * @return The path to the currently configured
-	 *         {@link ProgramExecutableType} for this {@link Player} or
+	 *         {@link ProgramExecutableType} for this {@link Engine} or
 	 *         {@code null} if undefined.
 	 */
 	@Nullable
@@ -255,7 +255,7 @@ public abstract class Player {
 
 	public abstract boolean excludeFormat(Format extension);
 
-	public abstract boolean isPlayerCompatible(RendererConfiguration renderer);
+	public abstract boolean isEngineCompatible(RendererConfiguration renderer);
 
 	public boolean isInternalSubtitlesSupported() {
 		return true;
@@ -270,7 +270,7 @@ public abstract class Player {
 	}
 
 	/**
-	 * Used to determine if this {@link Player} can be used, e.g if the binary
+	 * Used to determine if this {@link Engine} can be used, e.g if the binary
 	 * is accessible.
 	 *
 	 * @return {@code true} if this is available, {@code false} otherwise.
@@ -280,12 +280,12 @@ public abstract class Player {
 	}
 
 	/**
-	 * Checks whether this {@link Player} can be used, e.g if the binary is
+	 * Checks whether this {@link Engine} can be used, e.g if the binary is
 	 * accessible for the specified {@link ProgramExecutableType}.
 	 *
 	 * @param executableType the {@link ProgramExecutableType} to get the status
 	 *            text for.
-	 * @return {@code true} if this {@link Player} is available, {@code false}
+	 * @return {@code true} if this {@link Engine} is available, {@code false}
 	 *         otherwise.
 	 */
 	public boolean isAvailable(@Nullable ProgramExecutableType executableType) {
@@ -347,7 +347,7 @@ public abstract class Player {
 			return String.format(Messages.getString("TheXExecutableNotDefined"), name());
 		}
 		if (executableInfo.getAvailable() == null || executableInfo.getAvailable().booleanValue()) {
-			// Generally available or unknown, check for Player specific failures
+			// Generally available or unknown, check for Engine specific failures
 			specificErrorsLock.readLock().lock();
 			try {
 				String specificError = specificErrors.get(executableType);
@@ -377,11 +377,10 @@ public abstract class Player {
 	}
 
 	/**
-	 * Sets the engine available status and a related text. Note that
-	 * {@code statusText} has a "dual function".
+	 * Sets the engine available status and a related text.
+	 * Note that {@code getStatusText} has a "dual function".
 	 *
-	 * @param available whether or not the player is available.
-	 * @param statusText if {@code available} is {@code true}, the executable
+	 * @return if {@code available} is {@code true}, the executable
 	 *            version or {@code null} the version if unknown. If
 	 *            {@code available} is {@code false}, a localized description of
 	 *            the current error.
@@ -446,7 +445,7 @@ public abstract class Player {
 	/**
 	 * Sets the engine available status and a related error text.
 	 *
-	 * @param available whether or not the {@link Player} is available.
+	 * @param available whether or not the {@link Engine} is available.
 	 * @param executableType the {@link ProgramExecutableType} for which to set
 	 *            availability.
 	 * @param version the {@link Version} of the executable if known or
@@ -473,10 +472,10 @@ public abstract class Player {
 		}
 		if (errorType == ExecutableErrorType.SPECIFIC) {
 			/*
-			 * Although most probably the case, we can't assume that a Player
+			 * Although most probably the case, we can't assume that a Engine
 			 * specific error means that the executable is generally available.
 			 * Thus, only set the local specific error and not the global
-			 * availability for this executable. If it's used by another player
+			 * availability for this executable. If it's used by another engine
 			 * it will be tested again.
 			 */
 			specificErrorsLock.writeLock().lock();
@@ -511,7 +510,7 @@ public abstract class Player {
 	 * tasks normally needed after such a change.
 	 * <p>
 	 * <b>This should normally only be called from
-	 * {@link PlayerFactory#registerPlayer(Player)}</b> to set the configured
+	 * {@link EngineFactory#registerEngine(Engine)}</b> to set the configured
 	 * {@link Path} before other registration tasks are performed.
 	 *
 	 * @param customPath The custom executable {@link Path}.
@@ -530,10 +529,10 @@ public abstract class Player {
 	/**
 	 * Sets or clears the {@link ProgramExecutableType#CUSTOM} executable
 	 * {@link Path} for the underlying {@link ExternalProgramInfo}. This will
-	 * impact all players sharing the same {@link ExternalProgramInfo}.
+	 * impact all engines sharing the same {@link ExternalProgramInfo}.
 	 * <p>
 	 * A changed {@link Path} will result in a rerun of tests and a reevaluation
-	 * of the current {@link ExecutableInfo} for all affected {@link Player}s.
+	 * of the current {@link ExecutableInfo} for all affected {@link Engine}s.
 	 * As this is a costly operations, no changes will be made if the specified
 	 * {@link Path} is equal to the existing {@link Path} or if both are
 	 * {@code null}.
@@ -548,7 +547,7 @@ public abstract class Player {
 		boolean configurationChanged = false;
 		if (setConfiguration) {
 			try {
-				configurationChanged = configuration.setPlayerCustomPath(this, customPath);
+				configurationChanged = configuration.setEngineCustomPath(this, customPath);
 			} catch (IllegalStateException e) {
 				configurationChanged = false;
 				LOGGER.warn("Failed to set custom executable path for {}: {}", name(), e.getMessage());
@@ -571,7 +570,7 @@ public abstract class Player {
 					LOGGER.debug("Custom executable path for {} was set to \"{}\"", programInfo, customPath);
 				}
 			}
-			PlayerFactory.reEvaluateExecutable(this, ProgramExecutableType.CUSTOM, defaultType);
+			EngineFactory.reEvaluateExecutable(this, ProgramExecutableType.CUSTOM, defaultType);
 		}
 		return changed || configurationChanged;
 	}
@@ -596,7 +595,7 @@ public abstract class Player {
 	}
 
 	/**
-	 * Used to determine if this {@link Player} is enabled in the configuration.
+	 * Used to determine if this {@link Engine} is enabled in the configuration.
 	 *
 	 * @return {@code true} if this is enabled, {@code false} otherwise.
 	 */
@@ -610,9 +609,9 @@ public abstract class Player {
 	}
 
 	/**
-	 * Sets the enabled status for this {@link Player}.
+	 * Sets the enabled status for this {@link Engine}.
 	 *
-	 * @param enabled {@code true} if this {@link Player} is enabled,
+	 * @param enabled {@code true} if this {@link Engine} is enabled,
 	 *            {@code false} otherwise.
 	 */
 	public void setEnabled(boolean enabled, boolean setConfiguration) {
@@ -628,7 +627,7 @@ public abstract class Player {
 	}
 
 	/**
-	 * Toggles the enabled status for this {@link Player}.
+	 * Toggles the enabled status for this {@link Engine}.
 	 */
 	public void toggleEnabled(boolean setConfiguration) {
 		enabledLock.writeLock().lock();
@@ -643,12 +642,12 @@ public abstract class Player {
 	}
 
 	/**
-	 * Convenience method to check if this {@link Player} is both available and
+	 * Convenience method to check if this {@link Engine} is both available and
 	 * enabled for the specified {@link ProgramExecutableType}.
 	 *
 	 * @param executableType the {@link ProgramExecutableType} for which to
 	 *            check availability.
-	 * @return {@code true} if this {@link Player} is both available and
+	 * @return {@code true} if this {@link Engine} is both available and
 	 *         enabled, {@code false} otherwise.
 	 *
 	 */
@@ -657,10 +656,10 @@ public abstract class Player {
 	}
 
 	/**
-	 * Convenience method to check if this {@link Player} is both available and
+	 * Convenience method to check if this {@link Engine} is both available and
 	 * enabled for the current {@link ProgramExecutableType}.
 	 *
-	 * @return {@code true} if this {@link Player} is both available and
+	 * @return {@code true} if this {@link Engine} is both available and
 	 *         enabled, {@code false} otherwise.
 	 */
 	public boolean isActive() {
@@ -668,9 +667,9 @@ public abstract class Player {
 	}
 
 	/**
-	 * Returns whether or not this {@link Player} supports GPU acceleration.
+	 * Returns whether or not this {@link Engine} supports GPU acceleration.
 	 * <p>
-	 * Each {@link Player} capable of video hardware acceleration must override
+	 * Each {@link Engine} capable of video hardware acceleration must override
 	 * this method and return {@code true}.
 	 *
 	 * @return {@code true} if GPU acceleration is supported, {@code false}
@@ -744,7 +743,7 @@ public abstract class Player {
 	}
 
 	/**
-	 * Returns whether or not this {@link Player} can handle a given
+	 * Returns whether or not this {@link Engine} can handle a given
 	 * {@link DLNAResource}. If {@code resource} is {@code null} {@code false}
 	 * will be returned.
 	 *
@@ -754,14 +753,6 @@ public abstract class Player {
 	 */
 	public abstract boolean isCompatible(DLNAResource resource);
 
-	/**
-	 * Checks if {@code object} is a {@link Player} and has the same
-	 * {@link #id()} as this.
-	 *
-	 * @param other
-	 * The other player.
-	 * @return True if names and ids match, false otherwise.
-	 */
 	protected abstract boolean isSpecificTest();
 
 	/**
@@ -811,11 +802,11 @@ public abstract class Player {
 	 * Tests a specific executable and returns the results. If the executable
 	 * has already has been tested, the previous results are used.
 	 * <p>
-	 * <b>This method must be implemented unless {@link #testPlayer} is
+	 * <b>This method must be implemented unless {@link #testEngine} is
 	 * overridden in such a way that this method is never called or no test can
 	 * be performed on this executable</b> If the method isn't implemented,
 	 * simply make it return {@code null}, which is interpreted by
-	 * {@link #testPlayer} as if no test was performed.
+	 * {@link #testEngine} as if no test was performed.
 	 *
 	 * @param executableInfo the {@link ExecutableInfo} whose executable to
 	 *            test.
@@ -825,17 +816,17 @@ public abstract class Player {
 	protected abstract ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo);
 
 	/**
-	 * Tests the executable(s) for this {@link Player} and stores the results.
-	 * If the executable has already been tested by another {@link Player} or
+	 * Tests the executable(s) for this {@link Engine} and stores the results.
+	 * If the executable has already been tested by another {@link Engine} or
 	 * {@link ProgramExecutableType}, the previous results are used.
 	 *
 	 * @param executableType the {@link ProgramExecutableType} to test. Invalid
-	 *            {@link ProgramExecutableType}s for this {@link Player} will
+	 *            {@link ProgramExecutableType}s for this {@link Engine} will
 	 *            throw an {@link Exception}.
 	 * @return {@code true} if a test was or previously has been performed,
 	 *         {@code false} otherwise.
 	 */
-	public boolean testPlayer(@Nonnull ProgramExecutableType executableType) {
+	public boolean testEngine(@Nonnull ProgramExecutableType executableType) {
 		if (executableType == null) {
 			throw new IllegalArgumentException("executableType cannot be null");
 		}
@@ -843,7 +834,7 @@ public abstract class Player {
 		programInfoLock.writeLock().lock();
 		try {
 			ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
-			if (executableInfo == null || executableInfo.getPath() == null) {
+			if (executableInfo == null) {
 				return false;
 			}
 			if (avisynth()) {
@@ -889,7 +880,7 @@ public abstract class Player {
 			specificErrorsLock.writeLock().lock();
 			try {
 				if (specificErrors.get(executableType) != null) {
-					// Executable Player specific failures has already been tested
+					// Executable Engine specific failures has already been tested
 					return true;
 				}
 
@@ -899,7 +890,7 @@ public abstract class Player {
 					return false;
 				}
 				if (result.getAvailable() == null) {
-					throw new AssertionError("Player test for " + name() + " failed to return availability");
+					throw new AssertionError("Engine test for " + name() + " failed to return availability");
 				}
 				if (!result.equals(executableInfo)) {
 					// The test resulted in a change
@@ -921,10 +912,10 @@ public abstract class Player {
 	}
 
 	/**
-	 * Checks if {@code object} is a {@link Player} and has the same
+	 * Checks if {@code object} is a {@link Engine} and has the same
 	 * {@link #id()} as this.
 	 *
-	 * @return {@code true} if {@code object} is a {@link Player} and the IDs
+	 * @return {@code true} if {@code object} is a {@link Engine} and the IDs
 	 *         match, {@code false} otherwise.
 	 */
 	@SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
@@ -933,10 +924,10 @@ public abstract class Player {
 		if (this == object) {
 			return true;
 		}
-		if (object == null || !(object instanceof Player)) {
+		if (object == null || !(object instanceof Engine)) {
 			return false;
 		}
-		Player other = (Player) object;
+		Engine other = (Engine) object;
 		if (id() == null) {
 			if (other.id() != null) {
 				return false;

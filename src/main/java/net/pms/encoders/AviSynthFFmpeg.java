@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
+	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
 
 	// Not to be instantiated by anything but PlayerFactory
@@ -47,7 +47,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 

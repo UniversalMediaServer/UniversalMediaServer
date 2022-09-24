@@ -41,7 +41,7 @@ import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
@@ -360,7 +360,7 @@ public class PlayHandler implements HttpHandler {
 				}
 				OutputParams p = new OutputParams(CONFIGURATION);
 				p.setSid(rootResource.getMediaSubtitle());
-				Player.setAudioAndSubs(rootResource, p);
+				Engine.setAudioAndSubs(rootResource, p);
 				if (p.getSid() != null && p.getSid().getType().isText()) {
 					try {
 						File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);

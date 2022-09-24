@@ -510,8 +510,8 @@ public class MapFile extends DLNAResource {
 		if (getMediaSubtitle() != null) {
 			result.append(", selected subtitles=[").append(getMediaSubtitle()).append("]");
 		}
-		if (getPlayer() != null) {
-			result.append(", player=").append(getPlayer());
+		if (getEngine() != null) {
+			result.append(", player=").append(getEngine());
 		}
 		if (getChildren() != null && !getChildren().isEmpty()) {
 			result.append(", children=").append(getChildren());

@@ -59,7 +59,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 			for (int i = 1; i <= nbIntervals; i++) {
 				// TODO: Remove clone(), instead create a new object from scratch to avoid unwanted cross references.
 				DLNAResource newChildNoSub = child.clone();
-				newChildNoSub.setPlayer(child.getPlayer());
+				newChildNoSub.setEngine(child.getEngine());
 				newChildNoSub.setMedia(child.getMedia());
 				newChildNoSub.setNoName(true);
 				newChildNoSub.setMediaAudio(child.getMediaAudio());

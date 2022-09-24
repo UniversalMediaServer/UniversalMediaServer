@@ -3,7 +3,7 @@ package net.pms.external;
 import java.util.List;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
 import net.pms.io.OutputParams;
 
 /**
@@ -31,7 +31,7 @@ public interface FinalizeTranscoderArgsListener extends ExternalListener {
 	 * @return the exhaustive list of all commands. It will replace the ones
 	 *         received as cmdList
 	 */
-	public List<String> finalizeTranscoderArgs(Player player, String filename,
+	public List<String> finalizeTranscoderArgs(Engine player, String filename,
 			DLNAResource dlna, DLNAMediaInfo media, OutputParams params,
 			List<String> cmdList);
 }

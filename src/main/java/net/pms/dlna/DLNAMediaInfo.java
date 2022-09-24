@@ -29,8 +29,8 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -431,7 +431,7 @@ public class DLNAMediaInfo implements Cloneable {
 		ArrayList<String> args = new ArrayList<>();
 		boolean generateThumbnail = CONFIGURATION.isThumbnailGenerationEnabled() && !CONFIGURATION.isUseMplayerForVideoThumbs();
 
-		args.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		args.add(EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO));
 		if (args.get(0) == null) {
 			LOGGER.warn("Cannot generate thumbnail for {} since the FFmpeg executable is undefined");
 			return null;
@@ -1884,7 +1884,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO);
+		cmdArray[0] = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (cmdArray[0] == null) {
 			LOGGER.warn("Cannot process Annex B Frame Header is FFmpeg executable is undefined");
 			return null;

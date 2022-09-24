@@ -30,8 +30,8 @@ import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
@@ -128,12 +128,12 @@ public class MediaHandler implements HttpHandler {
 					// TODO: Use normal engine priorities instead of the following hacks
 					if (FileUtil.isUrl(resource.getSystemName())) {
 						if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
-							resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.YOUTUBE_DL, false, false));
+							resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
 						} else {
-							resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
+							resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
 						}
 					} else if (!(resource instanceof DVDISOTitle)) {
-						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_VIDEO, false, false));
+						resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 					}
 					//code = 206;
 				}
@@ -149,7 +149,7 @@ public class MediaHandler implements HttpHandler {
 			}
 
 			if (!WebInterfaceServerUtil.directmime(mimeType) && resource.getFormat().isAudio()) {
-				resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
+				resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 				code = 206;
 			}
 			if (resource.getFormat().isVideo() && render != null && HTTPResource.HLS_TYPEMIME.equals(render.getVideoMimeType())) {

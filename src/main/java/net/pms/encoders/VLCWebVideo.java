@@ -21,7 +21,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.util.PlayerUtil;
 
 public class VLCWebVideo extends VLCVideo {
-	public static final PlayerId ID = StandardPlayerId.VLC_WEB_VIDEO;
+	public static final EngineId ID = StandardEngineId.VLC_WEB_VIDEO;
 
 	/** The {@link Configuration} key for the VLC Web executable type. */
 	public static final String KEY_VLC_WEB_EXECUTABLE_TYPE = "vlc_web_executable_type";
@@ -33,11 +33,11 @@ public class VLCWebVideo extends VLCVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 

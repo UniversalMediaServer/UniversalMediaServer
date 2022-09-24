@@ -22,25 +22,25 @@ import java.io.Serializable;
 /**
  * This class is similar to a marker interface, it's only purpose is to ensure
  * that subclass instances only equals themselves and that {@link #toString()}
- * returns the "name" of the {@link PlayerId}. This allows for an "enum-like"
+ * returns the "name" of the {@link EngineId}. This allows for an "enum-like"
  * implementation where {@code ==} can be used for comparison while it's still
  * extendible.
  *
  * @author Nadahar
  */
-public abstract class PlayerId implements Serializable {
+public abstract class EngineId implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * @return The name/textual representation of this {@link PlayerId}, not the
-	 *         name of the corresponding {@link Player}.
+	 * @return The name/textual representation of this {@link EngineId}, not the
+	 *         name of the corresponding {@link Engine}.
 	 */
 	public abstract String getName();
 
 	@Override
 	public final boolean equals(Object object) {
-		return (this == object);
+		return (object instanceof EngineId && this == object);
 	}
 
 	@Override

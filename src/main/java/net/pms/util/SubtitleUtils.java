@@ -44,8 +44,8 @@ import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFmpegLogLevels;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -398,7 +398,7 @@ public class SubtitleUtils {
 		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
-		cmdList.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		cmdList.add(EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO));
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
 		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());

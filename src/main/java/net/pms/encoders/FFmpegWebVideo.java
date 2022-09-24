@@ -38,6 +38,7 @@ import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.OutputOverride;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	public static final PlayerId ID = StandardPlayerId.FFMPEG_WEB_VIDEO;
+	public static final EngineId ID = StandardEngineId.FFMPEG_WEB_VIDEO;
 
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "FFmpeg Web Video";
@@ -128,7 +129,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -139,7 +140,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
@@ -288,8 +289,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
 		boolean override = false;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
+		if (renderer instanceof OutputOverride outputOverride) {
+			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {

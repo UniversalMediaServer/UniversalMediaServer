@@ -83,8 +83,8 @@ import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
@@ -168,9 +168,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Represents the transformation to be used to the file. If null, then
 	 *
-	 * @see Player
+	 * @see Engine
 	 */
-	private Player player;
+	private Engine engine;
 	private boolean discovered = false;
 	private ProcessWrapper externalProcess;
 	private static int systemUpdateId = 0;
@@ -601,47 +601,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							child.media = new DLNAMediaInfo();
 						}
 
-						// Try to determine a player to use for transcoding.
-						Player playerTranscoding = null;
+						// Try to determine a engine to use for transcoding.
+						Engine transcodingEngine = null;
 
-						// First, try to match a player from recently played
+						// First, try to match an engine from recently played
 						// folder or based on the name of the DLNAResource
-						// or its parent. If the name ends in "[unique player
-						// id]", that player
-						// is preferred.
+						// or its parent. If the name ends in "[unique engine
+						// id]", that engine is preferred.
 						String name = getName();
 
 						if (configuration.isShowRecentlyPlayedFolder()) {
-							playerTranscoding = child.player;
+							transcodingEngine = child.engine;
 						} else {
-							for (Player p : PlayerFactory.getPlayers()) {
-								String end = "[" + p.id().toString() + "]";
+							for (Engine tEngine : EngineFactory.getEngines()) {
+								String end = "[" + tEngine.id().toString() + "]";
 
 								if (name.endsWith(end)) {
 									nametruncate = name.lastIndexOf(end);
-									playerTranscoding = p;
-									LOGGER.trace("Selecting player based on name end");
+									transcodingEngine = tEngine;
+									LOGGER.trace("Selecting engine based on name end");
 									break;
 								} else if (parent != null && parent.getName().endsWith(end)) {
 									parent.nametruncate = parent.getName().lastIndexOf(end);
-									playerTranscoding = p;
-									LOGGER.trace("Selecting player based on parent name end");
+									transcodingEngine = tEngine;
+									LOGGER.trace("Selecting engine based on parent name end");
 									break;
 								}
 							}
 						}
 
-						// If no preferred player could be determined from the
-						// name, try to
-						// match a player based on media information and format.
-						if (playerTranscoding == null) {
-							playerTranscoding = child.resolvePlayer(defaultRenderer);
+						// If no preferred engine could be determined from the name,
+						// try to match a engine based on media information and format.
+						if (transcodingEngine == null) {
+							transcodingEngine = child.resolveEngine(defaultRenderer);
 						}
-						child.setPlayer(playerTranscoding);
+						child.setEngine(transcodingEngine);
 						child.setPreferredMimeType(defaultRenderer);
 
 						if (resumeRes != null) {
-							resumeRes.player = playerTranscoding;
+							resumeRes.engine = transcodingEngine;
 							resumeRes.mediaSubtitle = child.mediaSubtitle;
 						}
 
@@ -657,8 +655,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										fileTranscodeFolder.setMediaSubtitle(child.getMediaSubtitle());
 									}
 
-									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(),
-										playerTranscoding);
+									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", child.getName(),
+										transcodingEngine);
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}
@@ -667,10 +665,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								VirtualFolder vf = getSubSelector(true);
 								if (vf != null) {
 									DLNAResource newChild = child.clone();
-									newChild.player = playerTranscoding;
+									newChild.engine = transcodingEngine;
 									newChild.media = child.media;
-									LOGGER.trace("Adding live subtitles folder for \"{}\" with player {}", child.getName(),
-										playerTranscoding);
+									LOGGER.trace("Adding live subtitles folder for \"{}\" with engine {}", child.getName(),
+										transcodingEngine);
 
 									vf.addChild(new SubSelFile(newChild), true);
 								}
@@ -708,10 +706,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						child.second = newChild;
 
 						if (!newChild.format.isCompatible(newChild, defaultRenderer)) {
-							Player playerTranscoding = PlayerFactory.getPlayer(newChild);
-							newChild.setPlayer(playerTranscoding);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(),
-								player == null ? "null" : player.name(), newChild.getName());
+							Engine transcodingEngine = EngineFactory.getEngine(newChild);
+							newChild.setEngine(transcodingEngine);
+							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.format.toString(),
+								engine == null ? "null" : engine.name(), newChild.getName());
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
@@ -743,16 +741,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Determine whether we are a candidate for streaming or transcoding to the
-	 * given renderer, and return the relevant player or null as appropriate.
+	 * given renderer, and return the relevant engine or null as appropriate.
 	 *
 	 * @param renderer The target renderer
-	 * @return A player if transcoding or null if streaming
+	 * @return A engine if transcoding or null if streaming
 	 */
-	public Player resolvePlayer(RendererConfiguration renderer) {
+	public Engine resolveEngine(RendererConfiguration renderer) {
 		// Use device-specific conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
-		Player resolvedPlayer = null;
+		Engine resolvedEngine = null;
 
 		if (media == null) {
 			media = new DLNAMediaInfo();
@@ -767,9 +765,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Check if we're a transcode folder item
 		if (isInsideTranscodeFolder()) {
 			// Yes, leave everything as-is
-			resolvedPlayer = getPlayer();
-			LOGGER.trace("Selecting player {} based on transcode item settings", resolvedPlayer);
-			return resolvedPlayer;
+			resolvedEngine = getEngine();
+			LOGGER.trace("Selecting engine {} based on transcode item settings", resolvedEngine);
+			return resolvedEngine;
 		}
 
 		// Resolve subtitles stream
@@ -801,11 +799,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Should transcoding be forced for this format?
 		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 
-		// Try to match a player based on media information and format.
-		resolvedPlayer = PlayerFactory.getPlayer(this);
+		// Try to match an engine based on media information and format.
+		resolvedEngine = EngineFactory.getEngine(this);
 
 		boolean isIncompatible = false;
-		if (resolvedPlayer != null) {
+		if (resolvedEngine != null) {
 			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.debug(prependTranscodingReason + "transcoding is forced by configuration", getName());
@@ -885,19 +883,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", getName(),
-						resolvedPlayer.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\" with mime type \"{}\"", getName(),
+						resolvedEngine.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
 				} else {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with player \"{}\"", getName(), resolvedPlayer.toString());
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\"", getName(), resolvedEngine.toString());
 				}
 			} else {
-				resolvedPlayer = null;
+				resolvedEngine = null;
 				LOGGER.debug("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible player was found", getName());
+			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
 		}
-		return resolvedPlayer;
+		return resolvedEngine;
 	}
 
 	/**
@@ -1549,7 +1547,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the "engine"/player part of the display name or {@code null} if
+	 * Returns the engine part of the display name or {@code null} if
 	 * none should be displayed. Returns the display name for the default
 	 * renderer.
 	 *
@@ -1558,9 +1556,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected String getDisplayNameEngine(PmsConfiguration configuration) {
 		String engineName = null;
-		if (player != null) {
+		if (engine != null) {
 			if (isNoName() || !configuration.isHideEngineNames()) {
-				engineName = "[" + player.name() + (isAvisynth() ? " + AviSynth]" : "]");
+				engineName = "[" + engine.name() + (isAvisynth() ? " + AviSynth]" : "]");
 			}
 		} else if (isNoName()) {
 			engineName = Messages.getString("NoTranscoding");
@@ -1599,7 +1597,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			case VIDEO:
 				StringBuilder nameSuffixBuilder = new StringBuilder();
 				boolean subsAreValidForStreaming = mediaSubtitle != null && mediaSubtitle.isExternal() && renderer != null &&
-					(player == null || renderer.streamSubsForTranscodedVideo()) &&
+					(engine == null || renderer.streamSubsForTranscodedVideo()) &&
 					renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this);
 
 				if (mediaAudio != null) {
@@ -1923,7 +1921,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String getDlnaOrgOpFlags(RendererConfiguration mediaRenderer) {
 		String dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 
-		if (mediaRenderer.isSeekByTime() && player != null && player.isTimeSeekable()) {
+		if (mediaRenderer.isSeekByTime() && engine != null && engine.isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -1985,28 +1983,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, player == null);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, engine == null);
 				}
 			} else {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
-					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, player == null);
+					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, mediaRenderer, engine == null);
 				} else if (mime.equals(MPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegPsOrgPN(localizationValue);
 
-					// If player is not null, we are not streaming it
-					if (player != null) {
+					// If engine is not null, we are not streaming it
+					if (engine != null) {
 						// VLC Web Video (Legacy) and tsMuxeR always output
 						// MPEG-TS
-						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
+						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.id()) || VideoLanVideoStreaming.ID.equals(engine.id());
 
 						// Check if the renderer settings make the current
 						// engine always output MPEG-TS
 						if (!isOutputtingMPEGTS && mediaRenderer.isTranscodeToMPEGTS() &&
-							(MEncoderVideo.ID.equals(player.id()) || FFMpegVideo.ID.equals(player.id()) ||
-								VLCVideo.ID.equals(player.id()) || AviSynthFFmpeg.ID.equals(player.id()) ||
-								AviSynthMEncoder.ID.equals(player.id()))) {
+							(MEncoderVideo.ID.equals(engine.id()) || FFMpegVideo.ID.equals(engine.id()) ||
+								VLCVideo.ID.equals(engine.id()) || AviSynthFFmpeg.ID.equals(engine.id()) ||
+								AviSynthMEncoder.ID.equals(engine.id()))) {
 							isOutputtingMPEGTS = true;
 						}
 
@@ -2014,9 +2012,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// MPEG-TS and the setting is enabled, it might be
 						// MPEG-TS
 						if (!isOutputtingMPEGTS &&
-							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(player.id())) ||
+							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.id())) ||
 								(configurationSpecificToRenderer.isFFmpegMuxWithTsMuxerWhenCompatible() &&
-									FFMpegVideo.ID.equals(player.id())))) {
+									FFMpegVideo.ID.equals(engine.id())))) {
 							/*
 							 * Media renderer needs ORG_PN to be accurate. If
 							 * the value does not match the media, it won't play
@@ -2035,7 +2033,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 * for all renderers.
 							 *
 							 * This code block comes from
-							 * Player.setAudioAndSubs()
+							 * Engine.setAudioAndSubs()
 							 */
 							if (mediaRenderer.isAccurateDLNAOrgPN()) {
 								if (mediaSubtitle == null) {
@@ -2064,42 +2062,42 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (isOutputtingMPEGTS) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
-							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(player.id())) {
+							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.id())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
 							}
 						}
 					} else if (media != null) {
 						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
-							if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
+							if ((engine == null && media.isH264()) || (engine != null && mediaRenderer.isTranscodeToH264())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
+									getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, engine == null);
 							} else {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
+									getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, engine == null);
 							}
 						}
 					}
 				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
 					// patters - on Sony BDP m2ts clips aren't listed without
 					// this
-					if ((player == null && media.isH264()) || (player != null && mediaRenderer.isTranscodeToH264())) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
+					if ((engine == null && media.isH264()) || (engine != null && mediaRenderer.isTranscodeToH264())) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, engine == null);
 					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, player == null);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, engine == null);
 					}
 				} else if (media != null && mime.equals(MP4_TYPEMIME)) {
-					if (player == null && media.getCodecV().equals("h265") && media.getFirstAudioTrack() != null &&
+					if (engine == null && media.getCodecV().equals("h265") && media.getFirstAudioTrack() != null &&
 						(media.getFirstAudioTrack().isAC3() || media.getFirstAudioTrack().isEAC3() ||
 							media.getFirstAudioTrack().isHEAAC())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
 					}
 				} else if (media != null && mime.equals(MATROSKA_TYPEMIME)) {
-					if (player == null && media.isH264()) {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMkvH264OrgPN(localizationValue, media, mediaRenderer, player == null);
+					if (engine == null && media.isH264()) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMkvH264OrgPN(localizationValue, media, mediaRenderer, engine == null);
 					}
 				} else if (media != null && mime.equals(ASF_TYPEMIME)) {
-					if (player == null && media.getCodecV().equals("vc1") && media.getFirstAudioTrack().isWMA()) {
+					if (engine == null && media.getCodecV().equals("vc1") && media.getFirstAudioTrack().isWMA()) {
 						if (media.isHDVideo()) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=VC1_ASF_AP_L2_WMA";
 						} else {
@@ -2181,7 +2179,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (
 					!configurationSpecificToRenderer.isDisableSubtitles() &&
 					(
-						player == null ||
+						engine == null ||
 						mediaRenderer.streamSubsForTranscodedVideo()
 					) &&
 					mediaSubtitle != null &&
@@ -2195,7 +2193,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						LOGGER.trace("Subtitles are disabled");
 					} else if (mediaSubtitle.isEmbedded()) {
 						LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
-					} else if (player != null && !mediaRenderer.streamSubsForTranscodedVideo()) {
+					} else if (engine != null && !mediaRenderer.streamSubsForTranscodedVideo()) {
 						LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), mediaRenderer);
 					} else {
 						LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), mediaRenderer);
@@ -2364,7 +2362,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
 					long transcodedSize = mediaRenderer.getTranscodedSize();
-					if (player == null) {
+					if (engine == null) {
 						addAttribute(sb, "size", media.getSize());
 					} else if (transcodedSize != 0) {
 						addAttribute(sb, "size", transcodedSize);
@@ -2383,7 +2381,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (media.getResolution() != null) {
-						if (player != null && (mediaRenderer.isKeepAspectRatio() || mediaRenderer.isKeepAspectRatioTranscoding())) {
+						if (engine != null && (mediaRenderer.isKeepAspectRatio() || mediaRenderer.isKeepAspectRatioTranscoding())) {
 							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
@@ -2399,7 +2397,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					if (firstAudioTrack != null) {
 						if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
-							if (player == null) {
+							if (engine == null) {
 								addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
 							} else {
 								addAttribute(sb, "nrAudioChannels", configuration.getAudioChannelCount());
@@ -2411,7 +2409,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getVideoBitDepth() > 0) {
-						if (player == null) {
+						if (engine == null) {
 							addAttribute(sb, "colorDepth", media.getVideoBitDepth());
 						} else {
 							addAttribute(sb, "colorDepth", "8");
@@ -2438,7 +2436,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						int transcodeFrequency = -1;
 						int transcodeNumberOfChannels = -1;
 						if (firstAudioTrack != null) {
-							if (player == null) {
+							if (engine == null) {
 								if (firstAudioTrack.getSampleFrequency() != null) {
 									addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 								}
@@ -2463,7 +2461,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
 						}
 
-						if (player == null) {
+						if (engine == null) {
 							if (media.getSize() != 0) {
 								addAttribute(sb, "size", media.getSize());
 							}
@@ -2492,7 +2490,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (player != null && media != null) {
+				if (engine != null && media != null) {
 					// Note: Can't use instanceof below because the audio
 					// classes inherit the corresponding video class
 					if (media.isVideo()) {
@@ -3162,7 +3160,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, HlsConfiguration hlsConfiguration) throws IOException {
 		// Use device-specific DMS conf, if any
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
-		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
+		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + engine);
 
 		// shagrath: small fix, regression on chapters
 		boolean timeseekAuto = false;
@@ -3173,7 +3171,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		long low = range.isByteRange() && range.isStartOffsetAvailable() ? range.asByteRange().getStart() : 0;
 		long high = range.isByteRange() && range.isEndLimitAvailable() ? range.asByteRange().getEnd() : -1;
 		Range.Time timeRange = range.createTimeRange();
-		if (player != null && low > 0 && cbrVideoBitrate > 0) {
+		if (engine != null && low > 0 && cbrVideoBitrate > 0) {
 			int usedBitRated = (int) ((cbrVideoBitrate + 256) * 1024 / (double) 8 * CONTAINER_OVERHEAD);
 			if (low > usedBitRated) {
 				timeRange.setStart(low / (double) (usedBitRated));
@@ -3207,7 +3205,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Determine source of the stream
-		if (player == null && !isResume()) {
+		if (engine == null && !isResume()) {
 			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -3259,8 +3257,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			params.setTimeSeek(resume.getTimeOffset() / 1000);
-			if (player == null) {
-				player = PlayerFactory.getPlayer(this);
+			if (engine == null) {
+				engine = EngineFactory.getEngine(this);
 			}
 		}
 
@@ -3277,7 +3275,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 			lastStartSystemTime = System.currentTimeMillis();
-			externalProcess = player.launchTranscode(this, media, params);
+			externalProcess = engine.launchTranscode(this, media, params);
 			if (params.getWaitBeforeStart() > 0) {
 				LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
 				try {
@@ -3299,7 +3297,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			new Thread(r, "External Process Stopper").start();
 			lastStartSystemTime = System.currentTimeMillis();
-			ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
+			ProcessWrapper newExternalProcess = engine.launchTranscode(this, media, params);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -3372,14 +3370,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String mimeType() {
-		return mimeType(player);
+		return mimeType(engine);
 	}
 
-	public String mimeType(Player player) {
-		if (player != null) {
-			// Players like FFmpegVideo can define placeholder MIME types like
+	public String mimeType(Engine engine) {
+		if (engine != null) {
+			// Engines like FFmpegVideo can define placeholder MIME types like
 			// video/transcode to be replaced later
-			return player.mimeType();
+			return engine.mimeType();
 		} else if (media != null && media.isMediaparsed()) {
 			return media.getMimeType();
 		} else if (getFormat() != null) {
@@ -3800,24 +3798,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the {@link Player} object that is used to encode this resource
+	 * Returns the {@link Engine} object that is used to encode this resource
 	 * for the renderer. Can be null.
 	 *
-	 * @return The player object.
+	 * @return The engine object.
 	 */
-	public Player getPlayer() {
-		return player;
+	public Engine getEngine() {
+		return engine;
 	}
 
 	/**
-	 * Sets the {@link Player} object that is to be used to encode this resource
-	 * for the renderer. The player object can be null.
+	 * Sets the {@link Engine} object that is to be used to encode this resource
+	 * for the renderer. The engine object can be null.
 	 *
-	 * @param player The player object to set.
+	 * @param engine The engine object to set.
 	 * @since 1.50
 	 */
-	public void setPlayer(Player player) {
-		this.player = player;
+	public void setEngine(Engine engine) {
+		this.engine = engine;
 	}
 
 	/**
@@ -4660,7 +4658,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					clone.media.setThumbready(false);
 				}
 
-				clone.player = player;
+				clone.engine = engine;
 				parent.addChildInternal(clone);
 				return clone;
 			}
@@ -4890,13 +4888,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public static class Rendering {
 
 		RendererConfiguration r;
-		Player p;
+		Engine p;
 		DLNAMediaSubtitle s;
 		String m;
 
 		Rendering(DLNAResource d) {
 			r = d.getDefaultRenderer();
-			p = d.getPlayer();
+			p = d.getEngine();
 			s = d.getMediaSubtitle();
 			if (d.getMedia() != null) {
 				m = d.getMedia().getMimeType();
@@ -4906,19 +4904,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public Rendering updateRendering(RendererConfiguration r) {
 		Rendering rendering = new Rendering(this);
-		Player p = resolvePlayer(r);
+		Engine p = resolveEngine(r);
 		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", r, p, rendering.r, rendering.p);
 		setDefaultRenderer(r);
-		setPlayer(p);
+		setEngine(p);
 		setPreferredMimeType(r);
 		return rendering;
 	}
 
 	public void updateRendering(Rendering rendering) {
 		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", rendering.r, rendering.p, getDefaultRenderer(),
-			getPlayer());
+			getEngine());
 		setDefaultRenderer(rendering.r);
-		setPlayer(rendering.p);
+		setEngine(rendering.p);
 		mediaSubtitle = rendering.s;
 		if (media != null) {
 			media.setMimeType(rendering.m);
@@ -5003,8 +5001,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			scaleWidth = (int) Math.round(scaleHeight * rendererAspectRatio);
 		}
 
-		scaleWidth = Player.convertToModX(scaleWidth, 4);
-		scaleHeight = Player.convertToModX(scaleHeight, 4);
+		scaleWidth = Engine.convertToModX(scaleWidth, 4);
+		scaleHeight = Engine.convertToModX(scaleHeight, 4);
 		return scaleWidth + "x" + scaleHeight;
 	}
 

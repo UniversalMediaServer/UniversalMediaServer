@@ -26,8 +26,8 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -398,8 +398,8 @@ public class UMSUtils {
 						String id = "internal:" + r.getClass().getName();
 
 						sb.append("master:").append(id).append(';');
-						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(';');
+						if (r.getEngine() != null) {
+							sb.append("player:").append(r.getEngine().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
@@ -442,8 +442,8 @@ public class UMSUtils {
 			}
 		}
 
-		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
-			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+		private static Engine findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Engine player : EngineFactory.getEngines(onlyEnabled, onlyAvailable)) {
 				if (playerName.equals(player.name())) {
 					return player;
 				}
@@ -528,7 +528,7 @@ public class UMSUtils {
 					String subData = null;
 					String resData = null;
 					DLNAResource res = null;
-					Player player = null;
+					Engine player = null;
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
@@ -559,7 +559,7 @@ public class UMSUtils {
 								res.setResume(r);
 							}
 						}
-						res.setPlayer(player);
+						res.setEngine(player);
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
 							if (s == null) {

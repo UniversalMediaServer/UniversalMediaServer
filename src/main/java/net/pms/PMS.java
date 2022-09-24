@@ -57,7 +57,7 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.YoutubeDl;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
@@ -475,7 +475,7 @@ public class PMS {
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
 			 */
-			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
@@ -604,7 +604,7 @@ public class PMS {
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
 		// Initialize a player factory to register all players
-		PlayerFactory.initialize();
+		EngineFactory.initialize();
 
 		// Any plugin-defined players are now registered, create the gui view.
 		GuiManager.addEngines();

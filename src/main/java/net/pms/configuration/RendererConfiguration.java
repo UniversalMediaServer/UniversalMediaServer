@@ -25,11 +25,9 @@ import net.pms.renderers.devices.players.PlayerState;
 import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.dlna.*;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
-import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
-import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
@@ -80,23 +78,6 @@ public class RendererConfiguration extends Renderer {
 	public boolean loaded = false;
 	public boolean fileless = false;
 
-	public interface OutputOverride {
-		/**
-		 * Override a player's default output formatting.
-		 * To be invoked by the player after input and filter options are complete.
-		 *
-		 * @param cmdList the command so far
-		 * @param dlna the media item
-		 * @param player the player
-		 * @param params the output parameters
-		 *
-		 * @return whether the options have been finalized
-		 */
-		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
-
-		public boolean addSubtitles();
-	}
-
 	// Holds MIME type aliases
 	protected Map<String, String> mimes;
 
@@ -107,7 +88,8 @@ public class RendererConfiguration extends Renderer {
 	protected int lineWidth;
 	protected int lineHeight;
 	protected int indent;
-	protected String inset, dots;
+	protected String inset;
+	protected String dots;
 
 	// property values
 	protected static final String LPCM = "LPCM";

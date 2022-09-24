@@ -66,7 +66,7 @@ import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
-import net.pms.encoders.ImagePlayer;
+import net.pms.encoders.ImageEngine;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -485,8 +485,8 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						try {
 							InputStream imageInputStream;
-							if (dlna.getPlayer() instanceof ImagePlayer) {
-								ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+							if (dlna.getEngine() instanceof ImageEngine) {
+								ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(
 									dlna,
 									dlna.getMedia(),
 									new OutputParams(configuration)
@@ -616,7 +616,7 @@ public class RequestV2 extends HTTPResource {
 									mediaRenderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna)
 								) {
 									String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-									if (isNotBlank(subtitleHttpHeader)  && (dlna.getPlayer() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
+									if (isNotBlank(subtitleHttpHeader)  && (dlna.getEngine() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
 										DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 										String subtitleUrl;
@@ -1303,7 +1303,7 @@ public class RequestV2 extends HTTPResource {
 				if (
 					uf != null &&
 					(uf.isCompatible(mediaRenderer) &&
-					(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 					files.get(0).isInsideTranscodeFolder())

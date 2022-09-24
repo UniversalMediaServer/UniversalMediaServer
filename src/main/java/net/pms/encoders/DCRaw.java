@@ -58,9 +58,9 @@ import net.pms.io.SimpleProcessWrapper;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.Version;
 
-public class DCRaw extends ImagePlayer {
+public class DCRaw extends ImageEngine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
-	public final static PlayerId ID = StandardPlayerId.DCRAW;
+	public final static EngineId ID = StandardEngineId.DCRAW;
 
 	/** The {@link Configuration} key for the custom DCRaw path. */
 	public static final String KEY_DCRAW_PATH = "dcraw_path";
@@ -88,7 +88,7 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -134,7 +134,7 @@ public class DCRaw extends ImagePlayer {
 
 	@Override
 	public int purpose() {
-		return MISC_PLAYER;
+		return MISC_ENGINE;
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class DCRaw extends ImagePlayer {
 
 		// First try to get the embedded thumbnail
 		String[] cmdArray = new String[5];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-c";
 		cmdArray[2] = "-M";
 		cmdArray[3] = "-w";
@@ -215,7 +215,7 @@ public class DCRaw extends ImagePlayer {
 
 		// First try to get the embedded thumbnail
 		String[] cmdArray = new String[6];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-e";
 		cmdArray[2] = "-c";
 		cmdArray[3] = "-M";
@@ -352,7 +352,7 @@ public class DCRaw extends ImagePlayer {
 		params.setLog(true);
 
 		String[] cmdArray = new String[4];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-i";
 		cmdArray[2] = "-v";
 		cmdArray[3] = file.getAbsolutePath();
@@ -392,7 +392,7 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 

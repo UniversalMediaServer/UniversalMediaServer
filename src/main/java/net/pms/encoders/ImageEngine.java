@@ -23,7 +23,7 @@ import net.pms.formats.Format;
 import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
 
-public abstract class ImagePlayer extends Player {
+public abstract class ImageEngine extends Engine {
 	@Override
 	public int type() {
 		return Format.IMAGE;

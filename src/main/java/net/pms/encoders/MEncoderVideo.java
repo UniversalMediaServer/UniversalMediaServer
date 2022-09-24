@@ -53,9 +53,9 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MEncoderVideo extends Player {
+public class MEncoderVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
-	public static final PlayerId ID = StandardPlayerId.MENCODER_VIDEO;
+	public static final EngineId ID = StandardEngineId.MENCODER_VIDEO;
 
 	/** The {@link Configuration} key for the custom MEncoder path. */
 	public static final String KEY_MENCODER_PATH = "mencoder_path";
@@ -120,11 +120,11 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -334,7 +334,7 @@ public class MEncoderVideo extends Player {
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
-			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -536,7 +536,7 @@ public class MEncoderVideo extends Player {
 		} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
-		} else if (!PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+		} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 			deferToTsmuxer = false;
 			LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 		}
@@ -560,7 +560,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				params.setForceFps(media.getValidFps(false));
 
 				if (media.getCodecV() != null) {
@@ -603,7 +603,7 @@ public class MEncoderVideo extends Player {
 		isTranscodeToH264   = params.getMediaRenderer().isTranscodeToH264() || params.getMediaRenderer().isTranscodeToH265();
 		isTranscodeToAAC    = params.getMediaRenderer().isTranscodeToAAC();
 
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		String vcodec = "mpeg2video";
 		if (isTranscodeToH264) {
@@ -650,7 +650,7 @@ public class MEncoderVideo extends Player {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 		 */
 
-		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
+		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.getAid() != null) && (params.getAid().getAudioProperties().getAudioDelay() != 0) && (params.getTimeSeek() == 0);
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
@@ -1893,7 +1893,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
 				String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 				pw = new ProcessWrapperImpl(cmd, params);
@@ -2274,7 +2274,7 @@ public class MEncoderVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 

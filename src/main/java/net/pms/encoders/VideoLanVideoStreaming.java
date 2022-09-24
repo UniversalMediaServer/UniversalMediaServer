@@ -50,9 +50,9 @@ import net.pms.util.UMSUtils;
 import net.pms.util.Version;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
-public class VideoLanVideoStreaming extends Player {
+public class VideoLanVideoStreaming extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VideoLanVideoStreaming.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO_STREAMING;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO_STREAMING;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -67,11 +67,11 @@ public class VideoLanVideoStreaming extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -224,7 +224,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 

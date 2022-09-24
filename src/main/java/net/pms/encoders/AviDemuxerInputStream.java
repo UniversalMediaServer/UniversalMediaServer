@@ -94,7 +94,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 		Runnable r = () -> {
 			try {
-				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, false);
+				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, false);
 				File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 				try (PrintWriter pw = new PrintWriter(f)) {
 					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");

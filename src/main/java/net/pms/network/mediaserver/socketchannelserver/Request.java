@@ -48,7 +48,7 @@ import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
-import net.pms.encoders.ImagePlayer;
+import net.pms.encoders.ImageEngine;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
@@ -423,8 +423,8 @@ public class Request extends HTTPResource {
 						appendToHeader(responseHeader, "Connection: keep-alive");
 						try {
 							InputStream imageInputStream;
-							if (dlna.getPlayer() instanceof ImagePlayer) {
-								ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
+							if (dlna.getEngine() instanceof ImageEngine) {
+								ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
 								imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
 							} else {
 								imageInputStream = dlna.getInputStream();
@@ -612,7 +612,7 @@ public class Request extends HTTPResource {
 								appendToHeader(responseHeader, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
 							}
 
-							if (dlna.getPlayer() == null || xbox360) {
+							if (dlna.getEngine() == null || xbox360) {
 								appendToHeader(responseHeader, "Accept-Ranges: bytes");
 							}
 
@@ -836,7 +836,7 @@ public class Request extends HTTPResource {
 							}
 							if (
 								uf.isCompatible(mediaRenderer) &&
-								(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+								(uf.getEngine() == null || uf.getEngine().isEngineCompatible(mediaRenderer)) ||
 								// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 								// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 								files.get(0).isInsideTranscodeFolder()

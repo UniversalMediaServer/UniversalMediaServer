@@ -31,11 +31,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.formats.audio.M4A;
@@ -50,6 +49,7 @@ import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
+import net.pms.renderers.OutputOverride;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebPlayer;
 import org.apache.commons.configuration.ConfigurationException;
@@ -57,7 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
+public class WebRender extends DeviceConfiguration implements OutputOverride {
 	private final String user;
 	private final String defaultMime;
 	private final Gson gson;
@@ -306,7 +306,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Engine player, OutputParams params) {
 		if (player instanceof FFMpegVideo fFMpegVideo) {
 			if (resource.getFormat().isVideo()) {
 				DLNAMediaInfo media = resource.getMedia();

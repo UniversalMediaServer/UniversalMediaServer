@@ -21,8 +21,6 @@ import com.sun.jna.Platform;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -37,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class YoutubeDl extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeDl.class);
-	public static final PlayerId ID = StandardPlayerId.YOUTUBE_DL;
 
+	public static final EngineId ID = StandardEngineId.YOUTUBE_DL;
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "youtube-dl";
 
@@ -47,7 +45,7 @@ public class YoutubeDl extends FFMpegVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -58,7 +56,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
@@ -170,5 +168,4 @@ public class YoutubeDl extends FFMpegVideo {
 		return PlayerUtil.isWebVideo(resource);
 	}
 
-	static final Matcher END_OF_HEADER = Pattern.compile("Press \\[q\\]|A-V:|At least|Invalid").matcher("");
 }

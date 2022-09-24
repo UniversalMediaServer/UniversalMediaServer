@@ -30,7 +30,7 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 
 public class MEncoderWebVideo extends MEncoderVideo {
-	public static final PlayerId ID = StandardPlayerId.MENCODER_WEB_VIDEO;
+	public static final EngineId ID = StandardEngineId.MENCODER_WEB_VIDEO;
 
 	/** The {@link Configuration} key for the DCRaw executable type. */
 	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
@@ -41,7 +41,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -52,7 +52,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override

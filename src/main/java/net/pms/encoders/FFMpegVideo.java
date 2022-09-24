@@ -44,6 +44,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.windows.NTStatus;
+import net.pms.renderers.OutputOverride;
 import net.pms.util.CodecUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -78,9 +79,9 @@ import org.slf4j.LoggerFactory;
  *         OutputParams params
  *     )
  */
-public class FFMpegVideo extends Player {
+public class FFMpegVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
-	public static final PlayerId ID = StandardPlayerId.FFMPEG_VIDEO;
+	public static final EngineId ID = StandardEngineId.FFMPEG_VIDEO;
 
 	/** The {@link Configuration} key for the custom FFmpeg path. */
 	public static final String KEY_FFMPEG_PATH = "ffmpeg_path";
@@ -168,8 +169,7 @@ public class FFMpegVideo extends Player {
 		filterChain.addAll(scalePadFilterChain);
 
 		boolean override = true;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride) renderer;
+		if (renderer instanceof OutputOverride or) {
 			override = or.addSubtitles();
 		}
 
@@ -333,7 +333,7 @@ public class FFMpegVideo extends Player {
 			) ||
 			(
 				renderer.isXboxOne() &&
-				purpose() == VIDEO_WEBSTREAM_PLAYER
+				purpose() == VIDEO_WEBSTREAM_ENGINE
 			)
 		) { // WMV
 			transcodeOptions.add("-c:v");
@@ -347,7 +347,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
-			final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
+			final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 
 			// Output audio codec
 			dtsRemux = isTsMuxeRVideoEngineActive &&
@@ -497,7 +497,7 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
@@ -683,11 +683,11 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -838,8 +838,8 @@ public class FFMpegVideo extends Player {
 		setLogLevel(cmdList, configuration);
 		setDecodingOptions(cmdList, configuration, avisynth);
 
-		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
+		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		ac3Remux = false;
 		dtsRemux = false;
@@ -895,8 +895,8 @@ public class FFMpegVideo extends Player {
 		 * - The file is not being played via the transcode folder
 		 */
 		if (
-			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
-			!(renderer instanceof RendererConfiguration.OutputOverride) &&
+			EngineFactory.isEngineActive(MEncoderVideo.ID) &&
+			!(renderer instanceof OutputOverride) &&
 			params.getSid() != null &&
 			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
@@ -907,13 +907,13 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
-			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
+			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 
 		boolean deferToTsmuxer = true;
 		boolean canMuxVideoWithFFmpeg = true;
-		if (!(renderer instanceof RendererConfiguration.OutputOverride)) {
+		if (!(renderer instanceof OutputOverride)) {
 			String prependTraceReason = "Not muxing the video stream with FFmpeg because ";
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
@@ -943,7 +943,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (dlna.isInsideTranscodeFolder()) {
@@ -979,12 +979,12 @@ public class FFMpegVideo extends Player {
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (!PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 				deferToTsmuxer = false;
 				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 			}
 			if (deferToTsmuxer) {
-				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				params.setForceFps(media.getValidFps(false));
 
 				if (media.getCodecV() != null) {
@@ -1042,8 +1042,8 @@ public class FFMpegVideo extends Player {
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
 		boolean override = false;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
+		if (renderer instanceof OutputOverride outputOverride) {
+			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {
@@ -1061,7 +1061,7 @@ public class FFMpegVideo extends Player {
 					) ||
 					(
 						renderer.isXboxOne() &&
-						purpose() == VIDEO_WEBSTREAM_PLAYER
+						purpose() == VIDEO_WEBSTREAM_ENGINE
 					)
 				) {
 					channels = 2;
@@ -1168,7 +1168,7 @@ public class FFMpegVideo extends Player {
 		} else {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
@@ -1762,7 +1762,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
