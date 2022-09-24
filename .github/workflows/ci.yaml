@@ -8,7 +8,7 @@ on:
 
 jobs:
   macos:
-    runs-on: macos-latest
+    runs-on: macos-12
     strategy:
       matrix:
         # test against two different xcode version on MacOS
