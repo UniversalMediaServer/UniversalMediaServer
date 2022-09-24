@@ -247,6 +247,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 					WebGuiServletHelper.respondBadRequest(req, resp);
 				}
+				case "/show" -> {
+					if (action.has("id")) {
+						String id = action.get("id").getAsString();
+						JsonObject show = getShowPage(root, id);
+						if (show != null) {
+							WebGuiServletHelper.respond(req, resp, show.toString(), 200, "application/json");
+							return;
+						}
+					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
+				}
 				case "/status" -> {
 					if (action.has("token")) {
 						WebRender renderer = (WebRender) root.getDefaultRenderer();
@@ -517,8 +528,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 
-			if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
-				MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
+			if (rootResource instanceof MediaLibraryFolder folder) {
 				if (
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
@@ -581,6 +591,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
+		} else if (resource.getFormat() != null && resource.getFormat().isVideo()) {
+			jMedia.addProperty("goal", "show");
 		} else {
 			jMedia.addProperty("goal", "play");
 		}
@@ -635,6 +647,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jLibraryVideos;
 	}
 
+	private JsonObject getShowPage(WebPlayerRootFolder root, String id) throws IOException, InterruptedException {
+		JsonObject result = getPlayPage(root, id);
+		if (result != null) {
+			result.remove("goal");
+			result.addProperty("goal", "show");
+		}
+		return result;
+	}
+
 	private JsonObject getPlayPage(WebPlayerRootFolder root, String id) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
@@ -644,7 +665,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			JsonArray jFolders = new JsonArray();
 			JsonArray medias = new JsonArray();
 			JsonObject media = new JsonObject();
-
 
 			WebRender renderer = (WebRender) root.getDefaultRenderer();
 			DLNAResource rootResource = root.getDLNAResource(id, renderer);

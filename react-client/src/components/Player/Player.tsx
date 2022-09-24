@@ -1,9 +1,9 @@
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Stack, Text } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
-import { ArrowBigLeft, ArrowBigRight, Folder, Home, Movie, Music, Photo, QuestionMark } from 'tabler-icons-react';
+import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import PlayerEventContext from '../../contexts/player-server-event-context';
@@ -55,7 +55,7 @@ export const Player = () => {
         <Button
           onClick={() => sse.askBrowseId(folder.id)}
           color='gray'
-          variant="subtle"
+          variant='subtle'
           compact
           styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
           leftIcon = {getFolderIcon(folder, rtl)}
@@ -113,7 +113,7 @@ export const Player = () => {
                 style={breadcrumb.id ? {fontWeight: 400} : {cursor:'default'}}
                 onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
-                variant="subtle"
+                variant='subtle'
                 compact
               >
                 {breadcrumb.name === "root" ? (<Home />) : (breadcrumb.name) }
@@ -148,8 +148,8 @@ export const Player = () => {
     return (
       <Paper>
         <Image
-          radius="md"
-          src={playerApiUrl + "image/" + token + "/"  + media.id}
+          radius='md'
+          src={playerApiUrl + 'image/' + token + '/'  + media.id}
           alt={media.name}
         />
       </Paper>);
@@ -190,7 +190,6 @@ export const Player = () => {
   }
 
   const getMedia = (media: BaseMedia) => {
-    let isPlay = media.goal==="play";
 	let image;
     let icon = getMediaIcon(media, rtl);
     if (icon) {
@@ -200,14 +199,14 @@ export const Player = () => {
     }
     return (
       <Grid.Col span={3}>
-        <Card shadow="sm" p="lg"
-          onClick={() => isPlay ? sse.askPlayId(media.id) : sse.askBrowseId(media.id)}
+        <Card shadow='sm' p='lg'
+          onClick={() => sse.askReqId(media.id, media.goal?media.goal:'browse')}
           style={{cursor:'pointer'}}
         >
           <Card.Section>
             {image}
           </Card.Section>
-          <Text align="center" size="sm">
+          <Text align='center' size='sm'>
             {media.name}
           </Text>
         </Card>
@@ -216,9 +215,11 @@ export const Player = () => {
   }
 
   const getMedias = () => {
-    return data.medias.map((media: BaseMedia) => {
-      return getMedia(media);
-	})
+    if (data.goal === 'browse') {
+      return data.medias.map((media: BaseMedia) => {
+        return getMedia(media);
+      })
+	}
   }
 
   const getMediasSelection = (selection:BaseMedia[], title:string) => {
@@ -226,7 +227,7 @@ export const Player = () => {
       let medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Grid.Col span={12}><Card><Text align="center" size="lg">{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
+      return (<><Grid.Col span={12}><Card><Text align='center' size='lg'>{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
 	}
   }
 
@@ -268,13 +269,13 @@ export const Player = () => {
 
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
-      return (<Group mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}><Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text></Group>);
+      return (<Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}><Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text></Group>);
     }
   }
 
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
-      return (<><Group mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+      return (<><Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
 	  <Text weight={700}>{i18n.get['Ratings']}: </Text></Group>
         <List withPadding>
           { ratingsList.map((media: MediaRating) => {
@@ -285,11 +286,14 @@ export const Player = () => {
     }
   }
 
-  function getMetadataImages() {
+  const media = data.goal === 'show' ? data.medias[0] : data.breadcrumbs[data.breadcrumbs.length - 1];
+  const metadata = data.goal === 'show' ? (media as any).metadata : data.metadata;
+
+  function getMetadataImages(metadata?: VideoMetadata, media?: BaseMedia) {
     let background, logo, poster;
-    if (data.metadata && data.metadata.images && data.metadata.images.length > 0) {
+    if (metadata && metadata.images && metadata.images.length > 0) {
       const iso639 = i18n.language.substring(0,2);
-      let apiImagesList = data.metadata.images[0];
+      let apiImagesList = metadata.images[0];
       // Set the page background and color scheme
       if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
         let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
@@ -302,7 +306,7 @@ export const Player = () => {
         }
         if (backgrounds.length > 0) {
           var randomBackground = Math.floor(Math.random() * (backgrounds.length));
-          background = data.metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+          background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
         }
       }
       // Set a logo as the heading
@@ -319,14 +323,17 @@ export const Player = () => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
           logo = (
-		  <div>
-			<img src={data.metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={data.metadata.originalTitle}></img>
-		  </div>
-		  );
+            <Container pb='xs'>
+              <img src={metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={metadata.originalTitle}></img>
+            </Container>
+          );
         }
       }
-      if (!logo) {
-        logo = (<Text>{data.metadata.originalTitle}</Text>);
+      if (!logo && metadata.originalTitle) {
+        logo = (<Text pb='xs'>{metadata.originalTitle}</Text>);
+      }
+      if (!logo && media) {
+        logo = (<Text pb='xs'>{media.name}</Text>);
       }
       // Set a poster
       if (apiImagesList && apiImagesList.posters && apiImagesList.posters.length > 0) {
@@ -341,42 +348,101 @@ export const Player = () => {
           let betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={data.metadata.imageBaseURL + 'w500' + betterPoster.file_path} ></Image>);
+          poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} ></Image>);
         }
       }
-      if (!poster && data.metadata.poster) {
-        poster = (<Image style={{ maxHeight: 500 }} radius="md" fit="contain" src={data.metadata.poster} />);
+      if (!poster && metadata.poster) {
+        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.poster} />);
+      }
+      if (!poster && media) {
+        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
       }
     }
     return {background:background, logo:logo, poster:poster};
   }
 
-  const images = getMetadataImages();
-  const getBrowseMetadata = () => {
-	  if (data.goal === 'browse' && data.metadata) {
-          
-          return (<>
-            <Grid.Col span={12}>
-                <Grid columns={20} justify="center">
-                  <Grid.Col span={6}>
-                    { images.poster }
-                  </Grid.Col>
-                  <Grid.Col span={12}  >
-                    <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
-                      { images.logo }
-                      { getMetadataBaseMediaList('Actors', data.metadata.actors) }
-                      { getMetadataString('Awards', data.metadata.awards) }
-                      { getMetadataBaseMediaList('Country', data.metadata.countries) }
-                      { getMetadataBaseMediaList('Director', data.metadata.directors) }
-                      { getMetadataBaseMediaList('Genres', data.metadata.genres) }
-                      { getMetadataString('Plot', data.metadata.plot) }
-                      { getMetadataRatingList(data.metadata.ratings) }
-                    </Card>
-                  </Grid.Col>
-                </Grid>
+  const images = getMetadataImages(metadata, media);
+
+  const getPlayControls = () => {
+    if (data.goal === 'show') {
+      return (
+        <Button.Group>
+          <Button variant='default' compact leftIcon={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get['Play']}</Button>
+          {data.useWebControl && (
+            <Tooltip withinPortal label={i18n.get['PlayOnAnotherRenderer']}>
+              <Button variant='default' disabled compact onClick={() => {}}><Cast size={14} /></Button>
+            </Tooltip>
+          )}
+          <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
+            <Button variant='default' disabled compact onClick={() => {}}><PlaylistAdd size={14} /></Button>
+          </Tooltip>
+          {((data.medias[0]) as PlayMedia).isDownload && (
+            <Tooltip withinPortal label={i18n.get['Download']}>
+              <Button variant='default' compact onClick={() => window.open(playerApiUrl + 'download/' + token + '/' + data.medias[0].id ,'_blank')}><Download size={14} /></Button>
+            </Tooltip>
+          )}
+        </Button.Group>
+      )
+    }
+  }
+
+  const getMetadataGridCol = () => {
+    if (metadata) {
+      return (<>
+        <Grid.Col span={12}>
+          <Grid columns={20} justify="center">
+            <Grid.Col span={6}>
+              { images.poster }
             </Grid.Col>
-          </>);
-      }
+            <Grid.Col span={12}  >
+              <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                { images.logo }
+                { getPlayControls() }
+                { getMetadataBaseMediaList('Actors', metadata.actors) }
+                { getMetadataString('Awards', metadata.awards) }
+                { getMetadataBaseMediaList('Country', metadata.countries) }
+                { getMetadataBaseMediaList('Director', metadata.directors) }
+                { getMetadataBaseMediaList('Genres', metadata.genres) }
+                { getMetadataString('Plot', metadata.plot) }
+                { getMetadataRatingList(metadata.ratings) }
+              </Card>
+            </Grid.Col>
+          </Grid>
+        </Grid.Col>
+      </>);
+    }
+  }
+
+  const getMediaGridCol = () => {
+    if (media) {
+      return (<>
+        <Grid.Col span={12}>
+          <Grid columns={20} justify='center'>
+            <Grid.Col span={6}>
+              <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
+            </Grid.Col>
+            <Grid.Col span={12}  >
+              <Card shadow='sm' p='lg' radius='md'  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                <Text pb='xs'>{media.name}</Text>
+                { getPlayControls() }
+              </Card>
+            </Grid.Col>
+          </Grid>
+        </Grid.Col>
+      </>);
+    }
+  }
+
+  const getShowMetadata = () => {
+    if (data.goal === 'show') {
+      return metadata ? getMetadataGridCol() : getMediaGridCol();
+    }
+  }
+
+  const getBrowseMetadata = () => {
+    if ((data.goal === 'browse') && metadata) {
+      return getMetadataGridCol();
+    }
   }
 
   useEffect(() => {
@@ -384,9 +450,9 @@ export const Player = () => {
   }, [session]);
 
   useEffect(() => {
-    if (token && sse.browseId) {
+    if (token && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + 'browse', {token:token,id:sse.browseId})
+      axios.post(playerApiUrl + sse.reqType, {token:token,id:sse.reqId})
       .then(function (response: any) {
         setData(response.data);
         window.scrollTo(0,0);
@@ -404,30 +470,7 @@ export const Player = () => {
         setLoading(false);
       });
     }
-  }, [token, sse.browseId]);
-
-  useEffect(() => {
-    if (token && sse.playId) {
-      setLoading(true);
-      axios.post(playerApiUrl + 'play', {token:token,id:sse.playId})
-      .then(function (response: any) {
-        setData(response.data);
-        window.scrollTo(0,0);
-      })
-      .catch(function () {
-        showNotification({
-          id: 'player-data-loading',
-          color: 'red',
-          title: 'Error',
-          message: 'Your play data was not received from the server.',
-          autoClose: 3000,
-        });
-      })
-      .then(function () {
-        setLoading(false);
-      });
-    }
-  }, [token, sse.playId]);
+  }, [token, sse.reqType, sse.reqId]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
@@ -436,7 +479,7 @@ export const Player = () => {
         <Grid.Col md={3} style={{height: 'calc(100vh - 60px)'}}>
 		<Paper>
           <ScrollArea style={{height: 'calc(100vh - 60px)'}}>
-            <Stack justify="flex-start" spacing={0}>
+            <Stack justify='flex-start' spacing={0}>
               {getFolders()}
             </Stack>
           </ScrollArea>
@@ -448,8 +491,12 @@ export const Player = () => {
             {data.goal === 'play' ?
               <Paper>
                 {getMediaPlayer()}
-			  </Paper>
-             : (
+              </Paper>
+             : data.goal === 'show' ? (
+              <Grid>
+                {getShowMetadata()}
+              </Grid>
+             ) : (
               <Grid>
                 {getMediaSelections()}
 				{getBrowseMetadata()}
@@ -514,7 +561,7 @@ interface MediaRating {
 
 interface VideoMetadata {
   actors?: BaseMedia[],
-  awards: string,
+  awards?: string,
   countries?: BaseMedia[],
   createdBy?: string,
   credits?: string,
