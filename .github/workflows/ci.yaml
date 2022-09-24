@@ -14,7 +14,6 @@ jobs:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
     steps:
-      if: github.event_name == 'pull_request' || (github.event_name == 'push' && 
       - uses: actions/checkout@v3
       - uses: 8BitJonny/gh-get-current-pr@2.1.1
         id: PR
