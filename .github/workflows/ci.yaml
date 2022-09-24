@@ -1,6 +1,10 @@
 name: Universal Media Server CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   macos:
@@ -9,14 +13,16 @@ jobs:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
-        java-version: [ 17 ]
     steps:
+      if: github.event_name == 'pull_request' || (github.event_name == 'push' && 
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - uses: 8BitJonny/gh-get-current-pr@2.1.1
+        id: PR
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -30,16 +36,13 @@ jobs:
 
   windows-latest:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        java-version: [ 17 ]
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -53,17 +56,13 @@ jobs:
 
   linux-bionic:
     runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        java-version: [ 17 ]
-
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -83,17 +82,13 @@ jobs:
 
   linux-focal:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        java-version: [ 17 ]
-
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache Maven packages
         uses: actions/cache@v3
