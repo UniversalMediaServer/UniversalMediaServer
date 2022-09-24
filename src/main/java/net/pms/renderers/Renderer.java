@@ -15,16 +15,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver;
+package net.pms.renderers;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.util.BasicPlayer;
+import net.pms.network.mediaserver.UPNPControl;
 import net.pms.util.UMSUtils;
 import org.jupnp.model.action.ActionArgumentValue;
 import org.jupnp.model.meta.Device;

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,14 +15,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.gui;
+package net.pms.renderers.devices.players;
 
-import net.pms.configuration.RendererConfiguration;
-import net.pms.renderers.devices.players.PlayerState;
-
-public interface IRendererGuiListener {
-	public void updateRenderer(final RendererConfiguration renderer);
-	public void setActive(final boolean active);
-	public void delete();
-	public void refreshPlayerState(PlayerState state);
+public class PlayerState {
+	public int playback;
+	public boolean mute;
+	public int volume;
+	public String position, duration;
+	public String name, uri, metadata;
+	public long buffer;
 }

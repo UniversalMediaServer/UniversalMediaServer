@@ -42,7 +42,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;

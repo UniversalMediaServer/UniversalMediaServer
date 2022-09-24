@@ -159,14 +159,12 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public boolean isValid() {
 		if (loaded) {
 			File f = getConfiguration(DEVICE).getFile();
-			if (f != null) {
-				if (!f.exists()) {
-					// Reset
-					getConfiguration(DEVICE).setFile(NOFILE);
-					getConfiguration(DEVICE).clear();
-					deviceConfs.remove(getId());
-					return false;
-				}
+			if (f != null && !f.exists()) {
+				// Reset
+				getConfiguration(DEVICE).setFile(NOFILE);
+				getConfiguration(DEVICE).clear();
+				deviceConfs.remove(getId());
+				return false;
 			}
 			return true;
 		}
@@ -289,7 +287,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return file;
 	}
 
-	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
+	public static List<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
 		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {

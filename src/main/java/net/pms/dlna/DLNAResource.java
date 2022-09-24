@@ -100,7 +100,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.Renderer;
+import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;

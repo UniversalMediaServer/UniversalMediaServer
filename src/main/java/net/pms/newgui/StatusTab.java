@@ -43,6 +43,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
@@ -50,7 +52,6 @@ import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.ServerBindMouseListener;
-import net.pms.util.BasicPlayer;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
@@ -97,7 +98,7 @@ public class StatusTab {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
+			PlayerState state = ((BasicPlayer) e.getSource()).getState();
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
@@ -109,7 +110,7 @@ public class StatusTab {
 		}
 
 		@Override
-		public void refreshPlayerState(final BasicPlayer.State state) {
+		public void refreshPlayerState(final PlayerState state) {
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));

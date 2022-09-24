@@ -11,14 +11,16 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.LogicalPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
-	private BasicPlayer.Logical player;
+	private LogicalPlayer player;
 	@SuppressWarnings("unused")
 	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private Button position;
@@ -38,7 +40,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = (BasicPlayer.Logical) player;
+		this.player = (LogicalPlayer) player;
 		player.connect(this);
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
@@ -325,7 +327,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		edited = false;
 	}
 
-	public void refreshPlayerState(BasicPlayer.State state) {
+	public void refreshPlayerState(PlayerState state) {
 		if (playControl) {
 			playing = state.playback != BasicPlayer.STOPPED;
 			// update playback status

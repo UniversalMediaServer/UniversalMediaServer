@@ -15,14 +15,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.mdns.chromecast;
+package net.pms.renderers.devices;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.UPNPControl;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.devices.players.ChromecastPlayer;
+import net.pms.renderers.devices.players.BasicPlayer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

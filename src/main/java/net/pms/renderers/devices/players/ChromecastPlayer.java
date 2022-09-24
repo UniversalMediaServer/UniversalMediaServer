@@ -15,12 +15,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver.mdns.chromecast;
+package net.pms.renderers.devices.players;
 
 import java.io.IOException;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ import su.litvak.chromecast.api.v2.Media;
 import su.litvak.chromecast.api.v2.MediaStatus;
 import su.litvak.chromecast.api.v2.Status;
 
-public class ChromecastPlayer extends BasicPlayer.Logical {
+public class ChromecastPlayer extends LogicalPlayer {
 	private static final String MEDIA_PLAYER = "CC1AD845";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
 	private final ChromeCast api;
@@ -42,7 +41,7 @@ public class ChromecastPlayer extends BasicPlayer.Logical {
 
 	@Override
 	public void setURI(String uri, String metadata) {
-		Playlist.Item item = resolveURI(uri, metadata);
+		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
 			// this is a bit circular but what the heck
 			DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);

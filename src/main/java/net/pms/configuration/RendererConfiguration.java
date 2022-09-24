@@ -19,6 +19,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlaybackTimer;
+import net.pms.renderers.devices.players.PlayerState;
+import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.dlna.*;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.encoders.Player;
@@ -28,24 +32,20 @@ import net.pms.formats.v2.AudioProperties;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.network.mediaserver.UPNPPlayer;
 import net.pms.gui.IRendererGuiListener;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1707,7 +1707,7 @@ public class RendererConfiguration extends Renderer {
 		}
 	}
 
-	public void refreshPlayerStateGui(BasicPlayer.State state) {
+	public void refreshPlayerStateGui(PlayerState state) {
 		listenersLock.readLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
@@ -2862,53 +2862,6 @@ public class RendererConfiguration extends Renderer {
 
 	public String getSubLanguage() {
 		return pmsConfiguration.getSubtitlesLanguages();
-	}
-
-	public static class PlaybackTimer extends BasicPlayer.Minimal {
-		private long duration = 0;
-
-		public PlaybackTimer(DeviceConfiguration renderer) {
-			super(renderer);
-			LOGGER.debug("Created playback timer for " + renderer.getRendererName());
-		}
-
-		@Override
-		public void start() {
-			final DLNAResource res = renderer.getPlayingRes();
-			state.name = res.getDisplayName();
-			duration = 0;
-			if (res.getMedia() != null) {
-				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
-				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
-			}
-			Runnable r = () -> {
-				state.playback = PLAYING;
-				while (res == renderer.getPlayingRes()) {
-					long elapsed;
-					if ((long) res.getLastStartPosition() == 0) {
-						elapsed = System.currentTimeMillis() - res.getStartTime();
-					} else {
-						elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
-						elapsed += (long) (res.getLastStartPosition() * 1000);
-					}
-
-					if (duration == 0 || elapsed < duration + 500) {
-						// Position is valid as far as we can tell
-						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-					} else {
-						// Position is invalid, blink instead
-						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
-					}
-					alert();
-					UMSUtils.sleep(1000);
-				}
-				// Reset only if another item hasn't already begun playing
-				if (renderer.getPlayingRes() == null) {
-					reset();
-				}
-			};
-			new Thread(r).start();
-		}
 	}
 
 	public static final String INFO = "info";

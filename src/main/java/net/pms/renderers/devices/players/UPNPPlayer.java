@@ -15,13 +15,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver;
+package net.pms.renderers.devices.players;
 
 import java.awt.event.ActionEvent;
 import java.util.Map;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.util.BasicPlayer;
+import net.pms.network.mediaserver.UPNPControl;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.meta.Device;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // A logical player to manage upnp playback
-public class UPNPPlayer extends BasicPlayer.Logical {
+public class UPNPPlayer extends LogicalPlayer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPPlayer.class);
 
@@ -45,7 +45,7 @@ public class UPNPPlayer extends BasicPlayer.Logical {
 		uuid = renderer.getUUID();
 		instanceID = renderer.getInstanceID();
 		dev = UPNPControl.getDevice(uuid);
-		data = UPNPControl.rendererMap.get(uuid, instanceID).connect(this);
+		data = UPNPControl.connect(uuid, instanceID, this);
 		lastUri = null;
 		ignoreUpnpDuration = false;
 		LOGGER.debug("Created upnp player for " + renderer.getRendererName());
@@ -54,7 +54,7 @@ public class UPNPPlayer extends BasicPlayer.Logical {
 
 	@Override
 	public void setURI(String uri, String metadata) {
-		BasicPlayer.Logical.Playlist.Item item = resolveURI(uri, metadata);
+		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
 			if (item.name != null) {
 				state.name = item.name;
@@ -147,7 +147,7 @@ public class UPNPPlayer extends BasicPlayer.Logical {
 
 	@Override
 	public void close() {
-		UPNPControl.rendererMap.get(uuid, instanceID).disconnect(this);
+		UPNPControl.disconnect(uuid, instanceID, this);
 		super.close();
 	}
 

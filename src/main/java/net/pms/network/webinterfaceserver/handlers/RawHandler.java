@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;

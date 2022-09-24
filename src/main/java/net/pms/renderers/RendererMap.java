@@ -15,19 +15,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.network.mediaserver;
+package net.pms.renderers;
 
 import java.util.HashMap;
+import java.util.Map;
+import net.pms.network.mediaserver.UPNPControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceMap.class);
+public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RendererMap.class);
 	private static final long serialVersionUID = 1510675619549915489L;
 
 	private final Class<T> tClass;
 
-	public DeviceMap(Class<T> t) {
+	public RendererMap(Class<T> t) {
 		tClass = t;
 	}
 
@@ -57,7 +59,7 @@ public class DeviceMap<T extends Renderer> extends HashMap<String, HashMap<Strin
 		return containsKey(uuid) && get(uuid).containsKey(id);
 	}
 
-	public HashMap<String, String> getData(String uuid, String id) {
+	public Map<String, String> getData(String uuid, String id) {
 		if (containsKey(uuid, id)) {
 			return get(uuid, id).data;
 		}

@@ -16,20 +16,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package net.pms.configuration;
+package net.pms.renderers.devices;
 
 import com.google.gson.Gson;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
@@ -48,11 +50,10 @@ import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.ServerSentEvents;
-import net.pms.util.BasicPlayer;
-import net.pms.util.StringUtil;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.WebPlayer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +118,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public boolean load(File f) {
-		// FIXME: These are just preliminary
+		// TODO: These are just preliminary
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
 		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
@@ -157,19 +158,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public static String getBrowserName(int browser) {
-		switch (browser) {
-			case CHROME:   return "Chrome";
-			case MSIE:     return "Internet Explorer";
-			case FIREFOX:  return "Firefox";
-			case SAFARI:   return "Safari";
-			case PS4:      return "Playstation 4";
-			case XBOX1:    return "Xbox One";
-			case OPERA:    return "Opera";
-			case EDGE:     return "Edge";
-			case CHROMIUM: return "Chromium";
-			case VIVALDI:  return "Vivaldi";
-			default:       return Messages.getString("WebClient");
-		}
+		return switch (browser) {
+			case CHROME -> "Chrome";
+			case MSIE -> "Internet Explorer";
+			case FIREFOX -> "Firefox";
+			case SAFARI -> "Safari";
+			case PS4 -> "Playstation 4";
+			case XBOX1 -> "Xbox One";
+			case OPERA -> "Opera";
+			case EDGE -> "Edge";
+			case CHROMIUM -> "Chromium";
+			case VIVALDI -> "Vivaldi";
+			default -> Messages.getString("WebClient");
+		};
 	}
 
 	public static int getBrowser(String userAgent) {
@@ -226,19 +227,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererIcon() {
-		switch (browser) {
-			case CHROME:   return "chrome.png";
-			case MSIE:     return "internetexplorer.png";
-			case FIREFOX:  return "firefox.png";
-			case SAFARI:   return "safari.png";
-			case PS4:      return "ps4.png";
-			case XBOX1:    return "xbox-one.png";
-			case OPERA:    return "opera.png";
-			case EDGE:     return "edge.png";
-			case CHROMIUM: return "chromium.png";
-			case VIVALDI:  return "vivaldi.png";
-			default:       return super.getRendererIcon();
-		}
+		return switch (browser) {
+			case CHROME -> "chrome.png";
+			case MSIE -> "internetexplorer.png";
+			case FIREFOX -> "firefox.png";
+			case SAFARI -> "safari.png";
+			case PS4 -> "ps4.png";
+			case XBOX1 -> "xbox-one.png";
+			case OPERA -> "opera.png";
+			case EDGE -> "edge.png";
+			case CHROMIUM -> "chromium.png";
+			case VIVALDI -> "vivaldi.png";
+			default -> super.getRendererIcon();
+		};
 	}
 
 	@Override
@@ -306,7 +307,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Player player, OutputParams params) {
-		if (player instanceof FFMpegVideo) {
+		if (player instanceof FFMpegVideo fFMpegVideo) {
 			if (resource.getFormat().isVideo()) {
 				DLNAMediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
@@ -315,23 +316,16 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				} else {
 					String mimeType = getVideoMimeType();
 					switch (mimeType) {
-						case HTTPResource.OGG_TYPEMIME:
-							ffOggCmd(cmdList);
-							break;
-						case HTTPResource.MP4_TYPEMIME:
-							ffMp4Cmd(cmdList);
-							break;
-						case HTTPResource.WEBM_TYPEMIME:
-							ffWebmCmd(cmdList);
-							break;
-						case HTTPResource.HLS_TYPEMIME:
+						case HTTPResource.OGG_TYPEMIME -> ffOggCmd(cmdList);
+						case HTTPResource.MP4_TYPEMIME -> ffMp4Cmd(cmdList);
+						case HTTPResource.WEBM_TYPEMIME -> ffWebmCmd(cmdList);
+						case HTTPResource.HLS_TYPEMIME -> {
 							return false;
-					default:
-						break;
+						}
 					}
 				}
 				if (isLowBitrate()) {
-					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(resource, media, params));
+					cmdList.addAll(fFMpegVideo.getVideoBitrateOptions(resource, media, params));
 				}
 			}
 			return true;
@@ -468,19 +462,14 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		if (format == ImageFormat.GIF || format == ImageFormat.JPEG || format == ImageFormat.PNG) {
 			return true;
 		}
-		switch (format) {
-			case BMP:
-				return
-					browser == FIREFOX || browser == CHROME ||
-					browser == CHROMIUM || browser == OPERA ||
-					browser == MSIE || browser == EDGE || browser == SAFARI;
-			case TIFF:
-				return browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
-			case WEBP:
-				return browser == EDGE || browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
-			default:
-				return false;
-		}
+		return switch (format) {
+			case BMP -> browser == FIREFOX || browser == CHROME ||
+				browser == CHROMIUM || browser == OPERA ||
+				browser == MSIE || browser == EDGE || browser == SAFARI;
+			case TIFF -> browser == EDGE || browser == CHROMIUM || browser == SAFARI || browser == MSIE;
+			case WEBP -> browser == EDGE || browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
+			default -> false;
+		};
 	}
 
 	public static boolean supportedFormat(Format f) {
@@ -615,106 +604,4 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		startStop = null;
 	}
 
-	public static class WebPlayer extends BasicPlayer.Logical {
-		private final Gson gson;
-		private HashMap<String, String> data;
-
-		public WebPlayer(WebRender renderer) {
-			super(renderer);
-			data = new HashMap<>();
-			gson = renderer.gson;
-			LOGGER.debug("Created web player for " + renderer.getRendererName());
-		}
-
-		@Override
-		public void setURI(String uri, String metadata) {
-			Playlist.Item item = resolveURI(uri, metadata);
-			if (item != null) {
-				DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
-				if (r != null) {
-					((WebRender) renderer).push("seturl", "/play/" + r.getId());
-					return;
-				}
-			}
-			LOGGER.debug("Bad uri " + uri);
-		}
-
-		@Override
-		public void pause() {
-			((WebRender) renderer).push("control", "pause");
-		}
-
-		@Override
-		public void play() {
-			((WebRender) renderer).push("control", "play");
-		}
-
-		@Override
-		public void stop() {
-			((WebRender) renderer).push("control", "stop");
-		}
-
-		@Override
-		public void mute() {
-			((WebRender) renderer).push("control", "mute");
-		}
-
-		@Override
-		public void setVolume(int volume) {
-			((WebRender) renderer).push("control", "setvolume", "" + volume);
-		}
-
-		@Override
-		public int getControls() {
-			return renderer.pmsConfiguration.useWebControl() ? PLAYCONTROL | VOLUMECONTROL : 0;
-		}
-
-		@Override
-		public void start() {
-			DLNAResource d = renderer.getPlayingRes();
-			state.name = d.getDisplayName();
-			if (d.getMedia() != null) {
-				state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
-			}
-		}
-
-		public void setDataFromJson(String jsonData) {
-			data = gson.fromJson(jsonData, HashMap.class);
-			String s = data.get("playback");
-			if (s != null) {
-				state.playback = "STOPPED".equals(s) ? STOPPED :
-				"PLAYING".equals(s) ? PLAYING :
-				"PAUSED".equals(s) ? PAUSED : -1;
-			}
-			s = data.get("mute");
-			if (s != null) {
-				state.mute = !"0".equals(data.get("mute"));
-			}
-			s = data.get("volume");
-			if (s != null) {
-				try {
-					state.volume = StringUtil.hasValue(s) ? Integer.parseInt(s) : 0;
-				} catch (NumberFormatException e) {
-					LOGGER.debug("Unexpected volume value \"{}\"", data.get("volume"));
-				}
-			}
-			if (state.playback == STOPPED) {
-				state.position = "";
-			} else {
-				s = data.get("position");
-				if (s != null) {
-					try {
-						long seconds = Integer.valueOf(s);
-						state.position = DurationFormatUtils.formatDuration(seconds * 1000, "HH:mm:ss");
-					} catch (NumberFormatException e) {
-						LOGGER.debug("Unexpected position value \"{}\"", data.get("position"));
-					}
-				}
-			}
-			alert();
-			if (state.playback == STOPPED) {
-				((WebRender) renderer).stop();
-			}
-		}
-	}
 }

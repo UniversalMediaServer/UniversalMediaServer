@@ -34,7 +34,8 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
@@ -96,7 +97,7 @@ public class PlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(body);
+				((WebPlayer) renderer.getPlayer()).setDataFromJson(body);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity

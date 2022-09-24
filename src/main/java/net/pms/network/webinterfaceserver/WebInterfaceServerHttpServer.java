@@ -42,7 +42,7 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;

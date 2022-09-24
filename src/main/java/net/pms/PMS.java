@@ -27,7 +27,6 @@ import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -50,6 +49,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.LibraryScanner;
@@ -135,7 +135,7 @@ public class PMS {
 	 * realtime task to finish, and then immediately unlock, to prevent
 	 * blocking the next realtime task from starting.
 	 */
-	public final static Lock REALTIME_LOCK = new ReentrantLock();
+	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Returns the root folder for a given renderer. There could be the case
@@ -1489,33 +1489,6 @@ public class PMS {
 
 	public static FileWatcher getFileWatcher() {
 		return fileWatcher;
-	}
-
-	public static class DynamicPlaylist extends Playlist {
-		private final String savePath;
-		private long start;
-
-		public DynamicPlaylist(String name, String dir, int mode) {
-			super(name, null, 0, mode);
-			savePath = dir;
-			start = 0;
-		}
-
-		@Override
-		public void clear() {
-			super.clear();
-			start = 0;
-		}
-
-		@Override
-		public void save() {
-			if (start == 0) {
-				start = System.currentTimeMillis();
-			}
-			Date d = new Date(start);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
-		}
 	}
 
 	private DynamicPlaylist dynamicPls;

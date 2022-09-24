@@ -1553,17 +1553,12 @@ public class RootFolder extends DLNAResource {
 
 	// Automatic reloading
 
-	public final static int RELOAD_WEB_CONF = 1;
+	public static final int RELOAD_WEB_CONF = 1;
 
-	public static final FileWatcher.Listener ROOT_WATCHER = new FileWatcher.Listener() {
-		@Override
-		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			RootFolder r = (RootFolder) watch.getItem();
-			if (r != null) {
-				if (watch.flag == RELOAD_WEB_CONF) {
-					r.loadWebConf();
-				}
-			}
+	public static final FileWatcher.Listener ROOT_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+		RootFolder r = (RootFolder) watch.getItem();
+		if (r != null && watch.flag == RELOAD_WEB_CONF) {
+			r.loadWebConf();
 		}
 	};
 
