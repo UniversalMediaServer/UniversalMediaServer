@@ -121,7 +121,7 @@ public enum ProgramExecutableType {
 	 * An {@code enum} that indicates what to set the default
 	 * {@link ProgramExecutableType} to.
 	 */
-	public static enum DefaultExecutableType {
+	public enum DefaultExecutableType {
 
 		/** Set the default {@link ProgramExecutableType} to {@link ProgramExecutableType#CUSTOM} */
 		CUSTOM,

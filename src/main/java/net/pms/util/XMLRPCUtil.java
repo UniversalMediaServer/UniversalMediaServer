@@ -2113,7 +2113,7 @@ public class XMLRPCUtil {
 	/**
 	 * This {@code enum} is used to represent the {@code XML-RPC} types.
 	 */
-	public static enum XMLRPCTypes {
+	public enum XMLRPCTypes {
 
 		/** The {@code XML-RPC} {@code <array>} type */
 		ARRAY,

@@ -4180,7 +4180,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum StatusCode {
+	public enum StatusCode {
 
 		/** Successful: OK */
 		OK(200, false),

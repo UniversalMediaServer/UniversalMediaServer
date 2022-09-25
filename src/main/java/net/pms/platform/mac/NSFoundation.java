@@ -474,7 +474,7 @@ public class NSFoundation {
 	 * integer value. Use {@link #typeOf} to convert an integer value to a
 	 * {@link NSSearchPathDirectory}.
 	 */
-	public static enum NSSearchPathDirectory implements JnaLongEnum<NSSearchPathDirectory> {
+	public enum NSSearchPathDirectory implements JnaLongEnum<NSSearchPathDirectory> {
 
 		/** Supported applications ({@code Applications}) */
 		NSApplicationDirectory(1),

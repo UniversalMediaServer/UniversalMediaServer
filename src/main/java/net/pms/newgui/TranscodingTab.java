@@ -126,7 +126,7 @@ public class TranscodingTab {
 	private JImageButton arrowDownButton;
 	private JImageButton arrowUpButton;
 	private JImageButton toggleButton;
-	private static enum ToggleButtonState {
+	private enum ToggleButtonState {
 		Unknown("button-toggle-on_disabled.png"),
 		On("button-toggle-on.png"),
 		Off("button-toggle-off.png");

@@ -1144,7 +1144,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	protected static enum ProcessTicketAction {
+	protected enum ProcessTicketAction {
 
 		/** Add a process for management */
 		ADD,
@@ -1268,7 +1268,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	protected static enum ProcessState {
+	protected enum ProcessState {
 
 		/** Running; initial state */
 		RUNNING,
@@ -1300,7 +1300,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum POSIXSignal {
+	public enum POSIXSignal {
 
 		/**
 		 * 1: POSIX {@code SIGHUP} - Hangup detected on controlling terminal or

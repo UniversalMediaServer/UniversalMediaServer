@@ -665,7 +665,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	/**
 	 * Defines icon type used in callback
 	 */
-	public static enum AnimatedIconType {
+	public enum AnimatedIconType {
 		DEFAULTICON,
 		PRESSEDICON,
 		DISABLEDICON,

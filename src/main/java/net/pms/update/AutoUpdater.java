@@ -43,7 +43,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
-	public static enum State {
+	public enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
 	}
 

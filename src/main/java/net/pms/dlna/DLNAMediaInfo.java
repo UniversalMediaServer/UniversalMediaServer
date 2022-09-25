@@ -3340,7 +3340,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * Used by FFmpeg for 3D video format naming
 	 */
-	public static enum Mode3D {
+	public enum Mode3D {
 		ML,
 		MR,
 		SBSL,
@@ -3368,7 +3368,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * This {@code enum} represents the different video "scan types".
 	 */
-	public static enum ScanType {
+	public enum ScanType {
 
 		/** Interlaced scan, any sub-type */
 		INTERLACED,
@@ -3415,7 +3415,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * This {@code enum} represents the video scan order.
 	 */
-	public static enum ScanOrder {
+	public enum ScanOrder {
 
 		/** Bottom Field First */
 		BFF,

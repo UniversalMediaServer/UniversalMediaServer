@@ -5085,7 +5085,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * This {@code enum} represents the available "levels" for subtitles
 	 * information display that is to be appended to the video name.
 	 */
-	public static enum SubtitlesInfoLevel {
+	public enum SubtitlesInfoLevel {
 
 		/** Don't show subtitles information */
 		NONE,
