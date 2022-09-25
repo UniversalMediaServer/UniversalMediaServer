@@ -40,6 +40,12 @@ public class CodecUtil {
 	}
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private CodecUtil() {
+	}
+
+	/**
 	 * Initialize the list of codec formats that are recognized by ffmpeg by
 	 * parsing the "ffmpeg_formats.txt" resource.
 	 */

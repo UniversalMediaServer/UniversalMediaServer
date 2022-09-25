@@ -45,6 +45,12 @@ public class VLCVideo {
 	protected static JTextField sampleRate;
 	protected static JCheckBox sampleRateOverride;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private VLCVideo() {
+	}
+
 	public static JComponent config() {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());

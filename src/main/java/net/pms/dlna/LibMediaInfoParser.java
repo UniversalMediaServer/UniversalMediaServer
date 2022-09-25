@@ -88,6 +88,12 @@ public class LibMediaInfoParser {
 		}
 	}
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private LibMediaInfoParser() {
+	}
+
 	public static boolean isValid() {
 		return MI.isValid();
 	}

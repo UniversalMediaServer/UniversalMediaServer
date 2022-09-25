@@ -68,6 +68,12 @@ public class SubtitleUtils {
 	private static final char[] SUBTITLES_LOWER_CASE;
 	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SubtitleUtils() {
+	}
+
 	static {
 		String subtitles = "Subtitles";
 		SUBTITLES_UPPER_CASE = new char[subtitles.length()];
@@ -534,8 +540,8 @@ public class SubtitleUtils {
 								break;
 							case "Fontsize":
 								if (!playResIsSet) {
-									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
-										Double.parseDouble(configuration.getAssScale()))));
+									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
+										Double.parseDouble(configuration.getAssScale())));
 								} else {
 									params[i] = Integer
 										.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));

@@ -125,7 +125,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private volatile ImageInfo thumbnailImageInfo = null;
 	protected PmsConfiguration configuration = PMS.getConfiguration();
-	private final DbIdResourceLocator dbIdResourceLocator = new DbIdResourceLocator();
 
 	// private boolean subsAreValidForStreaming = false;
 
@@ -1085,7 +1084,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = dbIdResourceLocator.locateResource(objectId);
+					dlna = DbIdResourceLocator.locateResource(objectId);
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

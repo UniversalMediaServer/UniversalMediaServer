@@ -151,7 +151,7 @@ public class RootFolder extends DLNAResource {
 				File[] dirs = new File[foldersMonitored.size()];
 				int i = 0;
 				for (Path folderMonitored : foldersMonitored) {
-					dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replaceAll("&comma;", ","));
+					dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replace("&comma;", ","));
 					i++;
 				}
 				mon = new MediaMonitor(dirs);
@@ -1148,16 +1148,16 @@ public class RootFolder extends DLNAResource {
 						File[] files = scriptDir.listFiles();
 						if (files != null) {
 							for (File file : files) {
-								String name = file.getName().replaceAll("_", " ");
-								int pos = name.lastIndexOf('.');
+								String childrenName = file.getName().replace("_", " ");
+								int pos = childrenName.lastIndexOf('.');
 
 								if (pos != -1) {
-									name = name.substring(0, pos);
+									childrenName = childrenName.substring(0, pos);
 								}
 
 								final File f = file;
 
-								addChild(new VirtualVideoAction(name, true) {
+								addChild(new VirtualVideoAction(childrenName, true) {
 									@Override
 									public boolean enable() {
 										try {
@@ -1197,9 +1197,9 @@ public class RootFolder extends DLNAResource {
 						}
 					});
 					for (final File f : files) {
-						String name = FileUtil.getFileNameWithoutExtension(f.getName());
-						name = name.replaceAll(ResumeObj.CLEAN_REG, "");
-						addChild(new VirtualVideoAction(name, false) {
+						String childrenName = FileUtil.getFileNameWithoutExtension(f.getName());
+						childrenName = childrenName.replaceAll(ResumeObj.CLEAN_REG, "");
+						addChild(new VirtualVideoAction(childrenName, false) {
 							@Override
 							public boolean enable() {
 								f.delete();

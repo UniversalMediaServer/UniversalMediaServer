@@ -484,8 +484,8 @@ public class GeneralTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;

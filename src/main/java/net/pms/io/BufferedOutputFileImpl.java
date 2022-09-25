@@ -366,7 +366,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						packetLength = 14;
 						streamPos = -1;
 					} else {
-						packetLength = 6 + (((buffer[modulo(packetposMB + 4, buffer.length)] + 256) % 256)) * 256 + ((buffer[modulo(packetposMB + 5, buffer.length)] + 256) % 256);
+						packetLength = 6 + ((buffer[modulo(packetposMB + 4, buffer.length)] + 256) % 256) * 256 + ((buffer[modulo(packetposMB + 5, buffer.length)] + 256) % 256);
 					}
 					if (streamPos != -1) {
 						mb = packetposMB + streamPos + 18;

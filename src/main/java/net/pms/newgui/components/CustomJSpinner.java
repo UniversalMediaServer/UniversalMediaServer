@@ -28,11 +28,11 @@ import javax.swing.FocusManager;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import net.pms.PMS;
@@ -220,7 +220,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 			JFormattedTextField ftf = getTextField();
 			ftf.setEditable(true);
 			ftf.setFormatterFactory(factory);
-			ftf.setHorizontalAlignment(JTextField.RIGHT);
+			ftf.setHorizontalAlignment(SwingConstants.RIGHT);
 
 			try {
 				String minString = formatter.valueToString(model.getMinimum());

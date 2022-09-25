@@ -32,6 +32,11 @@ import java.awt.Insets;
  * Based on the jgoodies ComponenOrientationExample tutorial code.
  */
 public class FormLayoutUtil {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private FormLayoutUtil() {
+	}
 
 	/**
 	 * Flips the default alignment of the given column specification and returns

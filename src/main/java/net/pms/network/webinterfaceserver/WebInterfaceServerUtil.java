@@ -76,6 +76,12 @@ public class WebInterfaceServerUtil {
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= INTERFACE HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= INTERFACE HTTPSERVER RESPONSE END =================================";
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebInterfaceServerUtil() {
+	}
+
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
 			if (mime != null) {

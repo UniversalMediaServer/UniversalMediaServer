@@ -27,6 +27,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -309,8 +310,8 @@ public class StatusTab {
 		renderers = new JPanel(new GuiUtil.WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
 			renderers,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
 		rsp.getHorizontalScrollBar().setLocation(0, 250);
@@ -397,8 +398,8 @@ public class StatusTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}
@@ -449,7 +450,7 @@ public class StatusTab {
 						r.frame.setLocationRelativeTo(top);
 						r.frame.setVisible(true);
 					} else {
-						r.frame.setExtendedState(JFrame.NORMAL);
+						r.frame.setExtendedState(Frame.NORMAL);
 						r.frame.setVisible(true);
 						r.frame.toFront();
 					}

@@ -44,6 +44,12 @@ public class FFMpegVideo {
 	private static JComboBox<String> fFmpegGPUDecodingAccelerationMethod;
 	private static JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private FFMpegVideo() {
+	}
+
 	public static JComponent config() {
 		return config("GeneralSettings");
 	}

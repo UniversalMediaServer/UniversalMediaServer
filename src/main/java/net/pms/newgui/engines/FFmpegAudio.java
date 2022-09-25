@@ -34,6 +34,12 @@ public class FFmpegAudio {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JCheckBox noresample;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private FFmpegAudio() {
+	}
+
 	public static JComponent config() {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",

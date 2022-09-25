@@ -41,6 +41,12 @@ public class AviSynthFFmpeg {
 	private static JCheckBox interframe;
 	private static JCheckBox convertfps;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private AviSynthFFmpeg() {
+	}
+
 	public static JComponent config() {
 		return config("GeneralSettings");
 	}

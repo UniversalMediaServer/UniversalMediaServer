@@ -421,7 +421,7 @@ public class TracesTab {
 			public void keyTyped(KeyEvent e) { }
 		});
 
-		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		jListPane = new JScrollPane(jList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
 		new SmartScroller(jListPane);
 		builder.add(jListPane, cc.xyw(1, 2, cols));

@@ -446,12 +446,12 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		}
 
 		setTitle(title);
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		if (Platform.isMac()) {
 			addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent e) {
 					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					setExtendedState(JFrame.ICONIFIED);
+					setExtendedState(Frame.ICONIFIED);
 				}
 			});
 		}
@@ -468,7 +468,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		if (configuration.isMinimized() && Platform.isMac()) {
 			// setVisible is required to iconify the frame
 			setVisible(true);
-			setExtendedState(JFrame.ICONIFIED);
+			setExtendedState(Frame.ICONIFIED);
 		}
 
 		PlatformUtils.INSTANCE.addSystemTray(this);

@@ -51,6 +51,12 @@ public class ProcessUtil {
 	// deemed to fail
 	private static final int ALRM_TIMEOUT = 2000;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ProcessUtil() {
+	}
+
 	// work around a Java bug
 	// see: http://www.cnblogs.com/abnercai/archive/2012/12/27/2836008.html
 	public static int waitFor(Process p) {

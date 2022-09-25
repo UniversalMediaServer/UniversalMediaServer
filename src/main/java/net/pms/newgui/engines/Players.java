@@ -20,6 +20,13 @@ package net.pms.newgui.engines;
 import javax.swing.JComponent;
 
 public class Players {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Players() {
+	}
+
 	public static JComponent config(String name) {
 		return switch (name) {
 			case net.pms.encoders.AviSynthFFmpeg.NAME -> AviSynthFFmpeg.config();

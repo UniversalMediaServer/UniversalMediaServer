@@ -16,6 +16,12 @@ public final class GuiUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuiUtil.class);
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private GuiUtil() {
+	}
+
+	/**
 	 * Check swing availability.
 	 * It don't use use java.awt.GraphicsEnvironment.isHeadless() as some Linux
 	 * distributions seem to not handle it properly.

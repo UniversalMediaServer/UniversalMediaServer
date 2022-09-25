@@ -180,9 +180,9 @@ public class JPEGSubsamplingNotation implements Serializable {
 		result[0] = 4;
 		int hMax = 0;
 		int vMax = 0;
-		for (int i = 0; i < components.length; i++) {
-			hMax = Math.max(hMax, components[i].getHorizontalSamplingFactor());
-			vMax = Math.max(vMax, components[i].getVerticalSamplingFactor());
+		for (JpegComponent component : components) {
+			hMax = Math.max(hMax, component.getHorizontalSamplingFactor());
+			vMax = Math.max(vMax, component.getVerticalSamplingFactor());
 		}
 		double[] h = new double[components.length];
 		double[] v = new double[components.length];

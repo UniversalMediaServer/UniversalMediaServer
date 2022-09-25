@@ -32,6 +32,12 @@ public class ImdbUtil {
 	private static final Pattern NFO_IMDB_ID = Pattern.compile("imdb\\.[^\\/]+\\/title\\/tt(\\d+)", Pattern.CASE_INSENSITIVE);
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ImdbUtil() {
+	}
+
+	/**
 	 * Extracts the OpenSubtitle file hash from the filename if the file has
 	 * "{@code FILENAME_HASH}" in it.
 	 *

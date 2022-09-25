@@ -46,6 +46,12 @@ public class DatabaseEmbedded {
 	private static final Profiler PROFILER = new Profiler();
 	private static boolean collecting = false;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private DatabaseEmbedded() {
+	}
+
 	public static String getJdbcUrl(String name) {
 		startCollectingIfNeeded();
 		String dbDir = getDbDir();

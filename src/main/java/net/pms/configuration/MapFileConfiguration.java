@@ -138,7 +138,7 @@ public class MapFileConfiguration {
 
 			jsonStringFromConf.append("]");
 
-			conf = jsonStringFromConf.toString().replaceAll("\\\\", "\\\\\\\\");
+			conf = jsonStringFromConf.toString().replace("\\\\", "\\\\\\\\");
 
 		} else {
 			return null;

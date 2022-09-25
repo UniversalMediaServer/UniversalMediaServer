@@ -41,6 +41,12 @@ public class TsMuxeRVideo {
 	private static JCheckBox tsmuxerforcefps;
 	private static JCheckBox muxallaudiotracks;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private TsMuxeRVideo() {
+	}
+
 	public static JComponent config() {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());

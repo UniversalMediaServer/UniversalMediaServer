@@ -90,7 +90,7 @@ public class RendererPanel extends JPanel {
 
 	public JButton customizeButton() {
 		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
-		open.setHorizontalTextPosition(JButton.CENTER);
+		open.setHorizontalTextPosition(SwingConstants.CENTER);
 		open.setForeground(Color.lightGray);
 		open.setToolTipText(Messages.getString("CustomizeThisDevice"));
 		open.setFocusPainted(false);
@@ -131,7 +131,7 @@ public class RendererPanel extends JPanel {
 		});
 		if (!exists) {
 			open.setText("!");
-			open.setHorizontalTextPosition(JButton.CENTER);
+			open.setHorizontalTextPosition(SwingConstants.CENTER);
 			open.setForeground(Color.lightGray);
 			open.setEnabled(false);
 		}

@@ -13,6 +13,11 @@ import net.coobird.thumbnailator.filters.ImageFilter;
  * class can be removed.
  */
 public class Flip {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Flip() {
+	}
 
 	/**
 	 * An image filter which performs a horizontal flip of the image.

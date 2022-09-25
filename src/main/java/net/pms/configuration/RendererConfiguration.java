@@ -1082,7 +1082,7 @@ public class RendererConfiguration extends Renderer {
 				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
-				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
+				tok = tok.replace("###0", " ").replace("###n", "\n").replace("###r", "\r");
 				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
@@ -2505,7 +2505,7 @@ public class RendererConfiguration extends Renderer {
 
 		// Substitute
 		for (Entry<String, String> entry : charMap.entrySet()) {
-			String repl = entry.getValue().replaceAll("###e", "");
+			String repl = entry.getValue().replace("###e", "");
 			name = name.replaceAll(entry.getKey(), repl);
 		}
 

@@ -35,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -49,6 +50,12 @@ public class AviSynthMEncoder {
 	private static JCheckBox interframe;
 	private static JCheckBox interframegpu;
 	private static JCheckBox multithreading;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private AviSynthMEncoder() {
+	}
 
 	public static JComponent config() {
 		FormLayout layout = new FormLayout(
@@ -145,7 +152,7 @@ public class AviSynthMEncoder {
 			}
 		});
 
-		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
 

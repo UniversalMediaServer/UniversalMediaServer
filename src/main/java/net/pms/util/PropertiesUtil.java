@@ -32,6 +32,12 @@ public class PropertiesUtil {
 	 */
 	private static final PmsProperties PROJECT_PROPERTIES = new PmsProperties();
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private PropertiesUtil() {
+	}
+
 	static {
 		try {
 			// Read project properties resource file.

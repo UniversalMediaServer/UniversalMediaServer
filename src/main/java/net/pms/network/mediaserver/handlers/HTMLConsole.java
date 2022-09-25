@@ -23,6 +23,12 @@ import net.pms.service.LibraryScanner;
 import net.pms.util.PropertiesUtil;
 
 public class HTMLConsole {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private HTMLConsole() {
+	}
+
 	public static String servePage(String resource) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html><head><meta charset=\"utf-8\"><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");

@@ -3331,7 +3331,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				 * Unescape embedded commas. Note: Backslashing isn't safe as it
 				 * conflicts with the Windows path separator.
 				 */
-				folder = folder.replaceAll("&comma;", ",");
+				folder = folder.replace("&comma;", ",");
 
 				// add the path even if there are problems so that the user can update the shared folders as required.
 				ignoredFolderNames.add(folder);
@@ -3367,7 +3367,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			 * Unescape embedded commas. Note: Backslashing isn't safe as it
 			 * conflicts with the Windows path separator.
 			 */
-			folder = folder.replaceAll("&comma;", ",");
+			folder = folder.replace("&comma;", ",");
 
 			if (KEY_FOLDERS.equals(key)) {
 				LOGGER.info("Checking shared folder: \"{}\"", folder);
@@ -4772,7 +4772,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			return getBoolean(KEY_NO_FOLDERS, false);
 		}
 
-		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		String x = (tag.toLowerCase() + ".no_shared").replace(" ", "_");
 		return getBoolean(x, false);
 	}
 

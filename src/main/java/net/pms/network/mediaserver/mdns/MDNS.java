@@ -32,6 +32,12 @@ public class MDNS {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JmDNS jmDNS;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private MDNS() {
+	}
+
 	public static boolean start(InetAddress inetAddress) {
 		if (jmDNS == null && CONFIGURATION.useChromecastExt()) {
 			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {

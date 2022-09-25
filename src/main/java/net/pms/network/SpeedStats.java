@@ -54,6 +54,12 @@ public class SpeedStats {
 	private static final Map<String, Future<Integer>> SPEED_STATS = new HashMap<>();
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SpeedStats() {
+	}
+
+	/**
 	 * Returns the estimated networks throughput for the given IP address in
 	 * Mb/s from the cache as a {@link Future}. If no value is cached for
 	 * {@code addr}, {@code null} is returned.

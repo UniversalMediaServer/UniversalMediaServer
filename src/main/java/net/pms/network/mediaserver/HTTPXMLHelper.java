@@ -81,6 +81,12 @@ public class HTTPXMLHelper {
 	public static final String SAMSUNG_ERROR_RESPONSE = "<s:Fault><faultCode>s:Client</faultCode><faultString>UPnPError</faultString><detail><UPnPError xmlns=\"urn:schemas-upnp-org:control-1-0\"><errorCode>401</errorCode><errorDescription>Invalid Action</errorDescription></UPnPError></detail></s:Fault>";
 	public static final String EVENT_FOOTER = "</e:propertyset>";
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private HTTPXMLHelper() {
+	}
+
 	public static String eventProp(String prop) {
 		return eventProp(prop, "");
 	}
