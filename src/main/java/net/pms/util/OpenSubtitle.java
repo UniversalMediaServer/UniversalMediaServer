@@ -3348,9 +3348,15 @@ public class OpenSubtitle {
 			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
 				switch (matchedBy.toLowerCase(Locale.ROOT)) {
-					case "moviehash" -> tmpScore += 200d;
-					case "imdbid" -> tmpScore += 100d;
-					case "tag" -> tmpScore += 10d;
+					case "moviehash" -> {
+						tmpScore += 200d;
+					}
+					case "imdbid" -> {
+						tmpScore += 100d;
+					}
+					case "tag" -> {
+						tmpScore += 10d;
+					}
 				}
 			}
 			if (prettifier != null) {

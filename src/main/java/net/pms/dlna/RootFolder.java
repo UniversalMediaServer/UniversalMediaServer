@@ -224,7 +224,6 @@ public class RootFolder extends DLNAResource {
 						addChild(apertureRes);
 					}
 				}
-				
 			}
 			if (osType == Platform.MAC || osType == Platform.WINDOWS) {
 				if (configuration.isShowItunesLibrary()) {
