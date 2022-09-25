@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,7 +18,6 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,24 +31,25 @@ import javax.annotation.concurrent.ThreadSafe;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExternalProgramInfo;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.ProgramExecutableType;
-import net.pms.configuration.ProgramExecutableType.DefaultExecutableType;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.platform.PlatformUtils;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FilePermissions;
-import net.pms.util.Version;
 import net.pms.util.FilePermissions.FileFlag;
+import net.pms.util.ProgramExecutableType;
+import net.pms.util.ProgramExecutableType.DefaultExecutableType;
+import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -852,7 +852,7 @@ public abstract class Engine {
 					return true;
 				}
 
-				if (!BasicSystemUtils.instance.isAviSynthAvailable()) {
+				if (!PlatformUtils.INSTANCE.isAviSynthAvailable()) {
 					LOGGER.debug(
 						"Transcoding engine {} ({}) is unavailable since AviSynth couldn't be found",
 						this,
@@ -870,7 +870,7 @@ public abstract class Engine {
 			if (
 				executableInfo.getAvailable() != null &&
 				(
-					!executableInfo.getAvailable().booleanValue() ||
+					!executableInfo.getAvailable() ||
 					!isSpecificTest()
 				)
 			) {
@@ -915,30 +915,21 @@ public abstract class Engine {
 	 * Checks if {@code object} is a {@link Engine} and has the same
 	 * {@link #id()} as this.
 	 *
+     * @param object the reference object with which to compare.
 	 * @return {@code true} if {@code object} is a {@link Engine} and the IDs
 	 *         match, {@code false} otherwise.
 	 */
-	@SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
 	@Override
 	public boolean equals(Object object) {
-		if (this == object) {
-			return true;
+		if (object instanceof Engine other) {
+			return (this == object ||
+				(id() == null && other.id() == null) ||
+				(id() != null && id().equals(other.id()))
+			);
 		}
-		if (object == null || !(object instanceof Engine)) {
-			return false;
-		}
-		Engine other = (Engine) object;
-		if (id() == null) {
-			if (other.id() != null) {
-				return false;
-			}
-		} else if (!id().equals(other.id())) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 
-	@SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
 	@Override
 	public int hashCode() {
 		final int prime = 31;

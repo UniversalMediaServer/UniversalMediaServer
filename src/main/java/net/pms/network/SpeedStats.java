@@ -28,13 +28,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.SystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.platform.IPlatformUtils;
 
 /**
  * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.
@@ -170,7 +170,7 @@ public class SpeedStats {
 			OutputParams op = new OutputParams(null);
 			op.setLog(true);
 			op.setMaxBufferSize(1);
-			SystemUtils sysUtil = BasicSystemUtils.instance;
+			IPlatformUtils sysUtil = PlatformUtils.INSTANCE;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
 			Runnable r = () -> {
 				UMSUtils.sleep(3000);

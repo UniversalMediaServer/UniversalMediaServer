@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -27,9 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,7 +35,9 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.*;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -477,18 +476,17 @@ public class VLCVideo extends Engine {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (BasicSystemUtils.instance.getVlcVersion() != null) {
+		if (PlatformUtils.INSTANCE.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
+			if (PlatformUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.debug(
-					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
-					BasicSystemUtils.instance.getVlcVersion()
+				LOGGER.debug("Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					PlatformUtils.INSTANCE.getVlcVersion()
 				);
 			}
 		}
@@ -668,8 +666,8 @@ public class VLCVideo extends Engine {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

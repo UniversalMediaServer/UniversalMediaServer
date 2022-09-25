@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -34,7 +34,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import net.pms.PMS;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,7 @@ public class HelpTab {
 
 						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
 							// Open external links in the desktop web browser
-							BasicSystemUtils.instance.browseURI(urlString);
+							PlatformUtils.INSTANCE.browseURI(urlString);
 						} else {
 							// Open anchor links in the editorPane
 							editorPane.setPage(event.getURL());

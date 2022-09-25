@@ -1,8 +1,24 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -32,6 +48,7 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
@@ -472,7 +489,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static File getRenderersDir() {
-		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
+		String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
 			if (path.trim().length() > 0) {
@@ -1843,8 +1860,8 @@ public class RendererConfiguration extends Renderer {
 			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
 		}
 
-		if (Platform.isMac() && System.getProperty("os.version") != null && System.getProperty("os.version").contains("10.4.")) {
-			muxCompatible = false; // no tsMuxeR for 10.4 (yet?)
+		if (!PlatformUtils.INSTANCE.isTsMuxeRCompatible()) {
+			muxCompatible = false;
 		}
 
 		return muxCompatible;

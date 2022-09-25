@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -32,12 +32,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.ProgramExecutableType;
-import net.pms.configuration.ProgramExecutableType.DefaultExecutableType;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.ProgramExecutableType;
+import net.pms.util.ProgramExecutableType.DefaultExecutableType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

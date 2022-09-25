@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,10 +17,7 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
-import com.sun.jna.platform.win32.Shell32Util;
-import com.sun.jna.platform.win32.Win32Exception;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -28,15 +25,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -50,17 +44,10 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
 import net.pms.newgui.SharedContentTab;
-import net.pms.platform.macos.NSFoundation;
-import net.pms.platform.macos.NSFoundation.NSSearchPathDirectory;
-import net.pms.platform.macos.NSFoundation.NSSearchPathDomainMask;
-import net.pms.platform.windows.CSIDL;
-import net.pms.platform.windows.GUID;
-import net.pms.platform.windows.KnownFolders;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.CodeDb;
-import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.ProcessUtil;
@@ -343,60 +330,6 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	@Nullable
-	private static Path getWindowsKnownFolder(GUID guid) {
-		try {
-			String folderPath = Shell32Util.getKnownFolderPath(guid);
-			if (isNotBlank(folderPath)) {
-				Path folder = Paths.get(folderPath);
-				try {
-					FilePermissions permissions = new FilePermissions(folder);
-					if (permissions.isBrowsable()) {
-						return folder;
-					}
-					LOGGER.warn("Insufficient permissions to read default folder \"{}\"", guid);
-				} catch (FileNotFoundException e) {
-					LOGGER.debug("Default folder \"{}\" not found", folder);
-				}
-			}
-		} catch (Win32Exception e) {
-			LOGGER.debug("Default folder \"{}\" not found: {}", guid, e.getMessage());
-		} catch (InvalidPathException e) {
-			LOGGER.error("Unexpected error while resolving default Windows folder with GUID {}: {}", guid, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	@Nullable
-	private static Path getWindowsFolder(@Nullable CSIDL csidl) {
-		if (csidl == null) {
-			return null;
-		}
-		try {
-			String folderPath = Shell32Util.getFolderPath(csidl.getValue());
-			if (isNotBlank(folderPath)) {
-				Path folder = Paths.get(folderPath);
-				FilePermissions permissions;
-				try {
-					permissions = new FilePermissions(folder);
-					if (permissions.isBrowsable()) {
-						return folder;
-					}
-					LOGGER.warn("Insufficient permissions to read default folder \"{}\"", csidl);
-				} catch (FileNotFoundException e) {
-					LOGGER.debug("Default folder \"{}\" not found", folder);
-				}
-			}
-		} catch (Win32Exception e) {
-			LOGGER.debug("Default folder \"{}\" not found: {}", csidl, e.getMessage());
-		} catch (InvalidPathException e) {
-			LOGGER.error("Unexpected error while resolving default Windows folder with id {}: {}", csidl, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
 	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
 	@GuardedBy("defaultFoldersLock")
 	private static List<Path> defaultFolders = null;
@@ -413,65 +346,7 @@ public class RootFolder extends DLNAResource {
 		synchronized (DEFAULT_FOLDERS_LOCK) {
 			if (defaultFolders == null) {
 				// Lazy initialization
-				defaultFolders = new ArrayList<Path>();
-				if (Platform.isWindows()) {
-					Double version = BasicSystemUtils.instance.getWindowsVersion();
-					if (version != null && version >= 6d) {
-						ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
-							KnownFolders.FOLDERID_Music,
-							KnownFolders.FOLDERID_Pictures,
-							KnownFolders.FOLDERID_Videos,
-						}));
-						for (GUID guid : knownFolders) {
-							Path folder = getWindowsKnownFolder(guid);
-							if (folder != null) {
-								defaultFolders.add(folder);
-							}
-						}
-					} else {
-						CSIDL[] csidls = {
-							CSIDL.CSIDL_MYMUSIC,
-							CSIDL.CSIDL_MYPICTURES,
-							CSIDL.CSIDL_MYVIDEO
-						};
-						for (CSIDL csidl : csidls) {
-							Path folder = getWindowsFolder(csidl);
-							if (folder != null) {
-								defaultFolders.add(folder);
-							}
-						}
-					}
-				} else if (Platform.isMac()) {
-					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-						NSSearchPathDirectory.NSMoviesDirectory,
-						NSSearchPathDomainMask.NSAllDomainsMask,
-						true
-					));
-					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-						NSSearchPathDirectory.NSMusicDirectory,
-						NSSearchPathDomainMask.NSAllDomainsMask,
-						true
-					));
-					defaultFolders.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-						NSSearchPathDirectory.NSPicturesDirectory,
-						NSSearchPathDomainMask.NSAllDomainsMask,
-						true
-					));
-				} else {
-					defaultFolders.add(Paths.get("").toAbsolutePath());
-					String userHome = System.getProperty("user.home");
-					if (isNotBlank(userHome)) {
-						defaultFolders.add(Paths.get(userHome));
-					}
-					//TODO: (Nad) Implement xdg-user-dir for Linux when EnginesRegistration is merged:
-					// xdg-user-dir DESKTOP
-					// xdg-user-dir DOWNLOAD
-					// xdg-user-dir PUBLICSHARE
-					// xdg-user-dir MUSIC
-					// xdg-user-dir PICTURES
-					// xdg-user-dir VIDEOS
-				}
-				defaultFolders = Collections.unmodifiableList(defaultFolders);
+				defaultFolders = Collections.unmodifiableList(PlatformUtils.INSTANCE.getDefaultFolders());
 			}
 			return defaultFolders;
 		}
@@ -966,53 +841,12 @@ public class RootFolder extends DLNAResource {
 	 * @throws Exception
 	 */
 	private String getiTunesFile() throws Exception {
-		String line;
-		String iTunesFile = null;
 		String customUserPath = configuration.getItunesLibraryPath();
 
 		if (!"".equals(customUserPath)) {
 			return customUserPath;
 		}
-
-		if (Platform.isMac()) {
-			// the second line should contain a quoted file URL e.g.:
-			// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
-			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-				// we want the 2nd line
-				String line1 = in.readLine();
-				String line2 = in.readLine();
-				if (line1 != null && line2 != null) {
-					line = line2.trim(); // remove extra spaces
-					line = line.substring(1, line.length() - 1); // remove quotes and spaces
-					URI tURI = new URI(line);
-					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-				}
-			}
-		} else if (Platform.isWindows()) {
-			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
-			String location;
-			//TODO The encoding of the output from reg query is unclear, this must be investigated further
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-				location = null;
-				while ((line = in.readLine()) != null) {
-					final String lookFor = "REG_SZ";
-					if (line.contains(lookFor)) {
-						location = line.substring(line.indexOf(lookFor) + lookFor.length()).trim();
-					}
-				}
-			}
-
-			if (location != null) {
-				// Add the iTunes folder to the end
-				location += "\\iTunes\\iTunes Music Library.xml";
-				iTunesFile = location;
-			} else {
-				LOGGER.info("Could not find the My Music folder");
-			}
-		}
-
-		return iTunesFile;
+		return PlatformUtils.INSTANCE.getiTunesFile();
 	}
 
 	private static boolean areNamesEqual(String aThis, String aThat) {

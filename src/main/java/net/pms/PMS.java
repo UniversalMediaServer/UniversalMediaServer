@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,10 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
@@ -59,6 +57,8 @@ import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.YoutubeDl;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.GuiManager;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
@@ -66,8 +66,6 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
 import net.pms.newgui.DbgPacker;
-import net.pms.gui.EConnectionState;
-import net.pms.gui.GuiManager;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.LanguageSelection;
 import net.pms.newgui.LooksFrame;
@@ -75,12 +73,16 @@ import net.pms.newgui.ProfileChooser;
 import net.pms.newgui.Splash;
 import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsNamedPipe;
+import net.pms.platform.windows.WindowsUtils;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
+import net.pms.platform.mac.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -575,13 +577,13 @@ public class PMS {
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
+		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(PlatformUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(PlatformUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -591,7 +593,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.instance.isKerioFirewall()) {
+		if (PlatformUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -941,7 +943,7 @@ public class PMS {
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
-				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
 				}
@@ -1063,7 +1065,7 @@ public class PMS {
 	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
 	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
+		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1211,10 +1213,10 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = WinUtils.getOEMCharset();
+		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1575,7 +1577,7 @@ public class PMS {
 			if (
 				System.getProperty("os.name") != null &&
 				System.getProperty("os.name").startsWith("Windows") &&
-				isNotBlank(System.getProperty("os.version")) &&
+				StringUtils.isNotBlank(System.getProperty("os.version")) &&
 				Double.parseDouble(System.getProperty("os.version")) < 5.2
 			) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";

@@ -17,7 +17,6 @@
 
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,8 +32,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
+import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,7 +187,7 @@ public class ProcessUtil {
 	 * @return The resulting non-Unicode file path.
 	 */
 	public static String getShortFileNameIfWideChars(String name) {
-		return BasicSystemUtils.instance.getShortPathNameW(name);
+		return PlatformUtils.INSTANCE.getShortPathNameW(name);
 	}
 
 	// Run cmd and return combined stdout/stderr
@@ -236,7 +235,7 @@ public class ProcessUtil {
 		StringBuilder sb = new StringBuilder();
 		boolean prevHeader = false;
 		for (String argument : cmd) {
-			if (isNotBlank(argument)) {
+			if (StringUtils.isNotBlank(argument)) {
 				if (sb.length() > 0) {
 					sb.append(" ");
 				}

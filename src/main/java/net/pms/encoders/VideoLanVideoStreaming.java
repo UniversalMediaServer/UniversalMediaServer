@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -30,21 +30,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.util.ExecutableErrorType;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
@@ -236,8 +237,8 @@ public class VideoLanVideoStreaming extends Engine {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

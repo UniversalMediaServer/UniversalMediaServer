@@ -1,19 +1,19 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2012 I.
- * Sokolov
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.util;
 
@@ -61,12 +61,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private final static Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
-	private final static long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
-	private final static char[] SUBTITLES_UPPER_CASE;
-	private final static char[] SUBTITLES_LOWER_CASE;
-	private final static File ALTERNATIVE_SUBTITLES_FOLDER;
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
+	private static final char[] SUBTITLES_UPPER_CASE;
+	private static final char[] SUBTITLES_LOWER_CASE;
+	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
 
 	static {
 		String subtitles = "Subtitles";
@@ -209,6 +209,7 @@ public class SubtitleUtils {
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
 	 * @param configuration
+	 * @param subtitleType
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
@@ -575,11 +576,12 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles. Based on
-	 * https://bitbucket.org/r3pek/srt2ass3d
+	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles.Based on
+ https://bitbucket.org/r3pek/srt2ass3d
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @param media Information about video
+	 * @param params
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
@@ -720,10 +722,11 @@ public class SubtitleUtils {
 	 * } and any ASS tags <code>
 	 * {\*}
 	 * </code> from subtitles file for renderers not capable of showing SubRip
-	 * tags correctly. * is used as a wildcard in the definition above.
+	 * tags correctly.* is used as a wildcard in the definition above.
 	 *
 	 * @param file the source subtitles
 	 * @return InputStream with converted subtitles.
+	 * @throws java.io.IOException
 	 */
 	public static InputStream removeSubRipTags(File file) throws IOException {
 		if (file == null) {
@@ -776,7 +779,7 @@ public class SubtitleUtils {
 		}
 
 		public void setItems(List<File> items) {
-			setItems(items == null ? null : items.toArray(new File[items.size()]));
+			setItems(items == null ? null : items.toArray(File[]::new));
 		}
 
 		public void setItems(File[] items) {

@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.service;
 
 import java.util.Locale;
@@ -31,24 +48,12 @@ public enum PreventSleepMode {
 			return null;
 		}
 		sleepMode = sleepMode.trim().toLowerCase(Locale.ROOT);
-		switch (sleepMode) {
-			case "never":
-			case "off":
-			case "none":
-			case "no":
-				return NEVER;
-			case "playback":
-			case "during playback":
-			case "while playing":
-			case "while streaming":
-				return PLAYBACK;
-			case "running":
-			case "while running":
-			case "when running":
-			case "yes":
-				return RUNNING;
-			default: return null;
-		}
+		return switch (sleepMode) {
+			case "never", "off", "none", "no" -> NEVER;
+			case "playback", "during playback", "while playing", "while streaming" -> PLAYBACK;
+			case "running", "while running", "when running", "yes" -> RUNNING;
+			default -> null;
+		};
 	}
 
 	/**

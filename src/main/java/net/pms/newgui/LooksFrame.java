@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
@@ -45,7 +44,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
-import net.pms.io.BasicSystemUtils;
+import net.pms.gui.IGui;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -55,11 +54,12 @@ import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.update.AutoUpdateDialog;
+import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.gui.IGui;
+import org.apache.commons.lang3.StringUtils;
 
 public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
@@ -471,7 +471,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			setExtendedState(JFrame.ICONIFIED);
 		}
 
-		BasicSystemUtils.instance.addSystemTray(this);
+		PlatformUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
@@ -494,10 +494,10 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					String error = null;
-					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
+					if (PMS.get().getWebInterfaceServer() != null && StringUtils.isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
 						try {
 							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
+							if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
 								error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 							}
 						} catch (URISyntaxException se) {

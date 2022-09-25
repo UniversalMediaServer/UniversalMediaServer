@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -33,7 +33,7 @@ import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
 import net.pms.encoders.Engine;
-import net.pms.newgui.players.Players;
+import net.pms.newgui.engines.Players;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

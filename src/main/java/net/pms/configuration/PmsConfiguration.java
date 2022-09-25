@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,6 +17,11 @@
  */
 package net.pms.configuration;
 
+import net.pms.util.ProgramExecutableType;
+import net.pms.platform.TempFolder;
+import net.pms.util.IpFilter;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.platform.PlatformProgramPaths;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
@@ -47,6 +52,8 @@ import net.pms.encoders.EngineId;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsRegistry;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -63,7 +70,6 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
-import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -2391,7 +2397,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				}
 
 			} catch (IOException e) {
-				if (!FileUtil.isAdmin()) {
+				if (!PlatformUtils.INSTANCE.isAdmin()) {
 					try {
 						GuiManager.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
 					} catch (NullPointerException e2) {

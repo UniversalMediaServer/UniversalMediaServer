@@ -1,24 +1,34 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.service;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.sun.jna.Memory;
+import com.sun.jna.Platform;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.LPARAM;
+import com.sun.jna.platform.win32.WinDef.WPARAM;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
+import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
+import com.sun.jna.ptr.IntByReference;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -36,21 +46,10 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import net.pms.platform.PlatformProgramPaths;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Memory;
-import com.sun.jna.Platform;
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef.HWND;
-import com.sun.jna.platform.win32.WinDef.LPARAM;
-import com.sun.jna.platform.win32.WinDef.WPARAM;
-import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
-import com.sun.jna.ptr.IntByReference;
-import net.pms.configuration.PlatformProgramPaths;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is used to manage the shutdown of external processes if they run
@@ -1133,7 +1132,7 @@ public class ProcessManager {
 			if (process == null) {
 				throw new IllegalArgumentException("process cannot be null");
 			}
-			if (isBlank(processName)) {
+			if (StringUtils.isBlank(processName)) {
 				throw new IllegalArgumentException("processName cannot be blank");
 			}
 			if (action == null) {

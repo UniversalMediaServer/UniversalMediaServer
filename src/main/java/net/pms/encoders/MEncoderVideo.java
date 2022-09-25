@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -32,10 +32,7 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -45,6 +42,10 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.*;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.lang3.ArrayUtils;
@@ -239,7 +240,7 @@ public class MEncoderVideo extends Engine {
 			++i;
 		}
 
-		return sanitized.toArray(new String[sanitized.size()]);
+		return sanitized.toArray(String[]::new);
 	}
 
 	@Override
@@ -298,8 +299,8 @@ public class MEncoderVideo extends Engine {
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
 		// Use device-specific DMS conf
-		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
-		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		PmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
+		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
 		if (mediaRenderer.getMaxVideoBitrate() > 0) {
@@ -327,7 +328,7 @@ public class MEncoderVideo extends Engine {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			if (mediaRenderer.isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
+			if (mediaRenderer.isHalveBitrate() && !dConfiguration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
@@ -383,7 +384,7 @@ public class MEncoderVideo extends Engine {
 						break;
 					case "aac":
 					case "ac3":
-						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+						defaultMaxBitrates[0] -= dConfiguration.getAudioBitrate();
 						break;
 					default:
 						break;
@@ -1341,17 +1342,11 @@ public class MEncoderVideo extends Engine {
 
 		// Make MEncoder output framerate correspond to InterFrame
 		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
-			switch (frameRateRatio) {
-				case "25":
-					ofps = "50";
-					break;
-				case "30":
-					ofps = "60";
-					break;
-				default:
-					ofps = "60000/1001";
-					break;
-			}
+			ofps = switch (frameRateRatio) {
+				case "25" -> "50";
+				case "30" -> "60";
+				default -> "60000/1001";
+			};
 		}
 
 		cmdList.add("-ofps");
@@ -2133,7 +2128,7 @@ public class MEncoderVideo extends Engine {
 		try {
 			Interpreter interpreter = new Interpreter();
 			interpreter.setStrictJava(true);
-			ArrayList<String> types = CodecUtil.getPossibleCodecs();
+			List<String> types = CodecUtil.getPossibleCodecs();
 			int rank = 1;
 
 			if (types != null) {
@@ -2256,16 +2251,12 @@ public class MEncoderVideo extends Engine {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	@Override
@@ -2301,7 +2292,7 @@ public class MEncoderVideo extends Engine {
 				return result.build();
 			}
 			if (output.getExitCode() == 0) {
-				if (output.getOutput() != null && output.getOutput().size() > 0) {
+				if (!output.getOutput().isEmpty()) {
 					Pattern pattern = Pattern.compile("^MEncoder\\s+(.*?)\\s+\\(C\\)", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(0));
 					if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -2315,8 +2306,7 @@ public class MEncoderVideo extends Engine {
 					result.errorType(ExecutableErrorType.GENERAL);
 					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
-					if (output.getOutput() != null &&
-						output.getOutput().size() > 3 &&
+					if (output.getOutput().size() > 3 &&
 						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 1)) &&
 						!StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 2)) &&
 						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 3))

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -70,7 +70,7 @@ import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.util.FormLayoutUtil;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

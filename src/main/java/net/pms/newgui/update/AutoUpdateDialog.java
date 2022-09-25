@@ -16,7 +16,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
@@ -109,7 +109,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			BasicSystemUtils.instance.browseURI(Build.getReleasesPageUrl());
+			PlatformUtils.INSTANCE.browseURI(Build.getReleasesPageUrl());
 		}
 
 		@Override

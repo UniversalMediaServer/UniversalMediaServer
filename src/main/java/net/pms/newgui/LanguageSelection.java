@@ -47,9 +47,9 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.io.BasicSystemUtils;
 import net.pms.newgui.components.CustomHTMLEditorKit;
 import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
@@ -400,7 +400,7 @@ public class LanguageSelection {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 					boolean error;
 					if (Desktop.isDesktopSupported()) {
-						error = !BasicSystemUtils.instance.browseURI(e.getDescription());
+						error = !PlatformUtils.INSTANCE.browseURI(e.getDescription());
 					} else {
 						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
 						error = true;

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -19,6 +19,8 @@ package net.pms.encoders;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.drew.lang.ByteArrayReader;
+import com.sun.jna.Platform;
 import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,17 +31,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.drew.lang.ByteArrayReader;
-import com.sun.jna.Platform;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -57,6 +55,9 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.Version;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DCRaw extends ImageEngine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
@@ -425,7 +426,7 @@ public class DCRaw extends ImageEngine {
 					}
 				}
 				result.available(Boolean.TRUE);
-			} else if (output.getOutput() != null && output.getOutput().size() > 0) {
+			} else if (!output.getOutput().isEmpty()) {
 				result.errorType(ExecutableErrorType.GENERAL);
 				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getOutput().get(0));
 				result.available(Boolean.FALSE);

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -37,11 +37,11 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.newgui.util.FormLayoutUtil;
+import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.platform.windows.WindowsUtils;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
-import net.pms.util.FormLayoutUtil;
-import net.pms.newgui.util.KeyedComboBoxModel;
-import net.pms.util.WindowsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -508,7 +508,7 @@ public class GeneralTab {
 		} else {
 			installService.setEnabled(true);
 
-			boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+			boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 
 			if (isUmsServiceInstalled) {
 				// Update button text and tooltip
@@ -522,7 +522,7 @@ public class GeneralTab {
 
 				// Attach the button clicked action listener
 				installService.addActionListener((ActionEvent e) -> {
-					WindowsUtil.uninstallWin32Service();
+					WindowsUtils.uninstallWin32Service();
 					LOGGER.info("Uninstalled UMS Windows service");
 
 					// Refresh the button state after it has been clicked
@@ -547,7 +547,7 @@ public class GeneralTab {
 
 				// Attach the button clicked action listener
 				installService.addActionListener((ActionEvent e) -> {
-					if (WindowsUtil.installWin32Service()) {
+					if (WindowsUtils.installWin32Service()) {
 						LOGGER.info("Installed UMS Windows service");
 
 						// Refresh the button state after it has been clicked
