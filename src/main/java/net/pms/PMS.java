@@ -104,8 +104,6 @@ public class PMS {
 
 	private boolean ready = false;
 
-	private static FileWatcher fileWatcher;
-
 	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
@@ -446,8 +444,6 @@ public class PMS {
 				splash.setVisible(true);
 			}
 		}
-
-		fileWatcher = new FileWatcher();
 
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
@@ -1487,10 +1483,6 @@ public class PMS {
 
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
-	}
-
-	public static FileWatcher getFileWatcher() {
-		return fileWatcher;
 	}
 
 	private DynamicPlaylist dynamicPls;

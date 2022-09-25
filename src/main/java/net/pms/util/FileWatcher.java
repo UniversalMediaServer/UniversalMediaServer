@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -29,10 +28,14 @@ import org.slf4j.LoggerFactory;
  */
 public class FileWatcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcher.class);
-	static private Notifier notifier = new Notifier("File event");
+	private static Notifier notifier = new Notifier("File event");
 	private static WatchMap keys = new WatchMap();
 	private static WatchService watchService = null;
 	private static boolean running = false;
+
+	private FileWatcher() {
+		//should not be instantiated
+	}
 
 	/**
 	 * Add a file watchpoint to the Watch Service. Will not
@@ -99,10 +102,11 @@ public class FileWatcher {
 		WatchKey key;
 
 		try {
+			Kind[] events = new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE};
 			if (nativeRecursive) {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, ExtendedWatchEventModifier.FILE_TREE);
+				key = dir.register(watchService, events, ExtendedWatchEventModifier.FILE_TREE);
 			} else {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE});
+				key = dir.register(watchService, events);
 			}
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
@@ -179,6 +183,7 @@ public class FileWatcher {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						LOGGER.debug("Sleep interrupted {}", e);
+						Thread.currentThread().interrupt();
 					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
@@ -312,14 +317,13 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || !(o instanceof Watch)) {
-				return false;
-			}
-			Watch other = (Watch) o;
-			return listener.get() == other.listener.get() &&
-				(fspec == other.fspec || (fspec != null && fspec.equals(other.fspec))) &&
+			if (o instanceof Watch other) {
+				return listener.get() == other.listener.get() &&
+				(fspec != null && fspec.equals(other.fspec)) &&
 				(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
 				flag == other.flag;
+			}
+			return false;
 		}
 
 		@Override
@@ -414,12 +418,7 @@ public class FileWatcher {
 		HashMap<Notice, ScheduledFuture<?>> queue = new HashMap<>();
 
 		public Notifier(final String name) {
-			super(5, new ThreadFactory() {
-				@Override
-				public Thread newThread(Runnable r) {
-					return new Thread(r, name);
-				}
-			});
+			super(5, (Runnable r) -> new Thread(r, name));
 			setRemoveOnCancelPolicy(true);
 		}
 
