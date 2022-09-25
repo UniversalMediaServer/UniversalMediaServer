@@ -246,24 +246,18 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Bitwise constants relating to playlist management.
+	 * A DLNAResource list with built-in file i/o.
 	 */
-	@SuppressWarnings("checkstyle:InterfaceIsType")
-	public interface IOListModes {
-
+	public static class IOList extends ArrayList<DLNAResource> {
+		/**
+		 * Bitwise constants relating to playlist management.
+		 */
 		public static final int PERMANENT = 1;
 		public static final int AUTOSAVE = 2;
 		public static final int AUTOREMOVE = 4;
-	}
-
-	/**
-	 * A DLNAResource list with built-in file i/o.
-	 */
-	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
-
 		private static final long serialVersionUID = 8042924548275374060L;
 		private File file;
-		private int mode;
+		private final int mode;
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
@@ -301,7 +295,7 @@ public class UMSUtils {
 			return file;
 		}
 
-		public void load(File f) {
+		public final void load(File f) {
 			if (f.exists()) {
 				file = f;
 				clear();

@@ -210,28 +210,29 @@ public class RootFolder extends DLNAResource {
 
 		if (isAddGlobally) {
 			loadWebConf();
-
-			switch (Platform.getOSType()) {
-				case Platform.MAC:
-					if (configuration.isShowIphotoLibrary()) {
-						DLNAResource iPhotoRes = getiPhotoFolder();
-						if (iPhotoRes != null) {
-							addChild(iPhotoRes);
-						}
+			int osType = Platform.getOSType();
+			if (osType == Platform.MAC) {
+				if (configuration.isShowIphotoLibrary()) {
+					DLNAResource iPhotoRes = getiPhotoFolder();
+					if (iPhotoRes != null) {
+						addChild(iPhotoRes);
 					}
-					if (configuration.isShowApertureLibrary()) {
-						DLNAResource apertureRes = getApertureFolder();
-						if (apertureRes != null) {
-							addChild(apertureRes);
-						}
+				}
+				if (configuration.isShowApertureLibrary()) {
+					DLNAResource apertureRes = getApertureFolder();
+					if (apertureRes != null) {
+						addChild(apertureRes);
 					}
-				case Platform.WINDOWS:
-					if (configuration.isShowItunesLibrary()) {
-						DLNAResource iTunesRes = getiTunesFolder();
-						if (iTunesRes != null) {
-							addChild(iTunesRes);
-						}
+				}
+				
+			}
+			if (osType == Platform.MAC || osType == Platform.WINDOWS) {
+				if (configuration.isShowItunesLibrary()) {
+					DLNAResource iTunesRes = getiTunesFolder();
+					if (iTunesRes != null) {
+						addChild(iTunesRes);
 					}
+				}
 			}
 
 			if (configuration.isShowServerSettingsFolder()) {

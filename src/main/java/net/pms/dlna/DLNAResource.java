@@ -2242,7 +2242,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String title;
 		if (firstAudioTrack != null && media.isAudio() && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			title = "";
-			if (mediaRenderer != null && mediaRenderer.isPrependTrackNumbers() && firstAudioTrack.getTrack() > 0) {
+			if (mediaRenderer.isPrependTrackNumbers() && firstAudioTrack.getTrack() > 0) {
 				// zero pad for proper numeric sorting on all devices
 				title += String.format("%03d - ", firstAudioTrack.getTrack());
 			}
@@ -2422,7 +2422,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (media.getBitrate() > 0) {
 							addAttribute(sb, "bitrate", media.getBitrate());
 						}
-						if (media.getDuration() != null && media.getDuration().doubleValue() != 0.0) {
+						if (media.getDuration() != null && media.getDuration() != 0.0) {
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(media.getDuration()));
 						}
 
@@ -2533,11 +2533,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
 				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
 				addXMLTagAndAttribute(sb, "audiotrackid", Integer.toString(media.getFirstAudioTrack().getAudiotrackId()));
-				if (firstAudioTrack.getDisc() > 0) {
-					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(firstAudioTrack.getDisc()));
-				}
-				if (firstAudioTrack.getRating() != null) {
-					addXMLTagAndAttribute(sb, "rating", Integer.toString(firstAudioTrack.getRating()));
+				if (firstAudioTrack != null) {
+					if (firstAudioTrack.getDisc() > 0) {
+						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(firstAudioTrack.getDisc()));
+					}
+					if (firstAudioTrack.getRating() != null) {
+						addXMLTagAndAttribute(sb, "rating", Integer.toString(firstAudioTrack.getRating()));
+					}
 				}
 				closeTag(sb, "desc");
 			}
@@ -2577,26 +2579,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else if (isFolder) {
 			if (this instanceof PlaylistFolder) {
 				uclass = "object.container.playlistContainer";
-			} else if (this instanceof VirtualFolderDbId) {
-				uclass = ((VirtualFolderDbId) this).getMediaTypeUclass();
+			} else if (this instanceof VirtualFolderDbId virtualFolderDbId) {
+				uclass = virtualFolderDbId.getMediaTypeUclass();
 			} else {
 				uclass = "object.container.storageFolder";
 			}
 			if (xbox360 && getFakeParentId() != null) {
-				switch (getFakeParentId()) {
-					case "7":
-						uclass = "object.container.album.musicAlbum";
-						break;
-					case "6":
-						uclass = "object.container.person.musicArtist";
-						break;
-					case "5":
-						uclass = "object.container.genre.musicGenre";
-						break;
-					case "F":
-						uclass = "object.container.playlistContainer";
-						break;
-				}
+				uclass = switch (getFakeParentId()) {
+					case "7" -> "object.container.album.musicAlbum";
+					case "6" -> "object.container.person.musicArtist";
+					case "5" -> "object.container.genre.musicGenre";
+					case "F" -> "object.container.playlistContainer";
+					default -> uclass;
+				};
 			}
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			uclass = "object.item.imageItem.photo";
@@ -3073,8 +3068,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				new Thread(r, "StopPlaying Event").start();
 			}
-			if (mediaSubtitle instanceof DLNAMediaOpenSubtitle) {
-				((DLNAMediaOpenSubtitle) mediaSubtitle).deleteLiveSubtitlesFile();
+			if (mediaSubtitle instanceof DLNAMediaOpenSubtitle dLNAMediaOpenSubtitle) {
+				dLNAMediaOpenSubtitle.deleteLiveSubtitlesFile();
 			}
 		};
 
@@ -3200,10 +3195,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Determine source of the stream
 		if (engine == null && !isResume()) {
 			// No transcoding
-			if (this instanceof IPushOutput) {
+			if (this instanceof IPushOutput iPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
-				((IPushOutput) this).push(out);
+				iPushOutput.push(out);
 
 				if (low > 0) {
 					fis.skip(low);
@@ -3284,9 +3279,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// new one
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
 			params.setMinBufferSize(1);
-			Runnable r = () -> {
-				externalProcess.stopProcess();
-			};
+			Runnable r = () -> externalProcess.stopProcess();
 
 			new Thread(r, "External Process Stopper").start();
 			lastStartSystemTime = System.currentTimeMillis();
@@ -4116,7 +4109,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * Check for external and internal subtitles matching the user's
 		 * language preferences
 		 */
-		DLNAMediaSubtitle matchedSub = null;
+		DLNAMediaSubtitle matchedSub;
 		boolean useExternal = deviceSpecificConfiguration.isAutoloadExternalSubtitles();
 		boolean forceExternal = deviceSpecificConfiguration.isForceExternalSubtitles();
 		String audioSubLanguages = deviceSpecificConfiguration.getAudioSubLanguages();
@@ -4551,8 +4544,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Search for transcode folder
 		for (DLNAResource r : children) {
-			if (r instanceof SubSelect) {
-				return (SubSelect) r;
+			if (r instanceof SubSelect subSelect) {
+				return subSelect;
 			}
 		}
 
@@ -4918,10 +4911,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public boolean isCodeValid(DLNAResource r) {
 		DLNAResource res = r.isCoded();
-		if (res != null) {
-			if (res instanceof CodeEnter) {
-				return ((CodeEnter) res).validCode(r);
-			}
+		if (res instanceof CodeEnter codeEnter) {
+			return codeEnter.validCode(r);
 		}
 
 		// normal case no code in path code is always valid

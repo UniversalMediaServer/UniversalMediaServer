@@ -179,12 +179,16 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void approveSelection() {
 				if (getSelectedFile().exists()) {
-					switch (JOptionPane.showConfirmDialog(this, Messages.getString("OverwriteExistingFile"), Messages.getString("FileExists"), JOptionPane.YES_NO_CANCEL_OPTION)) {
-						case JOptionPane.CANCEL_OPTION:
-						case JOptionPane.NO_OPTION:
-							setSelectedFile(file);
-						case JOptionPane.CLOSED_OPTION:
-							return;
+					int result = JOptionPane.showConfirmDialog(
+						this,
+						Messages.getString("OverwriteExistingFile"),
+						Messages.getString("FileExists"),
+						JOptionPane.YES_NO_CANCEL_OPTION
+					);
+					if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION) {
+						setSelectedFile(file);
+					} else if (result == JOptionPane.CLOSED_OPTION) {
+						return;
 					}
 				}
 				super.approveSelection();

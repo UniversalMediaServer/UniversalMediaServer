@@ -6,14 +6,15 @@ import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.UMSUtils;
+import static net.pms.util.UMSUtils.IOList.AUTOSAVE;
+import static net.pms.util.UMSUtils.IOList.PERMANENT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
+public class Playlist extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 	protected UMSUtils.IOList list;
 	protected int maxSize;
-	protected int mode;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);
@@ -26,7 +27,6 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	public Playlist(String name, String filename, int maxSize, int mode) {
 		super(name, "images/thumbnail-folder-256.png");
 		this.maxSize = maxSize > 0 ? maxSize : 0;
-		this.mode = mode;
 //		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		list = new UMSUtils.IOList(filename, mode);
 		list.save();
@@ -79,7 +79,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public boolean isMode(int m) {
-		return (mode & m) == m;
+		return list.isMode(m);
 	}
 
 	@Override

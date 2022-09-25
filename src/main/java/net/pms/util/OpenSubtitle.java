@@ -326,8 +326,8 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "LogIn", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace("Sending OpenSubtitles login request:\n{}", toLogString((LoggableOutputStream) out));
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Sending OpenSubtitles login request:\n{}", toLogString(loggableOutputStream));
 				}
 			} catch (XMLStreamException | FactoryConfigurationError e) {
 				LOGGER.error("An error occurred while generating OpenSubtitles login request: {}", e.getMessage());
@@ -556,8 +556,8 @@ public class OpenSubtitle {
 		String imdbId = null;
 		FileNamePrettifier prettifier = new FileNamePrettifier(resource);
 		boolean satisfactory = false;
-		if (resource instanceof RealFile) {
-			Path file = ((RealFile) resource).getFile().toPath();
+		if (resource instanceof RealFile realFile) {
+			Path file = realFile.getFile().toPath();
 			LOGGER.info("Looking for OpenSubtitles subtitles for \"{}\"", file);
 
 			// Query by hash
@@ -778,9 +778,9 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "SearchSubtitles", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
 					LOGGER.trace("Querying OpenSubtitles for subtitles for \"{}\" using {}:\n{}", resource.getName(), logDescription,
-						toLogString((LoggableOutputStream) out));
+						toLogString(loggableOutputStream));
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
 						"Querying OpenSubtitles for subtitles for \"{}\" using {} \"{}\"",
@@ -810,11 +810,10 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace(
-						"Received OpenSubtitles search by {} response:\n{}",
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles search by {} response:\n{}",
 						logDescription,
-						toLogString((LoggableInputStream) reply)
+						toLogString(loggableInputStream)
 					);
 				}
 			}
@@ -1063,8 +1062,8 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace("Received OpenSubtitles CheckMovieHash2 response:\n{}", toLogString((LoggableInputStream) reply));
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles CheckMovieHash2 response:\n{}", toLogString(loggableInputStream));
 				}
 			}
 
@@ -1267,8 +1266,8 @@ public class OpenSubtitle {
 			return null;
 		}
 		if (resource != null) {
-			if (resource instanceof RealFile) {
-				File file = ((RealFile) resource).getFile();
+			if (resource instanceof RealFile realFile) {
+				File file = realFile.getFile();
 				if (file == null) {
 					return null;
 				}
@@ -1353,8 +1352,8 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace("Received OpenSubtitles GuessMovieFromString response:\n{}", toLogString((LoggableInputStream) reply));
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles GuessMovieFromString response:\n{}", toLogString(loggableInputStream));
 				}
 			}
 
@@ -1999,7 +1998,7 @@ public class OpenSubtitle {
 			boolean first = !addFieldToStringBuilder(true, sb, "IDUser", idUser, false, true, true);
 			first &= !addFieldToStringBuilder(first, sb, "UserNickName", userNickName, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "UserRank", userRank, true, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "IsVIP", Boolean.valueOf(isVIP), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "IsVIP", isVIP, false, false, true);
 			if (userPreferredLanguages.length > 0) {
 				first &= !addFieldToStringBuilder(
 					first,
@@ -2447,8 +2446,7 @@ public class OpenSubtitle {
 						Member.getString(guessStruct, "score")
 					));
 				}
-			} else if (member.getValue() instanceof Array) {
-				Array array = (Array) member.getValue();
+			} else if (member.getValue() instanceof Array array) {
 				if (array.isEmpty()) {
 					return result;
 				}
@@ -3350,12 +3348,9 @@ public class OpenSubtitle {
 			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
 				switch (matchedBy.toLowerCase(Locale.ROOT)) {
-					case "moviehash":
-						tmpScore += 200d;
-					case "imdbid":
-						tmpScore += 100d;
-					case "tag":
-						tmpScore += 10d;
+					case "moviehash" -> tmpScore += 200d;
+					case "imdbid" -> tmpScore += 100d;
+					case "tag" -> tmpScore += 10d;
 				}
 			}
 			if (prettifier != null) {
@@ -3647,8 +3642,8 @@ public class OpenSubtitle {
 			}
 			boolean first = !addFieldToStringBuilder(true, sb, "MatchedBy", matchedBy, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "LanguageCode", languageCode, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "Score", Double.valueOf(score), false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "OSScore", Double.valueOf(openSubtitlesScore), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "Score", score, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "OSScore", openSubtitlesScore, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitleFile", idSubtitleFile, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "SubFileName", subFileName, true, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubHash", subHash, false, false, false);
@@ -3665,26 +3660,26 @@ public class OpenSubtitle {
 			}
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitle", idSubtitle, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "SubFormat", subtitleType, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubBad", Boolean.valueOf(subBad), false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubRating", Double.valueOf(subRating), false, false, false);
-			first &= !addFieldToStringBuilder(first, sb, "SubDLCnt", Integer.valueOf(subDownloadsCnt), false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "SubBad", subBad, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "SubRating", subRating, false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "SubDLCnt", subDownloadsCnt, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "MovieFPS", movieFPS, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IMDB ID", idMovieImdb, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "MovieName", movieName, true, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "MovieNameEng", movieNameEng, true, false, true);
 			if (movieYear > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "MovieYear", Integer.valueOf(movieYear), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "MovieYear", movieYear, false, false, false);
 			}
 			first &= !addFieldToStringBuilder(first, sb, "UserRank", userRank, false, false, false);
 			if (seriesSeason > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "SeriesSeason", Integer.valueOf(seriesSeason), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "SeriesSeason", seriesSeason, false, false, false);
 			}
 			if (seriesEpisode > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "SeriesEpisode", Integer.valueOf(seriesEpisode), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "SeriesEpisode", seriesEpisode, false, false, false);
 			}
 			first &= !addFieldToStringBuilder(first, sb, "MovieKind", movieKind, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubEncoding", subEncoding, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubFromTrusted", Boolean.valueOf(subFromTrusted), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "SubFromTrusted", subFromTrusted, false, false, true);
 			addFieldToStringBuilder(first, sb, "SubDownloadLink", subDownloadLink, true, true, true);
 			sb.append("]");
 			return sb.toString();
@@ -4270,52 +4265,30 @@ public class OpenSubtitle {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case DISABLED_USER_AGENT:
-					return "Error: Disabled user agent";
-				case DOWNLOAD_LIMIT_REACHED:
-					return "Error: Download limit reached";
-				case INTERNAL_VALIDATION_FAILURE:
-					return "Error: Internal subtitle validation failed";
-				case INVALID_FORMAT:
-					return "Error: %s has invalid format (reason)";
-				case INVALID_IMDBID:
-					return "Error: Invalid ImdbID";
-				case INVALID_PARAMETER:
-					return "Error: Invalid parameters";
-				case INVALID_SUBTITLES_FORMAT:
-					return "Error: Subtitles has invalid format";
-				case HASH_MISMATCH:
-					return "Error: SubHashes (content and sent subhash) are not same!";
-				case INVALID_SUBTITLES_LANGUAGE:
-					return "Error: Subtitles has invalid language!";
-				case INVALID_USERAGENT:
-					return "Error: Empty or invalid useragent";
-				case MISSING_MANDATORY_PARAMETER:
-					return "Error: Not all mandatory parameters was specified";
-				case MOVED:
-					return "Moved (host)";
-				case NO_SESSION:
-					return "Error: No session";
-				case OK:
-					return "Successful: OK";
-				case PARTIAL_CONTENT:
-					return "Successful: Partial content; message";
-				case SERVER_MAINTENANCE:
-					return "Server Error: Server under maintenance";
-				case SERVICE_UNAVAILABLE:
-					return "Server Error: Service Unavailable (temporary, retry in 1 second)";
-				case UNAUTHORIZED:
-					return "Error: Unauthorized";
-				case UNKNOWN_ERROR:
-					return "Error: Other or unknown error";
-				case UNKNOWN_METHOD:
-					return "Error: Method not found";
-				case UNKNOWN_USER_AGENT:
-					return "Error: Unknown User Agent";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case DISABLED_USER_AGENT -> "Error: Disabled user agent";
+				case DOWNLOAD_LIMIT_REACHED -> "Error: Download limit reached";
+				case INTERNAL_VALIDATION_FAILURE -> "Error: Internal subtitle validation failed";
+				case INVALID_FORMAT -> "Error: %s has invalid format (reason)";
+				case INVALID_IMDBID -> "Error: Invalid ImdbID";
+				case INVALID_PARAMETER -> "Error: Invalid parameters";
+				case INVALID_SUBTITLES_FORMAT -> "Error: Subtitles has invalid format";
+				case HASH_MISMATCH -> "Error: SubHashes (content and sent subhash) are not same!";
+				case INVALID_SUBTITLES_LANGUAGE -> "Error: Subtitles has invalid language!";
+				case INVALID_USERAGENT -> "Error: Empty or invalid useragent";
+				case MISSING_MANDATORY_PARAMETER -> "Error: Not all mandatory parameters was specified";
+				case MOVED -> "Moved (host)";
+				case NO_SESSION -> "Error: No session";
+				case OK -> "Successful: OK";
+				case PARTIAL_CONTENT -> "Successful: Partial content; message";
+				case SERVER_MAINTENANCE -> "Server Error: Server under maintenance";
+				case SERVICE_UNAVAILABLE -> "Server Error: Service Unavailable (temporary, retry in 1 second)";
+				case UNAUTHORIZED -> "Error: Unauthorized";
+				case UNKNOWN_ERROR -> "Error: Other or unknown error";
+				case UNKNOWN_METHOD -> "Error: Method not found";
+				case UNKNOWN_USER_AGENT -> "Error: Unknown User Agent";
+				default -> name();
+			};
 		}
 
 		/**

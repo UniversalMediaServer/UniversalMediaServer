@@ -277,15 +277,13 @@ public class DLNAMediaInfo implements Cloneable {
 		if (videoTrackCount > 0) {
 			return MediaType.VIDEO;
 		}
-		switch (audioTracks.size()) {
-			case 1 :
-				return MediaType.AUDIO;
-			case 0 :
-				if (imageCount > 0) {
-					return MediaType.IMAGE;
-				}
-			default :
-				return isSLS() ? MediaType.AUDIO : MediaType.UNKNOWN;
+		int audioTracksSize = audioTracks.size();
+		if (audioTracksSize == 0 && imageCount > 0) {
+			return MediaType.IMAGE;
+		} else if (audioTracksSize == 1 || isSLS()) {
+			return MediaType.AUDIO;
+		} else {
+			return MediaType.UNKNOWN;
 		}
 	}
 
