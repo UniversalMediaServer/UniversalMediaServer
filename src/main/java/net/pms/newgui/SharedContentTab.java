@@ -63,7 +63,7 @@ import net.pms.configuration.PmsConfiguration.SharedFolder;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.LibraryScanner;
+import net.pms.service.LibraryScanner;
 import net.pms.network.HTTPResource;
 import static net.pms.dlna.RootFolder.parseFeedKey;
 import static net.pms.dlna.RootFolder.parseFeedValue;

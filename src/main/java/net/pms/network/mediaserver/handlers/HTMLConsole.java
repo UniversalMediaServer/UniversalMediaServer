@@ -19,7 +19,7 @@ package net.pms.network.mediaserver.handlers;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.LibraryScanner;
+import net.pms.service.LibraryScanner;
 import net.pms.util.PropertiesUtil;
 
 public class HTMLConsole {

@@ -6,8 +6,6 @@ import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.UMSUtils;
-import net.pms.util.UMSUtils.IOList;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,17 +55,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 				}
 			}
 		} else {
-			String data = resource.write();
-			if (!StringUtils.isEmpty(data) && resource.getMasterParent() != null) {
-				res1 = IOList.resolveCreateMethod(resource.getMasterParent(), data);
-				res1.setMasterParent(resource.getMasterParent());
-				res1.setMediaAudio(resource.getMediaAudio());
-				res1.setMediaSubtitle(resource.getMediaSubtitle());
-				res1.setResume(resource.getResume());
-			} else {
-				res1 = resource.clone();
-				res1.setResume(resource.getResume());
-			}
+			res1 = resource.clone();
+			res1.setResume(resource.getResume());
 		}
 		list.remove(res1);
 		if (maxSize > 0 && list.size() == maxSize) {
@@ -95,7 +84,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 
 	@Override
 	public void discoverChildren() {
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			final Playlist self = this;
 			// Save
 			if (!isMode(AUTOSAVE)) {

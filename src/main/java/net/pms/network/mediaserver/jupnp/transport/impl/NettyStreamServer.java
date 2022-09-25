@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;

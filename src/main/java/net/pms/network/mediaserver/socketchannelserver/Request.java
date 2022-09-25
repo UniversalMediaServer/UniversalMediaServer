@@ -49,7 +49,7 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.ImageEngine;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;

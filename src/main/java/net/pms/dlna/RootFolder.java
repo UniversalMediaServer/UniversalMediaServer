@@ -17,6 +17,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.service.LibraryScanner;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.net.MalformedURLException;

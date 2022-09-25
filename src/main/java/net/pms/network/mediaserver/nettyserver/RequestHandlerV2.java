@@ -38,7 +38,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;

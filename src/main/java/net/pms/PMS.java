@@ -50,7 +50,7 @@ import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.LibraryScanner;
+import net.pms.service.LibraryScanner;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;

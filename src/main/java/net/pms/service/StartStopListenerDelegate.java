@@ -1,10 +1,9 @@
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
-package net.pms.external;
+package net.pms.service;
 
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.service.Services;
 
 public class StartStopListenerDelegate {
 	private final String rendererId;

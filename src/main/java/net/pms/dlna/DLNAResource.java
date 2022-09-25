@@ -88,7 +88,6 @@ import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
-import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.image.BufferedImageFilterChain;
@@ -4695,19 +4694,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String write() {
 		return null;
-	}
-
-	private ExternalListener masterParent;
-
-	public void setMasterParent(ExternalListener r) {
-		if (masterParent == null) {
-			// If master is already set ignore this
-			masterParent = r;
-		}
-	}
-
-	public ExternalListener getMasterParent() {
-		return masterParent;
 	}
 
 	// Returns the index of the given child resource id, or -1 if not found

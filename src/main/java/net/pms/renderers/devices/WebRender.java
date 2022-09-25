@@ -35,7 +35,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Engine;
 import net.pms.encoders.FFMpegVideo;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;

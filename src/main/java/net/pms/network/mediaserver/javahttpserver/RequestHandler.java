@@ -72,7 +72,7 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.ImageEngine;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;

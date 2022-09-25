@@ -42,8 +42,6 @@ import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.Engine;
-import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -407,14 +405,8 @@ public class PlayHandler implements HttpHandler {
 					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
 
 				} else {
-					// It's a WEB.conf item or plugin-provided url, make sure it's resolved
+					// It's a WEB.conf item
 					url = dlna.getSystemName();
-					if (!dlna.isURLResolved()) {
-						URLResult r = ExternalFactory.resolveURL(url);
-						if (r != null && StringUtils.isNotEmpty(r.url)) {
-							url = r.url;
-						}
-					}
 				}
 
 				Map<String, Object> item = new HashMap<>();
