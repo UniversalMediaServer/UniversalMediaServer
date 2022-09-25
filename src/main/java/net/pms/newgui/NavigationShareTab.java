@@ -255,11 +255,7 @@ public class NavigationShareTab {
 
 			}
 		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			seekPosition.setEnabled(true);
-		} else {
-			seekPosition.setEnabled(false);
-		}
+		seekPosition.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// Generate thumbnails
 		generateThumbnails = new JCheckBox(Messages.getString("GenerateThumbnails"), configuration.isThumbnailGenerationEnabled());
@@ -274,28 +270,18 @@ public class NavigationShareTab {
 		mplayerThumbnails = new JCheckBox(Messages.getString("UseMplayerVideoThumbnails"), configuration.isUseMplayerForVideoThumbs());
 		mplayerThumbnails.setToolTipText(Messages.getString("WhenSettingDisabledFfmpeg"));
 		mplayerThumbnails.setContentAreaFilled(false);
-		mplayerThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			mplayerThumbnails.setEnabled(true);
-		} else {
-			mplayerThumbnails.setEnabled(false);
-		}
+		mplayerThumbnails.addItemListener((ItemEvent e) -> configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED)));
+		mplayerThumbnails.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// DVD ISO thumbnails
 		dvdIsoThumbnails = new JCheckBox(Messages.getString("DvdIsoThumbnails"), configuration.isDvdIsoThumbnails());
 		dvdIsoThumbnails.setContentAreaFilled(false);
-		dvdIsoThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		dvdIsoThumbnails.addItemListener((ItemEvent e) -> configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Image thumbnails
 		imageThumbnails = new JCheckBox(Messages.getString("ImageThumbnails"), configuration.getImageThumbnailsEnabled());
 		imageThumbnails.setContentAreaFilled(false);
-		imageThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		imageThumbnails.addItemListener((ItemEvent e) -> configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel<CoverSupplier, String> thumbKCBM = new KeyedComboBoxModel<>(

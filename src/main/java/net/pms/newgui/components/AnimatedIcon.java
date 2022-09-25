@@ -46,11 +46,11 @@ import net.pms.newgui.LooksFrame;
  *  (https://tips4java.wordpress.com/2009/06/21/animated-icon/).
  */
 public class AnimatedIcon implements Icon, ActionListener {
-	public final static float TOP = 0.0f;
-	public final static float LEFT = 0.0f;
-	public final static float CENTER = 0.5f;
-	public final static float BOTTOM = 1.0f;
-	public final static float RIGHT = 1.0f;
+	public static final float TOP = 0.0f;
+	public static final float LEFT = 0.0f;
+	public static final float CENTER = 0.5f;
+	public static final float BOTTOM = 1.0f;
+	public static final float RIGHT = 1.0f;
 
 	private JComponent component;
 	private final ArrayList<AnimatedIconFrame> frames = new ArrayList<>();

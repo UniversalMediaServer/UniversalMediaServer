@@ -3425,7 +3425,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 	}
 
-	static public class SharedFolder {
+	public static class SharedFolder {
 		public String path;
 		public boolean monitored;
 	}

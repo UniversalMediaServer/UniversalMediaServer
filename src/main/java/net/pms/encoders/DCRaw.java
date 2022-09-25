@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 
 public class DCRaw extends ImageEngine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
-	public final static EngineId ID = StandardEngineId.DCRAW;
+	public static final EngineId ID = StandardEngineId.DCRAW;
 
 	/** The {@link Configuration} key for the custom DCRaw path. */
 	public static final String KEY_DCRAW_PATH = "dcraw_path";

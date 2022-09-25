@@ -110,10 +110,9 @@ public final class FormatFactory {
 	private static final List<Format> REGISTERED_FORMATS = new ArrayList<>(Arrays.asList(FORMATS));
 
 	/**
-	 * This class is not meant to be instantiated.
+	 * This class should not be instantiated.
 	 */
-	private FormatFactory() {
-	}
+	private FormatFactory() {}
 
 	/**
 	 * Match a given filename to all known formats and return a fresh instance
@@ -171,7 +170,7 @@ public final class FormatFactory {
 	public static List<Format> getSupportedFormats() {
 		FORMATS_LOCK.readLock().lock();
 		try {
-			return new ArrayList<Format>(REGISTERED_FORMATS);
+			return new ArrayList<>(REGISTERED_FORMATS);
 		} finally {
 			FORMATS_LOCK.readLock().unlock();
 		}

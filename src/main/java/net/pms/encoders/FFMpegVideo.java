@@ -299,7 +299,7 @@ public class FFMpegVideo extends Engine {
 			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
 		}
 
-		if (filterChain.size() > 0) {
+		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
 			videoFilterOptions.add(StringUtils.join(filterChain, ","));
 		}
@@ -1666,11 +1666,13 @@ public class FFMpegVideo extends Engine {
 	 * A simple arg parser with basic quote comprehension
 	 */
 	protected static List<String> parseOptions(String str) {
-		return str == null ? null : parseOptions(str, new ArrayList<String>());
+		return str == null ? null : parseOptions(str, new ArrayList<>());
 	}
 
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
-		int start, pos = 0, len = str.length();
+		int start;
+		int pos = 0;
+		int len = str.length();
 		while (pos < len) {
 			// New arg
 			if (str.charAt(pos) == '\"') {
@@ -1716,16 +1718,12 @@ public class FFMpegVideo extends Engine {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG) ||
 			"m3u8".equals(resource.getFormat().getMatchedExtension())
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'

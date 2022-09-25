@@ -205,7 +205,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// XXX Matching on file format isn't really enough, codec should also be evaluated
-		if (
+		return (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ADPCM) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ADTS) ||
@@ -235,10 +235,6 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.WMA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WV) ||
 			PlayerUtil.isWebAudio(resource)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 }

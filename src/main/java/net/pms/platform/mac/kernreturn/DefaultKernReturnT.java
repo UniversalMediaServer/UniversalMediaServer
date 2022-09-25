@@ -115,7 +115,7 @@ public class DefaultKernReturnT implements KernReturnT {
 			}
 			if (result == null) {
 				result = new DefaultKernReturnT(kernReturn);
-				unmappedKernReturnSet.add(new WeakReference<DefaultKernReturnT>(result));
+				unmappedKernReturnSet.add(new WeakReference<>(result));
 			}
 		}
 		return result;
@@ -282,7 +282,7 @@ public class DefaultKernReturnT implements KernReturnT {
 			}
 			if (result == null) {
 				result = new UnmappedSubsystem(value);
-				unmappedSubsystemSet.add(new WeakReference<UnmappedSubsystem>(result));
+				unmappedSubsystemSet.add(new WeakReference<>(result));
 			}
 		}
 		return result;

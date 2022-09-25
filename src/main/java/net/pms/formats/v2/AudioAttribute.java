@@ -39,7 +39,7 @@ public enum AudioAttribute {
 	private final Integer minimumValue;
 
 	private static final Pattern LIB_MEDIAINFO_KEY_PATTERN = Pattern.compile("^\\s*(\\S+)\\s*:");
-	private final static Map<String, AudioAttribute> LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP;
+	private static final Map<String, AudioAttribute> LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP;
 	private static Set<String> set(String... args) {
 		return new HashSet<>(Arrays.asList(args));
 	}

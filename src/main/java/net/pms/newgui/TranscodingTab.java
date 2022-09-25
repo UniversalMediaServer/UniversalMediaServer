@@ -191,16 +191,8 @@ public class TranscodingTab {
 			TreeNodeSettings node = (TreeNodeSettings) path.getLastPathComponent();
 			DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 			int index = treeModel.getIndexOfChild(node.getParent(), node);
-			if (index == 0) {
-				arrowUpButton.setEnabled(false);
-			} else {
-				arrowUpButton.setEnabled(true);
-			}
-			if (index == node.getParent().getChildCount() - 1) {
-				arrowDownButton.setEnabled(false);
-			} else {
-				arrowDownButton.setEnabled(true);
-			}
+			arrowUpButton.setEnabled(index != 0);
+			arrowDownButton.setEnabled(index != node.getParent().getChildCount() - 1);
 			Engine player = node.getPlayer();
 			if (player.isEnabled()) {
 				toggleButton.setIconName(ToggleButtonState.On.getIconName());

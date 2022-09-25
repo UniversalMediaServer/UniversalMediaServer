@@ -49,13 +49,13 @@ import org.xml.sax.SAXException;
 
 public class RequestHandler implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
-	public final static int SOCKET_BUF_SIZE = 32768;
+	public static final int SOCKET_BUF_SIZE = 32768;
 	private final Socket socket;
 	private final OutputStream output;
 	private final BufferedReader br;
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"Accept",
 		"Accept-Language",
 		"Accept-Encoding",

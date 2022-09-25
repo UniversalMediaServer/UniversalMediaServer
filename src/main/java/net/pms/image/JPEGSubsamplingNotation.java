@@ -275,9 +275,6 @@ public class JPEGSubsamplingNotation implements Serializable {
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(j) != Double.doubleToLongBits(other.j)) {
-			return false;
-		}
-		return true;
+		return (Double.doubleToLongBits(j) == Double.doubleToLongBits(other.j));
 	}
 }

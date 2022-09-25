@@ -128,7 +128,7 @@ public class KnownFolders {
 	public static final GUID FOLDERID_SCREENSHOOTS = new GUID("{B7BEDE81-DF94-4682-A7D8-57A52620B86F}");
 
 	/**
-	 * Not to be instantiated.
+	 * This class should not be instantiated.
 	 */
 	private KnownFolders() {
 	}

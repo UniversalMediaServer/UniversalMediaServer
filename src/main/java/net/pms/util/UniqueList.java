@@ -186,13 +186,12 @@ public class UniqueList<E> extends ArrayList<E> {
 
 		// Make a copy before removing items
 		ArrayList<E> tmpList = new ArrayList<>();
-		for (Iterator<? extends E> iterator = c.iterator(); iterator.hasNext();) {
-			E e = iterator.next();
+		for (E e : c) {
 			if (!contains(e)) {
 				tmpList.add(e);
 			}
 		}
-		return tmpList.isEmpty() ? false : super.addAll(index, tmpList);
+		return !tmpList.isEmpty() && super.addAll(index, tmpList);
 	}
 
 	/**

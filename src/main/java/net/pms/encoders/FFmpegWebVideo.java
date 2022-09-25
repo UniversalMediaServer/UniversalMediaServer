@@ -444,10 +444,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
 		Pattern compiledPattern = Pattern.compile(pattern);
 		Matcher matcher = compiledPattern.matcher(youTubeUrl);
-		if (matcher.find()) {
-			return true;
-		}
-		return false;
+		return matcher.find();
 	}
 }
 

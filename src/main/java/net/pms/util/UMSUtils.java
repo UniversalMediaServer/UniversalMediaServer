@@ -564,7 +564,7 @@ public class UMSUtils {
 		failsafe.start();
 		pw.run();
 		List<String> result = pw.getOtherResults();
-		List<String> availableMethods = new ArrayList<String>(1);
+		List<String> availableMethods = new ArrayList<>(1);
 		availableMethods.addAll(Arrays.asList("none"));
 		availableMethods.add("auto");
 		if (result != null) {

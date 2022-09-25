@@ -232,11 +232,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.isExternal()) {
-				return true;
-			}
-
-			return false;
+			return subtitle.isExternal();
 		}
 
 		try {
@@ -253,14 +249,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 }

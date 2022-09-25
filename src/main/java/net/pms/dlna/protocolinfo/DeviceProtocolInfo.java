@@ -156,11 +156,11 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
-			SortedSet<ProtocolInfo> tempSet = null;
+			SortedSet<ProtocolInfo> tempSet;
 			for (String element : elements) {
 				try {
 					tempSet = handleSpecialCaseString(element);
@@ -261,7 +261,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? true : set.isEmpty();
+			return set == null || set.isEmpty();
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -302,7 +302,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? false : set.contains(protocolInfo);
+			return set != null && set.contains(protocolInfo);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -398,7 +398,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? false : set.containsAll(collection);
+			return set != null && set.containsAll(collection);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -482,7 +482,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
@@ -515,7 +515,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 

@@ -205,10 +205,7 @@ public class DLNAImageResElement {
 		} else if (!profile.equals(other.profile)) {
 			return false;
 		}
-		if (thumbnail != other.thumbnail) {
-			return false;
-		}
-		return true;
+		return (thumbnail == other.thumbnail);
 	}
 
 	/**

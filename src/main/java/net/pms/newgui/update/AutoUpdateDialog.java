@@ -34,7 +34,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private static AutoUpdateDialog instance;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdateDialog.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
+	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
 				instance = new AutoUpdateDialog(parent, autoUpdater);

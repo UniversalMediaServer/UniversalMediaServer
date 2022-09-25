@@ -637,15 +637,11 @@ public class VLCVideo extends Engine {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// Only handle local video - not web video or audio
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	@Override

@@ -66,14 +66,16 @@ public enum PreventSleepMode {
 	@Override
 	public String toString() {
 		switch (this) {
-			case NEVER:
+			case NEVER -> {
 				return Messages.getString("Never");
-			case PLAYBACK:
+			}
+			case PLAYBACK -> {
 				return Messages.getString("DuringPlayback");
-			case RUNNING:
+			}
+			case RUNNING -> {
 				return Messages.getString("WhileRunning");
-			default:
-				throw new IllegalStateException("Unimplemented enum value: " + super.toString());
+			}
+			default -> throw new IllegalStateException("Unimplemented enum value: " + super.toString());
 		}
 	}
 }

@@ -1593,7 +1593,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return Whether connected.
 	 */
 	public boolean isUpnpConnected() {
-		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : false;
+		return uuid != null && UPNPHelper.isActive(uuid, instanceID);
 	}
 
 	/**
@@ -2354,7 +2354,7 @@ public class RendererConfiguration extends Renderer {
 			return true;
 		}
 
-		return format != null ? format.skip(getStreamedExtensions()) : false;
+		return format != null && format.skip(getStreamedExtensions());
 	}
 
 	/**

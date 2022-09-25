@@ -18,7 +18,7 @@
 package net.pms.network.mediaserver;
 
 public class HTTPXMLHelper {
-	private final static String CRLF = "\r\n";
+	private static final String CRLF = "\r\n";
 	public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
 	public static final String SOAP_ENCODING_HEADER = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + CRLF + "<s:Body>";
 	public static final String SOAP_ENCODING_FOOTER = "</s:Body>" + CRLF + "</s:Envelope>";

@@ -26,6 +26,10 @@ public class LibraryScanner {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibraryScanner.class);
 	private static Thread scanner;
 
+	private LibraryScanner() {
+		//should not be instantiated
+	}
+
 	public static boolean isScanLibraryRunning() {
 		return scanner != null && scanner.isAlive();
 	}

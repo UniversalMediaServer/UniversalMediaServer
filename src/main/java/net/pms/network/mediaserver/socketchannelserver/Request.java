@@ -294,7 +294,7 @@ public class Request extends HTTPResource {
 
 			StringBuilder response = new StringBuilder();
 			DLNAResource dlna = null;
-			boolean xbox360 = (mediaRenderer == null ? false : mediaRenderer.isXbox360());
+			boolean xbox360 = (mediaRenderer != null && mediaRenderer.isXbox360());
 
 			// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 			if (argument.startsWith("/")) {
@@ -379,7 +379,7 @@ public class Request extends HTTPResource {
 						filterChain = dlna.addFlagFilters(filterChain);
 						inputStream = thumbInputStream.transcode(
 							imageProfile,
-							mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false,
+							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
 							filterChain
 						);
 						if (contentFeatures != null) {
@@ -1121,7 +1121,7 @@ public class Request extends HTTPResource {
 		}
 	}
 
-	private static void appendToHeader(List<String> responseHeader, String line) throws IOException {
+	private static void appendToHeader(List<String> responseHeader, String line) {
 		responseHeader.add(line);
 	}
 

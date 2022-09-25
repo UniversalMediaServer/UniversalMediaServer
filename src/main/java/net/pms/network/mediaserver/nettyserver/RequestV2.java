@@ -441,7 +441,7 @@ public class RequestV2 extends HTTPResource {
 						filterChain = dlna.addFlagFilters(filterChain);
 						inputStream = thumbInputStream.transcode(
 							imageProfile,
-							mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false,
+							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
 							filterChain
 						);
 						if (contentFeatures != null) {

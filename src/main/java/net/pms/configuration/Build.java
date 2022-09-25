@@ -23,9 +23,10 @@ import org.apache.commons.lang3.StringUtils;
 // a one-stop class for values and methods specific to custom PMS builds
 public class Build {
 
-	private Build() {
-		throw new IllegalStateException("Build class is not meant to be instantiated");
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private Build() {}
 
 	/**
 	 * Repository where to locate the file. Note: using "raw.github.com"

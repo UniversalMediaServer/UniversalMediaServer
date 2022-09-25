@@ -1259,7 +1259,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		DLNAResource.bumpSystemUpdateId();
 	}
 
-	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
+	protected final void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
 		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {

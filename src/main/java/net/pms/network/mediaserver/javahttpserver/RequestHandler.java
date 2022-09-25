@@ -492,7 +492,7 @@ public class RequestHandler implements HttpHandler {
 				filterChain = dlna.addFlagFilters(filterChain);
 				inputStream = thumbInputStream.transcode(
 						imageProfile,
-						renderer != null ? renderer.isThumbnailPadding() : false,
+						renderer != null && renderer.isThumbnailPadding(),
 						filterChain
 				);
 				if (contentFeatures != null) {

@@ -123,7 +123,7 @@ public class OpenSubtitle {
 		30, // Number of seconds before an idle thread is terminated
 
 		// The queue holding the tasks waiting to be processed
-		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+		TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
 			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
 	);
 
@@ -610,7 +610,7 @@ public class OpenSubtitle {
 			result.addAll(findSubtitlesByName(resource, languageCodes, prettifier));
 		}
 
-		if (result.size() > 0) {
+		if (!result.isEmpty()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace(
 					"Found {} OpenSubtitles subtitles ({}) for \"{}\":\n{}",
@@ -1026,11 +1026,10 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "CheckMovieHash2", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace(
-						"Querying OpenSubtitles for titles using file hash{}:\n{}",
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Querying OpenSubtitles for titles using file hash{}:\n{}",
 						fileHashes.length > 1 ? "es" : "",
-						toLogString((LoggableOutputStream) out)
+						toLogString(loggableOutputStream)
 					);
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
@@ -1144,8 +1143,8 @@ public class OpenSubtitle {
 			return new ArrayList<>();
 		}
 		String fileName = null;
-		if (resource instanceof RealFile) {
-			File file = ((RealFile) resource).getFile();
+		if (resource instanceof RealFile realFile) {
+			File file = realFile.getFile();
 			if (file != null) {
 				fileName = file.getName();
 			}
@@ -1328,8 +1327,8 @@ public class OpenSubtitle {
 				writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
 
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\":\n{}", fileName, toLogString((LoggableOutputStream) out));
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\":\n{}", fileName, toLogString(loggableOutputStream));
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Querying OpenSubtitles for IMDB ID for \"{}\"", fileName);
 				}
@@ -1398,16 +1397,16 @@ public class OpenSubtitle {
 
 				Locale locale = PMS.getLocale();
 				ArrayList<GuessCandidate> candidates = new ArrayList<>();
-				if (movieGuess.getGuessesFromString().size() > 0) {
+				if (!movieGuess.getGuessesFromString().isEmpty()) {
 					addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, locale);
 				}
-				if (movieGuess.getImdbSuggestions().size() > 0) {
+				if (!movieGuess.getImdbSuggestions().isEmpty()) {
 					addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, locale);
 				}
 				if (movieGuess.getBestGuess() != null) {
 					addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, locale);
 				}
-				if (candidates.size() > 0) {
+				if (!candidates.isEmpty()) {
 					Collections.sort(candidates);
 					if (LOGGER.isTraceEnabled()) {
 						StringBuilder sb = new StringBuilder();
@@ -1628,7 +1627,7 @@ public class OpenSubtitle {
 				}
 			}
 		}
-		if (languagesList.size() == 0) {
+		if (languagesList.isEmpty()) {
 			return null;
 		}
 		return StringUtils.join(languagesList, ',');
@@ -1686,7 +1685,7 @@ public class OpenSubtitle {
 			return null;
 		}
 		if (output == null) {
-			output = resolveSubtitlesPath("TempSub" + String.valueOf(System.currentTimeMillis()));
+			output = resolveSubtitlesPath("TempSub" + System.currentTimeMillis());
 		}
 		URLConnection connection = url.openConnection();
 		connection.setDoInput(true);
@@ -2412,10 +2411,7 @@ public class OpenSubtitle {
 				return false;
 			}
 			GuessFromString other = (GuessFromString) obj;
-			if (score != other.score) {
-				return false;
-			}
-			return true;
+			return (score == other.score);
 		}
 
 		/**
@@ -2868,8 +2864,8 @@ public class OpenSubtitle {
 			BestGuess bestGuess
 		) {
 			this.guessIt = guessIt;
-			this.guessesFromString = guessesFromString != null ? guessesFromString : new HashMap<String, GuessFromString>();
-			this.imdbSuggestions = imdbSuggestions != null ? imdbSuggestions : new HashMap<String, GuessItem>();
+			this.guessesFromString = guessesFromString != null ? guessesFromString : new HashMap<>();
+			this.imdbSuggestions = imdbSuggestions != null ? imdbSuggestions : new HashMap<>();
 			this.bestGuess = bestGuess;
 		}
 
@@ -3231,10 +3227,7 @@ public class OpenSubtitle {
 			if (seriesSeason != other.seriesSeason) {
 				return false;
 			}
-			if (subCount != other.subCount) {
-				return false;
-			}
-			return true;
+			return (subCount == other.subCount);
 		}
 	}
 
@@ -4037,10 +4030,7 @@ public class OpenSubtitle {
 			} else if (!guessItem.equals(other.guessItem)) {
 				return false;
 			}
-			if (Double.doubleToLongBits(score) != Double.doubleToLongBits(other.score)) {
-				return false;
-			}
-			return true;
+			return (Double.doubleToLongBits(score) == Double.doubleToLongBits(other.score));
 		}
 
 		@Override
@@ -4077,7 +4067,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum HTTPResponseCode {
+	public enum HTTPResponseCode {
 
 		/** Successful: OK */
 		OK(200, false),
@@ -4122,18 +4112,13 @@ public class OpenSubtitle {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case OK:
-					return "Successful: OK";
-				case ORIGIN_ERROR:
-					return "Origin Error: Unknown cause";
-				case TOO_MANY_REQUESTS:
-					return "Server Error: Service Unavailable";
-				case SERVICE_UNAVAILABLE:
-					return "Server Error: Service Unavailable (temporary, retry in 1 second)";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case OK -> "Successful: OK";
+				case ORIGIN_ERROR -> "Origin Error: Unknown cause";
+				case TOO_MANY_REQUESTS -> "Server Error: Service Unavailable";
+				case SERVICE_UNAVAILABLE -> "Server Error: Service Unavailable (temporary, retry in 1 second)";
+				default -> name();
+			};
 		}
 
 		/**

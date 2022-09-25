@@ -315,7 +315,7 @@ public abstract class ExifInfo extends ImageInfo {
 	 * @return Whether the image has an embedded Exif thumbnail.
 	 */
 	public boolean hasExifThumbnail() {
-		return hasExifThumbnail != null ? hasExifThumbnail.booleanValue() : false;
+		return hasExifThumbnail != null && hasExifThumbnail;
 	}
 
 	public enum PhotometricInterpretation {

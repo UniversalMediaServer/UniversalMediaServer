@@ -97,7 +97,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);

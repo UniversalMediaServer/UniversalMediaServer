@@ -2076,7 +2076,7 @@ public class FileUtil {
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
-		if (
+		return (
 			(
 				configuration.isArchiveBrowsing() &&
 				(
@@ -2092,11 +2092,7 @@ public class FileUtil {
 			fileName.endsWith(".m3u8") ||
 			fileName.endsWith(".pls") ||
 			fileName.endsWith(".cue")
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {

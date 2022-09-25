@@ -77,7 +77,7 @@ public abstract class AbstractSleepWorker extends Thread {
 	public synchronized void allowSleep() {
 		preventSleep = false;
 		lastChange = System.currentTimeMillis();
-		notify();
+		notifyAll();
 	}
 
 	/**
@@ -86,7 +86,7 @@ public abstract class AbstractSleepWorker extends Thread {
 	public synchronized void preventSleep() {
 		preventSleep = true;
 		lastChange = System.currentTimeMillis();
-		notify();
+		notifyAll();
 	}
 
 	/**
@@ -95,7 +95,7 @@ public abstract class AbstractSleepWorker extends Thread {
 	public synchronized void resetSleepTimer() {
 		resetSleepTimer = true;
 		lastChange = System.currentTimeMillis();
-		notify();
+		notifyAll();
 	}
 
 	/**

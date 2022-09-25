@@ -1,7 +1,6 @@
 package net.pms.network.mediaserver.handlers.api.playlist;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -27,11 +26,11 @@ public class PlaylistManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistManager.class.getName());
 
-	private List<Path> availablePlaylists = new ArrayList<>();
-	private List<String> playlistsNames = new ArrayList<>();
-	private List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
+	private final List<Path> availablePlaylists = new ArrayList<>();
+	private final List<String> playlistsNames = new ArrayList<>();
+	private final List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
+	private final MediaDatabase db = PMS.get().getMediaDatabase();
 	private boolean serviceDisabled = true;
-	private MediaDatabase db = PMS.get().getMediaDatabase();
 
 	public PlaylistManager() {
 		checkPlaylistDirectoryConfiguration();
@@ -268,7 +267,7 @@ public class PlaylistManager {
 		RootFolder.rescanLibraryFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
 	}
 
-	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException, FileNotFoundException {
+	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {
 		if (!newPlaylist.createNewFile()) {
 			throw new RuntimeException(Messages.getString("PlaylistCanNotBeCreated"));
 		}
@@ -279,15 +278,10 @@ public class PlaylistManager {
 	}
 
 	public boolean isValidPlaylist(String filename) {
-		if (filename.endsWith(".m3u")) {
-			return true;
-		}
-		if (filename.endsWith(".m3u8")) {
-			return true;
-		}
-		if (filename.endsWith(".pls")) {
-			return true;
-		}
-		return false;
+		return (
+			filename.endsWith(".m3u") ||
+			filename.endsWith(".m3u8") ||
+			filename.endsWith(".pls")
+		);
 	}
 }

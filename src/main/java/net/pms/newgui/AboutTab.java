@@ -58,7 +58,7 @@ public class AboutTab {
 		Integer currentRowPosition = rowPosition;
 		rowPosition += 2;
 		return currentRowPosition;
-	};
+	}
 
 	public JComponent build() {
 		FormLayout layout = new FormLayout(

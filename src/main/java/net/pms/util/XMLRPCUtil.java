@@ -2142,26 +2142,33 @@ public class XMLRPCUtil {
 		@Override
 		public String toString() {
 			switch (this) {
-				case ARRAY:
+				case ARRAY -> {
 					return "array";
-				case BASE64:
+				}
+				case BASE64 -> {
 					return "base64";
-				case BOOLEAN:
+				}
+				case BOOLEAN -> {
 					return "boolean";
-				case DATETIME_ISO8601:
+				}
+				case DATETIME_ISO8601 -> {
 					return "dateTime.iso8601";
-				case DOUBLE:
+				}
+				case DOUBLE -> {
 					return "double";
-				case INT:
+				}
+				case INT -> {
 					return "int";
-				case STRING:
+				}
+				case STRING -> {
 					return "string";
-				case STRUCT:
+				}
+				case STRUCT -> {
 					return "struct";
-				default:
-					throw new AssertionError("Unimplemented XMLRPCType " + name());
+				}
+				default -> throw new AssertionError("Unimplemented XMLRPCType " + name());
 			}
-		};
+		}
 
 		/**
 		 * Parses the specified {@link String} into the corresponding

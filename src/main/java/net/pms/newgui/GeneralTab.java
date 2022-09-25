@@ -367,11 +367,7 @@ public class GeneralTab {
 					configuration.setMaximumBitrate(maxbitrate.getText());
 				}
 			});
-			if (configuration.isAutomaticMaximumBitrate()) {
-				maxbitrate.setEnabled(false);
-			} else {
-				maxbitrate.setEnabled(true);
-			}
+			maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
 
 			adaptBitrate = new JCheckBox(Messages.getString("UseAutomaticMaximumBandwidth"), configuration.isAutomaticMaximumBitrate());
 			adaptBitrate.setToolTipText(Messages.getString("ItSetsOptimalBandwidth"));

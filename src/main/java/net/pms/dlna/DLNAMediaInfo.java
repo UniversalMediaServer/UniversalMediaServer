@@ -368,7 +368,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check the metadata
-		if (
+		return (
 			(
 				getFileTitleFromMetadata() != null &&
 				getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
@@ -387,11 +387,7 @@ public class DLNAMediaInfo implements Cloneable {
 				params.getSid().getSubtitlesTrackTitleFromMetadata() != null &&
 				params.getSid().getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	public Map<String, String> getExtras() {
@@ -3367,7 +3363,7 @@ public class DLNAMediaInfo implements Cloneable {
 		AYBH,
 		AYBC,
 		AYBD
-	};
+	}
 
 	/**
 	 * This {@code enum} represents the different video "scan types".
@@ -3391,7 +3387,7 @@ public class DLNAMediaInfo implements Cloneable {
 				case PROGRESSIVE -> "Progressive";
 				default -> name();
 			};
-		};
+		}
 
 		public static ScanType typeOf(String scanType) {
 			if (isBlank(scanType)) {
@@ -3454,7 +3450,7 @@ public class DLNAMediaInfo implements Cloneable {
 				case TFO -> "Top Field Only";
 				default -> name();
 			};
-		};
+		}
 
 		public static ScanOrder typeOf(String scanOrder) {
 			if (isBlank(scanOrder)) {

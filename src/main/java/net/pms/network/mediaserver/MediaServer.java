@@ -274,5 +274,5 @@ public class MediaServer {
 		}
 	}
 
-	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
 }

@@ -72,7 +72,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 			public boolean bInheritHandle;
 		}
 
-		public static abstract class LPOVERLAPPED extends Structure { }
+		public abstract static class LPOVERLAPPED extends Structure { }
 
 		Pointer CreateNamedPipeA(String lpName, int dwOpenMode, int dwPipeMode,
 			int nMaxInstances, int nOutBufferSize, int nInBufferSize,

@@ -91,7 +91,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		if (parameters == null) {
 			this.parameters = Collections.EMPTY_MAP;
 		} else {
-			TreeMap<String, String> map = new TreeMap<String, String>(new Comparator<String>() {
+			TreeMap<String, String> map = new TreeMap<>(new Comparator<String>() {
 
 				@Override
 				public int compare(String o1, String o2) {

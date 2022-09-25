@@ -377,7 +377,7 @@ public final class GuiUtil {
 				}
 			}
 			// Draw the main label, if any
-			if (progressBar.isStringPainted() && mainLabel.size() > 0) {
+			if (progressBar.isStringPainted() && !mainLabel.isEmpty()) {
 				// Find the active label for this percentage
 				Segment active = null;
 				int pct = total * 100 / max;

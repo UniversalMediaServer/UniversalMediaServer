@@ -33,9 +33,10 @@ public class FileWatcher {
 	private static WatchService watchService = null;
 	private static boolean running = false;
 
-	private FileWatcher() {
-		//should not be instantiated
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private FileWatcher() {}
 
 	/**
 	 * Add a file watchpoint to the Watch Service. Will not

@@ -20,7 +20,6 @@ package net.pms.dlna;
 import net.pms.service.LibraryScanner;
 import com.sun.jna.Platform;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -736,7 +735,7 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	private VirtualFolder createApertureDlnaLibrary(String url) throws UnsupportedEncodingException, MalformedURLException, XmlParseException, IOException, URISyntaxException {
+	private VirtualFolder createApertureDlnaLibrary(String url) throws XmlParseException, IOException, URISyntaxException {
 		VirtualFolder res = null;
 
 		if (url != null) {

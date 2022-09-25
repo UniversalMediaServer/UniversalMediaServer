@@ -661,7 +661,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -691,7 +691,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -712,7 +712,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;

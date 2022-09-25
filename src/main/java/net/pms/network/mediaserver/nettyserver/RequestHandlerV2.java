@@ -70,7 +70,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"accept",
 		"accept-language",
 		"accept-encoding",

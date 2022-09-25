@@ -102,7 +102,7 @@ public class SubtitleUtils {
 		}
 	}
 
-	private final static Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
+	private static final Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
 
 		private static final long serialVersionUID = 1L;
 
