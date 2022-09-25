@@ -6,7 +6,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -94,19 +93,16 @@ public class RendererPanel extends JPanel {
 		open.setForeground(Color.lightGray);
 		open.setToolTipText(Messages.getString("CustomizeThisDevice"));
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				DeviceConfiguration d = (DeviceConfiguration) renderer;
-				File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
-				if (f != null) {
-					File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
-					buildEditBar(true);
-					try {
-						java.awt.Desktop.getDesktop().open(file);
-					} catch (IOException ioe) {
-						LOGGER.debug("Failed to open default desktop application: " + ioe);
-					}
+		open.addActionListener((final ActionEvent e) -> {
+			DeviceConfiguration d = (DeviceConfiguration) renderer;
+			File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
+			if (f != null) {
+				File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
+				buildEditBar(true);
+				try {
+					java.awt.Desktop.getDesktop().open(file);
+				} catch (IOException ioe) {
+					LOGGER.debug("Failed to open default desktop application: " + ioe);
 				}
 			}
 		});
@@ -119,14 +115,11 @@ public class RendererPanel extends JPanel {
 		boolean exists = ref != null && ref.exists();
 		open.setToolTipText(exists ? (Messages.getString("OpenParentConfiguration") + ": " + ref) : Messages.getString("NoParentConfiguration"));
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				try {
-					java.awt.Desktop.getDesktop().open(ref);
-				} catch (IOException ioe) {
-					LOGGER.debug("Failed to open default desktop application: " + ioe);
-				}
+		open.addActionListener((final ActionEvent e) -> {
+			try {
+				java.awt.Desktop.getDesktop().open(ref);
+			} catch (IOException ioe) {
+				LOGGER.debug("Failed to open default desktop application: " + ioe);
 			}
 		});
 		if (!exists) {
@@ -145,32 +138,29 @@ public class RendererPanel extends JPanel {
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				boolean exists = file.isFile() && file.exists();
-				File f = file;
-				if (!exists && create) {
-					f =  chooseConf(file.getParentFile(), file.getName());
-					if (f != null) {
-						File ref = chooseReferenceConf();
-						if (ref != null) {
-							RendererConfiguration.createNewFile(renderer, f, true, ref);
-							open.setText(f.getName());
-							exists = true;
-						}
+		open.addActionListener((final ActionEvent e) -> {
+			boolean exists = file.isFile() && file.exists();
+			File f = file;
+			if (!exists && create) {
+				f =  chooseConf(file.getParentFile(), file.getName());
+				if (f != null) {
+					File ref = chooseReferenceConf();
+					if (ref != null) {
+						RendererConfiguration.createNewFile(renderer, f, true, ref);
+						open.setText(f.getName());
+						exists = true;
 					}
 				}
-				if (exists) {
-					try {
-						java.awt.Desktop.getDesktop().open(f);
-					} catch (IOException ioe) {
-						LOGGER.debug("Failed to open default desktop application: " + ioe);
-					}
-				} else {
-					// Conf no longer exists, repair the edit bar
-					buildEditBar(true);
+			}
+			if (exists) {
+				try {
+					java.awt.Desktop.getDesktop().open(f);
+				} catch (IOException ioe) {
+					LOGGER.debug("Failed to open default desktop application: " + ioe);
 				}
+			} else {
+				// Conf no longer exists, repair the edit bar
+				buildEditBar(true);
 			}
 		});
 		return open;
@@ -226,13 +216,11 @@ public class RendererPanel extends JPanel {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
-			case JFileChooser.APPROVE_OPTION:
-				return fc.getSelectedFile();
-			case JFileChooser.CANCEL_OPTION:
-				return RendererConfiguration.NOFILE;
-		}
-		return null;
+		return switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
+			case JFileChooser.APPROVE_OPTION -> fc.getSelectedFile();
+			case JFileChooser.CANCEL_OPTION -> RendererConfiguration.NOFILE;
+			default -> null;
+		};
 	}
 
 	public int addItem(String key, String value, PanelBuilder builder, int y) {

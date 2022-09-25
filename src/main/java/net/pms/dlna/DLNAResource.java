@@ -44,7 +44,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -217,6 +216,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasExternalSubtitles;
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
+
+	protected DLNAResource() {
+		this.specificType = Format.UNKNOWN;
+		// this.children = new ArrayList<DLNAResource>();
+		this.children = new DLNAList();
+		resHash = 0;
+	}
+
+	protected DLNAResource(int specificType) {
+		this();
+		this.specificType = specificType;
+	}
 
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
@@ -444,18 +455,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return parent.getResourceId();
 		}
 		return "-1";
-	}
-
-	public DLNAResource() {
-		this.specificType = Format.UNKNOWN;
-		// this.children = new ArrayList<DLNAResource>();
-		this.children = new DLNAList();
-		resHash = 0;
-	}
-
-	public DLNAResource(int specificType) {
-		this();
-		this.specificType = specificType;
 	}
 
 	/**
@@ -1208,23 +1207,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void sortChildrenWithAudioElements(DLNAResource dlna) {
-		Collections.sort(dlna.getChildren(), new Comparator<DLNAResource>() {
-
-			@Override
-			public int compare(DLNAResource o1, DLNAResource o2) {
-				if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
-					if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
-						if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
-							return getTrackNum(o1).compareTo(getTrackNum(o2));
-						} else {
-							return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
-						}
+		Collections.sort(dlna.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+				if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
+					if (o2 != null && o2.getFormat() != null && o2.getFormat().isAudio()) {
+						return getTrackNum(o1).compareTo(getTrackNum(o2));
 					} else {
 						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
 					}
 				} else {
-					return getDiscNum(o1).compareTo(getDiscNum(o2));
+					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
 				}
+			} else {
+				return getDiscNum(o1).compareTo(getDiscNum(o2));
 			}
 		});
 	}

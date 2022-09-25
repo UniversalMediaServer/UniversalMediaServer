@@ -409,7 +409,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return The list of enabled renderers.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
+		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
 	}
 
 	/**
@@ -1222,7 +1222,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
 	}
 
 	/**

@@ -37,7 +37,7 @@ public abstract class TerminatedIntArray extends TerminatedArray<Integer> {
 	 * Creates a new instance with the internal {@link Pointer} set to
 	 * {@link Pointer#NULL}.
 	 */
-	public TerminatedIntArray() {
+	protected TerminatedIntArray() {
 	}
 
 	/**
@@ -45,7 +45,7 @@ public abstract class TerminatedIntArray extends TerminatedArray<Integer> {
 	 *
 	 * @param p the {@link Pointer} to use for the new instance.
 	 */
-	public TerminatedIntArray(Pointer p) {
+	protected TerminatedIntArray(Pointer p) {
 		setPointer(p);
 	}
 
@@ -57,7 +57,7 @@ public abstract class TerminatedIntArray extends TerminatedArray<Integer> {
 	 *
 	 * @param source the {@link Collection} of {@link Integer}s.
 	 */
-	public TerminatedIntArray(Collection<? extends Integer> source) {
+	protected TerminatedIntArray(Collection<? extends Integer> source) {
 		buffer = new ArrayList<Integer>(source);
 	}
 

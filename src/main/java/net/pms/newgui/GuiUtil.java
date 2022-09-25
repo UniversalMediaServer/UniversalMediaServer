@@ -2,7 +2,6 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
@@ -236,12 +235,7 @@ public final class GuiUtil {
 				g.translate(-dir * w, 0);
 				super.paintComponent(g);
 				if (timer == null) {
-					timer = new Timer(interval, new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							repaint();
-						}
-					});
+					timer = new Timer(interval, (ActionEvent e) -> repaint());
 					timer.start();
 				}
 			}
@@ -268,19 +262,17 @@ public final class GuiUtil {
 		}
 
 		private void scrollTheText() {
-			new Timer(200, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
-					setText(text);
-				}
+			new Timer(200, (ActionEvent e) -> {
+				text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
+				setText(text);
 			}).start();
 		}
 	}
 
 	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
 	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
-		Color fg, bg;
+		Color fg;
+		Color bg;
 
 		static class Segment {
 			String label;
@@ -632,8 +624,8 @@ public final class GuiUtil {
 	public static void enableContainer(Container c, boolean enable) {
 		for (Component component : c.getComponents()) {
 			component.setEnabled(enable);
-			if (component instanceof Container) {
-				enableContainer((Container) component, enable);
+			if (component instanceof Container container) {
+				enableContainer(container, enable);
 			}
 		}
 	}

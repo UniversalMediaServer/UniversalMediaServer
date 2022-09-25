@@ -643,7 +643,6 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
-			added = true;
 		}
 		return query.toString();
 	}
@@ -693,7 +692,6 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
-			added = true;
 		}
 		return query.toString();
 	}

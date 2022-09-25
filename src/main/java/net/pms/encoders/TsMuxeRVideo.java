@@ -107,11 +107,6 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public String[] args() {
-		return null;
-	}
-
-	@Override
 	protected ExternalProgramInfo programInfo() {
 		return configuration.getTsMuxeRPaths();
 	}

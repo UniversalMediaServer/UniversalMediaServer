@@ -64,9 +64,9 @@ public class WindowsRegistry {
 	}
 
 	static class StreamReader extends Thread {
-		private InputStream inputStream;
-		private String charsetName;
-		private StringBuffer result = new StringBuffer();
+		private final InputStream inputStream;
+		private final String charsetName;
+		private final StringBuilder result = new StringBuilder();
 
 		public StreamReader(InputStream is, String charsetName) {
 			this.inputStream = is;
@@ -77,7 +77,7 @@ public class WindowsRegistry {
 		public void run() {
 			try {
 				BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, charsetName));
-				String line = null;
+				String line;
 
 				while ((line = br.readLine()) != null) {
 					result.append(line);

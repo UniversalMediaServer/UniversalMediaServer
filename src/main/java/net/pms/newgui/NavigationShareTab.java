@@ -83,7 +83,7 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderLiveSubtitles;
 
 	private final PmsConfiguration configuration;
-	private LooksFrame looksFrame;
+	private final LooksFrame looksFrame;
 
 	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -591,23 +591,19 @@ public class NavigationShareTab {
 		fullyPlayedAction = new JComboBox<>(fullyPlayedActionModel);
 		fullyPlayedAction.setEditable(false);
 		fullyPlayedActionModel.setSelectedKey(configuration.getFullyPlayedAction());
-		fullyPlayedAction.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
-					fullyPlayedOutputDirectory.setEnabled(
+		fullyPlayedAction.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
+				fullyPlayedOutputDirectory.setEnabled(
 						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
-						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-					);
-					selectFullyPlayedOutputDirectory.setEnabled(
+								configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+				);
+				selectFullyPlayedOutputDirectory.setEnabled(
 						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
-						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-					);
-
-					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
-						MediaDatabase.initForce();
-					}
+								configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+				);
+				if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
+					MediaDatabase.initForce();
 				}
 			}
 		});
@@ -627,21 +623,18 @@ public class NavigationShareTab {
 
 		// Watched video output directory selection button
 		selectFullyPlayedOutputDirectory = new CustomJButton("...");
-		selectFullyPlayedOutputDirectory.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
-				}
+		selectFullyPlayedOutputDirectory.addActionListener((ActionEvent e) -> {
+			JFileChooser chooser;
+			try {
+				chooser = new JFileChooser();
+			} catch (Exception ee) {
+				chooser = new JFileChooser(new RestrictedFileSystemView());
+			}
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
+				configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
 			}
 		});
 

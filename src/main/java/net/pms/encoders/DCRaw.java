@@ -17,8 +17,6 @@
  */
 package net.pms.encoders;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.drew.lang.ByteArrayReader;
 import com.sun.jna.Platform;
 import java.awt.Dimension;
@@ -74,15 +72,6 @@ public class DCRaw extends ImageEngine {
 	DCRaw() {
 	}
 
-	protected String[] getDefaultArgs() {
-		return new String[] {"-e", "-c"};
-	}
-
-	@Override
-	public String[] args() {
-		return getDefaultArgs();
-	}
-
 	@Override
 	protected ExternalProgramInfo programInfo() {
 		return configuration.getDCRawPaths();
@@ -119,8 +108,7 @@ public class DCRaw extends ImageEngine {
 		if (image == null) {
 			return null;
 		}
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
-		return pw;
+		return new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 	}
 
 	@Override
@@ -145,7 +133,6 @@ public class DCRaw extends ImageEngine {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file. Can be {@code null}.
 	 * @return A byte array containing the converted image or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	@Override
 	public byte[] getImage(OutputParams params, String fileName, ImageInfo imageInfo) {
@@ -196,7 +183,6 @@ public class DCRaw extends ImageEngine {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file.
 	 * @return A byte array containing the thumbnail or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	@Override
 	public byte[] getThumbnail(OutputParams params, String fileName, ImageInfo imageInfo) {
@@ -259,7 +245,7 @@ public class DCRaw extends ImageEngine {
 			// There might be required to impose specific rules depending on the (RAW) format here
 
 			if (imageOrientation != null && imageOrientation != thumbnailOrientation) {
-				if (thumbnailOrientation != null) {
+				if (thumbnailOrientation != null && imageInfo != null) {
 					if (
 						imageInfo.getWidth() > 0 &&
 						imageInfo.getHeight() > 0 &&
@@ -268,7 +254,8 @@ public class DCRaw extends ImageEngine {
 						jpegResolution.getHeight() > 0
 					) {
 						// Try to determine which orientation to trust
-						double imageAspect, thumbnailAspect;
+						double imageAspect;
+						double thumbnailAspect;
 						if (ImagesUtil.isExifAxesSwapNeeded(imageOrientation)) {
 							imageAspect = (double) imageInfo.getHeight() / imageInfo.getWidth();
 						} else {
@@ -372,8 +359,8 @@ public class DCRaw extends ImageEngine {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
 						"Parsed resolution {} x {} for image \"{}\" from DCRaw output",
-						Integer.parseInt(matcher.group(1)),
-						Integer.parseInt(matcher.group(2)),
+						matcher.group(1),
+						matcher.group(2),
 						file.getPath()
 					);
 				}
@@ -417,11 +404,11 @@ public class DCRaw extends ImageEngine {
 				LOGGER.debug("\"{}\" failed with error: {}", executableInfo.getPath(), output.getError().getMessage());
 				return result.build();
 			}
-			if (!output.getOutput().isEmpty() && isBlank(output.getOutput().get(0))) {
+			if (!output.getOutput().isEmpty() && StringUtils.isBlank(output.getOutput().get(0))) {
 				if (output.getOutput().size() > 1) {
 					Pattern pattern = Pattern.compile("decoder\\s\"dcraw\"\\s(\\S+)", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(1));
-					if (matcher.find() && isNotBlank(matcher.group(1))) {
+					if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
 						result.version(new Version(matcher.group(1)));
 					}
 				}

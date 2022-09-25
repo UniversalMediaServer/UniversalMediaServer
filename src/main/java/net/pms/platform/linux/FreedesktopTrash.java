@@ -37,7 +37,6 @@ import net.pms.util.FileUtil.InvalidFileSystemException;
 import net.pms.util.FileUtil.UnixMountPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 
@@ -73,8 +72,7 @@ public class FreedesktopTrash {
 
 		long n = RANDOM.nextLong();
 		n = (n == Long.MIN_VALUE) ? 0 : Math.abs(n);
-		String newName = prefix + Long.toString(n) + suffix;
-		return newName;
+		return prefix + Long.toString(n) + suffix;
 	}
 
 	private static Path getVerifiedPath(String location) {
@@ -294,63 +292,4 @@ public class FreedesktopTrash {
 		moveToTrash(file.toPath());
 	}
 
-	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is
-	 * applicable for the given {@link Path}. Support can vary between
-	 * partitions on the same computer. Please note that this check will
-	 * look for or try to create the necessary folder structure, so this can
-	 * be an expensive operation.
-	 *
-	 * The check could be used to evaluate a systems general ability, but a
-	 * better strategy is to attempt {@link #moveToTrash(Path)} and handle
-	 * the {@link Exception} if it fails.
-	 *
-	 * @param path the path for which to evaluate trash bin support
-	 * @return The evaluation result
-	 */
-	private static boolean hasTrash(Path path) {
-		try {
-			return verifyTrashStructure(getTrashFolder(path));
-		} catch (IOException | InvalidFileSystemException e) {
-			LOGGER.warn("Error while trying to evaluate trash bin support: " + e.getMessage());
-			LOGGER.trace("", e);
-			return false;
-		}
-	}
-
-	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is
-	 * applicable for the given {@link File}. Support can vary between
-	 * partitions on the same computer. Please note that this check will
-	 * look for or try to create the necessary folder structure, so this can
-	 * be an expensive operation.
-	 *
-	 * The check could be used to evaluate a systems general ability, but a
-	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * the {@link Exception} if it fails.
-	 *
-	 * @param file the file for which to evaluate trash bin support
-	 * @return The evaluation result
-	 */
-	private static boolean hasTrash(File file) {
-		return hasTrash(file.toPath());
-	}
-
-	/**
-	 * Tries to determine if FreeDesktop.org Trash specification is
-	 * applicable for the system root. Support can vary between partitions
-	 * on the same computer. Please note that this check will look for or
-	 * try to create the necessary folder structure, so this can be an
-	 * expensive operation.
-	 *
-	 * The check could be used to evaluate a systems general ability, but a
-	 * better strategy is to attempt {@link #moveToTrash(File)} and handle
-	 * the {@link Exception} if it fails.
-	 *
-	 * @return The evaluation result
-	 */
-	@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-	private static boolean hasTrash() {
-		return hasTrash(Paths.get("/"));
-	}
 }

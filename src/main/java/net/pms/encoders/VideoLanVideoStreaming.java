@@ -87,11 +87,6 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public String[] args() {
-		return new String[]{};
-	}
-
-	@Override
 	public String name() {
 		return NAME;
 	}

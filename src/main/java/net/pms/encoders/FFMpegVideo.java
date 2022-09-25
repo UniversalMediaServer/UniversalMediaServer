@@ -734,20 +734,6 @@ public class FFMpegVideo extends Engine {
 		return Format.VIDEO;
 	}
 
-	// unused; return this array for backwards-compatibility
-	@Deprecated
-	protected String[] getDefaultArgs() {
-		List<String> defaultArgsList = new ArrayList<>();
-
-		defaultArgsList.add("-loglevel");
-		defaultArgsList.add("warning");
-
-		String[] defaultArgsArray = new String[defaultArgsList.size()];
-		defaultArgsList.toArray(defaultArgsArray);
-
-		return defaultArgsArray;
-	}
-
 	private static int[] getVideoBitrateConfig(String bitrate) {
 		int[] bitrates = new int[2];
 
@@ -766,12 +752,6 @@ public class FFMpegVideo extends Engine {
 		bitrates[0] = (int) Double.parseDouble(bitrate);
 
 		return bitrates;
-	}
-
-	@Override
-	@Deprecated
-	public String[] args() {
-		return getDefaultArgs(); // unused; return this array for for backwards compatibility
 	}
 
 	@Override

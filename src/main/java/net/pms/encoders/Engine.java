@@ -124,7 +124,7 @@ public abstract class Engine {
 	/**
 	 * Abstract constructor that sets the final {@code programInfo} variable.
 	 */
-	public Engine() {
+	protected Engine() {
 		programInfo = programInfo();
 		if (programInfo == null) {
 			throw new IllegalStateException(
@@ -209,11 +209,6 @@ public abstract class Engine {
 		}
 		currentExecutableType = newExecutableType;
 	}
-
-	// FIXME this is an implementation detail (and not a very good one).
-	// it's entirely up to engines how they construct their command lines.
-	// need to get rid of this
-	public abstract String[] args();
 
 	public abstract String mimeType();
 

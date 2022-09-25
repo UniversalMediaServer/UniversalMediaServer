@@ -62,7 +62,7 @@ public class DatabaseEmbedded {
 			//no value set, use 64 MB per GB
 			cacheSize = Utils.scaleForAvailableMemory(65536);
 		}
-		LOGGER.info("Database may use {} MB for caching", Math.round(cacheSize / 1024));
+		LOGGER.info("Database may use {} MB for caching", Math.round((cacheSize / 1024)));
 		url += ";CACHE_SIZE=" + cacheSize;
 
 		if (CONFIGURATION.isDatabaseMediaUseCacheSoft()) {
@@ -89,11 +89,6 @@ public class DatabaseEmbedded {
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
 		LOGGER.info("Using \"{}\" database located at: \"{}\"", name, dbDir);
 
-		try {
-			Class.forName("org.h2.Driver");
-		} catch (ClassNotFoundException e) {
-			LOGGER.error(null, e);
-		}
 		return url;
 	}
 

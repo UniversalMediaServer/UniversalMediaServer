@@ -107,11 +107,6 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public String[] args() {
-		return new String[]{};
-	}
-
-	@Override
 	public String name() {
 		return NAME;
 	}

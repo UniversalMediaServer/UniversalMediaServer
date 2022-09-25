@@ -106,8 +106,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 					} else if (line.equals("REPLACE")) {
 						filter = REPLACEMENTS;
 					} else if (filter != null) {
-						String[] var = line.split(" \\| ", 2);
-						filter.add(var[0], var.length > 1 ? var[1] : null);
+						String[] value = line.split(" \\| ", 2);
+						filter.add(value[0], value.length > 1 ? value[1] : null);
 					}
 				}
 				return true;

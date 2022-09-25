@@ -672,7 +672,7 @@ public class FileUtil {
 		}
 
 		// With this naming convention, the filename is always lower case
-		if (filename.toLowerCase() != filename) {
+		if (!filename.toLowerCase().equals(filename)) {
 			return filename;
 		}
 

@@ -37,7 +37,7 @@ public abstract class FixedArrayByReference<E> extends PointerType {
 	 *
 	 * @param fixedSize the size of this fixed size array.
 	 */
-	public FixedArrayByReference(long fixedSize) {
+	protected FixedArrayByReference(long fixedSize) {
 		super();
 		size = Math.max(fixedSize, 0);
 		if (size > 0) {

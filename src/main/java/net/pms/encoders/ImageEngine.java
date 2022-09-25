@@ -36,7 +36,6 @@ public abstract class ImageEngine extends Engine {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file.
 	 * @return A byte array containing the converted image or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	public abstract byte[] getImage(OutputParams params, String fileName, ImageInfo imageInfo);
 
@@ -47,7 +46,6 @@ public abstract class ImageEngine extends Engine {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file.
 	 * @return A byte array containing the thumbnail or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	public abstract byte[] getThumbnail(OutputParams params, String fileName, ImageInfo imageInfo);
 

@@ -266,7 +266,7 @@ public class ProcessManager {
 		}
 		synchronized (incoming) {
 			incoming.add(ticket);
-			incoming.notify();
+			incoming.notifyAll();
 			if (terminator == null || !terminator.isAlive()) {
 				LOGGER.warn(
 					"ProcessManager added the following ticket while no ProcessTerminator is processing tickets: {}",

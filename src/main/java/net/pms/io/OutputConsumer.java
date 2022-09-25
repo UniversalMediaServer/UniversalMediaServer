@@ -24,7 +24,7 @@ public abstract class OutputConsumer extends Thread {
 	protected InputStream inputStream;
 	protected boolean filtered;
 
-	public OutputConsumer(InputStream inputStream) {
+	protected OutputConsumer(InputStream inputStream) {
 		this.inputStream = inputStream;
 		this.filtered = false;
 	}

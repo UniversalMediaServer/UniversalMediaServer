@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import net.pms.newgui.util.SwingUtils;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -43,12 +42,12 @@ import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.components.CustomHTMLEditorKit;
 import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.newgui.util.SwingUtils;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
@@ -393,20 +392,17 @@ public class LanguageSelection {
 		styleSheet.addRule("a { color: #0000EE; text-decoration:underline; }");
 		editorKit.setStyleSheet(styleSheet);
 		infoText.setEditorKit(editorKit);
-		infoText.addHyperlinkListener(new HyperlinkListener() {
-
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					boolean error;
-					if (Desktop.isDesktopSupported()) {
-						error = !PlatformUtils.INSTANCE.browseURI(e.getDescription());
-					} else {
-						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
-						error = true;
-					}
-					if (error) {
-						JOptionPane.showOptionDialog(
+		infoText.addHyperlinkListener((HyperlinkEvent e) -> {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				boolean error;
+				if (Desktop.isDesktopSupported()) {
+					error = !PlatformUtils.INSTANCE.browseURI(e.getDescription());
+				} else {
+					LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
+					error = true;
+				}
+				if (error) {
+					JOptionPane.showOptionDialog(
 							dialog,
 							String.format(buildString("LanguageSelection.6", true), PMS.CROWDIN_LINK),
 							buildString("Error"),
@@ -415,10 +411,8 @@ public class LanguageSelection {
 							null,
 							null,
 							null);
-					}
 				}
 			}
-
 		});
 
 		rootPanel.add(selectionPanel);

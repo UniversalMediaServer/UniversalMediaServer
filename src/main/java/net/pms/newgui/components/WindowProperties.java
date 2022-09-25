@@ -124,11 +124,11 @@ public class WindowProperties implements WindowListener, ComponentListener {
 				}
 				window.setLocationByPlatform(true);
 			}
-			if (window instanceof Frame) {
+			if (window instanceof Frame frame) {
 				// Set maximized state
 				int maximizedState = windowState & Frame.MAXIMIZED_BOTH;
 				if (maximizedState != 0) {
-					((Frame) window).setExtendedState(((Frame) window).getExtendedState() | maximizedState);
+					frame.setExtendedState(frame.getExtendedState() | maximizedState);
 				}
 			}
 		}
@@ -591,15 +591,12 @@ public class WindowProperties implements WindowListener, ComponentListener {
 						"Window properties configuration file \"{}\" contains unknown additional data",
 						path
 					);
-					return;
 				}
+			} catch (NoSuchFileException e) {
+				LOGGER.debug("Window properties configuration file \"{}\" not found", path);
 			} catch (IOException e) {
-				if (e instanceof NoSuchFileException) {
-					LOGGER.debug("Window properties configuration file \"{}\" not found", path);
-				} else {
-					LOGGER.error("Error reading window properties configuration file \"{}\": {}", path, e.getMessage());
-					LOGGER.trace("", e);
-				}
+				LOGGER.error("Error reading window properties configuration file \"{}\": {}", path, e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 

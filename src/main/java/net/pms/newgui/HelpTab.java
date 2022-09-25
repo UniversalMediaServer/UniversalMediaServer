@@ -30,7 +30,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -81,24 +80,20 @@ public class HelpTab {
 		updateContents();
 
 		// Enable internal anchor links
-		editorPane.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent event) {
-				try {
-					if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						String urlString = event.getURL().toExternalForm();
-
-						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
-							// Open external links in the desktop web browser
-							PlatformUtils.INSTANCE.browseURI(urlString);
-						} else {
-							// Open anchor links in the editorPane
-							editorPane.setPage(event.getURL());
-						}
+		editorPane.addHyperlinkListener((HyperlinkEvent event) -> {
+			try {
+				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String urlString = event.getURL().toExternalForm();
+					if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
+						// Open external links in the desktop web browser
+						PlatformUtils.INSTANCE.browseURI(urlString);
+					} else {
+						// Open anchor links in the editorPane
+						editorPane.setPage(event.getURL());
 					}
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
 				}
+			} catch (IOException e) {
+				LOGGER.debug("Caught exception", e);
 			}
 		});
 

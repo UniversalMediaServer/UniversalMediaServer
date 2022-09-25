@@ -520,7 +520,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static DLNAMediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
-		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
+		List<String> externalFileReferencesToRemove = new ArrayList<>();
 		try {
 			try (
 				PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);

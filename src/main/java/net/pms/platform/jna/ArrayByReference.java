@@ -35,7 +35,7 @@ public abstract class ArrayByReference<E> extends PointerType {
 	/**
 	 * Creates an unallocated {@link ArrayByReference}.
 	 */
-	public ArrayByReference() {
+	protected ArrayByReference() {
 		super();
 	}
 

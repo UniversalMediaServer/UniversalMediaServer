@@ -103,6 +103,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 		}
 	}
 
+	@Override
 	protected JComponent createEditor(SpinnerModel model) {
 		if (model instanceof SpinnerDateModel) {
 			return new DateEditor(this);
@@ -248,6 +249,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 				setValueClass(model.getValue().getClass());
 			}
 
+			@Override
 			public Comparable getMinimum() {
 				return model.getMinimum();
 			}

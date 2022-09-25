@@ -501,28 +501,21 @@ public class RootFolder extends DLNAResource {
 								String optionalStreamThumbnail = values.length > 2 ? values[2] : null;
 
 								switch (sourceType) {
-									case "imagefeed":
-										parent.addChild(new ImagesFeed(uri));
-										break;
-									case "videofeed":
+									case "imagefeed" -> parent.addChild(new ImagesFeed(uri));
+									case "videofeed" -> {
 										// Convert YouTube channel URIs to their feed URIs
 										if (uri.contains("youtube.com/channel/")) {
 											uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 										}
 
 										parent.addChild(new VideosFeed(uri));
-										break;
-									case "audiofeed":
-										parent.addChild(new AudiosFeed(uri));
-										break;
-									case "audiostream":
-										parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
-										break;
-									case "videostream":
-										parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
-										break;
-									default:
-										break;
+									}
+									case "audiofeed" -> parent.addChild(new AudiosFeed(uri));
+									case "audiostream" -> parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
+									case "videostream" -> parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
+									default -> {
+										//do nothing
+									}
 								}
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
@@ -590,7 +583,7 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac()) {
 			LOGGER.debug("Adding iPhoto folder");
-			Process process = null;
+			Process process;
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
@@ -712,20 +705,20 @@ public class RootFolder extends DLNAResource {
 
 					try {
 						process.getErrorStream().close();
-					} catch (Exception e) {
+					} catch (IOException e) {
 						LOGGER.warn("Could not close process output stream: {}", e.getMessage());
 						LOGGER.trace("", e);
 					}
 
 					try {
 						process.getInputStream().close();
-					} catch (Exception e) {
+					} catch (IOException e) {
 						LOGGER.warn("Could not close stream for output process", e);
 					}
 
 					try {
 						process.getOutputStream().close();
-					} catch (Exception e) {
+					} catch (IOException e) {
 						LOGGER.warn("Could not close stream for output process", e);
 					}
 				}
@@ -1049,31 +1042,22 @@ public class RootFolder extends DLNAResource {
 							musicFolder.addChild(virtualFolderAllTracks);
 
 							// Sort the virtual folders alphabetically
-							Collections.sort(virtualFolderArtists.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderArtists.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderAlbums.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderAlbums.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderGenres.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderGenres.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 						} else {
 							// Add all playlists
@@ -1400,55 +1384,51 @@ public class RootFolder extends DLNAResource {
 	 * Adds and removes files from the database when they are created or
 	 * deleted on the hard drive.
 	 */
-	public static final FileWatcher.Listener LIBRARY_RESCANNER = new FileWatcher.Listener() {
-		@Override
-		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
-				Connection connection = null;
-				try {
-					connection = MediaDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						/**
-						 * If a new directory is created with files, the listener may not
-						 * give us information about those new files, as it wasn't listening
-						 * when they were created, so make sure we parse them.
-						 */
-						if (isDir) {
-							if ("ENTRY_CREATE".equals(event)) {
-								LOGGER.trace("Folder {} was created on the hard drive", filename);
-
-								File[] files = new File(filename).listFiles();
-								if (files != null) {
-									LOGGER.trace("Crawling {}", filename);
-									for (File file : files) {
-										if (file.isFile()) {
-											LOGGER.trace("File {} found in {}", file.getName(), filename);
-											parseFileForDatabase(file);
-										}
+	public static final FileWatcher.Listener LIBRARY_RESCANNER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+		if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					/**
+					 * If a new directory is created with files, the listener may not
+					 * give us information about those new files, as it wasn't listening
+					 * when they were created, so make sure we parse them.
+					 */
+					if (isDir) {
+						if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("Folder {} was created on the hard drive", filename);
+							File[] files = new File(filename).listFiles();
+							if (files != null) {
+								LOGGER.trace("Crawling {}", filename);
+								for (File file : files) {
+									if (file.isFile()) {
+										LOGGER.trace("File {} found in {}", file.getName(), filename);
+										parseFileForDatabase(file);
 									}
-								} else {
-									LOGGER.trace("Folder {} is empty", filename);
 								}
-							} else if ("ENTRY_DELETE".equals(event)) {
-								LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-								MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
-								bumpSystemUpdateId();
+							} else {
+								LOGGER.trace("Folder {} is empty", filename);
 							}
-						} else {
-							if ("ENTRY_DELETE".equals(event)) {
-								LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-								MediaTableFiles.removeMediaEntry(connection, filename, true);
-								bumpSystemUpdateId();
-							} else if ("ENTRY_CREATE".equals(event)) {
-								LOGGER.trace("File {} was created on the hard drive", filename);
-								File file = new File(filename);
-								parseFileForDatabase(file);
-							}
+						} else if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
+							MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
+							bumpSystemUpdateId();
+						}
+					} else {
+						if ("ENTRY_DELETE".equals(event)) {
+							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+							MediaTableFiles.removeMediaEntry(connection, filename, true);
+							bumpSystemUpdateId();
+						} else if ("ENTRY_CREATE".equals(event)) {
+							LOGGER.trace("File {} was created on the hard drive", filename);
+							File file = new File(filename);
+							parseFileForDatabase(file);
 						}
 					}
-				} finally {
-					MediaDatabase.close(connection);
 				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
 		}
 	};

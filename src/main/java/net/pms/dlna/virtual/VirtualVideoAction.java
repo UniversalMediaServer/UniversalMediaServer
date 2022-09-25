@@ -51,7 +51,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 *                If false, a red cross is shown. This initial value
 	 *                is usually changed via the {@link #enable()} function.
 	 */
-	public VirtualVideoAction(String name, boolean enabled) {
+	protected VirtualVideoAction(String name, boolean enabled) {
 		this.name = name;
 		thumbnailIconOK = "images/icon-videothumbnail-ok.png";
 		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";

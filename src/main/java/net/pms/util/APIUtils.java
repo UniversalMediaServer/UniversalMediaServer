@@ -637,7 +637,7 @@ public class APIUtils {
 			}
 			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			String typeFromAPI = getStringOrNull(seriesMetadataFromAPI, "type");
-			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
+			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
 
 			boolean isAPIDataValid = true;
 			String validationFailedPrepend = "not storing the series API lookup result because ";

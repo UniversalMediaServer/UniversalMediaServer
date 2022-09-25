@@ -124,7 +124,7 @@ public class SharedContentTab {
 	}
 
 	private final PmsConfiguration configuration;
-	private LooksFrame looksFrame;
+	private final LooksFrame looksFrame;
 
 	SharedContentTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -163,20 +163,18 @@ public class SharedContentTab {
 			entryToAdd.append(configType).append(".").append(folders).append("=");
 
 			switch (configType) {
-				case "imagefeed":
-				case "videofeed":
-				case "audiofeed":
+				case "imagefeed", "videofeed", "audiofeed" -> {
 					entryToAdd.append(source);
 
 					if (resourceName != null) {
 						entryToAdd.append(",,,").append(resourceName);
 					}
-					break;
-				default:
+				}
+				default -> {
 					if (resourceName != null) {
 						entryToAdd.append(resourceName).append(",").append(source);
 					}
-					break;
+				}
 			}
 
 			entries.add(entryToAdd.toString());
@@ -500,23 +498,18 @@ public class SharedContentTab {
 
 			JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 			newEntryType.setEditable(false);
-			newEntryType.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					if (
-						e.getItem().toString() == READABLE_TYPE_AUDIO_FEED ||
-						e.getItem().toString() == READABLE_TYPE_VIDEO_FEED ||
-						e.getItem().toString() == READABLE_TYPE_IMAGE_FEED
-					) {
-						newEntryName.setEnabled(false);
-						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
-					} else if (
-						e.getItem().toString() == READABLE_TYPE_AUDIO_STREAM ||
-						e.getItem().toString() == READABLE_TYPE_VIDEO_STREAM
-					) {
-						newEntryName.setEnabled(true);
-						newEntryName.setText("");
-					}
+			newEntryType.addItemListener((ItemEvent e1) -> {
+				if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
+					READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
+					READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())
+				) {
+					newEntryName.setEnabled(false);
+					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+				} else if (READABLE_TYPE_AUDIO_STREAM.equals(e1.getItem().toString()) ||
+						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())
+				) {
+					newEntryName.setEnabled(true);
+					newEntryName.setText("");
 				}
 			});
 
@@ -595,9 +588,9 @@ public class SharedContentTab {
 					if (!isBlank(newEntrySource.getText())) {
 						try {
 							if (
-								newEntryType.getSelectedItem().toString() == READABLE_TYPE_IMAGE_FEED ||
-								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_FEED ||
-								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_FEED
+								READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_AUDIO_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_VIDEO_FEED.equals(newEntryType.getSelectedItem().toString())
 							) {
 								String temporarySource = newEntrySource.getText();
 								// Convert YouTube channel URIs to their feed URIs
@@ -607,8 +600,8 @@ public class SharedContentTab {
 
 								resourceName = getFeedTitle(temporarySource);
 							} else if (
-								newEntryType.getSelectedItem().toString() == READABLE_TYPE_VIDEO_STREAM ||
-								newEntryType.getSelectedItem().toString() == READABLE_TYPE_AUDIO_STREAM
+								READABLE_TYPE_VIDEO_STREAM.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_AUDIO_STREAM.equals(newEntryType.getSelectedItem().toString())
 							) {
 								resourceName = newEntryName.getText();
 							}
@@ -710,7 +703,7 @@ public class SharedContentTab {
 			for (Path folder : folders) {
 				Vector rowVector = new Vector();
 				rowVector.add(folder.toString());
-				rowVector.add(Boolean.valueOf(foldersMonitored.contains(folder)));
+				rowVector.add(foldersMonitored.contains(folder));
 				newDataVector.add(rowVector);
 			}
 		}
@@ -815,7 +808,7 @@ public class SharedContentTab {
 	}
 
 	public class TableMouseListener extends MouseAdapter {
-		private JTable table;
+		private final JTable table;
 
 		public TableMouseListener(JTable table) {
 			this.table = table;
@@ -839,9 +832,9 @@ public class SharedContentTab {
 
 				JTextField newEntryName = new JTextField(25);
 				if (
-					currentType == READABLE_TYPE_AUDIO_FEED ||
-					currentType == READABLE_TYPE_VIDEO_FEED ||
-					currentType == READABLE_TYPE_IMAGE_FEED
+					READABLE_TYPE_AUDIO_FEED.equals(currentType) ||
+					READABLE_TYPE_VIDEO_FEED.equals(currentType) ||
+					READABLE_TYPE_IMAGE_FEED.equals(currentType)
 				) {
 					newEntryName.setEnabled(false);
 					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
@@ -853,23 +846,20 @@ public class SharedContentTab {
 				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
 				newEntryType.setSelectedIndex(currentTypeIndex);
-				newEntryType.addItemListener(new ItemListener() {
-					@Override
-					public void itemStateChanged(ItemEvent e) {
-						if (
-							e.getItem().toString() == READABLE_TYPE_AUDIO_FEED ||
-							e.getItem().toString() == READABLE_TYPE_VIDEO_FEED ||
-							e.getItem().toString() == READABLE_TYPE_IMAGE_FEED
-						) {
-							newEntryName.setEnabled(false);
-							newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
-						} else if (
-							e.getItem().toString() == READABLE_TYPE_AUDIO_STREAM ||
-							e.getItem().toString() == READABLE_TYPE_VIDEO_STREAM
-						) {
-							newEntryName.setEnabled(true);
-							newEntryName.setText("");
-						}
+				newEntryType.addItemListener((ItemEvent e) -> {
+					if (
+						READABLE_TYPE_AUDIO_FEED.equals(e.getItem().toString()) ||
+						READABLE_TYPE_VIDEO_FEED.equals(e.getItem().toString()) ||
+						READABLE_TYPE_IMAGE_FEED.equals(e.getItem().toString())
+					) {
+						newEntryName.setEnabled(false);
+						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					} else if (
+						READABLE_TYPE_AUDIO_STREAM.equals(e.getItem().toString()) ||
+						READABLE_TYPE_VIDEO_STREAM.equals(e.getItem().toString())
+					) {
+						newEntryName.setEnabled(true);
+						newEntryName.setText("");
 					}
 				});
 

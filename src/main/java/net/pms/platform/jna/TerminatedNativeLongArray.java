@@ -38,7 +38,7 @@ public abstract class TerminatedNativeLongArray extends TerminatedArray<NativeLo
 	 * Creates a new instance with the internal {@link Pointer} set to
 	 * {@link Pointer#NULL}.
 	 */
-	public TerminatedNativeLongArray() {
+	protected TerminatedNativeLongArray() {
 	}
 
 	/**
@@ -46,7 +46,7 @@ public abstract class TerminatedNativeLongArray extends TerminatedArray<NativeLo
 	 *
 	 * @param p the {@link Pointer} to use for the new instance.
 	 */
-	public TerminatedNativeLongArray(Pointer p) {
+	protected TerminatedNativeLongArray(Pointer p) {
 		setPointer(p);
 	}
 
@@ -58,8 +58,8 @@ public abstract class TerminatedNativeLongArray extends TerminatedArray<NativeLo
 	 *
 	 * @param source the {@link Collection} of {@link NativeLong}s.
 	 */
-	public TerminatedNativeLongArray(Collection<? extends NativeLong> source) {
-		buffer = new ArrayList<NativeLong>(source);
+	protected TerminatedNativeLongArray(Collection<? extends NativeLong> source) {
+		buffer = new ArrayList<>(source);
 	}
 
 	@Override

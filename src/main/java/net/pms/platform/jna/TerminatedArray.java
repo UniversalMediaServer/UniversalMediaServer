@@ -49,7 +49,7 @@ public abstract class TerminatedArray<E> extends PointerType implements List<E> 
 	 * Creates a new instance with the internal {@link Pointer} set to
 	 * {@link Pointer#NULL}.
 	 */
-	public TerminatedArray() {
+	protected TerminatedArray() {
 		super();
 	}
 
@@ -58,7 +58,7 @@ public abstract class TerminatedArray<E> extends PointerType implements List<E> 
 	 *
 	 * @param p the {@link Pointer} to use for the new instance.
 	 */
-	public TerminatedArray(Pointer p) {
+	protected TerminatedArray(Pointer p) {
 		super(p);
 	}
 

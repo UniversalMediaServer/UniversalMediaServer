@@ -42,7 +42,7 @@ public abstract class NonGeometricBufferedImageOp implements BufferedImageOp {
 	 *
 	 * @param hints the {@link RenderingHints} to use during the operation.
 	 */
-	public NonGeometricBufferedImageOp(RenderingHints hints) {
+	protected NonGeometricBufferedImageOp(RenderingHints hints) {
 		this.hints = hints;
 	}
 

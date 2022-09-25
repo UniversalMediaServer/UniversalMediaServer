@@ -210,11 +210,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
+	@Deprecated
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 
 	/**
 	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
 	 */
+	@Deprecated
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";

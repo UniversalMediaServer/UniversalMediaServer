@@ -6,7 +6,6 @@ import java.io.File;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
@@ -100,7 +99,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 	}
 
-	public void addPlayControls(Container parent) {
+	public final void addPlayControls(Container parent) {
 		prev = new AbstractAction("", prevIcon) {
 			private static final long serialVersionUID = 1L;
 
@@ -158,7 +157,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(new Button(36, next));
 	}
 
-	public void addStatus(final Container parent) {
+	public final void addStatus(final Container parent) {
 		position = new Button(new AbstractAction("") {
 			private static final long serialVersionUID = 1L;
 
@@ -172,7 +171,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		position.setToolTipText(Messages.getString("ShowHideDetails"));
 	}
 
-	public void addVolumeControls(Container parent) {
+	public final void addVolumeControls(Container parent) {
 		UIDefaults defaults = UIManager.getDefaults();
 		Object hti = defaults.put("Slider.horizontalThumbIcon", sliderIcon);
 		Object tb = defaults.put("Slider.trackBorder", BorderFactory.createEmptyBorder());
@@ -182,16 +181,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		volumeSlider.setPreferredSize(d);
 		volumeSlider.setSize(d);
 		volumeSlider.setMaximumSize(d);
-		volumeSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// Fire only when the slider is in motion, i.e. not during external updates
-				if (((JSlider) e.getSource()).getValueIsAdjusting()) {
-					player.setVolume(volumeSlider.getValue());
-					// For smoothness ignore external volume data until
-					// the 3rd update after sliding has finished
-					sliding = 3;
-				}
+		volumeSlider.addChangeListener((ChangeEvent e) -> {
+			// Fire only when the slider is in motion, i.e. not during external updates
+			if (((JSlider) e.getSource()).getValueIsAdjusting()) {
+				player.setVolume(volumeSlider.getValue());
+				// For smoothness ignore external volume data until
+				// the 3rd update after sliding has finished
+				sliding = 3;
 			}
 		});
 		volumeSlider.setFocusable(false);
@@ -217,7 +213,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(muteButton);
 	}
 
-	public void addUriControls(Container parent) {
+	public final void addUriControls(Container parent) {
 		uris = new JComboBox(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
@@ -225,10 +221,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uris.setPrototypeDisplayValue("");
 		uri = (JTextField) uris.getEditor().getEditorComponent();
 		uri.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
 			public void focusGained(java.awt.event.FocusEvent evt) {
-				SwingUtilities.invokeLater(() -> {
-					uri.select(0, 0);
-				});
+				SwingUtilities.invokeLater(() -> uri.select(0, 0));
 			}
 		});
 		uri.getDocument().addDocumentListener(new DocumentListener() {

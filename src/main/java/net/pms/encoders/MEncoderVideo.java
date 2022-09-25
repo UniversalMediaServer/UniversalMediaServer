@@ -243,7 +243,6 @@ public class MEncoderVideo extends Engine {
 		return sanitized.toArray(String[]::new);
 	}
 
-	@Override
 	public String[] args() {
 		String[] args;
 		String[] defaultArgs = getDefaultArgs();

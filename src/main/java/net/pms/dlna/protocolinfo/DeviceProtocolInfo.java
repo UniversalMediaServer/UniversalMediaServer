@@ -170,7 +170,6 @@ public class DeviceProtocolInfo implements Serializable {
 					} else {
 						// Add the special handling results
 						result |= currentSet.addAll(tempSet);
-						tempSet = null;
 					}
 				} catch (ParseException e) {
 					LOGGER.warn(
