@@ -48,58 +48,11 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingTest {
 
-	private static class TestAppender<E> extends AppenderBase<E> {
-
-		private final Object lastEventLock = new Object();
-		private E lastEvent = null;
-
-		public E getLastEvent() {
-			synchronized (lastEventLock) {
-				return lastEvent;
-			}
-		}
-		@Override
-		protected void append(E eventObject) {
-			synchronized (lastEventLock) {
-				lastEvent = eventObject;
-			}
-		}
-	}
-
-	private static class TestFileAppender<E> extends FileAppender<E> {
-
-		@Override
-		protected void append(E eventObject) {
-		}
-	}
-
 	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
-	}
-
-	private static boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
-		boolean found = false;
-		while (iterator.hasNext()) {
-			Appender<ILoggingEvent> a = iterator.next();
-			if (a == appender) {
-				found = true;
-			}
-		}
-		return found;
-	}
-
-	private static boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
-		while (iterator.hasNext()) {
-			Appender<ILoggingEvent> appender = iterator.next();
-			if (appender instanceof SyslogAppender) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/**
@@ -376,4 +329,52 @@ public class LoggingTest {
 
 		context.reset();
 	}
+
+	private static class TestAppender<E> extends AppenderBase<E> {
+
+		private final Object lastEventLock = new Object();
+		private E lastEvent = null;
+
+		public E getLastEvent() {
+			synchronized (lastEventLock) {
+				return lastEvent;
+			}
+		}
+		@Override
+		protected void append(E eventObject) {
+			synchronized (lastEventLock) {
+				lastEvent = eventObject;
+			}
+		}
+	}
+
+	private static class TestFileAppender<E> extends FileAppender<E> {
+
+		@Override
+		protected void append(E eventObject) {
+		}
+	}
+
+	private static boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
+		boolean found = false;
+		while (iterator.hasNext()) {
+			Appender<ILoggingEvent> a = iterator.next();
+			if (a == appender) {
+				found = true;
+			}
+		}
+		return found;
+	}
+
+	private static boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
+		while (iterator.hasNext()) {
+			Appender<ILoggingEvent> appender = iterator.next();
+			if (appender instanceof SyslogAppender) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 }

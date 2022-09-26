@@ -25,7 +25,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class FormatConfigurationRegressionTest {
 
-	private void testFormatConfiguration(String format, String name) {
+	private static void testFormatConfiguration(String format, String name) {
 		// Regression assertion (captures the current behavior of the code)
 		assertTrue(format.equals(name), "'" + format + "' != '" + name + "'");
 	}

@@ -26,7 +26,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -88,16 +87,12 @@ public class DLNAMediaInfoTest {
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 
-		Services.create();
+		Services.destroy();
 
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to write credentials configuration", ex);
-		}
-
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
 		}
 
 		// Create a new PMS instance
@@ -283,10 +278,4 @@ public class DLNAMediaInfoTest {
 		// }
 //	}
 
-	@AfterAll
-	public static final void tearDown() throws ConfigurationException, InterruptedException {
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
-	}
 }

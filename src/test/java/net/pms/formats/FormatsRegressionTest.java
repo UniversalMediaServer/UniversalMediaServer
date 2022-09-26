@@ -17,19 +17,16 @@
  */
 package net.pms.formats;
 
-import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import net.pms.formats.audio.*;
 import net.pms.formats.image.*;
 import net.pms.formats.subtitle.*;
-import org.junit.jupiter.api.Test;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
-@SuppressWarnings("unused")
-@SuppressFBWarnings({ "DLS_DEAD_LOCAL_STORE", "MS_SHOULD_BE_FINAL" })
 public class FormatsRegressionTest {
 
 	@Test

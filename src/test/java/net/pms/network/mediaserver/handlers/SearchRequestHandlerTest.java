@@ -23,8 +23,8 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
-import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,24 +55,16 @@ public class SearchRequestHandlerTest {
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 
+		Services.destroy();
+
 		try {
 			PMS.getConfiguration().initCred();
 		} catch (Exception ex) {
 			LOG.warn("Failed to write credentials configuration", ex);
 		}
 
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
-
 		// Create a new PMS instance
 		PMS.getNewInstance();
-	}
-	@AfterAll
-	public static final void tearDown() throws ConfigurationException, InterruptedException {
-		if (PMS.getConfiguration().isRunSingleInstance()) {
-			PMS.killOld();
-		}
 	}
 
 	@Test
