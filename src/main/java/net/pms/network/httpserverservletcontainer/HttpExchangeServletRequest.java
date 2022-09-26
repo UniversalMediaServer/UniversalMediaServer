@@ -56,9 +56,11 @@ import javax.servlet.http.Part;
 import net.pms.PMS;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpExchangeServletRequest implements HttpServletRequest {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpExchangeServletRequest.class);
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
 	private final HttpExchange exchange;
 	private final HttpServlet servlet;
@@ -539,6 +541,11 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	private void parseCookies() {
 		List<Cookie> cookiesList = new ArrayList<>();
+		if (exchange.getRequestHeaders().get("Cookie") == null) {
+			LOGGER.debug("Returning early on parseCookies because there is no Cookie header");
+			return;
+		}
+
 		Enumeration<String> cookiesStr = getHeaders("Cookie");
 		while (cookiesStr.hasMoreElements()) {
 			String cookieStr = cookiesStr.nextElement();
