@@ -94,7 +94,11 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 
 	@Override
 	public Enumeration<String> getHeaders(String name) {
-		return Collections.enumeration(exchange.getRequestHeaders().get(name));
+		List<String> headers = exchange.getRequestHeaders().get(name);
+		if (headers != null) {
+			return Collections.enumeration(headers);
+		}
+		return Collections.enumeration(new ArrayList<>());
 	}
 
 	@Override
