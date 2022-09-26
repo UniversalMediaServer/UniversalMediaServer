@@ -25,15 +25,15 @@ import java.util.Locale;
 import net.pms.util.FileUtil;
 import net.pms.util.Languages;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class PmsConfigurationTest {
 
 	private PmsConfiguration configuration;
-	@Before
+	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the DMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -49,62 +49,62 @@ public class PmsConfigurationTest {
 	@Test
 	public void testLoggingConfigurationDefaults() {
 		// Test defaults and valid values where applicable
-		assertFalse("LogSearchCaseSensitiveDefault", configuration.getGUILogSearchCaseSensitive());
-		assertFalse("LogSearchMultiLineDefault", configuration.getGUILogSearchMultiLine());
-		assertFalse("LogSearchRegEx", configuration.getGUILogSearchRegEx());
-		assertTrue("LogFileNameValid", FileUtil.isValidFileName(configuration.getDefaultLogFileName()));
-		assertEquals("LogFileNameDefault", configuration.getDefaultLogFileName(), "debug.log");
+		assertFalse(configuration.getGUILogSearchCaseSensitive(), "LogSearchCaseSensitiveDefault");
+		assertFalse(configuration.getGUILogSearchMultiLine(), "LogSearchMultiLineDefault");
+		assertFalse(configuration.getGUILogSearchRegEx(), "LogSearchRegEx");
+		assertTrue(FileUtil.isValidFileName(configuration.getDefaultLogFileName()), "LogFileNameValid");
+		assertEquals(configuration.getDefaultLogFileName(), "debug.log", "LogFileNameDefault");
 		File file = new File(configuration.getDefaultLogFileFolder());
-		assertTrue("DefaultLogFileFolder", file.isDirectory());
+		assertTrue(file.isDirectory(), "DefaultLogFileFolder");
 		file = new File(configuration.getDefaultLogFilePath());
-		assertTrue("DefaultLogFilePath", configuration.getDefaultLogFilePath().endsWith("debug.log"));
-		assertFalse("LoggingBufferedDefault", configuration.getLoggingBuffered());
-		assertEquals("LoggingFilterConsoleDefault", configuration.getLoggingFilterConsole(), Level.INFO);
-		assertEquals("LoggingFilterLogsTabDefault", configuration.getLoggingFilterLogsTab(), Level.INFO);
-		assertEquals("LoggingLogsTabLinebufferDefault", configuration.getLoggingLogsTabLinebuffer(), 1000);
-		assertTrue("LoggingLogsTabLinebufferLegal",
-			configuration.getLoggingLogsTabLinebuffer() >= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
-			configuration.getLoggingLogsTabLinebuffer() <= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX);
-		assertEquals("LoggingSyslogFacilityDefault", configuration.getLoggingSyslogFacility(), "USER");
-		assertEquals("LoggingSyslogHostDefault", configuration.getLoggingSyslogHost(), "");
-		assertEquals("LoggingSyslogPortDefault", configuration.getLoggingSyslogPort(), 514);
-		assertFalse("LoggingUseSyslogDefault", configuration.getLoggingUseSyslog());
-		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
+		assertTrue(configuration.getDefaultLogFilePath().endsWith("debug.log"), "DefaultLogFilePath");
+		assertFalse(configuration.getLoggingBuffered(), "LoggingBufferedDefault");
+		assertEquals(configuration.getLoggingFilterConsole(), Level.INFO, "LoggingFilterConsoleDefault");
+		assertEquals(configuration.getLoggingFilterLogsTab(), Level.INFO, "LoggingFilterLogsTabDefault");
+		assertEquals(configuration.getLoggingLogsTabLinebuffer(), 1000, "LoggingLogsTabLinebufferDefault");
+		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
+				configuration.getLoggingLogsTabLinebuffer() <= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
+				"LoggingLogsTabLinebufferLegal");
+		assertEquals(configuration.getLoggingSyslogFacility(), "USER", "LoggingSyslogFacilityDefault");
+		assertEquals(configuration.getLoggingSyslogHost(), "", "LoggingSyslogHostDefault");
+		assertEquals(configuration.getLoggingSyslogPort(), 514, "LoggingSyslogPortDefault");
+		assertFalse(configuration.getLoggingUseSyslog(), "LoggingUseSyslogDefault");
+		assertEquals(configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()), "getLanguageLocaleDefault");
+		assertEquals(configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()), "getLanguageTagDefault");
 		configuration.getConfiguration().setProperty("language", "");
-		assertEquals("getLanguageLocaleDefault", configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()));
-		assertEquals("getLanguageTagDefault", configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()) );
+		assertEquals(configuration.getLanguageLocale(), Languages.toLocale(Locale.getDefault()), "getLanguageLocaleDefault");
+		assertEquals(configuration.getLanguageTag(), Languages.toLanguageTag(Locale.getDefault()), "getLanguageTagDefault");
 		configuration.getConfiguration().setProperty("language", "en-GB");
-		assertEquals("getLanguageLocaleBritishEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"));
-		assertEquals("getLanguageTagBritishEnglish", configuration.getLanguageTag(), "en-GB");
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"), "getLanguageLocaleBritishEnglish");
+		assertEquals(configuration.getLanguageTag(), "en-GB", "getLanguageTagBritishEnglish");
 		configuration.getConfiguration().setProperty("language", "en");
-		assertEquals("getLanguageLocaleEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"));
-		assertEquals("getLanguageTagEnglish", configuration.getLanguageTag(), "en-US");
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"), "getLanguageLocaleEnglish");
+		assertEquals(configuration.getLanguageTag(), "en-US", "getLanguageTagEnglish");
 		configuration.getConfiguration().setProperty("language", "zh");
-		assertEquals("getLanguageLocaleChinese", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
-		assertEquals("getLanguageTagChinese", configuration.getLanguageTag(), "zh-Hant");
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"), "getLanguageLocaleChinese");
+		assertEquals(configuration.getLanguageTag(), "zh-Hant", "getLanguageTagChinese");
 		configuration.setLanguage(Locale.UK);
-		assertEquals("setLanguageUK", configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("en-GB"), "setLanguageUK");
 		configuration.setLanguage(Locale.SIMPLIFIED_CHINESE);
-		assertEquals("setLanguageSimplifiedChinese", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hans"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hans"), "setLanguageSimplifiedChinese");
 		configuration.setLanguage(Locale.TRADITIONAL_CHINESE);
-		assertEquals("setLanguageTraditionalChinese", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"), "setLanguageTraditionalChinese");
 		Locale locale = null;
 		configuration.setLanguage(locale);
-		assertEquals("setLanguageNull", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"), "setLanguageNull");
 		String code = null;
 		configuration.setLanguage(code);
-		assertEquals("setLanguageNull", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"), "setLanguageNull");
 		configuration.setLanguage("");
-		assertEquals("setLanguageEmpty", configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("zh-Hant"), "setLanguageEmpty");
 		configuration.setLanguage("en");
-		assertEquals("setLanguageEnglish", configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"));
+		assertEquals(configuration.getLanguageLocale(), Locale.forLanguageTag("en-US"), "setLanguageEnglish");
 	}
 
 	@Test
 	public void testDefaults() {
-		assertNull("getLanguageRawStringDefault", configuration.getLanguageRawString());
+		assertNull(configuration.getLanguageRawString(), "getLanguageRawStringDefault");
 		configuration.setLanguage((Locale) null);
-		assertEquals("setLanguage(null)SetsBlankString", configuration.getLanguageRawString(), "");
+		assertEquals(configuration.getLanguageRawString(), "", "setLanguage(null)SetsBlankString");
 	}
 }

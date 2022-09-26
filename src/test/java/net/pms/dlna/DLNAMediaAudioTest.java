@@ -17,20 +17,22 @@
  */
 package net.pms.dlna;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class DLNAMediaAudioTest {
 
 	@Test
 	public void testDefaultAudioProperties() {
 		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-		assertThat(dlnaMediaAudio.getAudioProperties()).isNotNull();
+		assertNotNull(dlnaMediaAudio.getAudioProperties());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testSetAudioProperties_withNullAudioProperties() {
-		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-		dlnaMediaAudio.setAudioProperties(null);
+		assertThrows(IllegalArgumentException.class, () -> {
+			DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
+			dlnaMediaAudio.setAudioProperties(null);
+		});
 	}
 }

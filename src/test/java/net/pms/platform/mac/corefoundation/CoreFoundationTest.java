@@ -16,20 +16,6 @@
  */
 package net.pms.platform.mac.corefoundation;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.EnumSet;
-
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
@@ -37,7 +23,9 @@ import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
-
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.EnumSet;
 import net.pms.platform.jna.StringByReference;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFArrayRef;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFComparisonResult;
@@ -54,6 +42,10 @@ import net.pms.platform.mac.corefoundation.CoreFoundation.CFStringCompareFlags;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFStringRef;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFTypeRef;
 import net.pms.platform.mac.iokit.IOKit;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -69,9 +61,9 @@ public class CoreFoundationTest {
 	 * Skip tests if platform isn't macOS, initialize a {@link CoreFoundation}
 	 * instance if it is.
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() {
-		Assume.assumeTrue(Platform.isMac());
+		assumeTrue(Platform.isMac());
 		CF = CoreFoundation.INSTANCE;
 	}
 

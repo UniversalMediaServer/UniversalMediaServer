@@ -17,14 +17,8 @@
  */
 package net.pms.platform.mac.iokit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.charset.StandardCharsets;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import com.sun.jna.Platform;
+import java.nio.charset.StandardCharsets;
 import net.pms.platform.mac.corefoundation.CoreFoundation;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFDictionaryRef;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFMutableDictionaryRefByReference;
@@ -35,6 +29,10 @@ import net.pms.platform.mac.types.IOIteratorTRef;
 import net.pms.platform.mac.types.IONameT;
 import net.pms.platform.mac.types.IOObjectT;
 import net.pms.platform.mac.types.IORegistryEntryT;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link IOKit}.
@@ -50,9 +48,9 @@ public class IOKitTest {
 	 * Skip tests if platform isn't macOS, initialize {@link CoreFoundation} and
 	 * {@link IOKit} instances if it is.
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() {
-		Assume.assumeTrue(Platform.isMac());
+		assumeTrue(Platform.isMac());
 		CF = CoreFoundation.INSTANCE;
 		IO = IOKit.INSTANCE;
 	}

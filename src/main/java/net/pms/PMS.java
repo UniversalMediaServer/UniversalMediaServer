@@ -50,7 +50,6 @@ import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
-import net.pms.service.LibraryScanner;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
@@ -76,6 +75,7 @@ import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
@@ -601,10 +601,10 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		// Initialize a player factory to register all players
+		// Initialize a engine factory to register all transcoding engines
 		EngineFactory.initialize();
 
-		// Any plugin-defined players are now registered, create the gui view.
+		// Any plugin-defined engines are now registered, create the gui view.
 		GuiManager.addEngines();
 
 		// Now that renderer confs are all loaded, we can start searching for renderers

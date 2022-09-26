@@ -18,35 +18,43 @@
 package net.pms.formats.v2;
 
 import static net.pms.formats.v2.AudioAttribute.*;
-import static org.assertj.core.api.Assertions.*;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class AudioAttributeTest {
 	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_matchingKeyValuePairs() throws Exception {
-		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6")).isEqualTo(CHANNELS_NUMBER);
-		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6")).isEqualTo(CHANNELS_NUMBER);
-		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0")).isEqualTo(DELAY);
-		assertThat(getAudioAttributeByLibMediaInfoKeyValuePair("SamplingRate                     : 48000")).isEqualTo(SAMPLE_FREQUENCY);
+		assertEquals(getAudioAttributeByLibMediaInfoKeyValuePair("Channel(s)                       : 6"), CHANNELS_NUMBER);
+		assertEquals(getAudioAttributeByLibMediaInfoKeyValuePair(" Channel(s):6"), CHANNELS_NUMBER);
+		assertEquals(getAudioAttributeByLibMediaInfoKeyValuePair("Video_Delay                      : 0"), DELAY);
+		assertEquals(getAudioAttributeByLibMediaInfoKeyValuePair("SamplingRate                     : 48000"), SAMPLE_FREQUENCY);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_emptyKeyValuePair() throws Exception {
-		getAudioAttributeByLibMediaInfoKeyValuePair("");
+		assertThrows(IllegalArgumentException.class, () -> {
+			getAudioAttributeByLibMediaInfoKeyValuePair("");
+		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_nullKeyValuePair() throws Exception {
-		getAudioAttributeByLibMediaInfoKeyValuePair(null);
+		assertThrows(IllegalArgumentException.class, () -> {
+			getAudioAttributeByLibMediaInfoKeyValuePair(null);
+		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_noMatchingKeyValuePair() throws Exception {
-		getAudioAttributeByLibMediaInfoKeyValuePair("Temperature                       : 36");
+		assertThrows(IllegalArgumentException.class, () -> {
+			getAudioAttributeByLibMediaInfoKeyValuePair("Temperature                       : 36");
+		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetAudioAttributeByLibMediaInfoKeyValuePair_noKeyInKeyValuePair() throws Exception {
-		getAudioAttributeByLibMediaInfoKeyValuePair("C3PO/R2D2");
+		assertThrows(IllegalArgumentException.class, () -> {
+			getAudioAttributeByLibMediaInfoKeyValuePair("C3PO/R2D2");
+		});
 	}
 }

@@ -17,20 +17,19 @@
  */
 package net.pms.platform.mac.kernreturn;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import net.pms.platform.mac.kernreturn.DefaultKernReturnT.DefaultSubsystem;
 import net.pms.platform.mac.kernreturn.IOReturn.IOReturnSubsystem;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * Tests the {@link KernReturnT} interface.
  *
  * @author Nadahar
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class KernReturnTest {
 
 	/**

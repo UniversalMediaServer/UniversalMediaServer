@@ -20,13 +20,13 @@ package net.pms.test;
 import ch.qos.logback.classic.LoggerContext;
 import java.util.concurrent.TimeUnit;
 import net.pms.util.TaskRunner;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class TaskRunnerTest {
-	@Before
+	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -54,7 +54,7 @@ public class TaskRunnerTest {
 		}
 		tk.shutdown();
 		tk.awaitTermination(1, TimeUnit.DAYS);
-		assertEquals("all 3 task is executed", 3, c.x);
+		assertEquals(3, c.x, "all 3 task is executed");
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class TaskRunnerTest {
 		}
 		tk.shutdown();
 		tk.awaitTermination(1, TimeUnit.DAYS);
-		assertEquals("only one task is executed", 1, c.x);
+		assertEquals(1, c.x, "only one task is executed");
 	}
 
 	protected void sleep() {
