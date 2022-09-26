@@ -194,11 +194,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					WebGuiServletHelper.respondBadRequest(req, resp);
 				}
 			} else {
-				LOGGER.trace("PlayerApiHandler request not available : {}", path);
+				LOGGER.trace("PlayerApiServlet request not available : {}", path);
 				WebGuiServletHelper.respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
-			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
+			LOGGER.error("RuntimeException in PlayerApiServlet: {}", e.getMessage());
+			LOGGER.trace("{}", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
@@ -268,13 +269,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				}
 				default -> {
-					LOGGER.trace("PlayerApiHandler request not available : {}", path);
+					LOGGER.trace("PlayerApiServlet request not available : {}", path);
 					WebGuiServletHelper.respondNotFound(req, resp);
 				}
 
 			}
 		} catch (RuntimeException | InterruptedException e) {
-			LOGGER.error("RuntimeException in PlayerApiHandler: {}", e.getMessage());
+			LOGGER.error("Exception in PlayerApiServlet: {}", e.getMessage());
+			LOGGER.trace("{}", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
 		}
 	}
