@@ -34,6 +34,12 @@ import net.pms.configuration.PmsConfiguration;
 public class Wizard {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Wizard.class);
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Wizard() {
+	}
+
 	public static void run(final PmsConfiguration configuration) {
 		// Total number of questions
 		int numberOfQuestions = 5;

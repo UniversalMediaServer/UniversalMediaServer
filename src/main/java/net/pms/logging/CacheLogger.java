@@ -32,12 +32,17 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 public class CacheLogger {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class);
 	private static final LinkedList<Appender<ILoggingEvent>> APPENDER_LIST = new LinkedList<>();
 	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;
 	private static LoggerContext loggerContext = null;
 	private static ch.qos.logback.classic.Logger rootLogger;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private CacheLogger() {
+	}
 
 	private static void detachRootAppenders() {
 		Iterator<Appender<ILoggingEvent>> it = rootLogger.iteratorForAppenders();

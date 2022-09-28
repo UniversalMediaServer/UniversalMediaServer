@@ -83,6 +83,12 @@ public class NetworkConfiguration {
 	// The watcher thread.
 	private static Thread watcherThread;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private NetworkConfiguration() {
+	}
+
 	public static void init() {
 		LOGGER.trace("Initializing the network scanner");
 		System.setProperty("java.net.preferIPv4Stack", "true");

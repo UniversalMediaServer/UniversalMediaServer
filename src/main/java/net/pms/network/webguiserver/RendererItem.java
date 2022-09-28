@@ -32,7 +32,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +55,7 @@ public class RendererItem implements IRendererGuiListener {
 	private int progressPercent;
 	private boolean isActive;
 	private int controls;
-	private BasicPlayer.State state;
+	private PlayerState state;
 
 	public RendererItem(RendererConfiguration value) {
 		id = RENDERER_ID.getAndIncrement();
@@ -90,7 +91,7 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	@Override
-	public void refreshPlayerState(BasicPlayer.State state) {
+	public void refreshPlayerState(PlayerState state) {
 		this.state = state;
 		time = ((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 			UMSUtils.playedDurationStr(state.position, state.duration));

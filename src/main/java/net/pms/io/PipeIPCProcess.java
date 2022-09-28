@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,7 +17,6 @@
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +28,7 @@ import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.IEC61937AudioOutputStream;
 import net.pms.util.PCMAudioOutputStream;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	@Override
 	public void run() {
 		byte[] b = new byte[512 * 1024];
-		int n = -1;
+		int n;
 		InputStream in = null;
 		OutputStream out = null;
 		OutputStream debug = null;
@@ -86,7 +86,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			}
 		} catch (InterruptedIOException e) {
 			if (LOGGER.isDebugEnabled()) {
-				if (isNotBlank(e.getMessage())) {
+				if (StringUtils.isNotBlank(e.getMessage())) {
 					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down: {}", e.bytesTransferred, e.getMessage());
 				} else {
 					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down...", e.bytesTransferred);

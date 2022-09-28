@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class UmsLocalDevice extends LocalDevice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsLocalDevice.class);
-	final private DeviceDetailsProvider deviceDetailsProvider;
+	private final DeviceDetailsProvider deviceDetailsProvider;
 
 	public UmsLocalDevice() throws ValidationException {
 		super(

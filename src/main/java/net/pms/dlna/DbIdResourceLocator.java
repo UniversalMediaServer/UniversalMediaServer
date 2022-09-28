@@ -45,6 +45,12 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
 public class DbIdResourceLocator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private DbIdResourceLocator() {
+	}
+
 	public static DLNAResource locateResource(String id) {
 		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id));
 		return resource;

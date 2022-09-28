@@ -36,12 +36,10 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 		if (getChildCount() > 0) {
 			for (int i = 0; i < getChildCount(); i++) {
 				TreeNode currentTNChild = getChildAt(i);
-				if (currentTNChild instanceof SearchableMutableTreeNode) {
-					SearchableMutableTreeNode currentChild = (SearchableMutableTreeNode) currentTNChild;
-					if (currentChild.getNodeName().equalsIgnoreCase(searchName)) {
-						return currentChild;
-					} else if (specialGroupRules && searchName.equalsIgnoreCase(currentChild.getParent().getNodeName() + " " + currentChild.getNodeName())) {
-						// Search for the special group rule where grouping is done on the first word (so that the parent has the first word in the name)
+				if (currentTNChild instanceof SearchableMutableTreeNode currentChild) {
+					if (currentChild.getNodeName().equalsIgnoreCase(searchName) ||
+							(specialGroupRules && searchName.equalsIgnoreCase(currentChild.getParent().getNodeName() + " " + currentChild.getNodeName()))
+						) {
 						return currentChild;
 					}
 				} else {
@@ -50,7 +48,7 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 			}
 			// Do recursive search in separate loop to avoid finding a matching subnode before a potential match at the current level
 			if (recursive) {
-				SearchableMutableTreeNode result = null;
+				SearchableMutableTreeNode result;
 				for (int i = 0; i < getChildCount(); i++) {
 					SearchableMutableTreeNode currentChild = (SearchableMutableTreeNode) getChildAt(i);
 					if (!currentChild.isLeaf()) {
@@ -67,18 +65,18 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 
 	/**
 	 * Search the node's immediate children
-	 * @param searchObject the object to search for
+	 * @param searchName the name to search for
 	 * @return the found node or null
 	 * @throws IllegalChildException if a child that's not a SearchableMutableTreeNode or descendant is encountered
 	 */
 	public SearchableMutableTreeNode findChild(String searchName) throws IllegalChildException {
-
 		return findChild(searchName, false, false);
 	}
 
 	/**
 	 * Search the node's children recursively
-	 * @param searchObject the object to search for
+	 * @param searchName the name to search for
+	 * @param specialGroupRules
 	 * @return the found node or null
 	 * @throws IllegalChildException if a child that's not a SearchableMutableTreeNode or descendant is encountered
 	 */
@@ -90,6 +88,7 @@ public class SearchableMutableTreeNode extends DefaultMutableTreeNode {
 		return (String) super.getUserObject();
 	}
 
+	@Override
 	public SearchableMutableTreeNode getParent() {
 		return (SearchableMutableTreeNode) parent;
 	}

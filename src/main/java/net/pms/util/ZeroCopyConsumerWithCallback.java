@@ -73,7 +73,7 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
 	private long idx = -1;
 	private long fileSize;
 
-	public ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
+	protected ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
 		super();
 		if (file == null) {
 			throw new IllegalArgumentException("File may nor be null");

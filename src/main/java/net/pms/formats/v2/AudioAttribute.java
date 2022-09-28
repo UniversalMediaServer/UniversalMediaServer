@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -39,7 +39,7 @@ public enum AudioAttribute {
 	private final Integer minimumValue;
 
 	private static final Pattern LIB_MEDIAINFO_KEY_PATTERN = Pattern.compile("^\\s*(\\S+)\\s*:");
-	private final static Map<String, AudioAttribute> LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP;
+	private static final Map<String, AudioAttribute> LIB_MEDIAINFO_KEY_TO_AUDIO_ATTRIBUTE_MAP;
 	private static Set<String> set(String... args) {
 		return new HashSet<>(Arrays.asList(args));
 	}

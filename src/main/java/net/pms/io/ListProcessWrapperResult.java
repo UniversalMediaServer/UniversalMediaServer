@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,12 +17,12 @@
  */
 package net.pms.io;
 
+import com.sun.jna.Platform;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import com.sun.jna.Platform;
 import net.pms.platform.windows.NTStatus;
 
 
@@ -63,7 +61,7 @@ public class ListProcessWrapperResult implements ProcessWrapperResult<List<Strin
 	@Override
 	@Nonnull
 	public List<String> getOutput() {
-		return output != null ? output : new ArrayList<String>();
+		return output != null ? output : new ArrayList<>();
 	}
 
 	@Override

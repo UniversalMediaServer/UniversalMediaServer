@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.configuration;
 
 import java.io.File;
@@ -159,14 +176,12 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public boolean isValid() {
 		if (loaded) {
 			File f = getConfiguration(DEVICE).getFile();
-			if (f != null) {
-				if (!f.exists()) {
-					// Reset
-					getConfiguration(DEVICE).setFile(NOFILE);
-					getConfiguration(DEVICE).clear();
-					deviceConfs.remove(getId());
-					return false;
-				}
+			if (f != null && !f.exists()) {
+				// Reset
+				getConfiguration(DEVICE).setFile(NOFILE);
+				getConfiguration(DEVICE).clear();
+				deviceConfs.remove(getId());
+				return false;
 			}
 			return true;
 		}
@@ -289,7 +304,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return file;
 	}
 
-	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
+	public static List<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
 		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {

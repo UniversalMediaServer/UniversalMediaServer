@@ -41,7 +41,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
@@ -58,12 +57,12 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
-import net.pms.encoders.ImagePlayer;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.ImageEngine;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.iam.Account;
@@ -81,6 +80,8 @@ import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.network.webguiserver.WebPlayerRootFolder;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -262,7 +263,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				case "/status" -> {
 					if (action.has("token")) {
 						WebRender renderer = (WebRender) root.getDefaultRenderer();
-						((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
+						((WebPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
 						WebGuiServletHelper.respond(req, resp, "", 200, "application/json");
 					} else {
 						WebGuiServletHelper.respondBadRequest(req, resp);
@@ -752,7 +753,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 				OutputParams p = new OutputParams(CONFIGURATION);
 				p.setSid(rootResource.getMediaSubtitle());
-				Player.setAudioAndSubs(rootResource, p);
+				Engine.setAudioAndSubs(rootResource, p);
 				if (p.getSid() != null && p.getSid().getType().isText()) {
 					try {
 						File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
@@ -860,7 +861,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 			DLNAResource dlna = res.get(0);
 			long len = dlna.length();
-			dlna.setPlayer(null);
+			dlna.setEngine(null);
 			Range.Byte range = parseRange(req, len);
 			AsyncContext async = req.startAsync();
 			InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
@@ -963,8 +964,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					in = dlna.getInputStream();
 				} else {
 					InputStream imageInputStream;
-					if (dlna.getPlayer() instanceof ImagePlayer) {
-						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+					if (dlna.getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(
 							dlna,
 							dlna.getMedia(),
 							new OutputParams(PMS.getConfiguration())
@@ -1044,12 +1045,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				// TODO: Use normal engine priorities instead of the following hacks
 				if (FileUtil.isUrl(resource.getSystemName())) {
 					if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
-						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.YOUTUBE_DL, false, false));
+						resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
 					} else {
-						resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_WEB_VIDEO, false, false));
+						resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
 					}
 				} else if (!(resource instanceof DVDISOTitle)) {
-					resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_VIDEO, false, false));
+					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 				}
 				//code = 206;
 			}
@@ -1065,7 +1066,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 
 		if (!directmime(mimeType) && resource.getFormat().isAudio()) {
-			resource.setPlayer(PlayerFactory.getPlayer(StandardPlayerId.FFMPEG_AUDIO, false, false));
+			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 			code = 206;
 		}
 

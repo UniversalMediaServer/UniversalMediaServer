@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.dlna.Range.Time;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
 import org.digitalmediaserver.cuelib.CueParser;
@@ -97,7 +97,7 @@ public class CueFolder extends DLNAResource {
 				if (!files.isEmpty()) {
 					FileData f = files.get(0);
 					List<TrackData> tracks = f.getTrackData();
-					Player defaultPlayer = null;
+					Engine defaultPlayer = null;
 					DLNAMediaInfo originalMedia = null;
 					ArrayList<DLNAResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
@@ -139,12 +139,12 @@ public class CueFolder extends DLNAResource {
 						realFile.setSplitTrack(i + 1);
 
 						// Assign a splitter engine if file is natively supported by renderer
-						if (realFile.getPlayer() == null) {
+						if (realFile.getEngine() == null) {
 							if (defaultPlayer == null) {
-								defaultPlayer = PlayerFactory.getPlayer(realFile);
+								defaultPlayer = EngineFactory.getEngine(realFile);
 							}
 
-							realFile.setPlayer(defaultPlayer);
+							realFile.setEngine(defaultPlayer);
 						}
 
 						if (realFile.getMedia() != null) {

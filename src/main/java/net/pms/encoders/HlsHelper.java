@@ -50,6 +50,12 @@ public class HlsHelper {
 	private static final String NONE_CONF_NAME = "NONE";
 	private static final String COPY_CONF_NAME = "COPY";
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private HlsHelper() {
+	}
+
 	public static HlsConfiguration getByKey(String label) {
 		String[] labelParts = label.split("_");
 		if (labelParts.length > 1) {

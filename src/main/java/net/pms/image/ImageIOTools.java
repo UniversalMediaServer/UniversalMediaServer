@@ -46,9 +46,10 @@ public class ImageIOTools {
 
 	protected static final IIORegistry REGISTRY = IIORegistry.getDefaultInstance();
 
-	// Not to be instantiated
-	private ImageIOTools() {
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private ImageIOTools() {}
 
 	/**
 	 * A copy of {@link ImageIO#read(InputStream)} that calls

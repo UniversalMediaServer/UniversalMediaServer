@@ -106,22 +106,22 @@ public class MediaServer {
 			}
 			try {
 				switch (engineVersion) {
-					case 1:
+					case 1 -> {
 						httpMediaServer = new SocketChannelServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					case 2:
+					}
+					case 2 -> {
 						httpMediaServer = new NettyServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					case 3:
+					}
+					case 3 -> {
 						httpMediaServer = new JavaHttpServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					default:
+					}
+					default -> {
 						//we will handle requests via JUPnP
 						isStarted = true;
-						break;
+					}
 				}
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to bind on port: " + port + ", because: " + ex.getMessage());
@@ -134,15 +134,14 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 4:
-						case 5:
+						case 4, 5 -> {
 							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
-							break;
-						default:
+						}
+						default -> {
 							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
-							break;
+						}
 					}
 				}
 				try {
@@ -278,12 +277,12 @@ public class MediaServer {
 		}
 	}
 
-	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
 
 	/**
 	 * @return available server engines as a JSON array
 	 */
-	public synchronized static JsonArray getServerEnginesAsJsonArray() {
+	public static synchronized JsonArray getServerEnginesAsJsonArray() {
 		JsonArray jsonArray = new JsonArray();
 
 		JsonObject defaultOption = new JsonObject();

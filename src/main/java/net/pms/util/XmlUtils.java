@@ -32,6 +32,12 @@ public class XmlUtils {
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private XmlUtils() {
+	}
+
+	/**
 	 * Returns a new {@code DocumentBuilderFactory} instance with XML External Entity (XXE) processing disabled.
 	 *
 	 * @return the new {@code DocumentBuilderFactory} instance with XXE processing disabled

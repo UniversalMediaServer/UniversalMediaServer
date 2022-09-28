@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -29,10 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
-import net.pms.configuration.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -44,7 +40,13 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.windows.NTStatus;
+import net.pms.renderers.OutputOverride;
 import net.pms.util.CodecUtil;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
@@ -78,9 +80,9 @@ import org.slf4j.LoggerFactory;
  *         OutputParams params
  *     )
  */
-public class FFMpegVideo extends Player {
+public class FFMpegVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
-	public static final PlayerId ID = StandardPlayerId.FFMPEG_VIDEO;
+	public static final EngineId ID = StandardEngineId.FFMPEG_VIDEO;
 
 	/** The {@link Configuration} key for the custom FFmpeg path. */
 	public static final String KEY_FFMPEG_PATH = "ffmpeg_path";
@@ -168,8 +170,7 @@ public class FFMpegVideo extends Player {
 		filterChain.addAll(scalePadFilterChain);
 
 		boolean override = true;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride) renderer;
+		if (renderer instanceof OutputOverride or) {
 			override = or.addSubtitles();
 		}
 
@@ -298,7 +299,7 @@ public class FFMpegVideo extends Player {
 			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
 		}
 
-		if (filterChain.size() > 0) {
+		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
 			videoFilterOptions.add(StringUtils.join(filterChain, ","));
 		}
@@ -333,7 +334,7 @@ public class FFMpegVideo extends Player {
 			) ||
 			(
 				renderer.isXboxOne() &&
-				purpose() == VIDEO_WEBSTREAM_PLAYER
+				purpose() == VIDEO_WEBSTREAM_ENGINE
 			)
 		) { // WMV
 			transcodeOptions.add("-c:v");
@@ -347,7 +348,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
-			final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
+			final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 
 			// Output audio codec
 			dtsRemux = isTsMuxeRVideoEngineActive &&
@@ -497,7 +498,7 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
@@ -683,11 +684,11 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -733,20 +734,6 @@ public class FFMpegVideo extends Player {
 		return Format.VIDEO;
 	}
 
-	// unused; return this array for backwards-compatibility
-	@Deprecated
-	protected String[] getDefaultArgs() {
-		List<String> defaultArgsList = new ArrayList<>();
-
-		defaultArgsList.add("-loglevel");
-		defaultArgsList.add("warning");
-
-		String[] defaultArgsArray = new String[defaultArgsList.size()];
-		defaultArgsList.toArray(defaultArgsArray);
-
-		return defaultArgsArray;
-	}
-
 	private static int[] getVideoBitrateConfig(String bitrate) {
 		int[] bitrates = new int[2];
 
@@ -765,12 +752,6 @@ public class FFMpegVideo extends Player {
 		bitrates[0] = (int) Double.parseDouble(bitrate);
 
 		return bitrates;
-	}
-
-	@Override
-	@Deprecated
-	public String[] args() {
-		return getDefaultArgs(); // unused; return this array for for backwards compatibility
 	}
 
 	@Override
@@ -838,8 +819,8 @@ public class FFMpegVideo extends Player {
 		setLogLevel(cmdList, configuration);
 		setDecodingOptions(cmdList, configuration, avisynth);
 
-		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
+		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		ac3Remux = false;
 		dtsRemux = false;
@@ -895,8 +876,8 @@ public class FFMpegVideo extends Player {
 		 * - The file is not being played via the transcode folder
 		 */
 		if (
-			PlayerFactory.isPlayerActive(MEncoderVideo.ID) &&
-			!(renderer instanceof RendererConfiguration.OutputOverride) &&
+			EngineFactory.isEngineActive(MEncoderVideo.ID) &&
+			!(renderer instanceof OutputOverride) &&
 			params.getSid() != null &&
 			!dlna.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
@@ -907,13 +888,13 @@ public class FFMpegVideo extends Player {
 			)
 		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
-			MEncoderVideo mv = (MEncoderVideo) PlayerFactory.getPlayer(StandardPlayerId.MENCODER_VIDEO, false, true);
+			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
 
 		boolean deferToTsmuxer = true;
 		boolean canMuxVideoWithFFmpeg = true;
-		if (!(renderer instanceof RendererConfiguration.OutputOverride)) {
+		if (!(renderer instanceof OutputOverride)) {
 			String prependTraceReason = "Not muxing the video stream with FFmpeg because ";
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
@@ -943,7 +924,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (dlna.isInsideTranscodeFolder()) {
@@ -979,12 +960,12 @@ public class FFMpegVideo extends Player {
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (!PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 				deferToTsmuxer = false;
 				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 			}
 			if (deferToTsmuxer) {
-				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				params.setForceFps(media.getValidFps(false));
 
 				if (media.getCodecV() != null) {
@@ -1042,8 +1023,8 @@ public class FFMpegVideo extends Player {
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
 		boolean override = false;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
+		if (renderer instanceof OutputOverride outputOverride) {
+			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {
@@ -1061,7 +1042,7 @@ public class FFMpegVideo extends Player {
 					) ||
 					(
 						renderer.isXboxOne() &&
-						purpose() == VIDEO_WEBSTREAM_PLAYER
+						purpose() == VIDEO_WEBSTREAM_ENGINE
 					)
 				) {
 					channels = 2;
@@ -1168,7 +1149,7 @@ public class FFMpegVideo extends Player {
 		} else {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
@@ -1665,11 +1646,13 @@ public class FFMpegVideo extends Player {
 	 * A simple arg parser with basic quote comprehension
 	 */
 	protected static List<String> parseOptions(String str) {
-		return str == null ? null : parseOptions(str, new ArrayList<String>());
+		return str == null ? null : parseOptions(str, new ArrayList<>());
 	}
 
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
-		int start, pos = 0, len = str.length();
+		int start;
+		int pos = 0;
+		int len = str.length();
 		while (pos < len) {
 			// New arg
 			if (str.charAt(pos) == '\"') {
@@ -1715,16 +1698,12 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG) ||
 			"m3u8".equals(resource.getFormat().getMatchedExtension())
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
@@ -1762,7 +1741,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -1802,7 +1781,7 @@ public class FFMpegVideo extends Player {
 				if (result instanceof FFmpegExecutableInfoBuilder) {
 					List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
 					((FFmpegExecutableInfoBuilder) result).protocols(protocols);
-					if (protocols.size() == 0) {
+					if (!protocols.isEmpty()) {
 						LOGGER.warn("Couldn't parse any supported protocols for \"{}\"", executableInfo.getPath());
 					} else {
 						LOGGER.debug("{} supported protocols: {}", executableInfo.getPath(), protocols);

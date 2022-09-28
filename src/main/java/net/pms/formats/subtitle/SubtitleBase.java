@@ -21,7 +21,7 @@ import net.pms.formats.Format;
 
 public abstract class SubtitleBase extends Format {
 
-	public SubtitleBase() {
+	protected SubtitleBase() {
 		type = SUBTITLE;
 	}
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -32,10 +32,7 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
@@ -45,6 +42,10 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.*;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.lang3.ArrayUtils;
@@ -53,9 +54,9 @@ import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MEncoderVideo extends Player {
+public class MEncoderVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
-	public static final PlayerId ID = StandardPlayerId.MENCODER_VIDEO;
+	public static final EngineId ID = StandardEngineId.MENCODER_VIDEO;
 
 	/** The {@link Configuration} key for the custom MEncoder path. */
 	public static final String KEY_MENCODER_PATH = "mencoder_path";
@@ -120,11 +121,11 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -239,10 +240,9 @@ public class MEncoderVideo extends Player {
 			++i;
 		}
 
-		return sanitized.toArray(new String[sanitized.size()]);
+		return sanitized.toArray(String[]::new);
 	}
 
-	@Override
 	public String[] args() {
 		String[] args;
 		String[] defaultArgs = getDefaultArgs();
@@ -298,8 +298,8 @@ public class MEncoderVideo extends Player {
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
 		// Use device-specific DMS conf
-		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
-		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		PmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
+		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
 		if (mediaRenderer.getMaxVideoBitrate() > 0) {
@@ -327,14 +327,14 @@ public class MEncoderVideo extends Player {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			if (mediaRenderer.isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
+			if (mediaRenderer.isHalveBitrate() && !dConfiguration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
-			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -383,7 +383,7 @@ public class MEncoderVideo extends Player {
 						break;
 					case "aac":
 					case "ac3":
-						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+						defaultMaxBitrates[0] -= dConfiguration.getAudioBitrate();
 						break;
 					default:
 						break;
@@ -536,7 +536,7 @@ public class MEncoderVideo extends Player {
 		} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
-		} else if (!PlayerFactory.isPlayerAvailable(StandardPlayerId.TSMUXER_VIDEO)) {
+		} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 			deferToTsmuxer = false;
 			LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 		}
@@ -560,7 +560,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				params.setForceFps(media.getValidFps(false));
 
 				if (media.getCodecV() != null) {
@@ -603,7 +603,7 @@ public class MEncoderVideo extends Player {
 		isTranscodeToH264   = params.getMediaRenderer().isTranscodeToH264() || params.getMediaRenderer().isTranscodeToH265();
 		isTranscodeToAAC    = params.getMediaRenderer().isTranscodeToAAC();
 
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		String vcodec = "mpeg2video";
 		if (isTranscodeToH264) {
@@ -650,7 +650,7 @@ public class MEncoderVideo extends Player {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 		 */
 
-		final boolean isTsMuxeRVideoEngineActive = PlayerFactory.isPlayerActive(TsMuxeRVideo.ID);
+		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.getAid() != null) && (params.getAid().getAudioProperties().getAudioDelay() != 0) && (params.getTimeSeek() == 0);
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
@@ -1341,17 +1341,11 @@ public class MEncoderVideo extends Player {
 
 		// Make MEncoder output framerate correspond to InterFrame
 		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
-			switch (frameRateRatio) {
-				case "25":
-					ofps = "50";
-					break;
-				case "30":
-					ofps = "60";
-					break;
-				default:
-					ofps = "60000/1001";
-					break;
-			}
+			ofps = switch (frameRateRatio) {
+				case "25" -> "50";
+				case "30" -> "60";
+				default -> "60000/1001";
+			};
 		}
 
 		cmdList.add("-ofps");
@@ -1893,7 +1887,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
 				String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 				pw = new ProcessWrapperImpl(cmd, params);
@@ -2133,7 +2127,7 @@ public class MEncoderVideo extends Player {
 		try {
 			Interpreter interpreter = new Interpreter();
 			interpreter.setStrictJava(true);
-			ArrayList<String> types = CodecUtil.getPossibleCodecs();
+			List<String> types = CodecUtil.getPossibleCodecs();
 			int rank = 1;
 
 			if (types != null) {
@@ -2256,16 +2250,12 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	@Override
@@ -2274,7 +2264,7 @@ public class MEncoderVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -2301,7 +2291,7 @@ public class MEncoderVideo extends Player {
 				return result.build();
 			}
 			if (output.getExitCode() == 0) {
-				if (output.getOutput() != null && output.getOutput().size() > 0) {
+				if (!output.getOutput().isEmpty()) {
 					Pattern pattern = Pattern.compile("^MEncoder\\s+(.*?)\\s+\\(C\\)", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(0));
 					if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -2315,8 +2305,7 @@ public class MEncoderVideo extends Player {
 					result.errorType(ExecutableErrorType.GENERAL);
 					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
-					if (output.getOutput() != null &&
-						output.getOutput().size() > 3 &&
+					if (output.getOutput().size() > 3 &&
 						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 1)) &&
 						!StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 2)) &&
 						StringUtil.hasValue(output.getOutput().get(output.getOutput().size() - 3))
