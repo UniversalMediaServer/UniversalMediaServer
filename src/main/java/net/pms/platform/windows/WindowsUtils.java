@@ -390,7 +390,7 @@ public class WindowsUtils extends PlatformUtils {
 		List<Path> result = new ArrayList<>();
 		Double version = getWindowsVersion();
 		if (version != null && version >= 6d) {
-			List<GUID> knownFolders = List.of (
+			List<GUID> knownFolders = List.of(
 				KnownFolders.FOLDERID_MUSIC,
 				KnownFolders.FOLDERID_PICTURES,
 				KnownFolders.FOLDERID_VIDEOS
