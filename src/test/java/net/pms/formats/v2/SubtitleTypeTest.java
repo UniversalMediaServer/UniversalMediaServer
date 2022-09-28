@@ -155,7 +155,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void getSupportedFileExtensions() {
-		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx", "vtt", "sup"));
+		Set<String> expectedExtensionsSet = Set.of("srt", "txt", "sub", "smi", "ssa", "ass", "idx", "vtt", "sup");
 		assertEquals(SubtitleType.getSupportedFileExtensions(), expectedExtensionsSet);
 	}
 

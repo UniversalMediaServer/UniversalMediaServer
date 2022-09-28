@@ -21,10 +21,7 @@ public class ApiHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
 
-	private ApiResponseFactory apiFactory = new ApiResponseFactory();
-
-	public ApiHandler() {
-	}
+	private final ApiResponseFactory apiFactory = new ApiResponseFactory();
 
 	/**
 	 * Handle API calls
@@ -87,10 +84,7 @@ public class ApiHandler {
 			}
 			LOGGER.debug("validApiKeyPresent : " + result);
 			return result;
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("cannot hash api key", e);
-			return false;
-		} catch (RuntimeException e) {
+		} catch (UnsupportedEncodingException | RuntimeException e) {
 			LOGGER.error("cannot hash api key", e);
 			return false;
 		}

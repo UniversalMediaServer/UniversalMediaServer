@@ -41,14 +41,14 @@ public class WebGuiServlet extends GuiHttpServlet {
 	public static final String PLAYER_BASE_PATH = BASE_PATH + "player";
 	public static final String SETTINGS_BASE_PATH = BASE_PATH + "settings";
 
-	private static final List<String> ROUTES = new ArrayList<>(Arrays.asList(
+	private static final List<String> ROUTES = List.of(
 		ABOUT_BASE_PATH,
 		ACCOUNTS_BASE_PATH,
 		ACTIONS_BASE_PATH,
 		LOGS_BASE_PATH,
 		PLAYER_BASE_PATH,
 		SETTINGS_BASE_PATH
-	));
+	);
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

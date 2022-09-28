@@ -51,9 +51,6 @@ public class SearchRequestHandler {
 
 	private final AtomicInteger updateID = new AtomicInteger(1);
 
-	public SearchRequestHandler() {
-	}
-
 	DbIdMediaType getRequestType(String searchCriteria) {
 		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
 		if (matcher.find()) {

@@ -391,11 +391,11 @@ public class WindowsUtils extends PlatformUtils {
 		List<Path> result = new ArrayList<>();
 		Double version = getWindowsVersion();
 		if (version != null && version >= 6d) {
-			ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
+			List<GUID> knownFolders = List.of (
 				KnownFolders.FOLDERID_MUSIC,
 				KnownFolders.FOLDERID_PICTURES,
-				KnownFolders.FOLDERID_VIDEOS,
-			}));
+				KnownFolders.FOLDERID_VIDEOS
+			);
 			for (GUID guid : knownFolders) {
 				Path folder = getWindowsKnownFolder(guid);
 				if (folder != null) {

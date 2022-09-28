@@ -738,8 +738,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 		/** Defines the sort order for known attributes */
-		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER =
-			Collections.unmodifiableList(Arrays.asList(new ProtocolInfoAttributeName[] {
+		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER = List.of(
 			KnownProtocolInfoAttributeName.DLNA_ORG_PN,
 			KnownProtocolInfoAttributeName.DLNA_ORG_OP,
 			KnownProtocolInfoAttributeName.DLNA_ORG_PS,
@@ -751,7 +750,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 			KnownProtocolInfoAttributeName.MICROSOFT_COM_PN,
 			KnownProtocolInfoAttributeName.SHARP_COM_PN,
 			KnownProtocolInfoAttributeName.SONY_COM_PN
-		}));
+		);
 
 		@Override
 		public int compare(ProtocolInfoAttributeName o1, ProtocolInfoAttributeName o2) {

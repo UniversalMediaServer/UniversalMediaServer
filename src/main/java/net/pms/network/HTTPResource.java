@@ -45,7 +45,7 @@ import net.pms.util.StringUtil;
  * In the PMS case, this item represents media files.
  * @see DLNAResource
  */
-public class HTTPResource {
+public abstract class HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPResource.class);
 	public static final String UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
 	public static final String UNKNOWN_IMAGE_TYPEMIME = "image/jpeg";
@@ -116,7 +116,7 @@ public class HTTPResource {
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	public HTTPResource() {
+	protected HTTPResource() {
 	}
 
 	/**

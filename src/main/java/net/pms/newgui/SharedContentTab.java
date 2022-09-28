@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
 
 public class SharedContentTab {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
-		Arrays.asList(new String[] {Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles")})
+		List.of(Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles"))
 	);
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 

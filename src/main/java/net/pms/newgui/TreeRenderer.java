@@ -29,9 +29,6 @@ import net.pms.encoders.Engine;
 public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
 
-	public TreeRenderer() {
-	}
-
 	/**
 	 * Sets the color to use for the background if node is selected.
 	 */

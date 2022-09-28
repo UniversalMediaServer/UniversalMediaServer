@@ -17,6 +17,7 @@
  */
 package net.pms.platform.windows;
 
+import com.sun.jna.platform.win32.Kernel32;
 import net.pms.service.AbstractSleepWorker;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.SleepManager;
@@ -28,9 +29,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WindowsSleepWorker extends AbstractSleepWorker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsSleepWorker.class);
-
-	/** A static reference to the Windows {@link Kernel32} instance */
-	protected static final WindowsUtils.Kernel32 KERNEL32 = WindowsUtils.Kernel32.INSTANCE;
 
 	/**
 	 * Creates a new {@link WindowsSleepWorker} initialized with the
@@ -46,24 +44,21 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 	@Override
 	protected synchronized void doAllowSleep() {
 		LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
-		WindowsUtils.Kernel32.INSTANCE.SetThreadExecutionState(WindowsUtils.Kernel32.ES_CONTINUOUS);
-
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 		sleepPrevented = false;
 	}
 
 	@Override
 	protected synchronized void doPreventSleep() {
 		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
-		KERNEL32.SetThreadExecutionState(WindowsUtils.Kernel32.ES_SYSTEM_REQUIRED | WindowsUtils.Kernel32.ES_CONTINUOUS);
-
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 		sleepPrevented = true;
 	}
 
 	@Override
 	protected synchronized void doResetSleepTimer() {
 		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
-		WindowsUtils.Kernel32.INSTANCE.SetThreadExecutionState(WindowsUtils.Kernel32.ES_SYSTEM_REQUIRED);
-
+		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
 		resetSleepTimer = false;
 	}
 }

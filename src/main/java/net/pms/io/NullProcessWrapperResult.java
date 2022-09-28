@@ -29,12 +29,6 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class NullProcessWrapperResult implements ProcessWrapperResult<Void> {
 
-	/**
-	 * Creates a new {@link NullProcessWrapperResult} instance.
-	 */
-	public NullProcessWrapperResult() {
-	}
-
 	@Override
 	@Nullable
 	public Void getOutput() {
