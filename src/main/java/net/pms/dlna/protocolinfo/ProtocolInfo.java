@@ -20,7 +20,6 @@ package net.pms.dlna.protocolinfo;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -426,7 +425,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link String} representation.
 	 */
-	protected String generateAttributesString() {
+	private String generateAttributesString() {
 		if (attributes == null || attributes.isEmpty()) {
 			return "";
 		}
@@ -462,7 +461,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *            parse.
 	 * @return A new {@link MimeType} instance.
 	 */
-	protected MimeType createMimeType(String contentFormat) {
+	private MimeType createMimeType(String contentFormat) {
 		try {
 			return MimeType.valueOf(contentFormat);
 		} catch (ParseException e) {
@@ -492,7 +491,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link SortedMap} of parsed {@link ProtocolInfoAttribute}s.
 	 */
-	protected SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
+	private SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
 		if (isBlank(additionalInfo) || WILDCARD.equals(additionalInfo.trim())) {
 			return EMPTYMAP;
 		}
@@ -609,7 +608,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The string representation.
 	 */
-	protected String generateStringValue() {
+	private String generateStringValue() {
 		StringBuilder sb = new StringBuilder();
 		sb	.append(protocol == null ? WILDCARD : protocol).append(":")
 			.append(isBlank(network) ? WILDCARD : network).append(":")
