@@ -56,7 +56,7 @@ public class ListProcessWrapperConsumer implements ProcessWrapperConsumer<ListPr
 		}
 		Callable<List<String>> callable = () -> {
 			List<String> result = new ArrayList<>();
-			Charset outputCharset = PlatformUtils.INSTANCE.getConsoleCharset();
+			Charset outputCharset = PlatformUtils.INSTANCE.getDefaultCharset();
 			try (
 					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, outputCharset))
 					) {

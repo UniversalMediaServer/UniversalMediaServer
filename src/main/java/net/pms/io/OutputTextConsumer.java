@@ -42,7 +42,7 @@ public class OutputTextConsumer extends OutputConsumer {
 		super(inputStream);
 		this.log = log;
 		if (charset == null) {
-			charset = PlatformUtils.INSTANCE.getConsoleCharset();
+			charset = PlatformUtils.INSTANCE.getDefaultCharset();
 		}
 	}
 

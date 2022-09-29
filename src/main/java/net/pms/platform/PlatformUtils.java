@@ -19,6 +19,7 @@ package net.pms.platform;
 
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
+import com.vdurmont.semver4j.Semver;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -38,11 +39,14 @@ import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
 import net.pms.platform.linux.LinuxUtils;
 import net.pms.platform.mac.MacUtils;
+import net.pms.platform.posix.POSIXProcessTerminator;
 import net.pms.platform.solaris.SolarisUtils;
 import net.pms.platform.windows.WindowsUtils;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +64,7 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
+	protected static final Semver OS_VERSION = createOsVersion();
 	protected static Boolean isAdmin = null;
 
 	protected Path vlcPath;
@@ -83,11 +88,6 @@ public class PlatformUtils implements IPlatformUtils {
 	@Override
 	public String getShortPathNameW(String longPathName) {
 		return longPathName;
-	}
-
-	@Override
-	public String getWindowsDirectory() {
-		return null;
 	}
 
 	@Override
@@ -126,8 +126,8 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public Charset getConsoleCharset() {
-		return StandardCharsets.UTF_8;
+	public Charset getDefaultCharset() {
+		return Charset.defaultCharset();
 	}
 
 	@Override
@@ -266,11 +266,6 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public Double getWindowsVersion() {
-		return null;
-	}
-
-	@Override
 	public void moveToTrash(File file) throws IOException {
 		FileUtils.getInstance().moveToTrash(new File[]{file});
 	}
@@ -313,6 +308,11 @@ public class PlatformUtils implements IPlatformUtils {
 		throw new IllegalStateException("Missing SleepWorker implementation for current platform");
 	}
 
+	@Override
+	public AbstractProcessTerminator getProcessTerminator(ProcessManager processManager) {
+		return new POSIXProcessTerminator(processManager);
+	}
+
 	private static PlatformUtils createInstance() {
 		if (Platform.isWindows()) {
 			return new WindowsUtils();
@@ -329,12 +329,35 @@ public class PlatformUtils implements IPlatformUtils {
 		return new PlatformUtils();
 	}
 
+	private static Semver createOsVersion() {
+		int dotCount = 0;
+		String ver = System.getProperty("os.version");
+		for (int i = 0; i < ver.length(); i++) {
+			if (ver.charAt(i) == '.') {
+				dotCount++;
+			}
+		}
+		if (dotCount == 1) {
+			ver += ".0";
+		}
+		return new Semver(ver);
+	}
+
 	protected static String getAbsolutePath(String path, String name) {
 		File f = new File(path, name);
 		if (f.exists()) {
 			return f.getAbsolutePath();
 		}
 		return null;
+	}
+
+	/**
+	 * Get the operating system version.
+	 *
+	 * @return The operating system version.
+	 */
+	public static Semver getOSVersion() {
+		return OS_VERSION;
 	}
 
 	/**
@@ -346,4 +369,30 @@ public class PlatformUtils implements IPlatformUtils {
 		return Platform.is64Bit() ? 64 : 32;
 	}
 
+	/**
+	 * Determines whether the operating system is 64-bit or not.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static boolean is64Bit() {
+		return Platform.is64Bit();
+	}
+
+	/**
+	 * Determines whether the operating system is Windows.
+	 *
+	 * @return true when the operating system is Windows.
+	 */
+	public static boolean isWindows() {
+		return Platform.isWindows();
+	}
+
+	/**
+	 * Determines whether the operating system is MacOs.
+	 *
+	 * @return true when the operating system is MacOs.
+	 */
+	public static boolean isMac() {
+		return Platform.isMac();
+	}
 }

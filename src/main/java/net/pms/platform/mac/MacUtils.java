@@ -34,10 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.platform.PlatformUtils;
-import net.pms.platform.mac.iokit.IOKitUtils;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,7 +255,7 @@ public class MacUtils extends PlatformUtils {
 
 	@Override
 	public boolean isPreventSleepSupported() {
-		return IOKitUtils.isMacOsVersionEqualOrGreater("10.5.0");
+		return isMacOsVersionEqualOrGreater("10.5.0");
 	}
 
 	@Override
@@ -302,4 +301,16 @@ public class MacUtils extends PlatformUtils {
 	private static int getPingPacketDivisor(int packetSize) {
 		return (int) Math.ceil(packetSize / 8000.0);
 	}
+
+	/**
+	 * Determines if the current macOS version is of a version equal or greater
+	 * to the argument.
+	 *
+	 * @param version the version to evaluate.
+	 * @return whether the current version is at least the specified version.
+	 */
+	public static boolean isMacOsVersionEqualOrGreater(String version) {
+		return OS_VERSION.isGreaterThanOrEqualTo(version);
+	}
+
 }

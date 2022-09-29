@@ -16,11 +16,9 @@
  */
 package net.pms.platform.mac.iokit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
-import com.vdurmont.semver4j.Semver;
+import net.pms.platform.mac.MacUtils;
 import net.pms.platform.mac.corefoundation.CoreFoundation;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFMutableDictionaryRef;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFMutableDictionaryRefByReference;
@@ -33,6 +31,8 @@ import net.pms.platform.mac.kernreturn.DefaultKernReturnT;
 import net.pms.platform.mac.kernreturn.KernReturnT;
 import net.pms.platform.mac.types.IOIteratorTRef;
 import net.pms.platform.mac.types.IORegistryEntryT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a utility class for {@link IOKitUtils}.
@@ -44,23 +44,11 @@ import net.pms.platform.mac.types.IORegistryEntryT;
 public class IOKitUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IOKitUtils.class);
 
-	private static IOKit ioKit = IOKit.INSTANCE;
-	private static CoreFoundation cf = CoreFoundation.INSTANCE;
+	private static final IOKit IOKIT = IOKit.INSTANCE;
+	private static final CoreFoundation CF = CoreFoundation.INSTANCE;
 
-	protected static final Semver MAC_OS_VERSION;
 
 	private IOKitUtils() {
-	}
-
-	/**
-	 * Determines if the current macOS version is of a version equal or greater
-	 * to the argument.
-	 *
-	 * @param version the version to evaluate.
-	 * @return whether the current version is at least the specified version.
-	 */
-	public static boolean isMacOsVersionEqualOrGreater(String version) {
-		return MAC_OS_VERSION.isGreaterThanOrEqualTo(version);
 	}
 
 	/**
@@ -73,32 +61,32 @@ public class IOKitUtils {
 	@SuppressWarnings("null")
 	public static long getSystemIdleTimeMS() throws IOKitException {
 		IOIteratorTRef iteratorRef = new IOIteratorTRef(true);
-		KernReturnT ioReturn = ioKit.IOServiceGetMatchingServices(null, ioKit.IOServiceMatching("IOHIDSystem"), iteratorRef);
+		KernReturnT ioReturn = IOKIT.IOServiceGetMatchingServices(null, IOKIT.IOServiceMatching("IOHIDSystem"), iteratorRef);
 		try {
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
-				IORegistryEntryT entry = IORegistryEntryT.toIORegistryT(ioKit.IOIteratorNext(iteratorRef.getValue()));
+				IORegistryEntryT entry = IORegistryEntryT.toIORegistryT(IOKIT.IOIteratorNext(iteratorRef.getValue()));
 				if (entry != null) {
 					try {
 						CFMutableDictionaryRefByReference dictionaryRef = new CFMutableDictionaryRefByReference();
-						ioReturn = ioKit.IORegistryEntryCreateCFProperties(entry, dictionaryRef, CoreFoundation.ALLOCATOR, 0);
+						ioReturn = IOKIT.IORegistryEntryCreateCFProperties(entry, dictionaryRef, CoreFoundation.ALLOCATOR, 0);
 						if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
 							CFMutableDictionaryRef dictionary = dictionaryRef.getCFMutableDictionaryRef();
 							try {
-								CFTypeRef cfType = cf.CFDictionaryGetValue(
+								CFTypeRef cfType = CF.CFDictionaryGetValue(
 									dictionaryRef.getCFMutableDictionaryRef(),
 									CFStringRef.toCFStringRef("HIDIdleTime")
 								);
 								if (cfType != null) {
 									CFNumberRef cfNumber = new CFNumberRef(cfType);
 									LongByReference nanoSeconds = new LongByReference();
-									if (cf.CFNumberGetValue(cfNumber, CFNumberType.kCFNumberSInt64Type, nanoSeconds)) {
+									if (CF.CFNumberGetValue(cfNumber, CFNumberType.kCFNumberSInt64Type, nanoSeconds)) {
 										return nanoSeconds.getValue() >> 20;
 									}
 									throw new IOKitException("HIDIdleTime out of range");
 								}
 								throw new IOKitException("HIDIdleTime not found");
 							} finally {
-								cf.CFRelease(dictionary);
+								CF.CFRelease(dictionary);
 							}
 						}
 						throw new IOKitException(
@@ -106,7 +94,7 @@ public class IOKitUtils {
 							ioReturn.toStandardString()
 						);
 					} finally {
-						ioKit.IOObjectRelease(entry);
+						IOKIT.IOObjectRelease(entry);
 					}
 				}
 				throw new IOKitException("IOHIDSystem not found");
@@ -115,7 +103,7 @@ public class IOKitUtils {
 		} finally {
 			// Even though Java doesn't understand it, this can be null because IOServiceGetMatchingServices() can return null.
 			if (iteratorRef != null) {
-				ioKit.IOObjectRelease(iteratorRef.getValue());
+				IOKIT.IOObjectRelease(iteratorRef.getValue());
 			}
 		}
 
@@ -137,8 +125,8 @@ public class IOKitUtils {
 		CFStringRef name = CFStringRef.toCFStringRef(assertionName);
 		CFStringRef details = CFStringRef.toCFStringRef(assertionDetails);
 
-		if (isMacOsVersionEqualOrGreater("10.7.0")) {
-			KernReturnT ioReturn = ioKit.IOPMAssertionCreateWithDescription(
+		if (MacUtils.isMacOsVersionEqualOrGreater("10.7.0")) {
+			KernReturnT ioReturn = IOKIT.IOPMAssertionCreateWithDescription(
 				assertionType,
 				name,
 				details,
@@ -152,15 +140,15 @@ public class IOKitUtils {
 				return assertionIdRef.getValue();
 			}
 			throw new IOKitException("IOPMAssertionCreateWithDescription failed with error code: " + ioReturn.toStandardString());
-		} else if (isMacOsVersionEqualOrGreater("10.6.0")) {
-			KernReturnT ioReturn = ioKit.IOPMAssertionCreateWithName(assertionType, IOKit.kIOPMAssertionLevelOn, name, assertionIdRef);
+		} else if (MacUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
+			KernReturnT ioReturn = IOKIT.IOPMAssertionCreateWithName(assertionType, IOKit.kIOPMAssertionLevelOn, name, assertionIdRef);
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
 				return assertionIdRef.getValue();
 			}
 			throw new IOKitException("IOPMAssertionCreateWithName failed with error code: " + ioReturn.toStandardString());
-		} else if (isMacOsVersionEqualOrGreater("10.5.0")) {
+		} else if (MacUtils.isMacOsVersionEqualOrGreater("10.5.0")) {
 			@SuppressWarnings("deprecation")
-			KernReturnT ioReturn = ioKit.IOPMAssertionCreate(assertionType, IOKit.kIOPMAssertionLevelOn, assertionIdRef);
+			KernReturnT ioReturn = IOKIT.IOPMAssertionCreate(assertionType, IOKit.kIOPMAssertionLevelOn, assertionIdRef);
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
 				return assertionIdRef.getValue();
 			}
@@ -181,8 +169,8 @@ public class IOKitUtils {
 	 * @throws IOKitException If an error occurs during the operation.
 	 */
 	public static void enableGoToSleep(int assertionId) throws IOKitException {
-		if (isMacOsVersionEqualOrGreater("10.5.0")) {
-			KernReturnT ioReturn = ioKit.IOPMAssertionRelease(assertionId);
+		if (MacUtils.isMacOsVersionEqualOrGreater("10.5.0")) {
+			KernReturnT ioReturn = IOKIT.IOPMAssertionRelease(assertionId);
 			if (ioReturn != DefaultKernReturnT.KERN_SUCCESS) {
 				throw new IOKitException("IOPMAssertionRelease failed with error code: " + ioReturn.toStandardString());
 			}
@@ -208,10 +196,10 @@ public class IOKitUtils {
 	 * @throws IOKitException If an error occurs during the operation.
 	 */
 	public static int resetIdleTimer(String assertionName, int assertionId) throws IOKitException {
-		if (isMacOsVersionEqualOrGreater("10.7.3")) {
+		if (MacUtils.isMacOsVersionEqualOrGreater("10.7.3")) {
 			IntByReference assertionIdRef = new IntByReference(assertionId > 0 ? assertionId : 0);
 			CFStringRef name = CFStringRef.toCFStringRef(assertionName);
-			KernReturnT ioReturn = ioKit.IOPMAssertionDeclareUserActivity(name, IOPMUserActiveType.kIOPMUserActiveLocal, assertionIdRef);
+			KernReturnT ioReturn = IOKIT.IOPMAssertionDeclareUserActivity(name, IOPMUserActiveType.kIOPMUserActiveLocal, assertionIdRef);
 			if (ioReturn == DefaultKernReturnT.KERN_SUCCESS) {
 				return assertionIdRef.getValue();
 			}
@@ -221,17 +209,4 @@ public class IOKitUtils {
 		return -1;
 	}
 
-	static {
-		int dotCount = 0;
-		String ver = System.getProperty("os.version");
-		for (int i = 0; i < ver.length(); i++) {
-			if (ver.charAt(i) == '.') {
-				dotCount++;
-			}
-		}
-		if (dotCount == 1) {
-			ver += ".0";
-		}
-		MAC_OS_VERSION = new Semver(ver);
-	}
 }

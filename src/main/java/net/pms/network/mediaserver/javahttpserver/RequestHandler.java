@@ -91,7 +91,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;

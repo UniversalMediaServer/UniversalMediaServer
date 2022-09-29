@@ -18,9 +18,9 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.platform.win32.Kernel32;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

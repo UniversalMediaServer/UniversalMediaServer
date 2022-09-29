@@ -26,7 +26,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -47,14 +46,14 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
-import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.EngineFactory;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.YoutubeDl;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
@@ -63,8 +62,8 @@ import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.WebGuiServer;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
@@ -82,7 +81,6 @@ import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
-import net.pms.platform.mac.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -263,7 +261,7 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
+		if (PlatformUtils.isMac() && !PlatformUtils.getOSVersion().isGreaterThanOrEqualTo("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
@@ -563,7 +561,7 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if ((!Platform.isWindows() || Platform.is64Bit()) && configuration.getFFmpegPath() != null) {
+			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && configuration.getFFmpegPath() != null) {
 				ThreadedProcessWrapper.runProcessNullOutput(
 					5,
 					TimeUnit.MINUTES,
@@ -587,7 +585,7 @@ public class PMS {
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
-
+PlatformUtils.INSTANCE.isAdmin();
 		// Check the existence of VSFilter / DirectVobSub
 		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
 			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
@@ -927,35 +925,27 @@ public class PMS {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg.trim().toLowerCase(Locale.ROOT)) {
-					case HEADLESS_ARG:
-					case CONSOLE_ARG:
-						forceHeadless();
-						break;
-					case NATIVELOOK_ARG:
-						System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
-						break;
-					case SCROLLBARS:
-						System.setProperty(SCROLLBARS, Boolean.toString(true));
-						break;
-					case NOCONSOLE_ARG:
+					case HEADLESS_ARG, CONSOLE_ARG -> forceHeadless();
+					case NATIVELOOK_ARG -> System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
+					case SCROLLBARS -> System.setProperty(SCROLLBARS, Boolean.toString(true));
+					case NOCONSOLE_ARG -> {
 						denyHeadless = true;
-						break;
-					case PROFILES:
+					}
+					case PROFILES -> {
 						displayProfileChooser = true;
-						break;
-					case TRACE:
+					}
+					case TRACE -> {
 						traceMode = 2;
-						break;
-					case DBLOG:
-					case DBTRACE:
+					}
+					case DBLOG, DBTRACE -> {
 						logDB = true;
-						break;
-					default:
+					}
+					default -> {
 						Matcher matcher = pattern.matcher(arg);
 						if (matcher.find()) {
 							profilePath = new File(matcher.group(1));
 						}
-						break;
+					}
 				}
 			}
 		}
@@ -993,7 +983,7 @@ public class PMS {
 			assert configuration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
-			if (Platform.isWindows()) {
+			if (PlatformUtils.isWindows()) {
 				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
@@ -1156,7 +1146,7 @@ public class PMS {
 	 */
 	public static void shutdown() {
 		try {
-			if (Platform.isWindows()) {
+			if (PlatformUtils.isWindows()) {
 				WindowsNamedPipe.setLoop(false);
 			}
 			//Stop network scanner
@@ -1193,8 +1183,8 @@ public class PMS {
 		 * No logging is available after this point
 		 */
 		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-		if (iLoggerContext instanceof LoggerContext) {
-			((LoggerContext) iLoggerContext).stop();
+		if (iLoggerContext instanceof LoggerContext loggerContext) {
+			loggerContext.stop();
 		} else {
 			LOGGER.error("Unable to shut down logging gracefully");
 			System.err.println("Unable to shut down logging gracefully");
@@ -1240,7 +1230,7 @@ public class PMS {
 		} catch (SecurityException e) {
 			LOGGER.error(
 				"Failed to check for already running instance: " + e.getMessage() +
-				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
+				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
@@ -1253,7 +1243,7 @@ public class PMS {
 		} catch (FileNotFoundException e) {
 			LOGGER.error(
 				"Failed to write PID file: " + e.getMessage() +
-				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
+				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
 			);
 		} catch (IOException e) {
 			LOGGER.error("Error dumping PID " + e);
@@ -1324,7 +1314,7 @@ public class PMS {
 			return;
 		}
 
-		if (Platform.isWindows()) {
+		if (PlatformUtils.isWindows()) {
 			try {
 				if (verifyPidName(pid)) {
 					pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
@@ -1345,6 +1335,7 @@ public class PMS {
 			p.waitFor();
 		} catch (InterruptedException e) {
 			LOGGER.trace("Got interrupted while trying to kill process by PID " + e);
+			Thread.currentThread().interrupt();
 		}
 	}
 

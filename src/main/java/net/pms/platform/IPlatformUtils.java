@@ -25,11 +25,12 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
-import javax.annotation.Nullable;
 import net.pms.newgui.LooksFrame;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.Version;
 
 public interface IPlatformUtils {
@@ -39,8 +40,6 @@ public interface IPlatformUtils {
 	public abstract File getKLiteFiltersDir();
 
 	public abstract String getShortPathNameW(String longPathName);
-
-	public abstract String getWindowsDirectory();
 
 	public abstract String getDiskLabel(File f);
 
@@ -97,13 +96,6 @@ public interface IPlatformUtils {
 	 */
 	int getPingPacketFragments(int packetSize);
 
-	/**
-	 * @return The Windows (internal) version or {@code null} if the platform
-	 *         isn't Windows or the value could not be parsed.
-	 */
-	@Nullable
-	public Double getWindowsVersion();
-
 	/** Move the given file to the system trash, if one is available.
 	 * @param file file to move
 	 * @throws IOException on failure.
@@ -137,7 +129,7 @@ public interface IPlatformUtils {
 	 * The default {@link Charset} for console
 	 * @return Charset
 	 */
-	public abstract Charset getConsoleCharset();
+	public abstract Charset getDefaultCharset();
 
 	public abstract String getDefaultFontPath();
 
@@ -160,4 +152,6 @@ public interface IPlatformUtils {
 	 *             implementation is available for this {@link Platform}.
 	 */
 	public abstract AbstractSleepWorker getSleepWorker(SleepManager owner, PreventSleepMode mode);
+
+	public abstract AbstractProcessTerminator getProcessTerminator(ProcessManager processManager);
 }

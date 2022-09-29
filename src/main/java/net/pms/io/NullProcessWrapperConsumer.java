@@ -55,7 +55,7 @@ public class NullProcessWrapperConsumer implements ProcessWrapperConsumer<NullPr
 		}
 		Callable<Void> callable = () -> {
 			List<String> result = LOGGER.isTraceEnabled() ? new ArrayList<>() : null;
-			Charset outputCharset = PlatformUtils.INSTANCE.getConsoleCharset();
+			Charset outputCharset = PlatformUtils.INSTANCE.getDefaultCharset();
 			try (
 					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, outputCharset))
 					) {

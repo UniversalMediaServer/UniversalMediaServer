@@ -20,9 +20,9 @@ package net.pms.platform.mac;
 import net.pms.Messages;
 import net.pms.platform.mac.iokit.IOKitException;
 import net.pms.platform.mac.iokit.IOKitUtils;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

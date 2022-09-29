@@ -17,6 +17,15 @@
  */
 package net.pms.platform.mac.iokit;
 
+import com.sun.jna.DefaultTypeMapper;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.ptr.NativeLongByReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,15 +56,6 @@ import net.pms.platform.mac.types.IOStringT;
 import net.pms.platform.mac.types.MachPortT;
 import net.pms.platform.mac.types.MachPortTRef;
 import net.pms.platform.mac.types.TaskPortT;
-import com.sun.jna.DefaultTypeMapper;
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.ptr.LongByReference;
-import com.sun.jna.ptr.NativeLongByReference;
 
 /**
  * Partial mapping of IOKit:
