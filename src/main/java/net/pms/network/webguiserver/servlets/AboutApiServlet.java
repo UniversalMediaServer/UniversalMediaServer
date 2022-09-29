@@ -29,9 +29,9 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.SystemInformation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,9 +115,9 @@ public class AboutApiServlet extends GuiHttpServlet {
 		OperatingSystem os = systemInfo.getOperatingSystem();
 		StringBuilder sb = new StringBuilder();
 		if (os != null && StringUtils.isNotBlank(os.toString())) {
-			sb.append(os.toString()).append(" ").append(SystemInformation.getOSBitness()).append("-bit");
+			sb.append(os.toString()).append(" ").append(os.getBitness()).append("-bit");
 		} else {
-			sb.append(System.getProperty("os.name")).append(" ").append(SystemInformation.getOSBitness()).append("-bit ");
+			sb.append(System.getProperty("os.name")).append(" ").append(PlatformUtils.getOSBitness()).append("-bit ");
 			sb.append(System.getProperty("os.version"));
 		}
 		return sb.toString();

@@ -336,4 +336,14 @@ public class PlatformUtils implements IPlatformUtils {
 		}
 		return null;
 	}
+
+	/**
+	 * Determines whether the operating system is 64-bit or 32-bit.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static int getOSBitness() {
+		return Platform.is64Bit() ? 64 : 32;
+	}
+
 }
