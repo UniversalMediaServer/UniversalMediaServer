@@ -19,6 +19,7 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -80,7 +81,9 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		"ip_filter",
 		"network_interface",
 		"port",
-		"renderer_default"
+		"renderer_default",
+		"web_port",
+		"web_gui_port"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
@@ -207,6 +210,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 								arrayAsCommaDelimitedString.append(element.get(i).getAsString());
 							}
 							configuration.setProperty(key, arrayAsCommaDelimitedString.toString());
+						} else if (configurationSetting.getValue() instanceof JsonNull) {
+							configuration.setProperty(key, "");
 						} else {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
@@ -325,6 +330,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.addProperty("automatic_maximum_bitrate", true);
 		jObj.addProperty("chapter_interval", 5);
 		jObj.addProperty("chapter_support", false);
+		jObj.addProperty("chromecast_extension", false);
 		jObj.addProperty("disable_subtitles", false);
 		jObj.addProperty("disable_transcode_for_extensions", "");
 		jObj.addProperty("enable_archive_browsing", false);
@@ -380,7 +386,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.addProperty("mencoder_subfribidi", false);
 		jObj.addProperty("mencoder_yadif", false);
 		jObj.addProperty("maximum_video_buffer_size", 200);
-		jObj.addProperty("maximum_bitrate", "90");
+		jObj.addProperty("maximum_bitrate", 90);
 		jObj.addProperty("minimized", false);
 		jObj.addProperty("tsmuxer_forcefps", true);
 		jObj.addProperty("tsmuxer_mux_all_audiotracks", false);
@@ -391,7 +397,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			numberOfCpuCores = 1;
 		}
 		jObj.addProperty("number_of_cpu_cores", numberOfCpuCores);
-		jObj.addProperty("port", "");
+		jObj.addProperty("port", 5001);
 		jObj.addProperty("prettify_filenames", false);
 		jObj.addProperty("renderer_default", "");
 		jObj.addProperty("renderer_force_default", false);
@@ -414,14 +420,18 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.addProperty("subtitles_ass_margin", 10);
 		jObj.addProperty("subtitles_ass_scale", 1.4);
 		jObj.addProperty("subtitles_ass_shadow", 1);
-		jObj.addProperty("thumbnail_seek_position", "4");
+		jObj.addProperty("thumbnail_seek_position", 4);
+		jObj.addProperty("upnp_enable", true);
 		jObj.addProperty("use_embedded_subtitles_style", true);
 		jObj.addProperty("use_cache", true);
 		jObj.addProperty("use_imdb_info", true);
 		jObj.addProperty("use_symlinks_target_file", true);
 		jObj.addProperty("vlc_audio_sync_enabled", false);
 		jObj.addProperty("vlc_use_experimental_codecs", false);
+		jObj.addProperty("web_enable", true);
 		jObj.addProperty("web_gui_on_start", true);
+		jObj.addProperty("web_gui_port", 9002);
+		jObj.addProperty("web_port", 9001);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");
 		return jObj;

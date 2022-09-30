@@ -146,8 +146,8 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		if (channel != null) {
 			if (allChannels != null) {
 				allChannels.close().awaitUninterruptibly();
+				LOGGER.trace("Confirm allChannels is empty: {}", allChannels.toString());
 			}
-			LOGGER.trace("Confirm allChannels is empty: {}", allChannels.toString());
 			bootstrap.releaseExternalResources();
 		}
 	}

@@ -99,7 +99,7 @@ export default function Settings() {
       // construct an object of only changed values to send
       for (const key in values) {
         if (!_.isEqual(configuration[key], values[key])) {
-          changedValues[key] = values[key];
+          changedValues[key] = values[key]?values[key]:null;
         }
       };
 
@@ -146,7 +146,7 @@ export default function Settings() {
           </Tabs.Panel>
           { advancedSettings &&
             <Tabs.Panel value="NavigationSettings">
-              {NavigationSettings(form,selectionSettings)}
+              {NavigationSettings(form,defaultConfiguration,selectionSettings)}
             </Tabs.Panel>
           }
           <Tabs.Panel value="SharedContent">

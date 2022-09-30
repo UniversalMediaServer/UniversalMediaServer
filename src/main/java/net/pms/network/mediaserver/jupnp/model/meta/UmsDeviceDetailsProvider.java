@@ -36,7 +36,6 @@ public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
 	private static final String MANUFACTURER_URL = "https://www.universalmediaserver.com/";
 	private static final ManufacturerDetails MANUFACTURER_DETAILS = new ManufacturerDetails(MANUFACTURER_NAME, MANUFACTURER_URL);
 	private static final String MODEL_NUMBER = PropertiesUtil.getProjectProperties().get("project.version");
-	private static final String PRESENTATION_URI = "/console/index.html";
 	private	static final DLNADoc[] DLNA_DOCS = new DLNADoc[] {new DLNADoc("DMS", DLNADoc.Version.V1_5), new DLNADoc("M-DMS", DLNADoc.Version.V1_5)};
 	private	static final DLNACaps DLNA_CAPS = new DLNACaps(new String[] {});
 	private static final DLNACaps SEC_CAP = new DLNACaps(new String[] {"smi", "DCM10", "getMediaInfo.sec", "getCaptionInfo.sec"});
@@ -55,7 +54,7 @@ public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
 		ModelDetails modelDetails = new ModelDetails(modelName, modelDescription, modelNumber, MANUFACTURER_URL);
 		URI presentationURI = null;
 		if (umsinfo.getLocalAddress() != null) {
-			String webInterfaceUrl = "http" + (CONFIGURATION.getWebHttps() ? "s" : "") + "://" + umsinfo.getLocalAddress().getHostAddress() + ":" + CONFIGURATION.getWebPlayerServerPort() + PRESENTATION_URI;
+			String webInterfaceUrl = "http" + (CONFIGURATION.getWebHttps() ? "s" : "") + "://" + umsinfo.getLocalAddress().getHostAddress() + ":" + CONFIGURATION.getWebPlayerServerPort();
 			presentationURI = URI.create(webInterfaceUrl);
 		}
 		DeviceDetails umsDetails = new DeviceDetails(

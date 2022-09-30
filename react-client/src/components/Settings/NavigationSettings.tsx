@@ -10,7 +10,7 @@ import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { mantineSelectData } from './Settings';
 
-export default function NavigationSettings(form:UseFormReturnType<any>,selectionSettings:any) {
+export default function NavigationSettings(form:UseFormReturnType<any>,defaultConfiguration:any,selectionSettings:any) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -83,15 +83,13 @@ export default function NavigationSettings(form:UseFormReturnType<any>,selection
                     />
                   </Tooltip>
                 </Stack>
-                <Group mt="md">
                   <Select
-                    sx={{ flex: 1 }}
                     disabled={!canModify}
                     label={i18n.get['FullyPlayedAction']}
                     data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
                     {...form.getInputProps('fully_played_action')}
                   />
-                  {(form.values['fully_played_action'] === "3" || form.values['fully_played_action'] === "4") && (
+                  {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '4') && (
                     <DirectoryChooser
                       disabled={!canModify}
                       label={i18n.get['DestinationFolder']}
@@ -100,7 +98,6 @@ export default function NavigationSettings(form:UseFormReturnType<any>,selection
                       formKey="fully_played_output_directory"
                     />
                   )}
-                </Group>
               </Accordion.Panel>
             </Accordion.Item>
             <Accordion.Item value='NavigationThumbnails'>
@@ -111,10 +108,11 @@ export default function NavigationSettings(form:UseFormReturnType<any>,selection
                   label={i18n.get['GenerateThumbnails']}
                   {...form.getInputProps('generate_thumbnails', { type: 'checkbox' })}
                 />
-                <TextInput
-                  sx={{ flex: 1 }}
+                <NumberInput
                   label={i18n.get['ThumbnailSeekingPosition']}
                   disabled={!canModify || !form.values['generate_thumbnails']}
+                  placeholder={defaultConfiguration.thumbnail_seek_position}
+                  hideControls
                   {...form.getInputProps('thumbnail_seek_position')}
                 />
                 <DirectoryChooser

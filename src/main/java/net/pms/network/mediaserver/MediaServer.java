@@ -17,14 +17,13 @@
  */
 package net.pms.network.mediaserver;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -42,19 +41,17 @@ import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final Map<Integer, String> VERSIONS = Stream.of(new Object[][] {
-			{1, "Sockets"},
-			{2, "Netty"},
-			{3, "Java"},
-			{4, "JUPnP (Netty)"},
-			{5, "JUPnP (Java)"},
-		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
+	public static final Map<Integer, String> VERSIONS = Map.of(
+		1, "Sockets",
+		2, "Netty",
+		3, "Java",
+		4, "JUPnP (Netty)",
+		5, "JUPnP (Java)"
+	);
+
 	public static final int DEFAULT_VERSION = 4;
 
 	public static UmsUpnpService upnpService;

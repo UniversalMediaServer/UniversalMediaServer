@@ -4,7 +4,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 public class HttpException extends Exception {
 
-	private HttpResponseStatus status;
+	private final HttpResponseStatus status;
 
 	HttpException(HttpResponseStatus status) {
 		this.status = status;

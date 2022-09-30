@@ -1,7 +1,9 @@
 package net.pms.network.mediaserver.handlers;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
+import net.pms.Messages;
+import net.pms.PMS;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.MessageEvent;
@@ -11,8 +13,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.Messages;
-import net.pms.PMS;
 
 /**
  * This class handles calls to the internal API.
@@ -76,15 +76,15 @@ public class ApiHandler {
 	private boolean validApiKeyPresent(String serverApiKey, String givenApiKey) {
 		boolean result = true;
 		try {
-			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes("UTF-8"));
-			byte[] serverApiKeyHash = DigestUtils.sha256(serverApiKey.getBytes("UTF-8"));
+			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes(StandardCharsets.UTF_8));
+			byte[] serverApiKeyHash = DigestUtils.sha256(serverApiKey.getBytes(StandardCharsets.UTF_8));
 			int pos = 0;
 			for (byte b : serverApiKeyHash) {
 				result = result && (b == givenApiKeyHash[pos++]);
 			}
 			LOGGER.debug("validApiKeyPresent : " + result);
 			return result;
-		} catch (UnsupportedEncodingException | RuntimeException e) {
+		} catch (RuntimeException e) {
 			LOGGER.error("cannot hash api key", e);
 			return false;
 		}

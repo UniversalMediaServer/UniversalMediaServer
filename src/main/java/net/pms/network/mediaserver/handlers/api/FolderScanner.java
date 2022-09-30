@@ -19,16 +19,12 @@ public class FolderScanner implements ApiResponseHandler {
 		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
 		output.setStatus(HttpResponseStatus.NO_CONTENT);
 		switch (uri) {
-			case "rescan":
-				rescanLibrary();
-				break;
-			case "rescanFileOrFolder":
-				RootFolder.rescanLibraryFileOrFolder(content);
-				break;
-			default:
+			case "rescan" -> rescanLibrary();
+			case "rescanFileOrFolder" -> RootFolder.rescanLibraryFileOrFolder(content);
+			default -> {
 				LOGGER.warn("Invalid API call. Unknown path : " + uri);
 				output.setStatus(HttpResponseStatus.NOT_FOUND);
-				break;
+			}
 		}
 		return null;
 	}

@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipOutputStream;
 import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
@@ -131,13 +132,13 @@ public class LogsApiServlet extends GuiHttpServlet {
 						WebGuiServletHelper.respondBadRequest(req, resp);
 						return;
 					}
-					ArrayList<String> items = new ArrayList();
+					List<String> items = new ArrayList<>();
 					for (JsonElement item : data.getAsJsonArray("items")) {
 						items.add(item.getAsString());
 					}
 
 					//check the file exists in the dbgPacker items to prevent hack (get other file from disk)
-					ArrayList<File> files = new ArrayList<>();
+					List<File> files = new ArrayList<>();
 					for (File file : dbgPacker.getItems()) {
 						if (items.contains(file.getAbsolutePath())) {
 							files.add(file);

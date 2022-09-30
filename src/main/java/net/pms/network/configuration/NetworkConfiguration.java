@@ -501,10 +501,11 @@ public class NetworkConfiguration {
 	/**
 	 * @return available network interfaces as a JSON array
 	 */
-	public synchronized static JsonArray getNetworkInterfacesAsJsonArray() {
+	public static synchronized JsonArray getNetworkInterfacesAsJsonArray() {
 		List<String> values = getDisplayNames();
 		List<String> labels = getDisplayNamesWithAddress();
-
+		values.add(0, "");
+		labels.add(0, "i18n@AutoDetect");
 		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
 	}
 

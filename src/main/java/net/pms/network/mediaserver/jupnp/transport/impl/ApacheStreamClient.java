@@ -123,30 +123,30 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		UpnpRequest requestOperation = requestMessage.getOperation();
 		HttpRequestBase request;
 		switch (requestOperation.getMethod()) {
-			case GET:
+			case GET -> {
 				request = new HttpGet(requestOperation.getURI());
-				break;
-			case SUBSCRIBE:
+			}
+			case SUBSCRIBE -> {
 				request = new HttpGet(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
 						return UpnpRequest.Method.SUBSCRIBE.getHttpName();
 					}
 				};
-				break;
-			case UNSUBSCRIBE:
+			}
+			case UNSUBSCRIBE -> {
 				request = new HttpGet(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
 						return UpnpRequest.Method.UNSUBSCRIBE.getHttpName();
 					}
 				};
-				break;
-			case POST:
+			}
+			case POST -> {
 				request = new HttpPost(requestOperation.getURI());
 				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
-				break;
-			case NOTIFY:
+			}
+			case NOTIFY -> {
 				request = new HttpPost(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
@@ -154,9 +154,8 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 					}
 				};
 				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
-				break;
-			default:
-				throw new RuntimeException("Unknown HTTP method: " + requestOperation.getHttpMethodName());
+			}
+			default -> throw new RuntimeException("Unknown HTTP method: " + requestOperation.getHttpMethodName());
 		}
 
 		// Headers

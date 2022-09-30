@@ -18,9 +18,9 @@
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import org.jupnp.http.Headers;
 import org.jupnp.model.ServerClientTokens;
@@ -74,7 +74,7 @@ public class UmsDatagramProcessor extends DatagramProcessorImpl {
 
 			String[] startLine = Headers.readLine(is).split(" ");
 			if (startLine[0].startsWith("HTTP/1.")) {
-				return readResponseMessage(receivedOnAddress, datagram, is, Integer.valueOf(startLine[1]), startLine[2], startLine[0]);
+				return readResponseMessage(receivedOnAddress, datagram, is, Integer.parseInt(startLine[1]), startLine[2], startLine[0]);
 			} else {
 				return readRequestMessage(receivedOnAddress, datagram, is, startLine[0], startLine[2]);
 			}
@@ -101,14 +101,10 @@ public class UmsDatagramProcessor extends DatagramProcessorImpl {
 
 		UpnpOperation operation = message.getOperation();
 
-		if (operation instanceof UpnpRequest) {
-
-			UpnpRequest requestOperation = (UpnpRequest) operation;
+		if (operation instanceof UpnpRequest requestOperation) {
 			statusLine.append(requestOperation.getHttpMethodName()).append(" * ");
 			statusLine.append("HTTP/1.").append(operation.getHttpMinorVersion()).append("\r\n");
-
-		} else if (operation instanceof UpnpResponse) {
-			UpnpResponse responseOperation = (UpnpResponse) operation;
+		} else if (operation instanceof UpnpResponse responseOperation) {
 			statusLine.append("HTTP/1.").append(operation.getHttpMinorVersion()).append(" ");
 			statusLine.append(responseOperation.getStatusCode()).append(" ").append(responseOperation.getStatusMessage());
 			statusLine.append("\r\n");
@@ -135,18 +131,11 @@ public class UmsDatagramProcessor extends DatagramProcessorImpl {
 			);
 		}
 
-		try {
-			// According to HTTP 1.0 RFC, headers and their values are US-ASCII
-			// TODO: Probably should look into escaping rules, too
-			byte[] data = messageData.toString().getBytes("US-ASCII");
+		// According to HTTP 1.0 RFC, headers and their values are US-ASCII
+		// TODO: Probably should look into escaping rules, too
+		byte[] data = messageData.toString().getBytes(StandardCharsets.US_ASCII);
 
-			LOGGER.trace("Writing new datagram packet with " + data.length + " bytes for: " + message);
-			return new DatagramPacket(data, data.length, message.getDestinationAddress(), message.getDestinationPort());
-
-		} catch (UnsupportedEncodingException ex) {
-			throw new UnsupportedDataException(
-					"Can't convert message content to US-ASCII: " + ex.getMessage(), ex, messageData
-			);
-		}
+		LOGGER.trace("Writing new datagram packet with " + data.length + " bytes for: " + message);
+		return new DatagramPacket(data, data.length, message.getDestinationAddress(), message.getDestinationPort());
 	}
 }

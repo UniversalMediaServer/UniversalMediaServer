@@ -465,16 +465,11 @@ public class RequestV2 extends HTTPResource {
 						if (imageProfile == null) {
 							// Parsing failed for some reason, we'll have to pick a profile
 							if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
-								switch (dlna.getMedia().getImageInfo().getFormat()) {
-									case GIF:
-										imageProfile = DLNAImageProfile.GIF_LRG;
-										break;
-									case PNG:
-										imageProfile = DLNAImageProfile.PNG_LRG;
-										break;
-									default:
-										imageProfile = DLNAImageProfile.JPEG_LRG;
-								}
+								imageProfile = switch (dlna.getMedia().getImageInfo().getFormat()) {
+									case GIF -> DLNAImageProfile.GIF_LRG;
+									case PNG -> DLNAImageProfile.PNG_LRG;
+									default -> DLNAImageProfile.JPEG_LRG;
+								};
 							} else {
 								imageProfile = DLNAImageProfile.JPEG_LRG;
 							}
@@ -827,20 +822,16 @@ public class RequestV2 extends HTTPResource {
 
 					// Add a listener to clean up after sending the entire response body.
 					final InputStream finalInputStream = inputStream;
-					chunkWriteFuture.addListener(new ChannelFutureListener() {
-						@Override
-						public void operationComplete(ChannelFuture future) {
-							try {
-								finalInputStream.close();
-							} catch (IOException e) {
-								LOGGER.error("Caught exception", e);
-							}
-
-							// Always close the channel after the response is sent because of
-							// a freeze at the end of video when the channel is not closed.
-							future.getChannel().close();
-							startStopListenerDelegate.stop();
+					chunkWriteFuture.addListener((ChannelFuture future1) -> {
+						try {
+							finalInputStream.close();
+						} catch (IOException e) {
+							LOGGER.error("Caught exception", e);
 						}
+						// Always close the channel after the response is sent because of
+						// a freeze at the end of video when the channel is not closed.
+						future1.getChannel().close();
+						startStopListenerDelegate.stop();
 					});
 				} else {
 					// HEAD method is being used, so simply clean up after the response was sent.
@@ -1289,10 +1280,10 @@ public class RequestV2 extends HTTPResource {
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
 			for (DLNAResource uf : files) {
-				if (uf instanceof PlaylistFolder) {
+				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
-						((PlaylistFolder) uf).resolve();
+						playlistFolder.resolve();
 					}
 				}
 

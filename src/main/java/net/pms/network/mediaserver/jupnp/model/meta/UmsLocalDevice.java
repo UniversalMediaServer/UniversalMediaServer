@@ -91,7 +91,7 @@ public class UmsLocalDevice extends LocalDevice {
 		} catch (IOException ex) {
 			LOGGER.debug("Error in device icons creation: {}", ex);
 		}
-		return icons.toArray(new Icon[0]);
+		return icons.toArray(Icon[]::new);
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class UmsLocalDevice extends LocalDevice {
 		services.add(createContentDirectoryService());
 		services.add(createServerConnectionManagerService());
 		services.add(createMediaReceiverRegistrarService());
-		return services.toArray(new LocalService[] {});
+		return services.toArray(LocalService[]::new);
 	}
 
 	/**
