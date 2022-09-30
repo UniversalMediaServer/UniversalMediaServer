@@ -431,6 +431,9 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.addProperty("web_enable", true);
 		jObj.addProperty("web_gui_on_start", true);
 		jObj.addProperty("web_gui_port", 9002);
+		jObj.addProperty("web_player_auth", false);
+		jObj.addProperty("web_player_controls", true);
+		jObj.addProperty("web_player_download", true);
 		jObj.addProperty("web_port", 9001);
 		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
 		jObj.addProperty("3d_subtitles_depth", "0");

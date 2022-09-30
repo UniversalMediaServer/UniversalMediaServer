@@ -51,7 +51,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 data={getLanguagesSelectData()}
                 {...form.getInputProps('language')}
               />
-              <Stack align="flex-start" mt="sm">
+              <Stack align='flex-start' mt='sm'>
                 <Checkbox
                   disabled={!canModify}
                   label={i18n.get['StartMinimizedSystemTray']}
@@ -152,6 +152,27 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 hideControls
                 {...form.getInputProps('web_port')}
               />
+              <Stack align='flex-start' mt='sm'>
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['UseAuthenticationService']}
+                  {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
+                />
+                {!form.values['web_player_auth'] && (
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['AllowMediaDownload']}
+                    {...form.getInputProps('web_player_download', { type: 'checkbox' })}
+                  />
+                )}
+                {!form.values['web_player_auth'] && (
+                  <Checkbox
+                    disabled={!canModify}
+                    label={i18n.get['CanControlOtherDevices']}
+                    {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
+                  />
+                )}
+              </Stack>
             </Accordion.Panel>
           </Accordion.Item>
           ) }

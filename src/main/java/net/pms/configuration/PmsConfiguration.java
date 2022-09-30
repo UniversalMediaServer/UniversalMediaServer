@@ -375,6 +375,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	protected static final String KEY_WEB_CONTROL = "web_control";
+	protected static final String KEY_WEB_PLAYER_AUTHENTICATION = "web_player_auth";
+	protected static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
+	protected static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
 	protected static final String KEY_WEB_PLAYER_ENABLE = "web_enable";
 	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
@@ -4967,6 +4970,18 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getBumpSkinDir(String fallback) {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
+	public boolean isWebPlayerAuthenticationEnabled() {
+		return getBoolean(KEY_WEB_PLAYER_AUTHENTICATION, false);
+	}
+
+	public boolean isWebPlayerControlsEnabled() {
+		return getBoolean(KEY_WEB_PLAYER_CONTROLS, true);
+	}
+
+	public boolean isWebPlayerDownload() {
+		return getBoolean(KEY_WEB_PLAYER_DOWNLOAD, true);
 	}
 
 	/**
