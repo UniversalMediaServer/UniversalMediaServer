@@ -105,7 +105,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
-                    mt="xl"
+                    mt='xl'
                     label={i18n.get['AppendProfileName']}
                     {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
                   />
@@ -146,7 +146,7 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 {...form.getInputProps('web_enable', { type: 'checkbox' })}
               />
               <NumberInput
-                disabled={!canModify}
+                disabled={!canModify || !form.values['web_enable']}
                 placeholder={defaultConfiguration.web_port}
                 label={i18n.get['ForcePortPlayerServer']}
                 hideControls
@@ -177,21 +177,24 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 label={i18n.get['UseIpFilter']}
                 {...form.getInputProps('ip_filter')}
               />
-              <NumberInput
-                label={i18n.get['MaximumBandwidthMbs']}
-                disabled={!canModify || form.values['automatic_maximum_bitrate']}
-                placeholder={i18n.get['Mbs']}
-                hideControls
-                {...form.getInputProps('maximum_bitrate')}
-              />
-              <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
-                <Checkbox
-                  disabled={!canModify}
-                  mt="xl"
-                  label={i18n.get['UseAutomaticMaximumBandwidth']}
-                  {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
+              <Group>
+                <NumberInput
+                  label={i18n.get['MaximumBandwidthMbs']}
+                  disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                  sx={{ flex: 1 }}
+                  placeholder={i18n.get['Mbs']}
+                  hideControls
+                  {...form.getInputProps('maximum_bitrate')}
                 />
-              </Tooltip>
+                <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
+                  <Checkbox
+                    disabled={!canModify}
+                    mt='xl'
+                    label={i18n.get['UseAutomaticMaximumBandwidth']}
+                    {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
+                  />
+                </Tooltip>
+              </Group>
             </Accordion.Panel>
           </Accordion.Item>
           ) }
