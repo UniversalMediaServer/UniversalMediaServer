@@ -55,20 +55,25 @@ public enum FullyPlayedAction {
 	@Override
 	public String toString() {
 		switch (this) {
-			case HIDE_MEDIA:
+			case HIDE_MEDIA -> {
 				return "Hide media";
-			case MARK:
+			}
+			case MARK -> {
 				return "Mark";
-			case MOVE_FOLDER:
+			}
+			case MOVE_FOLDER -> {
 				return "Move to folder";
-			case MOVE_FOLDER_AND_MARK:
+			}
+			case MOVE_FOLDER_AND_MARK -> {
 				return "Move to folder and mark";
-			case MOVE_TRASH:
+			}
+			case MOVE_TRASH -> {
 				return "Move to trash";
-			case NO_ACTION:
+			}
+			case NO_ACTION -> {
 				return "No action";
-			default:
-				throw new IllegalStateException("Unimplemented value " + super.toString() + " in FullyPlayedAction");
+			}
+			default -> throw new IllegalStateException("Unimplemented value " + super.toString() + " in FullyPlayedAction");
 		}
 	}
 

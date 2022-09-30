@@ -1,4 +1,4 @@
-import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
 import { useContext } from 'react';
 
@@ -89,7 +89,7 @@ export default function NavigationSettings(form:UseFormReturnType<any>,defaultCo
                     data={getI18nSelectData(selectionSettings.fullyPlayedActions)}
                     {...form.getInputProps('fully_played_action')}
                   />
-                  {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '4') && (
+                  {(form.values['fully_played_action'] === '3' || form.values['fully_played_action'] === '5') && (
                     <DirectoryChooser
                       disabled={!canModify}
                       label={i18n.get['DestinationFolder']}

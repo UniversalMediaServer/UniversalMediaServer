@@ -17,14 +17,7 @@
  */
 package net.pms.configuration;
 
-import net.pms.util.ProgramExecutableType;
-import net.pms.platform.TempFolder;
-import net.pms.util.IpFilter;
-import net.pms.util.ExternalProgramInfo;
-import net.pms.platform.PlatformProgramPaths;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -62,19 +55,24 @@ import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
+import net.pms.platform.TempFolder;
 import net.pms.platform.windows.WindowsRegistry;
-import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.Services;
+import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
 import net.pms.util.CoverSupplier;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
+import net.pms.util.IpFilter;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
+import net.pms.util.ProgramExecutableType;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
@@ -86,6 +84,7 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +183,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
-	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	// TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
 	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
 	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
@@ -434,38 +434,33 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * The set of keys defining when the media server should be restarted due to a
 	 * configuration change.
 	 */
-	public static final Set<String> NEED_MEDIA_SERVER_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(
-			KEY_CHROMECAST_EXT,
-			KEY_NETWORK_INTERFACE,
-			KEY_SERVER_ENGINE,
-			KEY_SERVER_HOSTNAME,
-			KEY_SERVER_PORT,
-			KEY_UPNP_ENABLED
-		)
+	public static final Set<String> NEED_MEDIA_SERVER_RELOAD_FLAGS = Set.of(
+		KEY_CHROMECAST_EXT,
+		KEY_NETWORK_INTERFACE,
+		KEY_SERVER_ENGINE,
+		KEY_SERVER_HOSTNAME,
+		KEY_SERVER_PORT,
+		KEY_UPNP_ENABLED
 	);
 
 	/**
 	 * The set of keys defining when the HTTP Interface server should be restarted
 	 * due to a configuration change.
 	 */
-	public static final Set<String> NEED_INTERFACE_SERVER_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(KEY_WEB_PLAYER_ENABLE,
-			KEY_WEB_HTTPS,
-			KEY_WEB_PORT
-		)
+	public static final Set<String> NEED_INTERFACE_SERVER_RELOAD_FLAGS = Set.of(
+		KEY_WEB_PLAYER_ENABLE,
+		KEY_WEB_HTTPS,
+		KEY_WEB_PORT
 	);
 
 	/**
 	 * The set of keys defining when the renderers should be reloaded due to a
 	 * configuration change.
 	 */
-	public static final Set<String> NEED_RENDERERS_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(
-			KEY_RENDERER_DEFAULT,
-			KEY_RENDERER_FORCE_DEFAULT,
-			KEY_SELECTED_RENDERERS
-		)
+	public static final Set<String> NEED_RENDERERS_RELOAD_FLAGS = Set.of(
+		KEY_RENDERER_DEFAULT,
+		KEY_RENDERER_FORCE_DEFAULT,
+		KEY_SELECTED_RENDERERS
 	);
 
 	/**
@@ -474,40 +469,36 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 * It will need a renderers reload as renderers build from it.
 	 */
-	public static final Set<String> NEED_MEDIA_LIBRARY_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(
-			KEY_FULLY_PLAYED_ACTION,
-			KEY_SHOW_RECENTLY_PLAYED_FOLDER,
-			KEY_USE_CACHE
-		)
+	public static final Set<String> NEED_MEDIA_LIBRARY_RELOAD_FLAGS = Set.of(
+		KEY_FULLY_PLAYED_ACTION,
+		KEY_SHOW_RECENTLY_PLAYED_FOLDER,
+		KEY_USE_CACHE
 	);
 
 	/**
 	 * The set of keys defining when the renderers has to rebuid their root folder
 	 * due to a configuration change.
 	 */
-	public static final Set<String> NEED_RENDERERS_ROOT_RELOAD_FLAGS = new HashSet<>(
-		Arrays.asList(
-			KEY_ATZ_LIMIT,
-			KEY_AUDIO_THUMBNAILS_METHOD,
-			KEY_CHAPTER_SUPPORT,
-			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
-			KEY_DISABLE_TRANSCODING,
-			KEY_FOLDERS,
-			KEY_FOLDERS_MONITORED,
-			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
-			KEY_HIDE_EMPTY_FOLDERS,
-			KEY_OPEN_ARCHIVES,
-			KEY_PRETTIFY_FILENAMES,
-			KEY_SHOW_APERTURE_LIBRARY,
-			KEY_SHOW_IPHOTO_LIBRARY,
-			KEY_SHOW_ITUNES_LIBRARY,
-			KEY_SHOW_LIVE_SUBTITLES_FOLDER,
-			KEY_SHOW_MEDIA_LIBRARY_FOLDER,
-			KEY_SHOW_SERVER_SETTINGS_FOLDER,
-			KEY_SHOW_TRANSCODE_FOLDER,
-			KEY_SORT_METHOD
-		)
+	public static final Set<String> NEED_RENDERERS_ROOT_RELOAD_FLAGS = Set.of(
+		KEY_ATZ_LIMIT,
+		KEY_AUDIO_THUMBNAILS_METHOD,
+		KEY_CHAPTER_SUPPORT,
+		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
+		KEY_DISABLE_TRANSCODING,
+		KEY_FOLDERS,
+		KEY_FOLDERS_MONITORED,
+		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
+		KEY_HIDE_EMPTY_FOLDERS,
+		KEY_OPEN_ARCHIVES,
+		KEY_PRETTIFY_FILENAMES,
+		KEY_SHOW_APERTURE_LIBRARY,
+		KEY_SHOW_IPHOTO_LIBRARY,
+		KEY_SHOW_ITUNES_LIBRARY,
+		KEY_SHOW_LIVE_SUBTITLES_FOLDER,
+		KEY_SHOW_MEDIA_LIBRARY_FOLDER,
+		KEY_SHOW_SERVER_SETTINGS_FOLDER,
+		KEY_SHOW_TRANSCODE_FOLDER,
+		KEY_SORT_METHOD
 	);
 
 	/*
@@ -3597,7 +3588,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @return available subtitles info levels as a JSON array
 	 */
-	public synchronized static JsonArray getSubtitlesInfoLevelsAsJsonArray() {
+	public static synchronized JsonArray getSubtitlesInfoLevelsAsJsonArray() {
 		String[] values = new String[] {
 			SubtitlesInfoLevel.NONE.toString(),
 			SubtitlesInfoLevel.BASIC.toString(),
@@ -3614,14 +3605,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @return available fully played actions as a JSON array
 	 */
-	public synchronized static JsonArray getFullyPlayedActionsAsJsonArray() {
+	public static synchronized JsonArray getFullyPlayedActionsAsJsonArray() {
 		String[] values = new String[]{
-			FullyPlayedAction.NO_ACTION.toString(),
-			FullyPlayedAction.MARK.toString(),
-			FullyPlayedAction.HIDE_MEDIA.toString(),
-			FullyPlayedAction.MOVE_FOLDER.toString(),
-			FullyPlayedAction.MOVE_FOLDER_AND_MARK.toString(),
-			FullyPlayedAction.MOVE_TRASH.toString()
+			String.valueOf(FullyPlayedAction.NO_ACTION.getValue()),
+			String.valueOf(FullyPlayedAction.MARK.getValue()),
+			String.valueOf(FullyPlayedAction.HIDE_MEDIA.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_FOLDER.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_FOLDER_AND_MARK.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_TRASH.getValue())
 		};
 		String[] labels = new String[]{
 			"i18n@DoNothing",
@@ -3634,7 +3625,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
-	public synchronized static JsonArray getSubtitlesCodepageArray() {
+	public static synchronized JsonArray getSubtitlesCodepageArray() {
 		String[] values = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
 			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",

@@ -339,7 +339,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		jObj.add("engines", transcodingEngines);
 		jObj.add("engines_priority", transcodingEngines);
 		jObj.addProperty("force_transcode_for_extensions", "");
-		jObj.addProperty("fully_played_action", FullyPlayedAction.MARK.toString());
+		jObj.addProperty("fully_played_action", String.valueOf(FullyPlayedAction.MARK.getValue()));
 		jObj.addProperty("fully_played_output_directory", "");
 		jObj.addProperty("gpu_acceleration", false);
 		jObj.addProperty("external_network", true);
