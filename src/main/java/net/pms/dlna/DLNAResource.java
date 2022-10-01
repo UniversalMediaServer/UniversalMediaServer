@@ -741,7 +741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * given renderer, and return the relevant engine or null as appropriate.
 	 *
 	 * @param renderer The target renderer
-	 * @return A engine if transcoding or null if streaming
+	 * @return An engine if transcoding or null if streaming
 	 */
 	public Engine resolveEngine(RendererConfiguration renderer) {
 		// Use device-specific conf, if any
