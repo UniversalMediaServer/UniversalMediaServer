@@ -36,6 +36,13 @@ import java.util.HashMap;
 public class LoggingConfigFileLoader {
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	@Deprecated
+	private LoggingConfigFileLoader() {
+	}
+
+	/**
 	 * @deprecated Use {@link LoggingConfig#getLogFilePaths()}
 	 * @return
 	 */

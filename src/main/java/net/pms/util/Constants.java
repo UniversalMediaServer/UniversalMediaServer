@@ -1,6 +1,12 @@
 package net.pms.util;
 
 public class Constants {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Constants() {
+	}
+
 	public static final String CHARSET_ISO_2022_JP	= "ISO-2022-JP".intern();
 	public static final String CHARSET_ISO_2022_CN	= "ISO-2022-CN".intern();
 	public static final String CHARSET_ISO_2022_KR	= "ISO-2022-KR".intern();

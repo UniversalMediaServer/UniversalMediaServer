@@ -40,6 +40,12 @@ public class GuiManager {
 	private static boolean serverReady = false;
 	private static boolean needLogFile = false;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private GuiManager() {
+	}
+
 	public static void addGui(IGui gui) {
 		if (gui != null) {
 			if (gui instanceof LooksFrame) {

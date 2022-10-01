@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,7 +17,6 @@
  */
 package net.pms.newgui;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
@@ -25,7 +24,6 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
-import java.awt.event.ActionListener;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,7 +34,6 @@ import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
@@ -45,7 +42,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
-import net.pms.io.BasicSystemUtils;
+import net.pms.gui.IGui;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
@@ -55,11 +52,12 @@ import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.update.AutoUpdateDialog;
+import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.gui.IGui;
+import org.apache.commons.lang3.StringUtils;
 
 public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
@@ -97,7 +95,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
 	private HelpTab ht;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);
@@ -301,37 +299,17 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		}
 
 		// Shared Fonts
-		final Integer twelve = Integer.valueOf(12);
-		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
-		final Integer fontBold = Integer.valueOf(Font.BOLD);
+		final Integer twelve = 12;
+		final Integer fontPlain = Font.PLAIN;
+		final Integer fontBold = Font.BOLD;
 
-		LazyValue dialogPlain12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.DIALOG, fontPlain, twelve);
-			}
-		};
+		LazyValue dialogPlain12 = (UIDefaults t) -> new FontUIResource(Font.DIALOG, fontPlain, twelve);
 
-		LazyValue sansSerifPlain12 =  new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
-			}
-		};
+		LazyValue sansSerifPlain12 =  (UIDefaults t) -> new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
 
-		LazyValue monospacedPlain12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
-			}
-		};
+		LazyValue monospacedPlain12 = (UIDefaults t) -> new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
 
-		LazyValue dialogBold12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.DIALOG, fontBold, twelve);
-			}
-		};
+		LazyValue dialogBold12 = (UIDefaults t) -> new FontUIResource(Font.DIALOG, fontBold, twelve);
 
 		Object menuFont = dialogPlain12;
 		Object fixedControlFont = monospacedPlain12;
@@ -446,12 +424,13 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		}
 
 		setTitle(title);
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		if (Platform.isMac()) {
 			addWindowListener(new WindowAdapter() {
+				@Override
 				public void windowClosing(WindowEvent e) {
 					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					setExtendedState(JFrame.ICONIFIED);
+					setExtendedState(Frame.ICONIFIED);
 				}
 			});
 		}
@@ -468,10 +447,10 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		if (configuration.isMinimized() && Platform.isMac()) {
 			// setVisible is required to iconify the frame
 			setVisible(true);
-			setExtendedState(JFrame.ICONIFIED);
+			setExtendedState(Frame.ICONIFIED);
 		}
 
-		BasicSystemUtils.instance.addSystemTray(this);
+		PlatformUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
@@ -479,7 +458,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		return url == null ? null : new ImageIcon(url);
 	}
 
-	public JComponent buildContent() {
+	public final JComponent buildContent() {
 		JPanel panel = new JPanel(new BorderLayout());
 		JToolBar toolBar = new JToolBar();
 		toolBar.setFloatable(false);
@@ -490,31 +469,28 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		if (PMS.getConfiguration().useWebInterfaceServer()) {
 			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			webinterface.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					String error = null;
-					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
-						try {
-							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
-								error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
-							}
-						} catch (URISyntaxException se) {
-							LOGGER.error(
+			webinterface.addActionListener((ActionEvent e) -> {
+				String error = null;
+				if (PMS.get().getWebInterfaceServer() != null && StringUtils.isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
+					try {
+						URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
+						if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
+							error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
+						}
+					} catch (URISyntaxException se) {
+						LOGGER.error(
 								"Could not form a valid web player server URI from \"{}\": {}",
 								PMS.get().getWebInterfaceServer().getUrl(),
 								se.getMessage()
-							);
-							LOGGER.trace("", se);
-							error = Messages.getString("CouldNotFormValidUrl");
-						}
-					} else {
+						);
+						LOGGER.trace("", se);
 						error = Messages.getString("CouldNotFormValidUrl");
 					}
-					if (error != null) {
-						JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
-					}
+				} else {
+					error = Messages.getString("CouldNotFormValidUrl");
+				}
+				if (error != null) {
+					JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 				}
 			});
 			webinterface.setEnabled(false);
@@ -525,12 +501,9 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		restartIcon = (AnimatedIcon) reload.getIcon();
 		restartRequredIcon.start();
 		setReloadable(false);
-		reload.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				reload.setEnabled(false);
-				PMS.get().resetMediaServer();
-			}
+		reload.addActionListener((ActionEvent e) -> {
+			reload.setEnabled(false);
+			PMS.get().resetMediaServer();
 		});
 		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -539,12 +512,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		quit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				quit();
-			}
-		});
+		quit.addActionListener((ActionEvent e) -> quit());
 		toolBar.add(quit);
 		if (System.getProperty(START_SERVICE) != null) {
 			quit.setEnabled(false);
@@ -596,17 +564,12 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		tabbedPane.addTab(Messages.getString("Help"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("About"), new AboutTab().build());
 
-		tabbedPane.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int selectedIndex = tabbedPane.getSelectedIndex();
-
-				if (HELP_PAGES[selectedIndex] != null) {
-					PMS.setHelpPage(HELP_PAGES[selectedIndex]);
-
-					// Update the contents of the help tab itself
-					ht.updateContents();
-				}
+		tabbedPane.addChangeListener((ChangeEvent e) -> {
+			int selectedIndex = tabbedPane.getSelectedIndex();
+			if (HELP_PAGES[selectedIndex] != null) {
+				PMS.setHelpPage(HELP_PAGES[selectedIndex]);
+				// Update the contents of the help tab itself
+				ht.updateContents();
 			}
 		});
 
@@ -759,6 +722,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	 * Sets a secondary status line.
 	 * If it receives null, it will try to set the primary status
 	 * line if it exists, otherwise clear it.
+	 * @param line
 	 */
 	@Override
 	public void setSecondaryStatusLine(String line) {

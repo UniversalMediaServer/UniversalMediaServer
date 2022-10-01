@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_MENCODER;
+	public static final EngineId ID = StandardEngineId.AVI_SYNTH_MENCODER;
 	public static final String NAME = "AviSynth/MEncoder";
 
 	// Not to be instantiated by anything but PlayerFactory
@@ -45,11 +45,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -220,10 +220,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
 
-		if (format != null) {
-			if (format.getIdentifier() == Format.Identifier.WEB) {
-				return false;
-			}
+		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
+			return false;
 		}
 
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
@@ -232,11 +230,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.isExternal()) {
-				return true;
-			}
-
-			return false;
+			return subtitle.isExternal();
 		}
 
 		try {
@@ -253,14 +247,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 }

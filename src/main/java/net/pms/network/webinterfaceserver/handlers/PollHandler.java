@@ -20,7 +20,7 @@ package net.pms.network.webinterfaceserver.handlers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;

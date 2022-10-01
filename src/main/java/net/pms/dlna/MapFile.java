@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -510,8 +510,8 @@ public class MapFile extends DLNAResource {
 		if (getMediaSubtitle() != null) {
 			result.append(", selected subtitles=[").append(getMediaSubtitle()).append("]");
 		}
-		if (getPlayer() != null) {
-			result.append(", player=").append(getPlayer());
+		if (getEngine() != null) {
+			result.append(", player=").append(getEngine());
 		}
 		if (getChildren() != null && !getChildren().isEmpty()) {
 			result.append(", children=").append(getChildren());

@@ -1309,7 +1309,7 @@ public class StringUtil {
 	/**
 	 * An {@code enum} representing letter cases.
 	 */
-	public static enum LetterCase {
+	public enum LetterCase {
 
 		/** Upper-case, uppercase, capital or majuscule */
 		UPPER,

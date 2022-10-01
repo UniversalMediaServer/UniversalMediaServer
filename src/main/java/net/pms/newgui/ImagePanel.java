@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -22,7 +22,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,15 +134,12 @@ public class ImagePanel extends JButton {
 
 	public void enableRollover() {
 		setRolloverEnabled(true);
-		getModel().addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (getSource() != null) {
-					ButtonModel model = (ButtonModel) e.getSource();
-					setBackground(model.isRollover() ? HIGHLIGHT : BACKGROUND);
-					//setBorderPainted(model.isRollover()); // some lafs ignore borderPainted
-					//setCursor(model.isRollover() ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
-				}
+		getModel().addChangeListener((ChangeEvent e) -> {
+			if (getSource() != null) {
+				ButtonModel model1 = (ButtonModel) e.getSource();
+				setBackground(model1.isRollover() ? HIGHLIGHT : BACKGROUND);
+				//setBorderPainted(model.isRollover()); // some lafs ignore borderPainted
+				//setCursor(model.isRollover() ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 		});
 	}
@@ -151,9 +147,7 @@ public class ImagePanel extends JButton {
 	public void setGrey(boolean b) {
 		if (isGrey != b) {
 			isGrey = b;
-			SwingUtilities.invokeLater(() -> {
-				repaint();
-			});
+			SwingUtilities.invokeLater(() -> repaint());
 		}
 	}
 
@@ -175,8 +169,8 @@ public class ImagePanel extends JButton {
 	}
 
 	public static BufferedImage toBufferedImage(Image img) {
-		if (img instanceof BufferedImage) {
-			return (BufferedImage) img;
+		if (img instanceof BufferedImage bufferedImage) {
+			return bufferedImage;
 		}
 		BufferedImage bi = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = bi.createGraphics();

@@ -9,16 +9,19 @@ public class ApiResponseFactory {
 
 	public ApiResponseHandler getApiResponseHandler(String apiType) {
 		switch (apiType) {
-			case FolderScanner.PATH_MATCH:
+			case FolderScanner.PATH_MATCH -> {
 				return new FolderScanner();
-			case LikeMusic.PATH_MATCH:
+			}
+			case LikeMusic.PATH_MATCH -> {
 				return new LikeMusic();
-			case StarRating.PATH_MATCH:
+			}
+			case StarRating.PATH_MATCH -> {
 				return new StarRating();
-			case PlaylistService.PATH_MATCH:
+			}
+			case PlaylistService.PATH_MATCH -> {
 				return new PlaylistService();
+			}
+			default -> throw new RuntimeException("No api Handler found");
 		}
-
-		throw new RuntimeException("No api Handler found");
 	}
 }

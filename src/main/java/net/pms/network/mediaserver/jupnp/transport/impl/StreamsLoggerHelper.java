@@ -46,6 +46,12 @@ public class StreamsLoggerHelper {
 	private static final String HTTPCLIENT_RESPONSE_BEGIN = "==================================== HTTPCLIENT RESPONSE BEGIN ===================================";
 	private static final String HTTPCLIENT_RESPONSE_END =   "==================================== HTTPCLIENT RESPONSE END =====================================";
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private StreamsLoggerHelper() {
+	}
+
 	public static void logStreamServerRequestMessage(StreamRequestMessage requestMessage) {
 		String formattedRequest = getFormattedRequest(requestMessage);
 		String formattedHeaders = getFormattedHeaders(requestMessage);

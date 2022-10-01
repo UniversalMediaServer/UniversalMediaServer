@@ -15,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import net.pms.PMS;
@@ -23,6 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
 public class Build {
+
+	/**
+	 * This class should not be instantiated.
+	 */
+	private Build() {}
+
 	/**
 	 * Repository where to locate the file. Note: using "raw.github.com"
 	 * to access the raw file.

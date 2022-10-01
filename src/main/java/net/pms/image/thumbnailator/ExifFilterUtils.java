@@ -19,7 +19,7 @@ public final class ExifFilterUtils {
 	/**
 	 * This class should not be instantiated.
 	 */
-	private ExifFilterUtils() {};
+	private ExifFilterUtils() {}
 
 	/**
 	 * Returns a {@link ImageFilter} which will perform the transformations

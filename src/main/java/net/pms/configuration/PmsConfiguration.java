@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,6 +17,11 @@
  */
 package net.pms.configuration;
 
+import net.pms.util.ProgramExecutableType;
+import net.pms.platform.TempFolder;
+import net.pms.util.IpFilter;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.platform.PlatformProgramPaths;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import ch.qos.logback.classic.Level;
 import com.sun.jna.Platform;
@@ -41,12 +46,14 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.PlayerId;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.EngineId;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsRegistry;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
@@ -63,7 +70,6 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
-import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -91,11 +97,11 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	private static volatile boolean enabledEnginesBuilt = false;
 	private static final ReentrantReadWriteLock ENABLED_ENGINES_LOCK = new ReentrantReadWriteLock();
-	private static UniqueList<PlayerId> enabledEngines;
+	private static UniqueList<EngineId> enabledEngines;
 
 	private static volatile boolean enginesPriorityBuilt = false;
 	private static final ReentrantReadWriteLock ENGINES_PRIORITY_LOCK = new ReentrantReadWriteLock();
-	private static UniqueList<PlayerId> enginesPriority;
+	private static UniqueList<EngineId> enginesPriority;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -204,11 +210,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
 	 */
+	@Deprecated
 	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 
 	/**
 	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
 	 */
+	@Deprecated
 	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -892,51 +900,51 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Returns the configured {@link ProgramExecutableType} for the specified
-	 * {@link Player}. Note that this can be different from the
-	 * {@link Player#currentExecutableType} for the same {@link Player}.
+	 * {@link Engine}. Note that this can be different from the
+	 * {@link Engine#currentExecutableType} for the same {@link Engine}.
 	 *
-	 * @param player the {@link Player} for which to get the configured
+	 * @param engine the {@link Engine} for which to get the configured
 	 *            {@link ProgramExecutableType}.
 	 * @return The configured {@link ProgramExecutableType}, the default
 	 *         {@link ProgramExecutableType} if none is configured or
 	 *         {@code null} if there is no default.
 	 *
-	 * @see Player#getCurrentExecutableType()
+	 * @see Engine#getCurrentExecutableType()
 	 */
 	@Nullable
-	public ProgramExecutableType getPlayerExecutableType(@Nonnull Player player) {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
+	public ProgramExecutableType getEngineExecutableType(@Nonnull Engine engine) {
+		if (engine == null) {
+			throw new IllegalArgumentException("engine cannot be null");
 		}
 
 		ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
-			getString(player.getExecutableTypeKey(), null),
-			player.getProgramInfo().getDefault()
+			getString(engine.getExecutableTypeKey(), null),
+			engine.getProgramInfo().getDefault()
 		);
 
 		// The default might also be null, in which case the current should be used.
-		return executableType == null ? player.getCurrentExecutableType() : executableType;
+		return executableType == null ? engine.getCurrentExecutableType() : executableType;
 	}
 
 	/**
 	 * Sets the configured {@link ProgramExecutableType} for the specified
-	 * {@link Player}.
+	 * {@link Engine}.
 	 *
-	 * @param player the {@link Player} for which to set the configured
+	 * @param engine the {@link Engine} for which to set the configured
 	 *            {@link ProgramExecutableType}.
 	 * @param executableType the {@link ProgramExecutableType} to set.
 	 * @return {@code true} if a change was made, {@code false} otherwise.
 	 */
-	public boolean setPlayerExecutableType(@Nonnull Player player, @Nonnull ProgramExecutableType executableType) {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
+	public boolean setEngineExecutableType(@Nonnull Engine engine, @Nonnull ProgramExecutableType executableType) {
+		if (engine == null) {
+			throw new IllegalArgumentException("engine cannot be null");
 		}
 
 		if (executableType == null) {
 			throw new IllegalArgumentException("executableType cannot be null");
 		}
 
-		String key = player.getExecutableTypeKey();
+		String key = engine.getExecutableTypeKey();
 		if (key != null) {
 			String currentValue = configuration.getString(key);
 			String newValue = executableType.toRootString();
@@ -945,7 +953,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 
 			configuration.setProperty(key, newValue);
-			player.determineCurrentExecutableType(executableType);
+			engine.determineCurrentExecutableType(executableType);
 			return true;
 		}
 
@@ -953,48 +961,48 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the configured {@link Path} for the specified {@link PlayerId}. The
-	 * {@link Player} must be registered. No check for existence or search in
+	 * Gets the configured {@link Path} for the specified {@link EngineId}. The
+	 * {@link Engine} must be registered. No check for existence or search in
 	 * the OS path is performed.
 	 *
-	 * @param playerId the {@link PlayerId} for the registered {@link Player}
+	 * @param engineId the {@link EngineId} for the registered {@link Engine}
 	 *            whose configured {@link Path} to get.
 	 * @return The configured {@link Path} or {@code null} if missing, blank or
 	 *         invalid.
 	 */
 	@Nullable
-	public Path getPlayerCustomPath(@Nullable PlayerId playerId) {
-		if (playerId == null) {
+	public Path getEngineCustomPath(@Nullable EngineId engineId) {
+		if (engineId == null) {
 			return null;
 		}
 
-		return getPlayerCustomPath(PlayerFactory.getPlayer(playerId, false, false));
+		return PmsConfiguration.this.getEngineCustomPath(EngineFactory.getEngine(engineId, false, false));
 	}
 
 	/**
-	 * Gets the configured {@link Path} for the specified {@link Player}. No
+	 * Gets the configured {@link Path} for the specified {@link Engine}. No
 	 * check for existence or search in the OS path is performed.
 	 *
-	 * @param player the {@link Player} whose configured {@link Path} to get.
+	 * @param engine the {@link Engine} whose configured {@link Path} to get.
 	 * @return The configured {@link Path} or {@code null} if missing, blank or
 	 *         invalid.
 	 */
 	@Nullable
-	public Path getPlayerCustomPath(@Nullable Player player) {
+	public Path getEngineCustomPath(@Nullable Engine engine) {
 		if (
-			player == null ||
-			isBlank(player.getConfigurablePathKey()) ||
+			engine == null ||
+			isBlank(engine.getConfigurablePathKey()) ||
 			!(programPaths instanceof ConfigurableProgramPaths)
 		) {
 			return null;
 		}
 
 		try {
-			return ((ConfigurableProgramPaths) programPaths).getCustomProgramPath(player.getConfigurablePathKey());
+			return ((ConfigurableProgramPaths) programPaths).getCustomProgramPath(engine.getConfigurablePathKey());
 		} catch (ConfigurationException e) {
 			LOGGER.warn(
 				"An invalid executable path is configured for transcoding engine {}. The path is being ignored: {}",
-				player,
+				engine,
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
@@ -1003,29 +1011,29 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the custom executable {@link Path} for the specified {@link Player}
+	 * Sets the custom executable {@link Path} for the specified {@link Engine}
 	 * in the configuration.
 	 * <p>
 	 * <b>Note:</b> This isn't normally what you'd want. To change the
-	 * {@link Path} <b>for the {@link Player} instance</b> in the same
-	 * operation, use {@link Player#setCustomExecutablePath} instead.
+	 * {@link Path} <b>for the {@link Engine} instance</b> in the same
+	 * operation, use {@link Engine#setCustomExecutablePath} instead.
 	 *
-	 * @param player the {@link Player} whose custom executable {@link Path} to
+	 * @param engine the {@link Engine} whose custom executable {@link Path} to
 	 *            set.
 	 * @param path the {@link Path} to set or {@code null} to clear.
 	 * @return {@code true} if a change was made to the configuration,
 	 *         {@code false} otherwise.
-	 * @throws IllegalStateException If {@code player} has no configurable path
+	 * @throws IllegalStateException If {@code engine} has no configurable path
 	 *             key or custom program paths aren't supported.
 	 */
-	public boolean setPlayerCustomPath(@Nonnull Player player, @Nullable Path path) {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
+	public boolean setEngineCustomPath(@Nonnull Engine engine, @Nullable Path path) {
+		if (engine == null) {
+			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		if (isBlank(player.getConfigurablePathKey())) {
+		if (isBlank(engine.getConfigurablePathKey())) {
 			throw new IllegalStateException(
-				"Can't set custom executable path for player " + player + "because it has no configurable path key"
+				"Can't set custom executable path for engine " + engine + "because it has no configurable path key"
 			);
 		}
 
@@ -1035,7 +1043,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		return ((ConfigurableProgramPaths) programPaths).setCustomProgramPathConfiguration(
 			path,
-			player.getConfigurablePathKey()
+			engine.getConfigurablePathKey()
 		);
 	}
 
@@ -2391,7 +2399,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				}
 
 			} catch (IOException e) {
-				if (!FileUtil.isAdmin()) {
+				if (!PlatformUtils.INSTANCE.isAdmin()) {
 					try {
 						GuiManager.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
 					} catch (NullPointerException e2) {
@@ -2848,7 +2856,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 
 			String engines = configuration.getString(KEY_ENGINES);
-			enabledEngines = stringToPlayerIdSet(engines);
+			enabledEngines = stringToEngineIdSet(engines);
 			if (isBlank(engines)) {
 				configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 			}
@@ -2860,13 +2868,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets a {@link UniqueList} of the {@link PlayerId}s in no particular
+	 * Gets a {@link UniqueList} of the {@link EngineId}s in no particular
 	 * order. Returns a new instance, any modifications won't affect original
 	 * list.
 	 *
-	 * @return A copy of the {@link List} of {@link PlayerId}s.
+	 * @return A copy of the {@link List} of {@link EngineId}s.
 	 */
-	public List<PlayerId> getEnabledEngines() {
+	public List<EngineId> getEnabledEngines() {
 		buildEnabledEngines();
 		ENABLED_ENGINES_LOCK.readLock().lock();
 		try {
@@ -2877,13 +2885,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the enabled status of the specified {@link PlayerId}.
+	 * Gets the enabled status of the specified {@link EngineId}.
 	 *
-	 * @param id the {@link PlayerId} to check.
-	 * @return {@code true} if the {@link Player} with {@code id} is enabled,
+	 * @param id the {@link EngineId} to check.
+	 * @return {@code true} if the {@link Engine} with {@code id} is enabled,
 	 *         {@code false} otherwise.
 	 */
-	public boolean isEngineEnabled(PlayerId id) {
+	public boolean isEngineEnabled(EngineId id) {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
@@ -2898,27 +2906,27 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the enabled status of the specified {@link Player}.
+	 * Gets the enabled status of the specified {@link Engine}.
 	 *
-	 * @param player the {@link Player} to check.
+	 * @param engine the {@link Engine} to check.
 	 * @return {@code true} if {@code player} is enabled, {@code false}
 	 *         otherwise.
 	 */
-	public boolean isEngineEnabled(Player player) {
-		if (player == null) {
-			throw new NullPointerException("player cannot be null");
+	public boolean isEngineEnabled(Engine engine) {
+		if (engine == null) {
+			throw new NullPointerException("engine cannot be null");
 		}
 
-		return isEngineEnabled(player.id());
+		return isEngineEnabled(engine.id());
 	}
 
 	/**
-	 * Sets the enabled status of the specified {@link PlayerId}.
+	 * Sets the enabled status of the specified {@link EngineId}.
 	 *
-	 * @param id the {@link PlayerId} whose enabled status to set.
+	 * @param id the {@link EngineId} whose enabled status to set.
 	 * @param enabled the enabled status to set.
 	 */
-	public void setEngineEnabled(PlayerId id, boolean enabled) {
+	public void setEngineEnabled(EngineId id, boolean enabled) {
 		if (id == null) {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
@@ -2942,31 +2950,31 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Sets the enabled status of the specified {@link Player}.
+	 * Sets the enabled status of the specified {@link Engine}.
 	 *
-	 * @param player the {@link Player} whose enabled status to set.
+	 * @param engine the {@link Engine} whose enabled status to set.
 	 * @param enabled the enabled status to set.
 	 */
-	public void setEngineEnabled(Player player, boolean enabled) {
-		setEngineEnabled(player.id(), enabled);
+	public void setEngineEnabled(Engine engine, boolean enabled) {
+		setEngineEnabled(engine.id(), enabled);
 	}
 
 	/**
 	 * This is to make sure that any incorrect capitalization in the
 	 * configuration file is corrected. This should only need to be called from
-	 * {@link PlayerFactory#registerPlayer(Player)}.
+	 * {@link EngineFactory#registerEngine(Engine)}.
 	 *
-	 * @param player the {@link Player} for which to assure correct
+	 * @param engine the {@link Engine} for which to assure correct
 	 *            capitalization.
 	 */
-	public void capitalizeEngineId(Player player) {
-		if (player == null) {
-			throw new NullPointerException("player cannot be null");
+	public void capitalizeEngineId(Engine engine) {
+		if (engine == null) {
+			throw new NullPointerException("engine cannot be null");
 		}
 
 		String engines = configuration.getString(KEY_ENGINES);
 		if (StringUtils.isNotBlank(engines)) {
-			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.id().toString());
 			if (!engines.equals(capitalizedEngines)) {
 				configuration.setProperty(KEY_ENGINES, capitalizedEngines);
 			}
@@ -2974,7 +2982,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		engines = configuration.getString(KEY_ENGINES_PRIORITY);
 		if (StringUtils.isNotBlank(engines)) {
-			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), player.id().toString());
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.id().toString());
 			if (!engines.equals(capitalizedEngines)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, capitalizedEngines);
 			}
@@ -2996,7 +3004,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			}
 
 			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
-			enginesPriority = stringToPlayerIdSet(enginesPriorityString);
+			enginesPriority = stringToEngineIdSet(enginesPriorityString);
 			if (isBlank(enginesPriorityString)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
@@ -3010,11 +3018,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns the priority index according to the rules of {@link List#indexOf}.
 	 *
-	 * @param id the {@link PlayerId} whose position to return.
+	 * @param id the {@link EngineId} whose position to return.
 	 * @return The priority index of {@code id}, or {@code -1} if the priority
 	 *         list doesn't contain {@code id}.
 	 */
-	public int getEnginePriority(PlayerId id) {
+	public int getEnginePriority(EngineId id) {
 		if (id == null) {
 			throw new NullPointerException("id cannot be null");
 		}
@@ -3043,46 +3051,46 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Returns the priority index according to the rules of {@link List#indexOf}.
 	 *
-	 * @param player the {@link Player} whose position to return.
-	 * @return the priority index of {@code player}, or -1 if this the priority
-	 *         list doesn't contain {@code player}.
+	 * @param engine the {@link Engine} whose position to return.
+	 * @return the priority index of {@code engine}, or -1 if this the priority
+	 *         list doesn't contain {@code engine}.
 	 */
-	public int getEnginePriority(Player player) {
-		if (player == null) {
-			throw new NullPointerException("player cannot be null");
+	public int getEnginePriority(Engine engine) {
+		if (engine == null) {
+			throw new NullPointerException("engine cannot be null");
 		}
 
-		return getEnginePriority(player.id());
+		return getEnginePriority(engine.id());
 	}
 
 	/**
-	 * Moves or inserts a {@link Player} directly above another {@link Player}
-	 * in the priority list. If {code abovePlayer} is {@code null},
-	 * {@code player} will be placed first in the list. If {@code abovePlayer}
-	 * isn't found, {@code player} will be placed last in the list.
+	 * Moves or inserts a {@link Engine} directly above another {@link Engine}
+	 * in the priority list. If {code aboveEngine} is {@code null},
+	 * {@code engine} will be placed first in the list. If {@code aboveEngine}
+	 * isn't found, {@code engine} will be placed last in the list.
 	 *
-	 * @param player the {@link Player} to move or insert in the priority list.
-	 * @param abovePlayer the {@link Player} to place {@code player} relative
+	 * @param engine the {@link Engine} to move or insert in the priority list.
+	 * @param aboveEngine the {@link Engine} to place {@code engine} relative
 	 *            to.
 	 */
-	public void setEnginePriorityAbove(@Nonnull Player player, @Nullable Player abovePlayer) {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
+	public void setEnginePriorityAbove(@Nonnull Engine engine, @Nullable Engine aboveEngine) {
+		if (engine == null) {
+			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		setEnginePriorityAbove(player.id(), abovePlayer == null ? null : abovePlayer.id());
+		setEnginePriorityAbove(engine.id(), aboveEngine == null ? null : aboveEngine.id());
 	}
 
 	/**
-	 * Moves or inserts a {@link PlayerId} directly above another
-	 * {@link PlayerId} in the priority list. If {code aboveId} is {@code null},
+	 * Moves or inserts a {@link EngineId} directly above another
+	 * {@link EngineId} in the priority list. If {code aboveId} is {@code null},
 	 * {@code id} will be placed first in the list. If {@code aboveId} isn't
 	 * found, {@code id} will be placed last in the list.
 	 *
-	 * @param id the {@link PlayerId} to move or insert in the priority list.
-	 * @param aboveId the {@link PlayerId} to place {@code id} relative to.
+	 * @param id the {@link EngineId} to move or insert in the priority list.
+	 * @param aboveId the {@link EngineId} to place {@code id} relative to.
 	 */
-	public void setEnginePriorityAbove(PlayerId id, PlayerId aboveId) {
+	public void setEnginePriorityAbove(EngineId id, EngineId aboveId) {
 		if (id == null) {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
@@ -3110,35 +3118,35 @@ public class PmsConfiguration extends RendererConfiguration {
 			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
 
-		PlayerFactory.sortPlayers();
+		EngineFactory.sortEngines();
 	}
 
 	/**
-	 * Moves or inserts a {@link Player} directly below another {@link Player}
-	 * in the priority list. If {code belowPlayer} is {@code null} or isn't
-	 * found, {@code player} will be placed last in the list.
+	 * Moves or inserts a {@link Engine} directly below another {@link Engine}
+	 * in the priority list. If {code belowEngine} is {@code null} or isn't
+	 * found, {@code engine} will be placed last in the list.
 	 *
-	 * @param player the {@link Player} to move or insert in the priority list.
-	 * @param belowPlayer the {@link Player} to place {@code player} relative
+	 * @param engine the {@link Engine} to move or insert in the priority list.
+	 * @param belowEngine the {@link Engine} to place {@code engine} relative
 	 *            to.
 	 */
-	public void setEnginePriorityBelow(Player player, Player belowPlayer) {
-		if (player == null) {
-			throw new IllegalArgumentException("player cannot be null");
+	public void setEnginePriorityBelow(Engine engine, Engine belowEngine) {
+		if (engine == null) {
+			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		setEnginePriorityBelow(player.id(), belowPlayer == null ? null : belowPlayer.id());
+		setEnginePriorityBelow(engine.id(), belowEngine == null ? null : belowEngine.id());
 	}
 
 	/**
-	 * Moves or inserts a {@link PlayerId} directly below another
-	 * {@link PlayerId} in the priority list. If {code belowId} is {@code null}
+	 * Moves or inserts a {@link EngineId} directly below another
+	 * {@link EngineId} in the priority list. If {code belowId} is {@code null}
 	 * or isn't found, {@code id} will be placed last in the list.
 	 *
-	 * @param id the {@link PlayerId} to move or insert in the priority list.
-	 * @param belowId the {@link PlayerId} to place {@code id} relative to.
+	 * @param id the {@link EngineId} to move or insert in the priority list.
+	 * @param belowId the {@link EngineId} to place {@code id} relative to.
 	 */
-	public void setEnginePriorityBelow(PlayerId id, PlayerId belowId) {
+	public void setEnginePriorityBelow(EngineId id, EngineId belowId) {
 		if (id == null) {
 			throw new IllegalArgumentException("Unrecognized id");
 		}
@@ -3166,7 +3174,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		} finally {
 			ENGINES_PRIORITY_LOCK.writeLock().unlock();
 		}
-		PlayerFactory.sortPlayers();
+		EngineFactory.sortEngines();
 	}
 
 	private static String collectionToString(Collection<?> list) {
@@ -3180,10 +3188,10 @@ public class PmsConfiguration extends RendererConfiguration {
 		return output;
 	}
 
-	private static UniqueList<PlayerId> stringToPlayerIdSet(String input) {
-		UniqueList<PlayerId> output = new UniqueList<>();
+	private static UniqueList<EngineId> stringToEngineIdSet(String input) {
+		UniqueList<EngineId> output = new UniqueList<>();
 		if (isBlank(input)) {
-			output.addAll(StandardPlayerId.ALL);
+			output.addAll(StandardEngineId.ALL);
 			return output;
 		}
 
@@ -3193,9 +3201,9 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		for (String s : StringUtils.split(input, LIST_SEPARATOR)) {
-			PlayerId playerId = StandardPlayerId.toPlayerID(s);
-			if (playerId != null) {
-				output.add(playerId);
+			EngineId engineId = StandardEngineId.toEngineID(s);
+			if (engineId != null) {
+				output.add(engineId);
 			} else {
 				LOGGER.warn("Unknown transcoding engine \"{}\"", s);
 			}
@@ -3325,7 +3333,7 @@ public class PmsConfiguration extends RendererConfiguration {
 				 * Unescape embedded commas. Note: Backslashing isn't safe as it
 				 * conflicts with the Windows path separator.
 				 */
-				folder = folder.replaceAll("&comma;", ",");
+				folder = folder.replace("&comma;", ",");
 
 				// add the path even if there are problems so that the user can update the shared folders as required.
 				ignoredFolderNames.add(folder);
@@ -3361,7 +3369,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			 * Unescape embedded commas. Note: Backslashing isn't safe as it
 			 * conflicts with the Windows path separator.
 			 */
-			folder = folder.replaceAll("&comma;", ",");
+			folder = folder.replace("&comma;", ",");
 
 			if (KEY_FOLDERS.equals(key)) {
 				LOGGER.info("Checking shared folder: \"{}\"", folder);
@@ -3419,7 +3427,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 	}
 
-	static public class SharedFolder {
+	public static class SharedFolder {
 		public String path;
 		public boolean monitored;
 	}
@@ -4766,7 +4774,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			return getBoolean(KEY_NO_FOLDERS, false);
 		}
 
-		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		String x = (tag.toLowerCase() + ".no_shared").replace(" ", "_");
 		return getBoolean(x, false);
 	}
 
@@ -5079,7 +5087,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * This {@code enum} represents the available "levels" for subtitles
 	 * information display that is to be appended to the video name.
 	 */
-	public static enum SubtitlesInfoLevel {
+	public enum SubtitlesInfoLevel {
 
 		/** Don't show subtitles information */
 		NONE,

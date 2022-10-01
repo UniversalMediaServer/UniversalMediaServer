@@ -49,7 +49,7 @@ public abstract class Database extends DatabaseHelper {
 	 *
 	 * @param name the database name
 	 */
-	public Database(String name) {
+	protected Database(String name) {
 		dbName = name;
 		status = DatabaseStatus.CLOSED;
 		embedded = true;

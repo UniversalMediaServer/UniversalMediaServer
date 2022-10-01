@@ -2,6 +2,7 @@ package net.pms.util;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,11 +17,10 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.platform.windows.WindowsUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import net.pms.io.WinUtils;
 
 /**
  * This is a utility class for IMDb related operations.
@@ -30,6 +30,12 @@ public class ImdbUtil {
 	private static final String FILENAME_HASH = "_os([^_]+)_";
 	private static final String FILENAME_IMDB_ID = "_imdb([^_]+)_";
 	private static final Pattern NFO_IMDB_ID = Pattern.compile("imdb\\.[^\\/]+\\/title\\/tt(\\d+)", Pattern.CASE_INSENSITIVE);
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ImdbUtil() {
+	}
 
 	/**
 	 * Extracts the OpenSubtitle file hash from the filename if the file has
@@ -166,7 +172,7 @@ public class ImdbUtil {
 		if (charset == null) {
 			if (Platform.isWindows()) {
 				// Because UMS is configured to erroneously always set the default charset to UTF-8, this is useless for Windows
-				charset = WinUtils.getOEMCharset();
+				charset = WindowsUtils.getOEMCharset();
 				if (charset == null) {
 					charset = StandardCharsets.US_ASCII;
 				}

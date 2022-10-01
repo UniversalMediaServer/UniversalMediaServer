@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -38,7 +38,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +70,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"accept",
 		"accept-language",
 		"accept-encoding",

@@ -81,7 +81,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 
 	@Override
 	protected final void setId(String id) {
-		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+		if (id != null && id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			super.setId(id);
 		} else {
 			LOG.trace("Attention. ID doesn't match DBID general prefix : " + id != null ? id : "NULL");

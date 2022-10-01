@@ -75,7 +75,7 @@ public class MediaDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public synchronized final void checkTables(boolean force) throws SQLException {
+	public final synchronized void checkTables(boolean force) throws SQLException {
 		if (tablesChecked && !force) {
 			LOGGER.debug("Database tables have already been checked, aborting check");
 		} else {
@@ -175,7 +175,7 @@ public class MediaDatabase extends Database {
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
-	public synchronized static MediaDatabase get() {
+	public static synchronized MediaDatabase get() {
 		if (instance == null) {
 			instance = new MediaDatabase();
 		}
@@ -186,7 +186,7 @@ public class MediaDatabase extends Database {
 	 * Initialize the MediaDatabase instance.
 	 * Will initialize the database instance as needed.
 	 */
-	public synchronized static void init() {
+	public static synchronized void init() {
 		get().init(false);
 	}
 
@@ -195,7 +195,7 @@ public class MediaDatabase extends Database {
 	 * Will initialize the database instance as needed.
 	 * Will check all tables.
 	 */
-	public synchronized static void initForce() {
+	public static synchronized void initForce() {
 		get().init(true);
 	}
 
@@ -242,7 +242,7 @@ public class MediaDatabase extends Database {
 	 * Recreate all tables related to media cache except files status.
 	 * @throws java.sql.SQLException
 	 */
-	public synchronized static void resetCache() throws SQLException {
+	public static synchronized void resetCache() throws SQLException {
 		if (instance != null) {
 			instance.reInitTablesExceptFilesStatus();
 		}
@@ -251,13 +251,13 @@ public class MediaDatabase extends Database {
 	/**
 	 * Shutdown the MediaDatabase database.
 	 */
-	public synchronized static void shutdown() {
+	public static synchronized void shutdown() {
 		if (instance != null) {
 			instance.close();
 		}
 	}
 
-	public synchronized static void createDatabaseReportIfNeeded() {
+	public static synchronized void createDatabaseReportIfNeeded() {
 		if (instance != null && instance.isEmbedded()) {
 			instance.createDatabaseReport();
 		}

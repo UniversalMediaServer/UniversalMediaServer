@@ -70,7 +70,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 	private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 24 hours
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = XmlUtils.xxeDisabledDocumentBuilderFactory();
 
-	private static enum ReleaseType {
+	private enum ReleaseType {
 		Single,
 		Album,
 		EP,
@@ -643,7 +643,6 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
-			added = true;
 		}
 		return query.toString();
 	}
@@ -693,7 +692,6 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				query.append(and);
 			}
 			query.append("date:").append(urlEncode(tagInfo.year)).append('*');
-			added = true;
 		}
 		return query.toString();
 	}

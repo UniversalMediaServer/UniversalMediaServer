@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -34,10 +34,10 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
 import net.pms.newgui.components.CustomJButton;
-import net.pms.util.CoverSupplier;
-import net.pms.util.FormLayoutUtil;
-import net.pms.util.FullyPlayedAction;
+import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.util.CoverSupplier;
+import net.pms.util.FullyPlayedAction;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderLiveSubtitles;
 
 	private final PmsConfiguration configuration;
-	private LooksFrame looksFrame;
+	private final LooksFrame looksFrame;
 
 	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -218,8 +218,8 @@ public class NavigationShareTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 		);
 
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -255,11 +255,7 @@ public class NavigationShareTab {
 
 			}
 		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			seekPosition.setEnabled(true);
-		} else {
-			seekPosition.setEnabled(false);
-		}
+		seekPosition.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// Generate thumbnails
 		generateThumbnails = new JCheckBox(Messages.getString("GenerateThumbnails"), configuration.isThumbnailGenerationEnabled());
@@ -274,28 +270,18 @@ public class NavigationShareTab {
 		mplayerThumbnails = new JCheckBox(Messages.getString("UseMplayerVideoThumbnails"), configuration.isUseMplayerForVideoThumbs());
 		mplayerThumbnails.setToolTipText(Messages.getString("WhenSettingDisabledFfmpeg"));
 		mplayerThumbnails.setContentAreaFilled(false);
-		mplayerThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			mplayerThumbnails.setEnabled(true);
-		} else {
-			mplayerThumbnails.setEnabled(false);
-		}
+		mplayerThumbnails.addItemListener((ItemEvent e) -> configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED)));
+		mplayerThumbnails.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// DVD ISO thumbnails
 		dvdIsoThumbnails = new JCheckBox(Messages.getString("DvdIsoThumbnails"), configuration.isDvdIsoThumbnails());
 		dvdIsoThumbnails.setContentAreaFilled(false);
-		dvdIsoThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		dvdIsoThumbnails.addItemListener((ItemEvent e) -> configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Image thumbnails
 		imageThumbnails = new JCheckBox(Messages.getString("ImageThumbnails"), configuration.getImageThumbnailsEnabled());
 		imageThumbnails.setContentAreaFilled(false);
-		imageThumbnails.addItemListener((ItemEvent e) -> {
-			configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		imageThumbnails.addItemListener((ItemEvent e) -> configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel<CoverSupplier, String> thumbKCBM = new KeyedComboBoxModel<>(
@@ -605,23 +591,19 @@ public class NavigationShareTab {
 		fullyPlayedAction = new JComboBox<>(fullyPlayedActionModel);
 		fullyPlayedAction.setEditable(false);
 		fullyPlayedActionModel.setSelectedKey(configuration.getFullyPlayedAction());
-		fullyPlayedAction.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
-					fullyPlayedOutputDirectory.setEnabled(
+		fullyPlayedAction.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				configuration.setFullyPlayedAction(fullyPlayedActionModel.getSelectedKey());
+				fullyPlayedOutputDirectory.setEnabled(
 						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
-						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-					);
-					selectFullyPlayedOutputDirectory.setEnabled(
+								configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+				);
+				selectFullyPlayedOutputDirectory.setEnabled(
 						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER ||
-						configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-					);
-
-					if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
-						MediaDatabase.initForce();
-					}
+								configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+				);
+				if (configuration.getUseCache() && fullyPlayedActionModel.getSelectedKey() == FullyPlayedAction.NO_ACTION) {
+					MediaDatabase.initForce();
 				}
 			}
 		});
@@ -641,21 +623,18 @@ public class NavigationShareTab {
 
 		// Watched video output directory selection button
 		selectFullyPlayedOutputDirectory = new CustomJButton("...");
-		selectFullyPlayedOutputDirectory.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
-				}
+		selectFullyPlayedOutputDirectory.addActionListener((ActionEvent e) -> {
+			JFileChooser chooser;
+			try {
+				chooser = new JFileChooser();
+			} catch (Exception ee) {
+				chooser = new JFileChooser(new RestrictedFileSystemView());
+			}
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
+				configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());
 			}
 		});
 

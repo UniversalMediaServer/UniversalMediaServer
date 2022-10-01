@@ -101,7 +101,7 @@ public class DLNAMediaChapter extends DLNAMediaLang {
 	 */
 	public void setMetadata(String key, String value) {
 		if (metadatas == null) {
-			metadatas = new HashMap();
+			metadatas = new HashMap<>();
 		}
 		this.metadatas.put(key, value);
 	}

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 import net.pms.dlna.DLNAThumbnail;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -211,7 +212,7 @@ public final class MediaTableThumbnails extends MediaTable {
 						removeById(connection, existingId);
 					}
 
-					try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_ID_MD5, PreparedStatement.RETURN_GENERATED_KEYS)) {
+					try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_ID_MD5, Statement.RETURN_GENERATED_KEYS)) {
 						insertStatement.setObject(1, thumbnail);
 						insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
 						insertStatement.setString(3, md5Hash);

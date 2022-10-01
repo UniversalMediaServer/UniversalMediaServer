@@ -21,7 +21,7 @@ import net.pms.formats.Format;
 
 public abstract class AudioBase extends Format {
 
-	public AudioBase() {
+	protected AudioBase() {
 		type = AUDIO;
 	}
 

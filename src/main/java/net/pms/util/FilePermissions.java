@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import net.pms.platform.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,7 +205,7 @@ public class FilePermissions {
 			if (!executeChecked && checkExecute) {
 				// To conform to the fact that on Linux root always implicit
 				// execute permission regardless of explicit permissions
-				if (Platform.isLinux() && FileUtil.isAdmin()) {
+				if (Platform.isLinux() && PlatformUtils.INSTANCE.isAdmin()) {
 					flags.add(FileFlag.EXECUTE);
 				} else {
 					try {

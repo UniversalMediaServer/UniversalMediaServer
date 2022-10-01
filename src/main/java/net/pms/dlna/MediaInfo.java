@@ -32,8 +32,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import net.pms.configuration.PlatformProgramPaths;
-import net.pms.configuration.WindowsProgramPaths;
+import net.pms.platform.PlatformProgramPaths;
+import net.pms.platform.windows.WindowsProgramPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

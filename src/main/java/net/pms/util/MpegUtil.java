@@ -8,6 +8,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class MpegUtil {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private MpegUtil() {
+	}
+
 	public static int getDurationFromMpeg(File f) throws IOException {
 		try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
 			if (raf.length() >= 500000) {

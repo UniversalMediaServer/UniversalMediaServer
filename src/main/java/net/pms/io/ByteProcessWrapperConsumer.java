@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,12 +17,12 @@
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,20 +48,16 @@ public class ByteProcessWrapperConsumer implements ProcessWrapperConsumer<BytePr
 		if (inputStream == null) {
 			return null;
 		}
-		Callable<byte[]> callable = new Callable<byte[]>() {
-
-			@Override
-			public byte[] call() throws Exception {
-				byte[] result = IOUtils.toByteArray(inputStream);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Captured {} bytes of process output", result.length);
-				}
-				return result;
+		Callable<byte[]> callable = () -> {
+			byte[] result = IOUtils.toByteArray(inputStream);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Captured {} bytes of process output", result.length);
 			}
+			return result;
 		};
-		FutureTask<byte[]> result = new FutureTask<byte[]>(callable);
+		FutureTask<byte[]> result = new FutureTask<>(callable);
 		Thread runner;
-		if (isBlank(threadName)) {
+		if (StringUtils.isBlank(threadName)) {
 			runner = new Thread(result);
 		} else {
 			runner = new Thread(result, threadName);

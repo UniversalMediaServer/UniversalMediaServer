@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,7 +17,7 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.sun.jna.Platform;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,21 +29,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableCoverArtArchive;
+import net.pms.database.MediaTableFiles;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
+import net.pms.platform.PlatformUtils;
+import net.pms.util.FileUtil;
+import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableCoverArtArchive;
-import net.pms.database.MediaTableFiles;
-import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
-import net.pms.io.BasicSystemUtils;
-import net.pms.util.FileUtil;
-import net.pms.util.ProcessUtil;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
@@ -155,7 +154,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getSize();
@@ -189,7 +188,7 @@ public class RealFile extends MapFile {
 
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = BasicSystemUtils.instance.getDiskLabel(file);
+					name = PlatformUtils.INSTANCE.getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
 					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
@@ -333,7 +332,7 @@ public class RealFile extends MapFile {
 			if (file.getParentFile() != null) {
 				folders.add(null);
 			}
-			if (isNotBlank(alternativeFolder)) {
+			if (StringUtils.isNotBlank(alternativeFolder)) {
 				File thumbFolder = new File(alternativeFolder);
 				if (thumbFolder.isDirectory() && thumbFolder.exists()) {
 					folders.add(thumbFolder);

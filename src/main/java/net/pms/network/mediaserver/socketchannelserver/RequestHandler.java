@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -36,7 +36,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
@@ -49,13 +49,13 @@ import org.xml.sax.SAXException;
 
 public class RequestHandler implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
-	public final static int SOCKET_BUF_SIZE = 32768;
+	public static final int SOCKET_BUF_SIZE = 32768;
 	private final Socket socket;
 	private final OutputStream output;
 	private final BufferedReader br;
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"Accept",
 		"Accept-Language",
 		"Accept-Encoding",

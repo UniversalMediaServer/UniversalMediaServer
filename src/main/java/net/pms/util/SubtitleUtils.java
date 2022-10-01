@@ -1,19 +1,19 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2012 I.
- * Sokolov
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.util;
 
@@ -44,8 +44,8 @@ import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFmpegLogLevels;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -61,12 +61,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private final static Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
-	private final static long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
-	private final static char[] SUBTITLES_UPPER_CASE;
-	private final static char[] SUBTITLES_LOWER_CASE;
-	private final static File ALTERNATIVE_SUBTITLES_FOLDER;
+	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
+	private static final char[] SUBTITLES_UPPER_CASE;
+	private static final char[] SUBTITLES_LOWER_CASE;
+	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SubtitleUtils() {
+	}
 
 	static {
 		String subtitles = "Subtitles";
@@ -102,7 +108,7 @@ public class SubtitleUtils {
 		}
 	}
 
-	private final static Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
+	private static final Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
 
 		private static final long serialVersionUID = 1L;
 
@@ -209,6 +215,7 @@ public class SubtitleUtils {
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
 	 * @param configuration
+	 * @param subtitleType
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
@@ -398,7 +405,7 @@ public class SubtitleUtils {
 		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
-		cmdList.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		cmdList.add(EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO));
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
 		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
@@ -533,8 +540,8 @@ public class SubtitleUtils {
 								break;
 							case "Fontsize":
 								if (!playResIsSet) {
-									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
-										Double.parseDouble(configuration.getAssScale()))));
+									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
+										Double.parseDouble(configuration.getAssScale())));
 								} else {
 									params[i] = Integer
 										.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
@@ -575,11 +582,12 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles. Based on
-	 * https://bitbucket.org/r3pek/srt2ass3d
+	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles.Based on
+ https://bitbucket.org/r3pek/srt2ass3d
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @param media Information about video
+	 * @param params
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
@@ -724,6 +732,7 @@ public class SubtitleUtils {
 	 *
 	 * @param file the source subtitles
 	 * @return InputStream with converted subtitles.
+	 * @throws java.io.IOException
 	 */
 	public static InputStream removeSubRipTags(File file) throws IOException {
 		if (file == null) {
@@ -776,7 +785,7 @@ public class SubtitleUtils {
 		}
 
 		public void setItems(List<File> items) {
-			setItems(items == null ? null : items.toArray(new File[items.size()]));
+			setItems(items == null ? null : items.toArray(File[]::new));
 		}
 
 		public void setItems(File[] items) {

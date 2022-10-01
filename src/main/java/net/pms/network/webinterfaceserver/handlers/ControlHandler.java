@@ -28,10 +28,13 @@ import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.LogicalPlayer;
+import net.pms.renderers.devices.players.PlayerState;
+import net.pms.renderers.devices.players.Playlist;
+import net.pms.renderers.devices.players.PlaylistItem;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.util.BasicPlayer.Logical;
 import net.pms.util.StringUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServer;
@@ -48,8 +51,8 @@ public class ControlHandler implements HttpHandler {
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
 	private final WebInterfaceServer parent;
-	private final HashMap<String, Logical> players;
-	private final HashMap<InetAddress, Logical> selectedPlayers;
+	private final HashMap<String, LogicalPlayer> players;
+	private final HashMap<InetAddress, LogicalPlayer> selectedPlayers;
 	private final String bumpAddress;
 	@SuppressWarnings(value = "unused")
 	private final File bumpjs;
@@ -87,7 +90,7 @@ public class ControlHandler implements HttpHandler {
 		ArrayList<String> json = new ArrayList<>();
 
 		String uuid = p.length > 3 ? p[3] : null;
-		Logical player = uuid != null ? getPlayer(uuid) : null;
+		LogicalPlayer player = uuid != null ? getPlayer(uuid) : null;
 
 		Headers headers = httpExchange.getResponseHeaders();
 		if (player != null) {
@@ -187,13 +190,13 @@ public class ControlHandler implements HttpHandler {
 		return vars;
 	}
 
-	public Logical getPlayer(String uuid) {
-		Logical player = players.get(uuid);
+	public LogicalPlayer getPlayer(String uuid) {
+		LogicalPlayer player = players.get(uuid);
 		if (player == null) {
 			try {
 				RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByUUID(uuid);
 				if (renderer != null) {
-					player = (Logical) renderer.getPlayer();
+					player = (LogicalPlayer) renderer.getPlayer();
 					players.put(uuid, player);
 				}
 			} catch (Exception e) {
@@ -204,9 +207,9 @@ public class ControlHandler implements HttpHandler {
 		return player;
 	}
 
-	public String getPlayerState(Logical player) {
+	public String getPlayerState(LogicalPlayer player) {
 		if (player != null) {
-			Logical.State state = player.getState();
+			PlayerState state = player.getState();
 			return String.format(JSON_STATE, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
 		}
 		return "";
@@ -224,7 +227,7 @@ public class ControlHandler implements HttpHandler {
 	}
 
 	public String getRenderers(InetAddress client) {
-		Logical player = selectedPlayers.get(client);
+		LogicalPlayer player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
@@ -233,14 +236,14 @@ public class ControlHandler implements HttpHandler {
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}
 
-	public String getPlaylist(Logical player) {
+	public String getPlaylist(LogicalPlayer player) {
 		ArrayList<String> json = new ArrayList<>();
-		Logical.Playlist playlist = player.playlist;
+		Playlist playlist = player.playlist;
 		playlist.validate();
-		Logical.Playlist.Item selected = (Logical.Playlist.Item) playlist.getSelectedItem();
+		PlaylistItem selected = (PlaylistItem) playlist.getSelectedItem();
 		int i;
 		for (i = 0; i < playlist.getSize(); i++) {
-			Logical.Playlist.Item item = (Logical.Playlist.Item) playlist.getElementAt(i);
+			PlaylistItem item = (PlaylistItem) playlist.getElementAt(i);
 			json.add(String.format("[\"%s\",%d,\"%s\"]",
 				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}

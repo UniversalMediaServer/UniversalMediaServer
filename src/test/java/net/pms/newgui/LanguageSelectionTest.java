@@ -22,32 +22,33 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import java.util.Locale;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertFalse;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 
 public class LanguageSelectionTest {
 
-	@Before
+	@BeforeEach
 	public void setUp() throws ConfigurationException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void LanguageSelectionConstructorThrowTest() {
-		new LanguageSelection(null, null, false);
+		assertThrows(IllegalArgumentException.class, () -> {
+			new LanguageSelection(null, null, false);
+		});
 	}
 
 	@Test
 	public void LanguageSelectionClassTest() {
 		LanguageSelection languageSelection;
 		languageSelection = new LanguageSelection(null, Locale.US, false);
-		assertFalse("isAbortedIsFalseByDefault", languageSelection.isAborted());
-
+		assertFalse(languageSelection.isAborted(), "isAbortedIsFalseByDefault");
 	}
 
 }
