@@ -114,7 +114,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 					}
 				}
 				case "/refresh" -> {
-					Account account = AuthService.getAccountLoggedIn(req);
+					Account account = AuthService.getPlayerAccountLoggedIn(req);
 					if (account != null && account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 						String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
 						WebGuiServletHelper.respond(req, resp, "{\"token\": \"" + token + "\"}", 200, "application/json");

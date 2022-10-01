@@ -35,14 +35,14 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletException;
-import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
-import net.pms.network.webguiserver.servlets.WebPlayerServlet;
 import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
+import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
 import net.pms.util.FileUtil;
 
 @SuppressWarnings("restriction")

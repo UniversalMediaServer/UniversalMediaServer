@@ -139,7 +139,7 @@ public class AuthService {
 	}
 
 	public static Account getPlayerAccountLoggedIn(HttpServletRequest req) {
-		if (!isPlayerEnabled()) {
+		if (isPlayerRequest(req) && !isPlayerEnabled()) {
 			Account result = AccountService.getFakeAdminAccount();
 			int permissions = Permissions.WEB_PLAYER_BROWSE;
 			if (CONFIGURATION.isWebPlayerControlsEnabled()) {
@@ -151,11 +151,11 @@ public class AuthService {
 			result.getGroup().setPermissions(permissions);
 			return result;
 		}
-		String authHeader = req.getHeader("Authorization");
-		if (authHeader == null) {
-			return null;
-		}
-		return getAccountLoggedIn(authHeader, req.getRemoteAddr());
+		return getAccountLoggedIn(req);
+	}
+
+	private static boolean isPlayerRequest(HttpServletRequest req) {
+		return CONFIGURATION.useWebPlayerServer() && req.getLocalPort() == CONFIGURATION.getWebPlayerServerPort();
 	}
 
 	public static boolean isEnabled() {
@@ -163,7 +163,7 @@ public class AuthService {
 	}
 
 	public static boolean isPlayerEnabled() {
-		return CONFIGURATION.isWebPlayerAuthenticationEnabled();
+		return isEnabled() && (!CONFIGURATION.useWebPlayerServer() || CONFIGURATION.isWebPlayerAuthenticationEnabled());
 	}
 
 	public static void setEnabled(boolean value) {

@@ -105,7 +105,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			var path = req.getPathInfo();
 			if (path.equals("/")) {
-				Account account = AuthService.getAccountLoggedIn(req);
+				Account account = AuthService.getPlayerAccountLoggedIn(req);
 				if (account == null) {
 					WebGuiServletHelper.respondUnauthorized(req, resp);
 					return;
@@ -310,7 +310,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	private static String createRoot(HttpServletRequest req, String givenToken) {
 		String token = null;
-		Account account = AuthService.getAccountLoggedIn(req);
+		Account account = AuthService.getPlayerAccountLoggedIn(req);
 		if (account == null || !account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 			return token;
 		}
