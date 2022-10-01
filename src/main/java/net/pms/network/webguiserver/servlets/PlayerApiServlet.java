@@ -338,7 +338,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			render.setRootFolder(root);
 			render.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
 			render.associatePort(req.getRemotePort());
-			if (CONFIGURATION.useWebSubLang()) {
+			if (CONFIGURATION.useWebPlayerSubLang()) {
 				render.setSubLang(WebGuiServletHelper.getLangs(req));
 			}
 			Cookie cookie = WebGuiServletHelper.getCookie(req, "UMSINFO");
@@ -579,7 +579,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
 			result.addProperty("name", id.equals("0") || dlna == null ? CONFIGURATION.getServerDisplayName() : dlna.getDisplayName());
 			result.addProperty("hasFile", hasFile);
-			result.addProperty("useWebControl", CONFIGURATION.useWebControl());
+			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			result.add("breadcrumbs", jBreadcrumbs);
 			result.add("mediaLibraryFolders", mediaLibraryFolders);
 			result.add("folders", jFolders);
@@ -725,7 +725,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 			media.addProperty("name", rootResource.resumeName());
 			media.addProperty("id", id);
-			media.addProperty("autoContinue", CONFIGURATION.getWebAutoCont(format));
+			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 			media.addProperty("isDownload", root.havePermission(Permissions.WEB_PLAYER_DOWNLOAD));
 
@@ -734,8 +734,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (isImage) {
 				// do this like this to simplify the code
 				// skip all player crap since img tag works well
-				int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
-				if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
+				int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
+				if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
 					media.addProperty("delay", delay);
 				}
 			} else {
@@ -744,7 +744,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				media.addProperty("height", renderer.getVideoHeight());
 			}
 
-			if (isVideo && CONFIGURATION.getWebSubs()) {
+			if (isVideo && CONFIGURATION.getWebPlayerSubs()) {
 				// only if subs are requested as <track> tags
 				// otherwise we'll transcode them in
 				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
@@ -771,7 +771,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			result.add("medias", medias);
 			result.add("folders", jFolders);
 			result.add("breadcrumbs", getBreadcrumbs(rootResource));
-			result.addProperty("useWebControl", CONFIGURATION.useWebControl());
+			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			return result;
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
@@ -781,7 +781,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	private static JsonObject getSurroundingByType(DLNAResource resource) {
 		JsonObject result = new JsonObject();
 		List<DLNAResource> children = resource.getParent().getChildren();
-		boolean looping = CONFIGURATION.getWebAutoLoop(resource.getFormat());
+		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(resource.getFormat());
 		int type = resource.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
@@ -1055,7 +1055,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				//code = 206;
 			}
 			if (
-				PMS.getConfiguration().getWebSubs() &&
+				PMS.getConfiguration().getWebPlayerSubs() &&
 				resource.getMediaSubtitle() != null &&
 				resource.getMediaSubtitle().isExternal()
 			) {
@@ -1341,7 +1341,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	private static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 }

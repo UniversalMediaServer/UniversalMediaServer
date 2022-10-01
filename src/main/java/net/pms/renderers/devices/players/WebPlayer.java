@@ -77,7 +77,7 @@ public class WebPlayer extends LogicalPlayer {
 
 	@Override
 	public int getControls() {
-		return renderer.getPmsConfiguration().useWebControl() ? PLAYCONTROL | VOLUMECONTROL : 0;
+		return renderer.getPmsConfiguration().isWebPlayerControllable() ? PLAYCONTROL | VOLUMECONTROL : 0;
 	}
 
 	@Override

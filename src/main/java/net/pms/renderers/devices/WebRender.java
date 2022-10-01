@@ -109,7 +109,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		defaultMime = userFmt != null ? ("video/" + userFmt) : WebInterfaceServerUtil.transMime();
 		startStop = null;
 		subLang = "";
-		if (CONFIGURATION.useWebControl()) {
+		if (CONFIGURATION.isWebPlayerControllable()) {
 			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
 		}
 		gson = new Gson();
@@ -529,7 +529,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 
 	@Override
 	public String getSubLanguage() {
-		if (!useWebSubLang() || StringUtils.isEmpty(subLang)) {
+		if (!useWebPlayerSubLang() || StringUtils.isEmpty(subLang)) {
 			return super.getSubLanguage();
 		}
 		return subLang;

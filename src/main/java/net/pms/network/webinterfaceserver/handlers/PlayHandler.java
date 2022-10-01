@@ -146,7 +146,7 @@ public class PlayHandler implements HttpHandler {
 
 	private static void addNextByType(DLNAResource d, HashMap<String, Object> mustacheVars) {
 		List<DLNAResource> children = d.getParent().getChildren();
-		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
+		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(d.getFormat());
 		int type = d.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
@@ -307,7 +307,7 @@ public class PlayHandler implements HttpHandler {
 
 			mustacheVars.put("name", name);
 			mustacheVars.put("id1", id1);
-			mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
+			mustacheVars.put("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			if (CONFIGURATION.isDynamicPls()) {
 				if (rootResource.getParent() instanceof Playlist) {
 					mustacheVars.put("plsOp", "del");
@@ -323,8 +323,8 @@ public class PlayHandler implements HttpHandler {
 			if (isImage) {
 				// do this like this to simplify the code
 				// skip all player crap since img tag works well
-				int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
-				if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
+				int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
+				if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
 					mustacheVars.put("delay", delay);
 				}
 			} else {
@@ -345,11 +345,11 @@ public class PlayHandler implements HttpHandler {
 					mustacheVars.put("height", renderer.getVideoHeight());
 				}
 			}
-			if (CONFIGURATION.useWebControl()) {
+			if (CONFIGURATION.isWebPlayerControllable()) {
 				mustacheVars.put("push", true);
 			}
 
-			if (isVideo && CONFIGURATION.getWebSubs()) {
+			if (isVideo && CONFIGURATION.getWebPlayerSubs()) {
 				// only if subs are requested as <track> tags
 				// otherwise we'll transcode them in
 				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();

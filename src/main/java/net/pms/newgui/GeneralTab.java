@@ -315,7 +315,7 @@ public class GeneralTab {
 				}
 			});
 
-			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
+			port = new JTextField(configuration.getMediaServerPort() != 5001 ? "" + configuration.getMediaServerPort() : "");
 			port.setToolTipText(Messages.getString("IfServerCantFindRenderer"));
 			port.addKeyListener(new KeyAdapter() {
 				@Override
@@ -326,7 +326,7 @@ public class GeneralTab {
 							p = "5001";
 						}
 						int ab = Integer.parseInt(p);
-						configuration.setServerPort(ab);
+						configuration.setMediaServerPort(ab);
 					} catch (NumberFormatException nfe) {
 						LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
 					}

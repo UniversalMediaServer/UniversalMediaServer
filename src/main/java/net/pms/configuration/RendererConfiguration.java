@@ -302,7 +302,7 @@ public class RendererConfiguration extends Renderer {
 									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 								}
 
-								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(pmsConf.allRenderers)) {
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(PmsConfiguration.ALL_RENDERERS)) {
 									enabledRendererConfs.add(r);
 								} else {
 									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
@@ -2465,7 +2465,7 @@ public class RendererConfiguration extends Renderer {
 
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("value", pmsConfigurationStatic.allRenderers);
+		jsonObject.addProperty("value", PmsConfiguration.ALL_RENDERERS);
 		jsonObject.addProperty("label", "i18n@AllRenderers");
 		jsonArray.add(jsonObject);
 		jsonObject = new JsonObject();

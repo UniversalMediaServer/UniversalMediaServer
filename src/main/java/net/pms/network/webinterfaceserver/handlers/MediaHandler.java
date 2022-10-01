@@ -138,7 +138,7 @@ public class MediaHandler implements HttpHandler {
 					//code = 206;
 				}
 				if (
-					PMS.getConfiguration().getWebSubs() &&
+					PMS.getConfiguration().getWebPlayerSubs() &&
 					resource.getMediaSubtitle() != null &&
 					resource.getMediaSubtitle().isExternal()
 				) {

@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -98,7 +99,9 @@ import org.slf4j.LoggerFactory;
 public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
-	protected static final int DEFAULT_SERVER_PORT = 5001;
+	protected static final int DEFAULT_MEDIA_SERVER_PORT = 5001;
+	protected static final int DEFAULT_WEB_GUI_PORT = 9001;
+	protected static final int DEFAULT_WEB_PLAYER_PORT = 9002;
 	// 90000 lines is approximately 10 MiB depending on locale and message length
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
 	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
@@ -154,10 +157,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	protected static final String KEY_API_KEY = "api_key";
 	protected static final String KEY_BUFFER_MAX = "buffer_max";
-	protected static final String KEY_BUMP_ADDRESS = "bump";
-	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
-	protected static final String KEY_BUMP_JS = "bump.js";
-	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	protected static final String KEY_CHROMECAST_DBG = "chromecast_debug";
@@ -183,6 +182,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	protected static final String KEY_ENGINES = "engines";
 	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
+	/* Start without external network (increase startup speed) */
+	public static final String KEY_EXTERNAL_NETWORK = "external_network";
 	// TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
 	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
@@ -204,32 +205,20 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
-	protected static final String KEY_FONT = "subtitles_font";
 	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
+	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
 	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
 	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
 	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
 	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
-	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-
-	/**
-	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
-	 */
-	@Deprecated
-	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
-
-	/**
-	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
-	 */
-	@Deprecated
-	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
@@ -337,6 +326,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_SUBS_FONT = "subtitles_font";
 	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
@@ -354,6 +344,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
+	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_UUID = "uuid";
 	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
 	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
@@ -365,47 +356,87 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
 	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
-	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
-	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
-	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
-	protected static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
-	protected static final String KEY_WEB_BROWSE_SUB_LANG = "web_use_browser_sub_lang";
+	protected static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
-	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
-	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
-	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
-	protected static final String KEY_WEB_CONTROL = "web_control";
-	protected static final String KEY_WEB_PLAYER_AUTHENTICATION = "web_player_auth";
-	protected static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
-	protected static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
-	protected static final String KEY_WEB_PLAYER_ENABLE = "web_enable";
-	protected static final String KEY_WEB_FLASH = "web_flash";
 	protected static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	protected static final String KEY_WEB_GUI_PORT = "web_gui_port";
-	protected static final String KEY_WEB_HEIGHT = "web_height";
-	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
-	protected static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
-	protected static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
-	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	protected static final String KEY_WEB_LOW_SPEED = "web_low_speed";
-	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	protected static final String KEY_WEB_PATH = "web_path";
-	protected static final String KEY_WEB_SIZE = "web_size";
-	protected static final String KEY_WEB_SUBS_TRANS = "web_subtitles_transcoded";
+	protected static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
+	protected static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
+	protected static final String KEY_WEB_PLAYER_CONT_IMAGE = "web_player_continue_image";
+	protected static final String KEY_WEB_PLAYER_CONT_VIDEO = "web_player_continue_video";
+	protected static final String KEY_WEB_PLAYER_CONTROLLABLE = "web_player_controllable";
+	protected static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
+	protected static final String KEY_WEB_PLAYER_CONTROLS_PERM = "web_player_controls_perm";
+	protected static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
+	protected static final String KEY_WEB_PLAYER_DOWNLOAD_PERM = "web_player_download_perm";
+	protected static final String KEY_WEB_PLAYER_ENABLE = "web_player_enable";
+	protected static final String KEY_WEB_PLAYER_HTTPS = "web_player_https";
+	protected static final String KEY_WEB_PLAYER_IMAGE_SLIDE = "web_player_image_show_delay";
+	protected static final String KEY_WEB_PLAYER_LOOP_AUDIO = "web_player_loop_audio";
+	protected static final String KEY_WEB_PLAYER_LOOP_IMAGE = "web_player_loop_image";
+	protected static final String KEY_WEB_PLAYER_LOOP_VIDEO = "web_player_loop_video";
+	protected static final String KEY_WEB_PLAYER_MP4_TRANS = "web_mp4_trans";
+	protected static final String KEY_WEB_PLAYER_PORT = "web_player_port";
+	protected static final String KEY_WEB_PLAYER_SUB_LANG = "web_use_browser_sub_lang";
+	protected static final String KEY_WEB_PLAYER_SUBS_TRANS = "web_subtitles_transcoded";
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
-	protected static final String KEY_WEB_WIDTH = "web_width";
+
 	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
-	protected static final String WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 
 	/**
-	 * Web stuff
+	 * Old Web interface stuff
 	 */
-	protected static final String KEY_NO_FOLDERS = "no_shared";
-	protected static final String KEY_WEB_HTTPS = "web_https";
-	protected static final String KEY_WEB_PORT = "web_port";
+	// TODO: remove on old player removal
+	@Deprecated
+	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
+	@Deprecated
+	private static final String KEY_BUMP_ADDRESS = "bump";
+	@Deprecated
+	private static final String KEY_BUMP_IPS = "allowed_bump_ips";
+	@Deprecated
+	private static final String KEY_BUMP_JS = "bump.js";
+	@Deprecated
+	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
+	@Deprecated
+	private static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
+	@Deprecated
+	private static final String KEY_WEB_FLASH = "web_flash";
+	@Deprecated
+	private static final String KEY_WEB_HEIGHT = "web_height";
+	@Deprecated
+	private static final String KEY_WEB_SIZE = "web_size";
+	@Deprecated
+	private static final String KEY_WEB_WIDTH = "web_width";
+
+	/**
+	 * Keys deprecated
+	 */
+
+	/**
+	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
+	 */
+	@Deprecated
+	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
+
+	/**
+	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
+	 */
+	@Deprecated
+	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
+
+
+	/**
+	 * Keys not used
+	 */
+	@Deprecated
+	private static final String KEY_NO_FOLDERS = "no_shared";
+
+
 	protected static final int WEB_MAX_THREADS = 100;
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
@@ -420,7 +451,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final int BUFFER_MEMORY_FACTOR = 368;
 	protected static int maxMaxMemoryBufferSize = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	protected static final char LIST_SEPARATOR = ',';
-	public final String allRenderers = "All renderers";
+	public static final String ALL_RENDERERS = "All renderers";
 
 	// Path to default logfile directory
 	protected String defaultLogFileDir = null;
@@ -432,6 +463,31 @@ public class PmsConfiguration extends RendererConfiguration {
 	@Nonnull
 	protected final PlatformProgramPaths programPaths;
 	public IpFilter filter;
+
+	/**
+	 * The map of keys that need to be refactored.
+	 * Keys will be refactored on next start.
+	 */
+	public static final Map<String, String> REFACTORED_KEYS = Map.of(
+		//since 10.5
+		"web_enable", KEY_WEB_PLAYER_ENABLE,
+		"web_continue_audio", KEY_WEB_PLAYER_CONT_AUDIO,
+		"web_continue_image", KEY_WEB_PLAYER_CONT_IMAGE,
+		"web_continue_video", KEY_WEB_PLAYER_CONT_VIDEO,
+		"web_https", KEY_WEB_PLAYER_HTTPS,
+		"web_control", KEY_WEB_PLAYER_CONTROLLABLE,
+		"web_image_show_delay", KEY_WEB_PLAYER_IMAGE_SLIDE,
+		"web_loop_audio", KEY_WEB_PLAYER_LOOP_AUDIO,
+		"web_loop_image", KEY_WEB_PLAYER_LOOP_IMAGE,
+		"web_loop_video", KEY_WEB_PLAYER_LOOP_VIDEO
+	);
+
+	/**
+	 * The set of keys that was removed.
+	 * Keys will be delete on next start.
+	 */
+	public static final Set<String> REMOVED_KEYS = Set.of(
+	);
 
 	/**
 	 * The set of keys defining when the media server should be restarted due to a
@@ -447,13 +503,21 @@ public class PmsConfiguration extends RendererConfiguration {
 	);
 
 	/**
-	 * The set of keys defining when the HTTP Interface server should be restarted
+	 * The set of keys defining when the HTTP web player server should be restarted
 	 * due to a configuration change.
 	 */
-	public static final Set<String> NEED_INTERFACE_SERVER_RELOAD_FLAGS = Set.of(
+	public static final Set<String> NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS = Set.of(
 		KEY_WEB_PLAYER_ENABLE,
-		KEY_WEB_HTTPS,
-		KEY_WEB_PORT
+		KEY_WEB_PLAYER_HTTPS,
+		KEY_WEB_PLAYER_PORT
+	);
+
+	/**
+	 * The set of keys defining when the HTTP web gui server should be restarted
+	 * due to a configuration change.
+	 */
+	public static final Set<String> NEED_WEB_GUI_SERVER_RELOAD_FLAGS = Set.of(
+		KEY_WEB_GUI_PORT
 	);
 
 	/**
@@ -684,7 +748,16 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 
 		((PropertiesConfiguration) configuration).setPath(PROFILE_PATH);
-
+		for (Entry<String, String> refactoredKey : REFACTORED_KEYS.entrySet()) {
+			if (configuration.containsKey(refactoredKey.getKey())) {
+				Object value = configuration.getProperty(refactoredKey.getKey());
+				configuration.setProperty(refactoredKey.getValue(), value);
+				configuration.clearProperty(refactoredKey.getKey());
+			}
+		}
+		for (String removedKey : REMOVED_KEYS) {
+			configuration.clearProperty(removedKey);
+		}
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = new IpFilter();
@@ -1383,18 +1456,18 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * The server port where PMS listens for TCP/IP traffic. Default value is 5001.
+	 * The server port where UMS listens for TCP/IP traffic. Default value is 5001.
 	 * @return The port number.
 	 */
-	public int getServerPort() {
-		return getInt(KEY_SERVER_PORT, DEFAULT_SERVER_PORT);
+	public int getMediaServerPort() {
+		return getInt(KEY_SERVER_PORT, DEFAULT_MEDIA_SERVER_PORT);
 	}
 
 	/**
-	 * Set the server port where PMS must listen for TCP/IP traffic.
+	 * Set the server port where UMS must listen for TCP/IP traffic.
 	 * @param value The TCP/IP port number.
 	 */
-	public void setServerPort(int value) {
+	public void setMediaServerPort(int value) {
 		configuration.setProperty(KEY_SERVER_PORT, value);
 	}
 
@@ -1801,7 +1874,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The font name.
 	 */
 	public String getFont() {
-		return getString(KEY_FONT, "");
+		return getString(KEY_SUBS_FONT, "");
 	}
 
 	/**
@@ -2029,7 +2102,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value The font name.
 	 */
 	public void setFont(String value) {
-		configuration.setProperty(KEY_FONT, value);
+		configuration.setProperty(KEY_SUBS_FONT, value);
 	}
 
 	/**
@@ -2255,7 +2328,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The selected renderers as a list.
 	 */
 	public List<String> getSelectedRenderers() {
-		return getStringList(KEY_SELECTED_RENDERERS, allRenderers);
+		return getStringList(KEY_SELECTED_RENDERERS, ALL_RENDERERS);
 	}
 
 	/**
@@ -4505,9 +4578,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_GUI_LOG_SEARCH_USE_REGEX, value);
 	}
 
-	/* Start without external network (increase startup speed) */
-	public static final String KEY_EXTERNAL_NETWORK = "external_network";
-
 	public boolean getExternalNetwork() {
 		return getBoolean(KEY_EXTERNAL_NETWORK, true);
 	}
@@ -4912,6 +4982,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_SINGLE, true);
 	}
 
+	@Deprecated
 	public boolean getNoFolders(String tag) {
 		if (tag == null) {
 			return getBoolean(KEY_NO_FOLDERS, false);
@@ -4919,10 +4990,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		String x = (tag.toLowerCase() + ".no_shared").replace(" ", "_");
 		return getBoolean(x, false);
-	}
-
-	public boolean getWebHttps() {
-		return getBoolean(KEY_WEB_HTTPS, false);
 	}
 
 	public File getWebPath() {
@@ -4947,41 +5014,26 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_WEB_AUTHENTICATE, false);
 	}
 
+	/**
+	 * Default port for the web gui server.
+	 * @return the port that will be used for the web gui server.
+	 */
+	public int getWebGuiServerPort() {
+		return getInt(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
+	}
+
 	public int getWebThreads() {
 		int x = getInt(KEY_WEB_THREADS, 30);
 		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
 	}
 
-	public boolean isWebMp4Trans() {
-		return getBoolean(KEY_WEB_MP4_TRANS, false);
-	}
-
-	public String getBumpAddress() {
-		return getString(KEY_BUMP_ADDRESS, "");
-	}
-
-	public void setBumpAddress(String value) {
-		configuration.setProperty(KEY_BUMP_ADDRESS, value);
-	}
-
-	public String getBumpJS(String fallback) {
-		return getString(KEY_BUMP_JS, fallback);
-	}
-
-	public String getBumpSkinDir(String fallback) {
-		return getString(KEY_BUMP_SKIN_DIR, fallback);
-	}
-
-	public boolean isWebPlayerAuthenticationEnabled() {
-		return getBoolean(KEY_WEB_PLAYER_AUTHENTICATION, false);
-	}
-
-	public boolean isWebPlayerControlsEnabled() {
-		return getBoolean(KEY_WEB_PLAYER_CONTROLS, true);
-	}
-
-	public boolean isWebPlayerDownload() {
-		return getBoolean(KEY_WEB_PLAYER_DOWNLOAD, true);
+	/**
+	 * Web player enable.
+	 *
+	 * @return Whether the web player will be loaded and accessible or not
+	 */
+	public boolean useWebPlayerServer() {
+		return getBoolean(KEY_WEB_PLAYER_ENABLE, true);
 	}
 
 	/**
@@ -4989,11 +5041,136 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return the port that will be used for the web player server.
 	 */
 	public int getWebPlayerServerPort() {
-		return getInt(KEY_WEB_PORT, 9001);
+		return getInt(KEY_WEB_PLAYER_PORT, DEFAULT_WEB_PLAYER_PORT);
 	}
 
-	public boolean useWebPlayerServer() {
-		return getBoolean(KEY_WEB_PLAYER_ENABLE, true);
+	public boolean getWebPlayerHttps() {
+		return getBoolean(KEY_WEB_PLAYER_HTTPS, false);
+	}
+
+	public boolean isWebPlayerControllable() {
+		return getBoolean(KEY_WEB_PLAYER_CONTROLLABLE, true);
+	}
+
+	public boolean isWebPlayerAuthenticationEnabled() {
+		return getBoolean(KEY_WEB_PLAYER_AUTH, false);
+	}
+
+	public boolean useWebPlayerControls() {
+		return getBoolean(KEY_WEB_PLAYER_CONTROLS, true);
+	}
+
+	public boolean isWebPlayerControlsPerm() {
+		return getBoolean(KEY_WEB_PLAYER_CONTROLS_PERM, true);
+	}
+
+	public boolean isWebPlayerDownloadPerm() {
+		return getBoolean(KEY_WEB_PLAYER_DOWNLOAD_PERM, true);
+	}
+
+	public boolean isWebPlayerMp4Trans() {
+		return getBoolean(KEY_WEB_PLAYER_MP4_TRANS, false);
+	}
+
+	public boolean getWebPlayerAutoCont(Format f) {
+		String key = KEY_WEB_PLAYER_CONT_VIDEO;
+		boolean def = false;
+		if (f.isAudio()) {
+			key = KEY_WEB_PLAYER_CONT_AUDIO;
+			def = true;
+		}
+
+		if (f.isImage()) {
+			key = KEY_WEB_PLAYER_CONT_IMAGE;
+			def = false;
+		}
+
+		return getBoolean(key, def);
+	}
+
+	public boolean getWebPlayerAutoLoop(Format f) {
+		String key = KEY_WEB_PLAYER_LOOP_VIDEO;
+		if (f.isAudio()) {
+			key = KEY_WEB_PLAYER_LOOP_AUDIO;
+		}
+
+		if (f.isImage()) {
+			key = KEY_WEB_PLAYER_LOOP_IMAGE;
+		}
+
+		return getBoolean(key, false);
+	}
+
+	public int getWebPlayerImgSlideDelay() {
+		return getInt(KEY_WEB_PLAYER_IMAGE_SLIDE, 0);
+	}
+
+	//TODO : Lang can be set from react
+	public boolean getWebPlayerSubs() {
+		return getBoolean(KEY_WEB_PLAYER_SUBS_TRANS, false);
+	}
+
+	//TODO : Lang can be set from react
+	public boolean useWebPlayerSubLang() {
+		return getBoolean(KEY_WEB_PLAYER_SUB_LANG, false);
+	}
+
+	@Deprecated
+	public String getBumpAddress() {
+		return getString(KEY_BUMP_ADDRESS, "");
+	}
+
+	@Deprecated
+	public void setBumpAddress(String value) {
+		configuration.setProperty(KEY_BUMP_ADDRESS, value);
+	}
+
+	@Deprecated
+	public String getBumpJS(String fallback) {
+		return getString(KEY_BUMP_JS, fallback);
+	}
+
+	@Deprecated
+	public String getBumpSkinDir(String fallback) {
+		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
+	@Deprecated
+	public String getWebSize() {
+		return getString(KEY_WEB_SIZE, "");
+	}
+
+	@Deprecated
+	public int getWebHeight() {
+		return getInt(KEY_WEB_HEIGHT, 0);
+	}
+
+	@Deprecated
+	public int getWebWidth() {
+		return getInt(KEY_WEB_WIDTH, 0);
+	}
+
+	@Deprecated
+	public boolean getWebFlash() {
+		return getBoolean(KEY_WEB_FLASH, false);
+	}
+
+	@Deprecated
+	public String getBumpAllowedIps() {
+		return getString(KEY_BUMP_IPS, "");
+	}
+
+	@Deprecated
+	public boolean useWebLang() {
+		return getBoolean(KEY_WEB_BROWSE_LANG, false);
+	}
+
+	public String getWebTranscode() {
+		return getString(KEY_WEB_TRANSCODE, null);
+	}
+
+	public int getWebLowSpeed() {
+		return getInt(KEY_WEB_LOW_SPEED, 0);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
@@ -5015,83 +5192,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getAutoDiscover() {
 		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
-	}
-
-	public boolean getWebAutoCont(Format f) {
-		String key = KEY_WEB_CONT_VIDEO;
-		boolean def = false;
-		if (f.isAudio()) {
-			key = KEY_WEB_CONT_AUDIO;
-			def = true;
-		}
-
-		if (f.isImage()) {
-			key = KEY_WEB_CONT_IMAGE;
-			def = false;
-		}
-
-		return getBoolean(key, def);
-	}
-
-	public boolean getWebAutoLoop(Format f) {
-		String key = KEY_WEB_LOOP_VIDEO;
-		if (f.isAudio()) {
-			key = KEY_WEB_LOOP_AUDIO;
-		}
-
-		if (f.isImage()) {
-			key = KEY_WEB_LOOP_IMAGE;
-		}
-
-		return getBoolean(key, false);
-	}
-
-	public int getWebImgSlideDelay() {
-		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
-	}
-
-	public String getWebSize() {
-		return getString(KEY_WEB_SIZE, "");
-	}
-
-	public int getWebHeight() {
-		return getInt(KEY_WEB_HEIGHT, 0);
-	}
-
-	public int getWebWidth() {
-		return getInt(KEY_WEB_WIDTH, 0);
-	}
-
-	public boolean getWebFlash() {
-		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	public boolean getWebSubs() {
-		return getBoolean(KEY_WEB_SUBS_TRANS, false);
-	}
-
-	public String getBumpAllowedIps() {
-		return getString(KEY_BUMP_IPS, "");
-	}
-
-	public String getWebTranscode() {
-		return getString(KEY_WEB_TRANSCODE, null);
-	}
-
-	public int getWebLowSpeed() {
-		return getInt(KEY_WEB_LOW_SPEED, 0);
-	}
-
-	public boolean useWebLang() {
-		return getBoolean(KEY_WEB_BROWSE_LANG, false);
-	}
-
-	public boolean useWebSubLang() {
-		return getBoolean(KEY_WEB_BROWSE_SUB_LANG, false);
-	}
-
-	public boolean useWebControl() {
-		return getBoolean(KEY_WEB_CONTROL, true);
 	}
 
 	public boolean useCode() {
@@ -5228,14 +5328,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether UMS has run once.
 	 */
 	public boolean hasRunOnce() {
-		return getBoolean(WAS_YOUTUBE_DL_ENABLED_ONCE, false);
+		return getBoolean(KEY_WAS_YOUTUBE_DL_ENABLED_ONCE, false);
 	}
 
 	/**
 	 * Records that UMS has run once.
 	 */
 	public void setHasRunOnce() {
-		configuration.setProperty(WAS_YOUTUBE_DL_ENABLED_ONCE, true);
+		configuration.setProperty(KEY_WAS_YOUTUBE_DL_ENABLED_ONCE, true);
 	}
 
 	/**
@@ -5389,20 +5489,17 @@ public class PmsConfiguration extends RendererConfiguration {
 			entryToAdd.append(type).append(".").append(folders).append("=");
 
 			switch (type) {
-				case "imagefeed":
-				case "videofeed":
-				case "audiofeed":
+				case "imagefeed", "videofeed", "audiofeed" -> {
 					entryToAdd.append(source);
-
 					if (name != null) {
 						entryToAdd.append(",,,").append(name);
 					}
-					break;
-				default:
+				}
+				default -> {
 					if (name != null) {
 						entryToAdd.append(name).append(",").append(source);
 					}
-					break;
+				}
 			}
 
 			entries.add(entryToAdd.toString());
@@ -5525,9 +5622,7 @@ public class PmsConfiguration extends RendererConfiguration {
 								if (isBlank(resourceName)) {
 									try {
 										switch (sourceType) {
-											case "imagefeed":
-											case "videofeed":
-											case "audiofeed":
+											case "imagefeed", "videofeed", "audiofeed" -> {
 												resourceName = values.length > 3 && values[3] != null ? values[3] : null;
 
 												// Convert YouTube channel URIs to their feed URIs
@@ -5535,14 +5630,14 @@ public class PmsConfiguration extends RendererConfiguration {
 													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 												}
 												resourceName = Feed.getFeedTitle(uri);
-												break;
-											case "videostream":
-											case "audiostream":
+											}
+											case "videostream", "audiostream" -> {
 												resourceName = values.length > -1 && values[0] != null ? values[0] : null;
 												uri = values.length > 1 && values[1] != null ? values[1] : null;
-												break;
-											default:
-												break;
+											}
+											default -> {
+												//nothing to do
+											}
 										}
 									} catch (Exception e) {
 										LOGGER.debug("Error while getting feed title: " + e);
@@ -5597,4 +5692,137 @@ public class PmsConfiguration extends RendererConfiguration {
 		String[] labels = new String[]{"-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
+
+	public static JsonObject getWebSettingsWithDefaults() {
+		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
+		JsonObject jObj = new JsonObject();
+		jObj.addProperty(KEY_ALTERNATE_SUBTITLES_FOLDER, "");
+		jObj.addProperty(KEY_ALTERNATE_THUMB_FOLDER, "");
+		jObj.addProperty(KEY_APPEND_PROFILE_NAME, false);
+		jObj.addProperty(KEY_ATZ_LIMIT, 10000);
+		jObj.addProperty(KEY_AUDIO_CHANNEL_COUNT, "6");
+		jObj.addProperty(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
+		jObj.addProperty(KEY_AUDIO_BITRATE, "448");
+		jObj.addProperty(KEY_AUDIO_REMUX_AC3, true);
+		jObj.addProperty(KEY_AUDIO_RESAMPLE, true);
+		jObj.addProperty(KEY_AUDIO_SUB_LANGS, "");
+		jObj.addProperty(KEY_AUDIO_THUMBNAILS_METHOD, "1");
+		jObj.addProperty(KEY_AUDIO_USE_PCM, false);
+		jObj.addProperty(KEY_AUTO_UPDATE, true);
+		jObj.addProperty(KEY_AUTOLOAD_SUBTITLES, true);
+		jObj.addProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, true);
+		jObj.addProperty(KEY_CHAPTER_INTERVAL, 5);
+		jObj.addProperty(KEY_CHAPTER_SUPPORT, false);
+		jObj.addProperty(KEY_CHROMECAST_EXT, false);
+		jObj.addProperty(KEY_DISABLE_SUBTITLES, false);
+		jObj.addProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, "");
+		jObj.addProperty(KEY_OPEN_ARCHIVES, false);
+		jObj.addProperty(KEY_ENCODED_AUDIO_PASSTHROUGH, false);
+		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
+		jObj.add(KEY_ENGINES, transcodingEngines);
+		jObj.add(KEY_ENGINES_PRIORITY, transcodingEngines);
+		jObj.addProperty(KEY_FORCE_TRANSCODE_FOR_EXTENSIONS, "");
+		jObj.addProperty(KEY_FULLY_PLAYED_ACTION, String.valueOf(FullyPlayedAction.MARK.getValue()));
+		jObj.addProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, "");
+		jObj.addProperty(KEY_GPU_ACCELERATION, false);
+		jObj.addProperty(KEY_EXTERNAL_NETWORK, true);
+		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
+		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
+		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);
+		jObj.addProperty(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
+		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
+		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
+		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
+		jObj.addProperty("fmpeg_sox", true);
+		jObj.add(KEY_FOLDERS, new JsonArray());
+		jObj.add(KEY_FOLDERS_MONITORED, new JsonArray());
+		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
+		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
+		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
+		jObj.addProperty(KEY_THUMBNAIL_GENERATION_ENABLED, true);
+		jObj.addProperty(KEY_HIDE_EMPTY_FOLDERS, false);
+		jObj.addProperty(KEY_HIDE_ENGINENAMES, true);
+		jObj.addProperty(KEY_HIDE_EXTENSIONS, true);
+		jObj.addProperty(KEY_SERVER_HOSTNAME, "");
+		jObj.addProperty(KEY_IGNORE_THE_WORD_A_AND_THE, true);
+		jObj.addProperty(KEY_IP_FILTER, "");
+		jObj.addProperty(KEY_LANGUAGE, "en-US");
+		jObj.addProperty(KEY_LIVE_SUBTITLES_KEEP, false);
+		jObj.addProperty(KEY_LIVE_SUBTITLES_LIMIT, 20);
+		jObj.addProperty(KEY_MENCODER_ASS, true);
+		jObj.addProperty(KEY_MENCODER_CODEC_SPECIFIC_SCRIPT, "");
+		jObj.addProperty(KEY_MENCODER_CUSTOM_OPTIONS, "");
+		jObj.addProperty(KEY_MENCODER_FONT_CONFIG, true);
+		jObj.addProperty(KEY_MENCODER_FORCE_FPS, false);
+		jObj.addProperty(KEY_MENCODER_INTELLIGENT_SYNC, true);
+		jObj.addProperty(KEY_MENCODER_MT, "");
+		jObj.addProperty(KEY_MENCODER_MUX_COMPATIBLE, false);
+		jObj.addProperty(KEY_MENCODER_NOASS_OUTLINE, 1);
+		jObj.addProperty(KEY_MENCODER_NO_OUT_OF_SYNC, false);
+		jObj.addProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT, "0");
+		jObj.addProperty(KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH, "0");
+		jObj.addProperty(KEY_MENCODER_REMUX_MPEG2, true);
+		jObj.addProperty(KEY_MENCODER_SCALER, false);
+		jObj.addProperty(KEY_MENCODER_SCALEX, "0");
+		jObj.addProperty(KEY_MENCODER_SCALEY, "0");
+		jObj.addProperty(KEY_SKIP_LOOP_FILTER_ENABLED, false);
+		jObj.addProperty(KEY_MENCODER_SUB_FRIBIDI, false);
+		jObj.addProperty(KEY_MENCODER_YADIF, false);
+		jObj.addProperty(KEY_MAX_MEMORY_BUFFER_SIZE, 200);
+		jObj.addProperty(KEY_MAX_BITRATE, 90);
+		jObj.addProperty(KEY_MINIMIZED, false);
+		jObj.addProperty(KEY_TSMUXER_FORCEFPS, true);
+		jObj.addProperty(KEY_MUX_ALLAUDIOTRACKS, false);
+		jObj.addProperty(KEY_MPEG2_MAIN_SETTINGS, "Automatic (Wired)");
+		jObj.addProperty(KEY_NETWORK_INTERFACE, "");
+		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
+		if (numberOfCpuCores < 1) {
+			numberOfCpuCores = 1;
+		}
+		jObj.addProperty(KEY_NUMBER_OF_CPU_CORES, numberOfCpuCores);
+		jObj.addProperty(KEY_SERVER_PORT, 5001);
+		jObj.addProperty(KEY_PRETTIFY_FILENAMES, false);
+		jObj.addProperty(KEY_RENDERER_DEFAULT, "");
+		jObj.addProperty(KEY_RENDERER_FORCE_DEFAULT, false);
+		jObj.addProperty(KEY_RESUME, true);
+		JsonArray allRenderers = new JsonArray();
+		allRenderers.add(ALL_RENDERERS);
+		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
+		jObj.addProperty(KEY_SERVER_ENGINE, "0");
+		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
+		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
+		jObj.addProperty(KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
+		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
+		jObj.addProperty(KEY_SHOW_SPLASH_SCREEN, true);
+		jObj.addProperty(KEY_SHOW_TRANSCODE_FOLDER, true);
+		jObj.addProperty(KEY_SORT_METHOD, "4");
+		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
+		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");
+		jObj.addProperty(KEY_SUBS_COLOR, "0xFFFFFFFF");
+		jObj.addProperty(KEY_SUBS_FONT, "");
+		jObj.addProperty(KEY_ASS_MARGIN, 10);
+		jObj.addProperty(KEY_ASS_SCALE, 1.4);
+		jObj.addProperty(KEY_ASS_SHADOW, 1);
+		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
+		jObj.addProperty(KEY_UPNP_ENABLED, true);
+		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
+		jObj.addProperty(KEY_USE_CACHE, true);
+		jObj.addProperty(KEY_USE_IMDB_INFO, true);
+		jObj.addProperty(KEY_USE_SYMLINKS_TARGET_FILE, true);
+		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);
+		jObj.addProperty(KEY_VLC_USE_EXPERIMENTAL_CODECS, false);
+		jObj.addProperty(KEY_WEB_PLAYER_ENABLE, true);
+		jObj.addProperty(KEY_WEB_GUI_ON_START, true);
+		jObj.addProperty(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
+		jObj.addProperty(KEY_WEB_PLAYER_AUTH, false);
+		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS, true);
+		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS_PERM, true);
+		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD, true);
+		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD_PERM, true);
+		jObj.addProperty(KEY_WEB_PLAYER_PORT, DEFAULT_WEB_PLAYER_PORT);
+		jObj.addProperty(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic (Wired)");
+		jObj.addProperty(KEY_3D_SUBTITLES_DEPTH, "0");
+		return jObj;
+	}
+
 }

@@ -58,14 +58,14 @@ public class MediaServer {
 	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
-	protected static int port = CONFIGURATION.getServerPort();
+	protected static int port = CONFIGURATION.getMediaServerPort();
 	protected static String hostname;
 	protected static InetAddress inetAddress;
 	protected static NetworkInterface networkInterface;
 
 	private static boolean init() {
 		//get config ip port
-		port = CONFIGURATION.getServerPort();
+		port = CONFIGURATION.getMediaServerPort();
 		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
 		if (ia != null) {
 			inetAddress = ia.getAddr();

@@ -132,7 +132,7 @@ public class OldPlayerServer extends WebInterfaceServer implements WebInterfaceS
 				render.setRootFolder(root);
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
-				if (CONFIGURATION.useWebSubLang()) {
+				if (CONFIGURATION.useWebPlayerSubLang()) {
 					render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(t), ","));
 				}
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));

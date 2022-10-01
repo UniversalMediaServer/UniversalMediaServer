@@ -524,6 +524,10 @@ public class PMS {
 					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_WEB_GUI_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetWebPlayerServer();
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
@@ -534,7 +538,7 @@ public class PMS {
 		});
 
 		// GUI stuff
-		resetGuiServer();
+		resetWebGuiServer();
 		// Web player stuff
 		resetWebPlayerServer();
 
@@ -766,21 +770,21 @@ PlatformUtils.INSTANCE.isAdmin();
 	 * Reset the web graphical user interface server.
 	 * The trigger is init.
 	 */
-	public void resetGuiServer() {
+	public void resetWebGuiServer() {
 		if (webGuiServer != null) {
 			GuiManager.removeGui(webGuiServer);
 			webGuiServer.stop();
 		}
 		try {
-			webGuiServer = WebGuiServer.createServer(WebGuiServer.DEFAULT_PORT);
+			webGuiServer = WebGuiServer.createServer(configuration.getWebGuiServerPort());
 		} catch (BindException b) {
 			try {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServer.DEFAULT_PORT + ", because: " + b.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-				//use a random port
+				LOGGER.info("Unable to bind web interface on port: " + configuration.getWebGuiServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Falling back to random port.");
 				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		} catch (IOException ex) {
 			LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());

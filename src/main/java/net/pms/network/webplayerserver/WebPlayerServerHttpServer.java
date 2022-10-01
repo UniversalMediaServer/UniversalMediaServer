@@ -62,7 +62,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 		// Setup the socket address
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 		// Initialize the HTTP(S) server
-		if (CONFIGURATION.getWebHttps()) {
+		if (CONFIGURATION.getWebPlayerHttps()) {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {

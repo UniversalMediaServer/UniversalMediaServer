@@ -54,7 +54,7 @@ public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
 		ModelDetails modelDetails = new ModelDetails(modelName, modelDescription, modelNumber, MANUFACTURER_URL);
 		URI presentationURI = null;
 		if (umsinfo.getLocalAddress() != null) {
-			String webInterfaceUrl = "http" + (CONFIGURATION.getWebHttps() ? "s" : "") + "://" + umsinfo.getLocalAddress().getHostAddress() + ":" + CONFIGURATION.getWebPlayerServerPort();
+			String webInterfaceUrl = "http" + (CONFIGURATION.getWebPlayerHttps() ? "s" : "") + "://" + umsinfo.getLocalAddress().getHostAddress() + ":" + CONFIGURATION.getWebPlayerServerPort();
 			presentationURI = URI.create(webInterfaceUrl);
 		}
 		DeviceDetails umsDetails = new DeviceDetails(

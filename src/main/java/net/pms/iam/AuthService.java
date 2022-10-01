@@ -142,10 +142,10 @@ public class AuthService {
 		if (isPlayerRequest(req) && !isPlayerEnabled()) {
 			Account result = AccountService.getFakeAdminAccount();
 			int permissions = Permissions.WEB_PLAYER_BROWSE;
-			if (CONFIGURATION.isWebPlayerControlsEnabled()) {
+			if (CONFIGURATION.isWebPlayerControlsPerm()) {
 				permissions |= Permissions.DEVICES_CONTROL;
 			}
-			if (CONFIGURATION.isWebPlayerControlsEnabled()) {
+			if (CONFIGURATION.isWebPlayerControlsPerm()) {
 				permissions |= Permissions.WEB_PLAYER_DOWNLOAD;
 			}
 			result.getGroup().setPermissions(permissions);
