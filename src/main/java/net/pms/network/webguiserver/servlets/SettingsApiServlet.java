@@ -81,8 +81,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		"network_interface",
 		"port",
 		"renderer_default",
-		"web_port",
-		"web_gui_port"
+		"web_gui_port",
+		"web_player_port"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");

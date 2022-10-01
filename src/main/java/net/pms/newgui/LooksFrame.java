@@ -471,16 +471,16 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
-				if (PMS.get().getWebPlayerServer() != null && StringUtils.isNotBlank(PMS.get().getWebPlayerServer().getUrl())) {
+				if (PMS.get().getGuiServer() != null && StringUtils.isNotBlank(PMS.get().getGuiServer().getUrl())) {
 					try {
-						URI uri = new URI(PMS.get().getWebPlayerServer().getUrl());
+						URI uri = new URI(PMS.get().getGuiServer().getUrl());
 						if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
 							error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 						}
 					} catch (URISyntaxException se) {
 						LOGGER.error(
-								"Could not form a valid web player server URI from \"{}\": {}",
-								PMS.get().getWebPlayerServer().getUrl(),
+								"Could not form a valid web gui server URI from \"{}\": {}",
+								PMS.get().getGuiServer().getUrl(),
 								se.getMessage()
 						);
 						LOGGER.trace("", se);

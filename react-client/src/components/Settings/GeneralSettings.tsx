@@ -143,33 +143,33 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get['EnableWebPlayer']}
-                {...form.getInputProps('web_enable', { type: 'checkbox' })}
+                {...form.getInputProps('web_player_enable', { type: 'checkbox' })}
               />
               <NumberInput
-                disabled={!canModify || !form.values['web_enable']}
-                placeholder={defaultConfiguration.web_port}
+                disabled={!canModify || !form.values['web_player_enable']}
+                placeholder={defaultConfiguration.web_player_port}
                 label={i18n.get['ForcePortPlayerServer']}
                 hideControls
-                {...form.getInputProps('web_port')}
+                {...form.getInputProps('web_player_port')}
               />
               <Stack align='flex-start' mt='sm'>
                 <Checkbox
-                  disabled={!canModify}
+                  disabled={!canModify || !form.values['web_player_enable']}
                   label={i18n.get['UseAuthenticationService']}
                   {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
                 />
                 {!form.values['web_player_auth'] && (
                   <Checkbox
-                    disabled={!canModify}
+                    disabled={!canModify || !form.values['web_player_enable']}
                     label={i18n.get['AllowMediaDownload']}
-                    {...form.getInputProps('web_player_download', { type: 'checkbox' })}
+                    {...form.getInputProps('web_player_download_perm', { type: 'checkbox' })}
                   />
                 )}
                 {!form.values['web_player_auth'] && (
                   <Checkbox
-                    disabled={!canModify}
+                    disabled={!canModify || !form.values['web_player_enable']}
                     label={i18n.get['CanControlOtherDevices']}
-                    {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
+                    {...form.getInputProps('web_player_controls_perm', { type: 'checkbox' })}
                   />
                 )}
               </Stack>
