@@ -728,7 +728,7 @@ public class SubtitleUtils {
 	 * } and any ASS tags <code>
 	 * {\*}
 	 * </code> from subtitles file for renderers not capable of showing SubRip
-	 * tags correctly.* is used as a wildcard in the definition above.
+	 * tags correctly. * is used as a wildcard in the definition above.
 	 *
 	 * @param file the source subtitles
 	 * @return InputStream with converted subtitles.
