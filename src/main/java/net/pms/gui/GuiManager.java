@@ -50,6 +50,12 @@ public class GuiManager {
 	private GuiManager() {
 	}
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private GuiManager() {
+	}
+
 	public static void addGui(IGui gui) {
 		if (gui != null) {
 			if (gui instanceof LooksFrame) {

@@ -17,10 +17,10 @@
  */
 package net.pms.service;
 
-import net.pms.service.process.ProcessManager;
-import net.pms.service.sleep.SleepManager;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
