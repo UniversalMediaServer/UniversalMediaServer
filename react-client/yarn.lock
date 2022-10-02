@@ -7237,10 +7237,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:1.2.3":
-  version: 1.2.3
-  resolution: "hls.js@npm:1.2.3"
-  checksum: 9d07957d94e84b8f187aa209ffb0e6f65302178c6fdebc6effd63644d8cf2e304b2232109a30336cfee02c908aba86a402fe5d5dfa6487aca3387fd5748cccfa
+"hls.js@npm:1.2.4":
+  version: 1.2.4
+  resolution: "hls.js@npm:1.2.4"
+  checksum: 084189d0dc0a423b8e7d25f7c9164bafacf71cf45b53a086ab1c315891bbacc9d9253dacdb18c5fbdf52208fa6ee15b0cc1ddc91476f5a0c049e11e986aeb8f3
   languageName: node
   linkType: hard
 
@@ -13064,7 +13064,7 @@ __metadata:
     "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
     axios: 0.27.2
-    hls.js: 1.2.3
+    hls.js: 1.2.4
     jwt-decode: 3.1.2
     lodash: 4.17.21
     react: 18.2.0
