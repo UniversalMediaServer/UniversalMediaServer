@@ -16,22 +16,22 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import net.pms.PMS;
+import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import com.sun.jna.Platform;
-import net.pms.PMS;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
+import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.NetworkIF;
-import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 import oshi.software.os.OperatingSystem;
 
 /**
@@ -81,10 +81,10 @@ public class SystemInformation extends Thread {
 		}
 
 		sb.append("OS: ");
-		if (os != null && isNotBlank(os.toString())) {
-			sb.append(os.toString()).append(" ").append(getOSBitness()).append("-bit");
+		if (os != null && StringUtils.isNotBlank(os.toString())) {
+			sb.append(os.toString()).append(" ").append(os.getBitness()).append("-bit");
 		} else {
-			sb.append(System.getProperty("os.name")).append(" ").append(getOSBitness()).append("-bit ");
+			sb.append(System.getProperty("os.name")).append(" ").append(PlatformUtils.getOSBitness()).append("-bit ");
 			sb.append(System.getProperty("os.version"));
 		}
 		result.add(sb.toString());
@@ -140,16 +140,18 @@ public class SystemInformation extends Thread {
 			sb.append(StringUtil.formatBytes(jvmMemory, true));
 		}
 		result.add(sb.toString());
-		result.add("Used network interfaces:");
-		// count only real interfaces whose received some bytes not the logical ones
-		for (NetworkIF net : networkInterfaces) {
-			if (net.getBytesRecv() > 0) {
-				sb.setLength(0);
-				sb.append(net.getDisplayName())
-				.append(", speed ")
-				.append(net.getSpeed() / 1000000)
-				.append(" Mb/s");
-				result.add(sb.toString());
+		if (networkInterfaces != null) {
+			result.add("Used network interfaces:");
+			// count only real interfaces whose received some bytes not the logical ones
+			for (NetworkIF net : networkInterfaces) {
+				if (net.getBytesRecv() > 0) {
+					sb.setLength(0);
+					sb.append(net.getDisplayName())
+					.append(", speed ")
+					.append(net.getSpeed() / 1000000)
+					.append(" Mb/s");
+					result.add(sb.toString());
+				}
 			}
 		}
 
@@ -200,24 +202,6 @@ public class SystemInformation extends Thread {
 			null,
 			null
 		);
-	}
-
-	/**
-	 * Determines whether the operating system is 64-bit or 32-bit.
-	 *
-	 * XXX This will work with Windows and OS X but not necessarily with Linux
-	 * as we're relying on Java's {@code os.arch} which only detects the bitness
-	 * of the JVM, not of the operating system. If
-	 * <a href="https://github.com/oshi/oshi/issues/377">OSHI #377</a> is
-	 * implemented, it could be a reliable source for all OSes.
-	 *
-	 * @return The bitness of the operating system.
-	 */
-	public static int getOSBitness() {
-		if (Platform.isWindows()) {
-			return System.getenv("ProgramFiles(x86)") != null ? 64 : 32;
-		}
-		return Platform.is64Bit() ? 64 : 32;
 	}
 
 	@Override

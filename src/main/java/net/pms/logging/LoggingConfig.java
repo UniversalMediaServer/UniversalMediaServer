@@ -60,7 +60,6 @@ public class LoggingConfig {
 	private static final Object LOG_FILE_PATHS_LOCK = new Object();
 	private static final HashMap<String, String> LOG_FILE_PATHS = new HashMap<>(); // key: appender name, value: log file path
 	private static final LinkedList<Appender<ILoggingEvent>> SYSLOG_DETACHED_APPENDERS = new LinkedList<>();
-	private static enum ActionType { START, STOP, NONE };
 	private static String filepath = null;
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
@@ -68,6 +67,8 @@ public class LoggingConfig {
 	private static boolean syslogDisabled = false;
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
+
+	private enum ActionType { START, STOP, NONE }
 
 	/** Not to be instantiated. */
 	private LoggingConfig() {

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -28,13 +28,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import net.pms.PMS;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,28 +80,24 @@ public class HelpTab {
 		updateContents();
 
 		// Enable internal anchor links
-		editorPane.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent event) {
-				try {
-					if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						String urlString = event.getURL().toExternalForm();
-
-						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
-							// Open external links in the desktop web browser
-							BasicSystemUtils.INSTANCE.browseURI(urlString);
-						} else {
-							// Open anchor links in the editorPane
-							editorPane.setPage(event.getURL());
-						}
+		editorPane.addHyperlinkListener((HyperlinkEvent event) -> {
+			try {
+				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String urlString = event.getURL().toExternalForm();
+					if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
+						// Open external links in the desktop web browser
+						PlatformUtils.INSTANCE.browseURI(urlString);
+					} else {
+						// Open anchor links in the editorPane
+						editorPane.setPage(event.getURL());
 					}
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
 				}
+			} catch (IOException e) {
+				LOGGER.debug("Caught exception", e);
 			}
 		});
 
-		JScrollPane pane = new JScrollPane(editorPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(editorPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 400));
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		builder.add(pane, cc.xy(2, 2));

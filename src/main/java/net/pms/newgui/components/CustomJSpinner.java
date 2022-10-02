@@ -1,20 +1,19 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.newgui.components;
 
@@ -29,11 +28,11 @@ import javax.swing.FocusManager;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import net.pms.PMS;
@@ -104,6 +103,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 		}
 	}
 
+	@Override
 	protected JComponent createEditor(SpinnerModel model) {
 		if (model instanceof SpinnerDateModel) {
 			return new DateEditor(this);
@@ -221,7 +221,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 			JFormattedTextField ftf = getTextField();
 			ftf.setEditable(true);
 			ftf.setFormatterFactory(factory);
-			ftf.setHorizontalAlignment(JTextField.RIGHT);
+			ftf.setHorizontalAlignment(SwingConstants.RIGHT);
 
 			try {
 				String minString = formatter.valueToString(model.getMinimum());
@@ -249,6 +249,7 @@ public class CustomJSpinner extends javax.swing.JSpinner {
 				setValueClass(model.getValue().getClass());
 			}
 
+			@Override
 			public Comparable getMinimum() {
 				return model.getMinimum();
 			}

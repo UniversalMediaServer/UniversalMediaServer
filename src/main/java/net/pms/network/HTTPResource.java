@@ -29,9 +29,6 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -39,13 +36,16 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
  * In the PMS case, this item represents media files.
  * @see DLNAResource
  */
-public class HTTPResource {
+public abstract class HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPResource.class);
 	public static final String UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
 	public static final String UNKNOWN_IMAGE_TYPEMIME = "image/jpeg";
@@ -116,7 +116,7 @@ public class HTTPResource {
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	public HTTPResource() {
+	protected HTTPResource() {
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class HTTPResource {
 	 */
 	protected InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = this.getClass().getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
@@ -145,16 +145,12 @@ public class HTTPResource {
 	 * @return Default MIME associated with the file type.
 	 */
 	public static String getDefaultMimeType(int type) {
-		switch (type) {
-			case Format.VIDEO:
-				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-			case Format.IMAGE:
-				return HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
-			case Format.AUDIO:
-				return HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
-			default:
-				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-		}
+		return switch (type) {
+			case Format.VIDEO -> HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+			case Format.IMAGE -> HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
+			case Format.AUDIO -> HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
+			default -> HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+		};
 	}
 
 	/**
@@ -177,10 +173,8 @@ public class HTTPResource {
 			fileName = StringUtil.convertURLToFileName(fileName);
 			File hostDir = new File(PMS.getConfiguration().getTempFolder(), hostName);
 
-			if (!hostDir.isDirectory()) {
-				if (!hostDir.mkdir()) {
-					LOGGER.debug("Cannot create directory: {}", hostDir.getAbsolutePath());
-				}
+			if (!hostDir.isDirectory() && !hostDir.mkdir()) {
+				LOGGER.debug("Cannot create directory: {}", hostDir.getAbsolutePath());
 			}
 
 			f = new File(hostDir, fileName);

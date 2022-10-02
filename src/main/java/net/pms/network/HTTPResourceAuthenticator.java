@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -60,9 +60,7 @@ public class HTTPResourceAuthenticator extends Authenticator {
 
 			if (pass != null) {
 				// Send user information for the URL.
-				PasswordAuthentication pwAuth = new PasswordAuthentication(user, pass.toCharArray());
-
-				return pwAuth;
+				return new PasswordAuthentication(user, pass.toCharArray());
 			} else {
 				return null;
 			}

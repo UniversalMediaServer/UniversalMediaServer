@@ -230,14 +230,14 @@ public class NettyUpnpStream extends UpnpStream {
 
 		@Override
 		public InetAddress getRemoteAddress() {
-			return event.getRemoteAddress() != null && event.getRemoteAddress() instanceof InetSocketAddress ?
+			return event.getRemoteAddress() instanceof InetSocketAddress ?
 					((InetSocketAddress) event.getRemoteAddress()).getAddress() :
 					null;
 		}
 
 		@Override
 		public InetAddress getLocalAddress() {
-			return event.getChannel().getLocalAddress() != null && event.getChannel().getLocalAddress() instanceof InetSocketAddress ?
+			return event.getChannel().getLocalAddress() instanceof InetSocketAddress ?
 					((InetSocketAddress) event.getChannel().getLocalAddress()).getAddress() :
 					null;
 		}

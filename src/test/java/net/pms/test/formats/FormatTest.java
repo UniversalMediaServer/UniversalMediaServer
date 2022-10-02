@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.test.formats;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -30,16 +29,16 @@ import net.pms.formats.image.JPG;
 import net.pms.formats.image.PNG;
 import net.pms.formats.image.RAW;
 import net.pms.formats.image.TIFF;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test basic functionality of {@link Format}.
  */
 public class FormatTest {
-	@Before
+	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -52,19 +51,19 @@ public class FormatTest {
     @Test
 	public void testFormatEdgeCases() {
     	// Empty string
-		assertEquals("MP3 does not match \"\"", false, new MP3().match(""));
+		assertFalse(new MP3().match(""), "MP3 does not match \"\"");
 
     	// Null string
-		assertEquals("MP3 does not match null", false, new MP3().match(null));
+		assertFalse(new MP3().match(null), "MP3 does not match null");
 
 		// Mixed case
-		assertEquals("TIFF matches \"tEsT.TiFf\"", true, new TIFF().match("tEsT.TiFf"));
+		assertTrue(new TIFF().match("tEsT.TiFf"), "TIFF matches \"tEsT.TiFf\"");
 
 		// Starting with identifier instead of ending
-		assertEquals("TIFF does not match \"tiff.test\"", false, new TIFF().match("tiff.test"));
+		assertFalse(new TIFF().match("tiff.test"), "TIFF does not match \"tiff.test\"");
 
 		// Substring
-		assertEquals("TIFF does not match \"not.tiff.but.mp3\"", false, new TIFF().match("not.tiff.but.mp3"));
+		assertFalse(new TIFF().match("not.tiff.but.mp3"), "TIFF does not match \"not.tiff.but.mp3\"");
     }
 
     /**
@@ -74,21 +73,21 @@ public class FormatTest {
     @Test
 	public void testFormatIdentifiers() {
 		// Identifier tests based on the identifiers defined in getId() of each class
-		assertEquals("DVRMS matches \"test.dvr\"", true, new DVRMS().match("test.dvr"));
-		assertEquals("AIFF matches \"test.aiff\"", true, new AIFF().match("test.aiff"));
-		assertEquals("FLAC matches \"test.flac\"", true, new FLAC().match("test.flac"));
-		assertEquals("GIF matches \"test.gif\"", true, new GIF().match("test.gif"));
-		assertEquals("ISO matches \"test.iso\"", true, new ISO().match("test.iso"));
-		assertEquals("JPG matches \"test.jpg\"", true, new JPG().match("test.jpg"));
-		assertEquals("WMA matches \"test.wma\"", true, new WMA().match("test.wma"));
-		assertEquals("MKV matches \"test.mkv\"", true, new MKV().match("test.mkv"));
-		assertEquals("MP3 matches \"test.mp3\"", true, new MP3().match("test.mp3"));
-		assertEquals("MPG matches \"test.mpg\"", true, new MPG().match("test.mpg"));
-		assertEquals("OGG matches \"test.ogg\"", true, new OGG().match("test.ogg"));
-		assertEquals("PNG matches \"test.png\"", true, new PNG().match("test.png"));
-		assertEquals("RAW matches \"test.arw\"", true, new RAW().match("test.arw"));
-		assertEquals("TIF matches \"test.tiff\"", true, new TIFF().match("test.tiff"));
-		assertEquals("WAV matches \"test.wav\"", true, new WAV().match("test.wav"));
-		assertEquals("WEB matches \"http\"", true, new WEB().match("http://test.org/"));
+		assertTrue(new DVRMS().match("test.dvr"), "DVRMS matches \"test.dvr\"");
+		assertTrue(new AIFF().match("test.aiff"), "AIFF matches \"test.aiff\"");
+		assertTrue(new FLAC().match("test.flac"), "FLAC matches \"test.flac\"");
+		assertTrue(new GIF().match("test.gif"), "GIF matches \"test.gif\"");
+		assertTrue(new ISO().match("test.iso"), "ISO matches \"test.iso\"");
+		assertTrue(new JPG().match("test.jpg"), "JPG matches \"test.jpg\"");
+		assertTrue(new WMA().match("test.wma"), "WMA matches \"test.wma\"");
+		assertTrue(new MKV().match("test.mkv"), "MKV matches \"test.mkv\"");
+		assertTrue(new MP3().match("test.mp3"), "MP3 matches \"test.mp3\"");
+		assertTrue(new MPG().match("test.mpg"), "MPG matches \"test.mpg\"");
+		assertTrue(new OGG().match("test.ogg"), "OGG matches \"test.ogg\"");
+		assertTrue(new PNG().match("test.png"), "PNG matches \"test.png\"");
+		assertTrue(new RAW().match("test.arw"), "RAW matches \"test.arw\"");
+		assertTrue(new TIFF().match("test.tiff"), "TIF matches \"test.tiff\"");
+		assertTrue(new WAV().match("test.wav"), "WAV matches \"test.wav\"");
+		assertTrue(new WEB().match("http://test.org/"), "WEB matches \"http\"");
 	}
 }

@@ -42,7 +42,7 @@ public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final String ALL_RENDERERS_TREE_NAME = CONFIGURATION.allRenderers;
+	private static final String ALL_RENDERERS_TREE_NAME = PmsConfiguration.ALL_RENDERERS;
 	private static List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;

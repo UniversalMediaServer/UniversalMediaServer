@@ -385,7 +385,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 
-			if (CONFIGURATION.useWebControl()) {
+			if (CONFIGURATION.isWebPlayerControllable()) {
 				mustacheVars.put("push", true);
 			}
 			if (hasFile) {

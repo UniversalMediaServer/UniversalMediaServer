@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -26,12 +25,11 @@ import static net.pms.configuration.RendererConfiguration.getRendererConfigurati
 import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByUPNPDetails;
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -40,12 +38,12 @@ import org.slf4j.LoggerFactory;
 public class RendererConfigurationTest {
 	PmsConfiguration prevConf;
 
-	@BeforeClass
+	@BeforeAll
 	public static void SetUPClass() {
 		PMS.configureJNA();
 	}
-	
-	@Before
+
+	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -57,7 +55,7 @@ public class RendererConfigurationTest {
 		prevConf = PMS.getConfiguration();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		PMS.setConfiguration(prevConf);
 	}
@@ -71,9 +69,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
@@ -404,9 +400,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testForcedDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Set default to PlayStation 3
 		pmsConf.setRendererDefault("PlayStation 3");
@@ -432,9 +426,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testBogusDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Set default to non existent renderer
 		pmsConf.setRendererDefault("Bogus Renderer");
@@ -471,16 +463,17 @@ public class RendererConfigurationTest {
 		RendererConfiguration rc = getRendererConfigurationByHeaders(headers);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for header \"" + headers + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for header \"" + headers + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for header(s) \"" +
-				headers + "\"", correctRendererName, rc.getRendererName());
+				headers + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for header(s) \"" + headers +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for header(s) \"" + headers +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 
@@ -496,16 +489,17 @@ public class RendererConfigurationTest {
 		RendererConfiguration rc = getRendererConfigurationByUPNPDetails(upnpDetails);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for upnpDetails \"" + upnpDetails + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
-				upnpDetails + "\"", correctRendererName, rc.getRendererName());
+				upnpDetails + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 }

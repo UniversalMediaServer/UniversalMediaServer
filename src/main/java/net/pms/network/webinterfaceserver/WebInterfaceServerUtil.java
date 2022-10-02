@@ -40,9 +40,8 @@ import java.sql.Connection;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.IpFilter;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
@@ -54,6 +53,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
+import net.pms.util.IpFilter;
 import net.pms.util.Languages;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
@@ -75,6 +75,12 @@ public class WebInterfaceServerUtil {
 	private static final String HTTPSERVER_REQUEST_END =    "============================= INTERFACE HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= INTERFACE HTTPSERVER RESPONSE BEGIN ===============================";
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= INTERFACE HTTPSERVER RESPONSE END =================================";
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebInterfaceServerUtil() {
+	}
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
@@ -504,7 +510,7 @@ public class WebInterfaceServerUtil {
 
 	public static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	private static IpFilter bumpFilter = null;

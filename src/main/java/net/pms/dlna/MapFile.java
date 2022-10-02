@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -44,17 +44,13 @@ public class MapFile extends DLNAResource {
 	 * the file extensions that are eligible for evaluation as file or folder
 	 * thumbnails.
 	 */
-	public static final Set<String> THUMBNAIL_EXTENSIONS = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(new String[] {"jpeg", "jpg", "png"})
-	));
+	public static final Set<String> THUMBNAIL_EXTENSIONS = Set.of("jpeg", "jpg", "png");
 
 	/**
 	 * An array of {@link String}s that defines the file extensions that are
 	 * never media so we should not attempt to parse.
 	 */
-	public static final Set<String> EXTENSIONS_DENYLIST = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(new String[] {"!qB", "!ut", "1", "dmg", "exe"})
-	));
+	public static final Set<String> EXTENSIONS_DENYLIST = Set.of("!qB", "!ut", "1", "dmg", "exe");
 
 	private List<File> discoverable;
 	private List<File> emptyFoldersToRescan;
@@ -156,8 +152,8 @@ public class MapFile extends DLNAResource {
 	}
 
 	private File getPath() {
-		if (this instanceof RealFile) {
-			return ((RealFile) this).getFile();
+		if (this instanceof RealFile realFile) {
+			return realFile.getFile();
 		}
 		return null;
 	}
@@ -510,8 +506,8 @@ public class MapFile extends DLNAResource {
 		if (getMediaSubtitle() != null) {
 			result.append(", selected subtitles=[").append(getMediaSubtitle()).append("]");
 		}
-		if (getPlayer() != null) {
-			result.append(", player=").append(getPlayer());
+		if (getEngine() != null) {
+			result.append(", player=").append(getEngine());
 		}
 		if (getChildren() != null && !getChildren().isEmpty()) {
 			result.append(", children=").append(getChildren());
@@ -635,7 +631,7 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
-		return MapFile.THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
+		return THUMBNAIL_EXTENSIONS.contains(FileUtil.getExtension(fileName));
 	}
 
 	/**
@@ -648,7 +644,7 @@ public class MapFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialMediaFile(String fileName) {
-		return !MapFile.EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
+		return !EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
 	}
 
 }

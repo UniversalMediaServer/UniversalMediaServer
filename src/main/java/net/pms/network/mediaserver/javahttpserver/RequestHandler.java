@@ -71,8 +71,8 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.dlna.virtual.MediaLibraryFolder;
-import net.pms.encoders.ImagePlayer;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.encoders.ImageEngine;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
@@ -91,7 +91,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -492,7 +492,7 @@ public class RequestHandler implements HttpHandler {
 				filterChain = dlna.addFlagFilters(filterChain);
 				inputStream = thumbInputStream.transcode(
 						imageProfile,
-						renderer != null ? renderer.isThumbnailPadding() : false,
+						renderer != null && renderer.isThumbnailPadding(),
 						filterChain
 				);
 				if (contentFeatures != null) {
@@ -538,8 +538,8 @@ public class RequestHandler implements HttpHandler {
 				exchange.getResponseHeaders().set("Connection", "keep-alive");
 				try {
 					InputStream imageInputStream;
-					if (dlna.getPlayer() instanceof ImagePlayer) {
-						ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(
+					if (dlna.getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(
 								dlna,
 								dlna.getMedia(),
 								new OutputParams(CONFIGURATION)
@@ -651,7 +651,7 @@ public class RequestHandler implements HttpHandler {
 								!CONFIGURATION.isDisableSubtitles() &&
 								renderer.isExternalSubtitlesFormatSupported(dlna.getMediaSubtitle(), dlna)) {
 							String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
-							if (StringUtils.isNotBlank(subtitleHttpHeader) && (dlna.getPlayer() == null || renderer.streamSubsForTranscodedVideo())) {
+							if (StringUtils.isNotBlank(subtitleHttpHeader) && (dlna.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
 								// Device allows a custom subtitle HTTP header; construct it
 								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 								String subtitleUrl;
@@ -1137,7 +1137,7 @@ public class RequestHandler implements HttpHandler {
 				}
 
 				if (uf != null && uf.isCompatible(renderer) &&
-						(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(renderer)) ||
+						(uf.getEngine() == null || uf.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 						uf != null && files.get(0).isInsideTranscodeFolder()) {

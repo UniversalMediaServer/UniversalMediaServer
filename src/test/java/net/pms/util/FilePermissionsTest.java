@@ -26,41 +26,39 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class FilePermissionsTest {
 	private final Class<?> CLASS = FilePermissionsTest.class;
 
 	@Test
 	public void throwsIllegalArgumentExceptionIfFileIsNull() throws FileNotFoundException {
-		IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
 			File file = null;
 			new FilePermissions(file);
 		}, "IllegalArgumentException was expected");
-		Assertions.assertEquals("file cannot be null", thrown.getMessage());
+		assertEquals("file cannot be null", thrown.getMessage());
 	}
 
 	public void throwsIllegalArgumentExceptionIfPathIsNull() throws FileNotFoundException {
-		IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
 			Path path = null;
 			new FilePermissions(path);
 		}, "IllegalArgumentException was expected");
-		Assertions.assertEquals("File argument cannot be null", thrown.getMessage());
+		assertEquals("File argument cannot be null", thrown.getMessage());
 	}
 
 	@Test
 	public void throwsFileNotFoundExceptionIfFileDoesNotExist() throws FileNotFoundException {
-		Assertions.assertThrows(FileNotFoundException.class, () -> {
+		assertThrows(FileNotFoundException.class, () -> {
 			new FilePermissions(new File("No such file"));
 		}, "FileNotFoundException was expected");
 	}
 
 	@Test
 	public void throwsFileNotFoundExceptionIfPathDoesNotExist() throws FileNotFoundException {
-		Assertions.assertThrows(FileNotFoundException.class, () -> {
+		assertThrows(FileNotFoundException.class, () -> {
 			new FilePermissions(Paths.get("No such file"));
 		}, "FileNotFoundException was expected");
 	}
@@ -68,42 +66,42 @@ public class FilePermissionsTest {
 	@Test
 	public void testFilePermissions() throws URISyntaxException, IOException {
 		FilePermissions permissions = new FilePermissions(new File(""));
-		assertTrue("CurrentFolderIsFolder", permissions.isFolder());
-		assertTrue("CurrentFolderIsReadable", permissions.isReadable());
-		assertTrue("CurrentFolderIsBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isFolder(), "CurrentFolderIsFolder");
+		assertTrue(permissions.isReadable(), "CurrentFolderIsReadable");
+		assertTrue(permissions.isBrowsable(), "CurrentFolderIsBrowsable");
 
 		permissions = new FilePermissions(Paths.get("").toAbsolutePath());
-		assertTrue("CurrentFolderIsFolder", permissions.isFolder());
-		assertTrue("CurrentFolderIsReadable", permissions.isReadable());
-		assertTrue("CurrentFolderIsBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isFolder(), "CurrentFolderIsFolder");
+		assertTrue(permissions.isReadable(), "CurrentFolderIsReadable");
+		assertTrue(permissions.isBrowsable(), "CurrentFolderIsBrowsable");
 
 		permissions = new FilePermissions(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")));
-		assertTrue("FileIsReadable", permissions.isReadable());
-		assertTrue("FileIsWritable", permissions.isWritable());
-		assertFalse("FileIsNotFolder", permissions.isFolder());
-		assertFalse("FileIsNotBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isReadable(), "FileIsReadable");
+		assertTrue(permissions.isWritable(), "FileIsWritable");
+		assertFalse(permissions.isFolder(), "FileIsNotFolder");
+		assertFalse(permissions.isBrowsable(), "FileIsNotBrowsable");
 
 		permissions = new FilePermissions(permissions.getFile().getParentFile());
-		assertTrue("ParentIsFolder", permissions.isFolder());
-		assertTrue("ParentIsBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isFolder(), "ParentIsFolder");
+		assertTrue(permissions.isBrowsable(), "ParentIsBrowsable");
 
 		permissions = new FilePermissions(Paths.get(CLASS.getResource("english-utf8-with-bom.srt").toURI()));
-		assertTrue("FileIsReadable", permissions.isReadable());
-		assertTrue("FileIsWritable", permissions.isWritable());
-		assertFalse("FileIsNotFolder", permissions.isFolder());
-		assertFalse("FileIsNotBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isReadable(), "FileIsReadable");
+		assertTrue(permissions.isWritable(), "FileIsWritable");
+		assertFalse(permissions.isFolder(), "FileIsNotFolder");
+		assertFalse(permissions.isBrowsable(), "FileIsNotBrowsable");
 
 		permissions = new FilePermissions(permissions.getPath().getParent());
-		assertTrue("ParentIsFolder", permissions.isFolder());
-		assertTrue("ParentIsBrowsable", permissions.isBrowsable());
+		assertTrue(permissions.isFolder(), "ParentIsFolder");
+		assertTrue(permissions.isBrowsable(), "ParentIsBrowsable");
 
 		File file = new File(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000)));
 		if (file.createNewFile()) {
 			try {
-				assertTrue("TempFileIsReadable", new FilePermissions(file).isReadable());
-				assertTrue("TempFileIsWritable", new FilePermissions(file).isWritable());
-				assertFalse("TempFileIsNotFolder", new FilePermissions(file).isFolder());
-				assertFalse("TempFileIsNotBrowsable", new FilePermissions(file).isBrowsable());
+				assertTrue(new FilePermissions(file).isReadable(), "TempFileIsReadable");
+				assertTrue(new FilePermissions(file).isWritable(), "TempFileIsWritable");
+				assertFalse(new FilePermissions(file).isFolder(), "TempFileIsNotFolder");
+				assertFalse(new FilePermissions(file).isBrowsable(), "TempFileIsNotBrowsable");
 			} finally {
 				file.delete();
 			}
@@ -112,10 +110,10 @@ public class FilePermissionsTest {
 		Path path = Paths.get(System.getProperty("java.io.tmpdir"), String.format("UMS_temp_writable_file_%d.tmp", new Random().nextInt(10000)));
 		Files.createFile(path);
 		try {
-			assertTrue("TempFileIsReadable", new FilePermissions(path).isReadable());
-			assertTrue("TempFileIsWritable", new FilePermissions(path).isWritable());
-			assertFalse("TempFileIsNotFolder", new FilePermissions(path).isFolder());
-			assertFalse("TempFileIsNotBrowsable", new FilePermissions(path).isBrowsable());
+			assertTrue(new FilePermissions(path).isReadable(), "TempFileIsReadable");
+			assertTrue(new FilePermissions(path).isWritable(), "TempFileIsWritable");
+			assertFalse(new FilePermissions(path).isFolder(), "TempFileIsNotFolder");
+			assertFalse(new FilePermissions(path).isBrowsable(), "TempFileIsNotBrowsable");
 		} finally {
 			Files.delete(path);
 		}

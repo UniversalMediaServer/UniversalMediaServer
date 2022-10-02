@@ -23,9 +23,9 @@ import java.sql.Connection;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.assertj.core.api.Assertions.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class TableFilesStatusTest {
 	 * @throws ConfigurationException
 	 * @throws InterruptedException
 	 */
-	@Before
+	@BeforeEach
 	public final void setUp() throws ConfigurationException, InterruptedException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
@@ -92,9 +92,9 @@ public class TableFilesStatusTest {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", true);
 			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", false);
-			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist")).isNull();
-			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed")).isTrue();
-			assertThat(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed")).isFalse();
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist"));
+			assertTrue(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed"));
+			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed"));
 		} finally {
 			MediaDatabase.close(connection);
 		}

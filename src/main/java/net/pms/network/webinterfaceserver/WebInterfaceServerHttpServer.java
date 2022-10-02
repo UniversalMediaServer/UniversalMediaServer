@@ -42,7 +42,7 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
@@ -86,7 +86,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
 		// Initialize the HTTP(S) server
-		if (CONFIGURATION.getWebHttps()) {
+		if (CONFIGURATION.getWebPlayerHttps()) {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
@@ -229,7 +229,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 				render.setRootFolder(root);
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
-				if (CONFIGURATION.useWebSubLang()) {
+				if (CONFIGURATION.useWebPlayerSubLang()) {
 					render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(t), ","));
 				}
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));

@@ -2229,7 +2229,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         value, {@code false} otherwise.
 	 */
 	public static boolean isInteger(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInteger();
+		return rational != null && rational.isInteger();
 	}
 
 	/**
@@ -2241,7 +2241,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         otherwise.
 	 */
 	public static boolean isNaN(@Nullable Rational rational) {
-		return rational == null ? false : rational.isNaN();
+		return rational != null && rational.isNaN();
 	}
 
 	/**
@@ -2253,7 +2253,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         negative infinity, {@code false} otherwise.
 	 */
 	public static boolean isInfinite(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfinite();
+		return rational != null && rational.isInfinite();
 	}
 
 	/**
@@ -2265,7 +2265,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isInfinitePositive(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfinitePositive();
+		return rational != null && rational.isInfinitePositive();
 	}
 
 	/**
@@ -2277,7 +2277,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         otherwise.
 	 */
 	public static boolean isInfiniteNegative(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfiniteNegative();
+		return rational != null && rational.isInfiniteNegative();
 	}
 
 	/**

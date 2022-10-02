@@ -451,10 +451,7 @@ public class DLNAOrgFlags implements ProtocolInfoAttribute {
 		if (high != other.high) {
 			return false;
 		}
-		if (low != other.low) {
-			return false;
-		}
-		return true;
+		return (low == other.low);
 	}
 
 	/**

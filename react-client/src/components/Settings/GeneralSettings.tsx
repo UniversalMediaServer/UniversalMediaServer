@@ -1,4 +1,4 @@
-import { Accordion, Checkbox, Group, MultiSelect, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
@@ -51,16 +51,11 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 data={getLanguagesSelectData()}
                 {...form.getInputProps('language')}
               />
-              <Stack align="flex-start" mt="sm">
+              <Stack align='flex-start' mt='sm'>
                 <Checkbox
                   disabled={!canModify}
                   label={i18n.get['StartMinimizedSystemTray']}
                   {...form.getInputProps('minimized', { type: 'checkbox' })}
-                />
-                <Checkbox
-                  disabled={!canModify}
-                  label={i18n.get['LaunchGuiBrowserStartup']}
-                  {...form.getInputProps('web_gui_on_start', { type: 'checkbox' })}
                 />
                 <Checkbox
                   disabled={!canModify}
@@ -73,6 +68,25 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                   {...form.getInputProps('auto_update', { type: 'checkbox' })}
                 />
               </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value='GUI'>
+            <Accordion.Control>{i18n.get['Gui']}</Accordion.Control>
+            <Accordion.Panel>
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['LaunchGuiBrowserStartup']}
+                  {...form.getInputProps('web_gui_on_start', { type: 'checkbox' })}
+                />
+                { advancedSettings && (
+                  <NumberInput
+                    disabled={!canModify}
+                    placeholder={defaultConfiguration.web_gui_port}
+                    label={i18n.get['ForcePortGuiServer']}
+                    hideControls
+                    {...form.getInputProps('web_gui_port')}
+                  />
+                )}
             </Accordion.Panel>
           </Accordion.Item>
           { advancedSettings && (
@@ -91,12 +105,13 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                 <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
-                    mt="xl"
+                    mt='xl'
                     label={i18n.get['AppendProfileName']}
                     {...form.getInputProps('append_profile_name', { type: 'checkbox' })}
                   />
                 </Tooltip>
               </Group>
+              <Divider mt='md' label={i18n.get['MediaServer']} labelProps={{ size:'md' }}/>
               <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
                 <Select
                   disabled={!canModify}
@@ -105,6 +120,59 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                   {...form.getInputProps('server_engine')}
                 />
               </Tooltip>
+              <NumberInput
+                disabled={!canModify}
+                placeholder={defaultConfiguration.port}
+                label={i18n.get['ForcePortServer']}
+                hideControls
+                {...form.getInputProps('port')}
+              />
+              <Stack mt='sm'>
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['UPnPDlnaService']}
+                  {...form.getInputProps('upnp_enable', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['MDNSChromecastService']}
+                  {...form.getInputProps('chromecast_extension', { type: 'checkbox' })}
+                />
+              </Stack>
+              <Divider mt='md' label={i18n.get['WebPlayer']} labelProps={{ size:'md' }}/>
+              <Checkbox
+                disabled={!canModify}
+                label={i18n.get['EnableWebPlayer']}
+                {...form.getInputProps('web_player_enable', { type: 'checkbox' })}
+              />
+              <NumberInput
+                disabled={!canModify || !form.values['web_player_enable']}
+                placeholder={defaultConfiguration.web_player_port}
+                label={i18n.get['ForcePortPlayerServer']}
+                hideControls
+                {...form.getInputProps('web_player_port')}
+              />
+              <Stack align='flex-start' mt='sm'>
+                <Checkbox
+                  disabled={!canModify || !form.values['web_player_enable']}
+                  label={i18n.get['UseAuthenticationService']}
+                  {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
+                />
+                {!form.values['web_player_auth'] && (
+                  <Checkbox
+                    disabled={!canModify || !form.values['web_player_enable']}
+                    label={i18n.get['AllowMediaDownload']}
+                    {...form.getInputProps('web_player_download_perm', { type: 'checkbox' })}
+                  />
+                )}
+                {!form.values['web_player_auth'] && (
+                  <Checkbox
+                    disabled={!canModify || !form.values['web_player_enable']}
+                    label={i18n.get['CanControlOtherDevices']}
+                    {...form.getInputProps('web_player_controls_perm', { type: 'checkbox' })}
+                  />
+                )}
+              </Stack>
             </Accordion.Panel>
           </Accordion.Item>
           ) }
@@ -115,43 +183,34 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
               <Select
                 disabled={!canModify}
                 label={i18n.get['ForceNetworkingInterface']}
-                data={selectionSettings.networkInterfaces}
+                data={getI18nSelectData(selectionSettings.networkInterfaces)}
                 {...form.getInputProps('network_interface')}
               />
-
               <TextInput
                 disabled={!canModify}
                 mt="xs"
                 label={i18n.get['ForceIpServer']}
                 {...form.getInputProps('hostname')}
               />
-
-              <TextInput
-                disabled={!canModify}
-                mt="xs"
-                label={i18n.get['ForcePortServer']}
-                {...form.getInputProps('port')}
-              />
-
               <TextInput
                 disabled={!canModify}
                 mt="xs"
                 label={i18n.get['UseIpFilter']}
                 {...form.getInputProps('ip_filter')}
               />
-
-              <Group mt="xs">
-                <TextInput
-                  sx={{ flex: 1 }}
+              <Group>
+                <NumberInput
                   label={i18n.get['MaximumBandwidthMbs']}
                   disabled={!canModify || form.values['automatic_maximum_bitrate']}
+                  sx={{ flex: 1 }}
+                  placeholder={i18n.get['Mbs']}
+                  hideControls
                   {...form.getInputProps('maximum_bitrate')}
                 />
-                
                 <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
                   <Checkbox
                     disabled={!canModify}
-                    mt="xl"
+                    mt='xl'
                     label={i18n.get['UseAutomaticMaximumBandwidth']}
                     {...form.getInputProps('automatic_maximum_bitrate', { type: 'checkbox' })}
                   />

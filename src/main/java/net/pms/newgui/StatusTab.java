@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -27,6 +27,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,6 +44,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
@@ -50,8 +53,7 @@ import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.ServerBindMouseListener;
-import net.pms.util.BasicPlayer;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +99,7 @@ public class StatusTab {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
+			PlayerState state = ((BasicPlayer) e.getSource()).getState();
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
@@ -115,7 +117,7 @@ public class StatusTab {
 		}
 
 		@Override
-		public void refreshPlayerState(final BasicPlayer.State state) {
+		public void refreshPlayerState(final PlayerState state) {
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
@@ -314,8 +316,8 @@ public class StatusTab {
 		renderers = new JPanel(new GuiUtil.WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
 			renderers,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
 		rsp.getHorizontalScrollBar().setLocation(0, 250);
@@ -402,8 +404,8 @@ public class StatusTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}
@@ -454,7 +456,7 @@ public class StatusTab {
 						r.frame.setLocationRelativeTo(top);
 						r.frame.setVisible(true);
 					} else {
-						r.frame.setExtendedState(JFrame.NORMAL);
+						r.frame.setExtendedState(Frame.NORMAL);
 						r.frame.setVisible(true);
 						r.frame.toFront();
 					}

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -24,13 +24,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JTree;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
-
-	public TreeRenderer() {
-	}
 
 	/**
 	 * Sets the color to use for the background if node is selected.
@@ -55,7 +52,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
 		if (leaf && value instanceof TreeNodeSettings) {
-			Player player = ((TreeNodeSettings) value).getPlayer();
+			Engine player = ((TreeNodeSettings) value).getPlayer();
 			if (player == null) {
 				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
 				setToolTipText(null);

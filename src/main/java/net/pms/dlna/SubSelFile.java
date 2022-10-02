@@ -159,7 +159,7 @@ public class SubSelFile extends VirtualFolder {
 
 	private static class SubSort implements Comparator<SubtitleItem>, Serializable {
 		private static final long serialVersionUID = 1L;
-		private List<String> configuredLanguages;
+		private final List<String> configuredLanguages;
 
 		SubSort(RendererConfiguration renderer) {
 			configuredLanguages = Arrays.asList(UMSUtils.getLangList(renderer, true).split(","));

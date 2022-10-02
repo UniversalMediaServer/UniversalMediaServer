@@ -69,7 +69,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 		/**
 		 * The key.
 		 */
-		private K key;
+		private final K key;
 
 		/**
 		 * The value for the key.
@@ -193,7 +193,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 */
 	protected synchronized void fireListDataEvent(final ListDataEvent event) {
 		if (tempListeners == null) {
-			tempListeners = listdatalistener.toArray(new ListDataListener[listdatalistener.size()]);
+			tempListeners = listdatalistener.toArray(ListDataListener[]::new);
 		}
 		for (ListDataListener listener : tempListeners) {
 			if (listener != null && event != null) {
@@ -211,6 +211,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 * {@link #getSelectedValue()} instead.
 	 */
 	@Override
+	@Deprecated
 	public Object getSelectedItem() {
 		return selectedItemValue;
 	}
@@ -272,6 +273,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
+	@Deprecated
 	public void setSelectedItem(final Object anItem) {
 		setSelectedValue((V) anItem);
 	}
@@ -339,6 +341,7 @@ public class KeyedComboBoxModel<K, V> implements ComboBoxModel<V> {
 	 * {@link #getKeyAt(int)} instead.
 	 */
 	@Override
+	@Deprecated
 	public V getElementAt(final int index) {
 		if (index >= data.size()) {
 			return null;

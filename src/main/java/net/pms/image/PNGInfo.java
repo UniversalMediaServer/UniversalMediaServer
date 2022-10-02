@@ -192,9 +192,6 @@ public class PNGInfo extends ImageInfo {
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
 								break;
 							case 2: // RGB without alpha
-								parsedInfo.numComponents = 3;
-								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
 							case 3: // Palette index
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
@@ -257,15 +254,11 @@ public class PNGInfo extends ImageInfo {
 		NONE, ADAM7, UNKNOWN;
 
 		public static InterlaceMethod typeOf(int value) {
-			switch (value) {
-				case 0:
-					return NONE;
-				case 1:
-					return ADAM7;
-				default:
-					return UNKNOWN;
-
-			}
+			return switch (value) {
+				case 0 -> NONE;
+				case 1 -> ADAM7;
+				default -> UNKNOWN;
+			};
 		}
 	}
 

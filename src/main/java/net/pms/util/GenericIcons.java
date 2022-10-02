@@ -361,7 +361,7 @@ public enum GenericIcons {
 	/**
 	 * An {@code enum} representing the type of generic icon/thumbnail.
 	 */
-	protected static enum IconType {
+	protected enum IconType {
 
 		/** Audio */
 		AUDIO,

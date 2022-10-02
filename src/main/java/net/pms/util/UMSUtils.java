@@ -17,8 +17,6 @@
 package net.pms.util;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
@@ -26,9 +24,8 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.external.ExternalListener;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -142,61 +139,34 @@ public class UMSUtils {
 			case SORT_NO_SORT: // no sorting
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(files, new Comparator<File>() {
-
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-
-						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
-					}
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
+					return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 				});
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, new Comparator<File>() {
-
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
+					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 				});
 				break;
 			case SORT_MOD_OLD: // Sort by modified date, oldest first
-				Collections.sort(files, new Comparator<File>() {
-
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
-					}
-				});
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()));
 				break;
 			case SORT_MOD_NEW: // Sort by modified date, newest first
-				Collections.sort(files, new Comparator<File>() {
-
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
-					}
-				});
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f2.lastModified()).compareTo(f1.lastModified()));
 				break;
 			case SORT_RANDOM: // Random
 				Collections.shuffle(files, new Random(System.currentTimeMillis()));
 				break;
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
-				Collections.sort(files, new Comparator<File>() {
-
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-
-						return COLLATOR.compare(filename1ToSort, filename2ToSort);
-					}
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
+					return COLLATOR.compare(filename1ToSort, filename2ToSort);
 				});
 				break;
 		}
@@ -214,27 +184,17 @@ public class UMSUtils {
 			case SORT_NO_SORT: // no sorting
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(inputStrings, new Comparator<String>() {
-
-					@Override
-					public int compare(String s1, String s2) {
-						String filename1ToSort = FileUtil.renameForSorting(s1);
-						String filename2ToSort = FileUtil.renameForSorting(s2);
-
-						return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
-					}
+				Collections.sort(inputStrings, (String s1, String s2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(s1);
+					String filename2ToSort = FileUtil.renameForSorting(s2);
+					return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
 				});
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(inputStrings, new Comparator<String>() {
-
-					@Override
-					public int compare(String s1, String s2) {
-						String filename1ToSort = FileUtil.renameForSorting(s1);
-						String filename2ToSort = FileUtil.renameForSorting(s2);
-
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
+				Collections.sort(inputStrings, (String s1, String s2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(s1);
+					String filename2ToSort = FileUtil.renameForSorting(s2);
+					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 				});
 				break;
 			case SORT_RANDOM: // Random
@@ -242,15 +202,10 @@ public class UMSUtils {
 				break;
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
-				Collections.sort(inputStrings, new Comparator<String>() {
-
-					@Override
-					public int compare(String s1, String s2) {
-						String filename1ToSort = FileUtil.renameForSorting(s1);
-						String filename2ToSort = FileUtil.renameForSorting(s2);
-
-						return COLLATOR.compare(filename1ToSort, filename2ToSort);
-					}
+				Collections.sort(inputStrings, (String s1, String s2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(s1);
+					String filename2ToSort = FileUtil.renameForSorting(s2);
+					return COLLATOR.compare(filename1ToSort, filename2ToSort);
 				});
 				break;
 		}
@@ -294,24 +249,18 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Bitwise constants relating to playlist management.
+	 * A DLNAResource list with built-in file i/o.
 	 */
-	@SuppressWarnings("checkstyle:InterfaceIsType")
-	public interface IOListModes {
-
+	public static class IOList extends ArrayList<DLNAResource> {
+		/**
+		 * Bitwise constants relating to playlist management.
+		 */
 		public static final int PERMANENT = 1;
 		public static final int AUTOSAVE = 2;
 		public static final int AUTOREMOVE = 4;
-	}
-
-	/**
-	 * A DLNAResource list with built-in file i/o.
-	 */
-	public static class IOList extends ArrayList<DLNAResource> implements IOListModes {
-
 		private static final long serialVersionUID = 8042924548275374060L;
 		private File file;
-		private int mode;
+		private final int mode;
 
 		public IOList(String uri, int mode) {
 			this.mode = mode;
@@ -349,7 +298,7 @@ public class UMSUtils {
 			return file;
 		}
 
-		public void load(File f) {
+		public final void load(File f) {
 			if (f.exists()) {
 				file = f;
 				clear();
@@ -371,7 +320,7 @@ public class UMSUtils {
 		}
 
 		public void save(File f) {
-			if (size() > 0) {
+			if (!isEmpty()) {
 				try {
 					write(this, f);
 				} catch (IOException e) {
@@ -401,8 +350,8 @@ public class UMSUtils {
 						String id = "internal:" + r.getClass().getName();
 
 						sb.append("master:").append(id).append(';');
-						if (r.getPlayer() != null) {
-							sb.append("player:").append(r.getPlayer().toString()).append(';');
+						if (r.getEngine() != null) {
+							sb.append("player:").append(r.getEngine().toString()).append(';');
 						}
 						if (r.isResume()) {
 							sb.append("resume");
@@ -445,8 +394,8 @@ public class UMSUtils {
 			}
 		}
 
-		private static Player findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
-			for (Player player : PlayerFactory.getPlayers(onlyEnabled, onlyAvailable)) {
+		private static Engine findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
+			for (Engine player : EngineFactory.getEngines(onlyEnabled, onlyAvailable)) {
 				if (playerName.equals(player.name())) {
 					return player;
 				}
@@ -531,7 +480,7 @@ public class UMSUtils {
 					String subData = null;
 					String resData = null;
 					DLNAResource res = null;
-					Player player = null;
+					Engine player = null;
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
 							// find last player
@@ -562,7 +511,7 @@ public class UMSUtils {
 								res.setResume(r);
 							}
 						}
-						res.setPlayer(player);
+						res.setEngine(player);
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
 							if (s == null) {
@@ -585,27 +534,6 @@ public class UMSUtils {
 					}
 				}
 			}
-		}
-
-		public static DLNAResource resolveCreateMethod(ExternalListener l, String arg) {
-			// FIXME: this effectively imposes an undeclared interface, better
-			// to declare it explicitly
-			Method create;
-			try {
-				Class<?> clazz = l.getClass();
-				create = clazz.getDeclaredMethod("create", String.class);
-				return (DLNAResource) create.invoke(l, arg);
-				// Ignore all errors
-			} catch (
-				SecurityException |
-				NoSuchMethodException |
-				IllegalArgumentException |
-				IllegalAccessException |
-				InvocationTargetException e
-			) {
-				LOGGER.debug("Unable to recreate {} item: {}", l.name(), arg);
-			}
-			return null;
 		}
 	}
 
@@ -633,7 +561,7 @@ public class UMSUtils {
 		failsafe.start();
 		pw.run();
 		List<String> result = pw.getOtherResults();
-		List<String> availableMethods = new ArrayList<String>(1);
+		List<String> availableMethods = new ArrayList<>(1);
 		availableMethods.addAll(Arrays.asList("none"));
 		availableMethods.add("auto");
 		if (result != null) {

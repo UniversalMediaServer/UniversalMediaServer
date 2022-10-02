@@ -1,30 +1,28 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.service;
 
-import java.nio.charset.Charset;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import net.pms.io.WinUtils;
 
 /**
  * This class creates and destroys global services ands offers a static way of
@@ -43,31 +41,9 @@ import net.pms.io.WinUtils;
  */
 @NotThreadSafe
 public class Services {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(Services.class);
 
-	/**
-	 * The default {@link Charset} for Windows consoles or {@code null} for
-	 * other platforms
-	 */
-	@Nullable
-	public static final Charset WINDOWS_CONSOLE;
-
 	private static Services instance;
-
-	static {
-		if (Platform.isWindows()) {
-			Charset windowsConsole = null;
-			try {
-				windowsConsole = Charset.forName("cp" + WinUtils.getOEMCP());
-			} catch (Exception e) {
-				windowsConsole = Charset.defaultCharset();
-			}
-			WINDOWS_CONSOLE = windowsConsole;
-		} else {
-			WINDOWS_CONSOLE = null;
-		}
-	}
 
 	private ProcessManager processManager;
 
@@ -146,7 +122,7 @@ public class Services {
 	 *
 	 * @throws IllegalStateException If the services have already been started.
 	 */
-	public void start() {
+	public final void start() {
 		if (processManager != null || sleepManager != null) {
 			throw new IllegalStateException("Services have already been started");
 		}

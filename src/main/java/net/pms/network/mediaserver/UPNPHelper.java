@@ -24,6 +24,8 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.RendererMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.meta.Device;
@@ -41,7 +43,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new DeviceMap<>(DeviceConfiguration.class);
+		rendererMap = new RendererMap<>(DeviceConfiguration.class);
 	}
 
 	@Override

@@ -28,7 +28,7 @@ public abstract class HttpMediaServer {
 	protected int localPort = 0;
 	protected boolean isSecure = false;
 
-	public HttpMediaServer(InetAddress inetAddress, int port) {
+	protected HttpMediaServer(InetAddress inetAddress, int port) {
 		this.serverInetAddress = inetAddress;
 		this.port = port;
 		hostname = serverInetAddress.getHostAddress();

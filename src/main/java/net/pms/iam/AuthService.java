@@ -33,6 +33,12 @@ import org.slf4j.LoggerFactory;
 
 public class AuthService {
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private AuthService() {
+	}
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JWT_SECRET = CONFIGURATION.getJwtSecret();
@@ -66,14 +72,16 @@ public class AuthService {
 	private static int getUserIdFromJWT(String token) {
 		try {
 			DecodedJWT jwt = decodeJwt(token);
-			return jwt.getClaim("id").asInt();
+			if (jwt != null) {
+				return jwt.getClaim("id").asInt();
+			}
 		} catch (JWTDecodeException e) {
 			LOGGER.error("Error decoding JWT: {}", e.getMessage());
 		}
 		return 0;
 	}
 
-	public static Boolean isValidToken(String token, String host) {
+	public static boolean isValidToken(String token, String host) {
 		try {
 			Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 			JWTVerifier verifier = JWT.require(algorithm)
@@ -130,8 +138,32 @@ public class AuthService {
 		return getAccountLoggedIn(authHeader, host);
 	}
 
+	public static Account getPlayerAccountLoggedIn(HttpServletRequest req) {
+		if (isPlayerRequest(req) && !isPlayerEnabled()) {
+			Account result = AccountService.getFakeAdminAccount();
+			int permissions = Permissions.WEB_PLAYER_BROWSE;
+			if (CONFIGURATION.isWebPlayerControlsPerm()) {
+				permissions |= Permissions.DEVICES_CONTROL;
+			}
+			if (CONFIGURATION.isWebPlayerControlsPerm()) {
+				permissions |= Permissions.WEB_PLAYER_DOWNLOAD;
+			}
+			result.getGroup().setPermissions(permissions);
+			return result;
+		}
+		return getAccountLoggedIn(req);
+	}
+
+	private static boolean isPlayerRequest(HttpServletRequest req) {
+		return CONFIGURATION.useWebPlayerServer() && req.getLocalPort() == CONFIGURATION.getWebPlayerServerPort();
+	}
+
 	public static boolean isEnabled() {
 		return CONFIGURATION.isAuthenticationEnabled();
+	}
+
+	public static boolean isPlayerEnabled() {
+		return isEnabled() && (!CONFIGURATION.useWebPlayerServer() || CONFIGURATION.isWebPlayerAuthenticationEnabled());
 	}
 
 	public static void setEnabled(boolean value) {

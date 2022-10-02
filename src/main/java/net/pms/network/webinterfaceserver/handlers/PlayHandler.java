@@ -34,15 +34,14 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.Player;
-import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
+import net.pms.encoders.Engine;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -96,7 +95,7 @@ public class PlayHandler implements HttpHandler {
 					throw new IOException("Unknown root");
 				}
 				WebRender renderer = (WebRender) root.getDefaultRenderer();
-				((WebRender.WebPlayer) renderer.getPlayer()).setDataFromJson(body);
+				((WebPlayer) renderer.getPlayer()).setDataFromJson(body);
 			} else if (p.contains("/playlist/")) {
 				String[] tmp = p.split("/");
 				// sanity
@@ -147,7 +146,7 @@ public class PlayHandler implements HttpHandler {
 
 	private static void addNextByType(DLNAResource d, HashMap<String, Object> mustacheVars) {
 		List<DLNAResource> children = d.getParent().getChildren();
-		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
+		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(d.getFormat());
 		int type = d.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
@@ -308,7 +307,7 @@ public class PlayHandler implements HttpHandler {
 
 			mustacheVars.put("name", name);
 			mustacheVars.put("id1", id1);
-			mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
+			mustacheVars.put("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			if (CONFIGURATION.isDynamicPls()) {
 				if (rootResource.getParent() instanceof Playlist) {
 					mustacheVars.put("plsOp", "del");
@@ -324,8 +323,8 @@ public class PlayHandler implements HttpHandler {
 			if (isImage) {
 				// do this like this to simplify the code
 				// skip all player crap since img tag works well
-				int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
-				if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
+				int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
+				if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
 					mustacheVars.put("delay", delay);
 				}
 			} else {
@@ -346,11 +345,11 @@ public class PlayHandler implements HttpHandler {
 					mustacheVars.put("height", renderer.getVideoHeight());
 				}
 			}
-			if (CONFIGURATION.useWebControl()) {
+			if (CONFIGURATION.isWebPlayerControllable()) {
 				mustacheVars.put("push", true);
 			}
 
-			if (isVideo && CONFIGURATION.getWebSubs()) {
+			if (isVideo && CONFIGURATION.getWebPlayerSubs()) {
 				// only if subs are requested as <track> tags
 				// otherwise we'll transcode them in
 				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
@@ -359,7 +358,7 @@ public class PlayHandler implements HttpHandler {
 				}
 				OutputParams p = new OutputParams(CONFIGURATION);
 				p.setSid(rootResource.getMediaSubtitle());
-				Player.setAudioAndSubs(rootResource, p);
+				Engine.setAudioAndSubs(rootResource, p);
 				if (p.getSid() != null && p.getSid().getType().isText()) {
 					try {
 						File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
@@ -406,14 +405,8 @@ public class PlayHandler implements HttpHandler {
 					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
 
 				} else {
-					// It's a WEB.conf item or plugin-provided url, make sure it's resolved
+					// It's a WEB.conf item
 					url = dlna.getSystemName();
-					if (!dlna.isURLResolved()) {
-						URLResult r = ExternalFactory.resolveURL(url);
-						if (r != null && StringUtils.isNotEmpty(r.url)) {
-							url = r.url;
-						}
-					}
 				}
 
 				Map<String, Object> item = new HashMap<>();

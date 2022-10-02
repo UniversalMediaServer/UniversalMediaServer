@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
@@ -68,7 +68,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 	//base the logger inside org.jupnp.transport.spi.StreamServer to reflect old behavior
 	private static final Logger LOGGER = LoggerFactory.getLogger(StreamServer.class);
 
-	final protected UmsStreamServerConfiguration configuration;
+	protected final UmsStreamServerConfiguration configuration;
 	private InetSocketAddress socketAddress;
 	private Channel channel;
 	private ChannelGroup allChannels;
@@ -79,7 +79,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 	}
 
 	@Override
-	synchronized public void init(InetAddress bindAddress, Router router) throws InitializationException {
+	public synchronized void init(InetAddress bindAddress, Router router) throws InitializationException {
 		try {
 			socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
 
@@ -108,7 +108,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 	}
 
 	@Override
-	synchronized public int getPort() {
+	public synchronized int getPort() {
 		if (channel != null && channel.isBound() && channel.getLocalAddress() instanceof InetSocketAddress) {
 			return ((InetSocketAddress) channel.getLocalAddress()).getPort();
 		}
@@ -121,7 +121,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 	}
 
 	@Override
-	synchronized public void run() {
+	public synchronized void run() {
 		LOGGER.debug("Starting StreamServer...");
 		// Starts a new thread but inherits the properties of the calling thread
 		try {
@@ -141,13 +141,13 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 	}
 
 	@Override
-	synchronized public void stop() {
+	public synchronized void stop() {
 		LOGGER.debug("Stopping StreamServer...");
 		if (channel != null) {
 			if (allChannels != null) {
 				allChannels.close().awaitUninterruptibly();
+				LOGGER.trace("Confirm allChannels is empty: {}", allChannels.toString());
 			}
-			LOGGER.trace("Confirm allChannels is empty: {}", allChannels.toString());
 			bootstrap.releaseExternalResources();
 		}
 	}

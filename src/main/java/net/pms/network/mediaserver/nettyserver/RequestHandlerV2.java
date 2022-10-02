@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -38,7 +38,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +70,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"accept",
 		"accept-language",
 		"accept-encoding",
@@ -88,7 +88,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-		RequestV2 request = null;
+		RequestV2 request;
 		RendererConfiguration renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
@@ -159,9 +159,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			try {
 				StringTokenizer s = new StringTokenizer(headerLine);
 				String temp = s.nextToken();
-				if (temp.toUpperCase().equals("SOAPACTION:")) {
+				if (temp.equalsIgnoreCase("SOAPACTION:")) {
 					request.setSoapaction(s.nextToken());
-				} else if (temp.toUpperCase().equals("CALLBACK:")) {
+				} else if (temp.equalsIgnoreCase("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 					String nums = headerLine.substring(
@@ -293,18 +293,18 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
-		if (event.getMessage() instanceof HttpRequest) {
-			header.append(((HttpRequest) event.getMessage()).getMethod());
-			header.append(" ").append(((HttpRequest) event.getMessage()).getUri());
+		if (event.getMessage() instanceof HttpRequest httpRequest) {
+			header.append(httpRequest.getMethod());
+			header.append(" ").append(httpRequest.getUri());
 		}
-		if (event.getMessage() instanceof HttpMessage) {
+		if (event.getMessage() instanceof HttpMessage httpMessage) {
 			if (header.length() > 0) {
 				header.append(" ");
 			}
-			header.append(((HttpMessage) event.getMessage()).getProtocolVersion().getText());
+			header.append(httpMessage.getProtocolVersion().getText());
 			header.append("\n\n");
 			header.append("HEADER:\n");
-			for (Entry<String, String> entry : ((HttpMessage) event.getMessage()).headers().entries()) {
+			for (Entry<String, String> entry : httpMessage.headers().entries()) {
 				if (StringUtils.isNotBlank(entry.getKey())) {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
@@ -353,10 +353,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		} else {
 			rendererName = "Unknown";
 		}
-		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress) {
+		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress inetSocketAddress) {
 			rendererName +=
-				" (" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getAddress().getHostAddress() +
-				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
+				" (" + inetSocketAddress.getAddress().getHostAddress() +
+				":" + inetSocketAddress.getPort() + ")";
 		}
 
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";

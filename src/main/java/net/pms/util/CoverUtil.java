@@ -118,6 +118,6 @@ public abstract class CoverUtil {
 		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
+	protected abstract byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
 
 }

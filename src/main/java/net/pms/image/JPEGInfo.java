@@ -275,7 +275,7 @@ public class JPEGInfo extends ExifInfo {
 	 *         tables defined in K.3 - K.3 in the JPEG standard.
 	 */
 	public boolean isTypicalHuffman() {
-		return isTypicalHuffman != null ? isTypicalHuffman.booleanValue() : false;
+		return isTypicalHuffman != null && isTypicalHuffman;
 	}
 
 	/**
@@ -382,7 +382,7 @@ public class JPEGInfo extends ExifInfo {
 	protected static class JPEGParseInfo extends ExifParseInfo {
 		Integer jfifVersion;
 		CompressionType compressionType;
-		Map<Integer, JpegComponent> components = new HashMap<Integer, JpegComponent>(4);
+		Map<Integer, JpegComponent> components = new HashMap<>(4);
 		Boolean isTypicalHuffman;
 		JPEGSubsamplingNotation chromaSubsampling;
 	}

@@ -126,8 +126,8 @@ public class ServerSentEvents implements IServerSentEvents {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
 					close();
+					Thread.currentThread().interrupt();
 					return;
 				}
 				sendPing();

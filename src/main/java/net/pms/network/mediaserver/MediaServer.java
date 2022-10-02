@@ -17,14 +17,13 @@
  */
 package net.pms.network.mediaserver;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -42,33 +41,31 @@ import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final Map<Integer, String> VERSIONS = Stream.of(new Object[][] {
-			{1, "Sockets"},
-			{2, "Netty"},
-			{3, "Java"},
-			{4, "JUPnP (Netty)"},
-			{5, "JUPnP (Java)"},
-		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
+	public static final Map<Integer, String> VERSIONS = Map.of(
+		1, "Sockets",
+		2, "Netty",
+		3, "Java",
+		4, "JUPnP (Netty)",
+		5, "JUPnP (Java)"
+	);
+
 	public static final int DEFAULT_VERSION = 4;
 
 	public static UmsUpnpService upnpService;
 	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
-	protected static int port = CONFIGURATION.getServerPort();
+	protected static int port = CONFIGURATION.getMediaServerPort();
 	protected static String hostname;
 	protected static InetAddress inetAddress;
 	protected static NetworkInterface networkInterface;
 
 	private static boolean init() {
 		//get config ip port
-		port = CONFIGURATION.getServerPort();
+		port = CONFIGURATION.getMediaServerPort();
 		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
 		if (ia != null) {
 			inetAddress = ia.getAddr();
@@ -106,22 +103,22 @@ public class MediaServer {
 			}
 			try {
 				switch (engineVersion) {
-					case 1:
+					case 1 -> {
 						httpMediaServer = new SocketChannelServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					case 2:
+					}
+					case 2 -> {
 						httpMediaServer = new NettyServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					case 3:
+					}
+					case 3 -> {
 						httpMediaServer = new JavaHttpServer(inetAddress, port);
 						isStarted = httpMediaServer.start();
-						break;
-					default:
+					}
+					default -> {
 						//we will handle requests via JUPnP
 						isStarted = true;
-						break;
+					}
 				}
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to bind on port: " + port + ", because: " + ex.getMessage());
@@ -134,15 +131,14 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 4:
-						case 5:
+						case 4, 5 -> {
 							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
-							break;
-						default:
+						}
+						default -> {
 							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
-							break;
+						}
 					}
 				}
 				try {
@@ -278,12 +274,12 @@ public class MediaServer {
 		}
 	}
 
-	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
 
 	/**
 	 * @return available server engines as a JSON array
 	 */
-	public synchronized static JsonArray getServerEnginesAsJsonArray() {
+	public static synchronized JsonArray getServerEnginesAsJsonArray() {
 		JsonArray jsonArray = new JsonArray();
 
 		JsonObject defaultOption = new JsonObject();

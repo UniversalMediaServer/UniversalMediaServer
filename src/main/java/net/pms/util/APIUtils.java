@@ -82,6 +82,12 @@ public class APIUtils {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private APIUtils() {
+	}
+
 	// Minimum number of threads in pool
 	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
 		5, // Maximum number of threads in pool
@@ -190,11 +196,9 @@ public class APIUtils {
 			apiDataVideoVersion = jsonData.get("video").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
-			if (connection != null) {
-				if (apiDataSeriesVersion != null) {
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "SERIES_VERSION", apiDataSeriesVersion);
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
-				}
+			if (connection != null && apiDataSeriesVersion != null) {
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "SERIES_VERSION", apiDataSeriesVersion);
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
 			}
 
 			apiDataSeriesVersion += "-" + API_DATA_SERIES_VERSION_LOCAL;
@@ -256,10 +260,8 @@ public class APIUtils {
 			apiImageBaseURL = jsonData.get("imageBaseURL").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
-			if (connection != null) {
-				if (apiImageBaseURL != null) {
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
-				}
+			if (connection != null && apiImageBaseURL != null) {
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
 			}
 		} catch (IOException e) {
 			LOGGER.trace("Error while setting imageBaseURL", e);
@@ -635,7 +637,7 @@ public class APIUtils {
 			}
 			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			String typeFromAPI = getStringOrNull(seriesMetadataFromAPI, "type");
-			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
+			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
 
 			boolean isAPIDataValid = true;
 			String validationFailedPrepend = "not storing the series API lookup result because ";

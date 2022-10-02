@@ -17,7 +17,6 @@
 
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,8 +32,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.StreamGobbler;
+import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +50,12 @@ public class ProcessUtil {
 	// how long to wait in milliseconds until a kill -ALRM on Unix has been
 	// deemed to fail
 	private static final int ALRM_TIMEOUT = 2000;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ProcessUtil() {
+	}
 
 	// work around a Java bug
 	// see: http://www.cnblogs.com/abnercai/archive/2012/12/27/2836008.html
@@ -188,7 +193,7 @@ public class ProcessUtil {
 	 * @return The resulting non-Unicode file path.
 	 */
 	public static String getShortFileNameIfWideChars(String name) {
-		return BasicSystemUtils.INSTANCE.getShortPathNameW(name);
+		return PlatformUtils.INSTANCE.getShortPathNameW(name);
 	}
 
 	// Run cmd and return combined stdout/stderr
@@ -236,7 +241,7 @@ public class ProcessUtil {
 		StringBuilder sb = new StringBuilder();
 		boolean prevHeader = false;
 		for (String argument : cmd) {
-			if (isNotBlank(argument)) {
+			if (StringUtils.isNotBlank(argument)) {
 				if (sb.length() > 0) {
 					sb.append(" ");
 				}

@@ -1346,10 +1346,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			return false;
 		}
 		DLNAImageProfile other = (DLNAImageProfile) obj;
-		if (imageProfileInt != other.imageProfileInt) {
-			return false;
-		}
-		return true;
+		return (imageProfileInt == other.imageProfileInt);
 	}
 
 	@Override
@@ -1461,10 +1458,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			} else if (!size.equals(other.size)) {
 				return false;
 			}
-			if (width != other.width) {
-				return false;
-			}
-			return true;
+			return (width == other.width);
 		}
 	}
 

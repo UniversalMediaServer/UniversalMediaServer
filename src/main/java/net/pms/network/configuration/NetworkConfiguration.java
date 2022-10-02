@@ -83,6 +83,12 @@ public class NetworkConfiguration {
 	// The watcher thread.
 	private static Thread watcherThread;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private NetworkConfiguration() {
+	}
+
 	public static void init() {
 		LOGGER.trace("Initializing the network scanner");
 		System.setProperty("java.net.preferIPv4Stack", "true");
@@ -495,10 +501,11 @@ public class NetworkConfiguration {
 	/**
 	 * @return available network interfaces as a JSON array
 	 */
-	public synchronized static JsonArray getNetworkInterfacesAsJsonArray() {
+	public static synchronized JsonArray getNetworkInterfacesAsJsonArray() {
 		List<String> values = getDisplayNames();
 		List<String> labels = getDisplayNamesWithAddress();
-
+		values.add(0, "");
+		labels.add(0, "i18n@AutoDetect");
 		return UMSUtils.getListsAsJsonArrayOfObjects(values, labels, null);
 	}
 

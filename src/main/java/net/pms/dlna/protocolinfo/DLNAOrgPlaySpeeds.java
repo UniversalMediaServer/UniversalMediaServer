@@ -257,7 +257,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			}
 
 			// Check for cached instances
-			return getPlaySpeeds(new TreeSet<Rational>(Arrays.asList(values)));
+			return getPlaySpeeds(new TreeSet<>(Arrays.asList(values)));
 		}
 
 		/**

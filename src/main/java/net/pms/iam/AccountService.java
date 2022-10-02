@@ -201,8 +201,7 @@ public class AccountService {
 	}
 
 	public static String hashPassword(String password) {
-		String bcryptHash = BCrypt.withDefaults().hashToString(12, password.toCharArray());
-		return bcryptHash;
+		return BCrypt.withDefaults().hashToString(12, password.toCharArray());
 	}
 
 	public static void createGroup(final Connection connection, final String name, final int permissions) {

@@ -604,7 +604,7 @@ public class Image implements Serializable {
 	 * @return Whether or not {@link ImageIO} can read/parse this image.
 	 */
 	public boolean isImageIOSupported() {
-		return imageInfo != null ? imageInfo.isImageIOSupported() : false;
+		return imageInfo != null && imageInfo.isImageIOSupported();
 	}
 
 	/**

@@ -33,6 +33,12 @@ import javax.swing.text.JTextComponent;
 public class SwingUtils {
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SwingUtils() {
+	}
+
+	/**
 	 * Returns the {@link Dimension} for the given {@link JTextComponent}
 	 * subclass that will show the whole word wrapped text in the given width.
 	 * It won't work for styled text of varied size or style, it's assumed that

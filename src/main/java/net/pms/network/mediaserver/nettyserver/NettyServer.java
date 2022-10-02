@@ -40,9 +40,8 @@ import org.slf4j.LoggerFactory;
 public class NettyServer extends HttpMediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
 
-	private static ChannelGroup allChannels;
+	private static final ChannelGroup ALL_CHANNELS = new DefaultChannelGroup("HTTPServer");
 
-	private ChannelFactory factory;
 	private Channel channel;
 	private ServerBootstrap bootstrap;
 
@@ -55,14 +54,13 @@ public class NettyServer extends HttpMediaServer {
 		LOGGER.info("Starting HTTP server (Netty {}) on host {} and port {}", Version.ID, hostname, port);
 		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 		ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
-		allChannels = new DefaultChannelGroup("HTTPServer");
-		factory = new NioServerSocketChannelFactory(
+		ChannelFactory factory = new NioServerSocketChannelFactory(
 			Executors.newCachedThreadPool(new NettyBossThreadFactory()),
 			Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
 		);
 
 		bootstrap = new ServerBootstrap(factory);
-		HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(allChannels);
+		HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(ALL_CHANNELS);
 		bootstrap.setPipelineFactory(pipeline);
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setOption("child.keepAlive", true);
@@ -77,7 +75,7 @@ public class NettyServer extends HttpMediaServer {
 			hostname = ((InetSocketAddress) channel.getLocalAddress()).getAddress().getHostAddress();
 			localPort = ((InetSocketAddress) channel.getLocalAddress()).getPort();
 
-			allChannels.add(channel);
+			ALL_CHANNELS.add(channel);
 		} catch (Exception e) {
 			LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 			LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
@@ -98,10 +96,8 @@ public class NettyServer extends HttpMediaServer {
 		 * @see https://netty.io/3.8/guide/#start.12
 		 */
 		if (channel != null) {
-			if (allChannels != null) {
-				allChannels.close().awaitUninterruptibly();
-			}
-			LOGGER.debug("Confirm allChannels is empty: " + allChannels.toString());
+			ALL_CHANNELS.close().awaitUninterruptibly();
+			LOGGER.debug("Confirm allChannels is empty: " + ALL_CHANNELS.toString());
 
 			bootstrap.releaseExternalResources();
 		}

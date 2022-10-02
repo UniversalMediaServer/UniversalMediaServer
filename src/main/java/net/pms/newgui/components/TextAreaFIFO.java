@@ -18,7 +18,6 @@
 package net.pms.newgui.components;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JTextArea;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
@@ -44,12 +43,7 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
 
 	public TextAreaFIFO(int lines, int removeDelayMS) {
 		maxLines = lines;
-		removeTimer = new Timer(removeDelayMS, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				removeLines();
-			}
-		});
+		removeTimer = new Timer(removeDelayMS, (ActionEvent e) -> removeLines());
 		getDocument().addDocumentListener(this);
 	}
 

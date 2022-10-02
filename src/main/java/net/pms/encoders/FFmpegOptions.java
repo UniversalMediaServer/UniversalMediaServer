@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -19,7 +19,6 @@ package net.pms.encoders;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -31,7 +30,7 @@ public class FFmpegOptions extends OptionsHashMap {
 	private static final long serialVersionUID = -1283795835781170081L;
 
 	// options that go in the 'global_options' slot
-	public static final List<String> GLOBALS = Arrays.asList(
+	public static final List<String> GLOBALS = List.of(
 		// global options:
 		"-loglevel", "-v", "-report", "-max_alloc", "-y", "-n", "-stats",
 		"-bits_per_raw_sample", "-croptop", "-cropbottom", "-cropleft", "-cropright",
@@ -45,7 +44,7 @@ public class FFmpegOptions extends OptionsHashMap {
 	);
 
 	// options that go in the 'input_file_options' slot
-	public static final List<String> INPUT_FILE_OPTIONS = Arrays.asList(
+	public static final List<String> INPUT_FILE_OPTIONS = List.of(
 		// http options
 		"-seekable", "-chunked_post", "-headers", "-content_type", "-user-agent",
 		"-multiple_requests", "-post_data", "-timeout", "-mime_type", "-cookies",
@@ -98,9 +97,6 @@ public class FFmpegOptions extends OptionsHashMap {
 		}
 
 		transferAny(INPUT_FILE_OPTIONS, list);
-	}
-
-	public FFmpegOptions() {
 	}
 
 	@Nonnull

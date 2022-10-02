@@ -19,6 +19,7 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -47,7 +48,6 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
-import net.pms.util.FullyPlayedAction;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -62,7 +62,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsApiServlet.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = getWebSettingsWithDefaults();
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = PmsConfiguration.getWebSettingsWithDefaults();
 
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray FFMPEG_LOGLEVEL = PmsConfiguration.getFfmpegLoglevels();
@@ -80,7 +80,9 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		"ip_filter",
 		"network_interface",
 		"port",
-		"renderer_default"
+		"renderer_default",
+		"web_gui_port",
+		"web_player_port"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
@@ -207,6 +209,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 								arrayAsCommaDelimitedString.append(element.get(i).getAsString());
 							}
 							configuration.setProperty(key, arrayAsCommaDelimitedString.toString());
+						} else if (configurationSetting.getValue() instanceof JsonNull) {
+							configuration.setProperty(key, "");
 						} else {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
@@ -303,128 +307,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 
 	public static boolean acceptEmptyValueForKey(String key) {
 		return VALID_EMPTY_KEYS.contains(key);
-	}
-
-	private static JsonObject getWebSettingsWithDefaults() {
-		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
-		JsonObject jObj = new JsonObject();
-		jObj.addProperty("alternate_subtitles_folder", "");
-		jObj.addProperty("alternate_thumb_folder", "");
-		jObj.addProperty("append_profile_name", false);
-		jObj.addProperty("atz_limit", 10000);
-		jObj.addProperty("audio_channels", "6");
-		jObj.addProperty("audio_embed_dts_in_pcm", false);
-		jObj.addProperty("audio_bitrate", "448");
-		jObj.addProperty("audio_remux_ac3", true);
-		jObj.addProperty("audio_resample", true);
-		jObj.addProperty("audio_subtitles_languages", "");
-		jObj.addProperty("audio_thumbnails_method", "1");
-		jObj.addProperty("audio_use_pcm", false);
-		jObj.addProperty("auto_update", true);
-		jObj.addProperty("autoload_external_subtitles", true);
-		jObj.addProperty("automatic_maximum_bitrate", true);
-		jObj.addProperty("chapter_interval", 5);
-		jObj.addProperty("chapter_support", false);
-		jObj.addProperty("disable_subtitles", false);
-		jObj.addProperty("disable_transcode_for_extensions", "");
-		jObj.addProperty("enable_archive_browsing", false);
-		jObj.addProperty("encoded_audio_passthrough", false);
-		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
-		jObj.add("engines", transcodingEngines);
-		jObj.add("engines_priority", transcodingEngines);
-		jObj.addProperty("force_transcode_for_extensions", "");
-		jObj.addProperty("fully_played_action", FullyPlayedAction.MARK.toString());
-		jObj.addProperty("fully_played_output_directory", "");
-		jObj.addProperty("gpu_acceleration", false);
-		jObj.addProperty("external_network", true);
-		jObj.addProperty("ffmpeg_fontconfig", false);
-		jObj.addProperty("ffmpeg_gpu_decoding_acceleration_method", "none");
-		jObj.addProperty("ffmpeg_gpu_decoding_acceleration_thread_number", 1);
-		jObj.addProperty("ffmpeg_logging_level", "fatal");
-		jObj.addProperty("ffmpeg_mencoder_problematic_subtitles", true);
-		jObj.addProperty("ffmpeg_multithreading", "");
-		jObj.addProperty("ffmpeg_mux_tsmuxer_compatible", false);
-		jObj.addProperty("fmpeg_sox", true);
-		jObj.add("folders", new JsonArray());
-		jObj.add("folders_monitored", new JsonArray());
-		jObj.addProperty("force_external_subtitles", true);
-		jObj.addProperty("forced_subtitle_language", "");
-		jObj.addProperty("forced_subtitle_tags", "forced");
-		jObj.addProperty("generate_thumbnails", true);
-		jObj.addProperty("hide_empty_folders", false);
-		jObj.addProperty("hide_enginenames", true);
-		jObj.addProperty("hide_extensions", true);
-		jObj.addProperty("hostname", "");
-		jObj.addProperty("ignore_the_word_a_and_the", true);
-		jObj.addProperty("ip_filter", "");
-		jObj.addProperty("language", "en-US");
-		jObj.addProperty("live_subtitles_keep", false);
-		jObj.addProperty("live_subtitles_limit", 20);
-		jObj.addProperty("mencoder_ass", true);
-		jObj.addProperty("mencoder_codec_specific_script", "");
-		jObj.addProperty("mencoder_custom_options", "");
-		jObj.addProperty("mencoder_fontconfig", true);
-		jObj.addProperty("mencoder_forcefps", false);
-		jObj.addProperty("mencoder_intelligent_sync", true);
-		jObj.addProperty("mencoder_mt", "");
-		jObj.addProperty("mencoder_mux_compatible", false);
-		jObj.addProperty("mencoder_noass_outline", 1);
-		jObj.addProperty("mencoder_nooutofsync", false);
-		jObj.addProperty("mencoder_overscan_compensation_height", "0");
-		jObj.addProperty("mencoder_overscan_compensation_width", "0");
-		jObj.addProperty("mencoder_remux_mpeg2", true);
-		jObj.addProperty("mencoder_scaler", false);
-		jObj.addProperty("mencoder_scalex", "0");
-		jObj.addProperty("mencoder_scaley", "0");
-		jObj.addProperty("mencoder_skip_loop_filter", false);
-		jObj.addProperty("mencoder_subfribidi", false);
-		jObj.addProperty("mencoder_yadif", false);
-		jObj.addProperty("maximum_video_buffer_size", 200);
-		jObj.addProperty("maximum_bitrate", "90");
-		jObj.addProperty("minimized", false);
-		jObj.addProperty("tsmuxer_forcefps", true);
-		jObj.addProperty("tsmuxer_mux_all_audiotracks", false);
-		jObj.addProperty("mpeg2_main_settings", "Automatic (Wired)");
-		jObj.addProperty("network_interface", "");
-		int numberOfCpuCores = Runtime.getRuntime().availableProcessors();
-		if (numberOfCpuCores < 1) {
-			numberOfCpuCores = 1;
-		}
-		jObj.addProperty("number_of_cpu_cores", numberOfCpuCores);
-		jObj.addProperty("port", "");
-		jObj.addProperty("prettify_filenames", false);
-		jObj.addProperty("renderer_default", "");
-		jObj.addProperty("renderer_force_default", false);
-		jObj.addProperty("resume", true);
-		JsonArray allRenderers = new JsonArray();
-		allRenderers.add("All renderers");
-		jObj.add("selected_renderers", allRenderers);
-		jObj.addProperty("server_engine", "0");
-		jObj.addProperty("server_name", "Universal Media Server");
-		jObj.addProperty("show_media_library_folder", true);
-		jObj.addProperty("show_recently_played_folder", true);
-		jObj.addProperty("show_server_settings_folder", false);
-		jObj.addProperty("show_splash_screen", true);
-		jObj.addProperty("show_transcode_folder", true);
-		jObj.addProperty("sort_method", "4");
-		jObj.addProperty("subs_info_level", "basic");
-		jObj.addProperty("subtitles_codepage", "");
-		jObj.addProperty("subtitles_color", "0xFFFFFFFF");
-		jObj.addProperty("subtitles_font", "");
-		jObj.addProperty("subtitles_ass_margin", 10);
-		jObj.addProperty("subtitles_ass_scale", 1.4);
-		jObj.addProperty("subtitles_ass_shadow", 1);
-		jObj.addProperty("thumbnail_seek_position", "4");
-		jObj.addProperty("use_embedded_subtitles_style", true);
-		jObj.addProperty("use_cache", true);
-		jObj.addProperty("use_imdb_info", true);
-		jObj.addProperty("use_symlinks_target_file", true);
-		jObj.addProperty("vlc_audio_sync_enabled", false);
-		jObj.addProperty("vlc_use_experimental_codecs", false);
-		jObj.addProperty("web_gui_on_start", true);
-		jObj.addProperty("x264_constant_rate_factor", "Automatic (Wired)");
-		jObj.addProperty("3d_subtitles_depth", "0");
-		return jObj;
 	}
 
 	private static String getDirectoryResponse(JsonObject data) {

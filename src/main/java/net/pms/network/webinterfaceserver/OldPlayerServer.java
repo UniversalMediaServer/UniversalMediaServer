@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
@@ -42,6 +41,7 @@ import net.pms.network.webinterfaceserver.handlers.PollHandler;
 import net.pms.network.webinterfaceserver.handlers.RawHandler;
 import net.pms.network.webinterfaceserver.handlers.StartHandler;
 import net.pms.network.webinterfaceserver.handlers.ThumbHandler;
+import net.pms.renderers.devices.WebRender;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -132,7 +132,7 @@ public class OldPlayerServer extends WebInterfaceServer implements WebInterfaceS
 				render.setRootFolder(root);
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
-				if (CONFIGURATION.useWebSubLang()) {
+				if (CONFIGURATION.useWebPlayerSubLang()) {
 					render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(t), ","));
 				}
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));

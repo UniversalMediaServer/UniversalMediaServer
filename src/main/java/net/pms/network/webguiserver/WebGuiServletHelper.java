@@ -58,6 +58,12 @@ public class WebGuiServletHelper {
 	private static final String HTTPSERVER_RESPONSE_END =   "============================= GUI HTTPSERVER RESPONSE END =================================";
 	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[] {getUrl("file:" + CONFIGURATION.getWebPath() + "/react-client/")});
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebGuiServletHelper() {
+	}
+
 	private static URL getUrl(String url) {
 		try {
 			return new URL(url);

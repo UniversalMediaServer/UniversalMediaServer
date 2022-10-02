@@ -51,9 +51,9 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 			switch (path) {
 				case "/session" -> {
 					JsonObject jObject = new JsonObject();
-					jObject.add("authenticate", new JsonPrimitive(AuthService.isEnabled()));
+					jObject.add("authenticate", new JsonPrimitive(AuthService.isPlayerEnabled()));
 					jObject.add("player", new JsonPrimitive(true));
-					Account account = AuthService.getAccountLoggedIn(req);
+					Account account = AuthService.getPlayerAccountLoggedIn(req);
 					if (account != null && account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 						jObject.add("account", AccountApiServlet.accountToJsonObject(account));
 					}
@@ -114,7 +114,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 					}
 				}
 				case "/refresh" -> {
-					Account account = AuthService.getAccountLoggedIn(req);
+					Account account = AuthService.getPlayerAccountLoggedIn(req);
 					if (account != null && account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 						String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
 						WebGuiServletHelper.respond(req, resp, "{\"token\": \"" + token + "\"}", 200, "application/json");

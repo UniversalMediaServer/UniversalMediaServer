@@ -33,9 +33,8 @@ public class GIFInfo extends ImageInfo {
 		super(width, height, format, size, colorModel, metadata, applyExifOrientation, imageIOSupport);
 
 		formatVersion = ((GIFParseInfo) parsedInfo).formatVersion;
-		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null ?
-			((GIFParseInfo) parsedInfo).hasTransparency.booleanValue() :
-			false;
+		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null &&
+			((GIFParseInfo) parsedInfo).hasTransparency;
 	}
 
 	/**
@@ -71,9 +70,8 @@ public class GIFInfo extends ImageInfo {
 		);
 
 		formatVersion = ((GIFParseInfo) parsedInfo).formatVersion;
-		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null ?
-			((GIFParseInfo) parsedInfo).hasTransparency.booleanValue() :
-			false;
+		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null &&
+			((GIFParseInfo) parsedInfo).hasTransparency;
 	}
 
 	/**
@@ -93,9 +91,8 @@ public class GIFInfo extends ImageInfo {
 		super(width, height, metadata, format, size, applyExifOrientation, throwOnParseFailure);
 
 		formatVersion = ((GIFParseInfo) parsedInfo).formatVersion;
-		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null ?
-			((GIFParseInfo) parsedInfo).hasTransparency.booleanValue() :
-			false;
+		hasTransparency = ((GIFParseInfo) parsedInfo).hasTransparency != null &&
+			((GIFParseInfo) parsedInfo).hasTransparency;
 	}
 
 	/**

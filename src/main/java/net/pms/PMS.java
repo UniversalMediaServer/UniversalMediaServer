@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,10 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
@@ -27,9 +25,7 @@ import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -51,13 +47,13 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.LibraryScanner;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.YoutubeDl;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
@@ -66,8 +62,8 @@ import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.WebGuiServer;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
@@ -78,12 +74,16 @@ import net.pms.newgui.ProfileChooser;
 import net.pms.newgui.Splash;
 import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsNamedPipe;
+import net.pms.platform.windows.WindowsUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,8 +104,6 @@ public class PMS {
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	private boolean ready = false;
-
-	private static FileWatcher fileWatcher;
 
 	private GlobalIdRepo globalRepo;
 
@@ -263,7 +261,7 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
+		if (PlatformUtils.isMac() && !PlatformUtils.getOSVersion().isGreaterThanOrEqualTo("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
@@ -458,8 +456,6 @@ public class PMS {
 			}
 		}
 
-		fileWatcher = new FileWatcher();
-
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
 
@@ -488,7 +484,7 @@ public class PMS {
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
 			 */
-			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
@@ -528,6 +524,10 @@ public class PMS {
 					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_WEB_GUI_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetWebPlayerServer();
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
@@ -538,7 +538,7 @@ public class PMS {
 		});
 
 		// GUI stuff
-		resetGuiServer();
+		resetWebGuiServer();
 		// Web player stuff
 		resetWebPlayerServer();
 
@@ -565,7 +565,7 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if ((!Platform.isWindows() || Platform.is64Bit()) && configuration.getFFmpegPath() != null) {
+			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && configuration.getFFmpegPath() != null) {
 				ThreadedProcessWrapper.runProcessNullOutput(
 					5,
 					TimeUnit.MINUTES,
@@ -589,15 +589,15 @@ public class PMS {
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
-
+PlatformUtils.INSTANCE.isAdmin();
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.INSTANCE.isAviSynthAvailable() && BasicSystemUtils.INSTANCE.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
+		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(PlatformUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(PlatformUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -607,7 +607,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.INSTANCE.isKerioFirewall()) {
+		if (PlatformUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -619,10 +619,10 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		// Initialize a player factory to register all players
-		PlayerFactory.initialize();
+		// Initialize a engine factory to register all transcoding engines
+		EngineFactory.initialize();
 
-		// Any plugin-defined players are now registered, create the gui view.
+		// Any plugin-defined engines are now registered, create the gui view.
 		GuiManager.addEngines();
 
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -670,7 +670,7 @@ public class PMS {
 						UMSUtils.sleep(100);
 					}
 					LOGGER.info("Launching the graphical interface on a browser");
-					if (!BasicSystemUtils.INSTANCE.browseURI(webGuiServer.getUrl())) {
+					if (!PlatformUtils.INSTANCE.browseURI(webGuiServer.getUrl())) {
 						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
 					}
 				}
@@ -770,21 +770,21 @@ public class PMS {
 	 * Reset the web graphical user interface server.
 	 * The trigger is init.
 	 */
-	public void resetGuiServer() {
+	public void resetWebGuiServer() {
 		if (webGuiServer != null) {
 			GuiManager.removeGui(webGuiServer);
 			webGuiServer.stop();
 		}
 		try {
-			webGuiServer = WebGuiServer.createServer(WebGuiServer.DEFAULT_PORT);
+			webGuiServer = WebGuiServer.createServer(configuration.getWebGuiServerPort());
 		} catch (BindException b) {
 			try {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + WebGuiServer.DEFAULT_PORT + ", because: " + b.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-				//use a random port
+				LOGGER.info("Unable to bind web interface on port: " + configuration.getWebGuiServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Falling back to random port.");
 				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			}
 		} catch (IOException ex) {
 			LOGGER.error("FATAL ERROR: Unable to set the gui server, because: " + ex.getMessage());
@@ -929,35 +929,27 @@ public class PMS {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg.trim().toLowerCase(Locale.ROOT)) {
-					case HEADLESS_ARG:
-					case CONSOLE_ARG:
-						forceHeadless();
-						break;
-					case NATIVELOOK_ARG:
-						System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
-						break;
-					case SCROLLBARS:
-						System.setProperty(SCROLLBARS, Boolean.toString(true));
-						break;
-					case NOCONSOLE_ARG:
+					case HEADLESS_ARG, CONSOLE_ARG -> forceHeadless();
+					case NATIVELOOK_ARG -> System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
+					case SCROLLBARS -> System.setProperty(SCROLLBARS, Boolean.toString(true));
+					case NOCONSOLE_ARG -> {
 						denyHeadless = true;
-						break;
-					case PROFILES:
+					}
+					case PROFILES -> {
 						displayProfileChooser = true;
-						break;
-					case TRACE:
+					}
+					case TRACE -> {
 						traceMode = 2;
-						break;
-					case DBLOG:
-					case DBTRACE:
+					}
+					case DBLOG, DBTRACE -> {
 						logDB = true;
-						break;
-					default:
+					}
+					default -> {
 						Matcher matcher = pattern.matcher(arg);
 						if (matcher.find()) {
 							profilePath = new File(matcher.group(1));
 						}
-						break;
+					}
 				}
 			}
 		}
@@ -995,8 +987,8 @@ public class PMS {
 			assert configuration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
-			if (Platform.isWindows()) {
-				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+			if (PlatformUtils.isWindows()) {
+				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
 				}
@@ -1158,7 +1150,7 @@ public class PMS {
 	 */
 	public static void shutdown() {
 		try {
-			if (Platform.isWindows()) {
+			if (PlatformUtils.isWindows()) {
 				WindowsNamedPipe.setLoop(false);
 			}
 			//Stop network scanner
@@ -1195,8 +1187,8 @@ public class PMS {
 		 * No logging is available after this point
 		 */
 		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-		if (iLoggerContext instanceof LoggerContext) {
-			((LoggerContext) iLoggerContext).stop();
+		if (iLoggerContext instanceof LoggerContext loggerContext) {
+			loggerContext.stop();
 		} else {
 			LOGGER.error("Unable to shut down logging gracefully");
 			System.err.println("Unable to shut down logging gracefully");
@@ -1242,7 +1234,7 @@ public class PMS {
 		} catch (SecurityException e) {
 			LOGGER.error(
 				"Failed to check for already running instance: " + e.getMessage() +
-				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
+				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
 			);
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
@@ -1255,7 +1247,7 @@ public class PMS {
 		} catch (FileNotFoundException e) {
 			LOGGER.error(
 				"Failed to write PID file: " + e.getMessage() +
-				(Platform.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
+				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
 			);
 		} catch (IOException e) {
 			LOGGER.error("Error dumping PID " + e);
@@ -1274,10 +1266,10 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = WinUtils.getOEMCharset();
+		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1326,7 +1318,7 @@ public class PMS {
 			return;
 		}
 
-		if (Platform.isWindows()) {
+		if (PlatformUtils.isWindows()) {
 			try {
 				if (verifyPidName(pid)) {
 					pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
@@ -1347,6 +1339,7 @@ public class PMS {
 			p.waitFor();
 		} catch (InterruptedException e) {
 			LOGGER.trace("Got interrupted while trying to kill process by PID " + e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -1550,44 +1543,13 @@ public class PMS {
 		return (masterCode != null && masterCode.validCode(null));
 	}
 
-	public static FileWatcher getFileWatcher() {
-		return fileWatcher;
-	}
-
-	public static class DynamicPlaylist extends Playlist {
-		private final String savePath;
-		private long start;
-
-		public DynamicPlaylist(String name, String dir, int mode) {
-			super(name, null, 0, mode);
-			savePath = dir;
-			start = 0;
-		}
-
-		@Override
-		public void clear() {
-			super.clear();
-			start = 0;
-		}
-
-		@Override
-		public void save() {
-			if (start == 0) {
-				start = System.currentTimeMillis();
-			}
-			Date d = new Date(start);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
-		}
-	}
-
 	private DynamicPlaylist dynamicPls;
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
 				configuration.getDynamicPlsSavePath(),
-				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
+				(configuration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
@@ -1665,7 +1627,7 @@ public class PMS {
 			if (
 				System.getProperty("os.name") != null &&
 				System.getProperty("os.name").startsWith("Windows") &&
-				isNotBlank(System.getProperty("os.version")) &&
+				StringUtils.isNotBlank(System.getProperty("os.version")) &&
 				Double.parseDouble(System.getProperty("os.version")) < 5.2
 			) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";

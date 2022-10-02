@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -2184,11 +2183,11 @@ public class ImagesUtil {
 
 		byte jpegSegmentIdentifier = (byte) 0xFF;
 		byte markerEOI = (byte) 0xD9;
-		Set<Byte> sofs = new HashSet<>(Arrays.asList(
+		Set<Byte> sofs = Set.of(
 			(byte) 0xC0, (byte) 0xC1, (byte) 0xC2, (byte) 0xC3, (byte) 0xC5,
 			(byte) 0xC6, (byte) 0xC7, (byte) 0xC8, (byte) 0xC9, (byte) 0xCA,
 			(byte) 0xCB, (byte) 0xCD, (byte) 0xCE, (byte) 0xCF
-		));
+		);
 
 		byte segmentIdentifier = reader.getInt8(2);
 		byte segmentType = reader.getInt8(3);
@@ -2274,7 +2273,7 @@ public class ImagesUtil {
 			if (inputStream != null) {
 				try {
 					BufferedImage result = ImageIO.read(inputStream);
-					LANGUAGE_FLAGS_CACHE.put(languageCode, new WeakReference<BufferedImage>(result));
+					LANGUAGE_FLAGS_CACHE.put(languageCode, new WeakReference<>(result));
 					return result;
 				} catch (Exception e) {
 					// Catch Exception (instead of IOException) because ImageIO has the

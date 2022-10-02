@@ -20,7 +20,6 @@ package net.pms.dlna.protocolinfo;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -403,8 +402,8 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 */
 	public ProfileName getProfileName() {
 		for (ProtocolInfoAttribute attribute : attributes.values()) {
-			if (attribute instanceof ProfileName) {
-				return (ProfileName) attribute;
+			if (attribute instanceof ProfileName profileName) {
+				return profileName;
 			}
 		}
 		return null;
@@ -426,7 +425,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link String} representation.
 	 */
-	protected String generateAttributesString() {
+	private String generateAttributesString() {
 		if (attributes == null || attributes.isEmpty()) {
 			return "";
 		}
@@ -462,7 +461,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *            parse.
 	 * @return A new {@link MimeType} instance.
 	 */
-	protected MimeType createMimeType(String contentFormat) {
+	private MimeType createMimeType(String contentFormat) {
 		try {
 			return MimeType.valueOf(contentFormat);
 		} catch (ParseException e) {
@@ -492,7 +491,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link SortedMap} of parsed {@link ProtocolInfoAttribute}s.
 	 */
-	protected SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
+	private SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
 		if (isBlank(additionalInfo) || WILDCARD.equals(additionalInfo.trim())) {
 			return EMPTYMAP;
 		}
@@ -609,7 +608,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The string representation.
 	 */
-	protected String generateStringValue() {
+	private String generateStringValue() {
 		StringBuilder sb = new StringBuilder();
 		sb	.append(protocol == null ? WILDCARD : protocol).append(":")
 			.append(isBlank(network) ? WILDCARD : network).append(":")
@@ -670,10 +669,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 		} else if (!network.equals(other.network)) {
 			return false;
 		}
-		if (protocol != other.protocol) {
-			return false;
-		}
-		return true;
+		return (protocol == other.protocol);
 	}
 
 	/**
@@ -741,8 +737,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 		/** Defines the sort order for known attributes */
-		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER =
-			Collections.unmodifiableList(Arrays.asList(new ProtocolInfoAttributeName[] {
+		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER = List.of(
 			KnownProtocolInfoAttributeName.DLNA_ORG_PN,
 			KnownProtocolInfoAttributeName.DLNA_ORG_OP,
 			KnownProtocolInfoAttributeName.DLNA_ORG_PS,
@@ -754,7 +749,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 			KnownProtocolInfoAttributeName.MICROSOFT_COM_PN,
 			KnownProtocolInfoAttributeName.SHARP_COM_PN,
 			KnownProtocolInfoAttributeName.SONY_COM_PN
-		}));
+		);
 
 		@Override
 		public int compare(ProtocolInfoAttributeName o1, ProtocolInfoAttributeName o2) {

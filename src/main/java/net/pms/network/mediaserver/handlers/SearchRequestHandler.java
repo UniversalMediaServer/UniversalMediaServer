@@ -51,9 +51,6 @@ public class SearchRequestHandler {
 
 	private final AtomicInteger updateID = new AtomicInteger(1);
 
-	public SearchRequestHandler() {
-	}
-
 	DbIdMediaType getRequestType(String searchCriteria) {
 		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
 		if (matcher.find()) {
@@ -112,19 +109,22 @@ public class SearchRequestHandler {
 	 */
 	private String addSqlSelectByType(DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_AUDIO:
+			case TYPE_AUDIO -> {
 				return "select A.RATING, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
-			case TYPE_PERSON:
+			}
+			case TYPE_PERSON -> {
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
-			case TYPE_ALBUM:
+			}
+			case TYPE_ALBUM -> {
 				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
-			case TYPE_PLAYLIST:
+			}
+			case TYPE_PLAYLIST -> {
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
-			case TYPE_VIDEO:
-			case TYPE_IMAGE:
+			}
+			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
-			default:
-				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
+			}
+			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 
@@ -136,19 +136,22 @@ public class SearchRequestHandler {
 	 */
 	private String addSqlSelectCountByType(DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_AUDIO:
+			case TYPE_AUDIO -> {
 				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
-			case TYPE_PERSON:
+			}
+			case TYPE_PERSON -> {
 				return "select count (DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST)) from AUDIOTRACKS as A where ";
-			case TYPE_ALBUM:
+			}
+			case TYPE_ALBUM -> {
 				return "select count(DISTINCT A.id) from AUDIOTRACKS as A where ";
-			case TYPE_PLAYLIST:
+			}
+			case TYPE_PLAYLIST -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
-			case TYPE_VIDEO:
-			case TYPE_IMAGE:
+			}
+			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
-			default:
-				throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
+			}
+			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
 	}
 
@@ -270,37 +273,40 @@ public class SearchRequestHandler {
 
 	private String getTitlePropertyMapping(DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_AUDIO:
+			case TYPE_AUDIO -> {
 				return " A.SONGNAME ";
-			case TYPE_ALBUM:
+			}
+			case TYPE_ALBUM -> {
 				return " A.ALBUM ";
-			case TYPE_PERSON:
+			}
+			case TYPE_PERSON -> {
 				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
-			case TYPE_PLAYLIST:
-			case TYPE_VIDEO:
-			case TYPE_IMAGE:
+			}
+			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				return " F.FILENAME ";
-			default:
-				break;
+			}
+			default -> {
+				//nothing to do
+			}
 		}
 		throw new RuntimeException("Unknown type : " + requestType);
 	}
 
 	private void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_ALBUM:
-			case TYPE_PERSON:
+			case TYPE_ALBUM, TYPE_PERSON -> {
 				sb.append(" 1=1 ");
 				return;
-			case TYPE_AUDIO:
-			case TYPE_PLAYLIST:
-			case TYPE_VIDEO:
-			case TYPE_IMAGE:
+			}
+			case TYPE_AUDIO, TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				if ("=".equals(op) || "derivedfrom".equalsIgnoreCase(op)) {
 					sb.append(String.format(" F.FORMAT_TYPE = %d ", getFileType(requestType)));
 				}
 				return;
-			default:
+			}
+			default -> {
+				//nothing to do
+			}
 		}
 		throw new RuntimeException("Unknown type : " + requestType);
 	}
@@ -315,18 +321,21 @@ public class SearchRequestHandler {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
 		switch (mediaFolderType) {
-			case TYPE_AUDIO:
-			case TYPE_ALBUM:
-			case TYPE_PERSON:
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON -> {
 				return Format.AUDIO;
-			case TYPE_VIDEO:
+			}
+			case TYPE_VIDEO -> {
 				return Format.VIDEO;
-			case TYPE_IMAGE:
+			}
+			case TYPE_IMAGE -> {
 				return Format.IMAGE;
-			case TYPE_PLAYLIST:
+			}
+			case TYPE_PLAYLIST -> {
 				return Format.PLAYLIST;
-			default:
-				break;
+			}
+			default -> {
+				//nothing to do
+			}
 		}
 		throw new RuntimeException("unknown or unimplemented mediafolder type : >" + mediaFolderType + "<");
 	}
@@ -375,33 +384,27 @@ public class SearchRequestHandler {
 						while (resultSet.next()) {
 							String filenameField = FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
 							switch (type) {
-								case TYPE_ALBUM:
+								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
 										filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
 											VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
-												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
+													new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
-												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
+													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"));
 											DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
 										}
 									}
-									break;
-								case TYPE_PERSON:
-									filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
-									break;
-								case TYPE_PLAYLIST:
-									filesList.add(
+								}
+								case TYPE_PERSON -> filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, filenameField), ""));
+								case TYPE_PLAYLIST -> filesList.add(
 										new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent2(type, resultSet.getString("FID")), ""));
-									break;
-								default:
-									filesList.add(new RealFileDbId(new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
+								default -> filesList.add(new RealFileDbId(new DbIdTypeAndIdent2(type, resultSet.getString("FID")),
 										new File(resultSet.getString("FILENAME"))));
-									break;
 							}
 						}
 					}
