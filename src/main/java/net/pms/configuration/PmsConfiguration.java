@@ -469,7 +469,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * Keys will be refactored on next start.
 	 */
 	public static final Map<String, String> REFACTORED_KEYS = Map.of(
-		//since 10.5
+		//since 11.5
 		"web_enable", KEY_WEB_PLAYER_ENABLE,
 		"web_continue_audio", KEY_WEB_PLAYER_CONT_AUDIO,
 		"web_continue_image", KEY_WEB_PLAYER_CONT_IMAGE,
