@@ -1453,10 +1453,6 @@ public class RootFolder extends DLNAResource {
 		try (RandomAccessFile srcFile = new RandomAccessFile(file, "rw")) {
 			// no exception happened, so we can continue
 		} catch (Exception e) {
-			/**
-			 * This will happen a lot (every 500ms) for files that are being
-			 * copied/moved. Eventually the last one should succeed.
-			 */
 			LOGGER.debug("File will not be parsed because it is open in another process");
 			return;
 		}
