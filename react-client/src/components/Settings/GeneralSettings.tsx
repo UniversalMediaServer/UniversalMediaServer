@@ -158,20 +158,16 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
                   label={i18n.get['UseAuthenticationService']}
                   {...form.getInputProps('web_player_auth', { type: 'checkbox' })}
                 />
-                {!form.values['web_player_auth'] && (
-                  <Checkbox
-                    disabled={!canModify || !form.values['web_player_enable']}
-                    label={i18n.get['AllowMediaDownload']}
-                    {...form.getInputProps('web_player_download_perm', { type: 'checkbox' })}
-                  />
-                )}
-                {!form.values['web_player_auth'] && (
-                  <Checkbox
-                    disabled={!canModify || !form.values['web_player_enable']}
-                    label={i18n.get['CanControlOtherDevices']}
-                    {...form.getInputProps('web_player_controls_perm', { type: 'checkbox' })}
-                  />
-                )}
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['AllowMediaDownload']}
+                  {...form.getInputProps('web_player_download', { type: 'checkbox' })}
+                />
+                <Checkbox
+                  disabled={!canModify || !form.values['web_player_enable']}
+                  label={i18n.get['CanControlOtherDevices']}
+                  {...form.getInputProps('web_player_controls', { type: 'checkbox' })}
+                />
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>
