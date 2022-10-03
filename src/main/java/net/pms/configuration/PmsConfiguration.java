@@ -368,9 +368,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_PLAYER_CONT_VIDEO = "web_player_continue_video";
 	protected static final String KEY_WEB_PLAYER_CONTROLLABLE = "web_player_controllable";
 	protected static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
-	protected static final String KEY_WEB_PLAYER_CONTROLS_PERM = "web_player_controls_perm";
 	protected static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
-	protected static final String KEY_WEB_PLAYER_DOWNLOAD_PERM = "web_player_download_perm";
 	protected static final String KEY_WEB_PLAYER_ENABLE = "web_player_enable";
 	protected static final String KEY_WEB_PLAYER_HTTPS = "web_player_https";
 	protected static final String KEY_WEB_PLAYER_IMAGE_SLIDE = "web_player_image_show_delay";
@@ -5060,12 +5058,8 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_WEB_PLAYER_CONTROLS, true);
 	}
 
-	public boolean isWebPlayerControlsPerm() {
-		return getBoolean(KEY_WEB_PLAYER_CONTROLS_PERM, true);
-	}
-
-	public boolean isWebPlayerDownloadPerm() {
-		return getBoolean(KEY_WEB_PLAYER_DOWNLOAD_PERM, true);
+	public boolean useWebPlayerDownload() {
+		return getBoolean(KEY_WEB_PLAYER_DOWNLOAD, true);
 	}
 
 	public boolean isWebPlayerMp4Trans() {
@@ -5816,9 +5810,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_WEB_GUI_PORT, DEFAULT_WEB_GUI_PORT);
 		jObj.addProperty(KEY_WEB_PLAYER_AUTH, false);
 		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS, true);
-		jObj.addProperty(KEY_WEB_PLAYER_CONTROLS_PERM, true);
 		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD, true);
-		jObj.addProperty(KEY_WEB_PLAYER_DOWNLOAD_PERM, true);
 		jObj.addProperty(KEY_WEB_PLAYER_PORT, DEFAULT_WEB_PLAYER_PORT);
 		jObj.addProperty(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic (Wired)");
 		jObj.addProperty(KEY_3D_SUBTITLES_DEPTH, "0");
