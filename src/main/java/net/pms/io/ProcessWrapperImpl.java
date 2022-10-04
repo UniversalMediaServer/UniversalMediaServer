@@ -23,10 +23,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -38,6 +38,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
 	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(1);
+	private static final List<Process> CURRENT_PROCESSES = Collections.synchronizedList(new ArrayList<>());;
 
 	private Process process;
 	private OutputConsumer stdoutConsumer;
@@ -185,7 +186,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
-			PMS.get().currentProcesses.add(process);
+			CURRENT_PROCESSES.add(process);
 
 			if (stderrConsumer == null) {
 				stderrConsumer = keepStderr ?
@@ -290,7 +291,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
-			PMS.get().currentProcesses.remove(process);
+			CURRENT_PROCESSES.remove(process);
 		}
 	}
 
@@ -411,5 +412,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	public void setStderrConsumer(OutputConsumer consumer) {
 		this.stderrConsumer = consumer;
+	}
+
+	public static void destroyCurrentProcesses() {
+		for (Process p : CURRENT_PROCESSES) {
+			try {
+				p.exitValue();
+			} catch (IllegalThreadStateException ise) {
+				LOGGER.trace("Forcing shutdown of process: " + p);
+				ProcessUtil.destroy(p);
+			}
+		}
 	}
 }

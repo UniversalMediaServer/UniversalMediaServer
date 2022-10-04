@@ -229,8 +229,6 @@ public class PMS {
 	 */
 	private String serverName;
 
-	public List<Process> currentProcesses = new ArrayList<>();
-
 	private PMS() {
 	}
 
@@ -1165,14 +1163,7 @@ PlatformUtils.INSTANCE.isAdmin();
 			if (Services.processManager() != null) {
 				Services.processManager().stop();
 			}
-			for (Process p : get().currentProcesses) {
-				try {
-					p.exitValue();
-				} catch (IllegalThreadStateException ise) {
-					LOGGER.trace("Forcing shutdown of process: " + p);
-					ProcessUtil.destroy(p);
-				}
-			}
+			ProcessWrapperImpl.destroyCurrentProcesses();
 		} catch (InterruptedException e) {
 			LOGGER.debug("Interrupted while shutting down..");
 			LOGGER.trace("", e);

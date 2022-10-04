@@ -17,8 +17,6 @@
  */
 package net.pms.configuration;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
@@ -30,17 +28,19 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
-import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.io.OutputParams;
+import net.pms.parsers.MediaInfoParser;
 import net.pms.util.AudioUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
-	private ArrayList<SupportSpec> supportSpecs;
+	private final ArrayList<SupportSpec> supportSpecs;
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -592,7 +592,7 @@ public class FormatConfiguration {
 				ext.getIdentifier() != Identifier.DSF &&
 				ext.getIdentifier() != Identifier.PNM
 			) {
-				LibMediaInfoParser.parse(media, file, type, renderer);
+				MediaInfoParser.parse(media, file, type, renderer);
 			} else {
 				media.parse(file, ext, type, false, false, renderer);
 			}

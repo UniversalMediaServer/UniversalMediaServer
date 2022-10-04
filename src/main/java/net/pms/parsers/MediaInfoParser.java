@@ -1,11 +1,22 @@
-package net.pms.dlna;
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package net.pms.parsers;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.lowerCase;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -19,30 +30,45 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.apache.commons.codec.binary.Base64;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.MediaInfo.StreamType;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaChapter;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaLang;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
+import net.pms.parsers.mediainfo.InfoKind;
+import net.pms.parsers.mediainfo.MediaInfo;
+import net.pms.parsers.mediainfo.StreamKind;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
+import org.apache.commons.codec.binary.Base64;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class LibMediaInfoParser {
-	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
+public class MediaInfoParser {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
 
 	// Regular expression to parse a 4 digit year number from a string
 	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
@@ -57,11 +83,11 @@ public class LibMediaInfoParser {
 		MI = new MediaInfo();
 
 		if (MI.isValid()) {
-			MI.Option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
-			MI.Option("Complete", "1");
-			MI.Option("Language", "en");
-			MI.Option("File_TestContinuousFileNames", "0");
-			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(MI.Option("Info_Version"));
+			MI.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
+			MI.option("Complete", "1");
+			MI.option("Language", "en");
+			MI.option("File_TestContinuousFileNames", "0");
+			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(MI.option("Info_Version"));
 			if (matcher.find() && isNotBlank(matcher.group(1))) {
 				VERSION = new Version(matcher.group(1));
 			} else {
@@ -70,15 +96,15 @@ public class LibMediaInfoParser {
 
 			if (VERSION != null)  {
 				if (VERSION.isGreaterThan(new Version("18.03"))) {
-					MI.Option("Language", "raw");
-					MI.Option("Cover_Data", "base64");
+					MI.option("Language", "raw");
+					MI.option("Cover_Data", "base64");
 				}
 
 				if (VERSION.isGreaterThan(new Version("18.5"))) {
-					MI.Option("LegacyStreamDisplay", "1");
-					MI.Option("File_HighestFormat", "0");
-					MI.Option("File_ChannelLayout", "1");
-					MI.Option("Legacy", "1");
+					MI.option("LegacyStreamDisplay", "1");
+					MI.option("File_HighestFormat", "0");
+					MI.option("File_ChannelLayout", "1");
+					MI.option("Legacy", "1");
 				}
 			}
 
@@ -91,7 +117,7 @@ public class LibMediaInfoParser {
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	private LibMediaInfoParser() {
+	private MediaInfoParser() {
 	}
 
 	public static boolean isValid() {
@@ -100,7 +126,7 @@ public class LibMediaInfoParser {
 
 	public static void close() {
 		try {
-			MI.finalize();
+			MI.close();
 		} catch (Throwable e) {
 			LOGGER.debug("Caught exception", e);
 		}
@@ -122,33 +148,33 @@ public class LibMediaInfoParser {
 		File file = inputFile.getFile();
 		ParseLogger parseLogger = LOGGER.isTraceEnabled() ? new ParseLogger() : null;
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.openFile(file.getAbsolutePath()) > 0) {
-			StreamType general = StreamType.General;
-			StreamType video = StreamType.Video;
-			StreamType audio = StreamType.Audio;
-			StreamType image = StreamType.Image;
-			StreamType text = StreamType.Text;
+			StreamKind general = StreamKind.GENERAL;
+			StreamKind video = StreamKind.VIDEO;
+			StreamKind audio = StreamKind.AUDIO;
+			StreamKind image = StreamKind.IMAGE;
+			StreamKind text = StreamKind.TEXT;
 			DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
 			DLNAMediaSubtitle currentSubTrack;
 			media.setSize(file.length());
 			String value;
 
 			// set General
-			setFormat(general, media, currentAudioTrack, MI.Get(general, 0, "Format"), file);
-			setFormat(general, media, currentAudioTrack, MI.Get(general, 0, "CodecID").trim(), file);
-			media.setDuration(parseDuration(MI.Get(general, 0, "Duration")));
-			media.setBitrate(getBitrate(MI.Get(general, 0, "OverallBitRate")));
-			media.setStereoscopy(MI.Get(general, 0, "StereoscopicLayout"));
+			setFormat(general, media, currentAudioTrack, MI.get(general, 0, "Format"), file);
+			setFormat(general, media, currentAudioTrack, MI.get(general, 0, "CodecID").trim(), file);
+			media.setDuration(parseDuration(MI.get(general, 0, "Duration")));
+			media.setBitrate(getBitrate(MI.get(general, 0, "OverallBitRate")));
+			media.setStereoscopy(MI.get(general, 0, "StereoscopicLayout"));
 			// set Chapters
-			if (MI.Count_Get(StreamType.Menu, 0) > 0) {
-				String chaptersPosBeginStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_Begin", MediaInfo.InfoType.Text);
-				String chaptersPosEndStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_End", MediaInfo.InfoType.Text);
+			if (MI.countGet(StreamKind.MENU, 0) > 0) {
+				String chaptersPosBeginStr = MI.get(StreamKind.MENU, 0, "Chapters_Pos_Begin", InfoKind.TEXT);
+				String chaptersPosEndStr = MI.get(StreamKind.MENU, 0, "Chapters_Pos_End", InfoKind.TEXT);
 				if (!chaptersPosBeginStr.isEmpty() && !chaptersPosEndStr.isEmpty()) {
 					int chaptersPosBegin = Integer.parseInt(chaptersPosBeginStr);
 					int chaptersPosEnd = Integer.parseInt(chaptersPosEndStr);
 					List<DLNAMediaChapter> chapters = new ArrayList<>();
 					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
-						String chapterName = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Name);
-						String chapterTitle = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Text);
+						String chapterName = MI.get(StreamKind.MENU, 0, i, InfoKind.NAME);
+						String chapterTitle = MI.get(StreamKind.MENU, 0, i, InfoKind.TEXT);
 						if (!chapterName.isEmpty()) {
 							DLNAMediaChapter chapter = new DLNAMediaChapter();
 							LocalTime lt;
@@ -189,7 +215,7 @@ public class LibMediaInfoParser {
 					media.setChapters(chapters);
 				}
 			}
-			value = MI.Get(general, 0, "Cover_Data");
+			value = MI.get(general, 0, "Cover_Data");
 			if (!value.isEmpty()) {
 				try {
 					media.setThumb(DLNAThumbnail.toThumbnail(
@@ -213,7 +239,7 @@ public class LibMediaInfoParser {
 				}
 			}
 
-			value = MI.Get(general, 0, "Title");
+			value = MI.get(general, 0, "Title");
 			if (!value.isEmpty()) {
 				media.setFileTitleFromMetadata(value);
 			}
@@ -224,7 +250,7 @@ public class LibMediaInfoParser {
 
 			// set Video
 			int videoTrackCount = 0;
-			value = MI.Get(video, 0, "StreamCount");
+			value = MI.get(video, 0, "StreamCount");
 			if (!value.isEmpty()) {
 				videoTrackCount = Integer.parseInt(value);
 			}
@@ -233,59 +259,59 @@ public class LibMediaInfoParser {
 			if (videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
-					if (MI.Get(video, i, "Title").startsWith("Subtitle")) {
+					if (MI.get(video, i, "Title").startsWith("Subtitle")) {
 						currentSubTrack = new DLNAMediaSubtitle();
 						// First attempt to detect subtitle track format
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "Format")));
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.get(video, i, "Format")));
 						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(video, i, "CodecID"),
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.get(video, i, "CodecID"),
 							currentSubTrack.getType()
 						));
 						currentSubTrack.setId(media.getSubtitlesTracks().size());
 						addSub(currentSubTrack, media);
 					} else {
-						setFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format"), file);
-						setFormat(video, media, currentAudioTrack, MI.Get(video, i, "Format_Version"), file);
-						setFormat(video, media, currentAudioTrack, MI.Get(video, i, "CodecID"), file);
-						media.setWidth(getPixelValue(MI.Get(video, i, "Width")));
-						media.setHeight(getPixelValue(MI.Get(video, i, "Height")));
-						media.setMatrixCoefficients(MI.Get(video, i, "matrix_coefficients"));
+						setFormat(video, media, currentAudioTrack, MI.get(video, i, "Format"), file);
+						setFormat(video, media, currentAudioTrack, MI.get(video, i, "Format_Version"), file);
+						setFormat(video, media, currentAudioTrack, MI.get(video, i, "CodecID"), file);
+						media.setWidth(getPixelValue(MI.get(video, i, "Width")));
+						media.setHeight(getPixelValue(MI.get(video, i, "Height")));
+						media.setMatrixCoefficients(MI.get(video, i, "matrix_coefficients"));
 						if (!media.is3d()) {
-							media.setStereoscopy(MI.Get(video, i, "MultiView_Layout"));
+							media.setStereoscopy(MI.get(video, i, "MultiView_Layout"));
 						}
 
-						media.setPixelAspectRatio(MI.Get(video, i, "PixelAspectRatio"));
-						media.setScanType(MI.Get(video, i, "ScanType"));
-						media.setScanOrder(MI.Get(video, i, "ScanOrder"));
-						media.setAspectRatioContainer(MI.Get(video, i, "DisplayAspectRatio/String"));
-						media.setAspectRatioVideoTrack(MI.Get(video, i, "DisplayAspectRatio_Original/String"));
-						media.setFrameRate(getFPSValue(MI.Get(video, i, "FrameRate")));
-						media.setFrameRateOriginal(MI.Get(video, i, "FrameRate_Original"));
-						media.setFrameRateMode(getFrameRateModeValue(MI.Get(video, i, "FrameRate_Mode")));
-						media.setFrameRateModeRaw(MI.Get(video, i, "FrameRate_Mode"));
-						media.setReferenceFrameCount(getReferenceFrameCount(MI.Get(video, i, "Format_Settings_RefFrames/String")));
-						media.setVideoTrackTitleFromMetadata(MI.Get(video, i, "Title"));
-						value = MI.Get(video, i, "Format_Settings_QPel");
+						media.setPixelAspectRatio(MI.get(video, i, "PixelAspectRatio"));
+						media.setScanType(MI.get(video, i, "ScanType"));
+						media.setScanOrder(MI.get(video, i, "ScanOrder"));
+						media.setAspectRatioContainer(MI.get(video, i, "DisplayAspectRatio/String"));
+						media.setAspectRatioVideoTrack(MI.get(video, i, "DisplayAspectRatio_Original/String"));
+						media.setFrameRate(getFPSValue(MI.get(video, i, "FrameRate")));
+						media.setFrameRateOriginal(MI.get(video, i, "FrameRate_Original"));
+						media.setFrameRateMode(getFrameRateModeValue(MI.get(video, i, "FrameRate_Mode")));
+						media.setFrameRateModeRaw(MI.get(video, i, "FrameRate_Mode"));
+						media.setReferenceFrameCount(getReferenceFrameCount(MI.get(video, i, "Format_Settings_RefFrames/String")));
+						media.setVideoTrackTitleFromMetadata(MI.get(video, i, "Title"));
+						value = MI.get(video, i, "Format_Settings_QPel");
 						if (!value.isEmpty()) {
 							media.putExtra(FormatConfiguration.MI_QPEL, value);
 						}
 
-						value = MI.Get(video, i, "Format_Settings_GMC");
+						value = MI.get(video, i, "Format_Settings_GMC");
 						if (!value.isEmpty()) {
 							media.putExtra(FormatConfiguration.MI_GMC, value);
 						}
 
-						value = MI.Get(video, i, "Format_Settings_GOP");
+						value = MI.get(video, i, "Format_Settings_GOP");
 						if (!value.isEmpty()) {
 							media.putExtra(FormatConfiguration.MI_GOP, value);
 						}
 
-						media.setMuxingMode(MI.Get(video, i, "MuxingMode"));
+						media.setMuxingMode(MI.get(video, i, "MuxingMode"));
 						if (!media.isEncrypted()) {
-							media.setEncrypted("encrypted".equals(MI.Get(video, i, "Encryption")));
+							media.setEncrypted("encrypted".equals(MI.get(video, i, "Encryption")));
 						}
 
-						value = MI.Get(video, i, "BitDepth");
+						value = MI.get(video, i, "BitDepth");
 						if (!value.isEmpty()) {
 							try {
 								media.setVideoBitDepth(Integer.parseInt(value));
@@ -294,7 +320,7 @@ public class LibMediaInfoParser {
 							}
 						}
 
-						value = MI.Get(video, i, "Format_Profile");
+						value = MI.get(video, i, "Format_Profile");
 						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));
 							media.setH264Profile(getAvcProfile(value));
@@ -309,7 +335,7 @@ public class LibMediaInfoParser {
 
 			// set Audio
 			int audioTracks = 0;
-			value = MI.Get(audio, 0, "StreamCount");
+			value = MI.get(audio, 0, "StreamCount");
 			if (!value.isEmpty()) {
 				audioTracks = Integer.parseInt(value);
 			}
@@ -317,16 +343,16 @@ public class LibMediaInfoParser {
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new DLNAMediaAudio();
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format/String"), file);
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Version"), file);
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "Format_Profile"), file);
-					setFormat(audio, media, currentAudioTrack, MI.Get(audio, i, "CodecID"), file);
-					value = MI.Get(audio, i, "CodecID_Description");
+					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format/String"), file);
+					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format_Version"), file);
+					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format_Profile"), file);
+					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "CodecID"), file);
+					value = MI.get(audio, i, "CodecID_Description");
 					if (isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
 						currentAudioTrack.setCodecA(FormatConfiguration.WMA10);
 					}
 
-					value = MI.Get(audio, i, "Language/String");
+					value = MI.get(audio, i, "Language/String");
 					String languageCode = null;
 					if (isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value);
@@ -335,7 +361,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					value = MI.Get(audio, i, "Title").trim();
+					value = MI.get(audio, i, "Title").trim();
 					currentAudioTrack.setAudioTrackTitleFromMetadata(value);
 					// if language code is null try to recognize the language from Title
 					if (languageCode == null && isNotBlank(value)) {
@@ -347,15 +373,15 @@ public class LibMediaInfoParser {
 						currentAudioTrack.setLang(languageCode);
 					}
 
-					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.Get(audio, i, "Channel(s)"));
-					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.Get(audio, i, "SamplingRate")));
-					currentAudioTrack.setBitRate(getBitrate(MI.Get(audio, i, "BitRate")));
+					currentAudioTrack.getAudioProperties().setNumberOfChannels(MI.get(audio, i, "Channel(s)"));
+					currentAudioTrack.setSampleFrequency(getSampleFrequency(MI.get(audio, i, "SamplingRate")));
+					currentAudioTrack.setBitRate(getBitrate(MI.get(audio, i, "BitRate")));
 
-					currentAudioTrack.setSongname(MI.Get(general, 0, "Track"));
-					currentAudioTrack.setAlbum(MI.Get(general, 0, "Album"));
-					currentAudioTrack.setAlbumArtist(MI.Get(general, 0, "Album/Performer"));
-					currentAudioTrack.setArtist(MI.Get(general, 0, "Performer"));
-					currentAudioTrack.setGenre(MI.Get(general, 0, "Genre"));
+					currentAudioTrack.setSongname(MI.get(general, 0, "Track"));
+					currentAudioTrack.setAlbum(MI.get(general, 0, "Album"));
+					currentAudioTrack.setAlbumArtist(MI.get(general, 0, "Album/Performer"));
+					currentAudioTrack.setArtist(MI.get(general, 0, "Performer"));
+					currentAudioTrack.setGenre(MI.get(general, 0, "Genre"));
 					if (videoTrackCount == 0) {
 						try {
 							AudioFile af;
@@ -371,7 +397,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					value = MI.Get(general, 0, "Track/Position");
+					value = MI.get(general, 0, "Track/Position");
 					if (!value.isEmpty()) {
 						try {
 							currentAudioTrack.setTrack(Integer.parseInt(value));
@@ -380,7 +406,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					value = MI.Get(general, 0, "Part");
+					value = MI.get(general, 0, "Part");
 					if (!value.isEmpty()) {
 						try {
 							currentAudioTrack.setDisc(Integer.parseInt(value));
@@ -390,7 +416,7 @@ public class LibMediaInfoParser {
 					}
 
 					// Try to parse the year from the stored date
-					String recordedDate = MI.Get(general, 0, "Recorded_Date");
+					String recordedDate = MI.get(general, 0, "Recorded_Date");
 					Matcher matcher = YEAR_PATTERN.matcher(recordedDate);
 					if (matcher.matches()) {
 						try {
@@ -401,7 +427,7 @@ public class LibMediaInfoParser {
 					}
 
 					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while MEncoder does not
-					value = MI.Get(audio, i, "ID/String");
+					value = MI.get(audio, i, "ID/String");
 					if (!value.isEmpty()) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 							currentAudioTrack.setId(getSpecificID(value));
@@ -410,7 +436,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					value = MI.Get(audio, i, "BitDepth");
+					value = MI.get(audio, i, "BitDepth");
 					if (!value.isEmpty()) {
 						try {
 							currentAudioTrack.setBitsperSample(Integer.parseInt(value));
@@ -428,7 +454,7 @@ public class LibMediaInfoParser {
 
 			// set Image
 			int imageCount = 0;
-			value = MI.Get(image, 0, "StreamCount");
+			value = MI.get(image, 0, "StreamCount");
 			if (!value.isEmpty()) {
 				imageCount = Integer.parseInt(value);
 			}
@@ -457,9 +483,9 @@ public class LibMediaInfoParser {
 				}
 
 				if (parseByMediainfo) {
-					setFormat(image, media, currentAudioTrack, MI.Get(image, 0, "Format"), file);
-					media.setWidth(getPixelValue(MI.Get(image, 0, "Width")));
-					media.setHeight(getPixelValue(MI.Get(image, 0, "Height")));
+					setFormat(image, media, currentAudioTrack, MI.get(image, 0, "Format"), file);
+					media.setWidth(getPixelValue(MI.get(image, 0, "Width")));
+					media.setHeight(getPixelValue(MI.get(image, 0, "Height")));
 				}
 
 				if (parseLogger != null) {
@@ -469,7 +495,7 @@ public class LibMediaInfoParser {
 
 			// set Subs in text format
 			int subTracks = 0;
-			value = MI.Get(text, 0, "StreamCount");
+			value = MI.get(text, 0, "StreamCount");
 			if (!value.isEmpty()) {
 				subTracks = Integer.parseInt(value);
 			}
@@ -477,11 +503,11 @@ public class LibMediaInfoParser {
 			if (subTracks > 0) {
 				for (int i = 0; i < subTracks; i++) {
 					currentSubTrack = new DLNAMediaSubtitle();
-					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "CodecID"),
-						SubtitleType.valueOfMediaInfoValue(MI.Get(text, i, "Format"))
+					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.get(text, i, "CodecID"),
+						SubtitleType.valueOfMediaInfoValue(MI.get(text, i, "Format"))
 					));
 
-					value = MI.Get(text, i, "Language/String");
+					value = MI.get(text, i, "Language/String");
 					String languageCode = null;
 					if (isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value.toLowerCase(Locale.ROOT));
@@ -490,7 +516,7 @@ public class LibMediaInfoParser {
 						}
 					}
 
-					value = MI.Get(text, i, "Title").trim();
+					value = MI.get(text, i, "Title").trim();
 					currentSubTrack.setSubtitlesTrackTitleFromMetadata(value);
 					// if language code is null try to recognize the language from Title
 					if (languageCode == null && isNotBlank(value)) {
@@ -503,7 +529,7 @@ public class LibMediaInfoParser {
 					}
 
 					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
-					value = MI.Get(text, i, "ID/String");
+					value = MI.get(text, i, "ID/String");
 					if (isNotBlank(value)) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
 							currentSubTrack.setId(getSpecificID(value));
@@ -697,7 +723,7 @@ public class LibMediaInfoParser {
 	 * @todo Split the values by streamType to make the logic more clear
 	 *       with less negative statements.
 	 */
-	protected static void setFormat(StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+	protected static void setFormat(StreamKind streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		if (isBlank(value)) {
 			return;
 		}
@@ -725,7 +751,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MOV;
 		} else if (
 			value.contains("isom") ||
-			(streamType != StreamType.Audio && value.startsWith("mp4") && !value.startsWith("mp4a")) ||
+			(streamType != StreamKind.AUDIO && value.startsWith("mp4") && !value.startsWith("mp4a")) ||
 			value.equals("20") ||
 			value.equals("isml") ||
 			(value.startsWith("m4a") && !value.startsWith("m4ae")) ||
@@ -758,7 +784,7 @@ public class LibMediaInfoParser {
 		) {
 			format = FormatConfiguration.WMV;
 		} else if (
-			streamType == StreamType.Video &&
+			streamType == StreamKind.VIDEO &&
 			(
 				value.contains("mjpg") ||
 				value.contains("mjpeg") ||
@@ -777,7 +803,7 @@ public class LibMediaInfoParser {
 			value.equals("u263")
 		) {
 			format = FormatConfiguration.H263;
-		} else if (streamType == StreamType.Video && (value.startsWith("avc") || value.startsWith("h264"))) {
+		} else if (streamType == StreamKind.VIDEO && (value.startsWith("avc") || value.startsWith("h264"))) {
 			format = FormatConfiguration.H264;
 		} else if (value.startsWith("hevc")) {
 			format = FormatConfiguration.H265;
@@ -800,17 +826,17 @@ public class LibMediaInfoParser {
 				format = FormatConfiguration.DIVX;
 		} else if (value.startsWith("indeo")) { // Intel Indeo Video: IV31, IV32, IV41 and IV50
 			format = FormatConfiguration.INDEO;
-		} else if (streamType == StreamType.Video && value.equals("yuv")) {
+		} else if (streamType == StreamKind.VIDEO && value.equals("yuv")) {
 			format = FormatConfiguration.YUV;
-		} else if (streamType == StreamType.Video && (value.equals("rgb") || value.equals("rgba"))) {
+		} else if (streamType == StreamKind.VIDEO && (value.equals("rgb") || value.equals("rgba"))) {
 			format = FormatConfiguration.RGB;
-		} else if (streamType == StreamType.Video && value.equals("rle")) {
+		} else if (streamType == StreamKind.VIDEO && value.equals("rle")) {
 			format = FormatConfiguration.RLE;
 		} else if (value.equals("mac3")) {
 			format = FormatConfiguration.MACE3;
 		} else if (value.equals("mac6")) {
 			format = FormatConfiguration.MACE6;
-		} else if (streamType == StreamType.Video && value.startsWith("tga")) {
+		} else if (streamType == StreamKind.VIDEO && value.startsWith("tga")) {
 			format = FormatConfiguration.TGA;
 		} else if (value.equals("ffv1")) {
 			format = FormatConfiguration.FFV1;
@@ -988,7 +1014,7 @@ public class LibMediaInfoParser {
 				media.setContainer(format);
 			}
 		} else if (
-			streamType == StreamType.Audio &&
+			streamType == StreamKind.AUDIO &&
 			media.getContainer() != null &&
 				(
 					media.getContainer().equals(FormatConfiguration.WMA) ||
@@ -1020,7 +1046,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.ATRAC;
 		} else if (value.startsWith("atrac") || value.endsWith("-a119-fffa01e4ce62") || value.endsWith("-88fc-61654f8c836c")) {
 			format = FormatConfiguration.ATRAC;
-			if (streamType == StreamType.Audio && !FormatConfiguration.ATRAC.equals(media.getContainer())) {
+			if (streamType == StreamKind.AUDIO && !FormatConfiguration.ATRAC.equals(media.getContainer())) {
 				media.setContainer(FormatConfiguration.ATRAC);
 			}
 		} else if (value.equals("nellymoser")) {
@@ -1035,21 +1061,21 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (containsIgnoreCase(value, "@l") && streamType == StreamType.Video) {
+		} else if (containsIgnoreCase(value, "@l") && streamType == StreamKind.VIDEO) {
 			media.setAvcLevel(getAvcLevel(value));
 			media.setH264Profile(getAvcProfile(value));
 		}
 
 		if (format != null) {
-			if (streamType == StreamType.General) {
+			if (streamType == StreamKind.GENERAL) {
 				media.setContainer(format);
-			} else if (streamType == StreamType.Video) {
+			} else if (streamType == StreamKind.VIDEO) {
 				media.setCodecV(format);
-			} else if (streamType == StreamType.Audio) {
+			} else if (streamType == StreamKind.AUDIO) {
 				audio.setCodecA(format);
 			}
 		// format not found so set container type based on the file extension. It will be overwritten when the correct type will be found
-		} else if (streamType == StreamType.General && media.getContainer() == null) {
+		} else if (streamType == StreamKind.GENERAL && media.getContainer() == null) {
 			media.setContainer(FileUtil.getExtension(file.getAbsolutePath()).toLowerCase(Locale.ROOT));
 		}
 	}
@@ -1431,26 +1457,26 @@ public class LibMediaInfoParser {
 			}
 			sb.append("  ");
 			boolean first = true;
-			first &= !appendString("Title", MI.Get(StreamType.General, 0, "Title"), first, true, true);
-			first &= !appendString("Format", MI.Get(StreamType.General, 0, "Format"), first, true, false);
-			first &= !appendString("CodecID", MI.Get(StreamType.General, 0, "CodecID"), first, true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.General, 0, "Duration"));
+			first &= !appendString("Title", MI.get(StreamKind.GENERAL, 0, "Title"), first, true, true);
+			first &= !appendString("Format", MI.get(StreamKind.GENERAL, 0, "Format"), first, true, false);
+			first &= !appendString("CodecID", MI.get(StreamKind.GENERAL, 0, "CodecID"), first, true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.GENERAL, 0, "Duration"));
 			if (durationSec != null) {
 				first &= !appendString("Duration", StringUtil.formatDLNADuration(durationSec), first, false, true);
 			}
-			first &= !appendString("Overall Bitrate Mode", MI.Get(StreamType.General, 0, "OverallBitRate_Mode"), first, false, true);
-			first &= !appendString("Overall Bitrate", MI.Get(StreamType.General, 0, "OverallBitRate"), first, false, true);
-			first &= !appendString("Overall Bitrate Nom.", MI.Get(StreamType.General, 0, "OverallBitRate_Nominal"), first, false, true);
-			first &= !appendString("Overall Bitrate Max.", MI.Get(StreamType.General, 0, "OverallBitRate_Maximum"), first, false, true);
-			first &= !appendString("Stereoscopic", MI.Get(StreamType.General, 0, "StereoscopicLayout"), first, true, true);
-			appendExists("Cover", MI.Get(StreamType.General, 0, "Cover_Data"), first, false);
+			first &= !appendString("Overall Bitrate Mode", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Mode"), first, false, true);
+			first &= !appendString("Overall Bitrate", MI.get(StreamKind.GENERAL, 0, "OverallBitRate"), first, false, true);
+			first &= !appendString("Overall Bitrate Nom.", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Nominal"), first, false, true);
+			first &= !appendString("Overall Bitrate Max.", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Maximum"), first, false, true);
+			first &= !appendString("Stereoscopic", MI.get(StreamKind.GENERAL, 0, "StereoscopicLayout"), first, true, true);
+			appendExists("Cover", MI.get(StreamKind.GENERAL, 0, "Cover_Data"), first, false);
 			first = false;
-			appendString("FPS", MI.Get(StreamType.General, 0, "FrameRate"), first, false, true);
-			appendString("Track", MI.Get(StreamType.General, 0, "Track"), first, true, true);
-			appendString("Album", MI.Get(StreamType.General, 0, "Album"), first, true, true);
-			appendString("Performer", MI.Get(StreamType.General, 0, "Performer"), first, true, true);
-			appendString("Genre", MI.Get(StreamType.General, 0, "Genre"), first, true, true);
-			appendString("Rec Date", MI.Get(StreamType.General, 0, "Recorded_Date"), first, true, true);
+			appendString("FPS", MI.get(StreamKind.GENERAL, 0, "FrameRate"), first, false, true);
+			appendString("Track", MI.get(StreamKind.GENERAL, 0, "Track"), first, true, true);
+			appendString("Album", MI.get(StreamKind.GENERAL, 0, "Album"), first, true, true);
+			appendString("Performer", MI.get(StreamKind.GENERAL, 0, "Performer"), first, true, true);
+			appendString("Genre", MI.get(StreamKind.GENERAL, 0, "Genre"), first, true, true);
+			appendString("Rec Date", MI.get(StreamKind.GENERAL, 0, "Recorded_Date"), first, true, true);
 		}
 
 		public void logGeneralColumns(File file) {
@@ -1468,25 +1494,25 @@ public class LibMediaInfoParser {
 				return;
 			}
 			generalColumns.reset();
-			appendStringNextColumn(generalColumns, "Title", MI.Get(StreamType.General, 0, "Title"), true, true);
-			appendStringNextColumn(generalColumns, "Format", MI.Get(StreamType.General, 0, "Format"), true, false);
-			appendStringNextColumn(generalColumns, "CodecID", MI.Get(StreamType.General, 0, "CodecID"), true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.General, 0, "Duration"));
+			appendStringNextColumn(generalColumns, "Title", MI.get(StreamKind.GENERAL, 0, "Title"), true, true);
+			appendStringNextColumn(generalColumns, "Format", MI.get(StreamKind.GENERAL, 0, "Format"), true, false);
+			appendStringNextColumn(generalColumns, "CodecID", MI.get(StreamKind.GENERAL, 0, "CodecID"), true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.GENERAL, 0, "Duration"));
 			if (durationSec != null) {
 				appendStringNextColumn(generalColumns, "Duration", StringUtil.formatDLNADuration(durationSec), false, true);
 			}
-			appendStringNextColumn(generalColumns, "Overall Bitrate Mode", MI.Get(StreamType.General, 0, "OverallBitRate_Mode"), false, true);
-			appendStringNextColumn(generalColumns, "Overall Bitrate", MI.Get(StreamType.General, 0, "OverallBitRate"), false, true);
-			appendStringNextColumn(generalColumns, "Overall Bitrate Nom.", MI.Get(StreamType.General, 0, "OverallBitRate_Nominal"), false, true);
-			appendStringNextColumn(generalColumns, "Overall Bitrate Max.", MI.Get(StreamType.General, 0, "OverallBitRate_Maximum"), false, true);
-			appendStringNextColumn(generalColumns, "Stereoscopic", MI.Get(StreamType.General, 0, "StereoscopicLayout"), true, true);
-			appendExistsNextColumn(generalColumns, "Cover", MI.Get(StreamType.General, 0, "Cover_Data"), false);
-			appendStringNextColumn(generalColumns, "FPS", MI.Get(StreamType.General, 0, "FrameRate"), false, true);
-			appendStringNextColumn(generalColumns, "Track", MI.Get(StreamType.General, 0, "Track"), true, true);
-			appendStringNextColumn(generalColumns, "Album", MI.Get(StreamType.General, 0, "Album"), true, true);
-			appendStringNextColumn(generalColumns, "Performer", MI.Get(StreamType.General, 0, "Performer"), true, true);
-			appendStringNextColumn(generalColumns, "Genre", MI.Get(StreamType.General, 0, "Genre"), true, true);
-			appendStringNextColumn(generalColumns, "Rec Date", MI.Get(StreamType.General, 0, "Recorded_Date"), true, true);
+			appendStringNextColumn(generalColumns, "Overall Bitrate Mode", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Mode"), false, true);
+			appendStringNextColumn(generalColumns, "Overall Bitrate", MI.get(StreamKind.GENERAL, 0, "OverallBitRate"), false, true);
+			appendStringNextColumn(generalColumns, "Overall Bitrate Nom.", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Nominal"), false, true);
+			appendStringNextColumn(generalColumns, "Overall Bitrate Max.", MI.get(StreamKind.GENERAL, 0, "OverallBitRate_Maximum"), false, true);
+			appendStringNextColumn(generalColumns, "Stereoscopic", MI.get(StreamKind.GENERAL, 0, "StereoscopicLayout"), true, true);
+			appendExistsNextColumn(generalColumns, "Cover", MI.get(StreamKind.GENERAL, 0, "Cover_Data"), false);
+			appendStringNextColumn(generalColumns, "FPS", MI.get(StreamKind.GENERAL, 0, "FrameRate"), false, true);
+			appendStringNextColumn(generalColumns, "Track", MI.get(StreamKind.GENERAL, 0, "Track"), true, true);
+			appendStringNextColumn(generalColumns, "Album", MI.get(StreamKind.GENERAL, 0, "Album"), true, true);
+			appendStringNextColumn(generalColumns, "Performer", MI.get(StreamKind.GENERAL, 0, "Performer"), true, true);
+			appendStringNextColumn(generalColumns, "Genre", MI.get(StreamKind.GENERAL, 0, "Genre"), true, true);
+			appendStringNextColumn(generalColumns, "Rec Date", MI.get(StreamKind.GENERAL, 0, "Recorded_Date"), true, true);
 		}
 
 		public void logVideoTrack(int idx) {
@@ -1496,46 +1522,46 @@ public class LibMediaInfoParser {
 
 			sb.append("\n    - Video - ");
 			boolean first = true;
-			first &= !appendString("Format", MI.Get(StreamType.Video, idx, "Format"), first, true, true);
-			first &= !appendString("Version", MI.Get(StreamType.Video, idx, "Format_Version"), first, true, true);
-			first &= !appendString("Profile", MI.Get(StreamType.Video, idx, "Format_Profile"), first, true, true);
-			first &= !appendString("ID", MI.Get(StreamType.Video, idx, "ID"), first, false, true);
-			first &= !appendString("CodecID", MI.Get(StreamType.Video, idx, "CodecID"), first, true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.Video, 0, "Duration"));
+			first &= !appendString("Format", MI.get(StreamKind.VIDEO, idx, "Format"), first, true, true);
+			first &= !appendString("Version", MI.get(StreamKind.VIDEO, idx, "Format_Version"), first, true, true);
+			first &= !appendString("Profile", MI.get(StreamKind.VIDEO, idx, "Format_Profile"), first, true, true);
+			first &= !appendString("ID", MI.get(StreamKind.VIDEO, idx, "ID"), first, false, true);
+			first &= !appendString("CodecID", MI.get(StreamKind.VIDEO, idx, "CodecID"), first, true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.VIDEO, 0, "Duration"));
 			if (durationSec != null) {
 				first &= !appendString("Duration", StringUtil.formatDLNADuration(durationSec), first, false, true);
 			}
-			first &= !appendString("BitRate Mode", MI.Get(StreamType.Video, idx, "BitRate_Mode"), first, false, true);
-			first &= !appendString("Bitrate", MI.Get(StreamType.Video, idx, "BitRate"), first, false, true);
-			first &= !appendString("Bitrate Nominal", MI.Get(StreamType.Video, idx, "BitRate_Nominal"), first, false, true);
-			first &= !appendString("BitRate Maximum", MI.Get(StreamType.Video, idx, "BitRate_Maximum"), first, false, true);
-			first &= !appendString("Bitrate Encoded", MI.Get(StreamType.Video, idx, "BitRate_Encoded"), first, false, true);
-			first &= !appendString("Width", MI.Get(StreamType.Video, idx, "Width"), first, false, true);
-			first &= !appendString("Height", MI.Get(StreamType.Video, idx, "Height"), first, false, true);
-			first &= !appendString("Colorimetry", MI.Get(StreamType.Video, idx, "Colorimetry"), first, false, true);
-			first &= !appendString("Chroma", MI.Get(StreamType.Video, idx, "ChromaSubsampling"), first, false, true);
-			first &= !appendString("Matrix Co", MI.Get(StreamType.Video, idx, "matrix_coefficients"), first, false, true);
-			first &= !appendString("MultiView Layout", MI.Get(StreamType.Video, idx, "MultiView_Layout"), first, true, true);
-			first &= !appendString("PAR", MI.Get(StreamType.Video, idx, "PixelAspectRatio"), first, false, true);
-			first &= !appendString("DAR", MI.Get(StreamType.Video, idx, "DisplayAspectRatio/String"), first, false, true);
-			first &= !appendString("DAR Orig", MI.Get(StreamType.Video, idx, "DisplayAspectRatio_Original/String"), first, false, true);
-			first &= !appendString("Scan Type", MI.Get(StreamType.Video, idx, "ScanType"), first, false, true);
-			first &= !appendString("Scan Order", MI.Get(StreamType.Video, idx, "ScanOrder"), first, false, true);
-			first &= !appendString("FPS", MI.Get(StreamType.Video, idx, "FrameRate"), first, false, true);
-			first &= !appendString("FPS Orig", MI.Get(StreamType.Video, idx, "FrameRate_Original"), first, false, true);
-			first &= !appendString("Framerate Mode", MI.Get(StreamType.Video, idx, "FrameRate_Mode"), first, false, true);
-			first &= !appendString("RefFrames", MI.Get(StreamType.Video, idx, "Format_Settings_RefFrames"), first, false, true);
-			first &= !appendString("QPel", MI.Get(StreamType.Video, idx, "Format_Settings_QPel"), first, true, true);
-			first &= !appendString("GMC", MI.Get(StreamType.Video, idx, "Format_Settings_GMC"), first, true, true);
-			first &= !appendString("GOP", MI.Get(StreamType.Video, idx, "Format_Settings_GOP"), first, true, true);
-			first &= !appendString("Muxing Mode", MI.Get(StreamType.Video, idx, "MuxingMode"), first, true, true);
-			first &= !appendString("Encrypt", MI.Get(StreamType.Video, idx, "Encryption"), first, true, true);
-			first &= !appendString("Bit Depth", MI.Get(StreamType.Video, idx, "BitDepth"), first, false, true);
-			first &= !appendString("Delay", MI.Get(StreamType.Video, idx, "Delay"), first, false, true);
-			first &= !appendString("Delay Source", MI.Get(StreamType.Video, idx, "Delay_Source"), first, false, true);
-			first &= !appendString("Delay Original", MI.Get(StreamType.Video, idx, "Delay_Original"), first, false, true);
-			first &= !appendString("Delay O. Source", MI.Get(StreamType.Video, idx, "Delay_Original_Source"), first, false, true);
-			first &= !appendString("TimeStamp_FirstFrame", MI.Get(StreamType.Video, idx, "TimeStamp_FirstFrame"), first, false, true);
+			first &= !appendString("BitRate Mode", MI.get(StreamKind.VIDEO, idx, "BitRate_Mode"), first, false, true);
+			first &= !appendString("Bitrate", MI.get(StreamKind.VIDEO, idx, "BitRate"), first, false, true);
+			first &= !appendString("Bitrate Nominal", MI.get(StreamKind.VIDEO, idx, "BitRate_Nominal"), first, false, true);
+			first &= !appendString("BitRate Maximum", MI.get(StreamKind.VIDEO, idx, "BitRate_Maximum"), first, false, true);
+			first &= !appendString("Bitrate Encoded", MI.get(StreamKind.VIDEO, idx, "BitRate_Encoded"), first, false, true);
+			first &= !appendString("Width", MI.get(StreamKind.VIDEO, idx, "Width"), first, false, true);
+			first &= !appendString("Height", MI.get(StreamKind.VIDEO, idx, "Height"), first, false, true);
+			first &= !appendString("Colorimetry", MI.get(StreamKind.VIDEO, idx, "Colorimetry"), first, false, true);
+			first &= !appendString("Chroma", MI.get(StreamKind.VIDEO, idx, "ChromaSubsampling"), first, false, true);
+			first &= !appendString("Matrix Co", MI.get(StreamKind.VIDEO, idx, "matrix_coefficients"), first, false, true);
+			first &= !appendString("MultiView Layout", MI.get(StreamKind.VIDEO, idx, "MultiView_Layout"), first, true, true);
+			first &= !appendString("PAR", MI.get(StreamKind.VIDEO, idx, "PixelAspectRatio"), first, false, true);
+			first &= !appendString("DAR", MI.get(StreamKind.VIDEO, idx, "DisplayAspectRatio/String"), first, false, true);
+			first &= !appendString("DAR Orig", MI.get(StreamKind.VIDEO, idx, "DisplayAspectRatio_Original/String"), first, false, true);
+			first &= !appendString("Scan Type", MI.get(StreamKind.VIDEO, idx, "ScanType"), first, false, true);
+			first &= !appendString("Scan Order", MI.get(StreamKind.VIDEO, idx, "ScanOrder"), first, false, true);
+			first &= !appendString("FPS", MI.get(StreamKind.VIDEO, idx, "FrameRate"), first, false, true);
+			first &= !appendString("FPS Orig", MI.get(StreamKind.VIDEO, idx, "FrameRate_Original"), first, false, true);
+			first &= !appendString("Framerate Mode", MI.get(StreamKind.VIDEO, idx, "FrameRate_Mode"), first, false, true);
+			first &= !appendString("RefFrames", MI.get(StreamKind.VIDEO, idx, "Format_Settings_RefFrames"), first, false, true);
+			first &= !appendString("QPel", MI.get(StreamKind.VIDEO, idx, "Format_Settings_QPel"), first, true, true);
+			first &= !appendString("GMC", MI.get(StreamKind.VIDEO, idx, "Format_Settings_GMC"), first, true, true);
+			first &= !appendString("GOP", MI.get(StreamKind.VIDEO, idx, "Format_Settings_GOP"), first, true, true);
+			first &= !appendString("Muxing Mode", MI.get(StreamKind.VIDEO, idx, "MuxingMode"), first, true, true);
+			first &= !appendString("Encrypt", MI.get(StreamKind.VIDEO, idx, "Encryption"), first, true, true);
+			first &= !appendString("Bit Depth", MI.get(StreamKind.VIDEO, idx, "BitDepth"), first, false, true);
+			first &= !appendString("Delay", MI.get(StreamKind.VIDEO, idx, "Delay"), first, false, true);
+			first &= !appendString("Delay Source", MI.get(StreamKind.VIDEO, idx, "Delay_Source"), first, false, true);
+			first &= !appendString("Delay Original", MI.get(StreamKind.VIDEO, idx, "Delay_Original"), first, false, true);
+			first &= !appendString("Delay O. Source", MI.get(StreamKind.VIDEO, idx, "Delay_Original_Source"), first, false, true);
+			first &= !appendString("TimeStamp_FirstFrame", MI.get(StreamKind.VIDEO, idx, "TimeStamp_FirstFrame"), first, false, true);
 		}
 
 		public void logVideoTrackColumns(int idx) {
@@ -1544,48 +1570,48 @@ public class LibMediaInfoParser {
 			}
 
 			sb.append("\n  - Video track ");
-			appendString("ID", MI.Get(StreamType.Video, idx, "ID"), true, false, false);
+			appendString("ID", MI.get(StreamKind.VIDEO, idx, "ID"), true, false, false);
 			streamColumns.reset();
 			sb.append("\n");
-			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Video, idx, "Format"), true, true);
-			appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Video, idx, "Format_Version"), true, true);
-			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Video, idx, "Format_Profile"), true, true);
-			appendStringNextColumn(streamColumns, "CodecID", MI.Get(StreamType.Video, idx, "CodecID"), true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.Video, 0, "Duration"));
+			appendStringNextColumn(streamColumns, "Format", MI.get(StreamKind.VIDEO, idx, "Format"), true, true);
+			appendStringNextColumn(streamColumns, "Version", MI.get(StreamKind.VIDEO, idx, "Format_Version"), true, true);
+			appendStringNextColumn(streamColumns, "Profile", MI.get(StreamKind.VIDEO, idx, "Format_Profile"), true, true);
+			appendStringNextColumn(streamColumns, "CodecID", MI.get(StreamKind.VIDEO, idx, "CodecID"), true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.VIDEO, 0, "Duration"));
 			if (durationSec != null) {
 				appendStringNextColumn(streamColumns, "Duration", StringUtil.formatDLNADuration(durationSec), false, true);
 			}
-			appendStringNextColumn(streamColumns, "BitRate Mode", MI.Get(StreamType.Video, idx, "BitRate_Mode"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate", MI.Get(StreamType.Video, idx, "BitRate"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate Nominal", MI.Get(StreamType.Video, idx, "BitRate_Nominal"), false, true);
-			appendStringNextColumn(streamColumns, "BitRate Maximum", MI.Get(StreamType.Video, idx, "BitRate_Maximum"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate Encoded", MI.Get(StreamType.Video, idx, "BitRate_Encoded"), false, true);
-			appendStringNextColumn(streamColumns, "Width", MI.Get(StreamType.Video, idx, "Width"), false, true);
-			appendStringNextColumn(streamColumns, "Height", MI.Get(StreamType.Video, idx, "Height"), false, true);
-			appendStringNextColumn(streamColumns, "Colorimetry", MI.Get(StreamType.Video, idx, "Colorimetry"), false, true);
-			appendStringNextColumn(streamColumns, "Chroma", MI.Get(StreamType.Video, idx, "ChromaSubsampling"), false, true);
-			appendStringNextColumn(streamColumns, "Matrix Co", MI.Get(StreamType.Video, idx, "matrix_coefficients"), false, true);
-			appendStringNextColumn(streamColumns, "MultiView Layout", MI.Get(StreamType.Video, idx, "MultiView_Layout"), true, true);
-			appendStringNextColumn(streamColumns, "PAR", MI.Get(StreamType.Video, idx, "PixelAspectRatio"), false, true);
-			appendStringNextColumn(streamColumns, "DAR", MI.Get(StreamType.Video, idx, "DisplayAspectRatio/String"), false, true);
-			appendStringNextColumn(streamColumns, "DAR Orig", MI.Get(StreamType.Video, idx, "DisplayAspectRatio_Original/String"), false, true);
-			appendStringNextColumn(streamColumns, "Scan Type", MI.Get(StreamType.Video, idx, "ScanType"), false, true);
-			appendStringNextColumn(streamColumns, "Scan Order", MI.Get(StreamType.Video, idx, "ScanOrder"), false, true);
-			appendStringNextColumn(streamColumns, "FPS", MI.Get(StreamType.Video, idx, "FrameRate"), false, true);
-			appendStringNextColumn(streamColumns, "FPS Orig", MI.Get(StreamType.Video, idx, "FrameRate_Original"), false, true);
-			appendStringNextColumn(streamColumns, "Framerate Mode", MI.Get(StreamType.Video, idx, "FrameRate_Mode"), false, true);
-			appendStringNextColumn(streamColumns, "RefFrames", MI.Get(StreamType.Video, idx, "Format_Settings_RefFrames"), false, true);
-			appendStringNextColumn(streamColumns, "QPel", MI.Get(StreamType.Video, idx, "Format_Settings_QPel"), true, true);
-			appendStringNextColumn(streamColumns, "GMC", MI.Get(StreamType.Video, idx, "Format_Settings_GMC"), true, true);
-			appendStringNextColumn(streamColumns, "GOP", MI.Get(StreamType.Video, idx, "Format_Settings_GOP"), true, true);
-			appendStringNextColumn(streamColumns, "Muxing Mode", MI.Get(StreamType.Video, idx, "MuxingMode"), true, true);
-			appendStringNextColumn(streamColumns, "Encrypt", MI.Get(StreamType.Video, idx, "Encryption"), true, true);
-			appendStringNextColumn(streamColumns, "Bit Depth", MI.Get(StreamType.Video, idx, "BitDepth"), false, true);
-			appendStringNextColumn(streamColumns, "Delay", MI.Get(StreamType.Video, idx, "Delay"), false, true);
-			appendStringNextColumn(streamColumns, "Delay Source", MI.Get(StreamType.Video, idx, "Delay_Source"), false, true);
-			appendStringNextColumn(streamColumns, "Delay Original", MI.Get(StreamType.Video, idx, "Delay_Original"), false, true);
-			appendStringNextColumn(streamColumns, "Delay O. Source", MI.Get(StreamType.Video, idx, "Delay_Original_Source"), false, true);
-			appendStringNextColumn(streamColumns, "TimeStamp_FirstFrame", MI.Get(StreamType.Video, idx, "TimeStamp_FirstFrame"), false, true);
+			appendStringNextColumn(streamColumns, "BitRate Mode", MI.get(StreamKind.VIDEO, idx, "BitRate_Mode"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate", MI.get(StreamKind.VIDEO, idx, "BitRate"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate Nominal", MI.get(StreamKind.VIDEO, idx, "BitRate_Nominal"), false, true);
+			appendStringNextColumn(streamColumns, "BitRate Maximum", MI.get(StreamKind.VIDEO, idx, "BitRate_Maximum"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate Encoded", MI.get(StreamKind.VIDEO, idx, "BitRate_Encoded"), false, true);
+			appendStringNextColumn(streamColumns, "Width", MI.get(StreamKind.VIDEO, idx, "Width"), false, true);
+			appendStringNextColumn(streamColumns, "Height", MI.get(StreamKind.VIDEO, idx, "Height"), false, true);
+			appendStringNextColumn(streamColumns, "Colorimetry", MI.get(StreamKind.VIDEO, idx, "Colorimetry"), false, true);
+			appendStringNextColumn(streamColumns, "Chroma", MI.get(StreamKind.VIDEO, idx, "ChromaSubsampling"), false, true);
+			appendStringNextColumn(streamColumns, "Matrix Co", MI.get(StreamKind.VIDEO, idx, "matrix_coefficients"), false, true);
+			appendStringNextColumn(streamColumns, "MultiView Layout", MI.get(StreamKind.VIDEO, idx, "MultiView_Layout"), true, true);
+			appendStringNextColumn(streamColumns, "PAR", MI.get(StreamKind.VIDEO, idx, "PixelAspectRatio"), false, true);
+			appendStringNextColumn(streamColumns, "DAR", MI.get(StreamKind.VIDEO, idx, "DisplayAspectRatio/String"), false, true);
+			appendStringNextColumn(streamColumns, "DAR Orig", MI.get(StreamKind.VIDEO, idx, "DisplayAspectRatio_Original/String"), false, true);
+			appendStringNextColumn(streamColumns, "Scan Type", MI.get(StreamKind.VIDEO, idx, "ScanType"), false, true);
+			appendStringNextColumn(streamColumns, "Scan Order", MI.get(StreamKind.VIDEO, idx, "ScanOrder"), false, true);
+			appendStringNextColumn(streamColumns, "FPS", MI.get(StreamKind.VIDEO, idx, "FrameRate"), false, true);
+			appendStringNextColumn(streamColumns, "FPS Orig", MI.get(StreamKind.VIDEO, idx, "FrameRate_Original"), false, true);
+			appendStringNextColumn(streamColumns, "Framerate Mode", MI.get(StreamKind.VIDEO, idx, "FrameRate_Mode"), false, true);
+			appendStringNextColumn(streamColumns, "RefFrames", MI.get(StreamKind.VIDEO, idx, "Format_Settings_RefFrames"), false, true);
+			appendStringNextColumn(streamColumns, "QPel", MI.get(StreamKind.VIDEO, idx, "Format_Settings_QPel"), true, true);
+			appendStringNextColumn(streamColumns, "GMC", MI.get(StreamKind.VIDEO, idx, "Format_Settings_GMC"), true, true);
+			appendStringNextColumn(streamColumns, "GOP", MI.get(StreamKind.VIDEO, idx, "Format_Settings_GOP"), true, true);
+			appendStringNextColumn(streamColumns, "Muxing Mode", MI.get(StreamKind.VIDEO, idx, "MuxingMode"), true, true);
+			appendStringNextColumn(streamColumns, "Encrypt", MI.get(StreamKind.VIDEO, idx, "Encryption"), true, true);
+			appendStringNextColumn(streamColumns, "Bit Depth", MI.get(StreamKind.VIDEO, idx, "BitDepth"), false, true);
+			appendStringNextColumn(streamColumns, "Delay", MI.get(StreamKind.VIDEO, idx, "Delay"), false, true);
+			appendStringNextColumn(streamColumns, "Delay Source", MI.get(StreamKind.VIDEO, idx, "Delay_Source"), false, true);
+			appendStringNextColumn(streamColumns, "Delay Original", MI.get(StreamKind.VIDEO, idx, "Delay_Original"), false, true);
+			appendStringNextColumn(streamColumns, "Delay O. Source", MI.get(StreamKind.VIDEO, idx, "Delay_Original_Source"), false, true);
+			appendStringNextColumn(streamColumns, "TimeStamp_FirstFrame", MI.get(StreamKind.VIDEO, idx, "TimeStamp_FirstFrame"), false, true);
 		}
 
 		public void logAudioTrack(int idx) {
@@ -1595,31 +1621,31 @@ public class LibMediaInfoParser {
 
 			sb.append("\n    - Audio - ");
 			boolean first = true;
-			first &= !appendString("Title", MI.Get(StreamType.Audio, idx, "Title"), first, true, true);
-			first &= !appendString("Format", MI.Get(StreamType.Audio, idx, "Format"), first, true, true);
-			first &= !appendString("Version", MI.Get(StreamType.Audio, idx, "Format_Version"), first, true, true);
-			first &= !appendString("Profile", MI.Get(StreamType.Audio, idx, "Format_Profile"), first, true, true);
-			first &= !appendString("ID", MI.Get(StreamType.Audio, idx, "ID"), first, false, true);
-			first &= !appendString("CodecID", MI.Get(StreamType.Audio, idx, "CodecID"), first, true, true);
-			first &= !appendString("CodecID Desc", MI.Get(StreamType.Audio, idx, "CodecID_Description"), first, true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.Audio, 0, "Duration"));
+			first &= !appendString("Title", MI.get(StreamKind.AUDIO, idx, "Title"), first, true, true);
+			first &= !appendString("Format", MI.get(StreamKind.AUDIO, idx, "Format"), first, true, true);
+			first &= !appendString("Version", MI.get(StreamKind.AUDIO, idx, "Format_Version"), first, true, true);
+			first &= !appendString("Profile", MI.get(StreamKind.AUDIO, idx, "Format_Profile"), first, true, true);
+			first &= !appendString("ID", MI.get(StreamKind.AUDIO, idx, "ID"), first, false, true);
+			first &= !appendString("CodecID", MI.get(StreamKind.AUDIO, idx, "CodecID"), first, true, true);
+			first &= !appendString("CodecID Desc", MI.get(StreamKind.AUDIO, idx, "CodecID_Description"), first, true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.AUDIO, 0, "Duration"));
 			if (durationSec != null) {
 				first &= !appendString("Duration", StringUtil.formatDLNADuration(durationSec), first, false, true);
 			}
-			first &= !appendString("BitRate Mode", MI.Get(StreamType.Audio, idx, "BitRate_Mode"), first, false, true);
-			first &= !appendString("Bitrate", MI.Get(StreamType.Audio, idx, "BitRate"), first, false, true);
-			first &= !appendString("Bitrate Nominal", MI.Get(StreamType.Audio, idx, "BitRate_Nominal"), first, false, true);
-			first &= !appendString("BitRate Maximum", MI.Get(StreamType.Audio, idx, "BitRate_Maximum"), first, false, true);
-			first &= !appendString("Bitrate Encoded", MI.Get(StreamType.Audio, idx, "BitRate_Encoded"), first, false, true);
-			first &= !appendString("Language", MI.Get(StreamType.Audio, idx, "Language"), first, true, true);
-			first &= !appendString("Channel(s)", MI.Get(StreamType.Audio, idx, "Channel(s)_Original"), first, false, true);
-			first &= !appendString("Samplerate", MI.Get(StreamType.Audio, idx, "SamplingRate"), first, false, true);
-			first &= !appendString("Track", MI.Get(StreamType.General, idx, "Track/Position"), first, false, true);
-			first &= !appendString("Bit Depth", MI.Get(StreamType.Audio, idx, "BitDepth"), first, false, true);
-			first &= !appendString("Delay", MI.Get(StreamType.Audio, idx, "Delay"), first, false, true);
-			first &= !appendString("Delay Source", MI.Get(StreamType.Audio, idx, "Delay_Source"), first, false, true);
-			first &= !appendString("Delay Original", MI.Get(StreamType.Audio, idx, "Delay_Original"), first, false, true);
-			first &= !appendString("Delay O. Source", MI.Get(StreamType.Audio, idx, "Delay_Original_Source"), first, false, true);
+			first &= !appendString("BitRate Mode", MI.get(StreamKind.AUDIO, idx, "BitRate_Mode"), first, false, true);
+			first &= !appendString("Bitrate", MI.get(StreamKind.AUDIO, idx, "BitRate"), first, false, true);
+			first &= !appendString("Bitrate Nominal", MI.get(StreamKind.AUDIO, idx, "BitRate_Nominal"), first, false, true);
+			first &= !appendString("BitRate Maximum", MI.get(StreamKind.AUDIO, idx, "BitRate_Maximum"), first, false, true);
+			first &= !appendString("Bitrate Encoded", MI.get(StreamKind.AUDIO, idx, "BitRate_Encoded"), first, false, true);
+			first &= !appendString("Language", MI.get(StreamKind.AUDIO, idx, "Language"), first, true, true);
+			first &= !appendString("Channel(s)", MI.get(StreamKind.AUDIO, idx, "Channel(s)_Original"), first, false, true);
+			first &= !appendString("Samplerate", MI.get(StreamKind.AUDIO, idx, "SamplingRate"), first, false, true);
+			first &= !appendString("Track", MI.get(StreamKind.GENERAL, idx, "Track/Position"), first, false, true);
+			first &= !appendString("Bit Depth", MI.get(StreamKind.AUDIO, idx, "BitDepth"), first, false, true);
+			first &= !appendString("Delay", MI.get(StreamKind.AUDIO, idx, "Delay"), first, false, true);
+			first &= !appendString("Delay Source", MI.get(StreamKind.AUDIO, idx, "Delay_Source"), first, false, true);
+			first &= !appendString("Delay Original", MI.get(StreamKind.AUDIO, idx, "Delay_Original"), first, false, true);
+			first &= !appendString("Delay O. Source", MI.get(StreamKind.AUDIO, idx, "Delay_Original_Source"), first, false, true);
 		}
 
 		public void logAudioTrackColumns(int idx) {
@@ -1628,33 +1654,33 @@ public class LibMediaInfoParser {
 			}
 
 			sb.append("\n  - Audio track ");
-			appendString("ID", MI.Get(StreamType.Audio, idx, "ID"), true, false, false);
-			appendString("Title", MI.Get(StreamType.Audio, idx, "Title"), false, true, true);
+			appendString("ID", MI.get(StreamKind.AUDIO, idx, "ID"), true, false, false);
+			appendString("Title", MI.get(StreamKind.AUDIO, idx, "Title"), false, true, true);
 			streamColumns.reset();
 			sb.append("\n");
-			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Audio, idx, "Format/String"), true, true);
-			appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Audio, idx, "Format_Version"), true, true);
-			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Audio, idx, "Format_Profile"), true, true);
-			appendStringNextColumn(streamColumns, "CodecID", MI.Get(StreamType.Audio, idx, "CodecID"), true, true);
-			appendStringNextColumn(streamColumns, "CodecID Desc", MI.Get(StreamType.Audio, idx, "CodecID_Description"), true, true);
-			Double durationSec = parseDuration(MI.Get(StreamType.Audio, 0, "Duration"));
+			appendStringNextColumn(streamColumns, "Format", MI.get(StreamKind.AUDIO, idx, "Format/String"), true, true);
+			appendStringNextColumn(streamColumns, "Version", MI.get(StreamKind.AUDIO, idx, "Format_Version"), true, true);
+			appendStringNextColumn(streamColumns, "Profile", MI.get(StreamKind.AUDIO, idx, "Format_Profile"), true, true);
+			appendStringNextColumn(streamColumns, "CodecID", MI.get(StreamKind.AUDIO, idx, "CodecID"), true, true);
+			appendStringNextColumn(streamColumns, "CodecID Desc", MI.get(StreamKind.AUDIO, idx, "CodecID_Description"), true, true);
+			Double durationSec = parseDuration(MI.get(StreamKind.AUDIO, 0, "Duration"));
 			if (durationSec != null) {
 				appendStringNextColumn(streamColumns, "Duration", StringUtil.formatDLNADuration(durationSec), false, true);
 			}
-			appendStringNextColumn(streamColumns, "BitRate Mode", MI.Get(StreamType.Audio, idx, "BitRate_Mode"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate", MI.Get(StreamType.Audio, idx, "BitRate"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate Nominal", MI.Get(StreamType.Audio, idx, "BitRate_Nominal"), false, true);
-			appendStringNextColumn(streamColumns, "BitRate Maximum", MI.Get(StreamType.Audio, idx, "BitRate_Maximum"), false, true);
-			appendStringNextColumn(streamColumns, "Bitrate Encoded", MI.Get(StreamType.Audio, idx, "BitRate_Encoded"), false, true);
-			appendStringNextColumn(streamColumns, "Language", MI.Get(StreamType.Audio, idx, "Language"), true, true);
-			appendStringNextColumn(streamColumns, "Channel(s)", MI.Get(StreamType.Audio, idx, "Channel(s)"), false, true);
-			appendStringNextColumn(streamColumns, "Samplerate", MI.Get(StreamType.Audio, idx, "SamplingRate"), false, true);
-			appendStringNextColumn(streamColumns, "Track", MI.Get(StreamType.General, idx, "Track/Position"), false, true);
-			appendStringNextColumn(streamColumns, "Bit Depth", MI.Get(StreamType.Audio, idx, "BitDepth"), false, true);
-			appendStringNextColumn(streamColumns, "Delay", MI.Get(StreamType.Audio, idx, "Delay"), false, true);
-			appendStringNextColumn(streamColumns, "Delay Source", MI.Get(StreamType.Audio, idx, "Delay_Source"), false, true);
-			appendStringNextColumn(streamColumns, "Delay Original", MI.Get(StreamType.Audio, idx, "Delay_Original"), false, true);
-			appendStringNextColumn(streamColumns, "Delay O. Source", MI.Get(StreamType.Audio, idx, "Delay_Original_Source"), false, true);
+			appendStringNextColumn(streamColumns, "BitRate Mode", MI.get(StreamKind.AUDIO, idx, "BitRate_Mode"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate", MI.get(StreamKind.AUDIO, idx, "BitRate"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate Nominal", MI.get(StreamKind.AUDIO, idx, "BitRate_Nominal"), false, true);
+			appendStringNextColumn(streamColumns, "BitRate Maximum", MI.get(StreamKind.AUDIO, idx, "BitRate_Maximum"), false, true);
+			appendStringNextColumn(streamColumns, "Bitrate Encoded", MI.get(StreamKind.AUDIO, idx, "BitRate_Encoded"), false, true);
+			appendStringNextColumn(streamColumns, "Language", MI.get(StreamKind.AUDIO, idx, "Language"), true, true);
+			appendStringNextColumn(streamColumns, "Channel(s)", MI.get(StreamKind.AUDIO, idx, "Channel(s)"), false, true);
+			appendStringNextColumn(streamColumns, "Samplerate", MI.get(StreamKind.AUDIO, idx, "SamplingRate"), false, true);
+			appendStringNextColumn(streamColumns, "Track", MI.get(StreamKind.GENERAL, idx, "Track/Position"), false, true);
+			appendStringNextColumn(streamColumns, "Bit Depth", MI.get(StreamKind.AUDIO, idx, "BitDepth"), false, true);
+			appendStringNextColumn(streamColumns, "Delay", MI.get(StreamKind.AUDIO, idx, "Delay"), false, true);
+			appendStringNextColumn(streamColumns, "Delay Source", MI.get(StreamKind.AUDIO, idx, "Delay_Source"), false, true);
+			appendStringNextColumn(streamColumns, "Delay Original", MI.get(StreamKind.AUDIO, idx, "Delay_Original"), false, true);
+			appendStringNextColumn(streamColumns, "Delay O. Source", MI.get(StreamKind.AUDIO, idx, "Delay_Original_Source"), false, true);
 		}
 
 		public void logImage(int idx) {
@@ -1664,12 +1690,12 @@ public class LibMediaInfoParser {
 
 			sb.append("\n    - Image - ");
 			boolean first = true;
-			first &= !appendString("Format", MI.Get(StreamType.Image, idx, "Format"), first, true, true);
-			first &= !appendString("Version", MI.Get(StreamType.Image, idx, "Format_Version"), first, true, true);
-			first &= !appendString("Profile", MI.Get(StreamType.Image, idx, "Format_Profile"), first, true, true);
-			first &= !appendString("ID", MI.Get(StreamType.Image, idx, "ID"), first, false, true);
-			first &= !appendString("Width", MI.Get(StreamType.Image, idx, "Width"), first, false, true);
-			first &= !appendString("Height", MI.Get(StreamType.Image, idx, "Height"), first, false, true);
+			first &= !appendString("Format", MI.get(StreamKind.IMAGE, idx, "Format"), first, true, true);
+			first &= !appendString("Version", MI.get(StreamKind.IMAGE, idx, "Format_Version"), first, true, true);
+			first &= !appendString("Profile", MI.get(StreamKind.IMAGE, idx, "Format_Profile"), first, true, true);
+			first &= !appendString("ID", MI.get(StreamKind.IMAGE, idx, "ID"), first, false, true);
+			first &= !appendString("Width", MI.get(StreamKind.IMAGE, idx, "Width"), first, false, true);
+			first &= !appendString("Height", MI.get(StreamKind.IMAGE, idx, "Height"), first, false, true);
 		}
 
 		public void logImageColumns(int idx) {
@@ -1678,14 +1704,14 @@ public class LibMediaInfoParser {
 			}
 
 			sb.append("\n  - Image ");
-			appendString("ID", MI.Get(StreamType.Image, idx, "ID"), true, false, false);
+			appendString("ID", MI.get(StreamKind.IMAGE, idx, "ID"), true, false, false);
 			streamColumns.reset();
 			sb.append("\n");
-			appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Image, idx, "Format"), true, true);
-			appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Image, idx, "Format_Version"), true, true);
-			appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Image, idx, "Format_Profile"), true, true);
-			appendStringNextColumn(streamColumns, "Width", MI.Get(StreamType.Image, idx, "Width"), false, true);
-			appendStringNextColumn(streamColumns, "Height", MI.Get(StreamType.Image, idx, "Height"), false, true);
+			appendStringNextColumn(streamColumns, "Format", MI.get(StreamKind.IMAGE, idx, "Format"), true, true);
+			appendStringNextColumn(streamColumns, "Version", MI.get(StreamKind.IMAGE, idx, "Format_Version"), true, true);
+			appendStringNextColumn(streamColumns, "Profile", MI.get(StreamKind.IMAGE, idx, "Format_Profile"), true, true);
+			appendStringNextColumn(streamColumns, "Width", MI.get(StreamKind.IMAGE, idx, "Width"), false, true);
+			appendStringNextColumn(streamColumns, "Height", MI.get(StreamKind.IMAGE, idx, "Height"), false, true);
 		}
 
 		public void logSubtitleTrack(int idx, boolean videoSubtitle) {
@@ -1696,18 +1722,18 @@ public class LibMediaInfoParser {
 			sb.append("\n    - Sub - ");
 			boolean first = true;
 			if (videoSubtitle) {
-				first &= !appendString("Title", MI.Get(StreamType.Video, idx, "Title"), first, true, true);
-				first &= !appendString("Format", MI.Get(StreamType.Video, idx, "Format"), first, true, true);
-				first &= !appendString("Version", MI.Get(StreamType.Video, idx, "Format_Version"), first, true, true);
-				first &= !appendString("Profile", MI.Get(StreamType.Video, idx, "Format_Profile"), first, true, true);
-				first &= !appendString("ID", MI.Get(StreamType.Video, idx, "ID"), first, false, true);
+				first &= !appendString("Title", MI.get(StreamKind.VIDEO, idx, "Title"), first, true, true);
+				first &= !appendString("Format", MI.get(StreamKind.VIDEO, idx, "Format"), first, true, true);
+				first &= !appendString("Version", MI.get(StreamKind.VIDEO, idx, "Format_Version"), first, true, true);
+				first &= !appendString("Profile", MI.get(StreamKind.VIDEO, idx, "Format_Profile"), first, true, true);
+				first &= !appendString("ID", MI.get(StreamKind.VIDEO, idx, "ID"), first, false, true);
 			} else {
-				first &= !appendString("Title", MI.Get(StreamType.Text, idx, "Title"), first, true, true);
-				first &= !appendString("Format", MI.Get(StreamType.Text, idx, "Format"), first, true, true);
-				first &= !appendString("Version", MI.Get(StreamType.Text, idx, "Format_Version"), first, true, true);
-				first &= !appendString("Profile", MI.Get(StreamType.Text, idx, "Format_Profile"), first, true, true);
-				first &= !appendString("ID", MI.Get(StreamType.Text, idx, "ID"), first, false, true);
-				first &= !appendString("Language", MI.Get(StreamType.Text, idx, "Language"), first, true, true);
+				first &= !appendString("Title", MI.get(StreamKind.TEXT, idx, "Title"), first, true, true);
+				first &= !appendString("Format", MI.get(StreamKind.TEXT, idx, "Format"), first, true, true);
+				first &= !appendString("Version", MI.get(StreamKind.TEXT, idx, "Format_Version"), first, true, true);
+				first &= !appendString("Profile", MI.get(StreamKind.TEXT, idx, "Format_Profile"), first, true, true);
+				first &= !appendString("ID", MI.get(StreamKind.TEXT, idx, "ID"), first, false, true);
+				first &= !appendString("Language", MI.get(StreamKind.TEXT, idx, "Language"), first, true, true);
 			}
 		}
 
@@ -1719,20 +1745,20 @@ public class LibMediaInfoParser {
 			sb.append("\n  - Subtitle ");
 			streamColumns.reset();
 			if (videoSubtitle) {
-				appendString("ID", MI.Get(StreamType.Video, idx, "ID"), true, false, false);
-				appendString("Title", MI.Get(StreamType.Video, idx, "Title"), false, true, true);
+				appendString("ID", MI.get(StreamKind.VIDEO, idx, "ID"), true, false, false);
+				appendString("Title", MI.get(StreamKind.VIDEO, idx, "Title"), false, true, true);
 				sb.append("\n");
-				appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Video, idx, "Format"), true, true);
-				appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Video, idx, "Format_Version"), true, true);
-				appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Video, idx, "Format_Profile"), true, true);
+				appendStringNextColumn(streamColumns, "Format", MI.get(StreamKind.VIDEO, idx, "Format"), true, true);
+				appendStringNextColumn(streamColumns, "Version", MI.get(StreamKind.VIDEO, idx, "Format_Version"), true, true);
+				appendStringNextColumn(streamColumns, "Profile", MI.get(StreamKind.VIDEO, idx, "Format_Profile"), true, true);
 			} else {
-				appendString("ID", MI.Get(StreamType.Text, idx, "ID"), true, false, false);
-				appendString("Title", MI.Get(StreamType.Text, idx, "Title"), false, true, true);
+				appendString("ID", MI.get(StreamKind.TEXT, idx, "ID"), true, false, false);
+				appendString("Title", MI.get(StreamKind.TEXT, idx, "Title"), false, true, true);
 				sb.append("\n");
-				appendStringNextColumn(streamColumns, "Format", MI.Get(StreamType.Text, idx, "Format"), true, true);
-				appendStringNextColumn(streamColumns, "Version", MI.Get(StreamType.Text, idx, "Format_Version"), true, true);
-				appendStringNextColumn(streamColumns, "Profile", MI.Get(StreamType.Text, idx, "Format_Profile"), true, true);
-				appendStringNextColumn(streamColumns, "Language", MI.Get(StreamType.Text, idx, "Language"), true, true);
+				appendStringNextColumn(streamColumns, "Format", MI.get(StreamKind.TEXT, idx, "Format"), true, true);
+				appendStringNextColumn(streamColumns, "Version", MI.get(StreamKind.TEXT, idx, "Format_Version"), true, true);
+				appendStringNextColumn(streamColumns, "Profile", MI.get(StreamKind.TEXT, idx, "Format_Profile"), true, true);
+				appendStringNextColumn(streamColumns, "Language", MI.get(StreamKind.TEXT, idx, "Language"), true, true);
 			}
 		}
 

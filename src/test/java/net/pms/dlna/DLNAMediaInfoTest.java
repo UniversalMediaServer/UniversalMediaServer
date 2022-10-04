@@ -23,6 +23,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.parsers.MediaInfoParser;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -103,7 +104,7 @@ public class DLNAMediaInfoTest {
 	public void testContainerProperties() throws Exception {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
-		assertTrue(LibMediaInfoParser.isValid() ,
+		assertTrue(MediaInfoParser.isValid() ,
 			"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n");
 
 		// Create handles to the test content

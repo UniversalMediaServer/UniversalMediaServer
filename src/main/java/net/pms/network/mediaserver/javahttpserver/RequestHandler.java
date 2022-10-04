@@ -277,7 +277,7 @@ public class RequestHandler implements HttpHandler {
 		byte[] responseData = message.getBytes(StandardCharsets.UTF_8);
 		exchange.sendResponseHeaders(code, responseData.length);
 		// HEAD requests only require headers to be set, no need to set contents.
-		if (!HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
+		if (!HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
 			// Not a HEAD request, so set the contents of the response.
 			try (OutputStream os = exchange.getResponseBody()) {
 				os.write(responseData);
@@ -334,7 +334,7 @@ public class RequestHandler implements HttpHandler {
 			logMessageSent(exchange, null, inputStream, renderer);
 		}
 		// send only if no HEAD method is being used.
-		if (writeStream && !HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
+		if (writeStream && !HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
 			// Send the response body to the client in chunks.
 			byte[] buf = new byte[BUFFER_SIZE];
 			int length;
@@ -1478,7 +1478,7 @@ public class RequestHandler implements HttpHandler {
 		String responseCode = exchange.getProtocol() + " " + exchange.getResponseCode();
 		String rendererName = getRendererName(exchange, renderer);
 
-		if (HEAD.equals(exchange.getRequestMethod().toUpperCase())) {
+		if (HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
 			LOGGER.trace(
 				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
 				rendererName,
@@ -1615,7 +1615,7 @@ public class RequestHandler implements HttpHandler {
 
 	private static boolean getResponseIsChunked(HttpExchange exchange) {
 		return exchange.getResponseHeaders().containsKey("Transfer-Encoding") &&
-				exchange.getResponseHeaders().getFirst("Transfer-Encoding").toLowerCase().equals("chunked");
+				exchange.getResponseHeaders().getFirst("Transfer-Encoding").equalsIgnoreCase("chunked");
 	}
 
 	private static String getRendererName(HttpExchange exchange, RendererConfiguration renderer) {
