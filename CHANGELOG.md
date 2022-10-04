@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### General:
+- Improved filename prettifying/matching
+- Improved performance
+- Fixed restart program reliability
+- Fixed security hole
+- Updated all tests to junit 5
+
+### Dependencies
+- Bump commons-text from 1.9 to 1.10.0
+- Bump junit5.version from 5.9.0 to 5.9.1
+- Bump logback-version from 1.4.1 to 1.4.3
+- Update com.sun.xml.bind-version to v4.0.1
+- Update dependency com.puppycrawl.tools:checkstyle to v10.3.4
+- Update dependency org.slf4j:slf4j-api to v2.0.3
+
 ## [11.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.1...11.5.0) (2022-09-17)
 
 ### General:
