@@ -13081,7 +13081,7 @@ __metadata:
     video.js: 7.20.3
     videojs-contrib-quality-levels: 2.2.0
     videojs-hls-quality-selector: 1.1.4
-    web-vitals: 3.0.2
+    web-vitals: 3.0.3
   languageName: unknown
   linkType: soft
 
@@ -13429,10 +13429,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:3.0.2":
-  version: 3.0.2
-  resolution: "web-vitals@npm:3.0.2"
-  checksum: 012256fde3c96913b724306904bdf588893aa4e3bfaaded4b83854eb12b74e25b41ce21c5b46138b020ef462143dc03f72f697b36647dddad70c2d379df82eec
+"web-vitals@npm:3.0.3":
+  version: 3.0.3
+  resolution: "web-vitals@npm:3.0.3"
+  checksum: 77df36f83590afbab6872f94f01e9df536ec4b0a4421833b500306f5ee5f9cdebdcd9139cfd94801edfb555a56ad61d8a5d28529ade8c645f6c82b76aebca19e
   languageName: node
   linkType: hard
 
