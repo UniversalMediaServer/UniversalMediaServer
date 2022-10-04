@@ -240,7 +240,7 @@ public class WebInterfaceServerUtil {
 
 	private static boolean getResponseIsChunked(HttpExchange exchange) {
 		return exchange.getResponseHeaders().containsKey("Transfer-Encoding") &&
-				exchange.getResponseHeaders().getFirst("Transfer-Encoding").toLowerCase().equals("chunked");
+				exchange.getResponseHeaders().getFirst("Transfer-Encoding").equalsIgnoreCase("chunked");
 	}
 
 	public static String read(File f) {

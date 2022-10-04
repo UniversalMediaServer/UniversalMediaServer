@@ -1325,7 +1325,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		LongByReference input, // In
@@ -1377,7 +1377,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncStructMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		Structure inputStruct, // In
@@ -1425,7 +1425,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncScalarMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		LongByReference input, // In

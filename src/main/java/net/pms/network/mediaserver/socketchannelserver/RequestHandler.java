@@ -152,9 +152,9 @@ public class RequestHandler implements Runnable {
 						if (s.hasMoreTokens() && s.nextToken().equals("HTTP/1.0")) {
 							request.setHttp10(true);
 						}
-					} else if (request != null && temp.toUpperCase().equals("CALLBACK:")) {
+					} else if (request != null && temp.equalsIgnoreCase("CALLBACK:")) {
 						request.setSoapaction(s.nextToken());
-					} else if (request != null && temp.toUpperCase().equals("SOAPACTION:")) {
+					} else if (request != null && temp.equalsIgnoreCase("SOAPACTION:")) {
 						request.setSoapaction(s.nextToken());
 					} else if (headerLine.toUpperCase().contains("CONTENT-LENGTH:")) {
 						receivedContentLength = Integer.parseInt(headerLine.substring(headerLine.toUpperCase().indexOf("CONTENT-LENGTH: ") + 16));

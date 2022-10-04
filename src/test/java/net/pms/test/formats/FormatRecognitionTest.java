@@ -30,7 +30,6 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RealFile;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
@@ -44,6 +43,7 @@ import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
+import net.pms.parsers.MediaInfoParser;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -63,7 +63,7 @@ public class FormatRecognitionTest {
 		PMS.get();
 		PMS.setConfiguration(new PmsConfiguration(false));
 		PMS.configureJNA();
-		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
 		// Silence all log messages from the DMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -298,7 +298,7 @@ public class FormatRecognitionTest {
 		assumeTrue(configurationLoaded);
 
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
-		assumeTrue(LibMediaInfoParser.isValid());
+		assumeTrue(MediaInfoParser.isValid());
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does

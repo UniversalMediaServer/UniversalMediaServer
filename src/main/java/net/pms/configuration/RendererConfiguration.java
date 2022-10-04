@@ -17,9 +17,6 @@
  */
 package net.pms.configuration;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.awt.Color;
@@ -38,23 +35,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.renderers.devices.players.PlaybackTimer;
-import net.pms.renderers.devices.players.PlayerState;
-import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.dlna.*;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
+import net.pms.gui.IRendererGuiListener;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
-import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.GeneralTab;
+import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlaybackTimer;
+import net.pms.renderers.devices.players.PlayerState;
+import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
 import net.pms.util.InvalidArgumentException;
@@ -67,6 +65,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
@@ -2230,11 +2230,11 @@ public class RendererConfiguration extends Renderer {
 	 * @return whether to use MediaInfo
 	 */
 	public boolean isUseMediaInfo() {
-		return getBoolean(MEDIAPARSERV2, true) && LibMediaInfoParser.isValid();
+		return getBoolean(MEDIAPARSERV2, true) && MediaInfoParser.isValid();
 	}
 
 	public boolean isMediaInfoThumbnailGeneration() {
-		return getBoolean(MEDIAPARSERV2_THUMB, false) && LibMediaInfoParser.isValid();
+		return getBoolean(MEDIAPARSERV2_THUMB, false) && MediaInfoParser.isValid();
 	}
 
 	public boolean isShowAudioMetadata() {
@@ -2274,7 +2274,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public boolean isDLNATreeHack() {
-		return getBoolean(DLNA_TREE_HACK, false) && LibMediaInfoParser.isValid();
+		return getBoolean(DLNA_TREE_HACK, false) && MediaInfoParser.isValid();
 	}
 
 	/**

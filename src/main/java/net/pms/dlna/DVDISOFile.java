@@ -79,7 +79,7 @@ public class DVDISOFile extends VirtualFolder {
 		 *
 		 *     this.isVideoTS = file.isDirectory() && file.getName().toUpperCase().equals("VIDEO_TS");
 		 */
-		isVideoTS = file.getName().toUpperCase().equals("VIDEO_TS");
+		isVideoTS = file.getName().equalsIgnoreCase("VIDEO_TS");
 
 		setLastModified(file.lastModified());
 	}

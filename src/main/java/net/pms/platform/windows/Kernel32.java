@@ -46,7 +46,7 @@ public interface Kernel32 extends Library {
 		int nFileSystemNameSize
 	);
 
-	int SetThreadExecutionState(int EXECUTION_STATE);
+	int SetThreadExecutionState(int esFlags);
 	int ES_CONTINUOUS        = 0x80000000;
 	int ES_SYSTEM_REQUIRED   = 0x00000001;
 	int ES_DISPLAY_REQUIRED  = 0x00000002;
