@@ -62,12 +62,7 @@ interface MediaInfoLibrary extends Library {
 	WString Option(Pointer handle, WString option, WString value);
 
 	public static MediaInfoLibrary createInstance() {
-		String libraryName;
-		if (Platform.isWindows() && Platform.is64Bit()) {
-			libraryName = "mediainfo64";
-		} else {
-			libraryName = "mediainfo";
-		}
+		String libraryName = "mediainfo";
 
 		//windows
 		if (Platform.isWindows() && System.getProperty("jna.library.path") == null && PlatformProgramPaths.get() instanceof WindowsProgramPaths && ((WindowsProgramPaths) PlatformProgramPaths.get()).getMediaInfo() != null) {

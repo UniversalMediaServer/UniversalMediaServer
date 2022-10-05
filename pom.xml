@@ -124,7 +124,7 @@
 			 the system makensis is explicitly selected via the
 			 system-makensis profile
 		 -->
-		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
+		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.9.1</junit5.version>
 		<com.sun.xml.bind-version>4.0.1</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
@@ -718,7 +718,7 @@
 
 			<!-- 3) package filtered NSIS header files -->
 			<resource>
-				<directory>src/main/external-resources/nsis</directory>
+				<directory>src/main/external-resources/windows/nsis-scripts</directory>
 				<includes>
 					<include>extra.nsh</include>
 				</includes>
@@ -1196,76 +1196,77 @@
 									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/win32" />
-										<mkdir dir="${project.binaries}/win32/avisynth" />
-										<mkdir dir="${project.binaries}/win32/codecs" />
-										<mkdir dir="${project.binaries}/win32/fonts" />
-										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
-										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
-										<mkdir dir="${project.binaries}/win32/interframe" />
-										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x64" />
-										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x86" />
-										<mkdir dir="${project.binaries}/win32/mplayer" />
-										<mkdir dir="${project.binaries}/win32/service" />
+										<mkdir dir="${project.binaries}/windows" />
+										<mkdir dir="${project.binaries}/windows/avisynth" />
+										<mkdir dir="${project.binaries}/windows/codecs" />
+										<mkdir dir="${project.binaries}/windows/interframe" />
+										<mkdir dir="${project.binaries}/windows/fonts" />
+										<mkdir dir="${project.binaries}/windows/fonts/conf.avail" />
+										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
+										<mkdir dir="${project.binaries}/windows/x86" />
+										<mkdir dir="${project.binaries}/windows/x86/jre${project.jre-version}" />
+										<mkdir dir="${project.binaries}/windows/x86_64" />
+										<mkdir dir="${project.binaries}/windows/x86_64/jre${project.jre-version}" />
+										<mkdir dir="${project.binaries}/windows/mplayer" />
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/win32/ffmpeg64.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/win32/youtube-dl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wma9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmv9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/win32/codecs/wmvdmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/45-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/50-user.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/51-local.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/60-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-dsnative.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/avisynth.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/pncrt.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/sipr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/tokr3260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wma9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmv9dmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmvdmod.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/45-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/50-user.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/51-local.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/60-latin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x64">
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
 										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
-										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x86">
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/windows/x86/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
 										</unzip>
-										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1282,14 +1283,28 @@
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
-										<mkdir dir="${project.binaries}/win32/service" />
-										<copy todir="${project.binaries}/win32/service" overwrite="true">
-											<fileset dir="${project.external-resources}/third-party/wrapper" />
+										<mkdir dir="${project.binaries}/windows/service" />
+										<copy todir="${project.binaries}/windows/service" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/wrapper">
+												<exclude name="x86/"/>
+												<exclude name="x86_64/"/>
+											</fileset>
+										</copy>
+										<mkdir dir="${project.binaries}/windows/x86/service" />
+										<copy todir="${project.binaries}/windows/x86/service" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/wrapper/x86" />
+										</copy>
+										<mkdir dir="${project.binaries}/windows/x86_64/service" />
+										<copy todir="${project.binaries}/windows/x86_64/service" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/wrapper/x86_64" />
 										</copy>
 
+										<!-- Copy the ctrlsender.exe -->
+										<copy file="${project.external-resources}/windows/ctrlsender/ctrlsender.exe" todir="${project.binaries}/windows/ctrlsender.exe" />
+
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
-										<mkdir dir="${project.binaries}/win32/winxp" />
-										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.binaries}/win32/winxp" />
+										<mkdir dir="${project.binaries}/windows/winxp" />
+										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
 									</target>
 								</configuration>
 							</execution>
@@ -1312,7 +1327,7 @@
 								<configuration>
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
-									<setupScript>${project.external-resources}/nsis/pms.nsi</setupScript>
+									<setupScript>${project.external-resources}/windows/nsis-scripts/pms.nsi</setupScript>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -1326,7 +1341,7 @@
 								<configuration>
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
-									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
+									<setupScript>${project.external-resources}/windows/nsis-scripts/setup.nsi</setupScript>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -2095,7 +2110,7 @@
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2298,7 +2313,7 @@
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2497,7 +2512,7 @@
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2923,8 +2938,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}/win32" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/windows" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2995,8 +3010,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}/win32" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/windows" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
