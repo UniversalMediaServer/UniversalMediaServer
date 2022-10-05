@@ -1,7 +1,7 @@
 # Universal Media Server
-![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/Universal%20Media%20Server%20CI/badge.svg)
+![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/Universal%20Media%20Server%20CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
 
-[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
+[<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
 It is capable of sharing video, audio and images between most modern devices.
 It was originally based on PS3 Media Server by shagrath, in order to ensure greater stability and file-compatibility.
 
@@ -13,13 +13,14 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 
 ## Current Project Developers
 
+* [ik666][32]
 * [js-kyle][31]
 * [SubJunk][3]
+* [SurfaceS][33]
 * [valib][5]
 
 ## Current Forum Moderators
 
-* [atamariya][8]
 * [mik_s][7]
 * [squadjot][30]
 
@@ -47,6 +48,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * Redlum
 * renszarv
 * [SharkHunter][4]
+* skeptical
 * taconaut
 * tcox
 * tomeko
@@ -108,3 +110,5 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [29]: https://crowdin.com/
   [30]: https://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=55
   [31]: https://github.com/js-kyle
+  [32]: https://github.com/ik666
+  [33]: https://github.com/SurfaceS

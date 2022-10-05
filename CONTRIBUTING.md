@@ -22,7 +22,7 @@ We welcome Pull Requests. Please be descriptive about the purpose of the code ch
 
 We will only merge Pull Requests if they don't break our automated tests, if they pass code review by one of our developers, and if they pass manual testing.
 
-For more information, please see [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/STYLEGUIDE.md)
+For more information, please see [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/STYLEGUIDE.md)
 
 # <a name="Attachments"></a>Attachments
 

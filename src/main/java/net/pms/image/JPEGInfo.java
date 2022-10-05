@@ -13,10 +13,7 @@ import com.drew.metadata.jfif.JfifDirectory;
 import com.drew.metadata.jpeg.HuffmanTablesDirectory;
 import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;
@@ -278,7 +275,7 @@ public class JPEGInfo extends ExifInfo {
 	 *         tables defined in K.3 - K.3 in the JPEG standard.
 	 */
 	public boolean isTypicalHuffman() {
-		return isTypicalHuffman != null ? isTypicalHuffman.booleanValue() : false;
+		return isTypicalHuffman != null && isTypicalHuffman;
 	}
 
 	/**
@@ -385,7 +382,7 @@ public class JPEGInfo extends ExifInfo {
 	protected static class JPEGParseInfo extends ExifParseInfo {
 		Integer jfifVersion;
 		CompressionType compressionType;
-		Map<Integer, JpegComponent> components = new HashMap<Integer, JpegComponent>(4);
+		Map<Integer, JpegComponent> components = new HashMap<>(4);
 		Boolean isTypicalHuffman;
 		JPEGSubsamplingNotation chromaSubsampling;
 	}

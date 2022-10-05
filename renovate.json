@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "config:base",
+    ":dependencyDashboard"
+  ],
+  "baseBranches": [
+    "main",
+    "3004-web-settings"
+  ]
+}

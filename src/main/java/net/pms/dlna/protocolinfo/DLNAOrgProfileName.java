@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,8 +17,8 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import org.fourthline.cling.support.model.dlna.DLNAProfiles;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
+import org.jupnp.support.model.dlna.DLNAProfiles;
 
 /**
  * This interface represents {@code DLNA.ORG_PN} attributes. This can only be
@@ -54,7 +52,7 @@ public interface DLNAOrgProfileName extends ProfileName {
 		 * the singleton instance.
 		 */
 		protected DLNAOrgProfileNameFactory() {
-			// Add the profiles already defined by Cling
+			// Add the profiles already defined by JUPnP
 			for (DLNAProfiles profile : DLNAProfiles.values()) {
 				if (profile != DLNAProfiles.NONE) {
 					instanceCache.add(new DefaultDLNAOrgProfileName(profile.getCode()));

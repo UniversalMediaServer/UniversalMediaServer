@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008-2012 A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -27,10 +26,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.FFmpegExecutableInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -40,6 +36,9 @@ import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.OutputOverride;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.FFmpegExecutableInfo;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -49,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	public static final PlayerId ID = StandardPlayerId.FFMPEG_WEB_VIDEO;
+	public static final EngineId ID = StandardEngineId.FFMPEG_WEB_VIDEO;
 
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "FFmpeg Web Video";
@@ -107,8 +106,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 					} else if (line.equals("REPLACE")) {
 						filter = REPLACEMENTS;
 					} else if (filter != null) {
-						String[] var = line.split(" \\| ", 2);
-						filter.add(var[0], var.length > 1 ? var[1] : null);
+						String[] value = line.split(" \\| ", 2);
+						filter.add(value[0], value.length > 1 ? value[1] : null);
 					}
 				}
 				return true;
@@ -130,12 +129,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public JComponent config() {
-		return null;
-	}
-
-	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -146,7 +140,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
@@ -162,8 +156,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		// Use device-specific conf
-		PmsConfiguration prev = configuration;
+
+		// Backup the existing configuration, to be restored at the end
+		// TODO: stop doing that
+		PmsConfiguration existingConfiguration = configuration;
+
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
@@ -224,16 +221,24 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		cmdList.add(getExecutable());
 
-		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
-		// that it can write to a file that already exists i.e. the named pipe
+		// this stops FFmpeg waiting to write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
+		if (LOGGER.isTraceEnabled()) {
+			// Set -loglevel in accordance with LOGGER setting
+			if (FFmpegLogLevels.INFO.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("info");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		} else {
-			cmdList.add("warning");
+			if (FFmpegLogLevels.WARNING.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("warning");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		}
 
 		/*
@@ -284,8 +289,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Now that inputs and filtering are complete, see if we should
 		// give the renderer the final say on the command
 		boolean override = false;
-		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
+		if (renderer instanceof OutputOverride outputOverride) {
+			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (!override) {
@@ -355,7 +360,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
-		configuration = prev;
+		configuration = existingConfiguration;
 		return pw;
 	}
 
@@ -439,10 +444,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
 		Pattern compiledPattern = Pattern.compile(pattern);
 		Matcher matcher = compiledPattern.matcher(youTubeUrl);
-		if (matcher.find()) {
-			return true;
-		}
-		return false;
+		return matcher.find();
 	}
 }
 

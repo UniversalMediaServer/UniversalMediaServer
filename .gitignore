@@ -34,3 +34,10 @@ docker/linux*
 docker/jre*
 /src/main/java/net/pms/Test.java
 .yarn-integrity
+/nb-*
+/nbactions-*
+
+# upcoming react client
+/react-client
+# this is where the compiled client goes after "yarn build"
+/src/main/external-resources/web/react-client

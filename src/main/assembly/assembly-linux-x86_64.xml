@@ -68,7 +68,7 @@
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
 			<includes>
-				<include>/jre8/**</include>
+				<include>/jre${project.jre-version}/**</include>
 			</includes>
 		</fileSet>
 
@@ -81,7 +81,7 @@
 			<includes>
 				<include>BUILD.md</include>
 				<include>README.md</include>
-				<include>CHANGELOG.txt</include>
+				<include>CHANGELOG.md</include>
 				<include>INSTALL.txt</include>
 				<include>LICENSE.txt</include>
 			</includes>
@@ -100,7 +100,6 @@
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
 				<include>linux/*.txt</include>
-				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>

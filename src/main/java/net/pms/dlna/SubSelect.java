@@ -6,7 +6,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 
 public class SubSelect extends VirtualFolder {
 	public SubSelect() {
-		super(Messages.getString("PMS.133"), null);
+		super(Messages.getString("LiveSubtitles_FolderName"), null);
 	}
 
 	@Override

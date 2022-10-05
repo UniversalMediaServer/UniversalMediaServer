@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -16,29 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import com.sun.net.httpserver.HttpServer;
-import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.security.AccessControlException;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
@@ -48,45 +41,48 @@ import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-import javax.jmdns.JmDNS;
-import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.database.Tables;
+import net.pms.database.MediaDatabase;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.YoutubeDl;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.GuiManager;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
-import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
-import net.pms.network.ChromecastMgr;
-import net.pms.network.HTTPServer;
-import net.pms.network.ProxyServer;
-import net.pms.network.UPNPHelper;
-import net.pms.newgui.*;
-import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServer;
+import net.pms.newgui.DbgPacker;
+import net.pms.newgui.GuiUtil;
+import net.pms.newgui.LanguageSelection;
+import net.pms.newgui.LooksFrame;
+import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.Splash;
+import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
-import net.pms.remote.RemoteWeb;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsNamedPipe;
+import net.pms.platform.windows.WindowsUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
 import net.pms.util.*;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
+import net.pms.platform.mac.iokit.IOKitUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.fest.util.Files;
-import org.h2.tools.ConvertTraceFile;
-import org.h2.util.Profiler;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +104,6 @@ public class PMS {
 
 	private boolean ready = false;
 
-	private static FileWatcher fileWatcher;
-
 	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
@@ -121,7 +115,7 @@ public class PMS {
 	private static PmsConfiguration configuration;
 
 	/**
-	 * Universally Unique Identifier used in the UPnP server.
+	 * Universally Unique Identifier used in the UPnP mediaServer.
 	 */
 	private String uuid;
 
@@ -131,15 +125,17 @@ public class PMS {
 	 */
 	private static String helpPage = "index.html";
 
-	private JmDNS jmDNS;
-
 	/**
-	 * Returns a pointer to the DMS GUI's main window.
-	 * @return {@link net.pms.newgui.IFrame} Main DMS window.
+	 * A lock to prevent heavy IO tasks from causing browsing to be less
+	 * responsive.
+	 *
+	 * When a task has a high priority (needs to run in realtime), it should
+	 * implement this lock for the duration of their operation. When a task
+	 * has a lower priority, it should use this lock to wait for any
+	 * realtime task to finish, and then immediately unlock, to prevent
+	 * blocking the next realtime task from starting.
 	 */
-	public IFrame getFrame() {
-		return frame;
-	}
+	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Returns the root folder for a given renderer. There could be the case
@@ -164,18 +160,18 @@ public class PMS {
 	}
 
 	/**
-	 * Pointer to a running DMS server.
+	 * Pointer to a running UMS server.
 	 */
 	private static PMS instance = null;
 
 	/**
-	 * An array of {@link RendererConfiguration}s that have been found by DMS.
+	 * An array of {@link RendererConfiguration}s that have been found by UMS.
 	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
 	 * {@link List} itself</b>.
 	 */
-	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<RendererConfiguration>());
+	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The returned <code>List</code> itself is thread safe, but the objects
@@ -205,33 +201,27 @@ public class PMS {
 			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
-				frame.addRenderer(renderer);
-				frame.setConnectionState(ConnectionState.CONNECTED);
+				GuiManager.addRenderer(renderer);
+				GuiManager.setConnectionState(EConnectionState.CONNECTED);
 			}
 		}
 	}
 
-	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
-		frame.updateRenderer(renderer);
-	}
+	/**
+	 * UPnP mediaServer that serves the XML files, media files and broadcast messages needed by UPnP Service.
+	 */
+	private MediaServer mediaServer;
 
 	/**
-	 * HTTP server that serves the XML files needed by UPnP server and the media files.
+	 * HTTP server that serves a brower/player of media files.
+	 * Also handle utility and other stuff
 	 */
-	private HTTPServer server;
+	private WebInterfaceServer webInterfaceServer;
 
 	/**
 	 * User friendly name for the server.
 	 */
 	private String serverName;
-
-	// FIXME unused
-	private ProxyServer proxyServer;
-
-	public ProxyServer getProxy() {
-		return proxyServer;
-	}
 
 	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
@@ -239,30 +229,12 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.newgui.IFrame} object that represents the DMS GUI.
-	 */
-	private IFrame frame;
-
-	/**
-	 * Main resource database that supports search capabilities. Also known as media cache.
-	 * @see net.pms.dlna.DLNAMediaDatabase
-	 */
-	private DLNAMediaDatabase database;
-	private Object databaseLock = new Object();
-
-	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
-	 * @return (DLNAMediaDatabase) a reference to the database.
+	 * @return (MediaDatabase) a reference to the mediaDatabase.
 	 */
-	public DLNAMediaDatabase getDatabase() {
-		synchronized (databaseLock) {
-			if (database == null) {
-				database = new DLNAMediaDatabase("medias");
-				database.init(false);
-			}
-			return database;
-		}
+	public MediaDatabase getMediaDatabase() {
+		return MediaDatabase.get();
 	}
 
 	private void displayBanner() throws IOException {
@@ -279,16 +251,13 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater(6, 0)) {
-			// The binaries shipped with the Mac OS X version of DMS are being
-			// compiled against specific OS versions, making them incompatible
-			// with older versions. Warn the user about this when necessary.
+		if (Platform.isMac() && !IOKitUtils.isMacOsVersionEqualOrGreater("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
 			LOGGER.warn("higher. You are running an older version of Mac OS X which means");
 			LOGGER.warn("that these binaries used for example for transcoding may not work!");
-			LOGGER.warn("To solve this, replace the binaries found int the \"osx\"");
+			LOGGER.warn("To solve this, replace the binaries found in the \"osx\"");
 			LOGGER.warn("subfolder with versions compiled for your version of OS X.");
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("");
@@ -317,7 +286,7 @@ public class PMS {
 		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
 
 		// Logfile name(s) and path(s)
-		if (lfps != null && lfps.size() > 0) {
+		if (lfps != null && !lfps.isEmpty()) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
 				if (entry.getKey().toLowerCase().equals("default.log")) {
@@ -356,7 +325,7 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebInterface()) {
+		if (configuration.useWebInterfaceServer()) {
 			String webConfPath = configuration.getWebConfPath();
 			LOGGER.info("Web configuration file: {}", webConfPath);
 			try {
@@ -386,10 +355,10 @@ public class PMS {
 	}
 
 	/**
-	 * Initialization procedure for DMS.
+	 * Initialization procedure.
 	 *
-	 * @return <code>true</code> if the server has been initialized correctly.
-	 *         <code>false</code> if initialization was aborted.
+	 * @return <code>true</code> if the UMS server has been initialized correctly.
+         <code>false</code> if initialization was aborted.
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
@@ -429,18 +398,17 @@ public class PMS {
 		// Call this as early as possible
 		displayBanner();
 
-		final Profiler profiler = new Profiler();
-		if (configuration.getDatabaseLogging()) {
-			profiler.startCollecting();
-		}
+		// Start network scanner
+		NetworkConfiguration.start();
+		// Initialize mediaDatabase
+		MediaDatabase.init();
 
-		// Initialize database
-		try {
-			Tables.checkTables(false);
-		} catch (SQLException e1) {
-			LOGGER.error("Database was not initialized.");
-			LOGGER.trace("Error was: {}", e1);
-		}
+		/**
+		 * Bump the SystemUpdateID state variable because now we will have
+		 * different resource IDs than last time UMS ran. It also populates our
+		 * in-memory value with the database value if the database is enabled.
+		 */
+		DLNAResource.bumpSystemUpdateId();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -477,8 +445,6 @@ public class PMS {
 			}
 		}
 
-		fileWatcher = new FileWatcher();
-
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
 
@@ -492,99 +458,71 @@ public class PMS {
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
 			if (!configuration.isAutomaticMaximumBitrate()) {
-				Object[] yesNoOptions = {
-						Messages.getString("Dialog.YES"),
-						Messages.getString("Dialog.NO")
-				};
-
 				// Ask if user wants to use automatic maximum bitrate
-				int whetherToUseAutomaticMaximumBitrate = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("ImprovedFeatureOptIn.AutomaticVideoQuality"),
-					Messages.getString("ImprovedFeatureOptIn.Title"),
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					yesNoOptions,
-					yesNoOptions[0]
-				);
-
-				if (whetherToUseAutomaticMaximumBitrate == JOptionPane.YES_OPTION) {
-					configuration.setAutomaticMaximumBitrate(true);
-				} else if (whetherToUseAutomaticMaximumBitrate == JOptionPane.NO_OPTION) {
-					configuration.setAutomaticMaximumBitrate(false);
-				}
+				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
+				configuration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
 			// It will be shown only once
 			configuration.setShowInfoAboutVideoAutomaticSetting(false);
 		}
 
-		/*
-		 * Enable youtube-dl once, to ensure that if it is
-		 * disabled, that was done by the user.
-		 */
-		if (!configuration.wasYoutubeDlEnabledOnce()) {
-			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+		// Actions that happen only the first time UMS runs
+		if (!configuration.hasRunOnce()) {
+			/*
+			 * Enable youtube-dl once, to ensure that if it is
+			 * disabled, that was done by the user.
+			 */
+			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
 
-			configuration.setYoutubeDlEnabledOnce();
+			// Set default local shared content if the wizard has not set it
+			if (configuration.isSharedFoldersEmpty()) {
+				configuration.setSharedFoldersToDefault();
+			}
+
+			// Set default remote shared content
+			String webConfPath = configuration.getWebConfPath();
+			File webConf = new File(webConfPath);
+			if (!webConf.exists()) {
+				configuration.writeWebConfigurationFile();
+			}
+
+			// Ensure this only happens once
+			configuration.setHasRunOnce();
 		}
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
+			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
-			frame = new DummyFrame();
 		}
 
 		// Close splash screen
 		if (splash != null) {
 			splash.dispose();
-			splash = null;
 		}
 
-		/*
-		 * we're here:
-		 *
-		 *     main() -> createInstance() -> init()
-		 *
-		 * which means we haven't created the instance returned by get()
-		 * yet, so the frame appender can't access the frame in the
-		 * standard way i.e. PMS.get().getFrame(). we solve it by
-		 * inverting control ("don't call us; we'll call you") i.e.
-		 * we notify the appender when the frame is ready rather than
-		 * e.g. making getFrame() static and requiring the frame
-		 * appender to poll it.
-		 *
-		 * XXX an event bus (e.g. MBassador or Guava EventBus
-		 * (if they fix the memory-leak issue)) notification
-		 * would be cleaner and could support other lifecycle
-		 * notifications (see above).
-		 */
-		FrameAppender.setFrame(frame);
-
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate()) {
+				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					GuiManager.setReloadable(true);
+				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetMediaLibrary();
+				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetRenderersRoot();
 				}
+				GuiManager.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
 		// Web stuff
-		if (configuration.useWebInterface()) {
-			try {
-				web = new RemoteWeb(configuration.getWebPort());
-			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebPort() + ", because: " + b.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-			}
-		}
+		resetWebInterfaceServer();
 
 		// init Credentials
 		credMgr = new CredMgr(configuration.getCredFile());
@@ -595,12 +533,6 @@ public class PMS {
 		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
-		// Now that renderer confs are all loaded, we can start searching for renderers
-		UPNPHelper.getInstance().init();
-
-		// launch ChromecastMgr
-		jmDNS = null;
-		launchJmDNSRenderers();
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
@@ -615,12 +547,12 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if (!Platform.isWindows() || Platform.is64Bit()) {
+			if ((!Platform.isWindows() || Platform.is64Bit()) && configuration.getFFmpegPath() != null) {
 				ThreadedProcessWrapper.runProcessNullOutput(
 					5,
 					TimeUnit.MINUTES,
 					2000,
-					configuration.getFFmpegPaths().getDefaultPath().toString(),
+					configuration.getFFmpegPath(),
 					"-y",
 					"-f",
 					"lavfi",
@@ -638,16 +570,16 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setConnectionState(ConnectionState.SEARCHING);
+		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
+		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(PlatformUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(PlatformUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -657,7 +589,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.instance.isKerioFirewall()) {
+		if (PlatformUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -669,162 +601,62 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		server = new HTTPServer(configuration.getServerPort());
+		// Initialize a engine factory to register all transcoding engines
+		EngineFactory.initialize();
 
-		// Initialize a player factory to register all players
-		PlayerFactory.initialize();
+		// Any plugin-defined engines are now registered, create the gui view.
+		GuiManager.addEngines();
 
-		// Any plugin-defined players are now registered, create the gui view.
-		frame.addEngines();
-
-		boolean binding = false;
-
-		try {
-			binding = server.start();
-		} catch (BindException b) {
-			LOGGER.error("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
-			LOGGER.info("Maybe another process is running or the hostname is wrong.");
-		}
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		MediaServer.start();
 
 		new Thread("Connection Checker") {
 			@Override
 			public void run() {
-				try {
-					Thread.sleep(7000);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
-					frame.setConnectionState(ConnectionState.DISCONNECTED);
+					GuiManager.setConnectionState(EConnectionState.DISCONNECTED);
 				} else {
-					frame.setConnectionState(ConnectionState.CONNECTED);
+					GuiManager.setConnectionState(EConnectionState.CONNECTED);
 				}
 			}
 		}.start();
 
-		if (!binding) {
-			return false;
-		}
-
-		if (web != null && web.getServer() != null) {
-			frame.enableWebUiButton();
-			LOGGER.info("Web interface is available at: " + web.getUrl());
+		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
+			GuiManager.enableWebUiButton();
+			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
 		}
 
 		// initialize the cache
-		if (configuration.getUseCache()) {
-			mediaLibrary = new MediaLibrary();
-			LOGGER.info("A tiny cache admin interface is available at: http://" + server.getHost() + ":" + server.getPort() + "/console/home");
-		}
+		mediaLibrary = new MediaLibrary();
 
 		// XXX: this must be called:
 		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
 		//     b) *after* mediaLibrary is initialized, if enabled (above)
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
-		frame.serverReady();
+		// Ensure up-to-date API metadata versions
+		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
+			APIUtils.setApiMetadataVersions();
+			APIUtils.setApiImageBaseURL();
+		}
+
+		GuiManager.serverReady();
 		ready = true;
 
-		UPNPHelper.getInstance().createMulticastSocket();
-
-		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
-				try {
-					// force to save the configuration to file before stopping the UMS
-					saveConfiguration();
-
-					UPNPHelper.shutDownListener();
-					UPNPHelper.sendByeBye();
-
-					LOGGER.debug("Shutting down the HTTP server");
-					get().getServer().stop();
-					Thread.sleep(500);
-
-					if (configuration.getDatabaseLogging()) {
-						LOGGER.trace("-------------------------------------------------------------");
-						LOGGER.trace(profiler.getTop(5));
-						LOGGER.trace("-------------------------------------------------------------");
-					}
-
-					LOGGER.debug("Shutting down all active processes");
-
-
-					if (Services.processManager() != null) {
-						Services.processManager().stop();
-					}
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
-						}
-					}
-				} catch (InterruptedException e) {
-					LOGGER.debug("Interrupted while shutting down..");
-					LOGGER.trace("", e);
-				}
-
-				// Destroy services
-				Services.destroy();
-
-				LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-				/**
-				 * Stopping logging gracefully (flushing logs)
-				 * No logging is available after this point
-				 */
-				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-				if (iLoggerContext instanceof LoggerContext) {
-					((LoggerContext) iLoggerContext).stop();
-				} else {
-					LOGGER.error("Unable to shut down logging gracefully");
-					System.err.println("Unable to shut down logging gracefully");
-				}
-
-				if (configuration.getDatabaseLogging()) {
-					// use an automatic H2database profiling tool to make a report at the end of the logging file
-					// converted to the "logging_report.txt" in the database directory
-					try {
-						ConvertTraceFile.main("-traceFile", database.getDatabasePath()  + File.separator + "medias.trace.db",
-							"-script", database.getDatabasePath()  + File.separator + "logging_report.txt");
-					} catch (SQLException e) {}
-				}
-
-				// Shut down library scanner
-				if (getConfiguration().getUseCache()) {
-					if (getDatabase() != null && getDatabase().isScanLibraryRunning()) {
-						LOGGER.debug("Database is still not null, attempting to close it");
-						getDatabase().stopScanLibrary();
-					} else {
-						LOGGER.debug("Database already closed");
-					}
-				}
-
-				if (database != null) {
-					try (Statement stmt = database.getConnection().createStatement()) {
-						stmt.execute("SHUTDOWN COMPACT");
-					} catch (SQLException e1) {
-						LOGGER.error("compacting DB ", e1);
-					}
-				}
+				shutdown();
 			}
 		});
 
 		configuration.setAutoSave();
 
-		UPNPHelper.sendByeBye();
-		LOGGER.trace("Waiting 250 milliseconds...");
-		Thread.sleep(250);
-		UPNPHelper.sendAlive();
-		LOGGER.trace("Waiting 250 milliseconds...");
-		Thread.sleep(250);
-		UPNPHelper.listen();
-
 		// Initiate a library scan in case files were added to folders while UMS was closed.
 		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
-			getDatabase().scanLibrary();
+			LibraryScanner.scanLibrary();
 		}
 
 		return true;
@@ -833,50 +665,98 @@ public class PMS {
 	private MediaLibrary mediaLibrary;
 
 	/**
-	 * Returns the MediaLibrary used by DMS.
+	 * Returns the MediaLibrary.
 	 *
-	 * @return The current {@link MediaLibrary} or {@code null} if none is in
-	 *         use.
+	 * @return The current {@link MediaLibrary}.
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main DMS
+	 * Restarts the server. The trigger is either a button on the main UMS
 	 * window or via an action item.
 	 */
-	// XXX: don't try to optimize this by reusing the same server instance.
-	// see the comment above HTTPServer.stop()
-	public void reset() {
+	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
+	// see the comment above HttpMediaServer.stop()
+	public void resetMediaServer() {
 		TaskRunner.getInstance().submitNamed("restart", true, () -> {
+			MediaServer.stop();
+			resetRenderers(true);
+
+			LOGGER.trace("Waiting 1 second...");
 			try {
-				LOGGER.trace("Waiting 1 second...");
-				UPNPHelper.sendByeBye();
-				if (server != null) {
-					server.stop();
-				}
-				server = null;
-				RendererConfiguration.loadRendererConfigurations(configuration);
-
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					LOGGER.trace("Caught exception", e);
-				}
-
-				server = new HTTPServer(configuration.getServerPort());
-				server.start();
-
-				// re-create the multicast socked because may happened the
-				// change of the used interface
-				UPNPHelper.getInstance().createMulticastSocket();
-				UPNPHelper.sendAlive();
-				frame.setReloadable(false);
-			} catch (IOException e) {
-				LOGGER.error("error during restart :" + e.getMessage(), e);
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.trace("Caught exception", e);
 			}
+
+			// re-create the server because may happened the
+			// change of the used interface
+			MediaServer.start();
+
+			GuiManager.setReloadable(false);
 		});
+	}
+
+	/**
+	 * Reset renderers.
+	 * The trigger is configuration change.
+	 * @param delete True if removal of known renderers is needed
+	 */
+	public void resetRenderers(boolean delete) {
+		RendererConfiguration.loadRendererConfigurations(configuration);
+		if (delete) {
+			RendererConfiguration.deleteAllConnectedRenderers();
+			if (webInterfaceServer != null) {
+				webInterfaceServer.deleteAllRenderers();
+			}
+		}
+	}
+
+	/**
+	 * Reset the media library.
+	 * The trigger is configuration change.
+	 */
+	public void resetMediaLibrary() {
+		if (mediaLibrary != null) {
+			mediaLibrary.reset();
+		}
+		resetRenderersRoot();
+	}
+
+	/**
+	 * Reset all renderers Root Folder.
+	 * The trigger is configuration change.
+	 */
+	public void resetRenderersRoot() {
+		RendererConfiguration.resetAllRenderers();
+		if (webInterfaceServer != null) {
+			webInterfaceServer.resetAllRenderers();
+		}
+		DLNAResource.bumpSystemUpdateId();
+	}
+
+	/**
+	 * Reset the web interface server.
+	 * The trigger is init and configuration change.
+	 */
+	public void resetWebInterfaceServer() {
+		// Web stuff
+		if (webInterfaceServer != null) {
+			webInterfaceServer.stop();
+		}
+		if (configuration.useWebInterfaceServer()) {
+			try {
+				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
+				GuiManager.updateServerStatus();
+			} catch (BindException b) {
+				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Maybe another process is running or the hostname is wrong.");
+			} catch (IOException ex) {
+				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
+			}
+		}
 	}
 
 	/**
@@ -884,9 +764,12 @@ public class PMS {
 	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
-	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
-	public synchronized String usn() {
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
+	public String usn() {
+		return "uuid:" + udn();
+	}
+
+	public synchronized String udn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = configuration.getUuid();
@@ -903,11 +786,11 @@ public class PMS {
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
 		}
 
-		return "uuid:" + uuid;
+		return uuid;
 	}
 
 	/**
-	 * Returns the user friendly name of the UPnP server.
+	 * Returns the user friendly name of the UMS server.
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -933,8 +816,8 @@ public class PMS {
 	@Nonnull
 	public static PMS get() {
 		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
-		// However, plugin tests may need access to a DMS instance without going
-		// to the trouble of launching the DMS application, so we provide a fallback
+		// However, plugin tests may need access to a UMS instance without going
+		// to the trouble of launching the UMS application, so we provide a fallback
 		// initialization here. Either way, createInstance() should only be called once (see below)
 		if (instance == null) {
 			createInstance();
@@ -1022,10 +905,7 @@ public class PMS {
 			}
 		}
 
-		try {
-			Toolkit.getDefaultToolkit();
-		} catch (AWTError t) {
-			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+		if (!GuiUtil.initDefaultToolkit()) {
 			forceHeadless();
 		}
 
@@ -1059,7 +939,7 @@ public class PMS {
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
-				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
 				}
@@ -1073,7 +953,6 @@ public class PMS {
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
-			renameOldLogFile();
 
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new PmsConfiguration'
@@ -1113,7 +992,7 @@ public class PMS {
 			try {
 				configuration.initCred();
 			} catch (IOException e) {
-				LOGGER.debug("Error initializing plugin credentials: {}", e);
+				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
 			if (configuration.isRunSingleInstance()) {
@@ -1132,24 +1011,20 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				JOptionPane.showMessageDialog(
-					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
-					errorMessage,
-					Messages.getString("PMS.42"),
-					JOptionPane.ERROR_MESSAGE
-				);
+				GuiManager.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
 		}
 	}
 
-	public HTTPServer getServer() {
-		return server;
+	public MediaServer getMediaServer() {
+		return mediaServer;
 	}
 
-	public HttpServer getWebServer() {
-		return web == null ? null : web.getServer();
+	@Nullable
+	public WebInterfaceServer getWebInterfaceServer() {
+		return webInterfaceServer;
 	}
 
 	/**
@@ -1165,29 +1040,9 @@ public class PMS {
 	}
 
 	/**
-	 * Stores the file in the cache if it doesn't already exist.
-	 *
-	 * @param file the full path to the file.
-	 * @param formatType the type constant defined in {@link Format}.
-	 */
-	public void storeFileInCache(File file, int formatType) {
-		if (
-			configuration.getUseCache() &&
-			!getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())
-		) {
-			try {
-				getDatabase().insertOrUpdateData(file.getAbsolutePath(), file.lastModified(), formatType, null);
-			} catch (SQLException e) {
-				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
-				LOGGER.trace("", e);
-			}
-		}
-	}
-
-	/**
 	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings for UMS. The object provides getters for all
+	 * configurable UMS settings.
 	 *
 	 * @return The configuration object
 	 */
@@ -1206,7 +1061,7 @@ public class PMS {
 	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
 	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
+		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1220,8 +1075,8 @@ public class PMS {
 
 	/**
 	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
-	 * that contains all configured settings for DMS. The object provides getters for all
-	 * configurable DMS settings.
+	 * that contains all configured settings for UMS. The object provides getters for all
+	 * configurable UMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1230,7 +1085,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the project version for DMS.
+	 * Returns the project version for UMS.
 	 *
 	 * @return The project version.
 	 */
@@ -1239,27 +1094,76 @@ public class PMS {
 	}
 
 	/**
-	 * Try to rename old logfile to <filename>.prev
+	 * Shutdown the currently running Universal Media Server.
 	 */
-	private static void renameOldLogFile() {
-		String fullLogFileName = configuration.getDefaultLogFilePath();
-		String newLogFileName = fullLogFileName + ".prev";
-
+	public static void shutdown() {
 		try {
-			File logFile = new File(newLogFileName);
-			if (logFile.exists()) {
-				Files.delete(logFile);
+			if (Platform.isWindows()) {
+				WindowsNamedPipe.setLoop(false);
 			}
-			logFile = new File(fullLogFileName);
-			if (logFile.exists()) {
-				File newFile = new File(newLogFileName);
-				if (!logFile.renameTo(newFile)) {
-					LOGGER.warn("Could not rename \"{}\" to \"{}\"", fullLogFileName, newLogFileName);
+			//Stop network scanner
+			NetworkConfiguration.stop();
+
+			LOGGER.debug("Shutting down the media server");
+			MediaServer.stop();
+			Thread.sleep(500);
+
+			LOGGER.debug("Shutting down all active processes");
+
+			if (Services.processManager() != null) {
+				Services.processManager().stop();
+			}
+			for (Process p : get().currentProcesses) {
+				try {
+					p.exitValue();
+				} catch (IllegalThreadStateException ise) {
+					LOGGER.trace("Forcing shutdown of process: " + p);
+					ProcessUtil.destroy(p);
 				}
 			}
-		} catch (Exception e) {
-			LOGGER.warn("Could not rename \"{}\" to \"{}\": {}", fullLogFileName, newLogFileName, e);
+		} catch (InterruptedException e) {
+			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.trace("", e);
 		}
+
+		// Destroy services
+		Services.destroy();
+
+		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		/**
+		 * Stopping logging gracefully (flushing logs)
+		 * No logging is available after this point
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext) {
+			((LoggerContext) iLoggerContext).stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
+		}
+
+		// Shut down library scanner
+		if (getConfiguration().getUseCache()) {
+			if (LibraryScanner.isScanLibraryRunning()) {
+				LOGGER.debug("LibraryScanner is still running, attempting to stop it");
+				LibraryScanner.stopScanLibrary();
+			} else {
+				LOGGER.debug("LibraryScanner already stopped");
+			}
+		}
+
+		if (MediaDatabase.isInstantiated()) {
+			LOGGER.debug("Shutting down database");
+			MediaDatabase.shutdown();
+			MediaDatabase.createDatabaseReportIfNeeded();
+		}
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**
@@ -1270,7 +1174,7 @@ public class PMS {
 		// only that we lack the required permission for these specific items.
 		try {
 			killProc();
-		} catch (AccessControlException e) {
+		} catch (SecurityException e) {
 			LOGGER.error(
 				"Failed to check for already running instance: " + e.getMessage() +
 				(Platform.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
@@ -1305,10 +1209,10 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = WinUtils.getOEMCharset();
+		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1324,7 +1228,7 @@ public class PMS {
 		}
 
 		// remove all " and convert to common case before splitting result on ,
-		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		String[] tmp = line.toLowerCase().replace("\"", "").split(",");
 		// if the line is too short we don't kill the process
 		if (tmp.length < 9) {
 			return false;
@@ -1341,12 +1245,12 @@ public class PMS {
 		return configuration.getDataFile("pms.pid");
 	}
 
-	private static void killProc() throws AccessControlException, IOException {
+	private static void killProc() throws SecurityException, IOException {
 		ProcessBuilder pb = null;
 		String pid;
 		String pidFile = pidFile();
 		if (!FileUtil.getFilePermissions(pidFile).isReadable()) {
-			throw new AccessControlException("Cannot read " + pidFile);
+			throw new SecurityException("Cannot read " + pidFile);
 		}
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {
@@ -1412,89 +1316,75 @@ public class PMS {
 		tfm.add(f, cleanTime);
 	}
 
-	private static ReadWriteLock headlessLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock HEADLESS_LOCK = new ReentrantReadWriteLock();
 	private static Boolean headless = null;
 
 	/**
-	 * Checks if DMS is running in headless (console) mode, since some Linux
-	 * distributions seem to not use java.awt.GraphicsEnvironment.isHeadless()
-	 * properly.
+	 * Checks if UMS is running in headless (console) mode.
+	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
-		headlessLock.readLock().lock();
+		HEADLESS_LOCK.readLock().lock();
 		try {
-			if (headless != null) {
-				return headless;
+			if (headless == null) {
+				headless = GuiUtil.isHeadless();
 			}
-		} finally {
-			headlessLock.readLock().unlock();
-		}
-
-		headlessLock.writeLock().lock();
-		try {
-			JDialog d = new JDialog();
-			d.dispose();
-			headless = false;
-			return headless;
-		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
-			headless = true;
 			return headless;
 		} finally {
-			headlessLock.writeLock().unlock();
+			HEADLESS_LOCK.readLock().unlock();
 		}
 	}
 
 	/**
-	 * Forces DMS to run in headless (console) mode whether a graphics
+	 * Forces UMS to run in headless (console) mode whether a graphics
 	 * environment is available or not.
 	 */
 	public static void forceHeadless() {
-		headlessLock.writeLock().lock();
+		HEADLESS_LOCK.writeLock().lock();
 		try {
 			headless = true;
 		} finally {
-			headlessLock.writeLock().unlock();
+			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
 
 	private static Locale locale = null;
-	private static ReadWriteLock localeLock = new ReentrantReadWriteLock();
+	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets DMS' current {@link Locale} to be used in any {@link Locale}
-	 * sensitive operations. If <code>null</code> the default {@link Locale}
+	 * Gets UMS' current {@link Locale} to be used in any {@link Locale}
+	 * sensitive operations.If <code>null</code> the default {@link Locale}
 	 * is returned.
+	 * @return current {@link Locale} or default {@link Locale}
 	 */
-
 	public static Locale getLocale() {
-		localeLock.readLock().lock();
+		LOCALE_LOCK.readLock().lock();
 		try {
 			if (locale != null) {
 				return locale;
 			}
 			return Locale.getDefault();
 		} finally {
-			localeLock.readLock().unlock();
+			LOCALE_LOCK.readLock().unlock();
 		}
 	}
 
 	/**
-	 * Sets DMS' {@link Locale}.
+	 * Sets UMS' {@link Locale}.
 	 * @param aLocale the {@link Locale} to set
 	 */
-
 	public static void setLocale(Locale aLocale) {
-		localeLock.writeLock().lock();
+		LOCALE_LOCK.writeLock().lock();
 		try {
 			locale = (Locale) aLocale.clone();
 			Messages.setLocaleBundle(locale);
 		} finally {
-			localeLock.writeLock().unlock();
+			LOCALE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1515,16 +1405,16 @@ public class PMS {
 		if (variant == null) {
 			variant = "";
 		}
-		localeLock.writeLock().lock();
+		LOCALE_LOCK.writeLock().lock();
 		try {
 			locale = new Locale(language, country, variant);
 		} finally {
-			localeLock.writeLock().unlock();
+			LOCALE_LOCK.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the
+	 * Sets UMS' {@link Locale} with the same parameters as the
 	 * {@link Locale} class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1540,7 +1430,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets DMS' {@link Locale} with the same parameters as the {@link Locale}
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
 	 * class constructor. <code>null</code> values are
 	 * treated as empty strings.
 	 *
@@ -1550,13 +1440,6 @@ public class PMS {
 	 */
 	public static void setLocale(String language) {
 		setLocale(language, "", "");
-	}
-
-	private RemoteWeb web;
-
-	@Nullable
-	public RemoteWeb getWebInterface() {
-		return web;
 	}
 
 	/**
@@ -1602,67 +1485,15 @@ public class PMS {
 		return (masterCode != null && masterCode.validCode(null));
 	}
 
-	public static FileWatcher getFileWatcher() {
-		return fileWatcher;
-	}
-
-	public static class DynamicPlaylist extends Playlist {
-		private long start;
-		private String savePath;
-
-		public DynamicPlaylist(String name, String dir, int mode) {
-			super(name, null, 0, mode);
-			savePath = dir;
-			start = 0;
-		}
-
-		@Override
-		public void clear() {
-			super.clear();
-			start = 0;
-		}
-
-		@Override
-		public void save() {
-			if (start == 0) {
-				start = System.currentTimeMillis();
-			}
-			Date d = new Date(start);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
-		}
-	}
-
 	private DynamicPlaylist dynamicPls;
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("PMS.146"),
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
 				configuration.getDynamicPlsSavePath(),
-				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
+				(configuration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
-	}
-
-	private void launchJmDNSRenderers() {
-		if (configuration.useChromecastExt()) {
-			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
-				try {
-					startjmDNS();
-					new ChromecastMgr(jmDNS);
-				} catch (Exception e) {
-					LOGGER.debug("Can't create chromecast mgr");
-				}
-			} else {
-				LOGGER.info("No Chromecast renderer found. Please enable one and restart.");
-			}
-		}
-	}
-
-	private void startjmDNS() throws IOException {
-		if (jmDNS == null) {
-			jmDNS = JmDNS.create();
-		}
 	}
 
 	private static int traceMode = 0;
@@ -1681,9 +1512,9 @@ public class PMS {
 	}
 
 	/**
-	 * Returns if the database logging is forced by command line arguments.
+	 * Returns if the mediaDatabase logging is forced by command line arguments.
 	 *
-	 * @return {@code true} if database logging is forced, {@code false}
+	 * @return {@code true} if mediaDatabase logging is forced, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean getLogDB() {
@@ -1738,7 +1569,7 @@ public class PMS {
 			if (
 				System.getProperty("os.name") != null &&
 				System.getProperty("os.name").startsWith("Windows") &&
-				isNotBlank(System.getProperty("os.version")) &&
+				StringUtils.isNotBlank(System.getProperty("os.version")) &&
 				Double.parseDouble(System.getProperty("os.version")) < 5.2
 			) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";

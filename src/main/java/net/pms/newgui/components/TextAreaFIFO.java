@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +18,6 @@
 package net.pms.newgui.components;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.JTextArea;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
@@ -46,12 +43,7 @@ public class TextAreaFIFO extends JTextArea implements DocumentListener {
 
 	public TextAreaFIFO(int lines, int removeDelayMS) {
 		maxLines = lines;
-		removeTimer = new Timer(removeDelayMS, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				removeLines();
-			}
-		});
+		removeTimer = new Timer(removeDelayMS, (ActionEvent e) -> removeLines());
 		getDocument().addDocumentListener(this);
 	}
 

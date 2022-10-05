@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.update;
 
 import com.sun.jna.Platform;
@@ -24,18 +41,18 @@ import org.slf4j.LoggerFactory;
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
-	public static enum State {
+	public enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
 	}
 
 	private final String serverUrl;
 	private final UriFileRetriever uriRetriever = new UriFileRetriever();
-	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
+	private final Object stateLock = new Object();
 	private final Version currentVersion;
-	private Executor executor = Executors.newSingleThreadExecutor();
+	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
-	private Object stateLock = new Object();
 	private Throwable errorStateCause;
 	private int bytesDownloaded = -1;
 	private int totalBytes = -1;
@@ -125,9 +142,9 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			File exe = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 			Desktop desktop = Desktop.getDesktop();
 			desktop.open(exe);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOGGER.debug("Failed to run update after downloading: {}", e);
-			wrapException(Messages.getString("AutoUpdate.UnableToRunUpdate"), e);
+			wrapException(Messages.getString("UnableToRunUpdate"), e);
 		}
 	}
 

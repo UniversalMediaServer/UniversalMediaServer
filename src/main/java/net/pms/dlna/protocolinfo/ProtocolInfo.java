@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,13 +30,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.fourthline.cling.support.model.Protocol;
-import org.fourthline.cling.support.model.dlna.DLNAAttribute;
-import org.fourthline.cling.support.model.dlna.DLNAProfiles;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.jupnp.support.model.Protocol;
+import org.jupnp.support.model.dlna.DLNAAttribute;
+import org.jupnp.support.model.dlna.DLNAProfiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This immutable class represents a {@code protocolInfo} element.
@@ -317,11 +315,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new instance from a {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * Creates a new instance from a {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 *
-	 * @param template the {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * @param template the {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 */
-	public ProtocolInfo(org.fourthline.cling.support.model.ProtocolInfo template) {
+	public ProtocolInfo(org.jupnp.support.model.ProtocolInfo template) {
 		this(template.getProtocol(),
 			template.getNetwork(),
 			template.getContentFormat(),
@@ -405,8 +403,8 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 */
 	public ProfileName getProfileName() {
 		for (ProtocolInfoAttribute attribute : attributes.values()) {
-			if (attribute instanceof ProfileName) {
-				return (ProfileName) attribute;
+			if (attribute instanceof ProfileName profileName) {
+				return profileName;
 			}
 		}
 		return null;
@@ -475,18 +473,18 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link org.seamless.util.MimeType} from the
+	 * Creates a new {@link org.jupnp.util.MimeType} from the
 	 * {@link MimeType} of this {@link ProtocolInfo}. To get the
 	 * {@link MimeType}, use {@link #getMimeType()} instead.
 	 *
-	 * @return The corresponding {@link org.seamless.util.MimeType}.
+	 * @return The corresponding {@link org.jupnp.util.MimeType}.
 	 * @throws IllegalArgumentException if
-	 *             {@link org.seamless.util.MimeType#valueOf()} can't parse this
+	 *             {@link org.jupnp.util.MimeType#valueOf()} can't parse this
 	 *             {@link MimeType}.
 	 * @see #getMimeType()
 	 */
-	public org.seamless.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
-		return org.seamless.util.MimeType.valueOf(mimeType.toString());
+	public org.jupnp.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
+		return org.jupnp.util.MimeType.valueOf(mimeType.toString());
 	}
 
 	/**
@@ -672,19 +670,16 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 		} else if (!network.equals(other.network)) {
 			return false;
 		}
-		if (protocol != other.protocol) {
-			return false;
-		}
-		return true;
+		return (protocol == other.protocol);
 	}
 
 	/**
 	 * Converts an {@link EnumMap} of
-	 * {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s to a
+	 * {@link org.jupnp.support.model.dlna.DLNAAttribute}s to a
 	 * {@link TreeMap} of {@link ProtocolInfoAttribute}s.
 	 *
 	 * @param dlnaAttributes the {@link EnumMap} of
-	 *            {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s
+	 *            {@link org.jupnp.support.model.dlna.DLNAAttribute}s
 	 *            to convert.
 	 * @return A {@link TreeMap} containing the converted
 	 *         {@link ProtocolInfoAttribute}s.

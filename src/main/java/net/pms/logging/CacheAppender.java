@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,11 +28,12 @@ import java.util.LinkedList;
  * when told to by {@link#flush} (typically after LogBack configuration is complete).
  *
  * @author Nadahar
+ * @param <E>
  */
 public class CacheAppender<E> extends AppenderBase<E> {
 
 	private final Object eventListLock = new Object();
-	private LinkedList<E> eventList = new LinkedList<>();
+	private final LinkedList<E> eventList = new LinkedList<>();
 
 	@Override
 	protected void append(E eventObject) {

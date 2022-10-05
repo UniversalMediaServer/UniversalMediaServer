@@ -1,7 +1,24 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.encoders;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.drew.lang.ByteArrayReader;
+import com.sun.jna.Platform;
 import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,18 +29,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.JComponent;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.drew.lang.ByteArrayReader;
-import com.sun.jna.Platform;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -41,10 +53,13 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.Version;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class DCRaw extends ImagePlayer {
+public class DCRaw extends ImageEngine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DCRaw.class);
-	public final static PlayerId ID = StandardPlayerId.DCRAW;
+	public static final EngineId ID = StandardEngineId.DCRAW;
 
 	/** The {@link Configuration} key for the custom DCRaw path. */
 	public static final String KEY_DCRAW_PATH = "dcraw_path";
@@ -57,27 +72,13 @@ public class DCRaw extends ImagePlayer {
 	DCRaw() {
 	}
 
-	protected String[] getDefaultArgs() {
-		return new String[] {"-e", "-c"};
-	}
-
-	@Override
-	public String[] args() {
-		return getDefaultArgs();
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
-	}
-
 	@Override
 	protected ExternalProgramInfo programInfo() {
 		return configuration.getDCRawPaths();
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -107,8 +108,7 @@ public class DCRaw extends ImagePlayer {
 		if (image == null) {
 			return null;
 		}
-		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(image));
-		return pw;
+		return new InternalJavaProcessImpl(new ByteArrayInputStream(image));
 	}
 
 	@Override
@@ -123,7 +123,7 @@ public class DCRaw extends ImagePlayer {
 
 	@Override
 	public int purpose() {
-		return MISC_PLAYER;
+		return MISC_ENGINE;
 	}
 
 	/**
@@ -133,7 +133,6 @@ public class DCRaw extends ImagePlayer {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file. Can be {@code null}.
 	 * @return A byte array containing the converted image or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	@Override
 	public byte[] getImage(OutputParams params, String fileName, ImageInfo imageInfo) {
@@ -156,7 +155,7 @@ public class DCRaw extends ImagePlayer {
 
 		// First try to get the embedded thumbnail
 		String[] cmdArray = new String[5];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-c";
 		cmdArray[2] = "-M";
 		cmdArray[3] = "-w";
@@ -184,7 +183,6 @@ public class DCRaw extends ImagePlayer {
 	 * @param fileName the path of the image file to process.
 	 * @param imageInfo the {@link ImageInfo} for the image file.
 	 * @return A byte array containing the thumbnail or {@code null}.
-	 * @throws IOException if an IO error occurs.
 	 */
 	@Override
 	public byte[] getThumbnail(OutputParams params, String fileName, ImageInfo imageInfo) {
@@ -204,7 +202,7 @@ public class DCRaw extends ImagePlayer {
 
 		// First try to get the embedded thumbnail
 		String[] cmdArray = new String[6];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-e";
 		cmdArray[2] = "-c";
 		cmdArray[3] = "-M";
@@ -247,7 +245,7 @@ public class DCRaw extends ImagePlayer {
 			// There might be required to impose specific rules depending on the (RAW) format here
 
 			if (imageOrientation != null && imageOrientation != thumbnailOrientation) {
-				if (thumbnailOrientation != null) {
+				if (thumbnailOrientation != null && imageInfo != null) {
 					if (
 						imageInfo.getWidth() > 0 &&
 						imageInfo.getHeight() > 0 &&
@@ -256,7 +254,8 @@ public class DCRaw extends ImagePlayer {
 						jpegResolution.getHeight() > 0
 					) {
 						// Try to determine which orientation to trust
-						double imageAspect, thumbnailAspect;
+						double imageAspect;
+						double thumbnailAspect;
 						if (ImagesUtil.isExifAxesSwapNeeded(imageOrientation)) {
 							imageAspect = (double) imageInfo.getHeight() / imageInfo.getWidth();
 						} else {
@@ -341,7 +340,7 @@ public class DCRaw extends ImagePlayer {
 		params.setLog(true);
 
 		String[] cmdArray = new String[4];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(ID);
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
 		cmdArray[1] = "-i";
 		cmdArray[2] = "-v";
 		cmdArray[3] = file.getAbsolutePath();
@@ -360,8 +359,8 @@ public class DCRaw extends ImagePlayer {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
 						"Parsed resolution {} x {} for image \"{}\" from DCRaw output",
-						Integer.parseInt(matcher.group(1)),
-						Integer.parseInt(matcher.group(2)),
+						matcher.group(1),
+						matcher.group(2),
 						file.getPath()
 					);
 				}
@@ -381,7 +380,7 @@ public class DCRaw extends ImagePlayer {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -400,32 +399,32 @@ public class DCRaw extends ImagePlayer {
 			);
 			if (output.getError() != null) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 				result.available(Boolean.FALSE);
 				LOGGER.debug("\"{}\" failed with error: {}", executableInfo.getPath(), output.getError().getMessage());
 				return result.build();
 			}
-			if (!output.getOutput().isEmpty() && isBlank(output.getOutput().get(0))) {
+			if (!output.getOutput().isEmpty() && StringUtils.isBlank(output.getOutput().get(0))) {
 				if (output.getOutput().size() > 1) {
 					Pattern pattern = Pattern.compile("decoder\\s\"dcraw\"\\s(\\S+)", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(1));
-					if (matcher.find() && isNotBlank(matcher.group(1))) {
+					if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
 						result.version(new Version(matcher.group(1)));
 					}
 				}
 				result.available(Boolean.TRUE);
-			} else if (output.getOutput() != null && output.getOutput().size() > 0) {
+			} else if (!output.getOutput().isEmpty()) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getOutput().get(0));
+				result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getOutput().get(0));
 				result.available(Boolean.FALSE);
 			} else {
 				NTStatus ntStatus = Platform.isWindows() ? NTStatus.typeOf(output.getExitCode()) : null;
 				if (ntStatus != null && ntStatus != NTStatus.STATUS_SUCCESS) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + "\n\n" + ntStatus);
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + "\n\n" + ntStatus);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + Messages.getString("General.3"));
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + Messages.getString("UnknownError"));
 				}
 				result.available(Boolean.FALSE);
 			}

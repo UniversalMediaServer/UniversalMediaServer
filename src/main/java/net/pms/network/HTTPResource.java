@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,7 +17,6 @@
  */
 package net.pms.network;
 
-import static net.pms.util.StringUtil.convertURLToFileName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,6 +38,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
@@ -53,6 +52,7 @@ public class HTTPResource {
 	public static final String UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
 	public static final String AUDIO_TRANSCODE = "audio/transcode";
 	public static final String VIDEO_TRANSCODE = "video/transcode";
+	public static final String AUDIO_AAC_TYPEMIME = "audio/aac";
 	public static final String AUDIO_AC3_TYPEMIME = "audio/vnd.dolby.dd-raw";
 	public static final String AUDIO_ADPCM_TYPEMIME = "audio/x-adpcm";
 	public static final String AUDIO_ADTS_TYPEMIME = "audio/vnd.dlna.adts";
@@ -92,13 +92,16 @@ public class HTTPResource {
 	public static final String DIVX_TYPEMIME = "video/x-divx";
 	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
+	public static final String HLS_TYPEMIME = "application/x-mpegURL";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String JSON_TYPEMIME = "application/json";
 	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
+	public static final String MPEGTS_BYTESTREAM_TYPEMIME = "video/MP2T";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -108,31 +111,12 @@ public class HTTPResource {
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
 	public static final String WEBP_TYPEMIME = "image/webp";
+	public static final String WEBVTT_TYPEMIME = "text/vtt";
 
 	/**
 	 * This class is not meant to be instantiated.
 	 */
 	public HTTPResource() {
-	}
-
-	/**
-	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
-	 * as in the client might do different things for different MIME types.
-	 * @param type Type for which the default MIME type is needed.
-	 * @return Default MIME associated with the file type.
-	 */
-	public static String getDefaultMimeType(int type) {
-		String mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-
-		if (type == Format.VIDEO) {
-			mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-		} else if (type == Format.IMAGE) {
-			mimeType = HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
-		} else if (type == Format.AUDIO) {
-			mimeType = HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
-		}
-
-		return mimeType;
 	}
 
 	/**
@@ -142,7 +126,7 @@ public class HTTPResource {
 	 */
 	protected InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
+		fileName = fileName.replace("//", "/");
 		ClassLoader cll = this.getClass().getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
@@ -152,6 +136,25 @@ public class HTTPResource {
 		}
 
 		return is;
+	}
+
+	/**
+	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
+	 * as in the client might do different things for different MIME types.
+	 * @param type Type for which the default MIME type is needed.
+	 * @return Default MIME associated with the file type.
+	 */
+	public static String getDefaultMimeType(int type) {
+		switch (type) {
+			case Format.VIDEO:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+			case Format.IMAGE:
+				return HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
+			case Format.AUDIO:
+				return HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
+			default:
+				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+		}
 	}
 
 	/**
@@ -169,9 +172,9 @@ public class HTTPResource {
 
 		if (saveOnDisk) {
 			String host = url.getHost();
-			String hostName = convertURLToFileName(host);
+			String hostName = StringUtil.convertURLToFileName(host);
 			String fileName = url.getFile();
-			fileName = convertURLToFileName(fileName);
+			fileName = StringUtil.convertURLToFileName(fileName);
 			File hostDir = new File(PMS.getConfiguration().getTempFolder(), hostName);
 
 			if (!hostDir.isDirectory()) {
@@ -229,7 +232,7 @@ public class HTTPResource {
 			cookieManager != null &&
 			cookieManager.getCookieStore() != null &&
 			cookieManager.getCookieStore().getCookies() != null &&
-			cookieManager.getCookieStore().getCookies().size() > 0
+			!cookieManager.getCookieStore().getCookies().isEmpty()
 		) {
 			// While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
 			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
@@ -266,15 +269,15 @@ public class HTTPResource {
 	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+	public static String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
 		return renderer.getMimeType(resource);
 	}
 
-	public int getDLNALocalesCount() {
+	public static int getDLNALocalesCount() {
 		return 3;
 	}
 
-	public final String getMpegPsOrgPN(int index) {
+	public static final String getMpegPsOrgPN(int index) {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
@@ -282,7 +285,7 @@ public class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -309,7 +312,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
 		switch (index) {
@@ -331,7 +334,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || "high".equals(media.getH264Profile())) {
@@ -384,7 +387,7 @@ public class HTTPResource {
 		return orgPN;
 	}
 
-	public final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "WMV";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HIGH";

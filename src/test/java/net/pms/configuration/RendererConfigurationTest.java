@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -16,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -27,12 +25,11 @@ import static net.pms.configuration.RendererConfiguration.getRendererConfigurati
 import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByUPNPDetails;
 import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -41,12 +38,12 @@ import org.slf4j.LoggerFactory;
 public class RendererConfigurationTest {
 	PmsConfiguration prevConf;
 
-	@BeforeClass
+	@BeforeAll
 	public static void SetUPClass() {
 		PMS.configureJNA();
 	}
-	
-	@Before
+
+	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -58,7 +55,7 @@ public class RendererConfigurationTest {
 		prevConf = PMS.getConfiguration();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		PMS.setConfiguration(prevConf);
 	}
@@ -72,9 +69,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
@@ -113,11 +108,14 @@ public class RendererConfigurationTest {
 
 		testHeaders("Fetch TV", "User-Agent: Takin/3.0.0 (Linux arm ; U; en), FetchTV_STB_BCM7252S/3.7.7244 (FetchTV, M616T, Wireless)");
 
-		testHeaders    ("LG Blu-Ray Player", "User-Agent: LG-BP350");
-		testUPNPDetails("LG Blu-Ray Player", "friendlyName=LG-BP350");
+		testHeaders    ("LG Blu-ray Player (BP)", "User-Agent: LG-BP350");
+		testUPNPDetails("LG Blu-ray Player (BP)", "friendlyName=LG-BP350");
 
-		testHeaders    ("LG BP550", "User-Agent: LG-BP550-1");
-		testUPNPDetails("LG BP550", "friendlyName=LG-BP550-1");
+		testHeaders    ("LG Blu-ray Player (BDP)", "User-Agent: LG-BDP450");
+		testUPNPDetails("LG Blu-ray Player (BDP)", "friendlyName=LG-BDP450");
+
+		testHeaders    ("LG Blu-ray Player (BP550)", "User-Agent: LG-BP550-1");
+		testUPNPDetails("LG Blu-ray Player (BP550)", "friendlyName=LG-BP550-1");
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 
@@ -198,16 +196,32 @@ public class RendererConfigurationTest {
 		);
 
 		testHeaders(
+			"Roku (DVP 10)",
+			"User-Agent: Roku/DVP-10.5"
+		);
+
+		testHeaders(
 			"Roku 3 (NSP 6-7)",
 			"User-Agent: Roku/DVP-6.x",
 			"User-Agent: Roku/DVP-7.x"
 		);
+
+		testHeaders("Roku TV", "User-Agent: Roku/5000X-7");
 
 		testHeaders(
 			"Roku TV (NSP 8)",
 			"User-Agent: Roku/DVP-8.0 (308.00E04156A)",
 			"User-Agent: Roku/DVP-8.1 (508.01E04018A)"
 		);
+
+		testHeaders(
+			"Roku TV 4K",
+			"User-Agent: Roku/6000X-7",
+			"User-Agent: Roku/7000X-7",
+			"User-Agent: Roku/8000X-7"
+		);
+
+		testUPNPDetails("Samsung 5300 Series", "modelName=UN32M5300");
 
 		testHeaders(
 			"Samsung C/D Series",
@@ -226,6 +240,8 @@ public class RendererConfigurationTest {
 			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
 		);
 
+		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
+
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 		
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
@@ -233,9 +249,12 @@ public class RendererConfigurationTest {
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
+		testUPNPDetails("Samsung Soundbar", "friendlyName=[AV] Samsung Soundbar Q90R");
+		testUPNPDetails("Samsung Soundbar", "modelDescription=Samsung SOUNDBAR DMR");
+
 		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
-		
+
 		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
@@ -299,6 +318,12 @@ public class RendererConfigurationTest {
 			"modelName=XBR-65A1E"
 		);
 
+		testHeaders("Sony X Series TV", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";");
+		testUPNPDetails(
+			"Sony X Series TV",
+			"{friendlyName=Security TV, address=192.168.50.183, udn=uuid:96c90ee4-6768-460a-ad31-090018db9149, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
+		);
+
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
 
 		// Note: This isn't the full user-agent, just a snippet to find it
@@ -321,6 +346,51 @@ public class RendererConfigurationTest {
 			"FriendlyName.DLNA.ORG: XboxOne",
 			"User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411"
 		);
+
+		testUPNPDetails(
+			"Samsung 2021 QLED TV",
+			"modelName=QE50QN90AATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 QLED TV",
+			"modelName=QE75Q80AATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE85Q60AAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=UE75AU9005KXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE50Q70AAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=UE75AU7105KXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=QN32Q60AAFXZA"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=LH85BEAHLGUXEN"
+		);
+		testUPNPDetails(
+			"Samsung 2021 Q5",
+			"modelName=QN32Q50AAFXZC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 NEO QLED TV 8K",
+			"modelName=QE65QN900ATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 NEO QLED TV 8K",
+			"modelName=QE85QN800ATXXC"
+		);
 	}
 
 	/**
@@ -330,9 +400,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testForcedDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Set default to PlayStation 3
 		pmsConf.setRendererDefault("PlayStation 3");
@@ -358,9 +426,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testBogusDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		PmsConfiguration pmsConf = new PmsConfiguration(false);
 
 		// Set default to non existent renderer
 		pmsConf.setRendererDefault("Bogus Renderer");
@@ -397,16 +463,17 @@ public class RendererConfigurationTest {
 		RendererConfiguration rc = getRendererConfigurationByHeaders(headers);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for header \"" + headers + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for header \"" + headers + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for header(s) \"" +
-				headers + "\"", correctRendererName, rc.getRendererName());
+				headers + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for header(s) \"" + headers +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for header(s) \"" + headers +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 
@@ -422,16 +489,17 @@ public class RendererConfigurationTest {
 		RendererConfiguration rc = getRendererConfigurationByUPNPDetails(upnpDetails);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for upnpDetails \"" + upnpDetails + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
-				upnpDetails + "\"", correctRendererName, rc.getRendererName());
+				upnpDetails + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 }

@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +27,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.fourthline.cling.support.model.Protocol;
+import org.jupnp.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.DLNAOrgProfileName;
@@ -170,46 +168,6 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 */
 	public static final DLNAImageProfile PNG_TN = new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, null);
 
-	/**
-	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
-	 * resolution H x V. Set {@code H} and {@code V} for this instance. The
-	 * default mime-type {@code image/jpeg} is used. Not applicable for other
-	 * profiles.
-	 *
-	 * @param horizontal the {@code H} value.
-	 * @param vertical the {@code V} value.
-	 * @return The new {@link #JPEG_RES_H_V} instance.
-	 */
-	public static DLNAImageProfile createJPEG_RES_H_V(int horizontal, int vertical) {
-		return new DLNAImageProfile(
-			JPEG_RES_H_V_INT,
-			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
-			horizontal,
-			vertical,
-			null
-		);
-	}
-
-	/**
-	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
-	 * resolution H x V. Set {@code H} and {@code V} for this instance. Not
-	 * applicable for other profiles.
-	 *
-	 * @param horizontal the {@code H} value.
-	 * @param vertical the {@code V} value.
-	 * @param mimeType the {@link MimeType} for this profile.
-	 * @return The new {@link #JPEG_RES_H_V} instance.
-	 */
-	public static DLNAImageProfile createJPEG_RES_H_V(int horizontal, int vertical, MimeType mimeType) {
-		return new DLNAImageProfile(
-			JPEG_RES_H_V_INT,
-			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
-			horizontal,
-			vertical,
-			mimeType
-		);
-	}
-
 	/** This profile's integer value */
 	protected final int imageProfileInt;
 
@@ -276,6 +234,192 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 				throw new IllegalStateException(
 					"Profile value " + imageProfileInt + "is not implemented in DLNAImageProfile.getDefaultExtension()");
 		}
+	}
+
+
+	/**
+	 * @return The {@link ImageFormat} for this {@link DLNAImageProfile}.
+	 */
+	public ImageFormat getFormat() {
+		switch (imageProfileInt) {
+			case GIF_LRG_INT:
+				return ImageFormat.GIF;
+			case JPEG_LRG_INT:
+			case JPEG_MED_INT:
+			case JPEG_RES_H_V_INT:
+			case JPEG_SM_INT:
+			case JPEG_TN_INT:
+				return ImageFormat.JPEG;
+			case PNG_LRG_INT:
+			case PNG_TN_INT:
+				return ImageFormat.PNG;
+			default:
+				throw new IllegalStateException("Profile is missing from switch statement");
+		}
+	}
+
+	/**
+	 * @return The {@link MimeType} for this {@link DLNAImageProfile}.
+	 */
+	public MimeType getMimeType() {
+		if (mimeType != null) {
+			return mimeType;
+		}
+		return getDefaultMimeType();
+	}
+
+	/**
+	 * @return The default {@link MimeType} for this
+	 *         {@link DLNAImageProfile}.
+	 */
+	public MimeType getDefaultMimeType() {
+		switch (getFormat()) {
+			case GIF:
+				return MIMETYPE_GIF;
+			case JPEG:
+				return MIMETYPE_JPEG;
+			case PNG:
+				return MIMETYPE_PNG;
+			default:
+				throw new IllegalStateException("Format is missing from switch statement");
+		}
+	}
+
+	/**
+	 * @return The formatted mime-type {@link String} for this
+	 *         {@link DLNAImageProfile}.
+	 */
+	public String getMimeTypeString() {
+		return getMimeType().toStringWithoutParameters();
+	}
+
+	/**
+	 * Gets the maximum image width for the given {@link DLNAImageProfile}.
+	 *
+	 * @return The value in pixels.
+	 */
+	public int getMaxWidth() {
+		return horizontal;
+	}
+
+	/**
+	 * Get {@code H} for the {@code JPEG_RES_H_V} profile.
+	 *
+	 * @return The {@code H} value in pixels.
+	 */
+	public int getH() {
+		return horizontal;
+	}
+
+	/**
+	 * Gets the maximum image height for the given {@link DLNAImageProfile}.
+	 *
+	 * @return The value in pixels.
+	 */
+	public int getMaxHeight() {
+		return vertical;
+	}
+
+	/**
+	 * Get {@code V} for the {@code JPEG_RES_H_V} profile.
+	 *
+	 * @return The {@code V} value in pixels.
+	 */
+	public int getV() {
+		return vertical;
+	}
+
+	/**
+	 * Get the {@link Dimension} of the maximum image resolution for the given
+	 * {@link DLNAImageProfile}.
+	 *
+	 * @return The {@link Dimension}.
+	 */
+	public Dimension getMaxResolution() {
+		if (horizontal >= 0 && vertical >= 0) {
+			return new Dimension(horizontal, vertical);
+		}
+		return new Dimension();
+	}
+
+	/**
+	 * Evaluates whether the thumbnail or the image itself should be used as
+	 * the source for the given profile when two sources are available. This is
+	 * typically only relevant for image resources.
+	 *
+	 * @param imageInfo the {@link ImageInfo} for the non-thumbnail source.
+	 * @param thumbnailImageInfo the {@link ImageInfo} for the thumbnail source.
+	 * @return The evaluation result.
+	 */
+	public boolean useThumbnailSource(ImageInfo imageInfo, ImageInfo thumbnailImageInfo) {
+		if (DLNAImageProfile.JPEG_TN.equals(this) || DLNAImageProfile.PNG_TN.equals(this)) {
+			// These should always use thumbnail as the source
+			return true;
+		}
+
+		if (
+			imageInfo == null || imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1 ||
+			thumbnailImageInfo == null || thumbnailImageInfo.getWidth() < 1 || thumbnailImageInfo.getHeight() < 1
+		) {
+			// Impossible to do a valid evaluation under these circumstances
+			return false;
+		}
+
+		boolean thumbIsSmaller =
+			thumbnailImageInfo.getWidth() < imageInfo.getWidth() ||
+			thumbnailImageInfo.getHeight() < imageInfo.getHeight();
+		if (!thumbIsSmaller) {
+			// Thumbnail has as good a resolution as the source, we might as
+			// well use the thumbnail if the format matches
+			return getFormat() == thumbnailImageInfo.getFormat() || getFormat() != imageInfo.getFormat();
+		}
+
+		// At this point we know that the thumbnail is smaller than the source.
+		// Only use the thumbnail if it's bigger or equal in size to this profile.
+		return
+			getMaxWidth() <= thumbnailImageInfo.getWidth() &&
+			getMaxHeight() <= thumbnailImageInfo.getHeight();
+	}
+
+
+	/**
+	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
+	 * resolution H x V. Set {@code H} and {@code V} for this instance. The
+	 * default mime-type {@code image/jpeg} is used. Not applicable for other
+	 * profiles.
+	 *
+	 * @param horizontal the {@code H} value.
+	 * @param vertical the {@code V} value.
+	 * @return The new {@link #JPEG_RES_H_V} instance.
+	 */
+	public static DLNAImageProfile createJPEG_RES_H_V(int horizontal, int vertical) {
+		return new DLNAImageProfile(
+			JPEG_RES_H_V_INT,
+			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
+			horizontal,
+			vertical,
+			null
+		);
+	}
+
+	/**
+	 * Creates a new {@link #JPEG_RES_H_V} profile instance with the exact
+	 * resolution H x V. Set {@code H} and {@code V} for this instance. Not
+	 * applicable for other profiles.
+	 *
+	 * @param horizontal the {@code H} value.
+	 * @param vertical the {@code V} value.
+	 * @param mimeType the {@link MimeType} for this profile.
+	 * @return The new {@link #JPEG_RES_H_V} instance.
+	 */
+	public static DLNAImageProfile createJPEG_RES_H_V(int horizontal, int vertical, MimeType mimeType) {
+		return new DLNAImageProfile(
+			JPEG_RES_H_V_INT,
+			"JPEG_RES_" + Integer.toString(horizontal) + "_" + Integer.toString(vertical),
+			horizontal,
+			vertical,
+			mimeType
+		);
 	}
 
 	/**
@@ -586,150 +730,6 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			}
 		}
 		return result;
-	}
-
-	/**
-	 * @return The {@link ImageFormat} for this {@link DLNAImageProfile}.
-	 */
-	public ImageFormat getFormat() {
-		switch (imageProfileInt) {
-			case GIF_LRG_INT:
-				return ImageFormat.GIF;
-			case JPEG_LRG_INT:
-			case JPEG_MED_INT:
-			case JPEG_RES_H_V_INT:
-			case JPEG_SM_INT:
-			case JPEG_TN_INT:
-				return ImageFormat.JPEG;
-			case PNG_LRG_INT:
-			case PNG_TN_INT:
-				return ImageFormat.PNG;
-			default:
-				throw new IllegalStateException("Profile is missing from switch statement");
-		}
-	}
-
-	/**
-	 * @return The {@link MimeType} for this {@link DLNAImageProfile}.
-	 */
-	public MimeType getMimeType() {
-		if (mimeType != null) {
-			return mimeType;
-		}
-		return getDefaultMimeType();
-	}
-
-	/**
-	 * @return The default {@link MimeType} for this
-	 *         {@link DLNAImageProfile}.
-	 */
-	public MimeType getDefaultMimeType() {
-		switch (getFormat()) {
-			case GIF:
-				return MIMETYPE_GIF;
-			case JPEG:
-				return MIMETYPE_JPEG;
-			case PNG:
-				return MIMETYPE_PNG;
-			default:
-				throw new IllegalStateException("Format is missing from switch statement");
-		}
-	}
-
-	/**
-	 * @return The formatted mime-type {@link String} for this
-	 *         {@link DLNAImageProfile}.
-	 */
-	public String getMimeTypeString() {
-		return getMimeType().toStringWithoutParameters();
-	}
-
-	/**
-	 * Gets the maximum image width for the given {@link DLNAImageProfile}.
-	 *
-	 * @return The value in pixels.
-	 */
-	public int getMaxWidth() {
-		return horizontal;
-	}
-
-	/**
-	 * Get {@code H} for the {@code JPEG_RES_H_V} profile.
-	 *
-	 * @return The {@code H} value in pixels.
-	 */
-	public int getH() {
-		return horizontal;
-	}
-
-	/**
-	 * Gets the maximum image height for the given {@link DLNAImageProfile}.
-	 *
-	 * @return The value in pixels.
-	 */
-	public int getMaxHeight() {
-		return vertical;
-	}
-
-	/**
-	 * Get {@code V} for the {@code JPEG_RES_H_V} profile.
-	 *
-	 * @return The {@code V} value in pixels.
-	 */
-	public int getV() {
-		return vertical;
-	}
-
-	/**
-	 * Get the {@link Dimension} of the maximum image resolution for the given
-	 * {@link DLNAImageProfile}.
-	 *
-	 * @return The {@link Dimension}.
-	 */
-	public Dimension getMaxResolution() {
-		if (horizontal >= 0 && vertical >= 0) {
-			return new Dimension(horizontal, vertical);
-		}
-		return new Dimension();
-	}
-
-	/**
-	 * Evaluates whether the thumbnail or the image itself should be used as
-	 * the source for the given profile when two sources are available. This is
-	 * typically only relevant for image resources.
-	 *
-	 * @param imageInfo the {@link ImageInfo} for the non-thumbnail source.
-	 * @param thumbnailImageInfo the {@link ImageInfo} for the thumbnail source.
-	 * @return The evaluation result.
-	 */
-	public boolean useThumbnailSource(ImageInfo imageInfo, ImageInfo thumbnailImageInfo) {
-		if (DLNAImageProfile.JPEG_TN.equals(this) || DLNAImageProfile.PNG_TN.equals(this)) {
-			// These should always use thumbnail as the source
-			return true;
-		}
-
-		if (
-			imageInfo == null || imageInfo.getWidth() < 1 || imageInfo.getHeight() < 1 ||
-			thumbnailImageInfo == null || thumbnailImageInfo.getWidth() < 1 || thumbnailImageInfo.getHeight() < 1
-		) {
-			// Impossible to do a valid evaluation under these circumstances
-			return false;
-		}
-
-		boolean thumbIsSmaller =
-			thumbnailImageInfo.getWidth() < imageInfo.getWidth() ||
-			thumbnailImageInfo.getHeight() < imageInfo.getHeight();
-		if (!thumbIsSmaller) {
-			// Thumbnail has as good a resolution as the source, we might as
-			// well use the thumbnail if the format matches
-			return getFormat() == thumbnailImageInfo.getFormat() || getFormat() != imageInfo.getFormat();
-		}
-
-		// At this point we know that the thumbnail is smaller than the source.
-		// Only use the thumbnail if it's bigger or equal in size to this profile.
-		return
-			getMaxWidth() <= thumbnailImageInfo.getWidth() &&
-			getMaxHeight() <= thumbnailImageInfo.getHeight();
 	}
 
 	/**
@@ -1208,7 +1208,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 * @param height the number of vertical pixels for this resolution.
 	 * @return {@code true} if the resolution is valid, {@code false} otherwise.
 	 */
-	public boolean isResolutionCorrect(int width, int height) {
+	private boolean isResolutionCorrect(int width, int height) {
 		if (width < 1 || height < 1) {
 			return false;
 		}
@@ -1346,10 +1346,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			return false;
 		}
 		DLNAImageProfile other = (DLNAImageProfile) obj;
-		if (imageProfileInt != other.imageProfileInt) {
-			return false;
-		}
-		return true;
+		return (imageProfileInt == other.imageProfileInt);
 	}
 
 	@Override
@@ -1461,10 +1458,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 			} else if (!size.equals(other.size)) {
 				return false;
 			}
-			if (width != other.width) {
-				return false;
-			}
-			return true;
+			return (width == other.width);
 		}
 	}
 
@@ -1472,7 +1466,7 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 * Internal mutable compliance result data structure.
 	 */
 	@SuppressWarnings({"checkstyle:VisibilityModifier", "JavadocVariable"})
-	protected static class InternalComplianceResult {
+	private static class InternalComplianceResult {
 		public boolean resolutionCorrect = false;
 		public boolean formatCorrect = false;
 		public boolean colorsCorrect = false;

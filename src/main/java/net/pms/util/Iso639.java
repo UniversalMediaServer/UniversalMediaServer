@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -14,8 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.util;
 
@@ -85,7 +83,7 @@ public final class Iso639 {
 	 * @return {@code true} if the code is known, {@code false} otherwise.
 	 */
 	public static boolean codeIsValid(String code) {
-		return isBlank(code) ? false : CODES.contains(code.trim().toLowerCase(Locale.ROOT));
+		return isNotBlank(code) && CODES.contains(code.trim().toLowerCase(Locale.ROOT));
 	}
 
 	/**
@@ -916,7 +914,7 @@ public final class Iso639 {
 	}
 
 	private static HashMap<String, String> buildMisspellings() {
-		HashMap<String, String> misspellings = new HashMap<String, String>();
+		HashMap<String, String> misspellings = new HashMap<>();
 		misspellings.put("ameircan", "american");
 		misspellings.put("artifical", "artificial");
 		misspellings.put("brasillian", "brazilian");
@@ -1091,10 +1089,7 @@ public final class Iso639 {
 			} else if (!iso639_2.equals(other.iso639_2)) {
 				return false;
 			}
-			if (!Arrays.equals(names, other.names)) {
-				return false;
-			}
-			return true;
+			return (Arrays.equals(names, other.names));
 		}
 	}
 }

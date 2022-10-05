@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +42,7 @@ public abstract class NonGeometricBufferedImageOp implements BufferedImageOp {
 	 *
 	 * @param hints the {@link RenderingHints} to use during the operation.
 	 */
-	public NonGeometricBufferedImageOp(RenderingHints hints) {
+	protected NonGeometricBufferedImageOp(RenderingHints hints) {
 		this.hints = hints;
 	}
 

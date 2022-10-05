@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,22 +17,14 @@
  */
 package net.pms.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class RationalTest {
 
@@ -919,75 +909,52 @@ public class RationalTest {
 
 		assertEquals(0, Rational.NaN.intValue());
 		assertEquals(0, Rational.NaN.longValue());
-		try {
+
+		ArithmeticException arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigInteger.ZERO, Rational.NaN.bigIntegerValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express NaN as BigInteger");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express NaN as BigInteger", arithmeticException.getMessage());
+
 		assertEquals(Float.NaN, Rational.NaN.floatValue(), 0.0f);
 		assertEquals(Double.NaN, Rational.NaN.doubleValue(), 0.0d);
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigDecimal.ZERO, Rational.NaN.bigDecimalValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express NaN as BigDecimal");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express NaN as BigDecimal", arithmeticException.getMessage());
+
 
 		assertEquals(Integer.MAX_VALUE, Rational.POSITIVE_INFINITY.intValue());
 		assertEquals(Long.MAX_VALUE, Rational.POSITIVE_INFINITY.longValue());
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigInteger.ZERO, Rational.POSITIVE_INFINITY.bigIntegerValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express infinity as BigInteger");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express infinity as BigInteger", arithmeticException.getMessage());
+
 		assertEquals(Float.POSITIVE_INFINITY, Rational.POSITIVE_INFINITY.floatValue(), 0.0f);
 		assertEquals(Double.POSITIVE_INFINITY, Rational.POSITIVE_INFINITY.doubleValue(), 0.0d);
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigDecimal.ZERO, Rational.POSITIVE_INFINITY.bigDecimalValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express infinity as BigDecimal");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express infinity as BigDecimal", arithmeticException.getMessage());
 
 		assertEquals(Integer.MIN_VALUE, Rational.NEGATIVE_INFINITY.intValue());
 		assertEquals(Long.MIN_VALUE, Rational.NEGATIVE_INFINITY.longValue());
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigInteger.ZERO, Rational.NEGATIVE_INFINITY.bigIntegerValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express infinity as BigInteger");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express infinity as BigInteger", arithmeticException.getMessage());
+
 		assertEquals(Float.NEGATIVE_INFINITY, Rational.NEGATIVE_INFINITY.floatValue(), 0.0f);
 		assertEquals(Double.NEGATIVE_INFINITY, Rational.NEGATIVE_INFINITY.doubleValue(), 0.0d);
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			assertEquals(BigDecimal.ZERO, Rational.NEGATIVE_INFINITY.bigDecimalValue());
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Impossible to express infinity as BigDecimal");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Impossible to express infinity as BigDecimal", arithmeticException.getMessage());
 
-		try {
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
 			rational.bigDecimalValue(MathContext.UNLIMITED);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Non-terminating decimal expansion; no exact representable decimal result.");
-		}
+		}, "ArithmeticException was expected");
+		assertEquals("Non-terminating decimal expansion; no exact representable decimal result.", arithmeticException.getMessage());
 	}
 
 	@Test
@@ -1096,71 +1063,36 @@ public class RationalTest {
 		assertArrayEquals(new BigInteger[] {BigInteger.valueOf(7), BigInteger.valueOf(200)}, array);
 		assertEquals(a.reducedDenominator.multiply(array[0]), b.reducedDenominator.multiply(array[1]));
 
-		a = Rational.NaN;
-		b = Rational.valueOf(78, -14);
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		ArithmeticException arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.NaN.getMultipliers(Rational.valueOf(78, -14));
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
 
-		a = Rational.valueOf(4.235);
-		b = Rational.NaN;
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.valueOf(4.235).getMultipliers(Rational.NaN);
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
 
-		a = Rational.POSITIVE_INFINITY;
-		b = Rational.valueOf(78, -14);
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.POSITIVE_INFINITY.getMultipliers(Rational.valueOf(78, -14));
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
 
-		a = Rational.valueOf(4.235);
-		b = Rational.POSITIVE_INFINITY;
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.valueOf(4.235).getMultipliers(Rational.POSITIVE_INFINITY);
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
 
-		a = Rational.NEGATIVE_INFINITY;
-		b = Rational.valueOf(78, -14);
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.NEGATIVE_INFINITY.getMultipliers(Rational.valueOf(78, -14));
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
 
-		a = Rational.valueOf(4.235);
-		b = Rational.NEGATIVE_INFINITY;
-		try {
-			array = a.getMultipliers(b);
-			Assert.fail("Expected ArithmeticException");
-		} catch (ArithmeticException e) {
-			assertThat(e)
-				.isInstanceOf(ArithmeticException.class)
-				.hasMessage("Can't calculate multipliers for NaN or infinity");
-		}
+		arithmeticException = assertThrows(ArithmeticException.class, () -> {
+			Rational.valueOf(4.235).getMultipliers(Rational.NEGATIVE_INFINITY);
+		}, "ArithmeticException was expected");
+		assertEquals("Can't calculate multipliers for NaN or infinity", arithmeticException.getMessage());
+
 	}
 
 	@Test

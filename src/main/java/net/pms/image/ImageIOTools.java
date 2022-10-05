@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,9 +46,10 @@ public class ImageIOTools {
 
 	protected static final IIORegistry REGISTRY = IIORegistry.getDefaultInstance();
 
-	// Not to be instantiated
-	private ImageIOTools() {
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private ImageIOTools() {}
 
 	/**
 	 * A copy of {@link ImageIO#read(InputStream)} that calls

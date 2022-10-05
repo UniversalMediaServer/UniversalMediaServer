@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,8 +17,8 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.Locale;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * An {@code enum} for classifying the kind of release.
@@ -72,7 +70,7 @@ public enum VideoClassification {
 	 * @return The {@link VideoClassification} type or {@code null}.
 	 */
 	public static VideoClassification typeOf(String videoClassification) {
-		if (isBlank(videoClassification)) {
+		if (StringUtils.isBlank(videoClassification)) {
 			return null;
 		}
 		videoClassification = videoClassification.toLowerCase(Locale.ROOT);

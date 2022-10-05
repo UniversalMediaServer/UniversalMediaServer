@@ -1,7 +1,11 @@
 package net.pms.dlna.virtual;
 
 import net.pms.Messages;
-import net.pms.database.TableFilesStatus;
+import net.pms.database.MediaTableAudiotracks;
+import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableRegexpRules;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.util.FullyPlayedAction;
 
 /**
@@ -9,126 +13,153 @@ import net.pms.util.FullyPlayedAction;
  * by the SQL (h2) database.
  */
 public class MediaLibrary extends VirtualFolder {
+	/**
+	 * According to the Academy of Motion Picture Arts and Sciences, the American
+	 * Film Institute, and the British Film Institute, a feature film runs for
+	 * more than 40 minutes.
+	 *
+	 * @see https://www.oscars.org/sites/oscars/files/93aa_rules.pdf
+	 * @see https://www.bfi.org.uk/bfi-national-archive/research-bfi-archive/bfi-filmography/bfi-filmography-faq
+	 */
+	private static final Double FORTY_MINUTES_IN_SECONDS = 2400.0;
+	private static final String SELECT_FILES_STATUS_WHERE = "SELECT * " + MediaLibraryFolder.FROM_FILES_STATUS + "WHERE ";
+	private static final String SELECT_FILES_STATUS_VIDEO_WHERE = "SELECT * " + MediaLibraryFolder.FROM_FILES_STATUS_VIDEOMETA + "WHERE ";
+
+	private boolean enabled;
+
 	private MediaLibraryFolder allFolder;
-
-	public MediaLibraryFolder getAllFolder() {
-		return allFolder;
-	}
-
 	private MediaLibraryFolder albumFolder;
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
 	private MediaLibraryFolder tvShowsFolder;
+	private VirtualFolder vfAudio = null;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public MediaLibraryFolder getAllFolder() {
+		return allFolder;
+	}
+
+	public VirtualFolder getAudioFolder() {
+		return vfAudio;
+	}
 
 	public MediaLibraryFolder getAlbumFolder() {
 		return albumFolder;
 	}
 
 	public MediaLibrary() {
-		super(Messages.getString("PMS.MediaLibrary"), "/images/folder-icons/media-library.png");
-		init();
+		super(Messages.getString("MediaLibrary"), "/images/folder-icons/media-library.png");
+		reset();
 	}
 
-	private void init() {
+	public final void reset() {
+		enabled = configuration.getUseCache();
+		if (!enabled) {
+			return;
+		}
 		// Videos folder
-		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("PMS.34"), null);
+		VirtualFolder vfVideo = new VirtualFolder(Messages.getString("Video"), null);
 
-		String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
+		//String sqlJoinStart = "SELECT * FROM FILES LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + MediaTableFilesStatus.TABLE_NAME + ".FILENAME WHERE ";
 
 		// All videos that are unwatched
-		String unwatchedCondition = " AND " + TableFilesStatus.TABLE_NAME + ".ISFULLYPLAYED IS NOT TRUE";
+		String movieCondition = " AND NOT " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " != '' AND DURATION > " + FORTY_MINUTES_IN_SECONDS;
+		String unwatchedCondition = " AND " + MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + " IS NOT TRUE";
 		MediaLibraryFolder unwatchedTvShowsFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.4"),
+			Messages.getString("TvShows"),
 			new String[]{
-				"SELECT DISTINCT FILES.MOVIEORSHOWNAME FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + "                                    ORDER BY FILES.MOVIEORSHOWNAME ASC",
-				sqlJoinStart +                                                                                                                                                        "FILES.TYPE = 4 AND FILES.ISTVEPISODE" + unwatchedCondition + " AND FILES.MOVIEORSHOWNAME = '${0}' ORDER BY FILES.TVSEASON, FILES.TVEPISODENUMBER"
+				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + MediaLibraryFolder.FROM_FILES_STATUS_VIDEOMETA + "WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + unwatchedCondition + "                                    ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",
+				SELECT_FILES_STATUS_VIDEO_WHERE +                                                                      MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + unwatchedCondition + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
 			},
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 
-		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.5"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.7"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != ''" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("VirtualFolder.8"), sqlJoinStart + "FILES.TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '')" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("MediaLibrary.RecentlyAdded"), sqlJoinStart + "FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
-		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("PMS.35"), sqlJoinStart + "FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMoviesFolder = new MediaLibraryFolder(Messages.getString("Movies"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 " + movieCondition + " AND " + MediaTableFiles.TABLE_COL_STEREOSCOPY + " = ''" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMovies3DFolder = new MediaLibraryFolder(Messages.getString("3dMovies"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 " + movieCondition + " AND " + MediaTableFiles.TABLE_COL_STEREOSCOPY + " != ''" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("Unsorted"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND NOT " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND (" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " IS NULL OR " + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " = '')" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("RecentlyAdded"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
+		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("AllVideos"), SELECT_FILES_STATUS_WHERE  + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
-				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES LEFT JOIN " + TableFilesStatus.TABLE_NAME + " ON FILES.FILENAME = " + TableFilesStatus.TABLE_NAME + ".FILENAME WHERE FILES.TYPE = 4" + unwatchedCondition + " ORDER BY FILES.MODIFIED DESC",
-				sqlJoinStart + "FILES.TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}'" + unwatchedCondition + " ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') " + MediaLibraryFolder.FROM_FILES_STATUS_VIDEOMETA + "WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
+				SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') = '${0}'" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);
-		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(Messages.getString("PMS.36"), sqlJoinStart + "FILES.TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(Messages.getString("PMS.39"), sqlJoinStart + "FILES.TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576)" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("PMS.40"), sqlJoinStart + "FILES.TYPE = 32" + unwatchedCondition + " ORDER BY FILENAME ASC", MediaLibraryFolder.ISOS);
+		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(Messages.getString("HdVideos"), SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND (" + MediaTableFiles.TABLE_COL_WIDTH + " > 864 OR " + MediaTableFiles.TABLE_COL_HEIGHT + " > 576)" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(Messages.getString("SdVideos"), SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND (" + MediaTableFiles.TABLE_COL_WIDTH + " <= 864 AND " + MediaTableFiles.TABLE_COL_HEIGHT + " <= 576)" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
+		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("DvdImages"), SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 32" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.ISOS);
 
 		// The following block contains all videos regardless of fully played status
 		tvShowsFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.4"),
+			Messages.getString("TvShows"),
 			new String[]{
-				"SELECT DISTINCT MOVIEORSHOWNAME FROM FILES WHERE TYPE = 4 AND ISTVEPISODE                              ORDER BY MOVIEORSHOWNAME ASC",
-				"SELECT          *               FROM FILES WHERE TYPE = 4 AND ISTVEPISODE AND MOVIEORSHOWNAME = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
+				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + "                              ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",
+				"SELECT          *               " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);
 		MediaLibraryFolder moviesFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.5"),
-			"TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY = '' ORDER BY FILENAME ASC",
+			Messages.getString("Movies"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 " + movieCondition + " AND " + MediaTableFiles.TABLE_COL_STEREOSCOPY + " = '' ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.7"),
-			"TYPE = 4 AND NOT ISTVEPISODE AND YEAR != '' AND STEREOSCOPY != '' ORDER BY FILENAME ASC",
+			Messages.getString("3dMovies"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 " + movieCondition + " AND " + MediaTableFiles.TABLE_COL_STEREOSCOPY + " != '' ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder unsortedFolder = new MediaLibraryFolder(
-			Messages.getString("VirtualFolder.8"),
-			"TYPE = 4 AND NOT ISTVEPISODE AND (YEAR IS NULL OR YEAR = '') ORDER BY FILENAME ASC",
+			Messages.getString("Unsorted"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND NOT " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND (" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " IS NULL OR " + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " = '') ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder allVideosFolder = new MediaLibraryFolder(
-			Messages.getString("PMS.35"),
-			"TYPE = 4 ORDER BY FILENAME ASC",
+			Messages.getString("AllVideos"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.RecentlyAdded"),
-			new String[]{"SELECT * FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC LIMIT 100"},
+			Messages.getString("RecentlyAdded"),
+			new String[]{"SELECT * " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC LIMIT 100"},
 			new int[]{MediaLibraryFolder.FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.InProgress"),
-			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL" + unwatchedCondition + " ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
+			Messages.getString("InProgress"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " IS NOT NULL" + unwatchedCondition + " ORDER BY " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mostPlayedVideos = new MediaLibraryFolder(
-			Messages.getString("MediaLibrary.MostPlayed"),
-			sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".PLAYCOUNT DESC LIMIT 100",
+			Messages.getString("MostPlayed"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " IS NOT NULL ORDER BY " + MediaTableFilesStatus.TABLE_COL_PLAYCOUNT + " DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
 		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
-				"SELECT FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') FROM FILES WHERE TYPE = 4 ORDER BY FILES.MODIFIED DESC",
-				"TYPE = 4 AND FORMATDATETIME(FILES.MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILES.FILENAME ASC"
+				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
+				MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') = '${0}' ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT_WITH_FILTERS, MediaLibraryFolder.FILES}
 		);
 		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(
-			Messages.getString("PMS.36"),
-			"TYPE = 4 AND (WIDTH > 864 OR HEIGHT > 576)    ORDER BY FILENAME ASC",
+			Messages.getString("HdVideos"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND (" + MediaTableFiles.TABLE_COL_WIDTH + " > 864 OR " + MediaTableFiles.TABLE_COL_HEIGHT + " > 576)    ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo04 = new MediaLibraryFolder(
-			Messages.getString("PMS.39"),
-			"TYPE = 4 AND (WIDTH <= 864 AND HEIGHT <= 576) ORDER BY FILENAME ASC",
+			Messages.getString("SdVideos"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND (" + MediaTableFiles.TABLE_COL_WIDTH + " <= 864 AND " + MediaTableFiles.TABLE_COL_HEIGHT + " <= 576) ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES_WITH_FILTERS
 		);
 		MediaLibraryFolder mlfVideo05 = new MediaLibraryFolder(
-			Messages.getString("PMS.40"),
-			"TYPE = 32                                     ORDER BY FILENAME ASC",
+			Messages.getString("DvdImages"),
+			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 32                                     ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.ISOS_WITH_FILTERS
 		);
 
@@ -154,8 +185,8 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(recentlyAddedVideos);
 			if (configuration.isShowRecentlyPlayedFolder()) {
 				MediaLibraryFolder recentlyPlayedVideos = new MediaLibraryFolder(
-					Messages.getString("VirtualFolder.1"),
-					sqlJoinStart + "FILES.TYPE = 4 AND " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY IS NOT NULL ORDER BY " + TableFilesStatus.TABLE_NAME + ".DATELASTPLAY DESC LIMIT 100",
+					Messages.getString("RecentlyPlayed"),
+					SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " IS NOT NULL ORDER BY " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " DESC LIMIT 100",
 					MediaLibraryFolder.FILES_NOSORT
 				);
 				vfVideo.addChild(recentlyPlayedVideos);
@@ -170,63 +201,102 @@ public class MediaLibrary extends VirtualFolder {
 		}
 		addChild(vfVideo);
 
-		VirtualFolder vfAudio = new VirtualFolder(Messages.getString("PMS.1"), null);
-		allFolder = new MediaLibraryFolder(Messages.getString("PMS.11"), "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.FILENAME ASC", MediaLibraryFolder.FILES);
+		vfAudio = new VirtualFolder(Messages.getString("Audio"), null);
+		allFolder = new MediaLibraryFolder(
+			Messages.getString("AllAudioTracks"),
+			"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
+			MediaLibraryFolder.FILES
+		);
 		vfAudio.addChild(allFolder);
-		playlistFolder = new MediaLibraryFolder(Messages.getString("PMS.9"), "select FILENAME, MODIFIED from FILES F WHERE F.TYPE = 16 ORDER BY F.FILENAME ASC", MediaLibraryFolder.PLAYLISTS);
+		playlistFolder = new MediaLibraryFolder(
+			Messages.getString("AllAudioPlaylists"),
+			"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 16 ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
+			MediaLibraryFolder.PLAYLISTS
+		);
 		vfAudio.addChild(playlistFolder);
-		artistFolder = new MediaLibraryFolder(Messages.getString("PMS.13"), new String[]{"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY ARTIST ASC", "select FILENAME, MODIFIED  from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		artistFolder = new MediaLibraryFolder(
+			Messages.getString("ByArtist"),
+			new String[]{
+				"SELECT DISTINCT COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") AS ARTIST FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY ARTIST ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + "  FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${0}'"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
 		vfAudio.addChild(artistFolder);
-		albumFolder = new MediaLibraryFolder(Messages.getString("PMS.16"), new String[]{"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY A.ALBUM ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.ALBUM = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		albumFolder = new MediaLibraryFolder(
+			Messages.getString("ByAlbum"),
+			new String[]{
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableAudiotracks.TABLE_COL_ALBUM + " ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '${0}'"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
 		vfAudio.addChild(albumFolder);
-		genreFolder = new MediaLibraryFolder(Messages.getString("PMS.19"), new String[]{"SELECT DISTINCT A.GENRE FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY A.GENRE ASC", "select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${0}'"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		genreFolder = new MediaLibraryFolder(
+			Messages.getString("ByGenre"),
+			new String[]{
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_GENRE + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableAudiotracks.TABLE_COL_GENRE + " ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND " + MediaTableAudiotracks.TABLE_COL_GENRE + " = '${0}'"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
 		vfAudio.addChild(genreFolder);
-		MediaLibraryFolder mlf6 = new MediaLibraryFolder(Messages.getString("PMS.22"), new String[]{
-				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY ARTIST ASC",
-				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}' ORDER BY A.ALBUM ASC",
-				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		MediaLibraryFolder mlf6 = new MediaLibraryFolder(
+			Messages.getString("ByArtistAlbum"),
+			new String[]{
+				"SELECT DISTINCT COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") AS ARTIST FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY ARTIST ASC",
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_ALBUM + " ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${1}' AND " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_TRACK + " ASC, " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
 		vfAudio.addChild(mlf6);
-		MediaLibraryFolder mlf7 = new MediaLibraryFolder(Messages.getString("PMS.26"), new String[]{
-				"SELECT DISTINCT A.GENRE FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY A.GENRE ASC",
-				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${0}' ORDER BY ARTIST ASC",
-				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${1}' AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}' ORDER BY A.ALBUM ASC",
-				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND A.GENRE = '${2}' AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${1}' AND A.ALBUM = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"}, new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES});
+		MediaLibraryFolder mlf7 = new MediaLibraryFolder(
+			Messages.getString("ByGenreArtistAlbum"),
+			new String[]{
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_GENRE + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableAudiotracks.TABLE_COL_GENRE + " ASC",
+				"SELECT DISTINCT COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") AS ARTIST FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND " + MediaTableAudiotracks.TABLE_COL_GENRE + " = '${0}' ORDER BY ARTIST ASC",
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND " + MediaTableAudiotracks.TABLE_COL_GENRE + " = '${1}' AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_ALBUM + " ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND " + MediaTableAudiotracks.TABLE_COL_GENRE + " = '${2}' AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${1}' AND " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_TRACK + " ASC, " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
+			},
+			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
+		);
 		vfAudio.addChild(mlf7);
 		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MM d') FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 ORDER BY F.MODIFIED DESC",
-				"select FILENAME, MODIFIED from FILES F, AUDIOTRACKS A where F.ID = A.FILEID AND F.TYPE = 1 AND FORMATDATETIME(MODIFIED, 'yyyy MM d') = '${0}' ORDER BY A.TRACK ASC, F.FILENAME ASC"
+				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_TRACK + " ASC, " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);
 		vfAudio.addChild(mlfAudioDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(
-			Messages.getString("PMS.28"),
+			Messages.getString("ByLetterArtistAlbum"),
 			new String[]{
-				"SELECT ID FROM REGEXP_RULES ORDER BY ORDR ASC",
-				"SELECT DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as ARTIST FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND ARTIST REGEXP (SELECT RULE FROM REGEXP_RULES WHERE ID = '${0}') ORDER BY ARTIST ASC",
-				"SELECT DISTINCT A.ALBUM FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${0}' ORDER BY A.ALBUM ASC",
-				"SELECT FILENAME, MODIFIED FROM FILES F, AUDIOTRACKS A WHERE F.ID = A.FILEID AND F.TYPE = 1 AND COALESCE(A.ALBUMARTIST, A.ARTIST) = '${1}' AND A.ALBUM = '${0}'"
+				"SELECT " + MediaTableRegexpRules.TABLE_COL_ID + " FROM " + MediaTableRegexpRules.TABLE_NAME + " ORDER BY " + MediaTableRegexpRules.TABLE_COL_REGEXP_ORDER + " ASC",
+				"SELECT DISTINCT COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") AS ARTIST FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND ARTIST REGEXP (SELECT " + MediaTableRegexpRules.TABLE_COL_REGEXP_RULE + " FROM " + MediaTableRegexpRules.TABLE_NAME + " WHERE " + MediaTableRegexpRules.TABLE_COL_ID + " = '${0}') ORDER BY ARTIST ASC",
+				"SELECT DISTINCT " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${0}' ORDER BY " + MediaTableAudiotracks.TABLE_COL_ALBUM + " ASC",
+				"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 AND COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '${1}' AND " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '${0}'"
 			},
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
 		vfAudio.addChild(mlf8);
 		addChild(vfAudio);
 
-		VirtualFolder vfImage = new VirtualFolder(Messages.getString("PMS.31"), null);
+		VirtualFolder vfImage = new VirtualFolder(Messages.getString("Photo"), null);
 		MediaLibraryFolder mlfPhoto01 = new MediaLibraryFolder(
-			Messages.getString("PMS.32"),
-			"TYPE = 2 ORDER BY FILENAME ASC",
+			Messages.getString("AllPhotos"),
+			MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 2 ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC",
 			MediaLibraryFolder.FILES
 		);
 		vfImage.addChild(mlfPhoto01);
 		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(
-			Messages.getString("PMS.12"),
+			Messages.getString("ByDate"),
 			new String[]{
-				"SELECT FORMATDATETIME(MODIFIED, 'yyyy MM d') FROM FILES WHERE TYPE = 2 ORDER BY MODIFIED DESC",
-				"TYPE = 2 AND FORMATDATETIME(MODIFIED, 'yyyy MM d') = '${0}' ORDER BY FILENAME ASC"
+				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 2 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
+				MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 2 AND FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') = '${0}' ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC"
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);

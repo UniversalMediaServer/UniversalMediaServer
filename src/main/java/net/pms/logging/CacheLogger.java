@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,33 +32,38 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 public class CacheLogger {
-
-	private static Logger logger = LoggerFactory.getLogger(CacheLogger.class);
-	private static LinkedList<Appender<ILoggingEvent>> appenderList = new LinkedList<>();
+	private static final Logger LOGGER = LoggerFactory.getLogger(CacheLogger.class);
+	private static final LinkedList<Appender<ILoggingEvent>> APPENDER_LIST = new LinkedList<>();
 	private static volatile CacheAppender<ILoggingEvent> cacheAppender = null;
 	private static LoggerContext loggerContext = null;
 	private static ch.qos.logback.classic.Logger rootLogger;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private CacheLogger() {
+	}
 
 	private static void detachRootAppenders() {
 		Iterator<Appender<ILoggingEvent>> it = rootLogger.iteratorForAppenders();
 		while (it.hasNext()) {
 			Appender<ILoggingEvent> appender = it.next();
 			if (appender != cacheAppender) {
-				appenderList.add(appender);
+				APPENDER_LIST.add(appender);
 				rootLogger.detachAppender(appender);
 			}
 		}
 	}
 
 	private static void attachRootAppenders() {
-		while (!appenderList.isEmpty()) {
-			Appender<ILoggingEvent> appender = appenderList.poll();
+		while (!APPENDER_LIST.isEmpty()) {
+			Appender<ILoggingEvent> appender = APPENDER_LIST.poll();
 			rootLogger.addAppender(appender);
 		}
 	}
 
 	private static void disposeOfAppenders() {
-		appenderList.clear();
+		APPENDER_LIST.clear();
 	}
 
 	/**
@@ -78,11 +81,11 @@ public class CacheLogger {
 		ILoggerFactory iLoggerFactory = LoggerFactory.getILoggerFactory();
 		if (!(iLoggerFactory instanceof LoggerContext)) {
 			// Not using LogBack, CacheAppender not applicable
-			logger.debug("Not using LogBack, aborting CacheLogger");
+			LOGGER.debug("Not using LogBack, aborting CacheLogger");
 			loggerContext = null;
 			return;
 		} else if (!isActive()) {
-			logger.error("initContext() cannot be called while isActive() is false");
+			LOGGER.error("initContext() cannot be called while isActive() is false");
 			return;
 		}
 
@@ -100,7 +103,7 @@ public class CacheLogger {
 
 	public static synchronized void startCaching() {
 		if (isActive()) {
-			logger.debug("StartCaching() failed: Caching already started");
+			LOGGER.debug("StartCaching() failed: Caching already started");
 		} else {
 			cacheAppender = new CacheAppender<>();
 			initContext();
@@ -109,10 +112,10 @@ public class CacheLogger {
 
 	public static synchronized void stopAndFlush() {
 		if (loggerContext == null) {
-			logger.debug("Not using LogBack, aborting CacheLogger.stopAndFlush()");
+			LOGGER.debug("Not using LogBack, aborting CacheLogger.stopAndFlush()");
 			return;
 		} else if (!isActive()) {
-			logger.error("stopAndFlush() cannot be called while isActive() is false");
+			LOGGER.error("stopAndFlush() cannot be called while isActive() is false");
 			return;
 		}
 
@@ -124,14 +127,14 @@ public class CacheLogger {
 	}
 
 	public static synchronized Iterator<Appender<ILoggingEvent>> iteratorForAppenders() {
-		return appenderList.iterator();
+		return APPENDER_LIST.iterator();
 	}
 
 	public static synchronized void addAppender(Appender<ILoggingEvent> newAppender) {
-		appenderList.add(newAppender);
+		APPENDER_LIST.add(newAppender);
 	}
 
 	public static synchronized boolean removeAppender(Appender<ILoggingEvent> appender) {
-		return appenderList.remove(appender);
+		return APPENDER_LIST.remove(appender);
 	}
 }

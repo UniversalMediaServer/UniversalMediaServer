@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,14 +17,7 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.ComponentOrientation;
-import java.awt.Font;
-import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -33,13 +25,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.*;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -48,8 +35,9 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
-import net.pms.newgui.GuiUtil;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.*;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -66,9 +54,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Leon Blakey <lord.quackstar@gmail.com>
  */
-public class VLCVideo extends Player {
+public class VLCVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -76,14 +64,6 @@ public class VLCVideo extends Player {
 	/** The {@link Configuration} key for the VLC executable type. */
 	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
 	public static final String NAME = "VLC Video";
-
-	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p";
-	protected JTextField scale;
-	protected JCheckBox experimentalCodecs;
-	protected JCheckBox audioSyncEnabled;
-	protected JTextField sampleRate;
-	protected JCheckBox sampleRateOverride;
 
 	protected boolean videoRemux;
 
@@ -93,11 +73,11 @@ public class VLCVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -124,11 +104,6 @@ public class VLCVideo extends Player {
 	@Override
 	public boolean avisynth() {
 		return false;
-	}
-
-	@Override
-	public String[] args() {
-		return new String[]{};
 	}
 
 	@Override
@@ -160,7 +135,7 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
-		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (
 			(
@@ -242,7 +217,7 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		/**
 		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
@@ -316,7 +291,7 @@ public class VLCVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
 			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
@@ -496,18 +471,17 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (BasicSystemUtils.instance.getVlcVersion() != null) {
+		if (PlatformUtils.INSTANCE.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
+			if (PlatformUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.debug(
-					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
-					BasicSystemUtils.instance.getVlcVersion()
+				LOGGER.debug("Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					PlatformUtils.INSTANCE.getVlcVersion()
 				);
 			}
 		}
@@ -648,10 +622,7 @@ public class VLCVideo extends Player {
 		pw.attachProcess(pipeProcess);
 
 		// TODO: Why is this here?
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
 		configuration = prev;
@@ -659,55 +630,13 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public JComponent config() {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
-		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
-		builder.opaque(false);
-
-		CellConstraints cc = new CellConstraints();
-
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
-		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener((ItemEvent e) -> {
-			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
-		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
-		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener((ItemEvent e) -> {
-			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-
-		JPanel panel = builder.getPanel();
-
-		// Apply the orientation to the panel and all components in it
-		panel.applyComponentOrientation(orientation);
-
-		return panel;
-	}
-
-	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// Only handle local video - not web video or audio
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	@Override
@@ -716,7 +645,7 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -728,8 +657,8 @@ public class VLCVideo extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {
@@ -743,13 +672,13 @@ public class VLCVideo extends Player {
 				);
 				if (output.getError() != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 					result.available(Boolean.FALSE);
 					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 					return result.build();
 				}
 				if (output.getExitCode() == 0) {
-					if (output.getOutput() != null && output.getOutput().size() > 0) {
+					if (output.getOutput() != null && !output.getOutput().isEmpty()) {
 						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
 						Matcher matcher = pattern.matcher(output.getOutput().get(0));
 						if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -759,7 +688,7 @@ public class VLCVideo extends Player {
 					result.available(Boolean.TRUE);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.errorText(String.format(Messages.getString("TranscodingEngineNotAvailableExitCode"), this, output.getExitCode()));
 					result.available(Boolean.FALSE);
 				}
 			} catch (InterruptedException e) {
@@ -770,11 +699,11 @@ public class VLCVideo extends Player {
 			Version requiredVersion = new Version("2.0.2");
 			if (result.version().compareTo(requiredVersion) <= 0) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.errorText(String.format(Messages.getString("OnlyVersionXAboveSupported"), requiredVersion, this));
 				result.available(Boolean.FALSE);
-				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+				LOGGER.warn(String.format(Messages.getRootString("OnlyVersionXAboveSupported"), requiredVersion, this));
 			}
-		} else if (result.available() != null && result.available().booleanValue()) {
+		} else if (result.available() != null && result.available()) {
 			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
 		}
 		return result.build();

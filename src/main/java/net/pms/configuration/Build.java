@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import net.pms.PMS;
@@ -25,6 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
 public class Build {
+
+	/**
+	 * This class should not be instantiated.
+	 */
+	private Build() {}
+
 	/**
 	 * Repository where to locate the file. Note: using "raw.github.com"
 	 * to access the raw file.
@@ -35,7 +38,7 @@ public class Build {
 	 * The URL of the properties file used by the {@link AutoUpdater} to announce PMS updates.
 	 * Can be null/empty if not used. Not used if IS_UPDATABLE is set to false.
 	 */
-	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/latest_version.properties";
+	private static final String UPDATE_SERVER_URL = REPO + "/main/src/main/external-resources/update/latest_version.properties";
 
 	/**
 	 * The url of the releases page on Github

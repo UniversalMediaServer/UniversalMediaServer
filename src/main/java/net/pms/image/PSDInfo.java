@@ -125,51 +125,53 @@ public class PSDInfo extends ImageInfo {
 		}
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof PsdHeaderDirectory) {
+			if (directory instanceof PsdHeaderDirectory psdHeaderDirectory) {
 				parsedInfo.format = ImageFormat.PSD;
 				if (
-					((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)
+					psdHeaderDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					psdHeaderDirectory.containsTag(PsdHeaderDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((PsdHeaderDirectory) directory).getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((PsdHeaderDirectory) directory).getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = psdHeaderDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = psdHeaderDirectory.getInteger(PsdHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
-				if (((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL)) {
-					Integer i = ((PsdHeaderDirectory) directory).getInteger(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL);
+				if (psdHeaderDirectory.containsTag(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL)) {
+					Integer i = psdHeaderDirectory.getInteger(PsdHeaderDirectory.TAG_BITS_PER_CHANNEL);
 					if (i != null) {
 						parsedInfo.bitDepth = i;
 					}
 				}
-				if (((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_COLOR_MODE)) {
-					Integer i = ((PsdHeaderDirectory) directory).getInteger(PsdHeaderDirectory.TAG_COLOR_MODE);
+				if (psdHeaderDirectory.containsTag(PsdHeaderDirectory.TAG_COLOR_MODE)) {
+					Integer i = psdHeaderDirectory.getInteger(PsdHeaderDirectory.TAG_COLOR_MODE);
 					if (i != null) {
-						((PSDParseInfo) parsedInfo).colorMode = ColorMode.typeOf(i.intValue());
+						((PSDParseInfo) parsedInfo).colorMode = ColorMode.typeOf(i);
 						/*
 					     * Bitmap = 0; Grayscale = 1; Indexed = 2; RGB = 3; CMYK = 4; Multichannel = 7; Duotone = 8; Lab = 9.
 						 */
 						switch (((PSDParseInfo) parsedInfo).colorMode) {
-							case GRAYSCALE:
+							case GRAYSCALE -> {
 								parsedInfo.numComponents = 1;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
-								break;
-							case INDEXED:
-							case RGB:
+							}
+							case INDEXED, RGB -> {
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							case CMYK:
+							}
+							case CMYK -> {
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_CMYK;
-								break;
-							case LAB:
+							}
+							case LAB -> {
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_Lab;
-							default:
+							}
+							default -> {
+								//do nothing
+							}
 						}
 					}
 				}
-				if (((PsdHeaderDirectory) directory).containsTag(PsdHeaderDirectory.TAG_CHANNEL_COUNT)) {
-					Integer i = ((PsdHeaderDirectory) directory).getInteger(PsdHeaderDirectory.TAG_CHANNEL_COUNT);
+				if (psdHeaderDirectory.containsTag(PsdHeaderDirectory.TAG_CHANNEL_COUNT)) {
+					Integer i = psdHeaderDirectory.getInteger(PsdHeaderDirectory.TAG_CHANNEL_COUNT);
 					if (i != null) {
 						((PSDParseInfo) parsedInfo).channelCount = i;
 					}
@@ -223,26 +225,17 @@ public class PSDInfo extends ImageInfo {
 		LAB;
 
 		public static ColorMode typeOf(int value) {
-			switch (value) {
-				case 0:
-					return BITMAP;
-				case 1:
-					return GRAYSCALE;
-				case 2:
-					return INDEXED;
-				case 3:
-					return RGB;
-				case 4:
-					return CMYK;
-				case 7:
-					return MULTI_CHANNEL;
-				case 8:
-					return DUOTONE;
-				case 9:
-					return LAB;
-				default:
-					return null;
-			}
+			return switch (value) {
+				case 0 -> BITMAP;
+				case 1 -> GRAYSCALE;
+				case 2 -> INDEXED;
+				case 3 -> RGB;
+				case 4 -> CMYK;
+				case 7 -> MULTI_CHANNEL;
+				case 8 -> DUOTONE;
+				case 9 -> LAB;
+				default -> null;
+			};
 		}
 	}
 

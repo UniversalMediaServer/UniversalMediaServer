@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -20,9 +19,10 @@ package net.pms.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.platform.PlatformUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
@@ -33,19 +33,22 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextConsumer.class);
-	private List<String> lines = new ArrayList<>();
-	private Object linesLock = new Object();
-	private boolean log;
+	private static Charset charset = null;
+	private final List<String> lines = new ArrayList<>();
+	private final Object linesLock = new Object();
+	private final boolean log;
 
 	public OutputTextConsumer(InputStream inputStream, boolean log) {
 		super(inputStream);
-		linesLock = new Object();
 		this.log = log;
+		if (charset == null) {
+			charset = PlatformUtils.INSTANCE.getConsoleCharset();
+		}
 	}
 
 	@Override
 	public void run() {
-		try (LineIterator it = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
+		try (LineIterator it = IOUtils.lineIterator(inputStream, charset)) {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 

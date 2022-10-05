@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -453,10 +451,7 @@ public class DLNAOrgFlags implements ProtocolInfoAttribute {
 		if (high != other.high) {
 			return false;
 		}
-		if (low != other.low) {
-			return false;
-		}
-		return true;
+		return (low == other.low);
 	}
 
 	/**

@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -122,6 +119,7 @@ public class FormatConfiguration {
 	public static final String MPEG2 = "mpeg2";
 	public static final String MPEGPS = "mpegps";
 	public static final String MPEGTS = "mpegts";
+	public static final String MPEGTS_HLS = "hls";
 	public static final String NELLYMOSER = "nellymoser";
 	public static final String OGG = "ogg";
 	/** OGG container with only audio track */
@@ -663,7 +661,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -693,7 +691,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -714,7 +712,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;

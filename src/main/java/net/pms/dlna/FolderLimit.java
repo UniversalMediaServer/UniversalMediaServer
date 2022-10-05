@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class FolderLimit extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderLimit.class);
-	private ArrayList<FolderLimitLevel> levels;
+	private final ArrayList<FolderLimitLevel> levels;
 	private boolean discover;
 
 	public FolderLimit() {

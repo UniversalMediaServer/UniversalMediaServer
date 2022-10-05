@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -206,17 +204,11 @@ public class BasicThreadFactory implements ThreadFactory {
 
 	@Override
 	public Thread newThread(Runnable runnable) {
-		String threadName;
-		switch (numVariables) {
-			case 0:
-				threadName = namePattern;
-				break;
-			case 1:
-				threadName = String.format(Locale.ROOT, namePattern, threadNumber.getAndIncrement());
-				break;
-			default:
-				threadName = String.format(Locale.ROOT, namePattern, instancePoolNumber, threadNumber.getAndIncrement());
-		}
+		String threadName = switch (numVariables) {
+			case 0 -> namePattern;
+			case 1 -> String.format(Locale.ROOT, namePattern, threadNumber.getAndIncrement());
+			default -> String.format(Locale.ROOT, namePattern, instancePoolNumber, threadNumber.getAndIncrement());
+		};
 		Thread thread = new Thread(
 			group,
 			runnable,

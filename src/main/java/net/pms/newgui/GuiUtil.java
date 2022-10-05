@@ -2,13 +2,81 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
+import net.pms.Messages;
+import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class GuiUtil {
+	private static final Logger LOGGER = LoggerFactory.getLogger(GuiUtil.class);
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private GuiUtil() {
+	}
+
+	/**
+	 * Check swing availability.
+	 * It don't use use java.awt.GraphicsEnvironment.isHeadless() as some Linux
+	 * distributions seem to not handle it properly.
+	 * @return true if is headless, false if swing is available
+	 */
+	public static boolean isHeadless() {
+		try {
+			JDialog d = new JDialog();
+			d.dispose();
+			return false;
+		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
+			return true;
+		}
+	}
+
+	/**
+	 * Brings up a dialog with a yes/no choice
+	 * @param message the message to display
+	 * @param title the title string for the dialog
+	 * @param defaultValue the default value
+	 * @return an boolean indicating the option chosen by the user
+	 */
+	public static boolean askYesNoMessage(Object message, String title, boolean defaultValue) {
+		if (!PMS.isHeadless()) {
+			Object[] yesNoOptions = {
+				Messages.getString("Yes"),
+				Messages.getString("No")
+			};
+			int result = JOptionPane.showOptionDialog(
+				null,
+				message,
+				title,
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				yesNoOptions,
+				defaultValue ? yesNoOptions[0] : yesNoOptions[1]
+			);
+			return result == JOptionPane.YES_OPTION;
+		}
+		return defaultValue;
+	}
+
+	/**
+	 * Init the default platform-specific implementation of Toolkit.
+	 * @return false if a toolkit could not be found, or if one could not be accessed or instantiated.
+	 */
+	public static boolean initDefaultToolkit() {
+		try {
+			Toolkit.getDefaultToolkit();
+			return true;
+		} catch (AWTError t) {
+			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+			return false;
+		}
+	}
 
 	/**
 	 * Wraps a {@link JComponent} into a {@link JPanel} using a {@link BorderLayout}, adding it to WEST.<br>
@@ -167,12 +235,7 @@ public final class GuiUtil {
 				g.translate(-dir * w, 0);
 				super.paintComponent(g);
 				if (timer == null) {
-					timer = new Timer(interval, new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							repaint();
-						}
-					});
+					timer = new Timer(interval, (ActionEvent e) -> repaint());
 					timer.start();
 				}
 			}
@@ -199,19 +262,17 @@ public final class GuiUtil {
 		}
 
 		private void scrollTheText() {
-			new Timer(200, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
-					setText(text);
-				}
+			new Timer(200, (ActionEvent e) -> {
+				text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
+				setText(text);
 			}).start();
 		}
 	}
 
 	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
 	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
-		Color fg, bg;
+		Color fg;
+		Color bg;
 
 		static class Segment {
 			String label;
@@ -314,7 +375,7 @@ public final class GuiUtil {
 				}
 			}
 			// Draw the main label, if any
-			if (progressBar.isStringPainted() && mainLabel.size() > 0) {
+			if (progressBar.isStringPainted() && !mainLabel.isEmpty()) {
 				// Find the active label for this percentage
 				Segment active = null;
 				int pct = total * 100 / max;
@@ -563,8 +624,8 @@ public final class GuiUtil {
 	public static void enableContainer(Container c, boolean enable) {
 		for (Component component : c.getComponents()) {
 			component.setEnabled(enable);
-			if (component instanceof Container) {
-				enableContainer((Container) component, enable);
+			if (component instanceof Container container) {
+				enableContainer(container, enable);
 			}
 		}
 	}

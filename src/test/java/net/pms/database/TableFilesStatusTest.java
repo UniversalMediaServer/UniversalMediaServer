@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,14 +20,12 @@ package net.pms.database;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.sql.Connection;
-import java.sql.Statement;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.assertj.core.api.Assertions.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +33,9 @@ public class TableFilesStatusTest {
 	/**
 	 * Set up testing conditions before running the tests.
 	 * @throws ConfigurationException
+	 * @throws InterruptedException
 	 */
-	@Before
+	@BeforeEach
 	public final void setUp() throws ConfigurationException, InterruptedException {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
@@ -47,54 +44,59 @@ public class TableFilesStatusTest {
 	}
 
 	/**
-	 * This should get more specific, since for now it
+	 * Ensures that the table updates properly.
+	 * todo: This should get more specific, since for now it
 	 * just makes sure the code completes without errors but
 	 * doesn't really do anything.
+	 *
+	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testUpgrade() throws Exception {
-		DLNAMediaDatabase database = PMS.get().getDatabase();
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
 		try (Connection connection = database.getConnection()) {
-			if (!Tables.tableExists(connection, "TABLES")) {
-				Tables.createTablesTable(connection);
-			}
-
-			try (Statement statement = connection.createStatement()) {
-				Tables.dropTable(connection, TableFilesStatus.TABLE_NAME);
-
-				// Create version 7 of this table
-				statement.execute(
-					"CREATE TABLE " + TableFilesStatus.TABLE_NAME + "(" +
-						"ID            IDENTITY PRIMARY KEY, " +
-						"FILENAME      VARCHAR2(1024)        NOT NULL, " +
-						"MODIFIED      DATETIME, " +
-						"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
-						"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
-							"REFERENCES FILES(FILENAME) " +
-							"ON DELETE CASCADE" +
-					")"
-				);
-	
-				statement.execute("CREATE UNIQUE INDEX FILENAME_IDX ON " + TableFilesStatus.TABLE_NAME + "(FILENAME)");
-				statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)");
-
-				Tables.setTableVersion(connection, TableFilesStatus.TABLE_NAME, 7);
-			}
+			//remove all tables to cleanup db
+			MediaDatabase.dropAllTables(connection);
+			database.checkTables(true);
+			MediaDatabase.dropTableAndConstraint(connection, MediaTableFilesStatus.TABLE_NAME);
+			MediaDatabase.execute(connection,
+				"CREATE TABLE " + MediaTableFilesStatus.TABLE_NAME + "(" +
+					"ID            IDENTITY PRIMARY KEY, " +
+					"FILENAME      VARCHAR(1024)        NOT NULL UNIQUE, " +
+					"MODIFIED      DATETIME, " +
+					"ISFULLYPLAYED BOOLEAN DEFAULT false, " +
+					"CONSTRAINT filename_match FOREIGN KEY(FILENAME) " +
+						"REFERENCES " + MediaTableFiles.TABLE_NAME + "(FILENAME) " +
+						"ON DELETE CASCADE" +
+				")",
+				"CREATE UNIQUE INDEX FILENAME_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(FILENAME)",
+				"CREATE INDEX ISFULLYPLAYED_IDX ON " + MediaTableFilesStatus.TABLE_NAME + "(ISFULLYPLAYED)"
+			);
+			MediaTableTablesVersions.setTableVersion(connection, MediaTableFilesStatus.TABLE_NAME, 7);
 
 			/*
 			 * Version 7 is created, so now we can update to the latest version
 			 * and any errors that occur along the way will cause the test to fail.
 			 */
-			TableFilesStatus.checkTable(connection);
+			database.checkTables(true);
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
 		}
 	}
 
 	@Test
 	public void testIsFullyPlayed() throws Exception {
-		TableFilesStatus.setFullyPlayed("FileThatHasBeenPlayed", true);
-		TableFilesStatus.setFullyPlayed("FileThatHasBeenMarkedNotPlayed", false);
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatDoesntExist")).isNull();
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenPlayed")).isTrue();
-		assertThat(TableFilesStatus.isFullyPlayed("FileThatHasBeenMarkedNotPlayed")).isFalse();
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", true);
+			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", false);
+			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist"));
+			assertTrue(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed"));
+			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed"));
+		} finally {
+			MediaDatabase.close(connection);
+		}
 	}
 }

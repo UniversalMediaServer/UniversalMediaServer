@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA compatible renderers
- * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
- * developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,9 +19,9 @@ package net.pms.dlna.protocolinfo;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.fourthline.cling.support.model.Protocol;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.jupnp.support.model.Protocol;
 
 /**
  * This class represents {@code DLNA.ORG_OP} attributes. This can be used for

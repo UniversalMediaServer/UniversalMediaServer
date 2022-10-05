@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.configuration;
 
 import java.io.File;
@@ -8,8 +25,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import net.pms.PMS;
-import net.pms.network.UPNPHelper;
+import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -38,7 +56,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 
 	public DeviceConfiguration(File f, String uuid) throws ConfigurationException, InterruptedException {
 		super(f, uuid);
-		inherit(this);
+		inherit(null);
 	}
 
 	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
@@ -58,8 +76,9 @@ public class DeviceConfiguration extends PmsConfiguration {
 	 * configuration for fallback lookup.
 	 *
 	 * @param ref The reference renderer configuration.
+	 * @throws ConfigurationException
 	 */
-	public void inherit(RendererConfiguration ref) throws ConfigurationException {
+	public final void inherit(RendererConfiguration ref) throws ConfigurationException {
 		CompositeConfiguration cconf = new CompositeConfiguration();
 
 		// Add the component configurations in order of lookup priority:
@@ -67,7 +86,11 @@ public class DeviceConfiguration extends PmsConfiguration {
 		// 1. The device configuration, marked as "in memory" (i.e. writeable)
 		cconf.addConfiguration(deviceConf != null ? deviceConf : initConfiguration(null), true);
 		// 2. The reference renderer configuration (read-only)
-		cconf.addConfiguration(ref.getConfiguration());
+		if (ref == null) {
+			cconf.addConfiguration(getConfiguration());
+		} else {
+			cconf.addConfiguration(ref.getConfiguration());
+		}
 		// 3. The default pms configuration (read-only)
 		PmsConfiguration baseConf = PMS.getConfiguration();
 		cconf.addConfiguration(baseConf.getConfiguration());
@@ -84,10 +107,17 @@ public class DeviceConfiguration extends PmsConfiguration {
 		filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars
-		sortedHeaderMatcher = ref.sortedHeaderMatcher;
+		if (ref != null) {
+			sortedHeaderMatcher = ref.sortedHeaderMatcher;
+		}
+
 		// Note: intentionally omitting 'player = null' so as to preserve player state when reloading
 		loaded = true;
-		this.ref = ref;
+		if (ref == null) {
+			this.ref = this;
+		} else {
+			this.ref = ref;
+		}
 
 		init(NOFILE);
 	}
@@ -96,10 +126,9 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public void reset() {
 		try {
 			inherit(ref);
-			PMS.get().updateRenderer(this);
-		} catch (Exception e) {
+			updateRendererGui();
+		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading device configuration {}: {}", this, e);
-			e.printStackTrace();
 		}
 	}
 
@@ -115,7 +144,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		}
 	}
 
-	public PropertiesConfiguration initConfiguration(InetAddress ia) {
+	public final PropertiesConfiguration initConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && deviceConfs.containsKey(id)) {
 			deviceConf = deviceConfs.get(id);
@@ -147,14 +176,12 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public boolean isValid() {
 		if (loaded) {
 			File f = getConfiguration(DEVICE).getFile();
-			if (f != null) {
-				if (!f.exists()) {
-					// Reset
-					getConfiguration(DEVICE).setFile(NOFILE);
-					getConfiguration(DEVICE).clear();
-					deviceConfs.remove(getId());
-					return false;
-				}
+			if (f != null && !f.exists()) {
+				// Reset
+				getConfiguration(DEVICE).setFile(NOFILE);
+				getConfiguration(DEVICE).clear();
+				deviceConfs.remove(getId());
+				return false;
 			}
 			return true;
 		}
@@ -183,14 +210,16 @@ public class DeviceConfiguration extends PmsConfiguration {
 			Arrays.sort(files);
 			for (File f : files) {
 				if (f.getName().endsWith(".conf")) {
-					loadDeviceFile(f, createPropertiesConfiguration());
-					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), RELOADER));
+					List<String> ids = loadDeviceFile(f, createPropertiesConfiguration());
+					if (ids != null && !ids.isEmpty()) {
+						FileWatcher.add(new FileWatcher.Watch(f.getPath(), RELOADER));
+					}
 				}
 			}
 		}
 	}
 
-	public static String[] loadDeviceFile(File f, PropertiesConfiguration conf) {
+	public static List<String> loadDeviceFile(File f, PropertiesConfiguration conf) {
 		String filename = f.getName();
 		try {
 			conf.load(f);
@@ -200,13 +229,15 @@ public class DeviceConfiguration extends PmsConfiguration {
 				s = conf.getString("device", "");
 			}
 			String[] ids = s.split("\\s*,\\s*");
+			List<String> idsList = new ArrayList<>();
 			for (String id : ids) {
 				if (StringUtils.isNotBlank(id)) {
+					idsList.add(s);
 					deviceConfs.put(id, conf);
 					LOGGER.info("Loaded device configuration {} for {}", filename, id);
 				}
 			}
-			return ids;
+			return idsList;
 		} catch (ConfigurationException ce) {
 			LOGGER.info("Error loading device configuration: " + f.getAbsolutePath());
 		}
@@ -257,7 +288,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			conf.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
 			conf.add("# and UMS.conf for program options.");
 			conf.add("");
-			conf.add("# Options in this file override the default settings for the specific " + r.getSimpleName(r) + " device(s) listed below.");
+			conf.add("# Options in this file override the default settings for the specific " + DeviceConfiguration.getSimpleName(r) + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
 			conf.add("");
 			conf.add(DEVICE_ID + " = " + r.getId());
@@ -273,7 +304,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return file;
 	}
 
-	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
+	public static List<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
 		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).ref : renderer;
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
@@ -287,7 +318,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	/**
 	 * Automatic reloading
 	 */
-	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
+	private static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
 		@Override
 		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
 			File f = new File(filename);
@@ -302,11 +333,16 @@ public class DeviceConfiguration extends PmsConfiguration {
 					iterator.remove();
 				}
 			}
-			conf.clear();
-			ids.addAll(Arrays.asList(loadDeviceFile(f, conf)));
-			for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
-					r.reset();
+			if (conf != null) {
+				conf.clear();
+				List<String> idsList = loadDeviceFile(f, conf);
+				if (idsList != null && !idsList.isEmpty()) {
+					ids.addAll(idsList);
+				}
+				for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+					if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
+						r.reset();
+					}
 				}
 			}
 		}

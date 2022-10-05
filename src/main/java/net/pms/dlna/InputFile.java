@@ -10,22 +10,6 @@ public class InputFile {
 	private Long size = null;
 
 	/**
-	 * Return the string representation of this InputFile.
-	 */
-	@Override
-	public String toString() {
-		if (file != null) {
-			return file.getName();
-		} else {
-			if (push != null) {
-				return "pipe";
-			} else {
-				return "";
-			}
-		}
-	}
-
-	/**
 	 * @return the file
 	 * @since 1.50
 	 */
@@ -91,4 +75,21 @@ public class InputFile {
 	public void setSize(long size) {
 		this.size = size;
 	}
+
+	/**
+	 * Return the string representation of this InputFile.
+	 */
+	@Override
+	public String toString() {
+		if (file != null) {
+			return file.getName();
+		} else {
+			if (push != null) {
+				return "pipe";
+			} else {
+				return "";
+			}
+		}
+	}
+
 }

@@ -6,19 +6,20 @@ import java.io.File;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.LogicalPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
-	private BasicPlayer.Logical player;
+	private LogicalPlayer player;
 	@SuppressWarnings("unused")
 	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private Button position;
@@ -38,7 +39,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = (BasicPlayer.Logical) player;
+		this.player = (LogicalPlayer) player;
 		player.connect(this);
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
@@ -96,10 +97,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.disconnect(self);
 			}
 		});
-
 	}
 
-	public void addPlayControls(Container parent) {
+	public final void addPlayControls(Container parent) {
 		prev = new AbstractAction("", prevIcon) {
 			private static final long serialVersionUID = 1L;
 
@@ -157,7 +157,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(new Button(36, next));
 	}
 
-	public void addStatus(final Container parent) {
+	public final void addStatus(final Container parent) {
 		position = new Button(new AbstractAction("") {
 			private static final long serialVersionUID = 1L;
 
@@ -168,10 +168,10 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 		parent.add(position);
 		position.setHorizontalAlignment(SwingConstants.RIGHT);
-		position.setToolTipText(Messages.getString("PlayerControlPanel.0"));
+		position.setToolTipText(Messages.getString("ShowHideDetails"));
 	}
 
-	public void addVolumeControls(Container parent) {
+	public final void addVolumeControls(Container parent) {
 		UIDefaults defaults = UIManager.getDefaults();
 		Object hti = defaults.put("Slider.horizontalThumbIcon", sliderIcon);
 		Object tb = defaults.put("Slider.trackBorder", BorderFactory.createEmptyBorder());
@@ -181,16 +181,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		volumeSlider.setPreferredSize(d);
 		volumeSlider.setSize(d);
 		volumeSlider.setMaximumSize(d);
-		volumeSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// Fire only when the slider is in motion, i.e. not during external updates
-				if (((JSlider) e.getSource()).getValueIsAdjusting()) {
-					player.setVolume(volumeSlider.getValue());
-					// For smoothness ignore external volume data until
-					// the 3rd update after sliding has finished
-					sliding = 3;
-				}
+		volumeSlider.addChangeListener((ChangeEvent e) -> {
+			// Fire only when the slider is in motion, i.e. not during external updates
+			if (((JSlider) e.getSource()).getValueIsAdjusting()) {
+				player.setVolume(volumeSlider.getValue());
+				// For smoothness ignore external volume data until
+				// the 3rd update after sliding has finished
+				sliding = 3;
 			}
 		});
 		volumeSlider.setFocusable(false);
@@ -216,7 +213,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(muteButton);
 	}
 
-	public void addUriControls(Container parent) {
+	public final void addUriControls(Container parent) {
 		uris = new JComboBox(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
@@ -224,10 +221,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uris.setPrototypeDisplayValue("");
 		uri = (JTextField) uris.getEditor().getEditorComponent();
 		uri.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
 			public void focusGained(java.awt.event.FocusEvent evt) {
-				SwingUtilities.invokeLater(() -> {
-					uri.select(0, 0);
-				});
+				SwingUtilities.invokeLater(() -> uri.select(0, 0));
 			}
 		});
 		uri.getDocument().addDocumentListener(new DocumentListener() {
@@ -261,7 +257,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			}
 		};
 		Button a = new Button(add);
-		a.setToolTipText(Messages.getString("PlayerControlPanel.1"));
+		a.setToolTipText(Messages.getString("AddToPlaylist"));
 		parent.add(a);
 		remove = new AbstractAction("", removeIcon) {
 			private static final long serialVersionUID = 1L;
@@ -272,7 +268,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			}
 		};
 		Button r = new Button(remove);
-		r.setToolTipText(Messages.getString("PlayerControlPanel.2"));
+		r.setToolTipText(Messages.getString("RemoveFromPlaylist"));
 		parent.add(r);
 		clear = new AbstractAction("", clearIcon) {
 			private static final long serialVersionUID = 1L;
@@ -283,7 +279,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			}
 		};
 		Button c = new Button(clear);
-		c.setToolTipText(Messages.getString("PlayerControlPanel.3"));
+		c.setToolTipText(Messages.getString("ClearPlaylist"));
 		parent.add(c);
 		parent.add(new Button(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
@@ -326,7 +322,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		edited = false;
 	}
 
-	public void refresh(BasicPlayer.State state) {
+	public void refreshPlayerState(PlayerState state) {
 		if (playControl) {
 			playing = state.playback != BasicPlayer.STOPPED;
 			// update playback status
@@ -363,7 +359,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		SwingUtilities.invokeLater(() -> {
-			refresh(((BasicPlayer) e.getSource()).getState());
+			refreshPlayerState(((BasicPlayer) e.getSource()).getState());
 		});
 	}
 

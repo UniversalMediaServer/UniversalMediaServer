@@ -1,27 +1,28 @@
 name: Universal Media Server CI
 
-on: [push, pull_request_target]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   macos:
-    runs-on: macos-latest
+    runs-on: macos-12
     strategy:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: 8
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -30,46 +31,38 @@ jobs:
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
-  windows:
+  windows-latest:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: 8
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Run tests
-        run: mvn verify -P testing-windows
-      - name: Run linter
+      - name: Run linter and tests
         run: mvn verify -P linter
 
   linux-bionic:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: '8'
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -80,25 +73,22 @@ jobs:
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_18.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/22.03/libmediainfo0v5_22.03-1_amd64.xUbuntu_18.04.deb
+          sudo dpkg -i libmediainfo0v5_22.03-1_amd64.xUbuntu_18.04.deb
           mvn verify -P testing
 
   linux-focal:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: '8'
-      - name: Set up Maven
-        uses: stCarolas/setup-maven@v4
-        with:
-          maven-version: 3.6.3
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -108,6 +98,6 @@ jobs:
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/21.03/libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_21.03-1_amd64.xUbuntu_20.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/22.03/libmediainfo0v5_22.03-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_22.03-1_amd64.xUbuntu_20.04.deb
           mvn verify -P testing

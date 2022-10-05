@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -50,6 +49,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Because a container cannot be streamed, this function always returns null.
 	 *
 	 * @return null
+	 * @throws java.io.IOException
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
 	 */
 	@Override
@@ -82,6 +82,7 @@ public class VirtualFolder extends DLNAResource {
 	/**
 	 * Returns zero as this is a folder (container).
 	 *
+	 * @return 0
 	 * @see net.pms.dlna.DLNAResource#length()
 	 */
 	@Override

@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -157,11 +155,11 @@ public class FullyPlayed {
 			case IMAGE:
 				return String.format("[%s] %s", Messages.getString("DLNAResource.6"), displayName);
 			case VIDEO:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.4"), displayName);
+				return String.format("[%s] %s", Messages.getString("Watched"), displayName);
 			case AUDIO:
 			case UNKNOWN:
 			default:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.5"), displayName);
+				return String.format("[%s] %s", Messages.getString("Played"), displayName);
 
 		}
 	}

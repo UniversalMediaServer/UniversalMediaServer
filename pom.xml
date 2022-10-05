@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>10.12.1-SNAPSHOT</version>
+	<version>11.6.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -44,7 +44,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/UniversalMediaServer/UniversalMediaServer.git</connection>
 		<developerConnection>scm:git:git@github.com:UniversalMediaServer/UniversalMediaServer.git</developerConnection>
-		<tag>master</tag>
+		<tag>main</tag>
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
 	<issueManagement>
@@ -53,50 +53,71 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>10.12.1</project.version.short>
-
-		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
-		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+		<project.version.short>11.6.0</project.version.short>
+		<project.jre-version>17</project.jre-version>
+		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
 		<!-- Version 2.7.0 is the last free version. The latest libraries are shipped only with the commercial JGoodies Smart Client -->
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.7.0</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.8.3</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
-		<binary-revision>141</binary-revision>
 
-		<exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
-		<maven-antrun-plugin-version>3.0.0</maven-antrun-plugin-version>
-		<maven-javadoc-plugin-version>3.3.1</maven-javadoc-plugin-version>
+		<binary-revision>160</binary-revision>
+
+		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
+		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
+		<maven-javadoc-plugin-version>3.4.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
-		<maven-enforcer-plugin-version>3.0.0-M3</maven-enforcer-plugin-version>
+		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
+		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
+				- net.pms:ums
+				- com.rometools:rome
+				- ch.qos.logback:logback-classic
+				- com.github.junrar:junrar
+				- org.digitalmediaserver:cuelib-core
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 				- com.github.oshi:oshi-core
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<logback-version>1.2.6</logback-version>
-		<surefire-version>3.0.0-M5</surefire-version>
+		<slf4j-api-version>2.0.3</slf4j-api-version>
+
+		<!--
+			ch.qos.logback:logback-classic and logback-core is shared with
+				- net.pms:ums
+		-->
+		<logback-version>1.4.3</logback-version>
+
+		<!--
+			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
+				- net.pms:ums
+				- su.litvak.chromecast:api-v2
+				- fm.last:coverartarchive-api
+		-->
+		<jackson.version>2.13.4</jackson.version>
+
+		<surefire-version>3.0.0-M7</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
+				- net.pms:ums
 				- com.github.oshi:oshi-core
 
-			Check the net.java.dev.jna:jna-platform version of the other library before upgrading
+			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.9.0</jna-version>
+		<jna-version>5.12.1</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -104,10 +125,10 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.8.1</junit5.version>
-		<com.sun.xml.bind-version>3.0.2</com.sun.xml.bind-version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<junit5.version>5.9.1</junit5.version>
+		<com.sun.xml.bind-version>4.0.1</com.sun.xml.bind-version>
+		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
+		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -118,19 +139,14 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<repository>
-			<id>4thline-repo</id>
-			<url>http://4thline.org/m2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>jaudiotagger-repository</id>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
-		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>${slf4j-api-version}</version>
+		</dependency>
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
@@ -162,7 +178,27 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpasyncclient</artifactId>
-			<version>4.1.4</version>
+			<version>4.1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<!--
+				org.apache.httpcomponents:httpclient is shared with
+					- net.pms:ums
+					- org.apache.httpcomponents:httpasyncclient
+					- fm.last:coverartarchive-api
+
+				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
+			-->
+			<version>4.5.13</version>
+			<exclusions>
+				<exclusion>
+					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpcore</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -171,7 +207,7 @@
 				commons-io:commons-io is shared with
 					- fm.last:coverartarchive-api
 
-				Check the commons-io:commons-io version of the library before upgrading
+				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
 			<version>2.11.0</version>
 		</dependency>
@@ -183,7 +219,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.9</version>
+			<version>1.10.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
@@ -194,13 +230,19 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<!-- Versions above 1.4.197 should only be used when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/2030 is done -->
-			<version>1.4.197</version>
+			<version>2.1.214</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>${logback-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -210,7 +252,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.8.8</version>
+			<version>2.9.1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -228,16 +270,8 @@
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- fm.last:coverartarchive-api
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-			-->
-			<version>1.16.0</version>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>1.18.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -248,7 +282,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.14</version>
+			<version>0.4.17</version>
 		</dependency>
 
 		<!--
@@ -333,14 +367,12 @@
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.16.0</version>
+			<version>2.18.0</version>
 		</dependency>
 		<dependency>
-			<groupId>jaudiotagger</groupId>
+			<groupId>net.jthink</groupId>
 			<artifactId>jaudiotagger</artifactId>
-			<scope>system</scope>
-			<version>2.2.6-SNAPSHOT</version>
-			<systemPath>${project.basedir}/src/main/external-resources/lib/jaudiotagger-2.2.6-SNAPSHOT.jar</systemPath>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jgoodies</groupId>
@@ -355,7 +387,8 @@
 		<dependency>
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
-			<version>7.4.0</version>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>7.5.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -366,6 +399,7 @@
 		<dependency>
 			<groupId>org.digitalmediaserver</groupId>
 			<artifactId>cuelib-core</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<version>2.0.0</version>
 			<exclusions>
 				<exclusion>
@@ -402,24 +436,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
-			<version>${junit5.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.easytesting</groupId>
-			<artifactId>fest-util</artifactId>
-			<version>1.2.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<!-- Use 3.x for Java 8 -->
-			<version>3.21.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
 			<version>${jna-version}</version>
@@ -430,29 +446,14 @@
 			<version>${jna-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.fourthline.cling</groupId>
-			<artifactId>cling-core</artifactId>
-			<version>2.1.2</version>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp</artifactId>
+			<version>2.6.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.fourthline.cling</groupId>
-			<artifactId>cling-support</artifactId>
-			<version>2.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-http</artifactId>
-			<version>1.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-util</artifactId>
-			<version>1.1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seamless</groupId>
-			<artifactId>seamless-xml</artifactId>
-			<version>1.1.2</version>
+			<groupId>org.jupnp</groupId>
+			<artifactId>org.jupnp.support</artifactId>
+			<version>2.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>
@@ -460,28 +461,40 @@
 			<version>1.15</version>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<!-- will include jackson-core and jackson-annotations -->
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>su.litvak.chromecast</groupId>
 			<artifactId>api-v2</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- fm.last:coverartarchive-api
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-			-->
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
 			<version>0.11.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>69.1</version>
+			<version>71.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -491,14 +504,9 @@
 		<dependency>
 			<groupId>fm.last</groupId>
 			<artifactId>coverartarchive-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
 			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- com.github.oshi:oshi-core
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-
 				commons-logging:commons-logging is shared with
 					- commons-configuration:commons-configuration
 
@@ -533,6 +541,10 @@
 					<artifactId>jackson-core</artifactId>
 				</exclusion>
 				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
@@ -541,24 +553,22 @@
 		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
-			<!--
-				org.slf4j:slf4j-api is shared with
-					- ch.qos.logback:logback-classic
-					- su.litvak.chromecast
-					- fm.last:coverartarchive-api
-
-				Check the org.slf4j:slf4j-api version of the other libraries before upgrading
-
-				net.java.dev.jna:jna-platform is shared with
-					- net.pms:ums
-
-				Check the net.java.dev.jna:jna-platform version before upgrading
-			-->
-			<version>5.8.2</version>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
+			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
+			<version>6.2.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna-platform</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -583,6 +593,22 @@
 			<version>${com.sun.xml.bind-version}</version>
 		</dependency>
 		<!-- end of JAXB dependencies -->
+		<dependency>
+			<groupId>com.vdurmont</groupId>
+			<artifactId>semver4j</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>5.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -678,8 +704,10 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-
 					<version>${surefire-version}</version>
+					<configuration>
+						<argLine>-Dfile.encoding=UTF-8</argLine>
+					</configuration>
 				</plugin>
 
 				<!--
@@ -828,12 +856,12 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.10.1</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<testSource>1.8</testSource>
-					<testTarget>1.8</testTarget>
+					<source>${project.jre-version}</source>
+					<target>${project.jre-version}</target>
+					<testSource>${project.jre-version}</testSource>
+					<testTarget>${project.jre-version}</testTarget>
 					<compilerArgument>${compilerArgument}</compilerArgument>
 				</configuration>
 			</plugin>
@@ -868,12 +896,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.9.1</version>
+				<version>3.12.1</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.10</version>
+						<version>1.11.1</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -886,7 +914,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.1.2</version>
+				<version>3.4.1</version>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -959,7 +987,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.4.1</version>
+				<version>4.7.2.0</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -972,12 +1000,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.15.0</version>
+				<version>3.19.0</version>
 				<configuration>
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
 					<minimumTokens>100</minimumTokens>
-					<targetJdk>1.8</targetJdk>
+					<targetJdk>${project.jre-version}</targetJdk>
 				</configuration>
 			</plugin>
 
@@ -1076,44 +1104,15 @@
 										<mkdir dir="${project.binaries}/win32/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/win32/fonts/conf.d" />
 										<mkdir dir="${project.binaries}/win32/interframe" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/bin" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/bin/server" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/amd64" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/cmm" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/ext" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/images" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/jfr" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/management" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/security" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/security/policy" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/win32/jre8-x64/lib/security/policy/unlimited" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/bin" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/bin/client" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/bin/server" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/cmm" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/ext" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/i386" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/images" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/jfr" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/management" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/security" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/security/policy" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/win32/jre8-x86/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x64" />
+										<mkdir dir="${project.binaries}/win32/jre${project.jre-version}-x86" />
 										<mkdir dir="${project.binaries}/win32/mplayer" />
 										<mkdir dir="${project.binaries}/win32/service" />
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
@@ -1157,363 +1156,17 @@
 										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/win32/interframe/svpflow2.dll" usetimestamp="true" />
-
-										<get src="${project.binaries-base}/win32/jre8-x64/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/release?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/release" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/awt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/dt_shmem.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/dt_socket.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/freetype.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/freetype.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/fontmanager.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/hprof.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/instrument.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/j2pcsc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/j2pkcs11.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jaas_nt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jabswitch.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/java.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/java.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/java_crw_demo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/JavaAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/JavaAccessBridge-64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/java-rmi.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/javaw.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jawt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/JAWTAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/JAWTAccessBridge-64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jdwp.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jjs.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jli.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jpeg.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jsdt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jsound.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/jsoundds.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/keytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/kinit.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/klist.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/ktab.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/management.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/mlib_image.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/msvcp120.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/msvcp120.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/msvcr120.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/msvcr120.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/net.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/nio.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/npt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/orbd.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/pack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/policytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/rmid.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/rmiregistry.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/servertool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/splashscreen.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/sunec.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/sunmscapi.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/tnameserv.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/unpack.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/unpack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/verify.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/w2k_lsa_auth.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/WindowsAccessBridge-64.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/WindowsAccessBridge-64.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/server/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/server/jvm.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/bin/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/bin/server/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/accessibility.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/calendars.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/charsets.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/classlist?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/content-types.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/currency.data" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/flavormap.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/fontconfig.bfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/fontconfig.bfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/fontconfig.properties.src?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/fontconfig.properties.src" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jce.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jfr.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jsse.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jvm.hprof.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/logging.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/management-agent.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/net.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/psfont.properties.ja" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/psfontj2d.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/resources.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/rt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/sound.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/tzmappings?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/tzmappings" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/cmm/GRAY.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/cmm/PYCC.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/cmm/sRGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/access-bridge-64.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/access-bridge-64.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/cldrdata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/dnsns.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/jaccess.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/localedata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/nashorn.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/sunec.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/sunjce_provider.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/sunmscapi.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/sunmscapi.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/sunpkcs11.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/ext/zipfs.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/amd64/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/amd64/jvm.cfg" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/cursors.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_CopyDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_CopyNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_LinkDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_LinkNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_MoveDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/images/cursors/win32_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/images/cursors/win32_MoveNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jfr/default.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/jfr/profile.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/management/jmxremote.access" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/management/jmxremote.password.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/management/management.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/management/snmp.acl.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/blacklisted.certs" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/cacerts" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/java.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x64/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x64/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
-
-										<get src="${project.binaries-base}/win32/jre8-x86/LICENSE?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/release?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/release" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-console-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-console-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-console-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-datetime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-datetime-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-debug-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-debug-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-errorhandling-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-errorhandling-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-file-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-console-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-file-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-file-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-file-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-file-l2-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-handle-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-handle-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-heap-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-interlocked-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-interlocked-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-libraryloader-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-libraryloader-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-localization-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-localization-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-memory-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-memory-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-namedpipe-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-namedpipe-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-processenvironment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-processenvironment-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-processthreads-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-processthreads-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-processthreads-l1-1-1.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-processthreads-l1-1-1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-profile-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-profile-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-rtlsupport-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-rtlsupport-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-string-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-synch-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-synch-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-synch-l1-2-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-synch-l1-2-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-sysinfo-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-sysinfo-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-timezone-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-timezone-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-core-util-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-core-util-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/API-MS-Win-core-xstate-l2-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/API-MS-Win-core-xstate-l2-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-conio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-conio-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-convert-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-convert-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-environment-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-environment-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-filesystem-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-filesystem-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-heap-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-heap-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-locale-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-locale-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-math-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-math-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-multibyte-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-multibyte-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-private-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-private-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-process-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-process-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-runtime-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-runtime-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-stdio-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-stdio-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-string-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-string-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-time-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-time-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/api-ms-win-crt-utility-l1-1-0.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/api-ms-win-crt-utility-l1-1-0.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/attach.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/attach.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/awt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/awt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/awt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/awt.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_shmem.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_shmem.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_shmem.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_shmem.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_socket.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_socket.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/dt_socket.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/dt_socket.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/freetype.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/freetype.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/fontmanager.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/fontmanager.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/fontmanager.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/fontmanager.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/hprof.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/hprof.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/hprof.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/hprof.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/instrument.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/instrument.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/instrument.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/instrument.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pcsc.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pcsc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pcsc.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pcsc.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pkcs11.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pkcs11.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/j2pkcs11.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/j2pkcs11.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jaas_nt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jaas_nt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jaas_nt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jaas_nt.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jabswitch.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jabswitch.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jabswitch.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jabswitch.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java_crw_demo.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java_crw_demo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java_crw_demo.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java_crw_demo.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JavaAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JavaAccessBridge-32.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/java-rmi.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/java-rmi.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/javaw.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/javaw.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/javaw.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/javaw.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jawt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jawt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jawt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jawt.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/JAWTAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/JAWTAccessBridge-32.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jdwp.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jdwp.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jdwp.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jdwp.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jjs.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jjs.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jjs.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jjs.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jli.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jli.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jli.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jli.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jpeg.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jpeg.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jpeg.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jpeg.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsdt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsdt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsdt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsdt.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsound.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsound.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsound.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsound.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsoundds.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsoundds.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/jsoundds.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/jsoundds.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/keytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/keytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/keytool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/keytool.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/kinit.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/kinit.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/kinit.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/kinit.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/klist.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/klist.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/klist.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/klist.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/ktab.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ktab.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/ktab.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ktab.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/lcms.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/lcms.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/lcms.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/lcms.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/management.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/management.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/management.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/management.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/mlib_image.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/mlib_image.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/mlib_image.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/mlib_image.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/msvcp140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/msvcp140.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/net.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/net.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/net.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/net.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/nio.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/nio.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/nio.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/nio.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/npt.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/npt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/npt.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/npt.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/orbd.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/orbd.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/orbd.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/orbd.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/pack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/pack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/pack200.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/pack200.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/policytool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/policytool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/policytool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/policytool.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmid.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmid.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmid.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmid.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmiregistry.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmiregistry.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/rmiregistry.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/rmiregistry.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/servertool.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/servertool.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/servertool.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/servertool.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/splashscreen.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/splashscreen.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/splashscreen.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/splashscreen.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunec.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunec.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunec.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunec.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunmscapi.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunmscapi.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/sunmscapi.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/sunmscapi.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/tnameserv.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/tnameserv.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/tnameserv.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/tnameserv.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/ucrtbase.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/ucrtbase.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/unpack200.exe?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/unpack200.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/vcruntime140.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/vcruntime140.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/verify.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/verify.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/verify.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/verify.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/w2k_lsa_auth.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/w2k_lsa_auth.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/w2k_lsa_auth.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/w2k_lsa_auth.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge-32.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge-32.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/WindowsAccessBridge-32.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/WindowsAccessBridge-32.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/zip.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/zip.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/zip.pdb?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/zip.pdb" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/client/jvm.dll?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/client/jvm.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/bin/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/bin/client/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/accessibility.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/accessibility.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/calendars.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/charsets.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/classlist?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/content-types.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/currency.data" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/flavormap.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/fontconfig.bfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/fontconfig.bfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/fontconfig.properties.src?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/fontconfig.properties.src" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jce.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jfr.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jsse.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jvm.hprof.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/logging.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/management-agent.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/net.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/psfont.properties.ja" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/psfontj2d.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/resources.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/rt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/sound.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/tzmappings?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/tzmappings" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/cmm/GRAY.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/cmm/PYCC.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/cmm/sRGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/access-bridge.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/access-bridge.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/access-bridge-32.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/access-bridge-32.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/cldrdata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/dnsns.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/jaccess.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/localedata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/nashorn.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/sunec.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/sunjce_provider.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/sunmscapi.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/sunmscapi.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/sunpkcs11.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/ext/zipfs.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/i386/jvm.cfg" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/cursors.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_CopyDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_CopyNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_LinkDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_LinkNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_MoveDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/images/cursors/win32_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/images/cursors/win32_MoveNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jfr/default.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/jfr/profile.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/management/jmxremote.access" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/management/jmxremote.password.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/management/management.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/management/snmp.acl.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/blacklisted.certs" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/cacerts" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/java.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre8-x86/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/win32/jre8-x86/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
-
+										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x64">
+											<cutdirsmapper dirs="1" />
+										</unzip>
+										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/win32/jre${project.jre-version}-x86">
+											<cutdirsmapper dirs="1" />
+										</unzip>
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/win32/mplayer/subfont.ttf" usetimestamp="true" />
-
-										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 									</target>
 								</configuration>
 							</execution>
@@ -1530,14 +1183,14 @@
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
-										<mkdir dir="${project.basedir}/win32/service" />
-										<copy todir="${project.basedir}/win32/service" overwrite="true">
+										<mkdir dir="${project.binaries}/win32/service" />
+										<copy todir="${project.binaries}/win32/service" overwrite="true">
 											<fileset dir="${project.external-resources}/third-party/wrapper" />
 										</copy>
 
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
-										<mkdir dir="${project.basedir}/win32/winxp" />
-										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.basedir}/win32/winxp" />
+										<mkdir dir="${project.binaries}/win32/winxp" />
+										<copy file="${project.external-resources}/lib/winxp/jnidispatch.dll" todir="${project.binaries}/win32/winxp" />
 									</target>
 								</configuration>
 							</execution>
@@ -1556,7 +1209,7 @@
 						<version>1.0-SNAPSHOT</version>
 						<executions>
 							<execution>
-								<id>build-pms-windows</id>
+								<id>build-ums-windows</id>
 								<configuration>
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
@@ -1986,24 +1639,7 @@
 										<mkdir dir="${project.binaries}/linux" />
 										<mkdir dir="${project.binaries}/linux/x86" />
 										<mkdir dir="${project.binaries}/linux/x86/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/bin" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/applet" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/cmm" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/ext" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/jli" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/client" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/i386/server" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/jfr" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/management" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/linux/x86/jre8/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
@@ -2011,120 +1647,10 @@
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-
-										<get src="${project.binaries-base}/linux/x86/jre8/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/release?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/release" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/java?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/java" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/jjs?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/jjs" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/keytool?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/keytool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/orbd?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/orbd" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/pack200?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/pack200" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/policytool?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/policytool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/rmid?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/rmid" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/rmiregistry?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/rmiregistry" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/servertool?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/servertool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/tnameserv?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/tnameserv" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/bin/unpack200?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/bin/unpack200" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/calendars.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/charsets.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/classlist?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/content-types.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/currency.data" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/flavormap.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jce.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jexec?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jexec" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jfr.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jsse.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jvm.hprof.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/logging.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/management-agent.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/net.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/psfont.properties.ja" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/psfontj2d.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/resources.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/rt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/sound.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/GRAY.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/PYCC.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/cmm/sRGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/cldrdata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/dnsns.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/jaccess.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/localedata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/nashorn.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/sunec.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/sunjce_provider.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/sunpkcs11.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/ext/zipfs.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/jvm.cfg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt_headless.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt_headless.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libawt_xawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libawt_xawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libdt_socket.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libfontmanager.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libfreetype.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libfreetype.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libhprof.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libhprof.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libinstrument.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2gss.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2pcsc.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2pcsc.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libj2pkcs11.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libj2pkcs11.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjaas_unix.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjaas_unix.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjava.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjava.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjava_crw_demo.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjava_crw_demo.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjdwp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjdwp.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjpeg.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjpeg.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsdt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsdt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsig.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsound.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsound.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libjsoundalsa.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libjsoundalsa.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/liblcms.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/liblcms.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libmanagement.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libmanagement.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libmlib_image.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libmlib_image.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnet.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnet.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnio.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnio.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libnpt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libnpt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsctp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsctp.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsplashscreen.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsplashscreen.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libsunec.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libsunec.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libunpack.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libunpack.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libverify.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libverify.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/libzip.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/libzip.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/libjsig.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/libjvm.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/client/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/client/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/jli/libjli.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/jli/libjli.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/libjsig.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/libjvm.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/i386/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/i386/server/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/cursors.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_CopyDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_CopyNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_LinkDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_LinkNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_MoveDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/images/cursors/motif_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/images/cursors/motif_MoveNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jfr/default.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/jfr/profile.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/management/jmxremote.access" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/management/jmxremote.password.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/management/management.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/management/snmp.acl.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/blacklisted.certs" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/cacerts" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/java.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre8/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre8/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
+											<cutdirsmapper dirs="1" />
+										</untar>
 									</target>
 								</configuration>
 							</execution>
@@ -2222,28 +1748,12 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<!-- Make sure the binaries folder exists -->
+										<!-- Make sure the folders exist -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/linux" />
 										<mkdir dir="${project.binaries}/linux/x86_64" />
 										<mkdir dir="${project.binaries}/linux/x86_64/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/bin" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/amd64" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/amd64/jli" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/amd64/server" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/applet" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/cmm" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/ext" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/images" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/images/cursors" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/jfr" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/management" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/security" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/security/policy" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/security/policy/limited" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre8/lib/security/policy/unlimited" />
+										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}" />
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
@@ -2251,116 +1761,10 @@
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-
-										<get src="${project.binaries-base}/linux/x86_64/jre8/LICENSE?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/LICENSE" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/release?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/release" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/java?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/java" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/jjs?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/jjs" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/keytool?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/keytool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/orbd?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/orbd" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/pack200?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/pack200" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/policytool?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/policytool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/rmid?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/rmid" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/rmiregistry?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/rmiregistry" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/servertool?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/servertool" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/tnameserv?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/tnameserv" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/bin/unpack200?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/bin/unpack200" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/calendars.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/calendars.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/charsets.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/charsets.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/classlist?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/classlist" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/content-types.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/content-types.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/currency.data?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/currency.data" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/flavormap.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/flavormap.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/hijrah-config-umalqura.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/hijrah-config-umalqura.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jce.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jce.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jexec?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jexec" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jfr.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jfr.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jsse.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jsse.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jvm.hprof.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jvm.hprof.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/logging.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/logging.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/management-agent.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/management-agent.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/meta-index?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/net.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/net.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/psfont.properties.ja?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/psfont.properties.ja" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/psfontj2d.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/psfontj2d.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/resources.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/resources.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/rt.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/rt.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/sound.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/sound.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/tzdb.dat?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/tzdb.dat" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/jvm.cfg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/jvm.cfg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libawt_headless.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libawt_headless.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libawt_xawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libawt_xawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libdt_socket.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libdt_socket.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libfontmanager.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libfontmanager.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libhprof.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libhprof.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libinstrument.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libinstrument.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libj2gss.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libj2gss.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libj2pcsc.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libj2pcsc.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libj2pkcs11.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libj2pkcs11.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjaas_unix.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjaas_unix.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjava.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjava.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjava_crw_demo.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjava_crw_demo.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjawt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjawt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjdwp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjdwp.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjpeg.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjpeg.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjsdt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjsdt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjsig.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjsound.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjsound.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libjsoundalsa.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libjsoundalsa.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/liblcms.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/liblcms.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libmanagement.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libmanagement.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libmlib_image.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libmlib_image.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libnet.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libnet.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libnio.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libnio.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libnpt.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libnpt.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libsctp.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libsctp.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libsplashscreen.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libsplashscreen.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libsunec.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libsunec.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libunpack.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libunpack.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libverify.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libverify.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/libzip.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/libzip.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/jli/libjli.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/jli/libjli.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/server/libjsig.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/server/libjsig.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/server/libjvm.so?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/server/libjvm.so" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/amd64/server/Xusage.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/amd64/server/Xusage.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/cmm/CIEXYZ.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/cmm/CIEXYZ.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/cmm/GRAY.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/cmm/GRAY.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/cmm/LINEAR_RGB.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/cmm/LINEAR_RGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/cmm/PYCC.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/cmm/PYCC.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/cmm/sRGB.pf?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/cmm/sRGB.pf" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/cldrdata.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/cldrdata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/dnsns.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/dnsns.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/jaccess.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/jaccess.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/localedata.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/localedata.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/meta-index?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/meta-index" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/nashorn.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/nashorn.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/sunec.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/sunec.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/sunjce_provider.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/sunjce_provider.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/sunpkcs11.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/sunpkcs11.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/ext/zipfs.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/ext/zipfs.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/cursors.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/cursors.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/invalid32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/invalid32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_CopyDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_CopyDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_CopyNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_CopyNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_LinkDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_LinkDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_LinkNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_LinkNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_MoveDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_MoveDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/images/cursors/motif_MoveNoDrop32x32.gif?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/images/cursors/motif_MoveNoDrop32x32.gif" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jfr/default.jfc?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jfr/default.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/jfr/profile.jfc?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/jfr/profile.jfc" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/management/jmxremote.access?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/management/jmxremote.access" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/management/jmxremote.password.template?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/management/jmxremote.password.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/management/management.properties?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/management/management.properties" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/management/snmp.acl.template?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/management/snmp.acl.template" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/blacklisted.certs?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/blacklisted.certs" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/cacerts?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/cacerts" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/java.policy?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/java.policy" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/java.security?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/java.security" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/policy/limited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/policy/limited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/policy/limited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/policy/limited/US_export_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/policy/unlimited/local_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/policy/unlimited/local_policy.jar" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre8/lib/security/policy/unlimited/US_export_policy.jar?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre8/lib/security/policy/unlimited/US_export_policy.jar" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
+											<cutdirsmapper dirs="1" />
+										</untar>
 									</target>
 								</configuration>
 							</execution>
@@ -2496,7 +1900,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-999]</version>
+											<version>${project.jre-version}</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2526,10 +1930,10 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/10.15/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
@@ -2542,6 +1946,7 @@
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
@@ -2586,10 +1991,10 @@
 													failonerror="true"
 													outputproperty="runtime">
 											<arg value="-v"/>
-											<arg value="8"/>
+											<arg value="${project.jre-version}"/>
 										</exec>
 
-										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
 										<bundleapp 
@@ -2608,9 +2013,9 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
-											<option value="-Xmx1280M"/>
+											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
@@ -2673,6 +2078,209 @@
 		</profile>
 
 		<!--
+			macOS on ARM (Apple Silicon) processors
+			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
+		-->
+		<profile>
+			<id>macos-arm</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>${maven-enforcer-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>enforce-java</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireJavaVersion>
+											<version>${project.jre-version}</version>
+										</requireJavaVersion>
+									</rules>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!--
+						Plugin to download binaries before assembly
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin-version}</version>
+						<executions>
+							<execution>
+								<id>process-resources-macos</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target unless="offline">
+										<!-- Make sure the binaries folder exists -->
+										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}/osx/10.15" />
+										<mkdir dir="${project.binaries}/osx/arm" />
+
+										<!-- Download binaries -->
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/arm/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-package-macos</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the target folder exists -->
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+
+										<!-- Create the shortcut to the Applications folder -->
+										<exec executable="/usr/bin/osascript">
+											<arg value="-e" />
+											<arg value="tell application &quot;Finder&quot;" />
+											<arg value="-e" />
+											<arg value="set src to POSIX file &quot;/Applications&quot;" />
+											<arg value="-e" />
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
+											<arg value="-e" />
+											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end tell" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>package app</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<property environment="env" />
+									<target name="bundle">
+										<!-- Obtain path to the selected JRE -->
+										<exec executable="/usr/libexec/java_home"
+													failonerror="true"
+													outputproperty="runtime">
+											<arg value="-v"/>
+											<arg value="${project.jre-version}"/>
+										</exec>
+
+										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/external-resources/lib/appbundler-1.0ea.jar"/>
+										<bundleapp 
+											jrePreferred="true"
+											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
+											name="${project.name}"
+											displayname="${project.name}"
+											executableName="UMS"
+											identifier="net.pms.PMS"
+											shortversion="${project.version.short}"
+											version="${project.version}"
+											icon="${project.basedir}/src/main/resources/images/logo.icns"
+											applicationCategory="public.app-category.entertainment"
+											workingdirectory="$APP_ROOT/Contents/Resources"
+											mainclassname="net.pms.PMS"
+										>
+											<!-- <runtime dir="${runtime}"/> -->
+											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+											<option value="-Xmx2048M"/>
+											<option value="-Xss16M"/>
+											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Djava.net.preferIPv4Stack=true"/>
+											<option value="-Xdock:name=UMS"/>
+										</bundleapp>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>${maven-assembly-plugin-version}</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-macos</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the files in the right place before
+								moving them to the app Bundle.
+							-->
+							<execution>
+								<id>make-assembly-macos</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-macos-arm.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
 			macOS pre-10.15 (Catalina)
 			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
 		-->
@@ -2696,7 +2304,7 @@
 								<configuration>
 									<rules>
 										<requireJavaVersion>
-											<version>[1.8.0-51,1.8.0-999]</version>
+											<version>${project.jre-version}</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
@@ -2785,7 +2393,7 @@
 													failonerror="true"
 													outputproperty="runtime">
 											<arg value="-v"/>
-											<arg value="8"/>
+											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
@@ -2807,9 +2415,9 @@
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
-											<runtime dir="/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home"/>
+											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
-											<option value="-Xmx1280M"/>
+											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
 											<option value="-Dfile.encoding=UTF-8"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
@@ -3043,7 +2651,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.2.0</version>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3148,7 +2756,7 @@
 					<!-- Copy Web resources -->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.2.0</version>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3216,8 +2824,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/win32" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3288,8 +2896,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/MediaInfo64.dll?p=${binary-revision}" dest="${project.basedir}/MediaInfo64.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/win32" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/win32/MediaInfo64.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3299,12 +2907,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.1.2</version>
+						<version>3.2.0</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>9.0</version>
+								<version>10.3.4</version>
 							</dependency>
 						</dependencies>
 						<configuration>

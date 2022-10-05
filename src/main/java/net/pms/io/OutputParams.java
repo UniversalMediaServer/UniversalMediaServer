@@ -1,19 +1,19 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008 A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.io;
 
@@ -25,8 +25,9 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.IPushOutput;
+import net.pms.encoders.HlsHelper.HlsConfiguration;
 
-public class OutputParams {
+public final class OutputParams {
 
 	private File workDir;
 	private Map<String, String> env;
@@ -58,6 +59,7 @@ public class OutputParams {
 	private boolean avidemux;
 	private boolean shiftScr;
 	private boolean cleanup;
+	private HlsConfiguration hlsConfiguration;
 
 	public OutputParams(PmsConfiguration configuration) {
 		if (configuration != null) {
@@ -78,6 +80,7 @@ public class OutputParams {
 		}
 		setTimeSeek(0);
 		setEnv(null);
+		setHlsConfiguration(null);
 	}
 
 	/**
@@ -362,5 +365,17 @@ public class OutputParams {
 
 	public void setCleanup(boolean cleanup) {
 		this.cleanup = cleanup;
+	}
+
+	public boolean isHlsConfigured() {
+		return hlsConfiguration != null;
+	}
+
+	public HlsConfiguration getHlsConfiguration() {
+		return hlsConfiguration;
+	}
+
+	public void setHlsConfiguration(HlsConfiguration hlsConfiguration) {
+		this.hlsConfiguration = hlsConfiguration;
 	}
 }

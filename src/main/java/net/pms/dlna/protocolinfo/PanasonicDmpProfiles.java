@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,13 +23,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.support.model.Protocol;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicComProfileName.KnownPanasonicComProfileName;
 import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
+import org.jupnp.support.model.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class handles a Panasonic DMP's {@link ProfileName}s from the custom

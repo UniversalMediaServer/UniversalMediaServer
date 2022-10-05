@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +21,7 @@ import net.pms.formats.Format;
 
 public abstract class ImageBase extends Format {
 
-	public ImageBase() {
+	protected ImageBase() {
 		type = IMAGE;
 	}
 

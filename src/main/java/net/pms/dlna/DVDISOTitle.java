@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -44,6 +43,7 @@ import net.pms.util.MPlayerDvdAudioStreamChannels;
 import net.pms.util.MPlayerDvdAudioStreamTypes;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +58,11 @@ public class DVDISOTitle extends DLNAResource {
 		"^subtitle \\( sid \\): (?<StreamNumber>\\d+) language: (?<Language>\\w*)$"
 	);
 
-	private File file;
-	private int title;
+	private final File file;
+	private final int title;
+	private final String parentName;
+
 	private long length;
-	private String parentName;
 
 	public DVDISOTitle(File file, String parentName, int title) {
 		this.file = file;
@@ -131,10 +132,7 @@ public class DVDISOTitle extends DLNAResource {
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = () -> {
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(10000);
 			pw.stopProcess();
 		};
 
@@ -287,7 +285,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return (isBlank(parentName) ? "" : parentName + " ") + Messages.getString("DVDISOTitle.1") + " " + title;
+		return (isBlank(parentName) ? "" : parentName + " ") + Messages.getString("Title") + " " + title;
 	}
 
 	@Override
@@ -358,7 +356,6 @@ public class DVDISOTitle extends DLNAResource {
 				thumbFolder = new File(configuration.getAlternateThumbFolder());
 
 				if (!thumbFolder.isDirectory()) {
-					thumbFolder = null;
 					break;
 				}
 			}

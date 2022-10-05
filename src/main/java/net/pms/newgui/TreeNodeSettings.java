@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -33,7 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
-import net.pms.encoders.Player;
+import net.pms.encoders.Engine;
+import net.pms.newgui.engines.Players;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +41,15 @@ import org.slf4j.LoggerFactory;
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeNodeSettings.class);
 	private static final long serialVersionUID = -337606760204027449L;
-	private Player player;
-	private JComponent otherConfigPanel;
+	private final Engine player;
+	private final JComponent otherConfigPanel;
 	private JPanel warningPanel;
 
-	public Player getPlayer() {
+	public Engine getPlayer() {
 		return player;
 	}
 
-	public TreeNodeSettings(String name, Player p, JComponent otherConfigPanel) {
+	public TreeNodeSettings(String name, Engine p, JComponent otherConfigPanel) {
 		super(name);
 		this.player = p;
 		this.otherConfigPanel = otherConfigPanel;
@@ -69,7 +69,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	public JComponent getConfigPanel() {
 		if (player != null) {
 			if (player.isAvailable()) {
-				return player.config();
+				return Players.config(player.name());
 			}
 			return getWarningPanel();
 		} else if (otherConfigPanel != null) {
@@ -104,7 +104,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			builder.add(iconPanel, cc.xywh(2, 1, 1, 4, CellConstraints.CENTER, CellConstraints.TOP));
 
-			JLabel warningLabel = new JLabel(Messages.getString("TreeNodeSettings.4"));
+			JLabel warningLabel = new JLabel(Messages.getString("ThisEngineNotLoaded"));
 			builder.add(warningLabel, cc.xy(4, 2, CellConstraints.LEFT, CellConstraints.CENTER));
 			warningLabel.setFont(warningLabel.getFont().deriveFont(Font.BOLD));
 

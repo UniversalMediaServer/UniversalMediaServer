@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,13 +17,12 @@
  */
 package net.pms.io;
 
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import com.sun.jna.Platform;
 import net.pms.platform.windows.NTStatus;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 
 /**
  * A container for {@link Process} results with its output stored as an array of

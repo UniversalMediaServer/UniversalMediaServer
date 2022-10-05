@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -60,7 +59,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 			for (int i = 1; i <= nbIntervals; i++) {
 				// TODO: Remove clone(), instead create a new object from scratch to avoid unwanted cross references.
 				DLNAResource newChildNoSub = child.clone();
-				newChildNoSub.setPlayer(child.getPlayer());
+				newChildNoSub.setEngine(child.getEngine());
 				newChildNoSub.setMedia(child.getMedia());
 				newChildNoSub.setNoName(true);
 				newChildNoSub.setMediaAudio(child.getMediaAudio());

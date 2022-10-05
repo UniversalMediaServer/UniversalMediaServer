@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -26,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class OutputBufferConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputBufferConsumer.class);
-	private BufferedOutputFile outputBuffer;
+	private final BufferedOutputFile outputBuffer;
 
 	/**
 	 * Size of a buffer in bytes. The buffer is used to copy data from an
@@ -51,7 +50,7 @@ public class OutputBufferConsumer extends OutputConsumer {
 		try {
 			//LOGGER.trace("Starting read from pipe");
 			byte[] buf = new byte[PIPE_BUFFER_SIZE];
-			int n = 0;
+			int n;
 			while ((n = inputStream.read(buf)) > 0) {
 				//LOGGER.trace("Fetched " + n + " from pipe");
 				outputBuffer.write(buf, 0, n);

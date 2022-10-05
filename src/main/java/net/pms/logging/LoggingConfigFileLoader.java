@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,12 +32,21 @@ import java.util.HashMap;
  * @author Nadahar
  * @since 5.2.3
  */
+@Deprecated
 public class LoggingConfigFileLoader {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	@Deprecated
+	private LoggingConfigFileLoader() {
+	}
 
 	/**
 	 * @deprecated Use {@link LoggingConfig#getLogFilePaths()}
 	 * @return
 	 */
+	@Deprecated
 	public static HashMap<String, String> getLogFilePaths() {
 		HashMap<String, String> logFilePaths = new HashMap<>();
 		// Copy logFilePaths from LoggingConfig and change "default.log" to "debug.log" for backwards compatibility.

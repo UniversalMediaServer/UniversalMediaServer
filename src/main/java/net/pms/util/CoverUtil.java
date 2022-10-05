@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +21,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +39,8 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
+	private static final Object INSTANCE_LOCK = new Object();
 	protected static final String ENCODING = StandardCharsets.UTF_8.name();
-	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
-	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
 	/**
@@ -62,7 +58,7 @@ public abstract class CoverUtil {
 
 	public static CoverUtil get() {
 		CoverSupplier supplier = PMS.getConfiguration().getAudioThumbnailMethod();
-		synchronized (instanceLock) {
+		synchronized (INSTANCE_LOCK) {
 			switch (supplier.toInt()) {
 				case CoverSupplier.COVER_ART_ARCHIVE_INT:
 					if (instance == null || !(instance instanceof CoverArtArchiveUtil)) {
@@ -122,6 +118,6 @@ public abstract class CoverUtil {
 		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
+	protected abstract byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
 
 }

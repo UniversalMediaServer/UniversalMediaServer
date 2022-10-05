@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -19,7 +18,6 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-import javax.swing.JComponent;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -29,7 +27,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
-	public static final PlayerId ID = StandardPlayerId.TSMUXER_AUDIO;
+	public static final EngineId ID = StandardEngineId.TSMUXER_AUDIO;
 
 	/** The {@link Configuration} key for the tsMuxeR Audio executable type. */
 	public static final String KEY_TSMUXER_AUDIO_EXECUTABLE_TYPE = "tsmuxer_audio_executable_type";
@@ -40,12 +38,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public JComponent config() {
-		return null;
-	}
-
-	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -82,7 +75,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public int purpose() {
-		return AUDIO_SIMPLEFILE_PLAYER;
+		return AUDIO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override

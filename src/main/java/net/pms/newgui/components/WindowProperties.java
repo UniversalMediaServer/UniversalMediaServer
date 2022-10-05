@@ -1,20 +1,19 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.newgui.components;
 
@@ -125,11 +124,11 @@ public class WindowProperties implements WindowListener, ComponentListener {
 				}
 				window.setLocationByPlatform(true);
 			}
-			if (window instanceof Frame) {
+			if (window instanceof Frame frame) {
 				// Set maximized state
 				int maximizedState = windowState & Frame.MAXIMIZED_BOTH;
 				if (maximizedState != 0) {
-					((Frame) window).setExtendedState(((Frame) window).getExtendedState() | maximizedState);
+					frame.setExtendedState(frame.getExtendedState() | maximizedState);
 				}
 			}
 		}
@@ -592,15 +591,12 @@ public class WindowProperties implements WindowListener, ComponentListener {
 						"Window properties configuration file \"{}\" contains unknown additional data",
 						path
 					);
-					return;
 				}
+			} catch (NoSuchFileException e) {
+				LOGGER.debug("Window properties configuration file \"{}\" not found", path);
 			} catch (IOException e) {
-				if (e instanceof NoSuchFileException) {
-					LOGGER.debug("Window properties configuration file \"{}\" not found", path);
-				} else {
-					LOGGER.error("Error reading window properties configuration file \"{}\": {}", path, e.getMessage());
-					LOGGER.trace("", e);
-				}
+				LOGGER.error("Error reading window properties configuration file \"{}\": {}", path, e.getMessage());
+				LOGGER.trace("", e);
 			}
 		}
 

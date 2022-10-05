@@ -6,6 +6,13 @@ import javax.swing.filechooser.FileFilter;
 import net.pms.Messages;
 
 public class ProfileChooser {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ProfileChooser() {
+	}
+
 	private static class ProfileChooserFileFilter extends FileFilter {
 		// XXX: this is more restrictive than the environment variable/property (which accept any filename)
 		// but should simplify things in the UI
@@ -16,7 +23,7 @@ public class ProfileChooser {
 
 		@Override
 		public String getDescription() {
-			return Messages.getString("ProfileChooser.3");
+			return Messages.getString("ProfileFileOrFolder");
 		}
 	}
 
@@ -24,10 +31,10 @@ public class ProfileChooser {
 		final JFileChooser fc = new JFileChooser();
 
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		fc.setDialogTitle(Messages.getString("ProfileChooser.1"));
+		fc.setDialogTitle(Messages.getString("UniversalMediaServerProfileChooser"));
 		fc.setFileFilter(new ProfileChooserFileFilter());
 
-		int returnVal = fc.showDialog(null, Messages.getString("ProfileChooser.2"));
+		int returnVal = fc.showDialog(null, Messages.getString("Select"));
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();

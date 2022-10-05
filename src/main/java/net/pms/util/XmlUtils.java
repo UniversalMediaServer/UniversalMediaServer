@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,6 +30,12 @@ import net.pms.configuration.PmsConfiguration;
 public class XmlUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
 	private static PmsConfiguration configuration = PMS.getConfiguration();
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private XmlUtils() {
+	}
 
 	/**
 	 * Returns a new {@code DocumentBuilderFactory} instance with XML External Entity (XXE) processing disabled.

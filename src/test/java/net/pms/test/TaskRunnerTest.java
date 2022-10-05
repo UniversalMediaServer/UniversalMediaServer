@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2011  G.Zsombor
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -21,13 +20,13 @@ package net.pms.test;
 import ch.qos.logback.classic.LoggerContext;
 import java.util.concurrent.TimeUnit;
 import net.pms.util.TaskRunner;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class TaskRunnerTest {
-	@Before
+	@BeforeEach
 	public void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -55,7 +54,7 @@ public class TaskRunnerTest {
 		}
 		tk.shutdown();
 		tk.awaitTermination(1, TimeUnit.DAYS);
-		assertEquals("all 3 task is executed", 3, c.x);
+		assertEquals(3, c.x, "all 3 task is executed");
 	}
 
 	@Test
@@ -72,7 +71,7 @@ public class TaskRunnerTest {
 		}
 		tk.shutdown();
 		tk.awaitTermination(1, TimeUnit.DAYS);
-		assertEquals("only one task is executed", 1, c.x);
+		assertEquals(1, c.x, "only one task is executed");
 	}
 
 	protected void sleep() {

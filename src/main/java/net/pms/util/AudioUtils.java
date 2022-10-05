@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -247,31 +245,19 @@ public final class AudioUtils {
 				}
 				String fourCCString = new String(fourCC, StandardCharsets.US_ASCII).toLowerCase(Locale.ROOT);
 				switch (fourCCString) {
-					case "lpcJ":
-						audio.setCodecA(FormatConfiguration.REALAUDIO_14_4);
-						break;
-					case "28_8":
-						audio.setCodecA(FormatConfiguration.REALAUDIO_28_8);
-						break;
-					case "dnet":
-						audio.setCodecA(FormatConfiguration.AC3);
-						break;
-					case "sipr":
-						audio.setCodecA(FormatConfiguration.SIPRO);
-						break;
-					case "cook":
-						audio.setCodecA(FormatConfiguration.COOK);
-					case "atrc":
-						audio.setCodecA(FormatConfiguration.ATRAC);
-					case "ralf":
-						audio.setCodecA(FormatConfiguration.RALF);
-					case "raac":
-						audio.setCodecA(FormatConfiguration.AAC_LC);
-					case "racp":
-						audio.setCodecA(FormatConfiguration.HE_AAC);
-					default:
+					case "lpcJ" -> audio.setCodecA(FormatConfiguration.REALAUDIO_14_4);
+					case "28_8" -> audio.setCodecA(FormatConfiguration.REALAUDIO_28_8);
+					case "dnet" -> audio.setCodecA(FormatConfiguration.AC3);
+					case "sipr" -> audio.setCodecA(FormatConfiguration.SIPRO);
+					case "cook" -> audio.setCodecA(FormatConfiguration.COOK);
+					case "atrc" -> audio.setCodecA(FormatConfiguration.ATRAC);
+					case "ralf" -> audio.setCodecA(FormatConfiguration.RALF);
+					case "raac" -> audio.setCodecA(FormatConfiguration.AAC_LC);
+					case "racp" -> audio.setCodecA(FormatConfiguration.HE_AAC);
+					default -> {
 						LOGGER.debug("Unknown RealMedia codec FourCC \"{}\" - parsing failed", fourCCString);
 						return false;
+					}
 				}
 
 				if (buffer.hasRemaining()) {
@@ -290,8 +276,8 @@ public final class AudioUtils {
 
 			media.getAudioTracksList().add(audio);
 			long fileSize = 0;
-			if (channel instanceof FileChannel) {
-				fileSize = ((FileChannel) channel).size();
+			if (channel instanceof FileChannel fileChannel) {
+				fileSize = fileChannel.size();
 				media.setSize(fileSize);
 			}
 			// Duration is estimated based on bitrate and might not be accurate

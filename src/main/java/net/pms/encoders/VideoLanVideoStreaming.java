@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -27,33 +26,34 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.util.ExecutableErrorType;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.Version;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
-public class VideoLanVideoStreaming extends Player {
+public class VideoLanVideoStreaming extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VideoLanVideoStreaming.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO_STREAMING;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO_STREAMING;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -68,11 +68,11 @@ public class VideoLanVideoStreaming extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -84,11 +84,6 @@ public class VideoLanVideoStreaming extends Player {
 	@Override
 	public String getExecutableTypeKey() {
 		return KEY_VLC_LEGACY_EXECUTABLE_TYPE;
-	}
-
-	@Override
-	public String[] args() {
-		return new String[]{};
 	}
 
 	@Override
@@ -207,19 +202,11 @@ public class VideoLanVideoStreaming extends Player {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipeProcess);
 
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
 		configuration = prev;
 		return pw;
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override
@@ -233,7 +220,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -245,8 +232,8 @@ public class VideoLanVideoStreaming extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {
@@ -260,7 +247,7 @@ public class VideoLanVideoStreaming extends Player {
 				);
 				if (output.getError() != null) {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.Error"), this) + " \n" + output.getError().getMessage());
+					result.errorText(String.format(Messages.getString("TranscodingEngineXNotAvailable"), this) + " \n" + output.getError().getMessage());
 					result.available(Boolean.FALSE);
 					LOGGER.debug("\"{} {}\" failed with error: {}", executableInfo.getPath(), arg, output.getError().getMessage());
 					return result.build();
@@ -276,7 +263,7 @@ public class VideoLanVideoStreaming extends Player {
 					result.available(Boolean.TRUE);
 				} else {
 					result.errorType(ExecutableErrorType.GENERAL);
-					result.errorText(String.format(Messages.getString("Engine.ExitCode"), this, output.getExitCode()));
+					result.errorText(String.format(Messages.getString("TranscodingEngineNotAvailableExitCode"), this, output.getExitCode()));
 					result.available(Boolean.FALSE);
 				}
 			} catch (InterruptedException e) {
@@ -287,9 +274,9 @@ public class VideoLanVideoStreaming extends Player {
 			Version requiredVersion = new Version("2.0.2");
 			if (result.version().compareTo(requiredVersion) <= 0) {
 				result.errorType(ExecutableErrorType.GENERAL);
-				result.errorText(String.format(Messages.getString("Engine.VersionTooLow"), requiredVersion, this));
+				result.errorText(String.format(Messages.getString("OnlyVersionXAboveSupported"), requiredVersion, this));
 				result.available(Boolean.FALSE);
-				LOGGER.warn(String.format(Messages.getRootString("Engine.VersionTooLow"), requiredVersion, this));
+				LOGGER.warn(String.format(Messages.getRootString("OnlyVersionXAboveSupported"), requiredVersion, this));
 			}
 		} else if (result.available() != null && result.available().booleanValue()) {
 			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");

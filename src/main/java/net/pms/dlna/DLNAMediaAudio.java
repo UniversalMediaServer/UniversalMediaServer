@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -40,12 +39,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String songname;
 	private String genre;
 	private int year;
+	private int disc = 1;
 	private int track;
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
 	private String albumartist;
 	private String mbidRecord;
 	private String mbidTrack;
+	private Integer rating;
+	private int audiotrackId;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -681,7 +683,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns the MB record ID for this track
 	 *
-	 * @return The album artist name.
+	 * @return The MB record ID.
 	 */
 	public String getMbidRecord() {
 		return this.mbidRecord;
@@ -699,7 +701,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns MB track id for this track.
 	 *
-	 * @return The album artist name.
+	 * @return The MB track ID.
 	 */
 	public String getMbidTrack() {
 		return this.mbidTrack;
@@ -815,6 +817,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Returns the disc number of an album for the audio.
+	 *
+	 * @return The disc number.
+	 */
+	public int getDisc() {
+		return disc;
+	}
+
+	/**
 	 * Sets the track number within an album for the audio.
 	 *
 	 * @param track The track number to set.
@@ -822,6 +833,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
+	}
+
+	public void setDisc(int disc) {
+		this.disc = disc;
 	}
 
 	public String getAudioTrackTitleFromMetadata() {
@@ -861,5 +876,29 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			throw new IllegalArgumentException("Can't set null AudioProperties.");
 		}
 		this.audioProperties = audioProperties;
+	}
+
+	/**
+	 *
+	 * @return user rating (0 - 5 stars)
+	 */
+	public Integer getRating() {
+		return rating;
+	}
+
+	/**
+	 * Set's user rating (0 - 5 stars)
+	 * @param rating
+	 */
+	public void setRating(Integer rating) {
+		this.rating = rating;
+	}
+
+	public int getAudiotrackId() {
+		return audiotrackId;
+	}
+
+	public void setAudiotrackId(int audiotrackId) {
+		this.audiotrackId = audiotrackId;
 	}
 }

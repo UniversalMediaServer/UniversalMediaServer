@@ -83,8 +83,10 @@ Function LockedListShow
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
 		LockedList::AddModule "$INSTDIR\MediaInfo64.dll"
+		LockedList::AddModule "$INSTDIR\win32\MediaInfo64.dll"
 	${Else}
 		LockedList::AddModule "$INSTDIR\MediaInfo.dll"
+		LockedList::AddModule "$INSTDIR\win32\MediaInfo64.dll"
 	${EndIf}
 
 	LockedList::Dialog /autonext /autoclosesilent
@@ -131,23 +133,28 @@ Function AdvancedSettings
 		SetRegView 64
 	${EndIf}
 
-	; Get the amount of RAM on the computer
-	System::Alloc 64
-	Pop $1
-	System::Call "*$1(i64)"
-	System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
-	System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
-	System::Free $1
-	System::Int64Op $4 / 1048576
-	Pop $4
+	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+	${If} $0 == ""
+		; Get the amount of RAM on the computer
+		System::Alloc 64
+		Pop $1
+		System::Call "*$1(i64)"
+		System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
+		System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
+		System::Free $1
+		System::Int64Op $4 / 1048576
+		Pop $4
 
-	; Choose the maximum amount of RAM we want to use based on installed RAM
-	${If} $4 > 8000 
-		StrCpy $MaximumMemoryJava "2048"
-	${ElseIf} $4 > 4000 
-		StrCpy $MaximumMemoryJava "1280"
+		; Choose the maximum amount of RAM we want to use based on installed RAM
+		${If} $4 > 8000 
+			StrCpy $MaximumMemoryJava "2048"
+		${ElseIf} $4 > 4000 
+			StrCpy $MaximumMemoryJava "1280"
+		${Else}
+			StrCpy $MaximumMemoryJava "768"
+		${EndIf}
 	${Else}
-		StrCpy $MaximumMemoryJava "768"
+		StrCpy $MaximumMemoryJava $0
 	${EndIf}
 
 	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
@@ -211,16 +218,16 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\documentation"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\renderers"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 
 	${If} ${RunningX64}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x64"
-		File /r /x "ffmpeg.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre8-x64 jre8
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x64"
+		File /r /x "ffmpeg.exe" /x "MediaInfo.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp" "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre${PROJECT_JRE_VERSION}-x64 jre${PROJECT_JRE_VERSION}
 	${Else}
-		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre8-x86"
-		File /r /x "ffmpeg64.exe" /x "jre8-x64" /x "jre8-x86" "${PROJECT_BASEDIR}\target\bin\win32"
-		Rename jre8-x86 jre8
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\jre${PROJECT_JRE_VERSION}-x86"
+		File /r /x "ffmpeg64.exe" /x "MediaInfo64.dll" /x "jre${PROJECT_JRE_VERSION}-x64" /x "jre${PROJECT_JRE_VERSION}-x86" /x "service" /x "winxp"  "${PROJECT_BASEDIR}\target\bin\win32"
+		Rename jre${PROJECT_JRE_VERSION}-x86 jre${PROJECT_JRE_VERSION}
 	${EndIf}
 
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
@@ -228,14 +235,7 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
 
-	${If} ${RunningX64}
-		File "${PROJECT_BASEDIR}\MediaInfo64.dll"
-	${Else}
-		File "${PROJECT_BASEDIR}\MediaInfo.dll"
-	${EndIf}
-
-	File "${PROJECT_BASEDIR}\MediaInfo-License.html"
-	File "${PROJECT_BASEDIR}\CHANGELOG.txt"
+	File "${PROJECT_BASEDIR}\CHANGELOG.md"
 	File "${PROJECT_BASEDIR}\README.md"
 	File "${PROJECT_BASEDIR}\LICENSE.txt"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
@@ -244,14 +244,21 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
-	SetOutPath "$INSTDIR\win32\service"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\third-party\wrapper\*.*"
-
 	SetOutPath "$INSTDIR\win32"
+	${If} ${RunningX64}
+		Delete /REBOOTOK "${PROJECT_BASEDIR}\target\bin\win32\service\wrapper.exe"
+		Delete /REBOOTOK "${PROJECT_BASEDIR}\target\bin\win32\service\wrapper.dll"
+		File /r /x "wrapper.exe" /x "wrapper.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+		Rename "service\wrapper-x64.exe" "service\wrapper.exe"
+		Rename "service\wrapper-x64.dll" "service\wrapper.dll"
+	${Else}
+		File /r /x "wrapper-x64.exe" /x "wrapper-x64.dll" "${PROJECT_BASEDIR}\target\bin\win32\service"
+	${EndIf}
+
 	File "${PROJECT_BASEDIR}\src\main\external-resources\lib\ctrlsender\ctrlsender.exe"
 	${GetWindowsVersion} $R0
 	${If} $R0 == "XP"
-		File /r "${PROJECT_BASEDIR}\src\main\external-resources\lib\winxp"
+		File /r "${PROJECT_BASEDIR}\target\bin\win32\winxp"
 	${EndIf}
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
@@ -333,10 +340,28 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre8-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre14-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre15-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre16-x86"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre17-x64"
+	RMDir /R /REBOOTOK "$INSTDIR\win32\jre17-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\win32\jre-x86"
-	
+
+	; Delete old MediaInfo files
+	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
+	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
+
+	; Delete old changelog file
+	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
+
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
 
@@ -372,8 +397,8 @@ Section "Program Files"
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
 	; Add firewall rules
-	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre8\bin\java.exe" enable=yes profile=public,private'
-	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre8\bin\javaw.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
+	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -406,15 +431,17 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\plugins"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
-	RMDir /R /REBOOTOK "$INSTDIR\jre8"
+	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
-	; Old folders
+	; Old folders (maybe do this on install/upgrade ?)
+	RMDir /R /REBOOTOK "$INSTDIR\jre8"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
 	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
 	RMDir /R /REBOOTOK "$INSTDIR\jre15"
+	RMDir /R /REBOOTOK "$INSTDIR\jre17"
 
 	; Current renderer files
 	Delete /REBOOTOK "$INSTDIR\renderers\AnyCast.conf"
@@ -500,6 +527,9 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-5.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3-6-7.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-DVP10.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV-4K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Roku-TV8.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-8series.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-9series.conf"
@@ -535,7 +565,13 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-NotCD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-PL51E490.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-0.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-1.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-2.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-3.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
@@ -567,6 +603,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-PlayStationVita.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-SMPN100.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-STR5800ES.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Sony-X-Series-TV.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-Xperia.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sony-XperiaZ3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Technisat-S1Plus.conf"
@@ -585,7 +622,7 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\renderers\Yamaha-RXV500D.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Yamaha-RXV671.conf"
 
-	; Old renderer files
+	; Old renderer files (should have already been removed during install/upgrade)
 	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Android.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\AndroidChromecast.conf"
@@ -654,13 +691,15 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\UMS.bat"
 	Delete /REBOOTOK "$INSTDIR\ums.jar"
 
+	; Old MediaInfo files
 	${If} ${RunningX64}
 		Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
 	${Else}
 		Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
 	${EndIf}
-
 	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
+
+	Delete /REBOOTOK "$INSTDIR\CHANGELOG.md"
 	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 	Delete /REBOOTOK "$INSTDIR\WEB.conf"
 	Delete /REBOOTOK "$INSTDIR\README.md"
@@ -689,6 +728,13 @@ Section "Uninstall"
 
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+
+	services::IsServiceInstalled 'Universal Media Server'
+	Pop $0
+	; $0 now contains either 'Yes', 'No' or an error description
+	${If} $0 != "Yes"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+	${EndIf}
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'

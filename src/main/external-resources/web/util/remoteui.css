@@ -297,7 +297,7 @@ TV - REMOTE CONTROL
   left: 50%;
   top: 50%;
   margin: -60px 0 0 -60px;
-  background: url(/files/logo1.png) no-repeat;
+  background: url(/files/img/logo1.png) no-repeat;
   background-size: 100px 100px;
   width: 100px;
   height: 100px;
@@ -405,7 +405,7 @@ TV - REMOTE CONTROL
 }
 /*END Loading screen*/
 a#HomeButton {
-	background: url(/files/logo1.png);
+	background: url(/files/img/logo1.png);
 	background-repeat: no-repeat;
 	background-position: left bottom;
 	background-size: contain;

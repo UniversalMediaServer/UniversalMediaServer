@@ -25,6 +25,7 @@
 			<fileMode>0755</fileMode>
 			<includes>
 				<include>builds.txt</include>
+				<include>ffmpeg</include>
 				<include>flac</include>
 				<include>mencoder</include>
 				<include>mplayer</include>
@@ -41,7 +42,6 @@
 			<fileMode>0755</fileMode>
 			<includes>
 				<include>dcraw</include>
-				<include>ffmpeg</include>
 				<include>libmediainfo.dylib</include>
 				<include>youtube-dl</include>
 			</includes>
@@ -65,7 +65,7 @@
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>README.md</include>
-				<include>CHANGELOG.txt</include>
+				<include>CHANGELOG.md</include>
 				<include>LICENSE.txt</include>
 			</includes>
 		</fileSet>
@@ -91,7 +91,6 @@
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
 				<include>documentation/**</include>
-				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>

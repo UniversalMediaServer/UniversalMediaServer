@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -182,9 +180,9 @@ public class JPEGSubsamplingNotation implements Serializable {
 		result[0] = 4;
 		int hMax = 0;
 		int vMax = 0;
-		for (int i = 0; i < components.length; i++) {
-			hMax = Math.max(hMax, components[i].getHorizontalSamplingFactor());
-			vMax = Math.max(vMax, components[i].getVerticalSamplingFactor());
+		for (JpegComponent component : components) {
+			hMax = Math.max(hMax, component.getHorizontalSamplingFactor());
+			vMax = Math.max(vMax, component.getVerticalSamplingFactor());
 		}
 		double[] h = new double[components.length];
 		double[] v = new double[components.length];
@@ -277,9 +275,6 @@ public class JPEGSubsamplingNotation implements Serializable {
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(j) != Double.doubleToLongBits(other.j)) {
-			return false;
-		}
-		return true;
+		return (Double.doubleToLongBits(j) == Double.doubleToLongBits(other.j));
 	}
 }

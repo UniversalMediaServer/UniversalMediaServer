@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,9 +27,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -47,16 +42,16 @@ import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.components.CustomHTMLEditorKit;
-import net.pms.util.KeyedComboBoxModel;
+import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.newgui.util.SwingUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.SwingUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,8 +126,8 @@ public class LanguageSelection {
 				if (rebootOnChange) {
 					int response = JOptionPane.showConfirmDialog(
 						parentComponent,
-						String.format(buildString("Dialog.Restart", true), PMS.NAME, PMS.NAME),
-						buildString("Dialog.Confirm"),
+						String.format(buildString("XNeedsRestartedApplyChanges", true), PMS.NAME, PMS.NAME),
+						buildString("Confirm"),
 						JOptionPane.YES_NO_CANCEL_OPTION
 					);
 					if (response != JOptionPane.CANCEL_OPTION) {
@@ -241,7 +236,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					Messages.getString(descriptionMessage, locale),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale)
+					Messages.getString("GeneralSettings", locale)
 				));
 			}
 		} else {
@@ -255,7 +250,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					buildString(descriptionMessage, true),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale),
+					Messages.getString("GeneralSettings", locale),
 					PMS.NAME,
 					Messages.getRootString("LooksFrame.TabGeneralSettings")
 				));
@@ -301,9 +296,9 @@ public class LanguageSelection {
 
 		if (keyedModel.getSelectedKey() != null && Languages.warnCoverage(keyedModel.getSelectedKey())) {
 			String localizedLanguageName = Messages.getString("Language." + keyedModel.getSelectedKey(), locale);
-			if (Messages.getString("LanguageSelection.3", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
+			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
 				warningText.setText(String.format(
-					Messages.getString("LanguageSelection.3", locale),
+					Messages.getString("XIsOnlyPercentTranslated", locale),
 					localizedLanguageName,
 					Languages.getLanguageCoverage(keyedModel.getSelectedKey()),
 					localizedLanguageName
@@ -331,8 +326,8 @@ public class LanguageSelection {
 		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
 		infoText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(infoText, textWidth, StringUtil.stripHTML(infoText.getText())));
 
-		selectButton.setText(buildString("Dialog.Select"));
-		applyButton.setText(buildString("Dialog.Apply"));
+		selectButton.setText(buildString("Select"));
+		applyButton.setText(buildString("Apply"));
 	}
 
 	private JComponent buildComponent() {
@@ -397,38 +392,27 @@ public class LanguageSelection {
 		styleSheet.addRule("a { color: #0000EE; text-decoration:underline; }");
 		editorKit.setStyleSheet(styleSheet);
 		infoText.setEditorKit(editorKit);
-		infoText.addHyperlinkListener(new HyperlinkListener() {
-
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					boolean error = false;
-					if (Desktop.isDesktopSupported()) {
-						try {
-							Desktop.getDesktop().browse(new URI(e.getDescription()));
-						} catch (IOException | URISyntaxException ex) {
-							LOGGER.error("Language selection failed to open translation page hyperlink: ", ex.getMessage());
-							LOGGER.trace("", ex);
-							error = true;
-						}
-					} else {
-						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
-						error = true;
-					}
-					if (error) {
-						JOptionPane.showOptionDialog(
+		infoText.addHyperlinkListener((HyperlinkEvent e) -> {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				boolean error;
+				if (Desktop.isDesktopSupported()) {
+					error = !PlatformUtils.INSTANCE.browseURI(e.getDescription());
+				} else {
+					LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
+					error = true;
+				}
+				if (error) {
+					JOptionPane.showOptionDialog(
 							dialog,
 							String.format(buildString("LanguageSelection.6", true), PMS.CROWDIN_LINK),
-							buildString("Dialog.Error"),
+							buildString("Error"),
 							JOptionPane.DEFAULT_OPTION,
 							JOptionPane.ERROR_MESSAGE,
 							null,
 							null,
 							null);
-					}
 				}
 			}
-
 		});
 
 		rootPanel.add(selectionPanel);
