@@ -2650,4 +2650,19 @@ public class FileUtil {
 		}
 		return target.toFile();
 	}
+
+	/**
+	 * Whether the file is locked. Useful for checking whether filesystem
+	 * operations are in progress.
+	 *
+	 * @param file
+	 * @return whether the file is locked
+	 */
+	public static final boolean isLocked(File file) {
+		try (RandomAccessFile srcFile = new RandomAccessFile(file, "rw")) {
+			return false;
+		} catch (Exception e) {
+			return true;
+		}
+	}
 }
