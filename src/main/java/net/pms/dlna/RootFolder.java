@@ -1450,9 +1450,7 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		try (RandomAccessFile srcFile = new RandomAccessFile(file, "rw")) {
-			// no exception happened, so we can continue
-		} catch (Exception e) {
+		if (FileUtil.isLocked(file)) {
 			LOGGER.debug("File will not be parsed because it is open in another process");
 			return;
 		}
