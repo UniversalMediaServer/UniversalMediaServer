@@ -1,13 +1,19 @@
 # Changelog
 
-## Unreleased
+## [11.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.5.0...11.6.0) (2022-10-05)
 
 ### General:
+- Added support for reparsing modified files
 - Improved filename prettifying/matching
 - Improved performance
+- Fixed failed parsing of files being moved/copied
 - Fixed restart program reliability
 - Fixed security hole
+- Stop extracting metadata or doing API lookups for Live Photos in iPhone backups on macOS
 - Updated all tests to junit 5
+
+### Translation updates via Crowdin
+- Spanish (97%) (thanks, Sergio Varela!)
 
 ### Dependencies
 - Bump commons-text from 1.9 to 1.10.0
