@@ -43,6 +43,9 @@ public class POSIXProcessTerminator extends AbstractProcessTerminator {
 	 */
 	@Override
 	protected void stopPlatformProcess(@Nullable ProcessInfo processInfo) throws InterruptedException {
+		if (processInfo == null) {
+			return;
+		}
 		if (processInfo.getState() == ProcessState.RUNNING) {
 			if (sendPOSIXSignal(processInfo, POSIXSignal.SIGTERM)) {
 				processInfo.setState(ProcessState.SIGTERM);

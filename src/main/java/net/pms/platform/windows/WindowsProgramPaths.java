@@ -17,7 +17,6 @@
  */
 package net.pms.platform.windows;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -65,57 +64,23 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	public WindowsProgramPaths() {
 		// FFmpeg
 		Path ffmpeg = null;
-		if (Platform.is64Bit()) {
-			if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-				ffmpeg = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffmpeg64.exe");
-			}
-			if (ffmpeg == null || !Files.exists(ffmpeg)) {
-				ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64.exe");
-			}
-			try {
-				if (!new FilePermissions(ffmpeg).isExecutable()) {
-					LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
-					LOGGER.trace("Looking for non-64 version");
-					ffmpeg = null;
-				}
-			} catch (FileNotFoundException e) {
-				LOGGER.trace("Executable \"{}\" not found: {}", ffmpeg, e.getMessage());
-				LOGGER.trace("Looking for non-64 version");
-				ffmpeg = null;
-			}
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			ffmpeg = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffmpeg.exe");
 		}
-
-		if (ffmpeg == null) {
-			if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-				ffmpeg = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffmpeg.exe");
+		if (ffmpeg == null || !Files.exists(ffmpeg)) {
+			ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg.exe");
+		}
+		try {
+			if (!new FilePermissions(ffmpeg).isExecutable()) {
+				LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
 			}
-			if (ffmpeg == null || !Files.exists(ffmpeg)) {
-				ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg.exe");
-			}
-			try {
-				if (!new FilePermissions(ffmpeg).isExecutable()) {
-					LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
-					if (Platform.is64Bit()) {
-						ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64.exe");
-					}
-				}
-			} catch (FileNotFoundException e) {
-				LOGGER.trace("Executable \"{}\" not found: {}", ffmpeg, e.getMessage());
-				if (Platform.is64Bit()) {
-					ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg64.exe");
-				}
-			}
+		} catch (FileNotFoundException e) {
+			LOGGER.trace("Executable \"{}\" not found: {}", ffmpeg, e.getMessage());
 		}
 
 		ffmpegInfo = new FFmpegProgramInfo("FFmpeg", ProgramExecutableType.BUNDLED);
 		ffmpegInfo.setPath(ProgramExecutableType.BUNDLED, ffmpeg);
-		ffmpeg = null;
-		if (Platform.is64Bit()) {
-			ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg64.exe"));
-		}
-		if (ffmpeg == null) {
-			ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg.exe"));
-		}
+		ffmpeg = FileUtil.findExecutableInOSPath(Paths.get("ffmpeg.exe"));
 		if (ffmpeg != null) {
 			ffmpegInfo.setPath(ProgramExecutableType.INSTALLED, ffmpeg);
 		}
@@ -253,18 +218,10 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		// mediaInfo
 		Path tmpMediaInfo = null;
 		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			if (Platform.is64Bit()) {
-				tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo64.dll");
-			} else {
-				tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo.dll");
-			}
+			tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo.dll");
 		}
 		if (tmpMediaInfo == null || !Files.exists(tmpMediaInfo)) {
-			if (Platform.is64Bit()) {
-				tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo64.dll");
-			} else {
-				tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo.dll");
-			}
+			tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo.dll");
 		}
 		if (Files.exists(tmpMediaInfo)) {
 			mediaInfo = tmpMediaInfo.getParent();

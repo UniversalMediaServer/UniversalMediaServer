@@ -132,7 +132,7 @@ public abstract class PlatformProgramPaths {
 	static {
 		String subPath;
 		if (Platform.isWindows()) {
-			subPath = "win32";
+			subPath = "windows";
 		} else if (Platform.isMac()) {
 			subPath = "osx";
 		} else {

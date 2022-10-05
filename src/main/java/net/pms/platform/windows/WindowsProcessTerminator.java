@@ -22,7 +22,6 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
-import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
 import java.io.IOException;
 import javax.annotation.Nonnull;
@@ -54,7 +53,11 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 	 */
 	@Override
 	public void stopPlatformProcess(@Nullable ProcessInfo processInfo) throws InterruptedException {
+		if (processInfo == null) {
+			return;
+		}
 		if (processInfo.getState() == ProcessState.RUNNING) {
+			
 			if (stopWindowsProcessWMClosed(processInfo)) {
 				processInfo.setState(ProcessState.WM_CLOSED);
 				processes.put(getSchedule(processInfo.getTerminateTimeoutMS()), processInfo);
@@ -217,6 +220,7 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 
 	/**
 	 * Sends {@code WM_CLOSE} to the specified Windows {@link Process}.
+	 * Equivalent to posix SIGTERM.
 	 *
 	 * @param processInfo the {@link ProcessInfo} referencing the
 	 *            {@link Process} to send to.
@@ -250,19 +254,15 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 		posted.setByte(0, (byte) 0);
 		Memory dwPID = new Memory(4);
 		dwPID.setInt(0, (int) processInfo.getPID());
-		User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
+		User32.INSTANCE.EnumWindows((WinDef.HWND hWnd, Pointer data) -> {
+			IntByReference dwID = new IntByReference();
+			User32.INSTANCE.GetWindowThreadProcessId(hWnd, dwID);
 
-			@Override
-			public boolean callback(WinDef.HWND hWnd, Pointer data) {
-				IntByReference dwID = new IntByReference();
-				User32.INSTANCE.GetWindowThreadProcessId(hWnd, dwID);
-
-				if (dwID.getValue() == data.getInt(0)) {
-					User32.INSTANCE.PostMessage(hWnd, User32.WM_CLOSE, new WinDef.WPARAM(0), new WinDef.LPARAM(0));
-					posted.setByte(0, (byte) 1);
-				}
-				return true;
+			if (dwID.getValue() == data.getInt(0)) {
+				User32.INSTANCE.PostMessage(hWnd, User32.WM_CLOSE, new WinDef.WPARAM(0), new WinDef.LPARAM(0));
+				posted.setByte(0, (byte) 1);
 			}
+			return true;
 		}, dwPID);
 		com.sun.jna.platform.win32.Kernel32.INSTANCE.CloseHandle(hProc);
 		if (LOGGER.isTraceEnabled()) {
@@ -286,6 +286,7 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 	/**
 	 * Performs {@code TerminateProcess} on the specified Windows
 	 * {@link Process}.
+	 * Equivalent to posix SIGKILL.
 	 *
 	 * @param processInfo the {@link ProcessInfo} referencing the
 	 *            {@link Process} to terminate.

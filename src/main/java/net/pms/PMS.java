@@ -1625,7 +1625,7 @@ PlatformUtils.INSTANCE.isAdmin();
 				if (new File(developmentPath).exists()) {
 					System.setProperty("jna.boot.library.path", developmentPath);
 				} else {
-					System.setProperty("jna.boot.library.path", "win32\\winxp");
+					System.setProperty("jna.boot.library.path", "windows\\winxp");
 				}
 			} else {
 				System.setProperty("jna.nosys", "true");
