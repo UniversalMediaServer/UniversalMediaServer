@@ -338,7 +338,6 @@ public class ProcessManager {
 		 *
 		 * @param is the {@link InputStream} to gobble.
 		 */
-		@SuppressWarnings("checkstyle:EmptyBlock")
 		protected void gobbleStream(InputStream is) {
 			if (is == null) {
 				return;

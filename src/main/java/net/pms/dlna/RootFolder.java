@@ -1381,11 +1381,11 @@ public class RootFolder extends DLNAResource {
 	};
 
 	/**
-	 * Adds and removes files from the database when they are created or
+	 * Adds and removes files from the database when they are created, modified or
 	 * deleted on the hard drive.
 	 */
 	public static final FileWatcher.Listener LIBRARY_RESCANNER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-		if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event)) && PMS.getConfiguration().getUseCache()) {
+		if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event) || "ENTRY_MODIFY".equals(event)) && PMS.getConfiguration().getUseCache()) {
 			Connection connection = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
@@ -1420,7 +1420,7 @@ public class RootFolder extends DLNAResource {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							MediaTableFiles.removeMediaEntry(connection, filename, true);
 							bumpSystemUpdateId();
-						} else if ("ENTRY_CREATE".equals(event)) {
+						} else {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);
 							parseFileForDatabase(file);
@@ -1442,6 +1442,16 @@ public class RootFolder extends DLNAResource {
 	public static final void parseFileForDatabase(File file) {
 		if (!MapFile.isPotentialMediaFile(file.getAbsolutePath())) {
 			LOGGER.trace("Not parsing file that can't be media");
+			return;
+		}
+
+		if (!file.exists()) {
+			LOGGER.trace("Not parsing file that no longer exists");
+			return;
+		}
+
+		if (FileUtil.isLocked(file)) {
+			LOGGER.debug("File will not be parsed because it is open in another process");
 			return;
 		}
 

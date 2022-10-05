@@ -992,7 +992,7 @@ public class PMS {
 			try {
 				configuration.initCred();
 			} catch (IOException e) {
-				LOGGER.debug("Error initializing plugin credentials: {}", e);
+				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
 			if (configuration.isRunSingleInstance()) {
