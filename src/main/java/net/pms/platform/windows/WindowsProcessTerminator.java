@@ -57,7 +57,6 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 			return;
 		}
 		if (processInfo.getState() == ProcessState.RUNNING) {
-			
 			if (stopWindowsProcessWMClosed(processInfo)) {
 				processInfo.setState(ProcessState.WM_CLOSED);
 				processes.put(getSchedule(processInfo.getTerminateTimeoutMS()), processInfo);
