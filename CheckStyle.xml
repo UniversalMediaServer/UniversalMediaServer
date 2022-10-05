@@ -92,7 +92,6 @@ Checkstyle configuration for Universal Media Server.
 			<property name="severity" value="warning"/>
 		</module>
 		<module name="AvoidNestedBlocks"/>
-		<module name="EmptyBlock"/>
 		<module name="LeftCurly"/>
 		<module name="NeedBraces"/>
 		<module name="RightCurly"/>

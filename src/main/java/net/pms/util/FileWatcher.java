@@ -198,8 +198,7 @@ public class FileWatcher {
 							if (!Files.exists(filename)) {
 								isDir = FileUtil.isDirectory(filename.toString());
 							} else {
-								isDir = Files
-									.isDirectory(filename/* , NOFOLLOW_LINKS */);
+								isDir = Files.isDirectory(filename/* , NOFOLLOW_LINKS */);
 							}
 
 							// See if we're watching for this specific file
@@ -214,15 +213,14 @@ public class FileWatcher {
 									// We have an event of interest
 									LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
 									if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
-										// It's a new directory in a recursive
-										// scope,
-										// traverse it to include any subdirs
+										// Traverse subdirs within new directory in a recursive scope
 										addRecursive(w, filename);
 									} else {
-										// It's a regular event, schedule a
-										// notice
-										notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
-											kind == ENTRY_MODIFY ? 500 : 0);
+										// It's a regular event, schedule a notice
+										notifier.schedule(
+											new Notice(filename.toString(), kind.toString(), w, isDir),
+											kind == ENTRY_MODIFY ? 500 : 0
+										);
 									}
 								}
 							}
