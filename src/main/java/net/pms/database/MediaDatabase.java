@@ -99,6 +99,7 @@ public class MediaDatabase extends Database {
 
 				MediaTableTVSeries.checkTable(connection);
 				MediaTableFailedLookups.checkTable(connection);
+				MediaTableSubtitleHashCache.checkTable(connection);
 
 				// Video metadata tables
 				MediaTableVideoMetadataActors.checkTable(connection);
