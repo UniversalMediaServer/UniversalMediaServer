@@ -272,12 +272,10 @@ public class ProcessUtil {
 
 	// Rebooting
 
-	// Reboot UMS same as now
 	public static void reboot() {
 		reboot((ArrayList<String>) null, null, null);
 	}
 
-	// Reboot UMS same as now, adding these options
 	public static void reboot(String... umsoptions) {
 		reboot(null, null, null, umsoptions);
 	}
@@ -343,6 +341,31 @@ public class ProcessUtil {
 			e.printStackTrace();
 		}
 		PMS.quit();
+	}
+
+	/**
+	 * Shuts down the computer.
+	 * This is initiated via the Server Settings folder.
+	 *
+	 * @see https://stackoverflow.com/a/25666/2049714
+	 */
+	public static void shutDownComputer() {
+		String shutdownCommand = null;
+
+		if (Platform.isLinux() || Platform.isMac()) {
+			shutdownCommand = "shutdown -h now";
+		} else if (Platform.isWindows()) {
+			shutdownCommand = "shutdown.exe -s -t 0";
+		}
+
+		if (shutdownCommand != null) {
+			try {
+				Runtime.getRuntime().exec(shutdownCommand);
+				System.exit(0);
+			} catch (IOException e) {
+				LOGGER.error("Error while shutting down computer: {}", e);
+			}
+		}
 	}
 
 	// Reconstruct the command that started this jvm, including all options.

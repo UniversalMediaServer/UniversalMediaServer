@@ -1141,7 +1141,7 @@ public class RootFolder extends DLNAResource {
 
 								final File f = file;
 
-								addChild(new VirtualVideoAction(childrenName, true) {
+								addChild(new VirtualVideoAction(childrenName, true, null) {
 									@Override
 									public boolean enable() {
 										try {
@@ -1170,7 +1170,7 @@ public class RootFolder extends DLNAResource {
 				@Override
 				public void discoverChildren() {
 					final File[] files = ResumeObj.resumeFiles();
-					addChild(new VirtualVideoAction(Messages.getString("DeleteAllFiles"), true) {
+					addChild(new VirtualVideoAction(Messages.getString("DeleteAllFiles"), true, null) {
 						@Override
 						public boolean enable() {
 							for (File f : files) {
@@ -1183,7 +1183,7 @@ public class RootFolder extends DLNAResource {
 					for (final File f : files) {
 						String childrenName = FileUtil.getFileNameWithoutExtension(f.getName());
 						childrenName = childrenName.replaceAll(ResumeObj.CLEAN_REG, "");
-						addChild(new VirtualVideoAction(childrenName, false) {
+						addChild(new VirtualVideoAction(childrenName, false, null) {
 							@Override
 							public boolean enable() {
 								f.delete();
@@ -1196,12 +1196,22 @@ public class RootFolder extends DLNAResource {
 			});
 		}
 
-		// Reboot DMS
-		res.addChild(new VirtualVideoAction(Messages.getString("RebootUms"), true) {
+		// Restart UMS
+		res.addChild(new VirtualVideoAction(Messages.getString("RestartUms"), true, "images/icon-videothumbnail-restart.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.reboot();
 				// Reboot failed if we get here
+				return false;
+			}
+		});
+
+		// Shut down computer
+		res.addChild(new VirtualVideoAction(Messages.getString("ShutDownComputer"), true, "images/icon-videothumbnail-shutdown.png") {
+			@Override
+			public boolean enable() {
+				ProcessUtil.shutDownComputer();
+				// Shutdown failed if we get here
 				return false;
 			}
 		});
@@ -1225,7 +1235,7 @@ public class RootFolder extends DLNAResource {
 			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
 				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
 				// if the master code is valid we don't add this
-				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true) {
+				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true, null) {
 					@Override
 					public boolean enable() {
 						CodeEnter ce = (CodeEnter) getParent();
@@ -1241,7 +1251,7 @@ public class RootFolder extends DLNAResource {
 				res.addChild(ce1);
 			}
 
-			res.addChild(new VirtualVideoAction(Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderNoOutOfSync(!configuration.isMencoderNoOutOfSync());
@@ -1249,7 +1259,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("DefaultH264RemuxMencoder"), configuration.isMencoderMuxWhenCompatible()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("DefaultH264RemuxMencoder"), configuration.isMencoderMuxWhenCompatible(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderMuxWhenCompatible(!configuration.isMencoderMuxWhenCompatible());
@@ -1258,7 +1268,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction("  !!-- Fix 23.976/25fps A/V Mismatch --!!", configuration.isFix25FPSAvMismatch()) {
+			res.addChild(new VirtualVideoAction("  !!-- Fix 23.976/25fps A/V Mismatch --!!", configuration.isFix25FPSAvMismatch(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderForceFps(!configuration.isFix25FPSAvMismatch());
@@ -1267,7 +1277,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderYadif(!configuration.isMencoderYadif());
@@ -1276,7 +1286,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isDisableSubtitles();
@@ -1286,7 +1296,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isAutoloadExternalSubtitles();
@@ -1296,7 +1306,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isUseEmbeddedSubtitlesStyle();
@@ -1306,7 +1316,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("SkipLoopFilterDeblocking"), configuration.getSkipLoopFilterEnabled()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("SkipLoopFilterDeblocking"), configuration.getSkipLoopFilterEnabled(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setSkipLoopFilterEnabled(!configuration.getSkipLoopFilterEnabled());
@@ -1314,7 +1324,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setAudioEmbedDtsInPcm(!configuration.isAudioEmbedDtsInPcm());
@@ -1322,7 +1332,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("SaveConfiguration"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("SaveConfiguration"), true, null) {
 				@Override
 				public boolean enable() {
 					try {
@@ -1334,7 +1344,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("RestartServer"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("RestartServer"), true, null) {
 				@Override
 				public boolean enable() {
 					PMS.get().resetMediaServer();
@@ -1342,7 +1352,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
