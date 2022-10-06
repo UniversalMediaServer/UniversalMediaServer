@@ -42,6 +42,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,6 +74,9 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
+
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableSubtitleHashCache;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
@@ -136,6 +143,8 @@ public class OpenSubtitle {
 		});
 	}
 
+	private static final MediaDatabase db = PMS.get().getMediaDatabase();
+
 	// Do not instantiate
 	private OpenSubtitle() {
 	}
@@ -144,20 +153,64 @@ public class OpenSubtitle {
 	 * Gets the <a href=
 	 * "http://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes"
 	 * >OpenSubtitles hash</a> for the specified {@link Path} by first trying to
-	 * extract it from the filename and if that doesn't work calculate it with
-	 * {@link #computeHash(Path)}.
+	 * grab it from the cache. If the hash is not available it is then
+	 * extracted from the filename and if that doesn't work calculate it with
+	 * {@link #computeHash(Path)} then save the result to the cache for the future.
 	 *
 	 * @param file the {@link Path} for which to get the hash.
 	 * @return The OpenSubtitles hash or {@code null}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
 	public static String getHash(Path file) throws IOException {
-		String hash = ImdbUtil.extractOSHash(file);
-		if (isBlank(hash)) {
-			hash = computeHash(file);
+		String hash = getHashFromCache(file);
+		if(hash==null) {
+			hash = ImdbUtil.extractOSHash(file);
+			if (isBlank(hash)) {
+				hash = computeHash(file);
+			}
+			addHashToCache(file,hash);
 		}
 		LOGGER.debug("OpenSubtitles hash for \"{}\" is {}", file.getFileName(), hash);
 		return hash;
+	}
+
+	/**
+	 * Gets the cached hash of a subtitle file from the datastore.
+	 * @param file the {@link Path} for which to get the hash.
+	 * @return The saved Hash or {@code null}.
+	 */
+	private static String getHashFromCache(Path file) {
+		try (Connection connection = db.getConnection()) {
+			String sqlStatement = "SELECT " + MediaTableSubtitleHashCache.COL_HASH + " FROM " +
+					MediaTableSubtitleHashCache.TABLE_NAME + " WHERE " +
+					MediaTableSubtitleHashCache.COL_FILE_NAME + "=?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStatement)) {
+				preparedStatement.setString(1, file.getFileName().toString());
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					if(resultSet.next()){
+						return resultSet.getString(1);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.debug("An exception occurred while reading hash from cache: ", e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Saves the computed hash to the datastore to avoid repeated computations.
+	 * @param file the {@link Path} for which to get the hash.
+	 * @param hash the hash computed through the
+	 * {@link #computeHash(Path)} method.
+	 */
+	private static void addHashToCache(Path file,String hash) {
+		try (Connection connection = db.getConnection()) {
+			//todo implement saving logic
+		} catch (SQLException e) {
+			LOGGER.debug("An exception occurred while saving hash to cache: ",e);
+		}
 	}
 
 	/**
