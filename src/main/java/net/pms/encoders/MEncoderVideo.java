@@ -40,6 +40,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.*;
 import net.pms.util.ExecutableErrorType;
@@ -1817,7 +1818,7 @@ public class MEncoderVideo extends Engine {
 			cmdList.add("8192");
 		}
 
-		PipeProcess pipe = null;
+		IPipeProcess pipe = null;
 
 		ProcessWrapperImpl pw;
 
@@ -1833,7 +1834,7 @@ public class MEncoderVideo extends Engine {
 			}
 
 			if (params.isAvidemux()) {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough || ac3Remux) ? null : params);
+				pipe = PlatformUtils.INSTANCE.getPipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough || ac3Remux) ? null : params);
 				params.getInputPipes()[0] = pipe;
 
 				cmdList.add("-o");
@@ -1851,8 +1852,8 @@ public class MEncoderVideo extends Engine {
 				cmdList.toArray(cmdArray);
 				pw = new ProcessWrapperImpl(cmdArray, params);
 
-				PipeProcess videoPipe = new PipeProcess("videoPipe" + System.currentTimeMillis(), "out", "reconnect");
-				PipeProcess audioPipe = new PipeProcess("audioPipe" + System.currentTimeMillis(), "out", "reconnect");
+				IPipeProcess videoPipe = PlatformUtils.INSTANCE.getPipeProcess("videoPipe" + System.currentTimeMillis(), "out", "reconnect");
+				IPipeProcess audioPipe = PlatformUtils.INSTANCE.getPipeProcess("audioPipe" + System.currentTimeMillis(), "out", "reconnect");
 
 				ProcessWrapper videoPipeProcess = videoPipe.getPipeProcess();
 				ProcessWrapper audioPipeProcess = audioPipe.getPipeProcess();
@@ -1885,7 +1886,7 @@ public class MEncoderVideo extends Engine {
 					}
 				}
 
-				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+				pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
@@ -2059,9 +2060,9 @@ public class MEncoderVideo extends Engine {
 				cmdList.add("-really-quiet");
 				cmdList.add("-msglevel");
 				cmdList.add("statusline=2");
-				params.setInputPipes(new PipeProcess[2]);
+				params.setInputPipes(new IPipeProcess[2]);
 			} else {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough) ? null : params);
+				pipe = PlatformUtils.INSTANCE.getPipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough) ? null : params);
 				params.getInputPipes()[0] = pipe;
 				cmdList.add("-o");
 				cmdList.add(pipe.getInputPipe());

@@ -39,8 +39,8 @@ public final class OutputParams {
 	private int fromFrame;
 	private int toFrame;
 	private int waitbeforestart;
-	private PipeProcess[] inputpipes = new PipeProcess[2];
-	private PipeProcess[] outputpipes = new PipeProcess[2];
+	private IPipeProcess[] inputpipes = new IPipeProcess[2];
+	private IPipeProcess[] outputpipes = new IPipeProcess[2];
 	private DLNAMediaAudio aid;
 	private DLNAMediaSubtitle sid;
 	private int secondReadMinSize;
@@ -207,19 +207,19 @@ public final class OutputParams {
 		this.toFrame = toFrame;
 	}
 
-	public PipeProcess[] getOutputPipes() {
+	public IPipeProcess[] getOutputPipes() {
 		return outputpipes;
 	}
 
-	public void setOutputPipes(PipeProcess[] outputpipes) {
+	public void setOutputPipes(IPipeProcess[] outputpipes) {
 		this.outputpipes = outputpipes;
 	}
 
-	public PipeProcess[] getInputPipes() {
+	public IPipeProcess[] getInputPipes() {
 		return inputpipes;
 	}
 
-	public void setInputPipes(PipeProcess[] inputpipes) {
+	public void setInputPipes(IPipeProcess[] inputpipes) {
 		this.inputpipes = inputpipes;
 	}
 

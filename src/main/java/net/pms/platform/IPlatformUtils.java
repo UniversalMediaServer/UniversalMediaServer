@@ -25,6 +25,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
+import net.pms.io.IPipeProcess;
+import net.pms.io.OutputParams;
 import net.pms.newgui.LooksFrame;
 import net.pms.service.process.ProcessManager;
 import net.pms.service.process.AbstractProcessTerminator;
@@ -154,4 +156,10 @@ public interface IPlatformUtils {
 	public abstract AbstractSleepWorker getSleepWorker(SleepManager owner, PreventSleepMode mode);
 
 	public abstract AbstractProcessTerminator getProcessTerminator(ProcessManager processManager);
+
+	public abstract IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras);
+
+	public abstract IPipeProcess getPipeProcess(String pipeName, String... extras);
+
+	public abstract void appendErrorString(StringBuilder sb, int exitCode);
 }

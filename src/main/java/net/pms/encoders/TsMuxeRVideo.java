@@ -35,6 +35,7 @@ import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
@@ -625,7 +626,7 @@ public class TsMuxeRVideo extends Engine {
 			}
 		}
 
-		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 		/**
 		 * Use the newer version of tsMuxeR on PS3 since other renderers

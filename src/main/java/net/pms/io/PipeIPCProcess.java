@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.DTSAudioOutputStream;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.IEC61937AudioOutputStream;
@@ -34,8 +35,8 @@ import org.slf4j.LoggerFactory;
 
 public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeIPCProcess.class);
-	private final PipeProcess mkin;
-	private final PipeProcess mkout;
+	private final IPipeProcess mkin;
+	private final IPipeProcess mkout;
 	private StreamModifier modifier;
 
 	public StreamModifier getModifier() {
@@ -47,8 +48,8 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	}
 
 	public PipeIPCProcess(String inPipeName, String outPipeName, boolean inForceReconnect, boolean outForcereconnect) {
-		mkin = new PipeProcess(inPipeName, inForceReconnect ? "reconnect" : "dummy");
-		mkout = new PipeProcess(outPipeName, "out", outForcereconnect ? "reconnect" : "dummy");
+		mkin = PlatformUtils.INSTANCE.getPipeProcess(inPipeName, inForceReconnect ? "reconnect" : "dummy");
+		mkout = PlatformUtils.INSTANCE.getPipeProcess(outPipeName, "out", outForcereconnect ? "reconnect" : "dummy");
 	}
 
 	@Override

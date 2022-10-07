@@ -31,11 +31,12 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformUtils;
 import net.pms.renderers.OutputOverride;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.FFmpegExecutableInfo;
@@ -319,7 +320,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		);
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
+		IPipeProcess pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 

@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.pms.PMS;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.platform.PlatformUtils;
@@ -443,6 +444,24 @@ public class WindowsUtils extends PlatformUtils {
 	@Override
 	public AbstractProcessTerminator getProcessTerminator(ProcessManager processManager) {
 		return new WindowsProcessTerminator(processManager);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras) {
+		return new WindowsPipeProcess(pipeName, params, extras);
+	}
+
+	@Override
+	public void appendErrorString(StringBuilder sb, int exitCode) {
+		NTStatus ntStatus = null;
+		if (exitCode > 10) {
+			ntStatus = NTStatus.typeOf(exitCode);
+		}
+		if (ntStatus != null) {
+			sb.append("Process exited with error ").append(ntStatus).append("\n");
+		} else {
+			sb.append("Process exited with code ").append(exitCode).append(":\n");
+		}
 	}
 
 	@Override

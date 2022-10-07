@@ -25,10 +25,11 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,13 +93,13 @@ public class YoutubeDl extends FFMpegVideo {
 		cmdList.add("--hls-use-mpegts");
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = null;
+		IPipeProcess pipe = null;
 
 		boolean directPipe = Platform.isWindows();
 		if (directPipe) {
 			cmdList.add("-o");
 			cmdList.add("-");
-			params.setInputPipes(new PipeProcess[2]);
+			params.setInputPipes(new IPipeProcess[2]);
 		} else {
 			// basename of the named pipe:
 			String fifoName = String.format(
@@ -106,7 +107,7 @@ public class YoutubeDl extends FFMpegVideo {
 				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
-			pipe = new PipeProcess(fifoName);
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			params.getInputPipes()[0] = pipe;
 			cmdList.add("-o");
 			cmdList.add(pipe.getInputPipe());
