@@ -39,6 +39,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.OutputOverride;
 import net.pms.util.CodecUtil;
@@ -1099,7 +1100,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		// Set up the process
-		PipeProcess pipe = null;
+		IPipeProcess pipe = null;
 
 		if (!dtsRemux) {
 			// cmdList.add("pipe:");
@@ -1112,7 +1113,7 @@ public class FFMpegVideo extends Engine {
 			);
 
 			// This process wraps the command that creates the named pipe
-			pipe = new PipeProcess(fifoName);
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 
 			params.getInputPipes()[0] = pipe;
@@ -1146,7 +1147,7 @@ public class FFMpegVideo extends Engine {
 				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 			}
 		} else {
-			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
@@ -1599,7 +1600,7 @@ public class FFMpegVideo extends Engine {
 		);
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
+		IPipeProcess pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 

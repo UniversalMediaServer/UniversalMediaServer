@@ -449,7 +449,7 @@ public class VLCVideo extends Engine {
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.getMediaRenderer());
 
-		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
+		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
 		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe

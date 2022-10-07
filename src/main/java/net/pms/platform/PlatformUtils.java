@@ -35,7 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.IPipeProcess;
+import net.pms.io.OutputParams;
 import net.pms.newgui.LooksFrame;
+import net.pms.platform.linux.LinuxPipeProcess;
 import net.pms.platform.linux.LinuxUtils;
 import net.pms.platform.mac.MacUtils;
 import net.pms.platform.posix.POSIXProcessTerminator;
@@ -310,6 +313,21 @@ public class PlatformUtils implements IPlatformUtils {
 	@Override
 	public AbstractProcessTerminator getProcessTerminator(ProcessManager processManager) {
 		return new POSIXProcessTerminator(processManager);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, String... extras) {
+		return getPipeProcess(pipeName, null, extras);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras) {
+		return new LinuxPipeProcess(pipeName, params, extras);
+	}
+
+	@Override
+	public void appendErrorString(StringBuilder sb, int exitCode) {
+		sb.append("Process exited with code ").append(exitCode).append(":\n");
 	}
 
 	private static PlatformUtils createInstance() {

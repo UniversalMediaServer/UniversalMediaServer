@@ -22,10 +22,11 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 
@@ -95,7 +96,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 
-		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
+		IPipeProcess pipe = PlatformUtils.INSTANCE.getPipeProcess("mencoder" + System.currentTimeMillis());
 		params.getInputPipes()[0] = pipe;
 
 		String[] cmdArray = new String[args().length + 4];

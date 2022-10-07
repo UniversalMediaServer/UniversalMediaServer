@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.io.*;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.PCMAudioOutputStream;
 import net.pms.util.ProcessUtil;
@@ -121,7 +122,7 @@ public class AviDemuxerInputStream extends InputStream {
 					pw.println(audioType + ", \"" + params.getOutputPipes()[1].getOutputPipe() + "\", track=2");
 				}
 
-				PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+				IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 				ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 				attachedProcesses.add(pipeProcess);
 				pipeProcess.runInNewThread();

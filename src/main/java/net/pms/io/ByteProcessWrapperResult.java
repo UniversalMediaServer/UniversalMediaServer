@@ -17,12 +17,11 @@
  */
 package net.pms.io;
 
-import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import net.pms.platform.windows.NTStatus;
+import net.pms.platform.PlatformUtils;
 
 /**
  * A container for {@link Process} results with its output stored as an array of
@@ -76,12 +75,7 @@ public class ByteProcessWrapperResult implements ProcessWrapperResult<byte[]> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		NTStatus ntStatus = NTStatus.typeOf(exitCode);
-		if (exitCode > 10 && Platform.isWindows() && ntStatus != null) {
-			sb.append("Process exited with error ").append(ntStatus).append("\n");
-		} else {
-			sb.append("Process exited with code ").append(exitCode).append(":\n");
-		}
+		PlatformUtils.INSTANCE.appendErrorString(sb, exitCode);
 		sb.append("Captured {} bytes of output").append(output.length);
 		return sb.toString();
 	}

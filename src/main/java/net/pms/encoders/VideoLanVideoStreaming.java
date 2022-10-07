@@ -38,10 +38,10 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.io.IPipeProcess;
 import net.pms.platform.PlatformUtils;
 import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
@@ -140,7 +140,7 @@ public class VideoLanVideoStreaming extends Engine {
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
-		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
+		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
 		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
