@@ -4258,14 +4258,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.0.0":
-  version: 1.0.0
-  resolution: "axios@npm:1.0.0"
+"axios@npm:1.1.2":
+  version: 1.1.2
+  resolution: "axios@npm:1.1.2"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 6270712ec3259d0603932edbd5f9da18f941e905a128585d4e9caf8e5ccaff988f2318f45c451ab43d0d52a40dc0f63cfb53c86073e5c689a017930e1b0e6227
+  checksum: 136c25a5031aa2845fdbda3006c36888bbe351b11d1195f1f898a23c5df1430febbdb1ad034a61f27967e83762d5b5a3e851fff8a363cb4badeb883f8ff21461
   languageName: node
   linkType: hard
 
@@ -13124,7 +13124,7 @@ __metadata:
     "@types/video.js": 7.3.48
     "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
-    axios: 1.0.0
+    axios: 1.1.2
     hls.js: 1.2.4
     jwt-decode: 3.1.2
     lodash: 4.17.21
