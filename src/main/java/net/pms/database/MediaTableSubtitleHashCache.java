@@ -41,9 +41,9 @@ public class MediaTableSubtitleHashCache extends MediaTable {
         LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
         execute(connection,
                 "CREATE TABLE " + TABLE_NAME + "(" +
-                        "ID        IDENTITY     PRIMARY KEY , " +
-                        COL_FILE_NAME+"      VARCHAR(255)         NOT NULL      " +
-                        COL_HASH+"      VARCHAR(50)         NOT NULL      " +
+                        "ID IDENTITY PRIMARY KEY, " +
+                        COL_FILE_NAME+" VARCHAR(255) NOT NULL, " +
+                        COL_HASH+" VARCHAR(50) NOT NULL" +
                         ")"
         );
     }
