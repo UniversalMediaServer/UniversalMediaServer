@@ -205,9 +205,16 @@ public class OpenSubtitle {
 	 * @param hash the hash computed through the
 	 * {@link #computeHash(Path)} method.
 	 */
-	private static void addHashToCache(Path file,String hash) {
+	private static void addHashToCache(Path file, String hash) {
 		try (Connection connection = db.getConnection()) {
-			//todo implement saving logic
+			String sql = "INSERT INTO" +MediaTableSubtitleHashCache.TABLE_NAME+ "("
+					+ MediaTableSubtitleHashCache.COL_FILE_NAME + "," + MediaTableSubtitleHashCache.COL_HASH
+					+ ") VALUES (?,?)";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+				preparedStatement.setString(1, file.getFileName().toString());
+				preparedStatement.setString(2, hash);
+				preparedStatement.executeUpdate();
+			}
 		} catch (SQLException e) {
 			LOGGER.debug("An exception occurred while saving hash to cache: ",e);
 		}
