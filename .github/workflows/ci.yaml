@@ -77,7 +77,7 @@ jobs:
           sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_18.04.deb
           mvn verify -P testing
 
-  linux-focal:
+  linux-jammy:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
