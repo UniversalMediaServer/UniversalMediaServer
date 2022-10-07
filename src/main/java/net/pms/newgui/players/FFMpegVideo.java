@@ -43,6 +43,8 @@ public class FFMpegVideo {
 	private static JCheckBox isFFmpegSoX;
 	private static JComboBox<String> fFmpegGPUDecodingAccelerationMethod;
 	private static JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber;
+	private static JComboBox<String> fFmpegGPUH264EncodingAccelerationMethod;
+	private static JComboBox<String> fFmpegGPUH265EncodingAccelerationMethod;
 
 	public static JComponent config() {
 		return config("GeneralSettings");
@@ -51,7 +53,7 @@ public class FFMpegVideo {
 	private static JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 3dlu, pref",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -148,6 +150,39 @@ public class FFMpegVideo {
 		});
 		fFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationThreadNumber), cc.xy(3, y));
+
+		y += 2;
+		builder.add(new JLabel(Messages.getString("GPUH264EncodingAccelerationMethod")), cc.xy(1, y));
+
+		String[] keysH264 = CONFIGURATION.getFFmpegAvailableGPUH264EncodingAccelerationMethods();
+
+		fFmpegGPUH264EncodingAccelerationMethod = new JComboBox<>(keysH264);
+		fFmpegGPUH264EncodingAccelerationMethod.setSelectedItem(CONFIGURATION.getFFmpegGPUH264EncodingAccelerationMethod());
+		fFmpegGPUH264EncodingAccelerationMethod.setToolTipText(Messages.getString("NvidiaAndAmdEncoders"));
+		fFmpegGPUH264EncodingAccelerationMethod.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				CONFIGURATION.setFFmpegGPUH264EncodingAccelerationMethod((String) e.getItem());
+			}
+		});
+		fFmpegGPUH264EncodingAccelerationMethod.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUH264EncodingAccelerationMethod), cc.xy(3, y));
+		
+		y += 2;
+		builder.add(new JLabel(Messages.getString("GPUH265EncodingAccelerationMethod")), cc.xy(1, y));
+
+		String[] keysH265 = CONFIGURATION.getFFmpegAvailableGPUH265EncodingAccelerationMethods();
+
+		fFmpegGPUH265EncodingAccelerationMethod = new JComboBox<>(keysH265);
+		fFmpegGPUH265EncodingAccelerationMethod.setSelectedItem(CONFIGURATION.getFFmpegGPUH265EncodingAccelerationMethod());
+		fFmpegGPUH265EncodingAccelerationMethod.setToolTipText(Messages.getString("NvidiaAndAmdEncoders"));
+		fFmpegGPUH265EncodingAccelerationMethod.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				CONFIGURATION.setFFmpegGPUH265EncodingAccelerationMethod((String) e.getItem());
+			}
+		});
+		fFmpegGPUH265EncodingAccelerationMethod.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUH265EncodingAccelerationMethod), cc.xy(3, y));
+
 
 		return builder.getPanel();
 	}

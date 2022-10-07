@@ -17,12 +17,9 @@
  */
 package net.pms.encoders;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -80,35 +77,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return true;
 	}
 
-	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(filename, subTrack, -1, -1, null, null, CONFIGURATION);
-	}
-
-	private static String get2Dto3DScriptTemplate() {
-		
-		String template = "";
-		
-		InputStream is = AviSynthFFmpeg.class.getClassLoader().getResourceAsStream("resources/2d-to-3d-template.txt");
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line = null;
-
-		try {
-			while ((line = br.readLine()) != null) {
-					template += line + "\n";
-			}
-
-			br.close();
-		} catch (IOException e) {
-			LOGGER.error("Error while retrieving 2D to 3D script template", e);
-		}
-		
-		return template;
-	}
-	
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, double timeSeek, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
@@ -137,21 +109,18 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
 			}
 
-			String movieLine       = "";
-			String mtLine1         = "";
-			String mtLine2		   = "";
-			String mtPrefetchLine  = "";
-			String interframeLines = null;
-			String interframePath  = configuration.getInterFramePath();
+			String movieLine       		= "";
+			String mtLine1         		= "";
+			String mtLine2		   		= "";
+			String mtPrefetchLine  		= "";
+			String interframeLines 		= null;
+			String interframePath  		= configuration.getInterFramePath();
+			String ffms2Path 	   		= configuration.getFFMS2Path();
+			String convert2dTo3DPath	= configuration.getConvert2dTo3dPath();
 			
-			if (configuration.getFfmpegAvisynth2Dto3D())
-			{
-				movieLine += "video2d = ";
-			}
-
-			if (configuration.getFfmpegAvisynthUseFfmpegSource2()) {
+			if (configuration.getFfmpegAvisynthUseFFMS2()) {
 				
-				// See documentation for FFmpegSource2 here: http://avisynth.nl/index.php/FFmpegSource
+				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
 				
 				String fpsNum   = "fpsnum=" + numerator;
 				String fpsDen   = "fpsden=" + denominator;
@@ -173,7 +142,11 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 							
 				int seekMode   = 2; 
 				
-				movieLine      += "FFmpegSource2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
+				movieLine += "\n" +
+				"PluginPath = \"" + ffms2Path + "\"\n" +
+				"LoadPlugin(PluginPath+\"\\ffms2.dll\")\n";
+				
+				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
 			}
 			else
 			{
@@ -204,7 +177,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					// Goes at the start of the file to initiate multithreading
 					mtLine1 = "SetFilterMTMode(\"DEFAULT_MT_MODE\", 2)\n";
 				
-					// Goes at the end of the script file
+					// Goes at the end of the script file to support AviSynth+ multithreading
 					mtPrefetchLine = "Prefetch(" + cores + ")\n";
 				}
 				else
@@ -271,10 +244,21 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			if (configuration.getFfmpegAvisynth2Dto3D()) {
-				String convert2Dto3DLines = get2Dto3DScriptTemplate();
-				lines.add(convert2Dto3DLines);
+
+				lines.add("video2d=Last" );
+				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)" );
+				lines.add("video2dFromSeekPoint=Trim(video2d,seekFrame,0)" );
+
+				lines.add( "\n" +
+				"PluginPath = \"" + convert2dTo3DPath + "\"\n" +
+				"LoadPlugin(PluginPath+\"\\mvtools2.dll\")\n" +						
+				"Import(PluginPath+\"\\convert2dto3d.avsi\")\n\n" );
+				
+				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + configuration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + configuration.getFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ")");
+				
+			    // lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)"); 
 			}
-			
+
 			if (configuration.getFfmpegAvisynthInterFrame()) {
 				lines.add(mtLine2);
 				lines.add(interframeLines);

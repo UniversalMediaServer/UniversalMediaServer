@@ -95,42 +95,95 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				frameRateNumber = "23.976";
 			}
 
-			String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
-
-			String directShowFPS = "";
-			if (!"0".equals(frameRateNumber)) {
-				directShowFPS = ", fps=" + frameRateNumber;
-			}
-
-			String convertfps = "";
-			if (configuration.getAvisynthConvertFps()) {
-				convertfps = ", convertfps=true";
-			}
-
 			File f = new File(fileName);
 			if (f.exists()) {
 				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
 			}
-
-			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			
+			String movieLine       = "";
 			String mtLine1         = "";
-			String mtLine2         = "";
+			String mtLine2		   = "";
 			String mtLine3         = "";
+			String mtPrefetchLine  = "";
 			String interframeLines = null;
 			String interframePath  = configuration.getInterFramePath();
+			String ffms2Path 	   		= configuration.getFFMS2Path();
+			String convert2dTo3DPath	= configuration.getConvert2dTo3dPath();
+			
+			if (configuration.getAvisynthUseFFMS2()) {
+				
+				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
+				
+				String fpsNum   = "fpsnum=" + numerator;
+				String fpsDen   = "fpsden=" + denominator;
+				
+				String convertfps = "";
+				
+				if (configuration.getAvisynthConvertFps()) {
+					convertfps = ", " + fpsNum + ", " + fpsDen;
+				}	
+				
+				// atrack:
+				// A value of -1 means select the first available audio track. Default (-2) means audio is disabled.
+				
+				int audioTrack = -1;
+				
+				// seekmode:
+				// 1: Safe normal (the default). Bases seeking decisions on the keyframe positions reported by libavformat.
+				// 2: Unsafe normal. Same as mode 1, but no error will be thrown if the exact seek destination has to be guessed. 
+							
+				int seekMode   = 2; 
+				
+				movieLine += "\n" +
+				"PluginPath = \"" + ffms2Path + "\"\n" +
+				"LoadPlugin(PluginPath+\"ffms2.dll\")\n";
+								
+				movieLine      += "FFMS2(\"" + fileName + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
+			}
+			else
+			{
+				String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
 
+				String directShowFPS = "";
+				if (!"0".equals(frameRateNumber)) {
+					directShowFPS = ", fps=" + frameRateNumber;
+				}
+
+				String convertfps = "";
+				if (configuration.getAvisynthConvertFps()) {
+					convertfps = ", convertfps=true";
+				}
+
+				movieLine       += "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			}
+			
 			int cores = 1;
 			if (configuration.getAvisynthMultiThreading()) {
+				
 				cores = configuration.getNumberOfCpuCores();
 
-				// Goes at the start of the file to initiate multithreading
-				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
-
-				// Goes after the input line to make multithreading more efficient
-				mtLine2 = "SetMTMode(2)";
-
-				// Goes at the end of the file to allow the multithreading to work with MEncoder
-				mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
+				if (configuration.isAviSynthPlusMode())
+				{
+					// AviSynth+ multi-threading
+					
+					// Goes at the start of the file to initiate multithreading
+					mtLine1 = "SetFilterMTMode(\"DEFAULT_MT_MODE\", 2)\n";
+				
+					// Goes at the end of the script file to support AviSynth+ multithreading
+					mtPrefetchLine = "Prefetch(" + cores + ")\n";					
+				}
+				else
+				{
+					// AviSynth multi-threading
+					
+					// Goes at the start of the file to initiate multithreading
+					mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
+					// Goes after the input line to make multithreading more efficient
+					mtLine2 = "SetMTMode(2)";
+					
+					// Goes at the end of the file to allow the multithreading to work with MEncoder
+					mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
+				}
 			}
 
 			// True Motion
@@ -185,11 +238,23 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				lines.add(line);
 			}
 
-			lines.add(mtLine2);
-
+			if (configuration.getFfmpegAvisynth2Dto3D()) {
+				
+				lines.add( "\n" +
+				"PluginPath = \"" + convert2dTo3DPath + "\"\n" +
+				"Import(PluginPath+\"convert2dto3d.avsi\")\n\n" );
+				
+				lines.add("convert2dTo3d(Last)\n");
+			}
+			
 			if (configuration.getAvisynthInterFrame()) {
+				lines.add(mtLine2);
 				lines.add(interframeLines);
 			}
+			
+			if (configuration.getAvisynthMultiThreading() && configuration.isAviSynthPlusMode()) {
+				lines.add(mtPrefetchLine);				
+			}			
 
 			lines.add(mtLine3);
 

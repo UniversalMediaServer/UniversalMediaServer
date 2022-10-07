@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.4.1</version>
+	<version>11.4.1 2D to 3D Mod</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.4.1</project.version.short>
+		<project.version.short>11.4.1.2dTo3dMod</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -1206,6 +1206,19 @@
 								</goals>
 								<configuration>
 									<target>
+									
+										<!-- Copy ffms2 to its destination -->
+										<mkdir dir="${project.binaries}/win32/ffms2" />
+										<copy todir="${project.binaries}/win32/ffms2" overwrite="true">
+											<fileset dir="${project.external-resources}/third-party/ffms2" />
+										</copy>									
+
+										<!-- Copy 2dTo3d to its destination -->
+										<mkdir dir="${project.binaries}/win32/2dTo3d" />
+										<copy todir="${project.binaries}/win32/2dTo3d" overwrite="true">
+											<fileset dir="${project.external-resources}/third-party/2dTo3d" />
+										</copy>									
+									
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />

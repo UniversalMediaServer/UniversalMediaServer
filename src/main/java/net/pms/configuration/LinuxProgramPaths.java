@@ -204,6 +204,16 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getFFMS2() {
+		return null;
+	}
+	
+	@Override
+	public ExternalProgramInfo getConvert2dTo3d() {
+		return null;
+	}
+		
+	@Override
 	public ExternalProgramInfo getYoutubeDl() {
 		return youtubeDlInfo;
 	}

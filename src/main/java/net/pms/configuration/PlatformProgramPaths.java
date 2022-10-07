@@ -92,7 +92,19 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getInterFrame();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for InterFrame.
+	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getFFMS2();
+		
+	/**
+	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getConvert2dTo3d();
+		
+	/**
+	 * @return The {@link ExternalProgramInfo} for YoutubeDl.
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getYoutubeDl();

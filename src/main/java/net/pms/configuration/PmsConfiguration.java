@@ -18,8 +18,7 @@
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import ch.qos.logback.classic.Level;
-import com.sun.jna.Platform;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,11 +31,32 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
+import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -64,14 +84,6 @@ import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
 import net.pms.util.WindowsRegistry;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Container for all configurable UMS settings. Settings are typically defined by three things:
@@ -130,6 +142,9 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
 	protected static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	protected static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
+	protected static final String KEY_AVISYNTH_USE_FFMS2 = "avisynth_use_FFMS2_instead_of_directshowsource";
+	protected static final String KEY_AVISYNTH_ENABLE_PLUS_MODE = "avisynth_enable_plus_mode";
+	protected static final String KEY_AVISYNTH_2D_TO_3D = "avisynth_2d_to_3d_conversion";
 	protected static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
 	protected static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
 	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
@@ -172,11 +187,17 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
-	protected static final String KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2 = "ffmpeg_use_ffmpegsource2_instead_of_directshowsource";
+	protected static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource";
 	protected static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
-	protected static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";	
+	protected static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
+	protected static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
+	protected static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
+	protected static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
+	protected static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
+	protected static final String KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H264_encoding_acceleration_method";
+	protected static final String KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H265_encoding_acceleration_method";
 	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
 	protected static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
 	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
@@ -1267,6 +1288,70 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFFMS2Paths() {
+		return programPaths.getFFMS2();
+	}
+
+	/**
+	 * @return The configured path to the FFMS2 folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getFFMS2Path() {
+		Path executable = null;
+		ExternalProgramInfo ffms2Paths = getFFMS2Paths();
+		if (ffms2Paths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_FFMS2_EXECUTABLE_TYPE,
+				ffms2Paths.getDefault()
+			);
+			if (executableType != null) {
+				executable = ffms2Paths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = ffms2Paths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.
+	 */
+	@Nullable
+	public ExternalProgramInfo getConvert2dTo3dPaths() {
+		return programPaths.getConvert2dTo3d();
+	}
+
+	/**
+	 * @return The configured path to the Convert2dTo3d folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getConvert2dTo3dPath() {
+		Path executable = null;
+		ExternalProgramInfo convert2dTo3dPaths = getConvert2dTo3dPaths();
+		if (convert2dTo3dPaths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_2DTO3D_EXECUTABLE_TYPE,
+				convert2dTo3dPaths.getDefault()
+			);
+			if (executableType != null) {
+				executable = convert2dTo3dPaths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = convert2dTo3dPaths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+	
+	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
 	 * Interframe both in {@link PmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
@@ -1281,6 +1366,36 @@ public class PmsConfiguration extends RendererConfiguration {
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
 	}
 
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * FFMS2 both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFFMS2Path(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomFFMS2Path(customPath);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Convert2dTo3d both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomConvert2dTo3dPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomConvert2dTo3dPath(customPath);
+	}
+			
 	/**
 	 * @return The {@link ExternalProgramInfo} for youtube-dl.
 	 */
@@ -2578,6 +2693,63 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
+	 * Whether we should use FFMS2 instead of DirectShowSource in AviSynth.
+	 *
+	 * @param value True if we should use FFMS2 instead of DirectShowSource
+	 *              in AviSynth.
+	 */
+	public void setAvisynthUseFFMS2(boolean value) {
+		configuration.setProperty(KEY_AVISYNTH_USE_FFMS2, value);
+	}
+
+	/**
+	 * Returns true if we should use FFMS2 instead of DirectShowSource in
+	 * AviSynth.
+	 *
+	 * @return True if we should use FFMS2 instead of DirectShowSource in
+	 *         AviSynth.
+	 */
+	public boolean getAvisynthUseFFMS2() {
+		return getBoolean(KEY_AVISYNTH_USE_FFMS2, false);
+	}
+
+	/**
+	 * Whether we should generate AviSynth+ compatible AVS scripts.
+	 *
+	 * @param value True if we should generate AviSynth+ compatible AVS scripts.
+	 */
+	public void setAviSynthPlusMode(boolean value) {
+		configuration.setProperty(KEY_AVISYNTH_ENABLE_PLUS_MODE, value);
+	}
+
+	/**
+	 * Returns true if we should generate AviSynth+ compatible AVS scripts.
+	 *
+	 * @return True if we should generate AviSynth+ compatible AVS scripts.
+	 */
+	public boolean isAviSynthPlusMode() {
+		return getBoolean(KEY_AVISYNTH_ENABLE_PLUS_MODE, false);
+	}
+
+	/**
+	 * Whether we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @param value True if we should pass the flag.
+	 */
+	public void setAvisynth2Dto3D(boolean value) {
+		configuration.setProperty(KEY_AVISYNTH_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns true if we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @return True if we should convert 2D video to 3D in AviSynth.
+	 */
+	public boolean getAvisynth2Dto3D() {
+		return getBoolean(KEY_AVISYNTH_2D_TO_3D, false);
+	}
+
+	/**
 	 * Returns the template for the AviSynth script. The script string can
 	 * contain the character "\u0001", which should be treated as the newline
 	 * separator character.
@@ -2670,6 +2842,14 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getFFmpegGPUDecodingAccelerationMethod() {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
 	}
+	
+	public String getFFmpegGPUH264EncodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
+	}
+	
+	public String getFFmpegGPUH265EncodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
+	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
 		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, value);
@@ -2677,6 +2857,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, "1");
+	}
+	
+	public void setFFmpegGPUH264EncodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, value);
+	}
+
+	public void setFFmpegGPUH265EncodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, value);
 	}
 
 	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
@@ -2687,6 +2875,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
 	}
 
+	public String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
+		return new String[] { "libx264", "h264_nvenc", "h264_amf", "h264_qsv", "h264_mf", "libx264rgb" };
+	}
+
+	public String[] getFFmpegAvailableGPUH265EncodingAccelerationMethods() {
+		return new String[] { "libx265", "hevc_nvenc", "hevc_amf", "hevc_qsv", "hevc_mf"  };
+	}
+	
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
 		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, collectionToString(methods));
 	}
@@ -2733,26 +2929,26 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getFfmpegAvisynthInterFrameGPU() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 	}
-
+			
 	/**
-	 * Whether we should use FFmpegSource2 instead of DirectShowSource in AviSynth.
+	 * Whether we should use FFMS2 instead of DirectShowSource in AviSynth.
 	 *
-	 * @param value True if we should use FFmpegSource2 instead of DirectShowSource
+	 * @param value True if we should use FFMS2 instead of DirectShowSource
 	 *              in AviSynth.
 	 */
-	public void setFfmpegAvisynthUseFfmpegSource2(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2, value);
+	public void setFfmpegAvisynthUseFFMS2(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, value);
 	}
 
 	/**
-	 * Returns true if we should use FFmpegSource2 instead of DirectShowSource in
+	 * Returns true if we should use FFMS2 instead of DirectShowSource in
 	 * AviSynth.
 	 *
-	 * @return True if we should use FFmpegSource2 instead of DirectShowSource in
+	 * @return True if we should use FFMS2 instead of DirectShowSource in
 	 *         AviSynth.
 	 */
-	public boolean getFfmpegAvisynthUseFfmpegSource2() {
-		return getBoolean(KEY_FFMPEG_AVISYNTH_USE_FFMPEGSOURCE2, false);
+	public boolean getFfmpegAvisynthUseFFMS2() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
 	}
 
 	/**
@@ -2789,6 +2985,72 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean getFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+	}
+
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the format.
+	 */
+	public int getFfmpegAvisynthOutputFormat3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 1);
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 * 
+	 * @param value The index of the format.
+	 */
+	public void setFfmpegAvisynthOutputFormat3D(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
+	}
+	
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the algorithm.
+	 */
+	public int getFfmpegAvisynthConversionAlgorithm2Dto3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, 1);
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
+	}
+	
+	/**
+	 * Whether we should resize the input 2D video for 3D conversion in AviSynth.
+	 *
+	 * @param value True if we should resize.
+	 */
+	public void setFfmpegAvisynthHorizontalResize(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, value);
+	}
+
+	/**
+	 * Returns true if we should resize the input 2D video for 3D conversion in AviSynth.
+	 *
+	 * @return True if we should resize.
+	 */
+	public boolean getFfmpegAvisynthHorizontalResize() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, false);
+	}
+	
+	public String getFfmpegAvisynthHorizontalResizeResolution() {
+		return getString(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
+	}
+	
+	public void setFfmpegAvisynthHorizontalResizeResolution(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, value);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
