@@ -35,6 +35,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +46,7 @@ import net.pms.PMS;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.service.process.ProcessManager;
 import net.pms.service.process.AbstractProcessTerminator;
@@ -426,7 +428,7 @@ public class WindowsUtils extends PlatformUtils {
 			font = getAbsolutePath("D:\\Windows\\Fonts", "Arial.ttf");
 		}
 		if (font == null) {
-			font = getAbsolutePath(".\\win32\\mplayer\\", "subfont.ttf");
+			font = getAbsolutePath(".\\bin\\mplayer\\", "subfont.ttf");
 		}
 		return font;
 	}
@@ -617,7 +619,11 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean installWin32Service() {
-		String[] cmdArray = new String[] {"windows/service/wrapper.exe", "-i", "wrapper.conf"};
+		Path wrapper = PlatformProgramPaths.resolve("service/wrapper.exe");
+		if (wrapper == null || !Files.exists(wrapper)) {
+			return false;
+		}
+		String[] cmdArray = new String[] {wrapper.toFile().getAbsolutePath(), "-i", "wrapper.conf"};
 		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, true, new OutputParams(PMS.getConfiguration()));
 		pwinstall.runInSameThread();
 		return pwinstall.isSuccess();
@@ -633,7 +639,11 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean uninstallWin32Service() {
-		String[] cmdArray = new String[] {"windows/service/wrapper.exe", "-r", "wrapper.conf"};
+		Path wrapper = PlatformProgramPaths.resolve("service/wrapper.exe");
+		if (wrapper == null || !Files.exists(wrapper)) {
+			return false;
+		}
+		String[] cmdArray = new String[] {wrapper.toFile().getAbsolutePath(), "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(PMS.getConfiguration());
 		output.setNoExitCheck(true);
 		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, true, output);

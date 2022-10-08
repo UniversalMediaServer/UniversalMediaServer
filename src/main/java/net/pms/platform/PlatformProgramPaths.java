@@ -19,6 +19,7 @@ package net.pms.platform;
 
 import com.sun.jna.Platform;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -132,7 +133,7 @@ public abstract class PlatformProgramPaths {
 	static {
 		String subPath;
 		if (Platform.isWindows()) {
-			subPath = "windows";
+			subPath = "bin";
 		} else if (Platform.isMac()) {
 			subPath = "osx";
 		} else {
@@ -195,4 +196,23 @@ public abstract class PlatformProgramPaths {
 		return Paths.get("");
 	}
 
+	/**
+	 * Converts a given path string to a {@code Path} and resolves it against
+	 * platform dev binaries folder, then against platform binaries folder.
+	 *
+	 * @param   other
+	 *          the path string to resolve against this binaries folders
+	 *
+	 * @return  the resulting path
+	 */
+	public static Path resolve(String other) {
+		Path otherPath = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			otherPath = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve(other);
+		}
+		if (otherPath == null || !Files.exists(otherPath)) {
+			otherPath = PLATFORM_BINARIES_FOLDER.resolve(other);
+		}
+		return otherPath;
+	}
 }
