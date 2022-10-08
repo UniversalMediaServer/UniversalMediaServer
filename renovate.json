@@ -4,7 +4,6 @@
     ":dependencyDashboard"
   ],
   "baseBranches": [
-    "main",
-    "3004-web-settings"
+    "main"
   ]
 }
