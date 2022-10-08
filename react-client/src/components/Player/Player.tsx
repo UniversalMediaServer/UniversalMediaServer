@@ -206,7 +206,7 @@ export const Player = () => {
           <Card.Section>
             {image}
           </Card.Section>
-          <Text align='center' size='sm'>
+          <Text align='center' size='sm' lineClamp={1}>
             {media.name}
           </Text>
         </Card>
@@ -219,7 +219,7 @@ export const Player = () => {
       return data.medias.map((media: BaseMedia) => {
         return getMedia(media);
       })
-	}
+    }
   }
 
   const getMediasSelection = (selection:BaseMedia[], title:string) => {
@@ -228,7 +228,7 @@ export const Player = () => {
         return getMedia(media);
       })
       return (<><Grid.Col span={12}><Card><Text align='center' size='lg'>{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
-	}
+    }
   }
 
   const getMediaSelections = () => {
