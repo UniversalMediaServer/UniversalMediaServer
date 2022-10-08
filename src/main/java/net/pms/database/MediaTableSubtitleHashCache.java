@@ -28,7 +28,7 @@ public class MediaTableSubtitleHashCache extends MediaTable {
     public static final String TABLE_NAME = "SUBTITLE_HASH_CACHE";
     public static final String COL_FILE_NAME = "FILE_NAME";
     public static final String COL_HASH = "HASH";
-    private static final int TABLE_VERSION = 2;
+    private static final int TABLE_VERSION = 1;
 
     protected static void checkTable(final Connection connection) throws SQLException {
         if (!tableExists(connection, TABLE_NAME)) {
