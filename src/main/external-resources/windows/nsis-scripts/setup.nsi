@@ -14,6 +14,9 @@
 
 !define REG_KEY_UNINSTALL "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
+!define SERVICE_NAME "UniversalMediaServer"
+!define OLD_SERVICE_NAME "Universal Media Server"
+!define BINARIES_DIR "$PROGRAMFILES\${PROJECT_NAME}\bin"
 
 RequestExecutionLevel admin
 
@@ -59,10 +62,10 @@ Section -Prerequisites
 		ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
 
 		${If} $0 != "2.6.0 MT"
-			SetOutPath $INSTDIR\bin\avisynth
+			SetOutPath "${BINARIES_DIR}\avisynth"
 			MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
 			File "${PROJECT_BUILD_DIR}\bin\windows\avisynth\avisynth.exe"
-			ExecWait "$INSTDIR\bin\avisynth\avisynth.exe"
+			ExecWait "${BINARIES_DIR}\avisynth\avisynth.exe"
 		${EndIf}
 
 	jump_if_silent:
@@ -90,16 +93,27 @@ Function LockedListShow
 		LockedList::AddModule "$INSTDIR\MediaInfo.dll"
 		LockedList::AddModule "$INSTDIR\win32\MediaInfo.dll"
 	${EndIf}
-	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
+	LockedList::AddModule "${BINARIES_DIR}\MediaInfo.dll"
 
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
 
-	services::IsServiceRunning 'Universal Media Server'
+	services::IsServiceRunning "${OLD_SERVICE_NAME}"
+	Pop $0
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'stop' "${OLD_SERVICE_NAME}"
+		Pop $1
+		StrCmp $1 'Ok' osuccess 0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+			Abort
+		osuccess:
+	${EndIf}
+
+	services::IsServiceRunning "${SERVICE_NAME}"
 	Pop $0
 	; $0 now contains either 'Yes', 'No' or an error description
 	${If} $0 == "Yes"
-		services::SendServiceCommand 'stop' 'Universal Media Server'
+		services::SendServiceCommand 'stop' "${SERVICE_NAME}"
 		Pop $1
 		StrCmp $1 'Ok' success 0
 			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
@@ -195,11 +209,11 @@ FunctionEnd
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
-	services::IsServiceInstalled 'Universal Media Server'
+	services::IsServiceInstalled "${SERVICE_NAME}"
 	Pop $0
 	; $0 now contains either 'Yes', 'No' or an error description
 	${If} $0 == "Yes"
-		services::SendServiceCommand 'start' 'Universal Media Server'
+		services::SendServiceCommand 'start' "${SERVICE_NAME}"
 		Pop $1
 		StrCmp $1 'Ok' success 0
 			; If we failed to start the service it might be disabled, so we start the GUI
@@ -245,7 +259,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
 	File /r /x "x86" /x "x86_64" /x "winxp" "${PROJECT_BUILD_DIR}\bin\windows"
-	SetOutPath "$INSTDIR\windows"
+	SetOutPath "${BINARIES_DIR}"
 	${If} ${RunningX64}
 		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86_64"
 	${Else}
@@ -340,6 +354,17 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\jre15"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
+	; remove old service
+	services::IsServiceInstalled "${OLD_SERVICE_NAME}"
+	Pop $0
+	${If} $0 == "Yes"
+		services::SendServiceCommand 'delete' "${OLD_SERVICE_NAME}"
+		Pop $1
+		StrCmp $1 'Ok' osuccess 0
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\${OLD_SERVICE_NAME}"
+		osuccess:
+	${EndIf}
+
 	; Delete old MediaInfo files
 	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
 	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
@@ -394,7 +419,7 @@ Section "Start Menu Shortcuts"
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	services::IsServiceInstalled 'Universal Media Server'
+	services::IsServiceInstalled "${SERVICE_NAME}"
 	Pop $0
 	; $0 now contains either 'Yes', 'No' or an error description
 	${If} $0 != "Yes"
@@ -419,7 +444,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
 	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
-	RMDir /R /REBOOTOK "$INSTDIR\windows"
+	RMDir /R /REBOOTOK "${BINARIES_DIR}"
 
 	; Old folders (maybe do this on install/upgrade ?)
 	RMDir /R /REBOOTOK "$INSTDIR\jre17"
@@ -710,16 +735,16 @@ Section "Uninstall"
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
-	services::IsServiceInstalled 'Universal Media Server'
+	services::IsServiceInstalled "${SERVICE_NAME}"
 	Pop $0
 	; $0 now contains either 'Yes', 'No' or an error description
 	${If} $0 != "Yes"
-		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\Universal Media Server"
+		services::SendServiceCommand 'stop' "${SERVICE_NAME}"
+		services::SendServiceCommand 'delete' "${SERVICE_NAME}"
+		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\${SERVICE_NAME}"
 	${EndIf}
 
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'
 	ExecWait 'netsh advfirewall firewall delete rule name="UMS Service"'
 
-	nsSCM::Stop "${PROJECT_NAME}"
-	nsSCM::Remove "${PROJECT_NAME}"
 SectionEnd

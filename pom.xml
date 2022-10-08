@@ -1086,7 +1086,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.2.0</version>
+				<version>4.7.2.1</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -1196,6 +1196,7 @@
 									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
+										<mkdir dir="${project.binaries}/bin" />
 										<mkdir dir="${project.binaries}/windows" />
 										<mkdir dir="${project.binaries}/windows/avisynth" />
 										<mkdir dir="${project.binaries}/windows/codecs" />
@@ -1211,14 +1212,15 @@
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-dsnative.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
@@ -1267,6 +1269,8 @@
 										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
+
+										<!-- Make sure the download folders exist -->
 									</target>
 								</configuration>
 							</execution>
@@ -1300,7 +1304,7 @@
 										</copy>
 
 										<!-- Copy the ctrlsender.exe -->
-										<copy file="${project.external-resources}/windows/ctrlsender/ctrlsender.exe" todir="${project.binaries}/windows/ctrlsender.exe" />
+										<copy file="${project.external-resources}/windows/ctrlsender/ctrlsender.exe" todir="${project.binaries}/windows" />
 
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
 										<mkdir dir="${project.binaries}/windows/winxp" />
@@ -2656,7 +2660,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="${project.basedir}/target/pms.jar" overwrite="true" />
+													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2757,7 +2761,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+													tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2774,7 +2778,7 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files/Universal Media Server/web/</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
@@ -2797,7 +2801,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files (x86)/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files/Universal Media Server/UMS.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -2938,8 +2942,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}/windows" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/bin" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3010,8 +3014,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}/windows" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/bin" />
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>

@@ -63,13 +63,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	 */
 	public WindowsProgramPaths() {
 		// FFmpeg
-		Path ffmpeg = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			ffmpeg = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffmpeg.exe");
-		}
-		if (ffmpeg == null || !Files.exists(ffmpeg)) {
-			ffmpeg = PLATFORM_BINARIES_FOLDER.resolve("ffmpeg.exe");
-		}
+		Path ffmpeg = resolve("ffmpeg.exe");
 		try {
 			if (!new FilePermissions(ffmpeg).isExecutable()) {
 				LOGGER.trace("Insufficient permission to executable \"{}\"", ffmpeg);
@@ -86,13 +80,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// MPlayer
-		Path mPlayer = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			mPlayer = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mplayer.exe");
-		}
-		if (mPlayer == null || !Files.exists(mPlayer)) {
-			mPlayer = PLATFORM_BINARIES_FOLDER.resolve("mplayer.exe");
-		}
+		Path mPlayer = resolve("mplayer.exe");
 		mPlayerInfo = new ExternalProgramInfo("MPlayer", ProgramExecutableType.BUNDLED);
 		mPlayerInfo.setPath(ProgramExecutableType.BUNDLED, mPlayer);
 		mPlayer = FileUtil.findExecutableInOSPath(Paths.get("mplayer.exe"));
@@ -113,13 +101,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// MEncoder
-		Path mEncoder = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			mEncoder = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mencoder.exe");
-		}
-		if (mEncoder == null || !Files.exists(mEncoder)) {
-			mEncoder = PLATFORM_BINARIES_FOLDER.resolve("mencoder.exe");
-		}
+		Path mEncoder = resolve("mencoder.exe");
 		mEncoderInfo = new ExternalProgramInfo("MEncoder", ProgramExecutableType.BUNDLED);
 		mEncoderInfo.setPath(ProgramExecutableType.BUNDLED, mEncoder);
 		mEncoder = FileUtil.findExecutableInOSPath(Paths.get("mencoder.exe"));
@@ -128,13 +110,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// tsMuxeR
-		Path tsMuxeR = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			tsMuxeR = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("tsMuxeR.exe");
-		}
-		if (tsMuxeR == null || !Files.exists(tsMuxeR)) {
-			tsMuxeR = PLATFORM_BINARIES_FOLDER.resolve("tsMuxeR.exe");
-		}
+		Path tsMuxeR = resolve("tsMuxeR.exe");
 		tsMuxeRInfo = new ExternalProgramInfo("tsMuxeR", ProgramExecutableType.BUNDLED);
 		tsMuxeRInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeR);
 		tsMuxeR = FileUtil.findExecutableInOSPath(Paths.get("tsMuxeR.exe"));
@@ -143,35 +119,17 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// tsMuxeRNew
-		Path tsMuxeRNew = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			tsMuxeRNew = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("tsMuxeR-new.exe");
-		}
-		if (tsMuxeRNew == null || !Files.exists(tsMuxeRNew)) {
-			tsMuxeRNew = PLATFORM_BINARIES_FOLDER.resolve("tsMuxeR-new.exe");
-		}
+		Path tsMuxeRNew = resolve("tsMuxeR-new.exe");
 		tsMuxeRNewInfo = new ExternalProgramInfo("tsMuxeRNew", ProgramExecutableType.BUNDLED);
 		tsMuxeRNewInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeRNew);
 
 		// FLAC
-		Path flac = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			flac = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("flac.exe");
-		}
-		if (flac == null || !Files.exists(flac)) {
-			flac = PLATFORM_BINARIES_FOLDER.resolve("flac.exe");
-		}
+		Path flac = resolve("flac.exe");
 		flacInfo = new ExternalProgramInfo("FLAC", ProgramExecutableType.BUNDLED);
 		flacInfo.setPath(ProgramExecutableType.BUNDLED, flac);
 
 		// DCRaw
-		Path dcRaw = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			dcRaw = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("dcrawMS.exe");
-		}
-		if (dcRaw == null || !Files.exists(dcRaw)) {
-			dcRaw = PLATFORM_BINARIES_FOLDER.resolve("dcrawMS.exe");
-		}
+		Path dcRaw = resolve("dcrawMS.exe");
 		dcRawInfo = new ExternalProgramInfo("DCRaw", ProgramExecutableType.BUNDLED);
 		dcRawInfo.setPath(ProgramExecutableType.BUNDLED, dcRaw);
 		dcRaw = FileUtil.findExecutableInOSPath(Paths.get("dcrawMS.exe"));
@@ -180,21 +138,12 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 
 		// InterFrame
-		Path interframe = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			interframe = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("interframe");
-		}
-		if (interframe == null || !Files.exists(interframe)) {
-			interframe = PLATFORM_BINARIES_FOLDER.resolve("interframe");
-		}
+		Path interframe = resolve("interframe");
 		interFrameInfo = new ExternalProgramInfo("InterFrame", ProgramExecutableType.BUNDLED);
 		interFrameInfo.setPath(ProgramExecutableType.BUNDLED, interframe);
 
 		// CtrlSender
-		Path tmpCtrlSender = Paths.get("src/main/external-resources/lib/ctrlsender/ctrlsender.exe");
-		if (!Files.exists(tmpCtrlSender)) {
-			tmpCtrlSender = PLATFORM_BINARIES_FOLDER.resolve("ctrlsender.exe");
-		}
+		Path tmpCtrlSender = resolve("ctrlsender.exe");
 		try {
 			if (!new FilePermissions(tmpCtrlSender).isExecutableFile()) {
 				tmpCtrlSender = null;
@@ -205,24 +154,12 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		ctrlSender = tmpCtrlSender;
 
 		// youtube-dl
-		Path youtubeDl = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			youtubeDl = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("youtube-dl.exe");
-		}
-		if (youtubeDl == null || !Files.exists(youtubeDl)) {
-			youtubeDl = PLATFORM_BINARIES_FOLDER.resolve("youtube-dl.exe");
-		}
+		Path youtubeDl = resolve("youtube-dl.exe");
 		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
 		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
 
 		// mediaInfo
-		Path tmpMediaInfo = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			tmpMediaInfo = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("mediainfo.dll");
-		}
-		if (tmpMediaInfo == null || !Files.exists(tmpMediaInfo)) {
-			tmpMediaInfo = PLATFORM_BINARIES_FOLDER.resolve("mediainfo.dll");
-		}
+		Path tmpMediaInfo = resolve("mediainfo.dll");
 		if (Files.exists(tmpMediaInfo)) {
 			mediaInfo = tmpMediaInfo.getParent();
 		} else {
