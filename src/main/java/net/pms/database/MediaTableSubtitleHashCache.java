@@ -33,18 +33,14 @@ public class MediaTableSubtitleHashCache extends MediaTable {
     protected static void checkTable(final Connection connection) throws SQLException {
         if (!tableExists(connection, TABLE_NAME)) {
             createTable(connection);
-            MediaTableTablesVersions.setTableVersion(connection,TABLE_NAME,TABLE_VERSION);
+            MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
         }
     }
-
     protected static final void createTable(final Connection connection) throws SQLException {
         LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
-        execute(connection,
-                "CREATE TABLE " + TABLE_NAME + "(" +
-                        "ID IDENTITY PRIMARY KEY, " +
-                        COL_FILE_NAME+" VARCHAR(255) NOT NULL, " +
-                        COL_HASH+" VARCHAR(50) NOT NULL" +
-                        ")"
+        execute(connection,  "CREATE TABLE " + TABLE_NAME + "(" +
+                "ID IDENTITY PRIMARY KEY, " + COL_FILE_NAME + " VARCHAR(255) NOT NULL, " +
+                COL_HASH + " VARCHAR(50) NOT NULL" + ")"
         );
     }
 }

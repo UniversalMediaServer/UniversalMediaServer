@@ -11,7 +11,7 @@ import java.util.Map;
 public class CacheUtil<T, U> {
     private final Map<T, U> cache;
 
-    public CacheUtil(){
+    public CacheUtil() {
         cache = new HashMap<>();
     }
 
@@ -20,7 +20,7 @@ public class CacheUtil<T, U> {
      * @param key
      * @param value
      */
-    public void setItem(T key, U value){
+    public void setItem(T key, U value) {
         cache.put(key, value);
     }
 
@@ -30,14 +30,14 @@ public class CacheUtil<T, U> {
      * @param key
      * @return value
      */
-    public U getItem(T key){
+    public U getItem(T key) {
         return cache.getOrDefault(key, null);
     }
 
     /**
      * Clears the cache
      */
-    public void clearCache(){
+    public void clearCache() {
         cache.clear();
     }
 }

@@ -70,9 +70,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableSubtitleHashCache;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
@@ -158,7 +155,7 @@ public class OpenSubtitle {
 	 */
 	public static String getHash(Path file) throws IOException {
 		String hash = HashCacheUtil.getHashFromCache(file);
-		if(hash == null) {
+		if (hash == null) {
 			hash = ImdbUtil.extractOSHash(file);
 			if (isBlank(hash)) {
 				hash = computeHash(file);

@@ -14,7 +14,7 @@ import java.sql.SQLException;
 
 public class HashCacheUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(HashCacheUtil.class);
-    private static final MediaDatabase db = PMS.get().getMediaDatabase();
+    private static final MediaDatabase mediaDatabase = PMS.get().getMediaDatabase();
 
     /**
      * Gets the cached hash of a subtitle file from the datastore.
@@ -22,14 +22,14 @@ public class HashCacheUtil {
      * @return The saved Hash or {@code null}.
      */
     public static String getHashFromCache(Path file) {
-        try (Connection connection = db.getConnection()) {
+        try (Connection connection = mediaDatabase.getConnection()) {
             String sqlStatement = "SELECT " + MediaTableSubtitleHashCache.COL_HASH + " FROM " +
                     MediaTableSubtitleHashCache.TABLE_NAME + " WHERE " +
                     MediaTableSubtitleHashCache.COL_FILE_NAME + "=?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sqlStatement)) {
                 preparedStatement.setString(1, file.getFileName().toString());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if(resultSet.next()){
+                    if (resultSet.next()) {
                         return resultSet.getString(1);
                     }
                 }
@@ -48,10 +48,10 @@ public class HashCacheUtil {
      * computeHash method.
      */
     public static void addHashToCache(Path file, String hash) {
-        try (Connection connection = db.getConnection()) {
-            String sql = "INSERT INTO " + MediaTableSubtitleHashCache.TABLE_NAME + " ("
-                    + MediaTableSubtitleHashCache.COL_FILE_NAME + "," + MediaTableSubtitleHashCache.COL_HASH
-                    + ") VALUES (?,?)";
+        try (Connection connection = mediaDatabase.getConnection()) {
+            String sql = "INSERT INTO " + MediaTableSubtitleHashCache.TABLE_NAME + " (" +
+                    MediaTableSubtitleHashCache.COL_FILE_NAME + "," + MediaTableSubtitleHashCache.COL_HASH +
+                    ") VALUES (?,?)";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 preparedStatement.setString(1, file.getFileName().toString());
                 preparedStatement.setString(2, hash);
