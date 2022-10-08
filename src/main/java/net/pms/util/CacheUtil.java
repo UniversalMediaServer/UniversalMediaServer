@@ -9,35 +9,35 @@ import java.util.Map;
  * @param <U>
  */
 public class CacheUtil<T, U> {
-    private final Map<T, U> cache;
+	private final Map<T, U> cache;
 
-    public CacheUtil() {
-        cache = new HashMap<>();
-    }
+	public CacheUtil() {
+		cache = new HashMap<>();
+	}
 
-    /**
-     * sets an item of type U with a key of type T to the cache
-     * @param key
-     * @param value
-     */
-    public void setItem(T key, U value) {
-        cache.put(key, value);
-    }
+	/**
+	 * sets an item of type U with a key of type T to the cache
+	 * @param key
+	 * @param value
+	 */
+	public void setItem(T key, U value) {
+		cache.put(key, value);
+	}
 
-    /**
-     * Returns item of type U from the cache or null if no item
-     * with such key exists in the cache
-     * @param key
-     * @return value
-     */
-    public U getItem(T key) {
-        return cache.getOrDefault(key, null);
-    }
+	/**
+	 * Returns item of type U from the cache or null if no item
+	 * with such key exists in the cache
+	 * @param key
+	 * @return value
+	 */
+	public U getItem(T key) {
+		return cache.getOrDefault(key, null);
+	}
 
-    /**
-     * Clears the cache
-     */
-    public void clearCache() {
-        cache.clear();
-    }
+	/**
+	 * Clears the cache
+	 */
+	public void clearCache() {
+		cache.clear();
+	}
 }
