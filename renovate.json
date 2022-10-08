@@ -2,8 +2,5 @@
   "extends": [
     "config:base",
     ":dependencyDashboard"
-  ],
-  "baseBranches": [
-    "main"
   ]
 }

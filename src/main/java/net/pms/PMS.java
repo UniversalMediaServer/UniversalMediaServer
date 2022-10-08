@@ -660,7 +660,7 @@ PlatformUtils.INSTANCE.isAdmin();
 
 		GuiManager.serverReady();
 		ready = true;
-		if (configuration.isWebGuiOnStart()) {
+		if (configuration.isWebGuiOnStart() && !isRunningTests()) {
 			new Thread("Web GUI browser") {
 				@Override
 				public void run() {
