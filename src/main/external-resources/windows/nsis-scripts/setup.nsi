@@ -16,7 +16,6 @@
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
 !define SERVICE_NAME "UniversalMediaServer"
 !define OLD_SERVICE_NAME "Universal Media Server"
-!define BINARIES_DIR "$PROGRAMFILES\${PROJECT_NAME}\bin"
 
 RequestExecutionLevel admin
 
@@ -62,10 +61,10 @@ Section -Prerequisites
 		ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
 
 		${If} $0 != "2.6.0 MT"
-			SetOutPath "${BINARIES_DIR}\avisynth"
+			SetOutPath "$INSTDIR\bin\avisynth"
 			MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
 			File "${PROJECT_BUILD_DIR}\bin\windows\avisynth\avisynth.exe"
-			ExecWait "${BINARIES_DIR}\avisynth\avisynth.exe"
+			ExecWait "$INSTDIR\bin\avisynth\avisynth.exe"
 		${EndIf}
 
 	jump_if_silent:
@@ -93,7 +92,7 @@ Function LockedListShow
 		LockedList::AddModule "$INSTDIR\MediaInfo.dll"
 		LockedList::AddModule "$INSTDIR\win32\MediaInfo.dll"
 	${EndIf}
-	LockedList::AddModule "${BINARIES_DIR}\MediaInfo.dll"
+	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
 
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
@@ -258,12 +257,12 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
-	File /r /x "x86" /x "x86_64" /x "winxp" "${PROJECT_BUILD_DIR}\bin\windows"
-	SetOutPath "${BINARIES_DIR}"
+	SetOutPath "$INSTDIR\bin"
+	File /r /x "x86" /x "x86_64" /x "winxp" "${PROJECT_BUILD_DIR}\bin\windows\*.*"
 	${If} ${RunningX64}
-		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86_64"
+		File /r /x "jre${PROJECT_JRE_VERSION}" "${PROJECT_BUILD_DIR}\bin\windows\x86_64\*.*"
 	${Else}
-		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86"
+		File /r /x "jre${PROJECT_JRE_VERSION}" "${PROJECT_BUILD_DIR}\bin\windows\x86\*.*"
 	${EndIf}
 
 	${GetWindowsVersion} $R0
@@ -444,7 +443,7 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\data"
 	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
 	RMDir /R /REBOOTOK "$INSTDIR\web"
-	RMDir /R /REBOOTOK "${BINARIES_DIR}"
+	RMDir /R /REBOOTOK "$INSTDIR\bin"
 
 	; Old folders (maybe do this on install/upgrade ?)
 	RMDir /R /REBOOTOK "$INSTDIR\jre17"
