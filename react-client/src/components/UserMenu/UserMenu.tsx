@@ -1,6 +1,6 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import { useContext } from 'react';
-import { Activity, Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, User, Users } from 'tabler-icons-react';
+import { Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, Tool, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -51,10 +51,10 @@ function UserMenu() {
         <Menu.Label>{i18n.get['Settings']}</Menu.Label>
         {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (
           <Menu.Item
-            icon={<Activity size={14} />}
+            icon={<Tool size={14} />}
             onClick={() => { window.location.href = '/actions'; }}
           >
-            {i18n.get['ServerActivity']}
+            {i18n.get['Tools']}
           </Menu.Item>
         )}
         {havePermission(session, Permissions.settings_view)  && (

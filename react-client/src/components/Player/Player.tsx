@@ -1,11 +1,12 @@
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Text, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { createElement, useContext, useEffect, useState } from 'react';
+import { createElement, useContext, useEffect, useRef, useState } from 'react';
 import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import NavbarContext from '../../contexts/navbar-context';
 import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
@@ -17,7 +18,9 @@ export const Player = () => {
   const [token, setToken] = useState('');
   const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[],useWebControl:false} as BaseBrowse);
   const [loading, setLoading] = useState(false);
+  const mainScroll = useRef<HTMLDivElement>(null);
   const i18n = useContext(I18nContext);
+  const navbar = useContext(NavbarContext);
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
 
@@ -48,54 +51,6 @@ export const Player = () => {
       });
 	}
   };
-
-  const getMediaLibraryFolders = () => {
-    return data.mediaLibraryFolders?.map((folder) => {
-      return (
-        <Button
-          onClick={() => sse.askBrowseId(folder.id)}
-          color='gray'
-          variant='subtle'
-          compact
-          styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
-          leftIcon = {getFolderIcon(folder, rtl)}
-        >
-          {folder.name}
-        </Button>
-     );
-	});
-  }
-  const getFolders = () => {
-    if (data.mediaLibraryFolders && data.mediaLibraryFolders.length > 0) {
-		return (<><span>{i18n.get['MediaLibrary']}</span>{getMediaLibraryFolders()}<span>{i18n.get['YourFolders']}</span>{getFoldersButtons()}</>);
-    } else {
-		return getFoldersButtons();
-	}
-  }
-  const getFoldersButtons = () => {
-    return data.folders.map((folder) => {
-      return (
-        <Button
-          onClick={() => sse.askBrowseId(folder.id)}
-          color='gray'
-          variant="subtle"
-          compact
-          styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
-          leftIcon = {getFolderIcon(folder, rtl)}
-        >
-          {folder.name}
-        </Button>
-     );
-	});
-  }
-
-  const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
-    let icon = getMediaIcon(folder, rtl);
-    if (icon) {
-      return createElement(icon, {size:20});
-    }
-	return <Folder size={20} />
-  }
 
   const hasBreadcrumbs = () => {
     return data.breadcrumbs.length > 1;
@@ -198,7 +153,7 @@ export const Player = () => {
       image = <Image src={playerApiUrl + "thumb/" + token + "/"  + media.id} fit="contain" height={160} alt={media.name} />;
     }
     return (
-      <Grid.Col span={3}>
+      <Grid.Col xs={6} sm={6} md={4} lg={3} span={12}>
         <Card shadow='sm' p='lg'
           onClick={() => sse.askReqId(media.id, media.goal?media.goal:'browse')}
           style={{cursor:'pointer'}}
@@ -472,22 +427,62 @@ export const Player = () => {
     }
   }, [token, sse.reqType, sse.reqId]);
 
+  useEffect(() => {
+    const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
+      let icon = getMediaIcon(folder, rtl);
+      if (icon) {
+        return createElement(icon, {size:20});
+      }
+      return <Folder size={20} />
+    }
+    const getFoldersButtons = () => {
+      return data.folders.map((folder) => {
+        return (
+          <Button
+            onClick={() => sse.askBrowseId(folder.id)}
+            color='gray'
+            variant='subtle'
+            compact
+            styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
+            leftIcon = {getFolderIcon(folder, rtl)}
+          >
+            {folder.name}
+          </Button>
+        );
+      });
+    }
+    const getMediaLibraryFolders = () => {
+      return data.mediaLibraryFolders?.map((folder) => {
+        return (
+          <Button
+            onClick={() => sse.askBrowseId(folder.id)}
+            color='gray'
+            variant='subtle'
+            compact
+            styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
+            leftIcon = {getFolderIcon(folder, rtl)}
+          >
+            {folder.name}
+          </Button>
+       );
+      });
+    }
+    const getNavFolders = () => {
+      if (data.mediaLibraryFolders && data.mediaLibraryFolders.length > 0) {
+        return (<><div>{i18n.get['MediaLibrary']}</div>{getMediaLibraryFolders()}<div>{i18n.get['YourFolders']}</div>{getFoldersButtons()}</>);
+      } else {
+        return getFoldersButtons();
+      }
+    }
+    navbar.setValue(getNavFolders());
+    // eslint-disable-next-line
+  }, [data, i18n.get, navbar.setValue]);
+
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
       <LoadingOverlay visible={loading} />
-      <Grid>
-        <Grid.Col md={3} style={{height: 'calc(100vh - 60px)'}}>
-		<Paper>
-          <ScrollArea style={{height: 'calc(100vh - 60px)'}}>
-            <Stack justify='flex-start' spacing={0}>
-              {getFolders()}
-            </Stack>
-          </ScrollArea>
-		  </Paper>
-        </Grid.Col>
-        <Grid.Col md={9} style={{height: 'calc(100vh - 60px)'}}>
           {getBreadcrumbs()}
-          <ScrollArea offsetScrollbars style={{height: hasBreadcrumbs() ? 'calc(100vh - 100px)' : 'calc(100vh - 60px)'}}>
+          <ScrollArea offsetScrollbars viewportRef={mainScroll} >
             {data.goal === 'play' ?
               <Paper>
                 {getMediaPlayer()}
@@ -504,8 +499,6 @@ export const Player = () => {
               </Grid>
             )}
           </ScrollArea>
-        </Grid.Col>
-      </Grid>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">
