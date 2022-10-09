@@ -1220,6 +1220,7 @@
 										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />

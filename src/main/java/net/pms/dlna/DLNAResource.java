@@ -1182,7 +1182,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
-					if (res.getMedia().getFirstAudioTrack() == null) {
+					if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
