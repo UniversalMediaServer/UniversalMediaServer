@@ -479,7 +479,7 @@ export const Player = () => {
   }, [data, i18n.get, navbar.setValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
-    <Box mx="auto" style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
+    <Box style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
       <LoadingOverlay visible={loading} />
           {getBreadcrumbs()}
           <ScrollArea offsetScrollbars viewportRef={mainScroll} >

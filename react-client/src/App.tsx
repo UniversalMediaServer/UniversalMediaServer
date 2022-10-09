@@ -1,4 +1,4 @@
-import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
 import { lazy, useEffect } from 'react'; 
@@ -86,26 +86,29 @@ function App() {
                           </Navbar>}
                         header={<Header height={50} p='xs'>{
                           <Group position='apart'>
-                          <Group position='left'>
-                            {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
-                              <Burger
-                                opened={navbar.opened}
-                                onClick={() => navbar.setOpened((o : boolean) => !o)}
-                                size='sm'
-                                mr='xl'
-                              />
-                            </MediaQuery>}
+                            <Group position='left'>
+                              {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+                                <Burger
+                                  opened={navbar.opened}
+                                  onClick={() => navbar.setOpened((o : boolean) => !o)}
+                                  size='sm'
+                                  mr='xl'
+                                />
+                              </MediaQuery>}
+                            </Group>
+                            <Group position='right'>
+                              <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
+                                {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                              </ActionIcon>
+                              <LanguagesMenu />
+                              {session.account && <UserMenu />}
+                            </Group>
                           </Group>
-                          <Group position='right'>
-                            <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                              {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                            </ActionIcon>
-                            <LanguagesMenu />
-                            {session.account && <UserMenu />}
-                          </Group>
-                          </Group>
-
                         }</Header>}
+                        footer={
+                          <Footer height={0}>
+                          </Footer>
+                        }
                         styles={(theme) => ({
                           main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
                         })}
