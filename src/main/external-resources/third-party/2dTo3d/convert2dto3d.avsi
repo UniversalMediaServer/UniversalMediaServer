@@ -10,7 +10,7 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 # Defaults
 	algorithm     = default(algorithm   	, 1 )
 	outputFormat  = default(outputFormat    , 1 )
-	resize        = default(resize      	, false )
+	resize        = default(resize      	, true )
 	hzTargetSize  = default(hzTargetSize    , 1920    )
 	incBrightness = default(incBrightness   , false   )
 
@@ -21,7 +21,8 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	videoW = width(video2d)
 	videoH = height(video2d)
 
-	resize == true ? Eval("""
+	## Resize if resizing is enabled and the video width is greater than hzTargetSize
+	(resize == true && videoW > hzTargetSize) ? Eval("""
 			video2d = Lanczos4Resize(video2d, hzTargetSize, hzTargetSize * videoH / videoW)
 		""") : ""
 

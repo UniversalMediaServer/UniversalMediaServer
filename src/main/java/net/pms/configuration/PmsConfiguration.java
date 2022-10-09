@@ -3042,7 +3042,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return True if we should resize.
 	 */
 	public boolean getFfmpegAvisynthHorizontalResize() {
-		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, false);
+		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
 	}
 	
 	public String getFfmpegAvisynthHorizontalResizeResolution() {
