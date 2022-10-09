@@ -1,7 +1,7 @@
-import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { lazy, useEffect } from 'react'; 
+import { lazy, useContext, useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
@@ -22,6 +22,7 @@ import Logs from './components/Logs/Logs'
 import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
 import UserMenu from './components/UserMenu/UserMenu';
+import NavbarContext from './contexts/navbar-context';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
 import { AccountsProvider } from './providers/accounts-provider';
@@ -29,6 +30,7 @@ import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
+import { NavbarProvider } from './providers/navbar-provider';
 
 function App() {
   const Player = lazy(() => import('./components/Player/Player'));
@@ -70,27 +72,39 @@ function App() {
       >
         <NotificationsProvider>
           <I18nProvider>
-            <SessionProvider>
-              <SessionContext.Consumer>
+            <NavbarProvider><NavbarContext.Consumer>
+            {navbar => (
+              <SessionProvider><SessionContext.Consumer>
                 {session => (
                     <div dir={rtl ? 'rtl' : 'ltr'}>
                       <AppShell
-                        padding="md"
-                        // navbar={<Navbar width={{
-                        //   // When viewport is larger than theme.breakpoints.sm, Navbar width will be 300
-                        //   sm: 200,
-
-                        //   // When other breakpoints do not match base width is used, defaults to 100%
-                        //   base: 100,
-                        // }} height={500} p="xs">{/* Navbar content */}</Navbar>}
-                        header={<Header height={50} p="xs">{
-                          <Group position="right">
-                            <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
+                        padding='md'
+                        navbarOffsetBreakpoint='sm'
+                        navbar={navbar.value &&
+                          <Navbar hiddenBreakpoint='sm' hidden={!navbar.opened} width={{ sm: 200, lg: 300 }}>
+                            <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
+                          </Navbar>}
+                        header={<Header height={50} p='xs'>{
+                          <Group position='apart'>
+                          <Group position='left'>
+                            {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+                              <Burger
+                                opened={navbar.opened}
+                                onClick={() => navbar.setOpened((o : boolean) => !o)}
+                                size='sm'
+                                mr='xl'
+                              />
+                            </MediaQuery>}
+                          </Group>
+                          <Group position='right'>
+                            <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
                               {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
                             </ActionIcon>
                             <LanguagesMenu />
                             {session.account && <UserMenu />}
                           </Group>
+                          </Group>
+
                         }</Header>}
                         styles={(theme) => ({
                           main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
@@ -128,16 +142,17 @@ function App() {
                           <Login />
                         ) : (
                           <Center>
-                            <Box sx={{ maxWidth: 1024 }} mx="auto">
-                              <Loader size="xl" variant="dots" sx={{marginTop: '150px'}}/>
+                            <Box sx={{ maxWidth: 1024 }} mx='auto'>
+                              <Loader size='xl' variant='dots' sx={{marginTop: '150px'}}/>
                             </Box>
                           </Center>
                         )}
                       </AppShell>
                     </div>
                 )}
-              </SessionContext.Consumer>
-            </SessionProvider>
+              </SessionContext.Consumer></SessionProvider>
+            )}
+            </NavbarContext.Consumer></NavbarProvider>
           </I18nProvider>
         </NotificationsProvider>
       </MantineProvider>
