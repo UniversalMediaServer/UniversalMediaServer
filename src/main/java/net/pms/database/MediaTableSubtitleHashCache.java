@@ -36,7 +36,7 @@ public class MediaTableSubtitleHashCache extends MediaTable {
 			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
 	}
-	protected static final void createTable(final Connection connection) throws SQLException {
+	protected static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,  "CREATE TABLE " + TABLE_NAME + "(" +
 				"ID IDENTITY PRIMARY KEY, " + COL_FILE_NAME + " VARCHAR(255) NOT NULL, " +
