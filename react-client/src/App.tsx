@@ -1,7 +1,7 @@
 import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { lazy, useContext, useEffect } from 'react'; 
+import { lazy, useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
