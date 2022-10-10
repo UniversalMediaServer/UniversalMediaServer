@@ -46,7 +46,7 @@ import net.pms.network.mediaserver.handlers.api.ApiRenderer;
  */
 public class DbIdResourceLocator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdResourceLocator.class);
-	private static ApiRenderer API_RENDERER;
+	private static ApiRenderer apiRenderer;
 	/**
 	 * This class is not meant to be instantiated.
 	 */
@@ -108,7 +108,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
-									res.setDefaultRenderer(API_RENDERER);
+									res.setDefaultRenderer(apiRenderer);
 									res.setId(String.format("$DBID$PLAYLIST$%s", typeAndIdent.ident));
 									res.resolve();
 									res.refreshChildren();
@@ -307,7 +307,7 @@ public class DbIdResourceLocator {
 
 	static {
 		try {
-			API_RENDERER =  new ApiRenderer();
+			apiRenderer =  new ApiRenderer();
 		} catch (ConfigurationException | InterruptedException e) {
 			LOGGER.error("cannot instantiate API renderer", e);
 		}
