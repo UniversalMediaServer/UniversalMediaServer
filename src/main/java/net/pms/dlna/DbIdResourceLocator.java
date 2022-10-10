@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudiotracks;
 import net.pms.database.MediaTableFiles;
@@ -52,11 +51,6 @@ public class DbIdResourceLocator {
 	 * This class is not meant to be instantiated.
 	 */
 	private DbIdResourceLocator() {
-		try {
-			API_RENDERER =  new ApiRenderer();
-		} catch (ConfigurationException | InterruptedException e) {
-			LOGGER.error("cannot instantiate API renderer", e);
-		}
 	}
 
 	public static DLNAResource locateResource(String id) {
@@ -309,5 +303,13 @@ public class DbIdResourceLocator {
 		DLNAMediaInfo mi = new DLNAMediaInfo();
 		mi.setAudioTracks(audios);
 		albumFolder.setMedia(mi);
+	}
+
+	static {
+		try {
+			API_RENDERER =  new ApiRenderer();
+		} catch (ConfigurationException | InterruptedException e) {
+			LOGGER.error("cannot instantiate API renderer", e);
+		}
 	}
 }
