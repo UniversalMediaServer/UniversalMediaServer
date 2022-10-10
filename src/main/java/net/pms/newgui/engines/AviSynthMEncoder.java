@@ -45,15 +45,11 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthMEncoder {
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	
-	private static JCheckBox useFFMS2;
-	private static JCheckBox multithreading;
-	private static JCheckBox avisynthplusmode;
+	private static JTextArea textArea;
+	private static JCheckBox convertfps;
 	private static JCheckBox interframe;
 	private static JCheckBox interframegpu;
-	private static JCheckBox convertfps;
-	private static JCheckBox convert2dTo3d;
-	private static JTextArea textArea;
+	private static JCheckBox multithreading;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -64,7 +60,7 @@ public class AviSynthMEncoder {
 	public static JComponent config() {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, 0:grow"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -75,20 +71,13 @@ public class AviSynthMEncoder {
 		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		
+
 		multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
-		
-		avisynthplusmode = new JCheckBox(Messages.getString("EnableAviSynthPlusMode"), CONFIGURATION.isAviSynthPlusMode());
-		avisynthplusmode.setContentAreaFilled(false);
-		avisynthplusmode.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setAviSynthPlusMode(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), cc.xy(2, 5));
 
 		interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), CONFIGURATION.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
@@ -103,36 +92,22 @@ public class AviSynthMEncoder {
 				);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
 
 		interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), CONFIGURATION.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
 		convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), CONFIGURATION.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 11));
-		
-		useFFMS2 = new JCheckBox(Messages.getString("EnableAvisynthUseFFMS2"), CONFIGURATION.getAvisynthUseFFMS2());
-		useFFMS2.setContentAreaFilled(false);
-		useFFMS2.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setAvisynthUseFFMS2(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), cc.xy(2, 13));
-		
-		convert2dTo3d = new JCheckBox(Messages.getString("EnableAvisynth2Dto3DConversion"), CONFIGURATION.getAvisynth2Dto3D());
-		convert2dTo3d.setContentAreaFilled(false);
-		convert2dTo3d.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setAvisynth2Dto3D((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(convert2dTo3d), cc.xy(2, 15));
-		
+		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
+
 		String aviSynthScriptInstructions = Messages.getString("AvisynthScriptFullyCustomizable") +
 			Messages.getString("TheFollowingVariablesAvailable") +
 			Messages.getString("MovieCompleteDirectshowsource") +
@@ -143,7 +118,7 @@ public class AviSynthMEncoder {
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
 		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 17));
+		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
 
 		String clip = CONFIGURATION.getAvisynthScript();
 		if (clip == null) {
@@ -179,7 +154,7 @@ public class AviSynthMEncoder {
 
 		JScrollPane pane = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 19));
+		builder.add(pane, cc.xy(2, 13));
 
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
 			if (event.getPropertyName() == null) {
