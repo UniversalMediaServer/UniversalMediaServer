@@ -1,22 +1,25 @@
 name: Universal Media Server CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   macos:
-    runs-on: macos-latest
+    runs-on: macos-12
     strategy:
       matrix:
         # test against two different xcode version on MacOS
         xcode: [ 9.4.1, latest ]
-        java-version: [ 17 ]
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -30,16 +33,13 @@ jobs:
 
   windows-latest:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        java-version: [ 17 ]
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -53,17 +53,13 @@ jobs:
 
   linux-bionic:
     runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        java-version: [ 17 ]
-
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache local Maven repository
         uses: actions/cache@v3
@@ -77,23 +73,19 @@ jobs:
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/22.03/libmediainfo0v5_22.03-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libmediainfo0v5_22.03-1_amd64.xUbuntu_18.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_18.04.deb
+          sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_18.04.deb
           mvn verify -P testing
 
-  linux-focal:
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        java-version: [ 17 ]
-
+  linux-jammy:
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK ${{ matrix.java-version }}
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'liberica'
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: 'maven'
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -104,8 +96,8 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/22.03/libmediainfo0v5_22.03-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_22.03-1_amd64.xUbuntu_20.04.deb
+          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
+          wget https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing

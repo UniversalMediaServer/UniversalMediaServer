@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.gui.GuiManager;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
@@ -175,7 +176,7 @@ public class MediaServer {
 		} else {
 			LOGGER.debug("try to start the media server, but it's already started");
 		}
-		PMS.get().getFrame().updateServerStatus();
+		GuiManager.updateServerStatus();
 		return isStarted;
 	}
 
@@ -195,7 +196,7 @@ public class MediaServer {
 		}
 		status = ServerStatus.STOPPED;
 		isStarted = false;
-		PMS.get().getFrame().updateServerStatus();
+		GuiManager.updateServerStatus();
 	}
 
 	public static boolean isStarted() {
@@ -273,5 +274,5 @@ public class MediaServer {
 		}
 	}
 
-	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING };
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
 }

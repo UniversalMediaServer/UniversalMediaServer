@@ -1,32 +1,26 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.service;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import net.pms.PMS;
+import net.pms.platform.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.io.WinUtils.Kernel32;
-import net.pms.util.jna.macos.iokit.IOKitException;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
 
 /**
  * This class manages system sleep prevention. It must not be instantiated until
@@ -147,25 +141,24 @@ public class SleepManager {
 		if (this.mode != mode) {
 			this.mode = mode;
 			switch (mode) {
-				case NEVER:
+				case NEVER -> {
 					if (sleepPrevented) {
 						allowSleep();
 					}
-					break;
-				case PLAYBACK:
+				}
+				case PLAYBACK -> {
 					if (playingCount > 0 && !sleepPrevented) {
 						preventSleep();
 					} else if (playingCount == 0 && sleepPrevented) {
 						allowSleep();
 					}
-					break;
-				case RUNNING:
+				}
+				case RUNNING -> {
 					if (!sleepPrevented) {
 						preventSleep();
 					}
-					break;
-				default:
-					throw new IllegalStateException("PreventSleepMode value not implemented: " + mode.getValue());
+				}
+				default -> throw new IllegalStateException("PreventSleepMode value not implemented: " + mode.getValue());
 			}
 			if (worker != null) {
 				worker.setMode(mode);
@@ -178,9 +171,9 @@ public class SleepManager {
 	 * constructor, and need only be called if {@link #stop()} has been called
 	 * previously.
 	 */
-	public synchronized void start() {
+	public final synchronized void start() {
 		LOGGER.debug("Starting SleepManager");
-		if (Platform.isWindows() || Platform.isMac()) {
+		if (isPreventSleepSupported()) {
 			if (mode == PreventSleepMode.RUNNING || mode == PreventSleepMode.PLAYBACK && playingCount > 0) {
 				preventSleep();
 			}
@@ -255,19 +248,10 @@ public class SleepManager {
 	/**
 	 * For internal use only, creates and starts a sleep worker of the correct
 	 * type if it doesn't already exist.
-	 *
-	 * @throws IllegalStateException If no {@link AbstractSleepWorker}
-	 *             implementation is available for this {@link Platform}.
 	 */
 	protected void initializeWorker() {
 		if (worker == null && isPreventSleepSupported()) {
-			if (Platform.isWindows()) {
-				worker = new WindowsSleepWorker(this, mode);
-			} else if (Platform.isMac()) {
-				worker = new MacOsSleepWorker(this, mode);
-			} else {
-				throw new IllegalStateException("Missing SleepWorker implementation for current platform");
-			}
+			worker = PlatformUtils.INSTANCE.getSleepWorker(this, mode);
 			worker.start();
 		}
 	}
@@ -281,301 +265,12 @@ public class SleepManager {
 
 	/**
 	 * Checks whether system sleep prevention is supported for the current
-	 * {@link Platform}.
+	 * {@link PlatformUtils}.
 	 *
 	 * @return {@code true} if system sleep prevention is supported,
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isPreventSleepSupported() {
-		return Platform.isWindows() || Platform.isMac() && IOKitUtils.isMacOsVersionEqualOrGreater("10.5.0");
-	}
-
-	/**
-	 * An abstract implementation of a {@link SleepManager} sleep worker.
-	 *
-	 * @author Nadahar
-	 */
-	protected abstract static class AbstractSleepWorker extends Thread {
-
-		private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSleepWorker.class);
-
-		/**
-		 * An internal state flag that indicates if a system sleep prevention
-		 * action has been requested but not executed.
-		 */
-		protected boolean preventSleep;
-
-		/**
-		 * An internal state flag that indicates whether system sleep is
-		 * currently being prevented.
-		 */
-		protected boolean sleepPrevented;
-
-		/**
-		 * An internal state flag that indicates if a reset sleep timer action
-		 * has been requested but not executed.
-		 */
-		protected boolean resetSleepTimer;
-
-		/**
-		 * An internal timestamp for when the last sleep action request was
-		 * made.
-		 */
-		protected long lastChange = 0;
-
-		/** The current {@link PreventSleepMode} */
-		protected PreventSleepMode mode;
-		private final SleepManager owner;
-
-		/**
-		 * An abstract constructor that initializes the required fields.
-		 *
-		 * @param threadName the name of this worker {@link Thread}.
-		 * @param mode the current {@link PreventSleepMode}.
-		 * @param owner the {@link SleepManager} controlling this worker thread.
-		 */
-		public AbstractSleepWorker(String threadName, PreventSleepMode mode, SleepManager owner) {
-			super(isBlank(threadName) ? "SleepWorker" : threadName);
-			this.mode = mode;
-			this.owner = owner;
-		}
-
-		/**
-		 * Requests that this sleep worker allows the system to sleep at will.
-		 */
-		public synchronized void allowSleep() {
-			preventSleep = false;
-			lastChange = System.currentTimeMillis();
-			notify();
-		}
-
-		/**
-		 * Requests that this sleep worker prevents the system from sleeping.
-		 */
-		public synchronized void preventSleep() {
-			preventSleep = true;
-			lastChange = System.currentTimeMillis();
-			notify();
-		}
-
-		/**
-		 * Requests that this sleep worker reset the system's idle sleep timer.
-		 */
-		public synchronized void resetSleepTimer() {
-			resetSleepTimer = true;
-			lastChange = System.currentTimeMillis();
-			notify();
-		}
-
-		/**
-		 * Sets the {@link PreventSleepMode} for this sleep worker to use.
-		 *
-		 * @param mode the {@link PreventSleepMode} to use.
-		 */
-		public synchronized void setMode(PreventSleepMode mode) {
-			this.mode = mode;
-		}
-
-		@Override
-		public synchronized void run() {
-			try {
-				while (true) {
-					while (sleepPrevented && lastChange + 5000 > System.currentTimeMillis()) {
-						// Wait until there's been 5 seconds after a change
-						// before
-						// allowing sleep if it's already prevented. This is to
-						// avoid acting on multiple rapid changes.
-						wait(Math.max(System.currentTimeMillis() - lastChange + 5001, 0));
-					}
-					if (preventSleep != sleepPrevented) {
-						if (preventSleep) {
-							doPreventSleep();
-						} else {
-							doAllowSleep();
-						}
-					} else if (resetSleepTimer) {
-						if (!sleepPrevented) {
-							doResetSleepTimer();
-						} else {
-							resetSleepTimer = false;
-						}
-					} else {
-						wait();
-					}
-				}
-			} catch (InterruptedException e) {
-				LOGGER.debug("Shutting down sleep worker");
-				doAllowSleep();
-				owner.clearWorker();
-			} catch (Throwable e) {
-				LOGGER.error("Unexpected error in SleepManager worker thread, shutting down worker: {}", e.getMessage());
-				LOGGER.trace("", e);
-			}
-		}
-
-		/**
-		 * Executes the system call that allows the system to sleep at will.
-		 */
-		protected abstract void doAllowSleep();
-
-		/**
-		 * Executes the system call that prevents the system from sleeping.
-		 */
-		protected abstract void doPreventSleep();
-
-		/**
-		 * Executes a system call to reset the idle sleep timer.
-		 */
-		protected abstract void doResetSleepTimer();
-	}
-
-	/**
-	 * An implementation of a {@link SleepManager} sleep worker for Windows.
-	 *
-	 * @author Nadahar
-	 */
-	protected static class WindowsSleepWorker extends AbstractSleepWorker {
-
-		private static final Logger LOGGER = LoggerFactory.getLogger(WindowsSleepWorker.class);
-
-		/** A static reference to the Windows {@link Kernel32} instance */
-		protected static final Kernel32 KERNEL32 = Kernel32.INSTANCE;
-
-		/**
-		 * Creates a new {@link WindowsSleepWorker} initialized with the
-		 * required arguments.
-		 *
-		 * @param mode the current {@link PreventSleepMode}.
-		 * @param owner the {@link SleepManager} controlling this worker thread.
-		 */
-		public WindowsSleepWorker(SleepManager owner, PreventSleepMode mode) {
-			super("Windows Sleep Worker", mode, owner);
-		}
-
-		@Override
-		protected synchronized void doAllowSleep() {
-			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-
-			sleepPrevented = false;
-		}
-
-		@Override
-		protected synchronized void doPreventSleep() {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
-			KERNEL32.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
-
-			sleepPrevented = true;
-		}
-
-		@Override
-		protected synchronized void doResetSleepTimer() {
-			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
-			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
-
-			resetSleepTimer = false;
-		}
-	}
-
-	/**
-	 * An implementation of a {@link SleepManager} sleep worker for macOS.
-	 *
-	 * @author Nadahar
-	 */
-	protected static class MacOsSleepWorker extends AbstractSleepWorker {
-
-		private static final Logger LOGGER = LoggerFactory.getLogger(MacOsSleepWorker.class);
-
-		/**
-		 * The previously returned prevent system sleep assertion id or -1 if
-		 * none has been acquired.
-		 */
-		protected int preventAssertionId = -1;
-
-		/**
-		 * The previously returned user is active assertion id or -1 if none has
-		 * been acquired.
-		 */
-		protected int postponeAssertionId = -1;
-
-		/**
-		 * Creates a new {@link MacOsSleepWorker} initialized with the required
-		 * arguments.
-		 *
-		 * @param mode the current {@link PreventSleepMode}.
-		 * @param owner the {@link SleepManager} controlling this worker thread.
-		 */
-		public MacOsSleepWorker(SleepManager owner, PreventSleepMode mode) {
-			super("macOS Sleep Worker", mode, owner);
-		}
-
-		@Override
-		protected synchronized void doAllowSleep() {
-			doResetSleepTimer();
-			if (preventAssertionId > 0) {
-				try {
-					LOGGER.trace("Calling IOKitUtils.enableGoToSleep to stop preventing macOS idle sleep");
-					IOKitUtils.enableGoToSleep(preventAssertionId);
-					sleepPrevented = false;
-				} catch (IOKitException e) {
-					preventSleep = sleepPrevented;
-					LOGGER.warn("Unable to release idle sleep prevention assertion: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
-			} else {
-				LOGGER.warn("Ignoring attempt to release idle sleep prevention assertion with invalid id ", preventAssertionId);
-				preventSleep = sleepPrevented;
-			}
-		}
-
-		@Override
-		protected synchronized void doPreventSleep() {
-			try {
-				LOGGER.trace("Calling IOKitUtils.disableGoToSleep() to prevent macOS idle sleep");
-				preventAssertionId = IOKitUtils.disableGoToSleep(getPreventAssertionName(), getPreventAssertionDetails());
-				sleepPrevented = true;
-			} catch (IOKitException e) {
-				LOGGER.warn("Unable to create idle sleep prevention assertion: {}", e.getMessage());
-				LOGGER.trace("", e);
-				preventSleep = sleepPrevented;
-			}
-		}
-
-		@Override
-		protected synchronized void doResetSleepTimer() {
-			try {
-				LOGGER.trace("Calling IOKitUtils.resetSleepTimer() to postpone macOS idle sleep");
-				postponeAssertionId = IOKitUtils.resetIdleTimer(Messages.getString("UniversalMediaServerResetIdle"), postponeAssertionId);
-			} catch (IOKitException e) {
-				LOGGER.warn("Unable to reset idle sleep timer: {}", e.getMessage());
-				LOGGER.trace("", e);
-				postponeAssertionId = -1;
-			}
-			resetSleepTimer = false;
-		}
-
-		/**
-		 * @return The relevant localized sleep prevention assertion name.
-		 */
-		protected synchronized String getPreventAssertionName() {
-			if (mode == PreventSleepMode.PLAYBACK) {
-				return Messages.getString("UniversalMediaServerPlaying");
-			} else if (mode == PreventSleepMode.RUNNING) {
-				return Messages.getString("UniversalMediaServerRunning");
-			}
-			return "Universal Media Server internal error";
-		}
-
-		/**
-		 * @return The relevant localized sleep prevention assertion details.
-		 */
-		protected synchronized String getPreventAssertionDetails() {
-			if (mode == PreventSleepMode.PLAYBACK) {
-				return Messages.getString("SystemIdleSleepPreventedPlayback");
-			} else if (mode == PreventSleepMode.RUNNING) {
-				return Messages.getString("SystemIdleSleepPreventedRunning");
-			}
-			return "A bug in Universal Media Server causes this assertion to exist";
-		}
+		return PlatformUtils.INSTANCE.isPreventSleepSupported();
 	}
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -27,9 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,7 +35,9 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.*;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -55,9 +54,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Leon Blakey <lord.quackstar@gmail.com>
  */
-public class VLCVideo extends Player {
+public class VLCVideo extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -74,11 +73,11 @@ public class VLCVideo extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -105,11 +104,6 @@ public class VLCVideo extends Player {
 	@Override
 	public boolean avisynth() {
 		return false;
-	}
-
-	@Override
-	public String[] args() {
-		return new String[]{};
 	}
 
 	@Override
@@ -141,7 +135,7 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
-		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (
 			(
@@ -223,7 +217,7 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		/**
 		 * Only output 6 audio channels for codecs other than AC-3 because as of VLC
@@ -297,7 +291,7 @@ public class VLCVideo extends Player {
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
 			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
@@ -477,18 +471,17 @@ public class VLCVideo extends Player {
 		 * but for hardware acceleration, user must enable it in "VLC Preferences",
 		 * until they release documentation for new functionalities introduced in 2.1.4+
 		 */
-		if (BasicSystemUtils.instance.getVlcVersion() != null) {
+		if (PlatformUtils.INSTANCE.getVlcVersion() != null) {
 			Version requiredVersion = new Version("2.1.4");
 
-			if (BasicSystemUtils.instance.getVlcVersion().compareTo(requiredVersion) > 0) {
+			if (PlatformUtils.INSTANCE.getVlcVersion().compareTo(requiredVersion) > 0) {
 				if (!configuration.isGPUAcceleration()) {
 					cmdList.add("--avcodec-hw=disabled");
 					LOGGER.trace("Disabled VLC's hardware acceleration.");
 				}
 			} else if (!configuration.isGPUAcceleration()) {
-				LOGGER.debug(
-					"Version {} of VLC is too low to handle the way we disable hardware acceleration.",
-					BasicSystemUtils.instance.getVlcVersion()
+				LOGGER.debug("Version {} of VLC is too low to handle the way we disable hardware acceleration.",
+					PlatformUtils.INSTANCE.getVlcVersion()
 				);
 			}
 		}
@@ -639,15 +632,11 @@ public class VLCVideo extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// Only handle local video - not web video or audio
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	@Override
@@ -656,7 +645,7 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(RendererConfiguration renderer) {
 		return true;
 	}
 
@@ -668,8 +657,8 @@ public class VLCVideo extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

@@ -21,7 +21,7 @@ import net.pms.formats.Format;
 
 public abstract class ImageBase extends Format {
 
-	public ImageBase() {
+	protected ImageBase() {
 		type = IMAGE;
 	}
 

@@ -1,28 +1,36 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.service;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.sun.jna.Memory;
+import com.sun.jna.Platform;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.LPARAM;
+import com.sun.jna.platform.win32.WinDef.WPARAM;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
+import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
+import com.sun.jna.ptr.IntByReference;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -36,21 +44,10 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import net.pms.platform.PlatformProgramPaths;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Memory;
-import com.sun.jna.Platform;
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef.HWND;
-import com.sun.jna.platform.win32.WinDef.LPARAM;
-import com.sun.jna.platform.win32.WinDef.WPARAM;
-import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
-import com.sun.jna.ptr.IntByReference;
-import net.pms.configuration.PlatformProgramPaths;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is used to manage the shutdown of external processes if they run
@@ -269,7 +266,7 @@ public class ProcessManager {
 		}
 		synchronized (incoming) {
 			incoming.add(ticket);
-			incoming.notify();
+			incoming.notifyAll();
 			if (terminator == null || !terminator.isAlive()) {
 				LOGGER.warn(
 					"ProcessManager added the following ticket while no ProcessTerminator is processing tickets: {}",
@@ -291,29 +288,7 @@ public class ProcessManager {
 		if (process == null) {
 			return false;
 		}
-		// XXX replace with Process.isAlive() in Java 8
-		try {
-			Field field;
-			field = process.getClass().getDeclaredField("handle");
-			field.setAccessible(true);
-			long handle = (long) field.get(process);
-			field = process.getClass().getDeclaredField("STILL_ACTIVE");
-			field.setAccessible(true);
-			int stillActive = (int) field.get(process);
-			Method method;
-			method = process.getClass().getDeclaredMethod("getExitCodeProcess", long.class);
-			method.setAccessible(true);
-			int exitCode = (int) method.invoke(process, handle);
-			return exitCode == stillActive;
-		} catch (Exception e) {
-			// Reflection failed, use the backup solution
-		}
-		try {
-			process.exitValue();
-			return false;
-		} catch (IllegalThreadStateException e) {
-			return true;
-		}
+		return process.isAlive();
 	}
 
 	/**
@@ -322,36 +297,11 @@ public class ProcessManager {
 	 * @param process the {@link Process} for whose PID to retrieve.
 	 * @return The PID or zero if the PID couldn't be retrieved.
 	 */
-	public static int getProcessId(@Nullable Process process) {
+	public static long getProcessId(@Nullable Process process) {
 		if (process == null) {
 			return 0;
 		}
-		try {
-			Method method = Process.class.getMethod("pid");
-			return (int) (long) method.invoke(process);
-		} catch (Exception e) {
-		}
-
-		try {
-			Field field;
-			if (Platform.isWindows()) {
-				field = process.getClass().getDeclaredField("handle");
-				field.setAccessible(true);
-				int pid = Kernel32.INSTANCE.GetProcessId(new HANDLE(new Pointer(field.getLong(process))));
-				if (pid == 0 && LOGGER.isDebugEnabled()) {
-					int lastError = Kernel32.INSTANCE.GetLastError();
-					LOGGER.debug("KERNEL32.getProcessId() failed with error {}", lastError);
-				}
-				return pid;
-			}
-			field = process.getClass().getDeclaredField("pid");
-			field.setAccessible(true);
-			return field.getInt(process);
-		} catch (Exception e) {
-			LOGGER.warn("Failed to get process id for process \"{}\": {}", process, e.getMessage());
-			LOGGER.trace("", e);
-			return 0;
-		}
+		return process.pid();
 	}
 
 	/**
@@ -388,7 +338,6 @@ public class ProcessManager {
 		 *
 		 * @param is the {@link InputStream} to gobble.
 		 */
-		@SuppressWarnings("checkstyle:EmptyBlock")
 		protected void gobbleStream(InputStream is) {
 			if (is == null) {
 				return;
@@ -422,7 +371,7 @@ public class ProcessManager {
 			HANDLE hProc = Kernel32.INSTANCE.OpenProcess(
 				Kernel32.SYNCHRONIZE | Kernel32.PROCESS_TERMINATE,
 				false,
-				processInfo.getPID()
+				(int) processInfo.getPID()
 			);
 			if (hProc == null) {
 				if (LOGGER.isTraceEnabled()) {
@@ -437,7 +386,7 @@ public class ProcessManager {
 			final Memory posted = new Memory(1);
 			posted.setByte(0, (byte) 0);
 			Memory dwPID = new Memory(4);
-			dwPID.setInt(0, processInfo.getPID());
+			dwPID.setInt(0, (int) processInfo.getPID());
 			User32.INSTANCE.EnumWindows(new WNDENUMPROC() {
 
 				@Override
@@ -491,7 +440,7 @@ public class ProcessManager {
 			HANDLE hProc = Kernel32.INSTANCE.OpenProcess(
 				Kernel32.PROCESS_TERMINATE,
 				false,
-				processInfo.getPID()
+				(int) processInfo.getPID()
 			);
 			if (hProc == null) {
 				if (LOGGER.isTraceEnabled()) {
@@ -539,7 +488,7 @@ public class ProcessManager {
 			}
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				PlatformProgramPaths.get().getCtrlSender().toString(),
-				Integer.toString(processInfo.getPID()),
+				Long.toString(processInfo.getPID()),
 				Integer.toString(ctrlEvent)
 			);
 			processBuilder.redirectErrorStream(true);
@@ -603,7 +552,7 @@ public class ProcessManager {
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				PlatformProgramPaths.get().getTaskKill().toString(),
 				"/PID",
-				Integer.toString(processInfo.getPID())
+				Long.toString(processInfo.getPID())
 			);
 			processBuilder.redirectErrorStream(true);
 			try {
@@ -665,7 +614,7 @@ public class ProcessManager {
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				"kill",
 				"-" + signal.getValue(),
-				Integer.toString(processInfo.getPID())
+				Long.toString(processInfo.getPID())
 			);
 			processBuilder.redirectErrorStream(true);
 			try {
@@ -1133,7 +1082,7 @@ public class ProcessManager {
 			if (process == null) {
 				throw new IllegalArgumentException("process cannot be null");
 			}
-			if (isBlank(processName)) {
+			if (StringUtils.isBlank(processName)) {
 				throw new IllegalArgumentException("processName cannot be blank");
 			}
 			if (action == null) {
@@ -1194,7 +1143,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	protected static enum ProcessTicketAction {
+	protected enum ProcessTicketAction {
 
 		/** Add a process for management */
 		ADD,
@@ -1222,7 +1171,7 @@ public class ProcessManager {
 		protected final String processName;
 
 		/** The process ID for the {@link Process} */
-		protected final int pid;
+		protected final long pid;
 
 		/** The termination timeout in milliseconds */
 		protected long terminateTimeoutMS;
@@ -1270,7 +1219,7 @@ public class ProcessManager {
 		/**
 		 * @return The process ID.
 		 */
-		public int getPID() {
+		public long getPID() {
 			return pid;
 		}
 
@@ -1318,7 +1267,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	protected static enum ProcessState {
+	protected enum ProcessState {
 
 		/** Running; initial state */
 		RUNNING,
@@ -1350,7 +1299,7 @@ public class ProcessManager {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum POSIXSignal {
+	public enum POSIXSignal {
 
 		/**
 		 * 1: POSIX {@code SIGHUP} - Hangup detected on controlling terminal or

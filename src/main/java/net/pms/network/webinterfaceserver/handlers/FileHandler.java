@@ -37,7 +37,7 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import net.pms.PMS;
+import net.pms.gui.GuiManager;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
@@ -81,7 +81,8 @@ public class FileHandler implements HttpHandler {
 			} else if (path.startsWith("/files/log/")) {
 				String filename = path.substring(11);
 				if (filename.equals("info")) {
-					String log = PMS.get().getFrame().getLog();
+					String[] logLines = GuiManager.getLogLines();
+					String log = StringUtils.join(logLines, "\n");
 					log = log.replace("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
 					String x = fullLink + log;
@@ -107,6 +108,14 @@ public class FileHandler implements HttpHandler {
 				String url = t.getRequestURI().getQuery();
 				if (url != null) {
 					url = url.substring(2);
+					URL testUrl = new URL(url);
+					//do not allow system file or other protocol and block proxy for all websites other than required (opensubtitles)
+					if ((!"http".equals(testUrl.getProtocol()) && !"https".equals(testUrl.getProtocol())) ||
+						(!"www.opensubtitles.org".equals(testUrl.getHost()) || !"rest.opensubtitles.org".equals(testUrl.getHost()))
+						) {
+						WebInterfaceServerUtil.respond(t, response, status, mime);
+						return;
+					}
 				}
 
 				InputStream in;

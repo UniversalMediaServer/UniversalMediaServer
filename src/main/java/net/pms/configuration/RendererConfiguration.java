@@ -1,8 +1,24 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -19,33 +35,32 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlaybackTimer;
+import net.pms.renderers.devices.players.PlayerState;
+import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.dlna.*;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
-import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
-import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.Renderer;
 import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.network.mediaserver.UPNPPlayer;
 import net.pms.gui.IRendererGuiListener;
-import net.pms.util.BasicPlayer;
+import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileWatcher;
 import net.pms.util.FormattableColor;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,23 +95,6 @@ public class RendererConfiguration extends Renderer {
 	public boolean loaded = false;
 	public boolean fileless = false;
 
-	public interface OutputOverride {
-		/**
-		 * Override a player's default output formatting.
-		 * To be invoked by the player after input and filter options are complete.
-		 *
-		 * @param cmdList the command so far
-		 * @param dlna the media item
-		 * @param player the player
-		 * @param params the output parameters
-		 *
-		 * @return whether the options have been finalized
-		 */
-		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
-
-		public boolean addSubtitles();
-	}
-
 	// Holds MIME type aliases
 	protected Map<String, String> mimes;
 
@@ -107,7 +105,8 @@ public class RendererConfiguration extends Renderer {
 	protected int lineWidth;
 	protected int lineHeight;
 	protected int indent;
-	protected String inset, dots;
+	protected String inset;
+	protected String dots;
 
 	// property values
 	protected static final String LPCM = "LPCM";
@@ -410,7 +409,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return The list of enabled renderers.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
+		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
 	}
 
 	/**
@@ -490,7 +489,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static File getRenderersDir() {
-		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
+		String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
 			if (path.trim().length() > 0) {
@@ -725,7 +724,7 @@ public class RendererConfiguration extends Renderer {
 					}
 					r.inherit(ref);
 					// update gui
-					PMS.get().updateRenderer(r);
+					r.updateRendererGui();
 				}
 			} else if (!UPNPHelper.isNonRenderer(ia)) {
 				// It's brand new
@@ -1083,7 +1082,7 @@ public class RendererConfiguration extends Renderer {
 				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
-				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
+				tok = tok.replace("###0", " ").replace("###n", "\n").replace("###r", "\r");
 				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
@@ -1130,7 +1129,7 @@ public class RendererConfiguration extends Renderer {
 			init(f);
 			// update gui
 			for (RendererConfiguration d : DeviceConfiguration.getInheritors(this)) {
-				PMS.get().updateRenderer(d);
+				d.updateRendererGui();
 			}
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
@@ -1223,7 +1222,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return whether to use the AAC audio codec for transcoded video
 	 */
 	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
 	}
 
 	/**
@@ -1594,7 +1593,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return Whether connected.
 	 */
 	public boolean isUpnpConnected() {
-		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : false;
+		return uuid != null && UPNPHelper.isActive(uuid, instanceID);
 	}
 
 	/**
@@ -1687,6 +1686,7 @@ public class RendererConfiguration extends Renderer {
 	public void updateRendererGui() {
 		listenersLock.readLock().lock();
 		try {
+			LOGGER.debug("Updating status button for {}", getRendererName());
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.updateRenderer(this);
 			}
@@ -1706,7 +1706,7 @@ public class RendererConfiguration extends Renderer {
 		}
 	}
 
-	public void refreshPlayerStateGui(BasicPlayer.State state) {
+	public void refreshPlayerStateGui(PlayerState state) {
 		listenersLock.readLock().lock();
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
@@ -1860,8 +1860,8 @@ public class RendererConfiguration extends Renderer {
 			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
 		}
 
-		if (Platform.isMac() && System.getProperty("os.version") != null && System.getProperty("os.version").contains("10.4.")) {
-			muxCompatible = false; // no tsMuxeR for 10.4 (yet?)
+		if (!PlatformUtils.INSTANCE.isTsMuxeRCompatible()) {
+			muxCompatible = false;
 		}
 
 		return muxCompatible;
@@ -2354,7 +2354,7 @@ public class RendererConfiguration extends Renderer {
 			return true;
 		}
 
-		return format != null ? format.skip(getStreamedExtensions()) : false;
+		return format != null && format.skip(getStreamedExtensions());
 	}
 
 	/**
@@ -2505,7 +2505,7 @@ public class RendererConfiguration extends Renderer {
 
 		// Substitute
 		for (Entry<String, String> entry : charMap.entrySet()) {
-			String repl = entry.getValue().replaceAll("###e", "");
+			String repl = entry.getValue().replace("###e", "");
 			name = name.replaceAll(entry.getKey(), repl);
 		}
 
@@ -2861,53 +2861,6 @@ public class RendererConfiguration extends Renderer {
 
 	public String getSubLanguage() {
 		return pmsConfiguration.getSubtitlesLanguages();
-	}
-
-	public static class PlaybackTimer extends BasicPlayer.Minimal {
-		private long duration = 0;
-
-		public PlaybackTimer(DeviceConfiguration renderer) {
-			super(renderer);
-			LOGGER.debug("Created playback timer for " + renderer.getRendererName());
-		}
-
-		@Override
-		public void start() {
-			final DLNAResource res = renderer.getPlayingRes();
-			state.name = res.getDisplayName();
-			duration = 0;
-			if (res.getMedia() != null) {
-				duration = (long) res.getMedia().getDurationInSeconds() * 1000;
-				state.duration = DurationFormatUtils.formatDuration(duration, "HH:mm:ss");
-			}
-			Runnable r = () -> {
-				state.playback = PLAYING;
-				while (res == renderer.getPlayingRes()) {
-					long elapsed;
-					if ((long) res.getLastStartPosition() == 0) {
-						elapsed = System.currentTimeMillis() - res.getStartTime();
-					} else {
-						elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
-						elapsed += (long) (res.getLastStartPosition() * 1000);
-					}
-
-					if (duration == 0 || elapsed < duration + 500) {
-						// Position is valid as far as we can tell
-						state.position = DurationFormatUtils.formatDuration(elapsed, "HH:mm:ss");
-					} else {
-						// Position is invalid, blink instead
-						state.position = ("NOT_IMPLEMENTED" + (elapsed / 1000 % 2 == 0 ? "  " : "--"));
-					}
-					alert();
-					UMSUtils.sleep(1000);
-				}
-				// Reset only if another item hasn't already begun playing
-				if (renderer.getPlayingRes() == null) {
-					reset();
-				}
-			};
-			new Thread(r).start();
-		}
 	}
 
 	public static final String INFO = "info";

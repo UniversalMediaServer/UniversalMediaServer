@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,18 +17,17 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.IRendererGuiListener;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,21 +38,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.gui.EConnectionState;
+import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.ServerBindMouseListener;
-import net.pms.util.BasicPlayer;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +99,7 @@ public class StatusTab {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-			BasicPlayer.State state = ((BasicPlayer) e.getSource()).getState();
+			PlayerState state = ((BasicPlayer) e.getSource()).getState();
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
@@ -111,7 +111,7 @@ public class StatusTab {
 		}
 
 		@Override
-		public void refreshPlayerState(final BasicPlayer.State state) {
+		public void refreshPlayerState(final PlayerState state) {
 			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
 				UMSUtils.playedDurationStr(state.position, state.duration));
 			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
@@ -167,12 +167,14 @@ public class StatusTab {
 
 		@Override
 		public void updateRenderer(final RendererConfiguration renderer) {
-			icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
-			label.setText(renderer.getRendererName());
-			// Update the popup panel if it's been opened
-			if (rendererPanel != null) {
-				rendererPanel.update();
-			}
+			SwingUtilities.invokeLater(() -> {
+				icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
+				label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (rendererPanel != null) {
+					rendererPanel.update();
+				}
+			});
 		}
 
 		@Override
@@ -191,8 +193,6 @@ public class StatusTab {
 	private JLabel currentBitrateLabel;
 	private JLabel peakBitrate;
 	private JLabel peakBitrateLabel;
-	private long rc = 0;
-	private long peak;
 	private static DecimalFormat formatter = new DecimalFormat("#,###");
 	private static int bufferSize;
 	private EConnectionState connectionState = EConnectionState.UNKNOWN;
@@ -271,19 +271,6 @@ public class StatusTab {
 		}
 	}
 
-	public void updateCurrentBitrate() {
-		long total = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : foundRenderers) {
-				total += r.getBuffer();
-			}
-		}
-		if (total == 0) {
-			currentBitrate.setText("0");
-		}
-	}
-
 	public JComponent build() {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
@@ -323,8 +310,8 @@ public class StatusTab {
 		renderers = new JPanel(new GuiUtil.WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
 			renderers,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
 		rsp.setPreferredSize(new Dimension(0, 260));
 		rsp.getHorizontalScrollBar().setLocation(0, 250);
@@ -411,10 +398,9 @@ public class StatusTab {
 
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
-			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		startMemoryUpdater();
 		return scrollPane;
 	}
 
@@ -430,20 +416,12 @@ public class StatusTab {
 		});
 	}
 
-	public void setReadValue(long v, String msg) {
-		if (v < rc) {
-			rc = v;
-		} else {
-			int sizeinMb = (int) ((v - rc) / 125) / 1024;
+	public void setCurrentBitrate(int sizeinMb) {
+		currentBitrate.setText(formatter.format(sizeinMb));
+	}
 
-			if (sizeinMb > peak) {
-				peak = sizeinMb;
-			}
-
-			currentBitrate.setText(formatter.format(sizeinMb));
-			peakBitrate.setText(formatter.format(peak));
-			rc = v;
-		}
+	public void setPeakBitrate(int sizeinMb) {
+		peakBitrate.setText(formatter.format(sizeinMb));
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {
@@ -457,7 +435,7 @@ public class StatusTab {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(() -> {
 					if (r.frame == null) {
-						JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+						JFrame top = (JFrame) SwingUtilities.getWindowAncestor(r.getPanel());
 						// We're using JFrame instead of JDialog here so as to
 						// have a minimize button. Since the player panel
 						// is intrinsically a freestanding module this approach
@@ -468,22 +446,16 @@ public class StatusTab {
 						r.frame.add(r.rendererPanel);
 						r.rendererPanel.update();
 						r.frame.setResizable(false);
-						r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+						r.frame.setIconImage(top.getIconImage());
 						r.frame.setLocationRelativeTo(top);
 						r.frame.setVisible(true);
 					} else {
-						r.frame.setExtendedState(JFrame.NORMAL);
+						r.frame.setExtendedState(Frame.NORMAL);
 						r.frame.setVisible(true);
 						r.frame.toFront();
 					}
 				});
 			}
-		});
-	}
-
-	public static void updateRenderer(final RendererConfiguration renderer) {
-		SwingUtilities.invokeLater(() -> {
-			renderer.updateRendererGui();
 		});
 	}
 
@@ -600,34 +572,10 @@ public class StatusTab {
 		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
-	public void updateMemoryUsage() {
-		final long max = Runtime.getRuntime().maxMemory() / 1048576;
-		final long used = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-		long buf = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
-		synchronized (foundRenderers) {
-			for (RendererConfiguration r : PMS.get().getFoundRenderers()) {
-				buf += (r.getBuffer());
-			}
-		}
-		final long buffer = buf;
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
 		SwingUtilities.invokeLater(() -> {
-			memBarUI.setValues(0, (int) max, (int) (used - buffer), (int) buffer);
+			memBarUI.setValues(0, maxMemory, (usedMemory - bufferMemory), bufferMemory);
 		});
-	}
-
-	private void startMemoryUpdater() {
-		Runnable r = () -> {
-			for (;;) {
-				updateMemoryUsage();
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-		};
-		new Thread(r).start();
 	}
 
 }

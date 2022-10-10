@@ -66,9 +66,9 @@ import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.gui.IFrame;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -80,8 +80,13 @@ import org.slf4j.LoggerFactory;
 public class APIUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(APIUtils.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final IFrame FRAME = PMS.get().getFrame();
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private APIUtils() {
+	}
 
 	// Minimum number of threads in pool
 	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
@@ -191,11 +196,9 @@ public class APIUtils {
 			apiDataVideoVersion = jsonData.get("video").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
-			if (connection != null) {
-				if (apiDataSeriesVersion != null) {
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "SERIES_VERSION", apiDataSeriesVersion);
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
-				}
+			if (connection != null && apiDataSeriesVersion != null) {
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "SERIES_VERSION", apiDataSeriesVersion);
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "VIDEO_VERSION", apiDataVideoVersion);
 			}
 
 			apiDataSeriesVersion += "-" + API_DATA_SERIES_VERSION_LOCAL;
@@ -257,10 +260,8 @@ public class APIUtils {
 			apiImageBaseURL = jsonData.get("imageBaseURL").getAsString();
 
 			// Persist the values to the database to be used as fallbacks
-			if (connection != null) {
-				if (apiImageBaseURL != null) {
-					MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
-				}
+			if (connection != null && apiImageBaseURL != null) {
+				MediaTableMetadata.setOrUpdateMetadataValue(connection, "IMAGE_BASE_URL", apiImageBaseURL);
 			}
 		} catch (IOException e) {
 			LOGGER.trace("Error while setting imageBaseURL", e);
@@ -315,7 +316,7 @@ public class APIUtils {
 					return;
 				}
 
-				FRAME.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
+				GuiManager.setSecondaryStatusLine(Messages.getString("GettingApiInfoFor") + " " + file.getName());
 				connection.setAutoCommit(false);
 				JsonObject metadataFromAPI;
 
@@ -557,7 +558,7 @@ public class APIUtils {
 				LOGGER.trace("", e);
 			}
 		}
-		FRAME.setSecondaryStatusLine(null);
+		GuiManager.setSecondaryStatusLine(null);
 	}
 
 	/**
@@ -636,7 +637,7 @@ public class APIUtils {
 			}
 			titleSimplified = FileUtil.getSimplifiedShowName(title);
 			String typeFromAPI = getStringOrNull(seriesMetadataFromAPI, "type");
-			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("series");
+			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
 
 			boolean isAPIDataValid = true;
 			String validationFailedPrepend = "not storing the series API lookup result because ";

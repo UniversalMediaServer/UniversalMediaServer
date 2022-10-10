@@ -325,7 +325,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						} else {
 							insertQuery = SQL_INSERT_ALL;
 						}
-						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
+						try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
 							if (seriesName != null) {
 								insertStatement.setString(1, simplifiedTitle);
 								insertStatement.setString(2, seriesName);

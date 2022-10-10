@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +17,7 @@
  */
 package net.pms.configuration;
 
+import net.pms.util.ProgramExecutableType;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -28,13 +27,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.FFmpegProgramInfo;
+import net.pms.platform.PlatformProgramPaths;
+import net.pms.util.FileUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.util.FileUtil;
-
 
 /**
  * This class adds configurable/custom paths to {@link PlatformProgramPaths}.

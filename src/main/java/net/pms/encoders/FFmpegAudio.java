@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
-	public static final PlayerId ID = StandardPlayerId.FFMPEG_AUDIO;
+	public static final EngineId ID = StandardEngineId.FFMPEG_AUDIO;
 
 	/** The {@link Configuration} key for the FFmpeg Audio executable type. */
 	public static final String KEY_FFMPEG_AUDIO_EXECUTABLE_TYPE = "ffmpeg_audio_executable_type";
@@ -47,11 +47,11 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public int purpose() {
-		return AUDIO_SIMPLEFILE_PLAYER;
+		return AUDIO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -205,7 +205,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		// XXX Matching on file format isn't really enough, codec should also be evaluated
-		if (
+		return (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ADPCM) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.ADTS) ||
@@ -235,10 +235,6 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.WMA) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.WV) ||
 			PlayerUtil.isWebAudio(resource)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 }

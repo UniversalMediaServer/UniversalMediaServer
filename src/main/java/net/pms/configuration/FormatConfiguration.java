@@ -15,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -662,7 +661,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -692,7 +691,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -713,7 +712,7 @@ public class FormatConfiguration {
 				media.getVideoBitDepth(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().isExternal() : false,
+				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;

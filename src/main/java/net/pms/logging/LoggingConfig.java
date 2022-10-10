@@ -1,8 +1,7 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2010  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -59,16 +58,17 @@ public class LoggingConfig {
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LoggingConfig.class);
 	private static final Object FILE_PATH_LOCK = new Object();
 	private static final Object LOG_FILE_PATHS_LOCK = new Object();
+	private static final HashMap<String, String> LOG_FILE_PATHS = new HashMap<>(); // key: appender name, value: log file path
+	private static final LinkedList<Appender<ILoggingEvent>> SYSLOG_DETACHED_APPENDERS = new LinkedList<>();
 	private static String filepath = null;
-	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key: appender name, value: log file path
 	private static LoggerContext loggerContext = null;
 	private static Logger rootLogger;
 	private static SyslogAppender syslog;
 	private static boolean syslogDisabled = false;
-	private static enum ActionType { START, STOP, NONE };
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
-	private static LinkedList<Appender<ILoggingEvent>> syslogDetachedAppenders = new LinkedList<>();
+
+	private enum ActionType { START, STOP, NONE }
 
 	/** Not to be instantiated. */
 	private LoggingConfig() {
@@ -202,16 +202,16 @@ public class LoggingConfig {
 					ca.start();
 					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(ca);
 				} else {
-					FrameAppender<ILoggingEvent> fa = new FrameAppender<>();
+					GuiManagerAppender<ILoggingEvent> ga = new GuiManagerAppender<>();
 					PatternLayoutEncoder pe = new PatternLayoutEncoder();
 					pe.setPattern("%-5level %d{HH:mm:ss.SSS} [%thread] %logger %msg%n");
 					pe.setContext(loggerContext);
 					pe.start();
-					fa.setEncoder(pe);
-					fa.setContext(loggerContext);
-					fa.setName("Emergency Frame");
-					fa.start();
-					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(fa);
+					ga.setEncoder(pe);
+					ga.setContext(loggerContext);
+					ga.setName("Emergency Frame");
+					ga.start();
+					loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(ga);
 				}
 				System.err.println("LogBack \"emergency\" configuration applied.");
 			} catch (Exception e) {
@@ -246,7 +246,7 @@ public class LoggingConfig {
 
 				if (appender instanceof FileAppender) {
 					FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
-					logFilePaths.put(fa.getName(), fa.getFile());
+					LOG_FILE_PATHS.put(fa.getName(), fa.getFile());
 				} else if (appender instanceof SyslogAppender) {
 					syslogDisabled = true;
 				}
@@ -286,7 +286,7 @@ public class LoggingConfig {
 
 		if (setConsole || setTraces) {
 
-			// Since Console- and FrameAppender will exist at root level and won't be detached by syslog,
+			// Since Console- and GuiManagerAppender will exist at root level and won't be detached by syslog,
 			// there's no reason to build an iterator as this should suffice.
 			Iterator<Appender<ILoggingEvent>> it =
 				CacheLogger.isActive() ?
@@ -315,11 +315,11 @@ public class LoggingConfig {
 						consoleFilter.start();
 					}
 				}
-				if (setTraces && appender instanceof FrameAppender) {
-					FrameAppender<ILoggingEvent> fa = (FrameAppender<ILoggingEvent>) appender;
+				if (setTraces && appender instanceof GuiManagerAppender) {
+					GuiManagerAppender<ILoggingEvent> ga = (GuiManagerAppender<ILoggingEvent>) appender;
 					boolean createNew = true;
-					if (!fa.getCopyOfAttachedFiltersList().isEmpty()) {
-						for (Filter<ILoggingEvent> filter : fa.getCopyOfAttachedFiltersList()) {
+					if (!ga.getCopyOfAttachedFiltersList().isEmpty()) {
+						for (Filter<ILoggingEvent> filter : ga.getCopyOfAttachedFiltersList()) {
 							if (filter instanceof ThresholdFilter) {
 								createNew = false;
 								((ThresholdFilter) filter).setLevel(tracesLevel.levelStr);
@@ -329,7 +329,7 @@ public class LoggingConfig {
 					}
 					if (createNew) {
 						ThresholdFilter tracesFilter = new ThresholdFilter();
-						fa.addFilter(tracesFilter);
+						ga.addFilter(tracesFilter);
 						tracesFilter.setLevel(tracesLevel.levelStr);
 						tracesFilter.setContext(loggerContext);
 						tracesFilter.start();
@@ -445,7 +445,7 @@ public class LoggingConfig {
 					} else {
 						rootLogger.detachAppender(appender);
 					}
-					syslogDetachedAppenders.add(appender);
+					SYSLOG_DETACHED_APPENDERS.add(appender);
 					// If syslog is disabled later and this appender reactivated, append to the file instead of truncate
 					((FileAppender<ILoggingEvent>) appender).setAppend(true);
 				} else if (action == ActionType.STOP && appender == syslog) {
@@ -467,7 +467,7 @@ public class LoggingConfig {
 				}
 				LOGGER.info("Syslog logging started, file logging disabled");
 			} else {
-				it = syslogDetachedAppenders.iterator();
+				it = SYSLOG_DETACHED_APPENDERS.iterator();
 				while (it.hasNext()) {
 					Appender<ILoggingEvent> appender = it.next();
 					if (CacheLogger.isActive()) {
@@ -476,7 +476,7 @@ public class LoggingConfig {
 						rootLogger.addAppender(appender);
 					}
 				}
-				syslogDetachedAppenders.clear();
+				SYSLOG_DETACHED_APPENDERS.clear();
 				LOGGER.info("Syslog logging stopped, file logging enabled");
 			}
 		}
@@ -507,8 +507,8 @@ public class LoggingConfig {
 			iterators.addIterator(rootLogger.iteratorForAppenders());
 		}
 		// If syslog is active there probably are detached appenders there as well
-		if (!syslogDetachedAppenders.isEmpty()) {
-			iterators.addList(syslogDetachedAppenders);
+		if (!SYSLOG_DETACHED_APPENDERS.isEmpty()) {
+			iterators.addList(SYSLOG_DETACHED_APPENDERS);
 		}
 
 		// Iterate
@@ -570,8 +570,8 @@ public class LoggingConfig {
 			iterators.addIterator(rootLogger.iteratorForAppenders());
 		}
 		// If syslog is active there probably are detached appenders there as well
-		if (!syslogDetachedAppenders.isEmpty()) {
-			iterators.addList(syslogDetachedAppenders);
+		if (!SYSLOG_DETACHED_APPENDERS.isEmpty()) {
+			iterators.addList(SYSLOG_DETACHED_APPENDERS);
 		}
 
 		// Iterate
@@ -639,7 +639,7 @@ public class LoggingConfig {
 
 	public static HashMap<String, String> getLogFilePaths() {
 		synchronized (LOG_FILE_PATHS_LOCK) {
-			return logFilePaths;
+			return LOG_FILE_PATHS;
 		}
 	}
 }

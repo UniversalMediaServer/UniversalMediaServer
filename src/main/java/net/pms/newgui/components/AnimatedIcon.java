@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,11 +46,11 @@ import net.pms.newgui.LooksFrame;
  *  (https://tips4java.wordpress.com/2009/06/21/animated-icon/).
  */
 public class AnimatedIcon implements Icon, ActionListener {
-	public final static float TOP = 0.0f;
-	public final static float LEFT = 0.0f;
-	public final static float CENTER = 0.5f;
-	public final static float BOTTOM = 1.0f;
-	public final static float RIGHT = 1.0f;
+	public static final float TOP = 0.0f;
+	public static final float LEFT = 0.0f;
+	public static final float CENTER = 0.5f;
+	public static final float BOTTOM = 1.0f;
+	public static final float RIGHT = 1.0f;
 
 	private JComponent component;
 	private final ArrayList<AnimatedIconFrame> frames = new ArrayList<>();
@@ -667,7 +665,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	/**
 	 * Defines icon type used in callback
 	 */
-	public static enum AnimatedIconType {
+	public enum AnimatedIconType {
 		DEFAULTICON,
 		PRESSEDICON,
 		DISABLEDICON,

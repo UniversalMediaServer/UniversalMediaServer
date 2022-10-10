@@ -1,7 +1,22 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
-import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,8 +38,8 @@ import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
-import net.pms.util.FreedesktopTrash;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -283,12 +298,8 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
 					try {
-						if (Platform.isLinux()) {
-							FreedesktopTrash.moveToTrash(playedFile);
-						} else {
-							FileUtils.getInstance().moveToTrash(new File[]{playedFile});
-						}
-					} catch (IOException | FileUtil.InvalidFileSystemException e) {
+						PlatformUtils.INSTANCE.moveToTrash(playedFile);
+					} catch (IOException e) {
 						LOGGER.warn(
 							"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
 							playedFile.getAbsoluteFile(),

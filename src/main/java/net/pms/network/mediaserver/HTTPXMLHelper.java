@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -18,7 +18,7 @@
 package net.pms.network.mediaserver;
 
 public class HTTPXMLHelper {
-	private final static String CRLF = "\r\n";
+	private static final String CRLF = "\r\n";
 	public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
 	public static final String SOAP_ENCODING_HEADER = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + CRLF + "<s:Body>";
 	public static final String SOAP_ENCODING_FOOTER = "</s:Body>" + CRLF + "</s:Envelope>";
@@ -80,6 +80,12 @@ public class HTTPXMLHelper {
 	public static final String XBOX_360_2 = "<u:IsAuthorizedResponse xmlns:u=\"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1\">" + CRLF + "<Result>1</Result>" + CRLF + "</u:IsAuthorizedResponse>";
 	public static final String SAMSUNG_ERROR_RESPONSE = "<s:Fault><faultCode>s:Client</faultCode><faultString>UPnPError</faultString><detail><UPnPError xmlns=\"urn:schemas-upnp-org:control-1-0\"><errorCode>401</errorCode><errorDescription>Invalid Action</errorDescription></UPnPError></detail></s:Fault>";
 	public static final String EVENT_FOOTER = "</e:propertyset>";
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private HTTPXMLHelper() {
+	}
 
 	public static String eventProp(String prop) {
 		return eventProp(prop, "");

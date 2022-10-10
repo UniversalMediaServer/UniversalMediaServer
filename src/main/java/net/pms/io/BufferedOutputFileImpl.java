@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -30,6 +30,7 @@ import java.util.TimerTask;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.gui.GuiManager;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,7 +238,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	public WaitBufferedInputStream getCurrentInputStream() {
 		WaitBufferedInputStream wai = null;
 
-		if (inputStreams.size() > 0) {
+		if (!inputStreams.isEmpty()) {
 			try {
 				wai = forcefirst ? inputStreams.get(0) : inputStreams.get(inputStreams.size() - 1);
 			} catch (IndexOutOfBoundsException e) {
@@ -266,7 +267,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				LOGGER.debug("BufferedOutputFile is already attached to an InputStream: " + getCurrentInputStream());
 			} else {
 				// Ditlew - fixes the above (the above iterator breaks on items getting close, cause they will remove them self from the arraylist)
-				while (inputStreams.size() > 0) {
+				while (!inputStreams.isEmpty()) {
 					try {
 						inputStreams.get(0).close();
 					} catch (IOException e) {
@@ -365,7 +366,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 						packetLength = 14;
 						streamPos = -1;
 					} else {
-						packetLength = 6 + (((buffer[modulo(packetposMB + 4, buffer.length)] + 256) % 256)) * 256 + ((buffer[modulo(packetposMB + 5, buffer.length)] + 256) % 256);
+						packetLength = 6 + ((buffer[modulo(packetposMB + 4, buffer.length)] + 256) % 256) * 256 + ((buffer[modulo(packetposMB + 5, buffer.length)] + 256) % 256);
 					}
 					if (streamPos != -1) {
 						mb = packetposMB + streamPos + 18;
@@ -794,7 +795,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 					if (getCurrentInputStream() != null) {
 						rc = getCurrentInputStream().getReadCount();
-						PMS.get().getFrame().setReadValue(rc, "");
+						GuiManager.setReadValue(rc);
 					}
 
 					long space = (writeCount - rc);
@@ -805,7 +806,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					if (renderer != null) {
 						renderer.setBuffer(bufferInMBs);
 					}
-					PMS.get().getFrame().updateBuffer();
+					GuiManager.updateBuffer();
 				}
 			}, 0, 2000);
 		}
@@ -819,7 +820,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	@Override
 	public void detachInputStream() {
 		if (!hidebuffer) {
-			PMS.get().getFrame().setReadValue(0, "");
+			GuiManager.setReadValue(0);
 		}
 
 		if (attachedThread != null) {
@@ -869,7 +870,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			renderer.setBuffer(0);
 		}
 		if (!hidebuffer && maxMemorySize != 1048576) {
-			PMS.get().getFrame().updateBuffer();
+			GuiManager.updateBuffer();
 		}
 	}
 }

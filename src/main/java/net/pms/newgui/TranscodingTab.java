@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -37,14 +37,13 @@ import javax.swing.tree.TreeSelectionModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.gui.ViewLevel;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.CustomJSpinner;
 import net.pms.newgui.components.SpinnerIntModel;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.newgui.util.KeyedStringComboBoxModel;
 import net.pms.util.SubtitleColor;
@@ -127,7 +126,7 @@ public class TranscodingTab {
 	private JImageButton arrowDownButton;
 	private JImageButton arrowUpButton;
 	private JImageButton toggleButton;
-	private static enum ToggleButtonState {
+	private enum ToggleButtonState {
 		Unknown("button-toggle-on_disabled.png"),
 		On("button-toggle-on.png"),
 		Off("button-toggle-off.png");
@@ -192,17 +191,9 @@ public class TranscodingTab {
 			TreeNodeSettings node = (TreeNodeSettings) path.getLastPathComponent();
 			DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 			int index = treeModel.getIndexOfChild(node.getParent(), node);
-			if (index == 0) {
-				arrowUpButton.setEnabled(false);
-			} else {
-				arrowUpButton.setEnabled(true);
-			}
-			if (index == node.getParent().getChildCount() - 1) {
-				arrowDownButton.setEnabled(false);
-			} else {
-				arrowDownButton.setEnabled(true);
-			}
-			Player player = node.getPlayer();
+			arrowUpButton.setEnabled(index != 0);
+			arrowDownButton.setEnabled(index != node.getParent().getChildCount() - 1);
+			Engine player = node.getPlayer();
 			if (player.isEnabled()) {
 				toggleButton.setIconName(ToggleButtonState.On.getIconName());
 				toggleButton.setEnabled(true);
@@ -339,7 +330,7 @@ public class TranscodingTab {
 
 		tree.setRequestFocusEnabled(false);
 		tree.setCellRenderer(new TreeRenderer());
-		JScrollPane pane = new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JScrollPane pane = new JScrollPane(tree, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(2, 1, 4), colSpec, orientation));
 
@@ -355,7 +346,7 @@ public class TranscodingTab {
 	}
 
 	public void addEngines() {
-		for (Player player : PlayerFactory.getPlayers(false, true)) {
+		for (Engine player : EngineFactory.getEngines(false, true)) {
 			if (player.isGPUAccelerationReady()) {
 				videoHWacceleration.setEnabled(true);
 				videoHWacceleration.setSelected(configuration.isGPUAcceleration());
@@ -363,7 +354,7 @@ public class TranscodingTab {
 			}
 		}
 
-		for (Player player : PlayerFactory.getAllPlayers()) {
+		for (Engine player : EngineFactory.getAllEngines()) {
 			TreeNodeSettings engine = new TreeNodeSettings(player.name(), player, null);
 
 			JComponent configPanel = engine.getConfigPanel();

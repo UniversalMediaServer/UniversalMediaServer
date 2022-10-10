@@ -22,17 +22,15 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import org.apache.commons.configuration.ConfigurationException;
 import static net.pms.util.StringUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 
 public class StringUtilTest {
 
-	@Before
+	@BeforeEach
 	public void setUp() throws ConfigurationException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -42,19 +40,22 @@ public class StringUtilTest {
 	@Test
 	public void fillStringTest() {
 		char[] chars = { 'a', 'æ' };
-		assertEquals("fillStringCharArray", fillString(chars, 4), "aæaæaæaæ");
-		assertEquals("fillStringCharSpace", fillString(' ', 10), "          ");
-		assertEquals("fillStringCodePoint", fillString(1333 , 3), "\u0535\u0535\u0535");
-		assertEquals("fillStringUnicodeString", fillString("\u0648\u0AA7\u184A", 2), "\u0648\u0AA7\u184A\u0648\u0AA7\u184A");
-		assertEquals("fillStringEmptyString", fillString("", 100), "");
-		assertEquals("FillStringZero", fillString("foo",	0), "");
+		assertEquals(fillString(chars, 4), "aæaæaæaæ", "fillStringCharArray");
+		assertEquals(fillString(' ', 10), "          ", "fillStringCharSpace");
+		assertEquals(fillString(1333 , 3), "\u0535\u0535\u0535", "fillStringCodePoint");
+		assertEquals(fillString("\u0648\u0AA7\u184A", 2), "\u0648\u0AA7\u184A\u0648\u0AA7\u184A", "fillStringUnicodeString");
+		assertEquals(fillString("", 100), "", "fillStringEmptyString");
+		assertEquals(fillString("foo",	0), "", "FillStringZero");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void stripHTMLTest() {
-		assertEquals("stripHTMLBasicBody", stripHTML("<html><sometag></sometag><someothertag/><body>Sometext</body></html>"), "Sometext");
-		assertEquals("stripHTMLBodyWithTags", stripHTML("<html><sometag></sometag><someothertag/><body>Sometext <strong>someSTRONGtext</strong></body></html>"), "Sometext someSTRONGtext");
-		assertEquals("stripHTMLWithoutBody", stripHTML("<html><header></header>Somecontent</html>"), "");
+		//(expected=IllegalArgumentException.class)
+		assertEquals(stripHTML("<html><sometag></sometag><someothertag/><body>Sometext</body></html>"), "Sometext", "stripHTMLBasicBody");
+		assertEquals(stripHTML("<html><sometag></sometag><someothertag/><body>Sometext <strong>someSTRONGtext</strong></body></html>"), "Sometext someSTRONGtext", "stripHTMLBodyWithTags");
+		assertThrows(IllegalArgumentException.class, () -> {
+			assertEquals(stripHTML("<html><header></header>Somecontent</html>"), "");
+		}, "stripHTMLWithoutBody");
 	}
 
 	@Test

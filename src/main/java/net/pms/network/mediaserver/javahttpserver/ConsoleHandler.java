@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.LibraryScanner;
+import net.pms.service.LibraryScanner;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;

@@ -38,7 +38,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.RendererMap;
+import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
@@ -100,9 +102,9 @@ public class UPNPControl {
 
 	// RenderingControl
 	// Audio channels
-	public final static String MASTER = "Master";
-	public final static String LF = "LF";
-	public final static String RF = "RF";
+	public static final String MASTER = "Master";
+	public static final String LF = "LF";
+	public static final String RF = "RF";
 
 	//seem to be unused
 	protected static Map<String, Renderer> socketMap = new HashMap<>();
@@ -113,7 +115,7 @@ public class UPNPControl {
 	 */
 	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<>();
 
-	protected static DeviceMap rendererMap = new DeviceMap<>(Renderer.class);
+	protected static RendererMap rendererMap = new RendererMap<>(Renderer.class);
 
 	private static DocumentBuilder db;
 
@@ -147,7 +149,7 @@ public class UPNPControl {
 
 	protected boolean addRenderer(String uuid) {
 		Device device = getDevice(uuid);
-		return device != null ? addRenderer(device) : false;
+		return (device != null && addRenderer(device));
 	}
 
 	protected synchronized boolean addRenderer(Device<?, RemoteDevice, ?> device) {
@@ -455,8 +457,12 @@ public class UPNPControl {
 		return false;
 	}
 
-	public static void connect(String uuid, String instanceID, ActionListener listener) {
-		rendererMap.get(uuid, instanceID).connect(listener);
+	public static Map<String, String> connect(String uuid, String instanceID, ActionListener listener) {
+		return rendererMap.get(uuid, instanceID).connect(listener);
+	}
+
+	public static void disconnect(String uuid, String instanceID, ActionListener listener) {
+		rendererMap.get(uuid, instanceID).disconnect(listener);
 	}
 
 	public static Map<String, String> getData(String uuid, String instanceID) {

@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.4.1 2D to 3D Mod</version>
+	<version>11.6.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.4.1.2dTo3dMod</project.version.short>
+		<project.version.short>11.6.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -70,7 +70,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>159</binary-revision>
+		<binary-revision>161</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -92,13 +92,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>1.7.36</slf4j-api-version>
+		<slf4j-api-version>2.0.3</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.2.11</logback-version>
+		<logback-version>1.4.3</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -106,7 +106,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.13.3</jackson.version>
+		<jackson.version>2.13.4</jackson.version>
 
 		<surefire-version>3.0.0-M7</surefire-version>
 
@@ -125,8 +125,8 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.9.0</junit5.version>
-		<com.sun.xml.bind-version>4.0.0</com.sun.xml.bind-version>
+		<junit5.version>5.9.1</junit5.version>
+		<com.sun.xml.bind-version>4.0.1</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
 		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
 	</properties>
@@ -219,7 +219,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.9</version>
+			<version>1.10.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
@@ -434,34 +434,6 @@
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>${junit5.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
-			<version>${junit5.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<!-- Use 3.x for Java 8 -->
-			<version>3.23.1</version>
-			<scope>test</scope>
-			<exclusions>
-				<!-- This should never have been a dependency in the first place -->
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna-platform</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
@@ -1015,7 +987,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.1.1</version>
+				<version>4.7.2.1</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->
@@ -1028,7 +1000,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.18.0</version>
+				<version>3.19.0</version>
 				<configuration>
 					<linkXref>false</linkXref>
 					<sourceEncoding>utf-8</sourceEncoding>
@@ -2953,7 +2925,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.3.2</version>
+								<version>10.3.4</version>
 							</dependency>
 						</dependencies>
 						<configuration>

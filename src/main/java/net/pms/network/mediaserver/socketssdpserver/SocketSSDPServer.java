@@ -446,7 +446,7 @@ public class SocketSSDPServer {
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	private static void listen() throws IOException {
+	private static void listen() {
 		Runnable rAlive = () -> {
 			while (multicastSocket != null && !multicastSocket.isClosed()) {
 				UMSUtils.sleep(ALIVE_DELAY);
@@ -574,5 +574,5 @@ public class SocketSSDPServer {
 		}
 	}
 
-	private static enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED };
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED }
 }

@@ -11,7 +11,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.DCRaw;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -106,7 +106,7 @@ public class RAW extends ImageBase {
 		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			// Only parse using DCRaw if it is enabled
-			DCRaw dcraw = (DCRaw) PlayerFactory.getActivePlayer(DCRaw.ID);
+			DCRaw dcraw = (DCRaw) EngineFactory.getActiveEngine(DCRaw.ID);
 			if (dcraw != null) {
 				if (trace) {
 					LOGGER.trace("Parsing RAW image \"{}\" with DCRaw", file.getFile().getName());

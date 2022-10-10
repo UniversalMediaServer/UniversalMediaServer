@@ -27,7 +27,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.dlna.LibraryScanner;
+import net.pms.service.LibraryScanner;
 import net.pms.dlna.RootFolder;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;

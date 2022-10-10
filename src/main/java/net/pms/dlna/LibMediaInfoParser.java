@@ -88,6 +88,12 @@ public class LibMediaInfoParser {
 		}
 	}
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private LibMediaInfoParser() {
+	}
+
 	public static boolean isValid() {
 		return MI.isValid();
 	}
@@ -137,9 +143,9 @@ public class LibMediaInfoParser {
 				String chaptersPosBeginStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_Begin", MediaInfo.InfoType.Text);
 				String chaptersPosEndStr = MI.Get(StreamType.Menu, 0, "Chapters_Pos_End", MediaInfo.InfoType.Text);
 				if (!chaptersPosBeginStr.isEmpty() && !chaptersPosEndStr.isEmpty()) {
-					int chaptersPosBegin = Integer.valueOf(chaptersPosBeginStr);
-					int chaptersPosEnd = Integer.valueOf(chaptersPosEndStr);
-					List<DLNAMediaChapter> chapters = new ArrayList();
+					int chaptersPosBegin = Integer.parseInt(chaptersPosBeginStr);
+					int chaptersPosEnd = Integer.parseInt(chaptersPosEndStr);
+					List<DLNAMediaChapter> chapters = new ArrayList<>();
 					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
 						String chapterName = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Name);
 						String chapterTitle = MI.Get(StreamType.Menu, 0, i, MediaInfo.InfoType.Text);

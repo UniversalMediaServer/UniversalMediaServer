@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.xml.stream.XMLStreamConstants;
 
 
 /**
@@ -98,7 +99,7 @@ public class XMLRPCUtil {
 		while (reader.hasNext()) {
 			int eventType = reader.next();
 			switch (eventType) {
-				case XMLStreamReader.START_ELEMENT:
+				case XMLStreamConstants.START_ELEMENT:
 					String elementName = reader.getLocalName();
 					switch (elementName) {
 						case "methodResponse":
@@ -116,7 +117,7 @@ public class XMLRPCUtil {
 							throw new XMLRPCException("XML-RPC: Unexpected <methodResponse> property \"" + elementName + "\"");
 					}
 					break;
-				case XMLStreamReader.END_ELEMENT:
+				case XMLStreamConstants.END_ELEMENT:
 					if (!"methodResponse".equals(reader.getLocalName())) {
 						throw new XMLRPCException("XML-RPC: Invalid <methodResponse>");
 					}
@@ -148,7 +149,7 @@ public class XMLRPCUtil {
 		while (reader.hasNext()) {
 			int eventType = reader.next();
 			switch (eventType) {
-				case XMLStreamReader.START_ELEMENT:
+				case XMLStreamConstants.START_ELEMENT:
 					String elementName = reader.getLocalName();
 					switch (elementName) {
 						case "value":
@@ -158,7 +159,7 @@ public class XMLRPCUtil {
 							throw new XMLRPCException("XML-RPC: Unexpected <param> property \"" + elementName + "\"");
 					}
 					break;
-				case XMLStreamReader.END_ELEMENT:
+				case XMLStreamConstants.END_ELEMENT:
 					if (!"param".equals(reader.getLocalName())) {
 						throw new XMLRPCException("XML-RPC: Invalid <param> element");
 					}
@@ -187,7 +188,7 @@ public class XMLRPCUtil {
 			throw new XMLRPCException("XML-RPC: Cursor isn't at a name element");
 		}
 		String name = readCharacters(reader);
-		if (reader.getEventType() != XMLStreamReader.END_ELEMENT || !"name".equals(reader.getLocalName())) {
+		if (reader.getEventType() != XMLStreamConstants.END_ELEMENT || !"name".equals(reader.getLocalName())) {
 			throw new XMLRPCException("XML-RPC: Invalid name element");
 		}
 		return name;
@@ -210,14 +211,13 @@ public class XMLRPCUtil {
 		while (reader.hasNext()) {
 			int eventType = reader.next();
 			switch (eventType) {
-				case XMLStreamReader.CHARACTERS:
-				case XMLStreamReader.CDATA:
-					result.append(reader.getText());
-					break;
-				case XMLStreamReader.END_ELEMENT:
+				case XMLStreamConstants.CHARACTERS, XMLStreamConstants.CDATA -> result.append(reader.getText());
+				case XMLStreamConstants.END_ELEMENT -> {
 					return result.toString();
-				default:
+				}
+				default -> {
 					// Ignore
+				}
 			}
 		}
 		throw new XMLRPCException("XML-RPC: Premature end of stream");
@@ -415,23 +415,23 @@ public class XMLRPCUtil {
 			while (reader.hasNext()) {
 				int eventType = reader.next();
 				switch (eventType) {
-					case XMLStreamReader.START_ELEMENT:
+					case XMLStreamConstants.START_ELEMENT -> {
 						String elementName = reader.getLocalName();
-						switch (elementName) {
-							case "param":
-								result.add(readParam(reader));
-								break;
-							default:
-								throw new XMLRPCException("XML-RPC: Unexpected <params> property \"" + elementName + "\"");
+						if (elementName.equals("param")) {
+							result.add(readParam(reader));
+						} else {
+							throw new XMLRPCException("XML-RPC: Unexpected <params> property \"" + elementName + "\"");
 						}
-						break;
-					case XMLStreamReader.END_ELEMENT:
+					}
+					case XMLStreamConstants.END_ELEMENT -> {
 						if (!"params".equals(reader.getLocalName())) {
 							throw new XMLRPCException("XML-RPC: Invalid <params> element");
 						}
 						return result;
-					default:
+					}
+					default -> {
 						// Ignore
+					}
 				}
 			}
 			throw new XMLRPCException("XML-RPC: Premature end of stream");
@@ -554,7 +554,7 @@ public class XMLRPCUtil {
 			while (reader.hasNext()) {
 				int eventType = reader.next();
 				switch (eventType) {
-					case XMLStreamReader.START_ELEMENT:
+					case XMLStreamConstants.START_ELEMENT:
 						String elementName = reader.getLocalName();
 						switch (elementName) {
 							case "name":
@@ -599,7 +599,7 @@ public class XMLRPCUtil {
 								throw new XMLRPCException("XML-RPC: Unexpected <member> property \"" + elementName + "\"");
 						}
 						break;
-					case XMLStreamReader.END_ELEMENT:
+					case XMLStreamConstants.END_ELEMENT:
 						if (!"member".equals(reader.getLocalName())) {
 							throw new XMLRPCException("XML-RPC: Invalid <member> element");
 						}
@@ -1206,7 +1206,7 @@ public class XMLRPCUtil {
 			while (reader.hasNext()) {
 				int eventType = reader.next();
 				switch (eventType) {
-					case XMLStreamReader.START_ELEMENT:
+					case XMLStreamConstants.START_ELEMENT:
 						if (type == null) {
 							type = XMLRPCTypes.typeOf(reader.getLocalName());
 							switch (type) {
@@ -1254,7 +1254,7 @@ public class XMLRPCUtil {
 							throw new XMLRPCException("XML-RPC: Unexpected <value> property \"" + reader.getLocalName() + "\"");
 						}
 						break;
-					case XMLStreamReader.END_ELEMENT:
+					case XMLStreamConstants.END_ELEMENT:
 						String elementName = reader.getLocalName();
 						if (type != null && type.toString().equals(elementName)) {
 							break;
@@ -1632,7 +1632,7 @@ public class XMLRPCUtil {
 			while (reader.hasNext()) {
 				int eventType = reader.next();
 				switch (eventType) {
-					case XMLStreamReader.START_ELEMENT:
+					case XMLStreamConstants.START_ELEMENT -> {
 						elementName = reader.getLocalName();
 						if (!data && "data".equals(elementName)) {
 							data = true;
@@ -1641,8 +1641,8 @@ public class XMLRPCUtil {
 						} else {
 							throw new XMLRPCException("XML-RPC: Unexpected <array> property \"" + elementName + "\"");
 						}
-						break;
-					case XMLStreamReader.END_ELEMENT:
+					}
+					case XMLStreamConstants.END_ELEMENT -> {
 						elementName = reader.getLocalName();
 						if (data && "data".equals(elementName)) {
 							data = false;
@@ -1651,8 +1651,10 @@ public class XMLRPCUtil {
 						} else {
 							throw new XMLRPCException("XML-RPC: Invalid <array> element");
 						}
-					default:
+					}
+					default -> {
 						// Ignore
+					}
 				}
 			}
 			throw new XMLRPCException("XML-RPC: Premature end of stream");
@@ -2079,30 +2081,30 @@ public class XMLRPCUtil {
 			while (reader.hasNext()) {
 				int eventType = reader.next();
 				switch (eventType) {
-					case XMLStreamReader.START_ELEMENT:
+					case XMLStreamConstants.START_ELEMENT -> {
 						String elementName = reader.getLocalName();
-						switch (elementName) {
-							case "member":
-								Member<? extends Value<?>, ?> member = Member.read(reader);
-								if (member == null) {
-									throw new XMLRPCException("XML-RPC: Member is null");
-								}
-								if (isBlank(member.getName())) {
-									throw new XMLRPCException("XML-RPC: Member has no name");
-								}
-								result.put(member);
-								break;
-							default:
-								throw new XMLRPCException("XML-RPC: Unexpected <struct> property \"" + elementName + "\"");
+						if (elementName.equals("member")) {
+							Member<? extends Value<?>, ?> member = Member.read(reader);
+							if (member == null) {
+								throw new XMLRPCException("XML-RPC: Member is null");
+							}
+							if (isBlank(member.getName())) {
+								throw new XMLRPCException("XML-RPC: Member has no name");
+							}
+							result.put(member);
+						} else {
+							throw new XMLRPCException("XML-RPC: Unexpected <struct> property \"" + elementName + "\"");
 						}
-						break;
-					case XMLStreamReader.END_ELEMENT:
+					}
+					case XMLStreamConstants.END_ELEMENT -> {
 						if (!"struct".equals(reader.getLocalName())) {
 							throw new XMLRPCException("XML-RPC: Invalid <struct> element");
 						}
 						return result;
-					default:
+					}
+					default -> {
 						// Ignore
+					}
 				}
 			}
 			throw new XMLRPCException("XML-RPC: Premature end of stream");
@@ -2112,7 +2114,7 @@ public class XMLRPCUtil {
 	/**
 	 * This {@code enum} is used to represent the {@code XML-RPC} types.
 	 */
-	public static enum XMLRPCTypes {
+	public enum XMLRPCTypes {
 
 		/** The {@code XML-RPC} {@code <array>} type */
 		ARRAY,
@@ -2141,26 +2143,33 @@ public class XMLRPCUtil {
 		@Override
 		public String toString() {
 			switch (this) {
-				case ARRAY:
+				case ARRAY -> {
 					return "array";
-				case BASE64:
+				}
+				case BASE64 -> {
 					return "base64";
-				case BOOLEAN:
+				}
+				case BOOLEAN -> {
 					return "boolean";
-				case DATETIME_ISO8601:
+				}
+				case DATETIME_ISO8601 -> {
 					return "dateTime.iso8601";
-				case DOUBLE:
+				}
+				case DOUBLE -> {
 					return "double";
-				case INT:
+				}
+				case INT -> {
 					return "int";
-				case STRING:
+				}
+				case STRING -> {
 					return "string";
-				case STRUCT:
+				}
+				case STRUCT -> {
 					return "struct";
-				default:
-					throw new AssertionError("Unimplemented XMLRPCType " + name());
+				}
+				default -> throw new AssertionError("Unimplemented XMLRPCType " + name());
 			}
-		};
+		}
 
 		/**
 		 * Parses the specified {@link String} into the corresponding

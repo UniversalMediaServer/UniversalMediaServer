@@ -133,23 +133,28 @@ Function AdvancedSettings
 		SetRegView 64
 	${EndIf}
 
-	; Get the amount of RAM on the computer
-	System::Alloc 64
-	Pop $1
-	System::Call "*$1(i64)"
-	System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
-	System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
-	System::Free $1
-	System::Int64Op $4 / 1048576
-	Pop $4
+	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+	${If} $0 == ""
+		; Get the amount of RAM on the computer
+		System::Alloc 64
+		Pop $1
+		System::Call "*$1(i64)"
+		System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
+		System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
+		System::Free $1
+		System::Int64Op $4 / 1048576
+		Pop $4
 
-	; Choose the maximum amount of RAM we want to use based on installed RAM
-	${If} $4 > 8000 
-		StrCpy $MaximumMemoryJava "2048"
-	${ElseIf} $4 > 4000 
-		StrCpy $MaximumMemoryJava "1280"
+		; Choose the maximum amount of RAM we want to use based on installed RAM
+		${If} $4 > 8000 
+			StrCpy $MaximumMemoryJava "2048"
+		${ElseIf} $4 > 4000 
+			StrCpy $MaximumMemoryJava "1280"
+		${Else}
+			StrCpy $MaximumMemoryJava "768"
+		${EndIf}
 	${Else}
-		StrCpy $MaximumMemoryJava "768"
+		StrCpy $MaximumMemoryJava $0
 	${EndIf}
 
 	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 

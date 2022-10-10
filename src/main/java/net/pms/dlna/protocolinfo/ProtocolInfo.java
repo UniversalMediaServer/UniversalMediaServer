@@ -403,8 +403,8 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 */
 	public ProfileName getProfileName() {
 		for (ProtocolInfoAttribute attribute : attributes.values()) {
-			if (attribute instanceof ProfileName) {
-				return (ProfileName) attribute;
+			if (attribute instanceof ProfileName profileName) {
+				return profileName;
 			}
 		}
 		return null;
@@ -670,10 +670,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 		} else if (!network.equals(other.network)) {
 			return false;
 		}
-		if (protocol != other.protocol) {
-			return false;
-		}
-		return true;
+		return (protocol == other.protocol);
 	}
 
 	/**

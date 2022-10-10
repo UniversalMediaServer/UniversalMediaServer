@@ -37,7 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DatabaseHelper {
+public abstract class DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
 	private static final String ESCAPE_CHARACTER = "\\";
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -163,12 +163,13 @@ public class DatabaseHelper {
 					"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
 					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
 			}
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			rs = stmt.executeQuery();
+			try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+				rs = stmt.executeQuery();
 
-			while (rs.next()) {
-				try (Statement statement = connection.createStatement()) {
-					statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+				while (rs.next()) {
+					try (Statement statement = connection.createStatement()) {
+						statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -389,8 +390,8 @@ public class DatabaseHelper {
 
 	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
-		if (obj instanceof Double) {
-			return (Double) obj;
+		if (obj instanceof Double value) {
+			return value;
 		}
 		return null;
 	}

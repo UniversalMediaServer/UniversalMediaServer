@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -29,8 +29,8 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -277,15 +277,13 @@ public class DLNAMediaInfo implements Cloneable {
 		if (videoTrackCount > 0) {
 			return MediaType.VIDEO;
 		}
-		switch (audioTracks.size()) {
-			case 1 :
-				return MediaType.AUDIO;
-			case 0 :
-				if (imageCount > 0) {
-					return MediaType.IMAGE;
-				}
-			default :
-				return isSLS() ? MediaType.AUDIO : MediaType.UNKNOWN;
+		int audioTracksSize = audioTracks.size();
+		if (audioTracksSize == 0 && imageCount > 0) {
+			return MediaType.IMAGE;
+		} else if (audioTracksSize == 1 || isSLS()) {
+			return MediaType.AUDIO;
+		} else {
+			return MediaType.UNKNOWN;
 		}
 	}
 
@@ -368,7 +366,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check the metadata
-		if (
+		return (
 			(
 				getFileTitleFromMetadata() != null &&
 				getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
@@ -387,11 +385,7 @@ public class DLNAMediaInfo implements Cloneable {
 				params.getSid().getSubtitlesTrackTitleFromMetadata() != null &&
 				params.getSid().getSubtitlesTrackTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	public Map<String, String> getExtras() {
@@ -431,7 +425,7 @@ public class DLNAMediaInfo implements Cloneable {
 		ArrayList<String> args = new ArrayList<>();
 		boolean generateThumbnail = CONFIGURATION.isThumbnailGenerationEnabled() && !CONFIGURATION.isUseMplayerForVideoThumbs();
 
-		args.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		args.add(EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO));
 		if (args.get(0) == null) {
 			LOGGER.warn("Cannot generate thumbnail for {} since the FFmpeg executable is undefined");
 			return null;
@@ -473,7 +467,7 @@ public class DLNAMediaInfo implements Cloneable {
 		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(new String[args.size()]), true, params, false, true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
 
 		// FAILSAFE
 		synchronized (parsingLock) {
@@ -566,7 +560,6 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * Parse media without using MediaInfo.
 	 */
-	@SuppressWarnings("checkstyle:EmptyBlock")
 	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume, RendererConfiguration renderer) {
 		int i = 0;
 
@@ -1109,7 +1102,7 @@ public class DLNAMediaInfo implements Cloneable {
 								try {
 									// tbc taken into account only if different than tbr
 									if (!frameRateDoubleString.equals(frameRate)) {
-										Double frameRateDouble = Double.parseDouble(frameRateDoubleString);
+										Double frameRateDouble = Double.valueOf(frameRateDoubleString);
 										frameRate = String.format(Locale.ENGLISH, "%.2f", frameRateDouble / 2);
 									}
 								} catch (NumberFormatException nfe) {
@@ -1225,7 +1218,7 @@ public class DLNAMediaInfo implements Cloneable {
 						if (fFmpegMetaDataNr > -1) {
 							line = lines.get(fFmpegMetaDataNr);
 						}
-						List<DLNAMediaChapter> ffmpegChapters = new ArrayList();
+						List<DLNAMediaChapter> ffmpegChapters = new ArrayList<>();
 						while (line.contains("Chapter #")) {
 							DLNAMediaChapter chapter = new DLNAMediaChapter();
 							//set chapter id
@@ -1235,9 +1228,9 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 							String[] ids = idStr.split(":");
 							if (ids.length > 1) {
-								chapter.setId(Integer.valueOf(ids[1]));
+								chapter.setId(Integer.parseInt(ids[1]));
 							} else {
-								chapter.setId(Integer.valueOf(ids[0]));
+								chapter.setId(Integer.parseInt(ids[0]));
 							}
 							//set chapter start
 							if (line.contains("start ")) {
@@ -1248,7 +1241,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (startStr.endsWith(",")) {
 									startStr = startStr.substring(0, startStr.length() - 1);
 								}
-								chapter.setStart(Double.valueOf(startStr));
+								chapter.setStart(Double.parseDouble(startStr));
 							}
 							//set chapter end
 							if (line.contains(" end ")) {
@@ -1256,7 +1249,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (endStr.contains(" ")) {
 									endStr = endStr.substring(0, endStr.indexOf(" "));
 								}
-								chapter.setEnd(Double.valueOf(endStr));
+								chapter.setEnd(Double.parseDouble(endStr));
 							}
 							chapter.setLang(DLNAMediaLang.UND);
 							fFmpegMetaDataNr += 1;
@@ -1364,125 +1357,47 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (container != null) {
-			switch (container) {
-				case FormatConfiguration.AVI:
-					mimeType = HTTPResource.AVI_TYPEMIME;
-					break;
-				case FormatConfiguration.ASF:
-					mimeType = HTTPResource.ASF_TYPEMIME;
-					break;
-				case FormatConfiguration.FLV:
-					mimeType = HTTPResource.FLV_TYPEMIME;
-					break;
-				case FormatConfiguration.M4V:
-					mimeType = HTTPResource.M4V_TYPEMIME;
-					break;
-				case FormatConfiguration.MP4:
-					mimeType = HTTPResource.MP4_TYPEMIME;
-					break;
-				case FormatConfiguration.MPEGPS:
-					mimeType = HTTPResource.MPEG_TYPEMIME;
-					break;
-				case FormatConfiguration.MPEGTS:
-					mimeType = HTTPResource.MPEGTS_TYPEMIME;
-					break;
-				case FormatConfiguration.MPEGTS_HLS:
-					mimeType = HTTPResource.HLS_TYPEMIME;
-					break;
-				case FormatConfiguration.WMV:
-					mimeType = HTTPResource.WMV_TYPEMIME;
-					break;
-				case FormatConfiguration.MOV:
-					mimeType = HTTPResource.MOV_TYPEMIME;
-					break;
-				case FormatConfiguration.ADPCM:
-					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
-					break;
-				case FormatConfiguration.ADTS:
-					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
-					break;
-				case FormatConfiguration.M4A:
-					mimeType = HTTPResource.AUDIO_M4A_TYPEMIME;
-					break;
-				case FormatConfiguration.AC3:
-					mimeType = HTTPResource.AUDIO_AC3_TYPEMIME;
-					break;
-				case FormatConfiguration.AU:
-					mimeType = HTTPResource.AUDIO_AU_TYPEMIME;
-					break;
-				case FormatConfiguration.DFF:
-					mimeType = HTTPResource.AUDIO_DFF_TYPEMIME;
-					break;
-				case FormatConfiguration.DSF:
-					mimeType = HTTPResource.AUDIO_DSF_TYPEMIME;
-					break;
-				case FormatConfiguration.EAC3:
-					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
-					break;
-				case FormatConfiguration.MPA:
-					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
-					break;
-				case FormatConfiguration.MP2:
-					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
-					break;
-				case FormatConfiguration.AIFF:
-					mimeType = HTTPResource.AUDIO_AIFF_TYPEMIME;
-					break;
-				case FormatConfiguration.ATRAC:
-					mimeType = HTTPResource.AUDIO_ATRAC_TYPEMIME;
-					break;
-				case FormatConfiguration.MKA:
-					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
-					break;
-				case FormatConfiguration.MLP:
-					mimeType = HTTPResource.AUDIO_MLP_TYPEMIME;
-					break;
-				case FormatConfiguration.MONKEYS_AUDIO:
-					mimeType = HTTPResource.AUDIO_APE_TYPEMIME;
-					break;
-				case FormatConfiguration.MPC:
-					mimeType = HTTPResource.AUDIO_MPC_TYPEMIME;
-					break;
-				case FormatConfiguration.OGG:
-					mimeType = HTTPResource.OGG_TYPEMIME;
-					break;
-				case FormatConfiguration.OGA:
-					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
-					break;
-				case FormatConfiguration.RA:
-					mimeType = HTTPResource.AUDIO_RA_TYPEMIME;
-					break;
-				case FormatConfiguration.RM:
-					mimeType = HTTPResource.RM_TYPEMIME;
-					break;
-				case FormatConfiguration.SHORTEN:
-					mimeType = HTTPResource.AUDIO_SHN_TYPEMIME;
-					break;
-				case FormatConfiguration.THREEGA:
-					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
-					break;
-				case FormatConfiguration.TRUEHD:
-					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
-					break;
-				case FormatConfiguration.TTA:
-					mimeType = HTTPResource.AUDIO_TTA_TYPEMIME;
-					break;
-				case FormatConfiguration.WAVPACK:
-					mimeType = HTTPResource.AUDIO_WV_TYPEMIME;
-					break;
-				case FormatConfiguration.WEBA:
-					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
-					break;
-				case FormatConfiguration.WEBP:
-					mimeType = HTTPResource.WEBP_TYPEMIME;
-					break;
-				case FormatConfiguration.WMA:
-				case FormatConfiguration.WMA10:
-					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-					break;
-			default:
-				break;
-			}
+			mimeType = switch (container) {
+				case FormatConfiguration.AVI -> HTTPResource.AVI_TYPEMIME;
+				case FormatConfiguration.ASF -> HTTPResource.ASF_TYPEMIME;
+				case FormatConfiguration.FLV -> HTTPResource.FLV_TYPEMIME;
+				case FormatConfiguration.M4V -> HTTPResource.M4V_TYPEMIME;
+				case FormatConfiguration.MP4 -> HTTPResource.MP4_TYPEMIME;
+				case FormatConfiguration.MPEGPS -> HTTPResource.MPEG_TYPEMIME;
+				case FormatConfiguration.MPEGTS -> HTTPResource.MPEGTS_TYPEMIME;
+				case FormatConfiguration.MPEGTS_HLS -> HTTPResource.HLS_TYPEMIME;
+				case FormatConfiguration.WMV -> HTTPResource.WMV_TYPEMIME;
+				case FormatConfiguration.MOV -> HTTPResource.MOV_TYPEMIME;
+				case FormatConfiguration.ADPCM -> HTTPResource.AUDIO_ADPCM_TYPEMIME;
+				case FormatConfiguration.ADTS -> HTTPResource.AUDIO_ADTS_TYPEMIME;
+				case FormatConfiguration.M4A -> HTTPResource.AUDIO_M4A_TYPEMIME;
+				case FormatConfiguration.AC3 -> HTTPResource.AUDIO_AC3_TYPEMIME;
+				case FormatConfiguration.AU -> HTTPResource.AUDIO_AU_TYPEMIME;
+				case FormatConfiguration.DFF -> HTTPResource.AUDIO_DFF_TYPEMIME;
+				case FormatConfiguration.DSF -> HTTPResource.AUDIO_DSF_TYPEMIME;
+				case FormatConfiguration.EAC3 -> HTTPResource.AUDIO_EAC3_TYPEMIME;
+				case FormatConfiguration.MPA -> HTTPResource.AUDIO_MPA_TYPEMIME;
+				case FormatConfiguration.MP2 -> HTTPResource.AUDIO_MP2_TYPEMIME;
+				case FormatConfiguration.AIFF -> HTTPResource.AUDIO_AIFF_TYPEMIME;
+				case FormatConfiguration.ATRAC -> HTTPResource.AUDIO_ATRAC_TYPEMIME;
+				case FormatConfiguration.MKA -> HTTPResource.AUDIO_MKA_TYPEMIME;
+				case FormatConfiguration.MLP -> HTTPResource.AUDIO_MLP_TYPEMIME;
+				case FormatConfiguration.MONKEYS_AUDIO -> HTTPResource.AUDIO_APE_TYPEMIME;
+				case FormatConfiguration.MPC -> HTTPResource.AUDIO_MPC_TYPEMIME;
+				case FormatConfiguration.OGG -> HTTPResource.OGG_TYPEMIME;
+				case FormatConfiguration.OGA -> HTTPResource.AUDIO_OGA_TYPEMIME;
+				case FormatConfiguration.RA -> HTTPResource.AUDIO_RA_TYPEMIME;
+				case FormatConfiguration.RM -> HTTPResource.RM_TYPEMIME;
+				case FormatConfiguration.SHORTEN -> HTTPResource.AUDIO_SHN_TYPEMIME;
+				case FormatConfiguration.THREEGA -> HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
+				case FormatConfiguration.TRUEHD -> HTTPResource.AUDIO_TRUEHD_TYPEMIME;
+				case FormatConfiguration.TTA -> HTTPResource.AUDIO_TTA_TYPEMIME;
+				case FormatConfiguration.WAVPACK -> HTTPResource.AUDIO_WV_TYPEMIME;
+				case FormatConfiguration.WEBA -> HTTPResource.AUDIO_WEBM_TYPEMIME;
+				case FormatConfiguration.WEBP -> HTTPResource.WEBP_TYPEMIME;
+				case FormatConfiguration.WMA, FormatConfiguration.WMA10 -> HTTPResource.AUDIO_WMA_TYPEMIME;
+				default -> mimeType;
+			};
 		}
 
 		if (mimeType == null) {
@@ -1569,9 +1484,12 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 * Checks whether the video has too many reference frames per pixels for the renderer.
 	 *
 	 * TODO move to PlayerUtil
+	 * @param f
+	 * @param mediaRenderer
+	 * @return
 	 */
 	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
 		synchronized (videoWithinH264LevelLimitsLock) {
@@ -1884,7 +1802,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO);
+		cmdArray[0] = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
 		if (cmdArray[0] == null) {
 			LOGGER.warn("Cannot process Annex B Frame Header is FFmpeg executable is undefined");
 			return null;
@@ -2890,22 +2808,18 @@ public class DLNAMediaInfo implements Cloneable {
 			return false;
 		}
 
-		switch (stereoscopy.toLowerCase()) {
-			case "overunderrt":
-			case "oulf":
-			case "ourf":
-			case "sbslf":
-			case "sbsrf":
-			case "top-bottom (left eye first)":
-			case "top-bottom (right eye first)":
-			case "side by side (left eye first)":
-			case "side by side (right eye first)":
-				return true;
-		default:
-			break;
-		}
-
-		return false;
+		return switch (stereoscopy.toLowerCase()) {
+			case "overunderrt",
+				"oulf",
+				"ourf",
+				"sbslf",
+				"sbsrf",
+				"top-bottom (left eye first)",
+				"top-bottom (right eye first)",
+				"side by side (left eye first)",
+				"side by side (right eye first)" -> true;
+			default -> false;
+		};
 	}
 
 	/**
@@ -2939,55 +2853,68 @@ public class DLNAMediaInfo implements Cloneable {
 
 		isAnaglyph = true;
 		switch (stereoscopy.toLowerCase()) {
-			case "overunderrt":
-			case "oulf":
-			case "top-bottom (left eye first)":
+			case "overunderrt", "oulf", "top-bottom (left eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.ABL;
-			case "ourf":
-			case "top-bottom (right eye first)":
+			}
+			case "ourf", "top-bottom (right eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.ABR;
-			case "sbslf":
-			case "side by side (left eye first)":
+			}
+			case "sbslf", "side by side (left eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.SBSL;
-			case "sbsrf":
-			case "side by side (right eye first)":
+			}
+			case "sbsrf", "side by side (right eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.SBSR;
-			case "half top-bottom (left eye first)":
+			}
+			case "half top-bottom (left eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.AB2L;
-			case "half side by side (left eye first)":
+			}
+			case "half side by side (left eye first)" -> {
 				isAnaglyph = false;
 				return Mode3D.SBS2L;
-			case "arcg":
+			}
+			case "arcg" -> {
 				return Mode3D.ARCG;
-			case "arch":
+			}
+			case "arch" -> {
 				return Mode3D.ARCH;
-			case "arcc":
+			}
+			case "arcc" -> {
 				return Mode3D.ARCC;
-			case "arcd":
+			}
+			case "arcd" -> {
 				return Mode3D.ARCD;
-			case "agmg":
+			}
+			case "agmg" -> {
 				return Mode3D.AGMG;
-			case "agmh":
+			}
+			case "agmh" -> {
 				return Mode3D.AGMH;
-			case "agmc":
+			}
+			case "agmc" -> {
 				return Mode3D.AGMC;
-			case "agmd":
+			}
+			case "agmd" -> {
 				return Mode3D.AGMD;
-			case "aybg":
+			}
+			case "aybg" -> {
 				return Mode3D.AYBG;
-			case "aybh":
+			}
+			case "aybh" -> {
 				return Mode3D.AYBH;
-			case "aybc":
+			}
+			case "aybc" -> {
 				return Mode3D.AYBC;
-			case "aybd":
+			}
+			case "aybd" -> {
 				return Mode3D.AYBD;
-		default:
-			break;
+			}
+			default -> {
+			}
 		}
 
 		return null;
@@ -3099,8 +3026,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String value = extractAudioTagKeyValue(t, key);
 		if (value != null) {
 			try {
-				Integer intValue = Integer.parseInt(value);
-				return intValue;
+				return Integer.valueOf(value);
 			} catch (NumberFormatException e) {
 				LOGGER.trace("no int value available for key ", e);
 			}
@@ -3344,7 +3270,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * Used by FFmpeg for 3D video format naming
 	 */
-	public static enum Mode3D {
+	public enum Mode3D {
 		ML,
 		MR,
 		SBSL,
@@ -3367,12 +3293,12 @@ public class DLNAMediaInfo implements Cloneable {
 		AYBH,
 		AYBC,
 		AYBD
-	};
+	}
 
 	/**
 	 * This {@code enum} represents the different video "scan types".
 	 */
-	public static enum ScanType {
+	public enum ScanType {
 
 		/** Interlaced scan, any sub-type */
 		INTERLACED,
@@ -3391,7 +3317,7 @@ public class DLNAMediaInfo implements Cloneable {
 				case PROGRESSIVE -> "Progressive";
 				default -> name();
 			};
-		};
+		}
 
 		public static ScanType typeOf(String scanType) {
 			if (isBlank(scanType)) {
@@ -3419,7 +3345,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * This {@code enum} represents the video scan order.
 	 */
-	public static enum ScanOrder {
+	public enum ScanOrder {
 
 		/** Bottom Field First */
 		BFF,
@@ -3454,7 +3380,7 @@ public class DLNAMediaInfo implements Cloneable {
 				case TFO -> "Top Field Only";
 				default -> name();
 			};
-		};
+		}
 
 		public static ScanOrder typeOf(String scanOrder) {
 			if (isBlank(scanOrder)) {

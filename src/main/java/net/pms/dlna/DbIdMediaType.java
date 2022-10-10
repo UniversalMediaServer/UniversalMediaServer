@@ -41,7 +41,7 @@ public enum DbIdMediaType {
 	//@formatter:on
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdMediaType.class);
-	public final static String GENERAL_PREFIX = "$DBID$";
+	public static final String GENERAL_PREFIX = "$DBID$";
 	public static final String SPLIT_CHARS = "___";
 	public final String dbidPrefix;
 	public final String uclass;

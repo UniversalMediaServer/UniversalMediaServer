@@ -24,7 +24,7 @@ import java.util.Optional;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
-import net.pms.network.mediaserver.Renderer;
+import net.pms.renderers.Renderer;
 
 /**
  * This class is used to represent a {@code <res>} element representing an image
@@ -205,10 +205,7 @@ public class DLNAImageResElement {
 		} else if (!profile.equals(other.profile)) {
 			return false;
 		}
-		if (thumbnail != other.thumbnail) {
-			return false;
-		}
-		return true;
+		return (thumbnail == other.thumbnail);
 	}
 
 	/**

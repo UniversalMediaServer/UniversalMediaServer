@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -48,8 +48,8 @@ import net.pms.dlna.MediaType;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
-import net.pms.encoders.ImagePlayer;
-import net.pms.external.StartStopListenerDelegate;
+import net.pms.encoders.ImageEngine;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
@@ -294,7 +294,7 @@ public class Request extends HTTPResource {
 
 			StringBuilder response = new StringBuilder();
 			DLNAResource dlna = null;
-			boolean xbox360 = (mediaRenderer == null ? false : mediaRenderer.isXbox360());
+			boolean xbox360 = (mediaRenderer != null && mediaRenderer.isXbox360());
 
 			// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 			if (argument.startsWith("/")) {
@@ -379,7 +379,7 @@ public class Request extends HTTPResource {
 						filterChain = dlna.addFlagFilters(filterChain);
 						inputStream = thumbInputStream.transcode(
 							imageProfile,
-							mediaRenderer != null ? mediaRenderer.isThumbnailPadding() : false,
+							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
 							filterChain
 						);
 						if (contentFeatures != null) {
@@ -423,8 +423,8 @@ public class Request extends HTTPResource {
 						appendToHeader(responseHeader, "Connection: keep-alive");
 						try {
 							InputStream imageInputStream;
-							if (dlna.getPlayer() instanceof ImagePlayer) {
-								ProcessWrapper transcodeProcess = dlna.getPlayer().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
+							if (dlna.getEngine() instanceof ImageEngine) {
+								ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(dlna, dlna.getMedia(), new OutputParams(configuration));
 								imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
 							} else {
 								imageInputStream = dlna.getInputStream();
@@ -612,7 +612,7 @@ public class Request extends HTTPResource {
 								appendToHeader(responseHeader, "ContentFeatures.DLNA.ORG: " + dlna.getDlnaContentFeatures(mediaRenderer));
 							}
 
-							if (dlna.getPlayer() == null || xbox360) {
+							if (dlna.getEngine() == null || xbox360) {
 								appendToHeader(responseHeader, "Accept-Ranges: bytes");
 							}
 
@@ -836,7 +836,7 @@ public class Request extends HTTPResource {
 							}
 							if (
 								uf.isCompatible(mediaRenderer) &&
-								(uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer)) ||
+								(uf.getEngine() == null || uf.getEngine().isEngineCompatible(mediaRenderer)) ||
 								// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 								// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 								files.get(0).isInsideTranscodeFolder()
@@ -1121,7 +1121,7 @@ public class Request extends HTTPResource {
 		}
 	}
 
-	private static void appendToHeader(List<String> responseHeader, String line) throws IOException {
+	private static void appendToHeader(List<String> responseHeader, String line) {
 		responseHeader.add(line);
 	}
 

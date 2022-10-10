@@ -41,7 +41,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	//base the logger inside org.jupnp.transport.spi.StreamServer to reflect old behavior
 	private static final Logger LOGGER = LoggerFactory.getLogger(StreamServer.class);
 
-	final protected UmsStreamServerConfiguration configuration;
+	protected final UmsStreamServerConfiguration configuration;
 	protected HttpServer server;
 
 	public JdkHttpServerStreamServer(UmsStreamServerConfiguration configuration) {
@@ -49,7 +49,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void init(InetAddress bindAddress, Router router) throws InitializationException {
+	public synchronized void init(InetAddress bindAddress, Router router) throws InitializationException {
 		try {
 			InetSocketAddress socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
 
@@ -64,7 +64,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public int getPort() {
+	public synchronized int getPort() {
 		return server.getAddress().getPort();
 	}
 
@@ -74,7 +74,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void run() {
+	public synchronized void run() {
 		LOGGER.debug("Starting StreamServer...");
 		// Starts a new thread but inherits the properties of the calling thread
 		server.start();
@@ -85,7 +85,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void stop() {
+	public synchronized void stop() {
 		LOGGER.debug("Stopping StreamServer...");
 		if (server != null) {
 			server.stop(0);

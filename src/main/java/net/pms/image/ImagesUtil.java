@@ -1254,9 +1254,9 @@ public class ImagesUtil {
 			return null;
 		}
 		if (
-			(inputByteArray != null & inputImage != null) ||
-			(inputByteArray != null & inputStream != null) ||
-			(inputImage != null & inputStream != null)
+			(inputByteArray != null && inputImage != null) ||
+			(inputByteArray != null && inputStream != null) ||
+			(inputImage != null && inputStream != null)
 		) {
 			throw new IllegalArgumentException("Use either inputByteArray, inputImage or inputStream");
 		}
@@ -2274,7 +2274,7 @@ public class ImagesUtil {
 			if (inputStream != null) {
 				try {
 					BufferedImage result = ImageIO.read(inputStream);
-					LANGUAGE_FLAGS_CACHE.put(languageCode, new WeakReference<BufferedImage>(result));
+					LANGUAGE_FLAGS_CACHE.put(languageCode, new WeakReference<>(result));
 					return result;
 				} catch (Exception e) {
 					// Catch Exception (instead of IOException) because ImageIO has the

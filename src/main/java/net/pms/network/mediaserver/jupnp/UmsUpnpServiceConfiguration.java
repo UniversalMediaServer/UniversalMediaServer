@@ -264,7 +264,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 					THREAD_POOL_SIZE,
 					10L,
 					TimeUnit.SECONDS,
-					new ArrayBlockingQueue<Runnable>(THREAD_QUEUE_SIZE),
+					new ArrayBlockingQueue<>(THREAD_QUEUE_SIZE),
 					threadFactory,
 					rejectedHandler
 			);

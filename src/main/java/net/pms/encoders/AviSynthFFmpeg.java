@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -41,7 +41,7 @@ import net.pms.util.ProcessUtil;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_FFMPEG;
+	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
 
 	// Not to be instantiated by anything but PlayerFactory
@@ -49,7 +49,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId id() {
 		return ID;
 	}
 
@@ -295,10 +295,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
 
-		if (format != null) {
-			if (format.getIdentifier() == Format.Identifier.WEB) {
-				return false;
-			}
+		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
+			return false;
 		}
 
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();

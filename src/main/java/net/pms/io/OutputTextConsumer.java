@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -17,13 +17,12 @@
  */
 package net.pms.io;
 
-import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.platform.PlatformUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
@@ -43,11 +42,7 @@ public class OutputTextConsumer extends OutputConsumer {
 		super(inputStream);
 		this.log = log;
 		if (charset == null) {
-			if (Platform.isWindows() && WinUtils.getOEMCharset() != null) {
-				charset = WinUtils.getOEMCharset();
-			} else {
-				charset = StandardCharsets.UTF_8;
-			}
+			charset = PlatformUtils.INSTANCE.getConsoleCharset();
 		}
 	}
 

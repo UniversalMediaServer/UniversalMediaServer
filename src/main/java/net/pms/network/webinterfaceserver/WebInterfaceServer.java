@@ -37,7 +37,7 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	protected final Map<String, RootFolder> roots;
 	protected final WebInterfaceServerUtil.ResourceManager resources;
 
-	public WebInterfaceServer() throws IOException {
+	protected WebInterfaceServer() throws IOException {
 		roots = new HashMap<>();
 		// Add "classpaths" for resolving web resources
 		resources = AccessController.doPrivileged((PrivilegedAction<WebInterfaceServerUtil.ResourceManager>) () -> new WebInterfaceServerUtil.ResourceManager(

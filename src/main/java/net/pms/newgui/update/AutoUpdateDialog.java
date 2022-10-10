@@ -16,7 +16,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
@@ -34,7 +34,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private static AutoUpdateDialog instance;
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdateDialog.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
+	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
 				instance = new AutoUpdateDialog(parent, autoUpdater);
@@ -109,7 +109,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			BasicSystemUtils.instance.browseURI(Build.getReleasesPageUrl());
+			PlatformUtils.INSTANCE.browseURI(Build.getReleasesPageUrl());
 		}
 
 		@Override

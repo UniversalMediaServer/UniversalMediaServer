@@ -17,8 +17,8 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.Locale;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * An {@code enum} for classifying the kind of release.
@@ -70,7 +70,7 @@ public enum VideoClassification {
 	 * @return The {@link VideoClassification} type or {@code null}.
 	 */
 	public static VideoClassification typeOf(String videoClassification) {
-		if (isBlank(videoClassification)) {
+		if (StringUtils.isBlank(videoClassification)) {
 			return null;
 		}
 		videoClassification = videoClassification.toLowerCase(Locale.ROOT);

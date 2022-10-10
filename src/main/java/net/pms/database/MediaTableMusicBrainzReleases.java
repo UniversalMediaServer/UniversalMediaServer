@@ -94,19 +94,20 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			switch (version) {
 				case 1:
 					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
-					Statement statement = connection.createStatement();
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
-					);
+					try (Statement statement = connection.createStatement()) {
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
+						);
+						statement.executeUpdate(
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
+						);
+					}
 					break;
 				case 2:
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {

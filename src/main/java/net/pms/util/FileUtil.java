@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.util;
 
 import com.ibm.icu.text.CharsetDetector;
@@ -32,13 +49,12 @@ import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.WindowsProgramPaths;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.formats.FormatFactory;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.windows.WindowsProgramPaths;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -597,8 +613,8 @@ public class FileUtil {
 	 * one of these strings, the string and everything after them will be
 	 * removed.
 	 */
-	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|\\sDUBBED.*|\\sAC3.*|\\sNTSC.*|\\sTVNZ\\s.*|\\sFP\\s.*|\\sAAC.*|\\sREPACK.*|\\s480p.*|\\s720p.*|\\sm-720p.*|\\s900p.*|\\s1080i.*|\\s1080p.*|\\s2160p.*|\\sWEB-DL.*|\\sHDTV.*|\\sDSR.*|\\sPDTV.*|\\sWS.*|\\sHQ.*|\\sDVDRip.*|\\sTVRiP.*|\\sBDRip.*|\\sBRRip.*|\\sWEBRip.*|\\sBluRay.*|\\sBlu-ray.*|\\sSUBBED.*|\\sx264.*|\\sx265.*|\\sXviD.*|\\sDual\\sAudio.*|\\sHSBS.*|\\sH-SBS.*|\\sRERiP.*|\\sDIRFIX.*|\\sREADNFO.*|\\s60FPS.*";
-	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*\\sDUBBED.*|.*\\sAC3.*|.*\\sNTSC.*|.*\\sTVNZ.*|.*\\sFP.*|.*\\sAAC.*|.*\\sREPACK.*|.*\\s480p.*|.*\\s720p.*|.*\\sm-720p.*|.*\\s900p.*|.*\\s1080i.*|.*\\s1080p.*|.*\\s2160p.*|.*\\sWEB-DL.*|.*\\sHDTV.*|.*\\sDSR.*|.*\\sPDTV.*|.*\\sWS.*|.*\\sHQ.*|.*\\sDVDRip.*|.*\\sTVRiP.*|.*\\sBDRip.*|.*\\sBRRip.*|.*\\sWEBRip.*|.*\\sBluRay.*|.*\\sBlu-ray.*|.*\\sSUBBED.*|.*\\sx264.*|.*\\sx265.*|.*\\sXviD.*|.*\\sDual\\sAudio.*|.*\\sHSBS.*|.*\\sH-SBS.*|.*\\sRERiP.*|.*\\sDIRFIX.*|.*\\sREADNFO.*|.*\\s60FPS.*";
+	private static final String COMMON_FILE_ENDS = "\\s\\[BD.*|[\\s\\(]DUBBED.*|[\\s\\(]AC3.*|[\\s\\(]NTSC.*|[\\s\\(]TVNZ\\s.*|[\\s\\(]FP\\s.*|[\\s\\(]AAC.*|[\\s\\(]REPACK.*|[\\s\\(]480p.*|[\\s\\(]720p.*|[\\s\\(]m-720p.*|[\\s\\(]900p.*|[\\s\\(]1080i.*|[\\s\\(]1080p.*|[\\s\\(]2160p.*|[\\s\\(]WEB-DL.*|[\\s\\(]HDTV.*|[\\s\\(]DSR.*|[\\s\\(]PDTV.*|[\\s\\(]WS.*|[\\s\\(]HQ.*|[\\s\\(]DVDRip.*|[\\s\\(]TVRiP.*|[\\s\\(]BDRip.*|[\\s\\(]BRRip.*|[\\s\\(]WEBRip.*|[\\s\\(]BluRay.*|[\\s\\(]Blu-ray.*|[\\s\\(]SUBBED.*|[\\s\\(]x264.*|[\\s\\(]x265.*|[\\s\\(]XviD.*|[\\s\\(]Dual\\sAudio.*|[\\s\\(]HSBS.*|[\\s\\(]H-SBS.*|[\\s\\(]RERiP.*|[\\s\\(]DIRFIX.*|[\\s\\(]READNFO.*|[\\s\\(]60FPS.*";
+	private static final String COMMON_FILE_ENDS_MATCH = ".*\\s\\[BD.*|.*[\\s\\(]DUBBED.*|.*[\\s\\(]AC3.*|.*[\\s\\(]NTSC.*|.*[\\s\\(]TVNZ.*|.*[\\s\\(]FP.*|.*[\\s\\(]AAC.*|.*[\\s\\(]REPACK.*|.*[\\s\\(]480p.*|.*[\\s\\(]720p.*|.*[\\s\\(]m-720p.*|.*[\\s\\(]900p.*|.*[\\s\\(]1080i.*|.*[\\s\\(]1080p.*|.*[\\s\\(]2160p.*|.*[\\s\\(]WEB-DL.*|.*[\\s\\(]HDTV.*|.*[\\s\\(]DSR.*|.*[\\s\\(]PDTV.*|.*[\\s\\(]WS.*|.*[\\s\\(]HQ.*|.*[\\s\\(]DVDRip.*|.*[\\s\\(]TVRiP.*|.*[\\s\\(]BDRip.*|.*[\\s\\(]BRRip.*|.*[\\s\\(]WEBRip.*|.*[\\s\\(]BluRay.*|.*[\\s\\(]Blu-ray.*|.*[\\s\\(]SUBBED.*|.*[\\s\\(]x264.*|.*[\\s\\(]x265.*|.*[\\s\\(]XviD.*|.*[\\s\\(]Dual\\sAudio.*|.*[\\s\\(]HSBS.*|.*[\\s\\(]H-SBS.*|.*[\\s\\(]RERiP.*|.*[\\s\\(]DIRFIX.*|.*[\\s\\(]READNFO.*|.*[\\s\\(]60FPS.*";
 
 	private static final String COMMON_ANIME_FILE_ENDS = "(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s[\\[\\(]\\d{3,4}p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*|[\\s_]\\(Dual\\sAudio.*|\\s\\[VOSTFR\\].*|\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*";
 	private static final String COMMON_ANIME_FILE_ENDS_MATCH = ".*\\s\\(1280x720.*|.*\\s\\(1920x1080.*|.*\\s\\(720x400.*|.*\\s[\\[\\(]\\d{3,4}p.*|.*\\s\\(BD.*|.*\\s\\[Blu-Ray.*|.*\\s\\[DVD.*|\\.DVD.*|.*\\s\\[[0-9a-zA-Z]{8}\\]$|.*\\s\\[h264.*|.*\\sR1DVD.*|.*\\s\\[BD.*|.*[\\s_]\\(Dual\\sAudio.*|.*\\s\\[VOSTFR\\].*|.*\\s\\[HD_\\d{3,4}x\\d{3,4}\\].*|.*\\s\\(\\d{1,2}bit.*";
@@ -656,7 +672,7 @@ public class FileUtil {
 		}
 
 		// With this naming convention, the filename is always lower case
-		if (filename.toLowerCase() != filename) {
+		if (!filename.toLowerCase().equals(filename)) {
 			return filename;
 		}
 
@@ -2060,7 +2076,7 @@ public class FileUtil {
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
-		if (
+		return (
 			(
 				configuration.isArchiveBrowsing() &&
 				(
@@ -2076,11 +2092,7 @@ public class FileUtil {
 			fileName.endsWith(".m3u8") ||
 			fileName.endsWith(".pls") ||
 			fileName.endsWith(".cue")
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 
 	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
@@ -2271,100 +2283,6 @@ public class FileUtil {
 		}
 
 		return fileName.substring(0, i) + suffix + fileName.substring(i);
-	}
-
-	private static Boolean isAdmin = null;
-	private static final Object IS_ADMIN_LOCK = new Object();
-
-	/**
-	 * Determines whether or not the program has admin/root permissions.
-	 *
-	 * @return true if the program has admin/root permissions
-	 */
-	public static boolean isAdmin() {
-		synchronized (IS_ADMIN_LOCK) {
-			if (isAdmin != null) {
-				return isAdmin;
-			}
-
-			if (Platform.isWindows()) {
-				Double version = BasicSystemUtils.instance.getWindowsVersion();
-				if (version == null) {
-					LOGGER.error(
-						"Could not determine Windows version from {}. Administrator privileges is undetermined.",
-						System.getProperty("os.version")
-					);
-					isAdmin = false;
-					return false;
-				}
-
-				if (version >= 5.1) {
-					try {
-						String command = "reg query \"HKU\\S-1-5-19\"";
-						Process p = Runtime.getRuntime().exec(command);
-						p.waitFor();
-						int exitValue = p.exitValue();
-
-						if (0 == exitValue) {
-							isAdmin = true;
-							return true;
-						}
-
-						isAdmin = false;
-						return false;
-					} catch (IOException | InterruptedException e) {
-						LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
-					}
-				} else {
-					isAdmin = true;
-					return true;
-				}
-			} else if (Platform.isLinux() || Platform.isMac()) {
-				try {
-					final String command = "id -Gn";
-					LOGGER.trace("isAdmin: Executing \"{}\"", command);
-					Process p = Runtime.getRuntime().exec(command);
-					InputStream is = p.getInputStream();
-					InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
-					int exitValue;
-					String exitLine;
-					try (BufferedReader br = new BufferedReader(isr)) {
-						p.waitFor();
-						exitValue = p.exitValue();
-						exitLine = br.readLine();
-					}
-
-					if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
-						LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
-						isAdmin = false;
-						return false;
-					}
-
-					LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
-					if (
-						(Platform.isLinux() && exitLine.matches(".*\\broot\\b.*")) ||
-						(Platform.isMac() && exitLine.matches(".*\\badmin\\b.*"))
-					) {
-						LOGGER.trace("isAdmin: UMS has {} privileges", Platform.isLinux() ? "root" : "admin");
-						isAdmin = true;
-						return true;
-					}
-
-					LOGGER.trace("isAdmin: UMS does not have {} privileges", Platform.isLinux() ? "root" : "admin");
-					isAdmin = false;
-					return false;
-				} catch (IOException | InterruptedException e) {
-					LOGGER.error(
-						"An error prevented UMS from checking {} permissions: {}",
-						Platform.isMac() ? "OS X" : "Linux",
-						e.getMessage()
-					);
-				}
-			}
-
-			isAdmin = false;
-			return false;
-		}
 	}
 
 	/**
@@ -2731,5 +2649,20 @@ public class FileUtil {
 			}
 		}
 		return target.toFile();
+	}
+
+	/**
+	 * Whether the file is locked. Useful for checking whether filesystem
+	 * operations are in progress.
+	 *
+	 * @param file
+	 * @return whether the file is locked
+	 */
+	public static final boolean isLocked(File file) {
+		try (RandomAccessFile srcFile = new RandomAccessFile(file, "rw")) {
+			return false;
+		} catch (Exception e) {
+			return true;
+		}
 	}
 }

@@ -26,22 +26,21 @@ import java.io.InvalidClassException;
 import java.sql.*;
 import java.util.ArrayList;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.util.FileUtil;
+import net.pms.util.UnknownFormatException;
+import net.pms.util.UriFileRetriever;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
-import net.pms.util.FileUtil;
-import net.pms.util.UnknownFormatException;
-import net.pms.util.UriFileRetriever;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -521,7 +520,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static DLNAMediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
-		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
+		List<String> externalFileReferencesToRemove = new ArrayList<>();
 		try {
 			try (
 				PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
@@ -603,7 +602,7 @@ public class MediaTableFiles extends MediaTable {
 						try (ResultSet elements = subs.executeQuery()) {
 							while (elements.next()) {
 								String fileName = elements.getString("EXTERNALFILE");
-								File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
+								File externalFile = StringUtils.isNotBlank(fileName) ? new File(fileName) : null;
 								if (externalFile != null && !externalFile.exists()) {
 									externalFileReferencesToRemove.add(externalFile.getPath());
 									continue;
@@ -779,30 +778,30 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateInt("WIDTH", media.getWidth());
 							rs.updateInt("HEIGHT", media.getHeight());
 							rs.updateLong("MEDIA_SIZE", media.getSize());
-							rs.updateString("CODECV", left(media.getCodecV(), SIZE_CODECV));
-							rs.updateString("FRAMERATE", left(media.getFrameRate(), SIZE_FRAMERATE));
-							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
+							rs.updateString("CODECV", StringUtils.left(media.getCodecV(), SIZE_CODECV));
+							rs.updateString("FRAMERATE", StringUtils.left(media.getFrameRate(), SIZE_FRAMERATE));
+							rs.updateString("ASPECTRATIODVD", StringUtils.left(media.getAspectRatioDvdIso(), SIZE_MAX));
+							rs.updateString("ASPECTRATIOCONTAINER", StringUtils.left(media.getAspectRatioContainer(), SIZE_MAX));
+							rs.updateString("ASPECTRATIOVIDEOTRACK", StringUtils.left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
-							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVCLEVEL));
+							rs.updateString("AVCLEVEL", StringUtils.left(media.getAvcLevel(), SIZE_AVCLEVEL));
 							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
 							if (media.getImageInfo() != null) {
 								rs.updateObject("IMAGEINFO", media.getImageInfo());
 							} else {
 								rs.updateNull("IMAGEINFO");
 							}
-							rs.updateString("CONTAINER", left(media.getContainer(), SIZE_CONTAINER));
-							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
-							rs.updateString("STEREOSCOPY", left(media.getStereoscopy(), SIZE_MAX));
-							rs.updateString("MATRIXCOEFFICIENTS", left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-							rs.updateString("TITLECONTAINER", left(media.getFileTitleFromMetadata(), SIZE_MAX));
-							rs.updateString("TITLEVIDEOTRACK", left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+							rs.updateString("CONTAINER", StringUtils.left(media.getContainer(), SIZE_CONTAINER));
+							rs.updateString("MUXINGMODE", StringUtils.left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+							rs.updateString("FRAMERATEMODE", StringUtils.left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
+							rs.updateString("STEREOSCOPY", StringUtils.left(media.getStereoscopy(), SIZE_MAX));
+							rs.updateString("MATRIXCOEFFICIENTS", StringUtils.left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+							rs.updateString("TITLECONTAINER", StringUtils.left(media.getFileTitleFromMetadata(), SIZE_MAX));
+							rs.updateString("TITLEVIDEOTRACK", StringUtils.left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
-							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), SIZE_MAX));
+							rs.updateString("PIXELASPECTRATIO", StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
 						}
@@ -849,29 +848,29 @@ public class MediaTableFiles extends MediaTable {
 						ps.setInt(++databaseColumnIterator, media.getWidth());
 						ps.setInt(++databaseColumnIterator, media.getHeight());
 						ps.setLong(++databaseColumnIterator, media.getSize());
-						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getCodecV(), SIZE_CODECV));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getFrameRate(), SIZE_FRAMERATE));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getAspectRatioDvdIso(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getAspectRatioContainer(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
-						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVCLEVEL));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getAvcLevel(), SIZE_AVCLEVEL));
 						if (media.getImageInfo() != null) {
 							ps.setObject(++databaseColumnIterator, media.getImageInfo());
 						} else {
 							ps.setNull(++databaseColumnIterator, Types.OTHER);
 						}
-						ps.setString(++databaseColumnIterator, left(media.getContainer(), SIZE_CONTAINER));
-						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
-						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getContainer(), SIZE_CONTAINER));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getStereoscopy(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getFileTitleFromMetadata(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
 						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
 						ps.setInt(++databaseColumnIterator, media.getImageCount());
 						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
-						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), SIZE_MAX));
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
 						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
 						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
 					} else {
@@ -1086,7 +1085,7 @@ public class MediaTableFiles extends MediaTable {
 			) {
 				while (rs.next()) {
 					String str = rs.getString(1);
-					if (isBlank(str)) {
+					if (StringUtils.isBlank(str)) {
 						set.add(NONAME);
 					} else {
 						set.add(str);
@@ -1102,9 +1101,6 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	public static synchronized void cleanup(final Connection connection) {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
 		try {
 			/*
 			 * Cleanup of FILES table
@@ -1112,58 +1108,55 @@ public class MediaTableFiles extends MediaTable {
 			 * Removes entries that are not on the hard drive anymore, and
 			 * ones that are no longer shared.
 			 */
-			ps = connection.prepareStatement("SELECT COUNT(*) FROM " + TABLE_NAME);
-			rs = ps.executeQuery();
 			int dbCount = 0;
-
-			if (rs.next()) {
-				dbCount = rs.getInt(1);
+			try (
+				PreparedStatement ps = connection.prepareStatement("SELECT COUNT(*) FROM " + TABLE_NAME);
+				ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					dbCount = rs.getInt(1);
+				}
 			}
-
-			rs.close();
-			ps.close();
-			PMS.get().getFrame().setStatusLine(Messages.getString("CleaningUpDatabase") + " 0%");
-			int i = 0;
-			int oldpercent = 0;
+			GuiManager.setStatusLine(Messages.getString("CleaningUpDatabase") + " 0%");
 
 			if (dbCount > 0) {
-				ps = connection.prepareStatement("SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_MODIFIED + ", " + TABLE_COL_ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-				rs = ps.executeQuery();
+				try (
+					PreparedStatement ps = connection.prepareStatement("SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_MODIFIED + ", " + TABLE_COL_ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+					ResultSet rs = ps.executeQuery()) {
+					List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
+					boolean isFileStillShared = false;
+					int oldpercent = 0;
+					int i = 0;
+					while (rs.next()) {
+						String filename = rs.getString("FILENAME");
+						long modified = rs.getTimestamp("MODIFIED").getTime();
+						File file = new File(filename);
+						if (!file.exists() || file.lastModified() != modified) {
+							LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
+							rs.deleteRow();
+						} else {
+							// the file exists on the hard drive, but now check if we are still sharing it
+							for (Path folder : sharedFolders) {
+								if (filename.contains(folder.toString())) {
+									isFileStillShared = true;
+									break;
+								}
+							}
 
-				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
-				boolean isFileStillShared = false;
-
-				while (rs.next()) {
-					String filename = rs.getString("FILENAME");
-					long modified = rs.getTimestamp("MODIFIED").getTime();
-					File file = new File(filename);
-					if (!file.exists() || file.lastModified() != modified) {
-						LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
-						rs.deleteRow();
-					} else {
-						// the file exists on the hard drive, but now check if we are still sharing it
-						for (Path folder : sharedFolders) {
-							if (filename.contains(folder.toString())) {
-								isFileStillShared = true;
-								break;
+							if (!isFileStillShared) {
+								LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+								rs.deleteRow();
 							}
 						}
 
-						if (!isFileStillShared) {
-							LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
-							rs.deleteRow();
+						i++;
+						int newpercent = i * 100 / dbCount;
+						if (newpercent > oldpercent) {
+							GuiManager.setStatusLine(Messages.getString("CleaningUpDatabase") + newpercent + "%");
+							oldpercent = newpercent;
 						}
 					}
-
-					i++;
-					int newpercent = i * 100 / dbCount;
-					if (newpercent > oldpercent) {
-						PMS.get().getFrame().setStatusLine(Messages.getString("CleaningUpDatabase") + newpercent + "%");
-						oldpercent = newpercent;
-					}
 				}
-
-				PMS.get().getFrame().setStatusLine(null);
+				GuiManager.setStatusLine(null);
 			}
 
 			/*
@@ -1171,53 +1164,58 @@ public class MediaTableFiles extends MediaTable {
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement("DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
-					"LIMIT 1" +
-				") AND NOT EXISTS (" +
-					"SELECT " + MediaTableTVSeries.TABLE_COL_ID + " FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-					"WHERE " + MediaTableTVSeries.TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
-					"LIMIT 1" +
-				");"
-			);
-			ps.execute();
+			try (
+				PreparedStatement ps = connection.prepareStatement(
+					"DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
+					"WHERE NOT EXISTS (" +
+						"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
+						"WHERE " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
+						"LIMIT 1" +
+					") AND NOT EXISTS (" +
+						"SELECT " + MediaTableTVSeries.TABLE_COL_ID + " FROM " + MediaTableTVSeries.TABLE_NAME + " " +
+						"WHERE " + MediaTableTVSeries.TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " " +
+						"LIMIT 1" +
+					");"
+			)) {
+				ps.execute();
+			}
 
 			/*
 			 * Cleanup of FILES_STATUS table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement("DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME +
-				");"
-			);
-			ps.execute();
+			try (
+				PreparedStatement ps = connection.prepareStatement(
+					"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
+					"WHERE NOT EXISTS (" +
+						"SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " " +
+						"WHERE " + TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME +
+					");"
+			)) {
+				ps.execute();
+			}
 
 			/*
 			 * Cleanup of TV_SERIES table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " FROM " + MediaTableVideoMetadata.TABLE_NAME + " " +
-					"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " = " + MediaTableTVSeries.TABLE_COL_SIMPLIFIEDTITLE + " " +
-					"LIMIT 1" +
-				");"
-			);
-			ps.execute();
-
+			try (
+				PreparedStatement ps = connection.prepareStatement(
+					"DELETE FROM " + MediaTableTVSeries.TABLE_NAME + " " +
+					"WHERE NOT EXISTS (" +
+						"SELECT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " FROM " + MediaTableVideoMetadata.TABLE_NAME + " " +
+						"WHERE " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + " = " + MediaTableTVSeries.TABLE_COL_SIMPLIFIEDTITLE + " " +
+						"LIMIT 1" +
+					");"
+			)) {
+				ps.execute();
+			}
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
-			close(rs);
-			close(ps);
-			PMS.get().getFrame().setStatusLine(null);
+			GuiManager.setStatusLine(null);
 		}
 	}
 

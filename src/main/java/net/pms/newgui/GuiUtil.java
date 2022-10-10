@@ -2,7 +2,6 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
@@ -14,6 +13,12 @@ import org.slf4j.LoggerFactory;
 
 public final class GuiUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuiUtil.class);
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private GuiUtil() {
+	}
 
 	/**
 	 * Check swing availability.
@@ -32,22 +37,6 @@ public final class GuiUtil {
 	}
 
 	/**
-	 * Show error message with swing
-	 * @param message the message to display
-	 * @param title the title string for the dialog
-	 */
-	public static void showErrorMessage(Object message, String title) {
-		if (!PMS.isHeadless() && PMS.get().getFrame() != null) {
-			JOptionPane.showMessageDialog(
-				(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-				message,
-				title,
-				JOptionPane.ERROR_MESSAGE
-			);
-		}
-	}
-
-	/**
 	 * Brings up a dialog with a yes/no choice
 	 * @param message the message to display
 	 * @param title the title string for the dialog
@@ -55,7 +44,7 @@ public final class GuiUtil {
 	 * @return an boolean indicating the option chosen by the user
 	 */
 	public static boolean askYesNoMessage(Object message, String title, boolean defaultValue) {
-		if (!PMS.isHeadless() && PMS.get().getFrame() != null) {
+		if (!PMS.isHeadless()) {
 			Object[] yesNoOptions = {
 				Messages.getString("Yes"),
 				Messages.getString("No")
@@ -246,12 +235,7 @@ public final class GuiUtil {
 				g.translate(-dir * w, 0);
 				super.paintComponent(g);
 				if (timer == null) {
-					timer = new Timer(interval, new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							repaint();
-						}
-					});
+					timer = new Timer(interval, (ActionEvent e) -> repaint());
 					timer.start();
 				}
 			}
@@ -278,19 +262,17 @@ public final class GuiUtil {
 		}
 
 		private void scrollTheText() {
-			new Timer(200, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
-					setText(text);
-				}
+			new Timer(200, (ActionEvent e) -> {
+				text = new StringBuffer(text.substring(1)).append(text.substring(0, 1)).toString();
+				setText(text);
 			}).start();
 		}
 	}
 
 	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
 	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
-		Color fg, bg;
+		Color fg;
+		Color bg;
 
 		static class Segment {
 			String label;
@@ -393,7 +375,7 @@ public final class GuiUtil {
 				}
 			}
 			// Draw the main label, if any
-			if (progressBar.isStringPainted() && mainLabel.size() > 0) {
+			if (progressBar.isStringPainted() && !mainLabel.isEmpty()) {
 				// Find the active label for this percentage
 				Segment active = null;
 				int pct = total * 100 / max;
@@ -642,8 +624,8 @@ public final class GuiUtil {
 	public static void enableContainer(Container c, boolean enable) {
 		for (Component component : c.getComponents()) {
 			component.setEnabled(enable);
-			if (component instanceof Container) {
-				enableContainer((Container) component, enable);
+			if (component instanceof Container container) {
+				enableContainer(container, enable);
 			}
 		}
 	}

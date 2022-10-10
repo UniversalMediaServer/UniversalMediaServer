@@ -1,5 +1,57 @@
 # Changelog
 
+## [11.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.5.0...11.6.0) (2022-10-05)
+
+### General:
+- Added support for reparsing modified files
+- Improved filename prettifying/matching
+- Improved performance
+- Fixed failed parsing of files being moved/copied
+- Fixed restart program reliability
+- Fixed security hole
+- Stop extracting metadata or doing API lookups for Live Photos in iPhone backups on macOS
+- Updated all tests to junit 5
+
+### Translation updates via Crowdin
+- Spanish (97%) (thanks, Sergio Varela!)
+
+### Dependencies
+- Bump commons-text from 1.9 to 1.10.0
+- Bump junit5.version from 5.9.0 to 5.9.1
+- Bump logback-version from 1.4.1 to 1.4.3
+- Update com.sun.xml.bind-version to v4.0.1
+- Update dependency com.puppycrawl.tools:checkstyle to v10.3.4
+- Update dependency org.slf4j:slf4j-api to v2.0.3
+
+## [11.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.1...11.5.0) (2022-09-17)
+
+### General:
+- Improved video quality on Wi-Fi networks
+- Persist max memory setting in Windows installer
+- Fixed web player status communication
+- Fixed resource leaks
+
+### Renderers:
+- Added support for Caliber radio devices (thanks, Bart Jourquin!)
+- Allow seeking while transcoding on Roku devices
+- Fixed sound cutting out on Panasonic TVs when transcoding
+
+### Translation updates via Crowdin
+- German (100%) (thanks, pipin!)
+- Japanese (100%) (thanks, KEINOS!)
+- Persian (100%) (thanks, Sadra Imam!)
+- Spanish (97%) (thanks, Luis Alberto García Díaz!)
+- Ukrainian (31%) (thanks, Alexandr Opara!)
+
+### Dependencies
+- Updated checkstyle to v10.3.3
+- Bump FFmpeg to latest
+- Bump jackson-databind from 2.13.3 to 2.13.4
+- Bump logback-version from 1.2.11 to 1.4.1
+- Bump maven-pmd-plugin from 3.18.0 to 3.19.0
+- Bump slf4j-api from 1.7.36 to 2.0.1
+- Bump spotbugs-maven-plugin from 4.7.1.1 to 4.7.2.0
+
 ### [11.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.0...11.4.1) (2022-08-26)
 
 ### General:
@@ -28,7 +80,7 @@
 - Updated maven-site-plugin to v3.12.1
 - Updated twelvemonkeys-imageio-version to v3.8.3
 
-### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
+## [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
 
 ### General:
 - Enabled UPnP searching, with the ability to disable for problematic renderers
@@ -64,7 +116,7 @@
 - Updated oshi-core to 6.2.2
 - Updated spotbugs-maven-plugin to 4.7.1.1
 
-### [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
+## [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
 
 ### General
 - Sign and notarize macOS releases, for easier installation
@@ -108,7 +160,7 @@
 - Updated moment.js to v2.29.4
 - Updated spotbugs-maven-plugin to v4.7.1.0
 
-### [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
+## [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
 
 ### General
 - Added a release for Apple ARM (Apple Silicon, M1/M2) processors, for 3x faster transcoding
@@ -130,7 +182,7 @@
 - Update oshi to v6.2.1
 - Update pako to v2
 
-### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
+#### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
 
 ### General
 - Fixed failed database update for some users (#3051) (thanks, vrtlspd!)
@@ -144,7 +196,7 @@
 - Update dependency maven-enforcer-plugin to v3.1.0
 
 
-### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0) (2022-06-10)
+## [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0) (2022-06-10)
 ### General
 - Improved caching of web interface files
 - Added getServerPlaylists to playlist API

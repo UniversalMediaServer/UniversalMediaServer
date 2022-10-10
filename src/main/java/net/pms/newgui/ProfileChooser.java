@@ -6,6 +6,13 @@ import javax.swing.filechooser.FileFilter;
 import net.pms.Messages;
 
 public class ProfileChooser {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ProfileChooser() {
+	}
+
 	private static class ProfileChooserFileFilter extends FileFilter {
 		// XXX: this is more restrictive than the environment variable/property (which accept any filename)
 		// but should simplify things in the UI

@@ -17,19 +17,18 @@
  */
 package net.pms.newgui;
 
-import net.pms.gui.ViewLevel;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class ViewLevelTest {
 
-	@Before
+	@BeforeEach
 	public void setUp() throws ConfigurationException {
 		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -42,60 +41,60 @@ public class ViewLevelTest {
 	@Test
 	public void testViewLevel() {
 		// Test level values
-		assertEquals("ViewLevelNormalInt", ViewLevel.NORMAL_INT, 0);
-		assertEquals("ViewLevelNormalInteger", ViewLevel.NORMAL_INTEGER, Integer.valueOf(0));
-		assertEquals("ViewLevelAdvancedInt", ViewLevel.ADVANCED_INT, 200);
-		assertEquals("ViewLevelAdvancedInteger", ViewLevel.ADVANCED_INTEGER, Integer.valueOf(200));
-		assertEquals("ViewLevelExpertInt", ViewLevel.EXPERT_INT, 500);
-		assertEquals("ViewLevelExpertInteger", ViewLevel.EXPERT_INTEGER, Integer.valueOf(500));
-		assertEquals("ViewLevelDeveloperInt", ViewLevel.DEVELOPER_INT, 1000);
-		assertEquals("ViewLevelDeveloperInteger", ViewLevel.DEVELOPER_INTEGER, Integer.valueOf(1000));
-		assertEquals("ViewLevelUnknownInt", ViewLevel.UNKNOWN_INT, Integer.MIN_VALUE);
-		assertEquals("ViewLevelUnknownInteger", ViewLevel.UNKNOWN_INTEGER, Integer.valueOf(Integer.MIN_VALUE));
+		assertEquals(ViewLevel.NORMAL_INT, 0, "ViewLevelNormalInt");
+		assertEquals(ViewLevel.NORMAL_INTEGER, Integer.valueOf(0), "ViewLevelNormalInteger");
+		assertEquals(ViewLevel.ADVANCED_INT, 200, "ViewLevelAdvancedInt");
+		assertEquals(ViewLevel.ADVANCED_INTEGER, Integer.valueOf(200), "ViewLevelAdvancedInteger");
+		assertEquals(ViewLevel.EXPERT_INT, 500, "ViewLevelExpertInt");
+		assertEquals(ViewLevel.EXPERT_INTEGER, Integer.valueOf(500), "ViewLevelExpertInteger");
+		assertEquals(ViewLevel.DEVELOPER_INT, 1000, "ViewLevelDeveloperInt");
+		assertEquals(ViewLevel.DEVELOPER_INTEGER, Integer.valueOf(1000), "ViewLevelDeveloperInteger");
+		assertEquals(ViewLevel.UNKNOWN_INT, Integer.MIN_VALUE, "ViewLevelUnknownInt");
+		assertEquals(ViewLevel.UNKNOWN_INTEGER, Integer.valueOf(Integer.MIN_VALUE), "ViewLevelUnknownInteger");
 
 		// Test instance creation
-		assertEquals("ViewLevelNormal", ViewLevel.NORMAL.toInt(), ViewLevel.NORMAL_INT);
-		assertEquals("ViewLevelAdvanced", ViewLevel.ADVANCED.toInt(), ViewLevel.ADVANCED_INT);
-		assertEquals("ViewLevelExpert", ViewLevel.EXPERT.toInt(), ViewLevel.EXPERT_INT);
-		assertEquals("ViewLevelDeveloper", ViewLevel.DEVELOPER.toInt(), ViewLevel.DEVELOPER_INT);
-		assertEquals("ViewLevelUnknown", ViewLevel.UNKNOWN.toInt(), ViewLevel.UNKNOWN_INT);
+		assertEquals(ViewLevel.NORMAL.toInt(), ViewLevel.NORMAL_INT, "ViewLevelNormal");
+		assertEquals(ViewLevel.ADVANCED.toInt(), ViewLevel.ADVANCED_INT, "ViewLevelAdvanced");
+		assertEquals(ViewLevel.EXPERT.toInt(), ViewLevel.EXPERT_INT, "ViewLevelExpert");
+		assertEquals(ViewLevel.DEVELOPER.toInt(), ViewLevel.DEVELOPER_INT, "ViewLevelDeveloper");
+		assertEquals(ViewLevel.UNKNOWN.toInt(), ViewLevel.UNKNOWN_INT, "ViewLevelUnknown");
 
 		// Test Integer mapping
-		assertEquals("ViewLevelNormalIntegerMapping", ViewLevel.NORMAL.toInteger(), Integer.valueOf(ViewLevel.NORMAL_INT));
-		assertEquals("ViewLevelAdvancedIntegerMapping", ViewLevel.ADVANCED.toInteger(), Integer.valueOf(ViewLevel.ADVANCED_INT));
-		assertEquals("ViewLevelExpertIntegerMapping", ViewLevel.EXPERT.toInteger(), Integer.valueOf(ViewLevel.EXPERT_INT));
-		assertEquals("ViewLevelDeveloperIntegerMapping", ViewLevel.DEVELOPER.toInteger(), Integer.valueOf(ViewLevel.DEVELOPER_INT));
-		assertEquals("ViewLevelUnknownIntegerMapping", ViewLevel.UNKNOWN.toInteger(), Integer.valueOf(ViewLevel.UNKNOWN_INT));
+		assertEquals(ViewLevel.NORMAL.toInteger(), Integer.valueOf(ViewLevel.NORMAL_INT), "ViewLevelNormalIntegerMapping");
+		assertEquals(ViewLevel.ADVANCED.toInteger(), Integer.valueOf(ViewLevel.ADVANCED_INT), "ViewLevelAdvancedIntegerMapping");
+		assertEquals(ViewLevel.EXPERT.toInteger(), Integer.valueOf(ViewLevel.EXPERT_INT), "ViewLevelExpertIntegerMapping");
+		assertEquals(ViewLevel.DEVELOPER.toInteger(), Integer.valueOf(ViewLevel.DEVELOPER_INT), "ViewLevelDeveloperIntegerMapping");
+		assertEquals(ViewLevel.UNKNOWN.toInteger(), Integer.valueOf(ViewLevel.UNKNOWN_INT), "ViewLevelUnknownIntegerMapping");
 
 		// Test String values
-		assertEquals("ViewLevelNormalString", ViewLevel.NORMAL.toString(), "Normal");
-		assertEquals("ViewLevelAdvancedString", ViewLevel.ADVANCED.toString(), "Advanced");
-		assertEquals("ViewLevelExpertString", ViewLevel.EXPERT.toString(), "Expert");
-		assertEquals("ViewLevelDeveloperString", ViewLevel.DEVELOPER.toString(), "Developer");
-		assertEquals("ViewLevelUnknownString", ViewLevel.UNKNOWN.toString(), "Unknown");
+		assertEquals(ViewLevel.NORMAL.toString(), "Normal", "ViewLevelNormalString");
+		assertEquals(ViewLevel.ADVANCED.toString(), "Advanced", "ViewLevelAdvancedString");
+		assertEquals(ViewLevel.EXPERT.toString(), "Expert", "ViewLevelExpertString");
+		assertEquals(ViewLevel.DEVELOPER.toString(), "Developer", "ViewLevelDeveloperString");
+		assertEquals(ViewLevel.UNKNOWN.toString(), "Unknown", "ViewLevelUnknownString");
 
 		// Test toViewLevel(int val)
-		assertEquals("IntToViewLevelNormal", ViewLevel.toViewLevel(0), ViewLevel.NORMAL);
-		assertEquals("IntToViewLevelAdvanced", ViewLevel.toViewLevel(200), ViewLevel.ADVANCED);
-		assertEquals("IntToViewLevelExpert", ViewLevel.toViewLevel(500), ViewLevel.EXPERT);
-		assertEquals("IntToViewLevelDeveloper", ViewLevel.toViewLevel(1000), ViewLevel.DEVELOPER);
-		assertEquals("IntToViewLevelUnknown", ViewLevel.toViewLevel(Integer.MIN_VALUE), ViewLevel.UNKNOWN);
-		assertEquals("IllegalIntToViewLevel", ViewLevel.toViewLevel(100), ViewLevel.UNKNOWN);
-		assertEquals("IllegalIntToViewLevel", ViewLevel.toViewLevel(-400), ViewLevel.UNKNOWN);
-		assertEquals("IllegalIntToViewLevel", ViewLevel.toViewLevel(Integer.MAX_VALUE), ViewLevel.UNKNOWN);
+		assertEquals(ViewLevel.toViewLevel(0), ViewLevel.NORMAL, "IntToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel(200), ViewLevel.ADVANCED, "IntToViewLevelAdvanced");
+		assertEquals(ViewLevel.toViewLevel(500), ViewLevel.EXPERT, "IntToViewLevelExpert");
+		assertEquals(ViewLevel.toViewLevel(1000), ViewLevel.DEVELOPER, "IntToViewLevelDeveloper");
+		assertEquals(ViewLevel.toViewLevel(Integer.MIN_VALUE), ViewLevel.UNKNOWN, "IntToViewLevelUnknown");
+		assertEquals(ViewLevel.toViewLevel(100), ViewLevel.UNKNOWN, "IllegalIntToViewLevel");
+		assertEquals(ViewLevel.toViewLevel(-400), ViewLevel.UNKNOWN, "IllegalIntToViewLevel");
+		assertEquals(ViewLevel.toViewLevel(Integer.MAX_VALUE), ViewLevel.UNKNOWN, "IllegalIntToViewLevel");
 
 		// Test toViewLevel(String sArg)
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("Normal"), ViewLevel.NORMAL);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("nORMAL"), ViewLevel.NORMAL);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("Advanced"), ViewLevel.ADVANCED);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("aDVANCED"), ViewLevel.ADVANCED);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("Expert"), ViewLevel.EXPERT);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("eXPERT"), ViewLevel.EXPERT);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("Developer"), ViewLevel.DEVELOPER);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("dEVELOPER"), ViewLevel.DEVELOPER);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("Unknown"), ViewLevel.UNKNOWN);
-		assertEquals("StringToViewLevelNormal", ViewLevel.toViewLevel("uNKNOWN"), ViewLevel.UNKNOWN);
-		assertEquals("IllegalStringToViewLevel", ViewLevel.toViewLevel("Foo"), ViewLevel.UNKNOWN);
-		assertEquals("IllegalStringToViewLevel", ViewLevel.toViewLevel("BAR"), ViewLevel.UNKNOWN);
+		assertEquals(ViewLevel.toViewLevel("Normal"), ViewLevel.NORMAL, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("nORMAL"), ViewLevel.NORMAL, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("Advanced"), ViewLevel.ADVANCED, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("aDVANCED"), ViewLevel.ADVANCED, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("Expert"), ViewLevel.EXPERT, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("eXPERT"), ViewLevel.EXPERT, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("Developer"), ViewLevel.DEVELOPER, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("dEVELOPER"), ViewLevel.DEVELOPER, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("Unknown"), ViewLevel.UNKNOWN, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("uNKNOWN"), ViewLevel.UNKNOWN, "StringToViewLevelNormal");
+		assertEquals(ViewLevel.toViewLevel("Foo"), ViewLevel.UNKNOWN, "IllegalStringToViewLevel");
+		assertEquals(ViewLevel.toViewLevel("BAR"), ViewLevel.UNKNOWN, "IllegalStringToViewLevel");
 	}
 }

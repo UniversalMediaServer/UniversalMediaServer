@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License only.
@@ -15,34 +15,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import com.sun.jna.Platform;
+import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -51,47 +36,30 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
-
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.CodeEnter;
+import net.pms.dlna.DynamicPlaylist;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.LibraryScanner;
 import net.pms.dlna.Playlist;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.YoutubeDl;
-import net.pms.gui.DummyFrame;
 import net.pms.gui.EConnectionState;
-import net.pms.gui.IFrame;
-import net.pms.io.BasicSystemUtils;
-import net.pms.io.OutputParams;
-import net.pms.io.ThreadedProcessWrapper;
-import net.pms.io.WinUtils;
+import net.pms.gui.GuiManager;
+import net.pms.io.*;
 import net.pms.logging.CacheLogger;
-import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
@@ -104,25 +72,20 @@ import net.pms.newgui.ProfileChooser;
 import net.pms.newgui.Splash;
 import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
+import net.pms.platform.PlatformUtils;
+import net.pms.platform.windows.WindowsNamedPipe;
+import net.pms.platform.windows.WindowsUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
-import net.pms.util.APIUtils;
-import net.pms.util.CodeDb;
-import net.pms.util.CredMgr;
-import net.pms.util.FileUtil;
-import net.pms.util.FileWatcher;
-import net.pms.util.Languages;
-import net.pms.util.LogSystemInformationMode;
-import net.pms.util.ProcessUtil;
-import net.pms.util.PropertiesUtil;
-import net.pms.util.SystemErrWrapper;
-import net.pms.util.SystemInformation;
-import net.pms.util.TaskRunner;
-import net.pms.util.TempFileMgr;
-import net.pms.util.UMSUtils;
-import net.pms.util.UmsKeysDb;
-import net.pms.util.WindowsUtil;
-import net.pms.util.jna.macos.iokit.IOKitUtils;
+import net.pms.util.*;
+import net.pms.platform.mac.iokit.IOKitUtils;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
@@ -140,8 +103,6 @@ public class PMS {
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	private boolean ready = false;
-
-	private static FileWatcher fileWatcher;
 
 	private GlobalIdRepo globalRepo;
 
@@ -165,14 +126,6 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	/**
-	 * Returns a pointer to the UMS GUI's main window.
-	 * @return {@link net.pms.gui.IFrame} Main UMS window.
-	 */
-	public IFrame getFrame() {
-		return frame;
-	}
-
-	/**
 	 * A lock to prevent heavy IO tasks from causing browsing to be less
 	 * responsive.
 	 *
@@ -182,7 +135,7 @@ public class PMS {
 	 * realtime task to finish, and then immediately unlock, to prevent
 	 * blocking the next realtime task from starting.
 	 */
-	public final static Lock REALTIME_LOCK = new ReentrantLock();
+	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Returns the root folder for a given renderer. There could be the case
@@ -248,15 +201,10 @@ public class PMS {
 			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
 				foundRenderers.add(renderer);
-				frame.addRenderer(renderer);
-				frame.setConnectionState(EConnectionState.CONNECTED);
+				GuiManager.addRenderer(renderer);
+				GuiManager.setConnectionState(EConnectionState.CONNECTED);
 			}
 		}
-	}
-
-	public void updateRenderer(RendererConfiguration renderer) {
-		LOGGER.debug("Updating status button for {}", renderer.getRendererName());
-		frame.updateRenderer(renderer);
 	}
 
 	/**
@@ -279,11 +227,6 @@ public class PMS {
 
 	private PMS() {
 	}
-
-	/**
-	 * {@link net.pms.gui.IFrame} object that represents the UMS GUI.
-	 */
-	private IFrame frame;
 
 	/**
 	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
@@ -502,8 +445,6 @@ public class PMS {
 			}
 		}
 
-		fileWatcher = new FileWatcher();
-
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
 
@@ -532,7 +473,7 @@ public class PMS {
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
 			 */
-			if (!PlayerFactory.isPlayerActive(YoutubeDl.ID)) {
+			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
@@ -554,11 +495,10 @@ public class PMS {
 		}
 
 		if (!isHeadless()) {
-			frame = new LooksFrame(autoUpdater, configuration, windowConfiguration);
+			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
-			frame = new DummyFrame();
 		}
 
 		// Close splash screen
@@ -566,37 +506,18 @@ public class PMS {
 			splash.dispose();
 		}
 
-		/*
-		 * we're here:
-		 *
-		 *     main() -> createInstance() -> init()
-		 *
-		 * which means we haven't created the instance returned by get()
-		 * yet, so the frame appender can't access the frame in the
-		 * standard way i.e. PMS.get().getFrame(). we solve it by
-		 * inverting control ("don't call us; we'll call you") i.e.
-		 * we notify the appender when the frame is ready rather than
-		 * e.g. making getFrame() static and requiring the frame
-		 * appender to poll it.
-		 *
-		 * XXX an event bus (e.g. MBassador or Guava EventBus
-		 * (if they fix the memory-leak issue)) notification
-		 * would be cleaner and could support other lifecycle
-		 * notifications (see above).
-		 */
-		FrameAppender.setFrame(frame);
-
 		configuration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
 				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					frame.setReloadable(true);
+					GuiManager.setReloadable(true);
 				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
 				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersRoot();
 				}
+				GuiManager.setConfigurationChanged(event.getPropertyName());
 			}
 		});
 
@@ -649,16 +570,16 @@ public class PMS {
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
-		frame.setConnectionState(EConnectionState.SEARCHING);
+		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
 		// Check the existence of VSFilter / DirectVobSub
-		if (BasicSystemUtils.instance.isAviSynthAvailable() && BasicSystemUtils.instance.getAvsPluginsDir() != null) {
-			LOGGER.debug("AviSynth plugins directory: " + BasicSystemUtils.instance.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterDLL = new File(BasicSystemUtils.instance.getAvsPluginsDir(), "VSFilter.dll");
+		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
+			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(PlatformUtils.INSTANCE.getAvsPluginsDir(), "VSFilter.dll");
 			if (vsFilterDLL.exists()) {
 				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
 			} else {
-				File vsFilterDLL2 = new File(BasicSystemUtils.instance.getKLiteFiltersDir(), "vsfilter.dll");
+				File vsFilterDLL2 = new File(PlatformUtils.INSTANCE.getKLiteFiltersDir(), "vsfilter.dll");
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
@@ -668,7 +589,7 @@ public class PMS {
 		}
 
 		// Check if Kerio is installed
-		if (BasicSystemUtils.instance.isKerioFirewall()) {
+		if (PlatformUtils.INSTANCE.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
@@ -680,11 +601,11 @@ public class PMS {
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
 
-		// Initialize a player factory to register all players
-		PlayerFactory.initialize();
+		// Initialize a engine factory to register all transcoding engines
+		EngineFactory.initialize();
 
-		// Any plugin-defined players are now registered, create the gui view.
-		frame.addEngines();
+		// Any plugin-defined engines are now registered, create the gui view.
+		GuiManager.addEngines();
 
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		MediaServer.start();
@@ -695,15 +616,15 @@ public class PMS {
 				UMSUtils.sleep(7000);
 
 				if (foundRenderers.isEmpty()) {
-					frame.setConnectionState(EConnectionState.DISCONNECTED);
+					GuiManager.setConnectionState(EConnectionState.DISCONNECTED);
 				} else {
-					frame.setConnectionState(EConnectionState.CONNECTED);
+					GuiManager.setConnectionState(EConnectionState.CONNECTED);
 				}
 			}
 		}.start();
 
 		if (webInterfaceServer != null && webInterfaceServer.getServer() != null) {
-			frame.enableWebUiButton();
+			GuiManager.enableWebUiButton();
 			LOGGER.info("Web interface is available at: " + webInterfaceServer.getUrl());
 		}
 
@@ -721,69 +642,13 @@ public class PMS {
 			APIUtils.setApiImageBaseURL();
 		}
 
-		frame.serverReady();
+		GuiManager.serverReady();
 		ready = true;
 
 		Runtime.getRuntime().addShutdownHook(new Thread("UMS Shutdown") {
 			@Override
 			public void run() {
-				try {
-					//Stop network scanner
-					NetworkConfiguration.stop();
-
-					LOGGER.debug("Shutting down the media server");
-					MediaServer.stop();
-					Thread.sleep(500);
-
-					LOGGER.debug("Shutting down all active processes");
-
-					if (Services.processManager() != null) {
-						Services.processManager().stop();
-					}
-					for (Process p : currentProcesses) {
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException ise) {
-							LOGGER.trace("Forcing shutdown of process: " + p);
-							ProcessUtil.destroy(p);
-						}
-					}
-				} catch (InterruptedException e) {
-					LOGGER.debug("Interrupted while shutting down..");
-					LOGGER.trace("", e);
-				}
-
-				// Destroy services
-				Services.destroy();
-
-				LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
-				/**
-				 * Stopping logging gracefully (flushing logs)
-				 * No logging is available after this point
-				 */
-				ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
-				if (iLoggerContext instanceof LoggerContext) {
-					((LoggerContext) iLoggerContext).stop();
-				} else {
-					LOGGER.error("Unable to shut down logging gracefully");
-					System.err.println("Unable to shut down logging gracefully");
-				}
-
-				// Shut down library scanner
-				if (getConfiguration().getUseCache()) {
-					if (LibraryScanner.isScanLibraryRunning()) {
-						LOGGER.debug("LibraryScanner is still running, attempting to stop it");
-						LibraryScanner.stopScanLibrary();
-					} else {
-						LOGGER.debug("LibraryScanner already stopped");
-					}
-				}
-
-				if (MediaDatabase.isInstantiated()) {
-					LOGGER.debug("Shutting down database");
-					MediaDatabase.shutdown();
-					MediaDatabase.createDatabaseReportIfNeeded();
-				}
+				shutdown();
 			}
 		});
 
@@ -830,7 +695,7 @@ public class PMS {
 			// change of the used interface
 			MediaServer.start();
 
-			frame.setReloadable(false);
+			GuiManager.setReloadable(false);
 		});
 	}
 
@@ -884,7 +749,7 @@ public class PMS {
 		if (configuration.useWebInterfaceServer()) {
 			try {
 				webInterfaceServer = WebInterfaceServer.createServer(configuration.getWebInterfaceServerPort());
-				getFrame().updateServerStatus();
+				GuiManager.updateServerStatus();
 			} catch (BindException b) {
 				LOGGER.error("FATAL ERROR: Unable to bind web interface on port: " + configuration.getWebInterfaceServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
@@ -1074,7 +939,7 @@ public class PMS {
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (Platform.isWindows()) {
-				boolean isUmsServiceInstalled = WindowsUtil.isUmsServiceInstalled();
+				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
 				}
@@ -1127,7 +992,7 @@ public class PMS {
 			try {
 				configuration.initCred();
 			} catch (IOException e) {
-				LOGGER.debug("Error initializing plugin credentials: {}", e);
+				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
 			if (configuration.isRunSingleInstance()) {
@@ -1146,7 +1011,7 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				GuiUtil.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
+				GuiManager.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
@@ -1196,7 +1061,7 @@ public class PMS {
 	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
 	 */
 	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer != null && (renderer instanceof DeviceConfiguration)) ? (DeviceConfiguration) renderer : configuration;
+		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
 	}
 
 	public static PmsConfiguration getConfiguration(OutputParams params) {
@@ -1226,6 +1091,79 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Shutdown the currently running Universal Media Server.
+	 */
+	public static void shutdown() {
+		try {
+			if (Platform.isWindows()) {
+				WindowsNamedPipe.setLoop(false);
+			}
+			//Stop network scanner
+			NetworkConfiguration.stop();
+
+			LOGGER.debug("Shutting down the media server");
+			MediaServer.stop();
+			Thread.sleep(500);
+
+			LOGGER.debug("Shutting down all active processes");
+
+			if (Services.processManager() != null) {
+				Services.processManager().stop();
+			}
+			for (Process p : get().currentProcesses) {
+				try {
+					p.exitValue();
+				} catch (IllegalThreadStateException ise) {
+					LOGGER.trace("Forcing shutdown of process: " + p);
+					ProcessUtil.destroy(p);
+				}
+			}
+		} catch (InterruptedException e) {
+			LOGGER.debug("Interrupted while shutting down..");
+			LOGGER.trace("", e);
+		}
+
+		// Destroy services
+		Services.destroy();
+
+		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		/**
+		 * Stopping logging gracefully (flushing logs)
+		 * No logging is available after this point
+		 */
+		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
+		if (iLoggerContext instanceof LoggerContext) {
+			((LoggerContext) iLoggerContext).stop();
+		} else {
+			LOGGER.error("Unable to shut down logging gracefully");
+			System.err.println("Unable to shut down logging gracefully");
+		}
+
+		// Shut down library scanner
+		if (getConfiguration().getUseCache()) {
+			if (LibraryScanner.isScanLibraryRunning()) {
+				LOGGER.debug("LibraryScanner is still running, attempting to stop it");
+				LibraryScanner.stopScanLibrary();
+			} else {
+				LOGGER.debug("LibraryScanner already stopped");
+			}
+		}
+
+		if (MediaDatabase.isInstantiated()) {
+			LOGGER.debug("Shutting down database");
+			MediaDatabase.shutdown();
+			MediaDatabase.createDatabaseReportIfNeeded();
+		}
+	}
+
+	/**
+	 * Terminates the currently running Universal Media Server.
+	 */
+	public static void quit() {
+		System.exit(0);
 	}
 
 	/**
@@ -1271,10 +1209,10 @@ public class PMS {
 		Process p = pb.start();
 		String line;
 
-		Charset charset = WinUtils.getOEMCharset();
+		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WinUtils.getOEMCP(), charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1290,7 +1228,7 @@ public class PMS {
 		}
 
 		// remove all " and convert to common case before splitting result on ,
-		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		String[] tmp = line.toLowerCase().replace("\"", "").split(",");
 		// if the line is too short we don't kill the process
 		if (tmp.length < 9) {
 			return false;
@@ -1547,44 +1485,13 @@ public class PMS {
 		return (masterCode != null && masterCode.validCode(null));
 	}
 
-	public static FileWatcher getFileWatcher() {
-		return fileWatcher;
-	}
-
-	public static class DynamicPlaylist extends Playlist {
-		private final String savePath;
-		private long start;
-
-		public DynamicPlaylist(String name, String dir, int mode) {
-			super(name, null, 0, mode);
-			savePath = dir;
-			start = 0;
-		}
-
-		@Override
-		public void clear() {
-			super.clear();
-			start = 0;
-		}
-
-		@Override
-		public void save() {
-			if (start == 0) {
-				start = System.currentTimeMillis();
-			}
-			Date d = new Date(start);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-			list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
-		}
-	}
-
 	private DynamicPlaylist dynamicPls;
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
 				configuration.getDynamicPlsSavePath(),
-				(configuration.isDynamicPlsAutoSave() ? Playlist.AUTOSAVE : 0) | Playlist.PERMANENT);
+				(configuration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
@@ -1662,7 +1569,7 @@ public class PMS {
 			if (
 				System.getProperty("os.name") != null &&
 				System.getProperty("os.name").startsWith("Windows") &&
-				isNotBlank(System.getProperty("os.version")) &&
+				StringUtils.isNotBlank(System.getProperty("os.version")) &&
 				Double.parseDouble(System.getProperty("os.version")) < 5.2
 			) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";

@@ -29,6 +29,7 @@ import java.sql.Statement;
 import java.util.Properties;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.gui.GuiManager;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
 import org.h2.engine.Constants;
@@ -45,6 +46,12 @@ public class DatabaseEmbedded {
 	private static final Profiler PROFILER = new Profiler();
 	private static boolean collecting = false;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private DatabaseEmbedded() {
+	}
+
 	public static String getJdbcUrl(String name) {
 		startCollectingIfNeeded();
 		String dbDir = getDbDir();
@@ -55,7 +62,7 @@ public class DatabaseEmbedded {
 			//no value set, use 64 MB per GB
 			cacheSize = Utils.scaleForAvailableMemory(65536);
 		}
-		LOGGER.info("Database may use {} MB for caching", Math.round(cacheSize / 1024));
+		LOGGER.info("Database may use {} MB for caching", Math.round((cacheSize / 1024)));
 		url += ";CACHE_SIZE=" + cacheSize;
 
 		if (CONFIGURATION.isDatabaseMediaUseCacheSoft()) {
@@ -82,11 +89,6 @@ public class DatabaseEmbedded {
 		LOGGER.debug("Using \"{}\" database URL: {}", name, url);
 		LOGGER.info("Using \"{}\" database located at: \"{}\"", name, dbDir);
 
-		try {
-			Class.forName("org.h2.Driver");
-		} catch (ClassNotFoundException e) {
-			LOGGER.error(null, e);
-		}
 		return url;
 	}
 
@@ -143,13 +145,7 @@ public class DatabaseEmbedded {
 	 */
 	private static void migrateDatabaseVersion2(boolean deleteBackup, String dbName) {
 		LOGGER.info("Migrating database to v{}", Constants.VERSION);
-		if (!net.pms.PMS.isHeadless() && PMS.get().getFrame() != null) {
-			try {
-				PMS.get().getFrame().setStatusLine("Migrating database to v" + Constants.VERSION);
-			} catch (NullPointerException e) {
-				LOGGER.debug("Failed to set status, probably because GUI is not initialized yet. Error was {}", e);
-			}
-		}
+		GuiManager.setStatusLine("Migrating database to v" + Constants.VERSION);
 		String dbDir = getDbDir();
 		String oldUrl = Constants.START_URL + dbDir + File.separator + dbName;
 		Properties prprts = new Properties();

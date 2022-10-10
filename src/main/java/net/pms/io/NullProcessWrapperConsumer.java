@@ -1,7 +1,5 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,21 +17,19 @@
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
+import net.pms.platform.PlatformUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.service.Services;
 
 /**
  * A {@link ProcessWrapperConsumer} implementation that doesn't return the
@@ -57,40 +53,30 @@ public class NullProcessWrapperConsumer implements ProcessWrapperConsumer<NullPr
 		if (inputStream == null) {
 			return null;
 		}
-		Callable<Void> callable = new Callable<Void>() {
-
-			@Override
-			public Void call() throws IOException {
-				List<String> result = LOGGER.isTraceEnabled() ? new ArrayList<String>() : null;
-				Charset outputCharset;
-				if (Services.WINDOWS_CONSOLE != null) {
-					outputCharset = Services.WINDOWS_CONSOLE;
-				} else {
-					outputCharset = StandardCharsets.UTF_8;
-				}
-
-				try (
+		Callable<Void> callable = () -> {
+			List<String> result = LOGGER.isTraceEnabled() ? new ArrayList<>() : null;
+			Charset outputCharset = PlatformUtils.INSTANCE.getConsoleCharset();
+			try (
 					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, outputCharset))
-				) {
-					String line;
-					while ((line = reader.readLine()) != null) {
-						if (result != null) {
-							result.add(line);
-						}
+					) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					if (result != null) {
+						result.add(line);
 					}
 				}
-				if (result != null) {
-					LOGGER.trace("Discarded {} lines of process output:", result.size());
-					for (String line : result) {
-						LOGGER.trace("  Process output: {}", line);
-					}
-				}
-				return null;
 			}
+			if (result != null) {
+				LOGGER.trace("Discarded {} lines of process output:", result.size());
+				for (String line : result) {
+					LOGGER.trace("  Process output: {}", line);
+				}
+			}
+			return null;
 		};
-		FutureTask<Void> result = new FutureTask<Void>(callable);
+		FutureTask<Void> result = new FutureTask<>(callable);
 		Thread runner;
-		if (isBlank(threadName)) {
+		if (StringUtils.isBlank(threadName)) {
 			runner = new Thread(result);
 		} else {
 			runner = new Thread(result, threadName);
