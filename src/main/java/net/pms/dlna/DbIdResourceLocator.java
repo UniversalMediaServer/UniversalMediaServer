@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudiotracks;
 import net.pms.database.MediaTableFiles;
@@ -106,6 +107,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
+									res.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 									res.setId(String.format("$DBID$PLAYLIST$%s", typeAndIdent.ident));
 									res.resolve();
 									res.refreshChildren();
