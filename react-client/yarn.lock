@@ -3358,10 +3358,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/video.js@npm:7.3.48":
-  version: 7.3.48
-  resolution: "@types/video.js@npm:7.3.48"
-  checksum: fe657b9f303c3b69f42e4876fbf91a6e0041e0d9a047fae360d6d74d9eb1852dcb33ad78873ecf1334e116123064b94fd42da3e1e163b8a9d55961f31ca4dabd
+"@types/video.js@npm:7.3.49":
+  version: 7.3.49
+  resolution: "@types/video.js@npm:7.3.49"
+  checksum: abe498fbcc5dd45c0efdf56afc2d51bcfd18d14da76b7d6903f1cbe2ef423d155b1a00ce94ffffbba5f3409d65b41bb50a5f6988aa4dc888cda1942880af9345
   languageName: node
   linkType: hard
 
@@ -13121,7 +13121,7 @@ __metadata:
     "@types/react": 18.0.21
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.0.6
-    "@types/video.js": 7.3.48
+    "@types/video.js": 7.3.49
     "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
     axios: 1.1.2
