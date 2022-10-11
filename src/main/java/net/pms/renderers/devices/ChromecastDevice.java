@@ -42,8 +42,8 @@ public final class ChromecastDevice extends DeviceConfiguration {
 		super(renderer, inetAddress);
 		this.chromeCast = chromeCast;
 		uuid = chromeCast.getAddress();
-		controls = UPNPControl.ANY;
-		active = true;
+		setControls(UPNPControl.ANY);
+		setActive(true);
 		associateIP(inetAddress);
 	}
 

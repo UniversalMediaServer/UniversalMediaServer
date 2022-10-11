@@ -56,10 +56,10 @@ public class UPNPPlayer extends LogicalPlayer {
 	public void setURI(String uri, String metadata) {
 		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
-			if (item.name != null) {
-				state.name = item.name;
+			if (item.getName() != null) {
+				state.setName(item.getName());
 			}
-			UPNPControl.setAVTransportURI(dev, instanceID, item.uri, renderer.isPushMetadata() ? item.metadata : null);
+			UPNPControl.setAVTransportURI(dev, instanceID, item.getUri(), renderer.isPushMetadata() ? item.getMetadata() : null);
 		}
 	}
 
@@ -90,7 +90,7 @@ public class UPNPPlayer extends LogicalPlayer {
 
 	@Override
 	public void mute() {
-		UPNPControl.setMute(dev, instanceID, !state.mute);
+		UPNPControl.setMute(dev, instanceID, !state.isMuted());
 	}
 
 	@Override
@@ -102,45 +102,48 @@ public class UPNPPlayer extends LogicalPlayer {
 	public void actionPerformed(final ActionEvent e) {
 		if (renderer.isUpnpConnected()) {
 			refresh();
-		} else if (state.playback != STOPPED) {
+		} else if (!state.isStopped()) {
 			reset();
 		}
 	}
 
 	public void refresh() {
 		String s = data.get("TransportState");
-		state.playback =
-				"STOPPED".equals(s) ? STOPPED :
-				"PLAYING".equals(s) ? PLAYING :
-				"PAUSED_PLAYBACK".equals(s) ? PAUSED :
-				-1;
-		state.mute = !"0".equals(data.get("Mute"));
+		state.setPlayback(
+			switch (s) {
+				case "STOPPED" -> PlayerState.STOPPED;
+				case "PLAYING" -> PlayerState.PLAYING;
+				case "PAUSED_PLAYBACK" -> PlayerState.PAUSED;
+				default -> PlayerState.UNKNOWN;
+			}
+		);
+		state.setMuted(!"0".equals(data.get("Mute")));
 		s = data.get("Volume");
-		state.volume = s == null ? 0 : (Integer.parseInt(s) * 100 / maxVol);
-		state.position = data.get("RelTime");
+		state.setVolume(s == null ? 0 : (Integer.parseInt(s) * 100 / maxVol));
+		state.setPosition(data.get("RelTime"));
 		if (!ignoreUpnpDuration) {
-			state.duration = data.get("CurrentMediaDuration");
+			state.setDuration(data.get("CurrentMediaDuration"));
 		}
-		state.uri = data.get("AVTransportURI");
-		state.metadata = data.get("AVTransportURIMetaData");
+		state.setUri(data.get("AVTransportURI"));
+		state.setMetadata(data.get("AVTransportURIMetaData"));
 
 		// update playlist only if uri has changed
-		if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lastUri)) {
-			playlist.set(state.uri, null, state.metadata);
+		if (!StringUtils.isBlank(state.getUri()) && !state.getUri().equals(lastUri)) {
+			playlist.set(state.getUri(), null, state.getMetadata());
 		}
-		lastUri = state.uri;
+		lastUri = state.getUri();
 		alert();
 	}
 
 	@Override
 	public void start() {
 		DLNAResource d = renderer.getPlayingRes();
-		state.name = d.getDisplayName();
+		state.setName(d.getDisplayName());
 		if (d.getMedia() != null) {
 			String duration = d.getMedia().getDurationString();
 			ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 			if (ignoreUpnpDuration) {
-				state.duration = StringUtil.shortTime(d.getMedia().getDurationString(), 4);
+				state.setDuration(StringUtil.shortTime(d.getMedia().getDurationString(), 4));
 			}
 		}
 	}
@@ -152,7 +155,7 @@ public class UPNPPlayer extends LogicalPlayer {
 	}
 
 	public String jump(double seconds) {
-		double t = StringUtil.convertStringToTime(state.position) + seconds;
+		double t = StringUtil.convertStringToTime(state.getPosition()) + seconds;
 		return t > 0 ? StringUtil.convertTimeToString(t, "%02d:%02d:%02.0f") : "00:00:00";
 	}
 }

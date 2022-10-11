@@ -122,6 +122,17 @@ public class DeviceConfiguration extends PmsConfiguration {
 		init(NOFILE);
 	}
 
+	/**
+	 * Temporarily assign the default renderer but mark it as unloaded.
+	 *
+	 * Actual recognition can happen later once the http server receives a request.
+	 * This is to allow initiation of upnp playback before http recognition has occurred.
+	 */
+	public final void inheritDefault() throws ConfigurationException {
+		inherit(RendererConfiguration.getDefaultConf());
+		loaded = false;
+	}
+
 	@Override
 	public void reset() {
 		try {

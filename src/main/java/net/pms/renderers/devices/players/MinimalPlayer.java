@@ -45,11 +45,7 @@ public class MinimalPlayer implements BasicPlayer {
 
 	@Override
 	public final void reset() {
-		state.playback = STOPPED;
-		state.position = "";
-		state.duration = "";
-		state.name = " ";
-		state.buffer = 0;
+		state.reset();
 		alert();
 	}
 
@@ -110,7 +106,7 @@ public class MinimalPlayer implements BasicPlayer {
 
 	@Override
 	public void setBuffer(long mb) {
-		state.buffer = mb;
+		state.setBuffer(mb);
 		alert();
 	}
 

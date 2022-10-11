@@ -210,7 +210,7 @@ public class ControlHandler implements HttpHandler {
 	public String getPlayerState(LogicalPlayer player) {
 		if (player != null) {
 			PlayerState state = player.getState();
-			return String.format(JSON_STATE, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
+			return String.format(JSON_STATE, state.getPlayback(), state.isMuted(), state.getVolume(), StringUtil.shortTime(state.getPosition(), 4), StringUtil.shortTime(state.getDuration(), 4), state.getUri()/*, state.metadata*/);
 		}
 		return "";
 	}
@@ -226,12 +226,20 @@ public class ControlHandler implements HttpHandler {
 		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
 	}
 
+	/**
+	 * Used only by old web interface.
+	 * To be removed.
+	 * @param client
+	 * @return
+	 * @deprecated
+	 */
+	@Deprecated
 	public String getRenderers(InetAddress client) {
 		LogicalPlayer player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
-			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.uuid : r, r == selected ? 1 : 0, r.uuid));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.getUUID() : r, r == selected ? 1 : 0, r.getUUID()));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}

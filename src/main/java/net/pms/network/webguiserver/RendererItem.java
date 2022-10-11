@@ -32,7 +32,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
@@ -93,10 +92,10 @@ public class RendererItem implements IRendererGuiListener {
 	@Override
 	public void refreshPlayerState(PlayerState state) {
 		this.state = state;
-		time = ((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
-			UMSUtils.playedDurationStr(state.position, state.duration));
-		progressPercent = (int) (100 * state.buffer / MAX_BUFFER_SIZE);
-		playing = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+		time = ((state.isStopped()) || StringUtil.isZeroTime(state.getPosition())) ? " " :
+			UMSUtils.playedDurationStr(state.getPosition(), state.getDuration());
+		progressPercent = (int) (100 * state.getBuffer() / MAX_BUFFER_SIZE);
+		playing = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
 		sendRendererAction("renderer_update");
 	}
 
@@ -152,7 +151,7 @@ public class RendererItem implements IRendererGuiListener {
 		icon = renderer.getRendererIcon();
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
-		controls = renderer.controls;
+		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
 

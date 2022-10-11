@@ -50,7 +50,7 @@ public class Playlist extends DefaultComboBoxModel {
 		try {
 			Object selected = getSelectedItem();
 			PlaylistItem selectedItem = selected instanceof PlaylistItem ? (PlaylistItem) selected : null;
-			String selectedName = selectedItem != null ? selectedItem.name : null;
+			String selectedName = selectedItem != null ? selectedItem.getName() : null;
 			// See if we have a matching item for the "uri", which could be:
 			if (StringUtils.isBlank(uri) || uri.equals(selectedName)) {
 				// An alias for the currently selected item
@@ -135,16 +135,16 @@ public class Playlist extends DefaultComboBoxModel {
 	}
 
 	public static boolean isValid(PlaylistItem item, DeviceConfiguration renderer) {
-		if (DLNAResource.isResourceUrl(item.uri)) {
+		if (DLNAResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
-			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.getUri()))) {
 				return true;
 			}
 			// Repair the item if possible
-			DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
+			DLNAResource d = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (d != null) {
-				item.uri = d.getURL("", true);
-				item.metadata = d.getDidlString(renderer);
+				item.setUri(d.getURL("", true));
+				item.setMetadata(d.getDidlString(renderer));
 				return true;
 			}
 			return false;

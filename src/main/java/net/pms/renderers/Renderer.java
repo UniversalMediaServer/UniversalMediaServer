@@ -22,7 +22,6 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.network.mediaserver.UPNPControl;
@@ -38,15 +37,21 @@ public class Renderer {
 	private static final String TRANSITIONING = "TRANSITIONING";
 	public static final String INSTANCE_ID = "InstanceID";
 
-	public int controls;
+	public static final int PLAYCONTROL = 1;
+	public static final int VOLUMECONTROL = 2;
+
+	private int controls;
 	protected ActionEvent event;
-	public String uuid;
-	public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
-	public final HashMap<String, String> data;
-	public Map<String, String> details;
-	public LinkedHashSet<ActionListener> listeners;
+	protected String uuid;
+	// FIXME: unclear in what precise context a media renderer's instanceID != 0
+	// BTW, setInstanceID is never used, so it's always 0.
+	protected String instanceID = "0";
+	public final Map<String, String> data;
+	protected Map<String, String> details;
+	private LinkedHashSet<ActionListener> listeners;
 	private Thread monitorThread;
-	public volatile boolean active, renew;
+	private volatile boolean active;
+	private volatile boolean renew;
 	public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 	public boolean isGetPositionInfoImplemented = true;
@@ -121,12 +126,28 @@ public class Renderer {
 		monitorThread.start();
 	}
 
+	public int getControls() {
+		return controls;
+	}
+
+	public void setControls(int value) {
+		controls = value;
+	}
+
 	public boolean hasPlayControls() {
-		return (controls & BasicPlayer.PLAYCONTROL) != 0;
+		return (controls & PLAYCONTROL) != 0;
 	}
 
 	public boolean hasVolumeControls() {
-		return (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		return (controls & VOLUMECONTROL) != 0;
+	}
+
+	public boolean isControllable() {
+		return controls != 0;
+	}
+
+	public boolean isControllable(int type) {
+		return (controls & type) != 0;
 	}
 
 	public boolean isActive() {
@@ -137,7 +158,30 @@ public class Renderer {
 		active = b;
 	}
 
+	public void setRenew(boolean b) {
+		renew = b;
+	}
+
 	public boolean needsRenewal() {
 		return !active || renew;
 	}
+
+	/**
+	 * Sets the uuid of this renderer.
+	 *
+	 * @param uuid The uuid.
+	 */
+	public void setUUID(String uuid) {
+		this.uuid = uuid;
+	}
+
+	/**
+	 * Returns the uuid of this renderer, if known. Default value is null.
+	 *
+	 * @return The uuid.
+	 */
+	public String getUUID() {
+		return uuid;
+	}
+
 }

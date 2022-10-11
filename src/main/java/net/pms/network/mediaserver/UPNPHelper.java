@@ -87,7 +87,7 @@ public class UPNPHelper extends UPNPControl {
 
 			boolean distinct = r != null && StringUtils.isNotBlank(r.getUUID()) && !uuid.equals(r.getUUID());
 
-			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.loaded)) {
+			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.isLoaded())) {
 				// Already seen by the http server
 				if (
 					ref != null &&
@@ -108,10 +108,11 @@ public class UPNPHelper extends UPNPControl {
 
 				// Make sure it's mapped
 				rendererMap.put(uuid, "0", r);
-				r.details = getDeviceDetails(d);
+				Map<String, String> details = getDeviceDetails(d);
+				r.setDetails(details);
 				// Update gui
 				r.updateRendererGui();
-				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", r, r.details);
+				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", r, details);
 			} else {
 				// It's brand new
 				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
@@ -124,14 +125,14 @@ public class UPNPHelper extends UPNPControl {
 					// server receives a request.
 					// This is to allow initiation of upnp playback before http
 					// recognition has occurred.
-					r.inherit(RendererConfiguration.getDefaultConf());
-					r.loaded = false;
+					r.inheritDefault();
 					LOGGER.debug("Marking upnp renderer \"{}\" at {} as unrecognized", r, socket);
 				}
 				if (r.associateIP(socket)) {
-					r.details = getDeviceDetails(d);
+					Map<String, String> details = getDeviceDetails(d);
+					r.setDetails(details);
 					PMS.get().setRendererFound(r);
-					LOGGER.debug("New renderer found: \"{}\" with dlna details: {}", r, r.details);
+					LOGGER.debug("New renderer found: \"{}\" with dlna details: {}", r, details);
 				}
 			}
 			return r;
@@ -143,14 +144,14 @@ public class UPNPHelper extends UPNPControl {
 
 	//seems to be unused
 	public void addRenderer(DeviceConfiguration d) {
-		if (d.uuid != null) {
-			rendererMap.put(d.uuid, "0", d);
+		if (d.getUUID() != null) {
+			rendererMap.put(d.getUUID(), "0", d);
 		}
 	}
 
 	public void removeRenderer(RendererConfiguration d) {
-		if (d.uuid != null) {
-			rendererMap.remove(d.uuid);
+		if (d.getUUID() != null) {
+			rendererMap.remove(d.getUUID());
 		}
 	}
 
@@ -171,7 +172,7 @@ public class UPNPHelper extends UPNPControl {
 		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
-			if (r.active && (r.controls & type) != 0) {
+			if (r.isActive() && r.isControllable(type)) {
 				renderers.add((RendererConfiguration) r);
 			}
 		}

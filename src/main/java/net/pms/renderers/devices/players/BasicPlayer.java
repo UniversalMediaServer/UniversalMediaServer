@@ -4,11 +4,6 @@ import java.awt.event.ActionListener;
 import javax.swing.DefaultComboBoxModel;
 
 public interface BasicPlayer extends ActionListener {
-	static final int STOPPED = 0;
-	static final int PLAYING = 1;
-	static final int PAUSED = 2;
-	static final int PLAYCONTROL = 1;
-	static final int VOLUMECONTROL = 2;
 
 	public void setURI(String uri, String metadata);
 
