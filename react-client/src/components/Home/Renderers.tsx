@@ -114,6 +114,7 @@ const Renderers = () => {
             src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
             height={160}
             fit="contain"
+            sx={!renderer.isActive ? {filter:'grayscale(95%)'}:undefined}
             alt={renderer.name}
           />
         </Card.Section>
