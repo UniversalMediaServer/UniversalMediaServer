@@ -98,7 +98,7 @@
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.3</logback-version>
+		<logback-version>1.4.4</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
