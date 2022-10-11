@@ -20,7 +20,7 @@ package net.pms.renderers.devices.players;
 import java.io.IOException;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.util.StringUtil;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
@@ -44,14 +44,14 @@ public class ChromecastPlayer extends LogicalPlayer {
 		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
 			// this is a bit circular but what the heck
-			DLNAResource r = DLNAResource.getValidResource(item.uri, item.name, renderer);
+			DLNAResource r = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (r == null) {
 				LOGGER.debug("Bad media in cc seturi: " + uri);
 				return;
 			}
 			try {
 				api.launchApp(MEDIA_PLAYER);
-				api.load("", null, item.uri, r.mimeType());
+				api.load("", null, item.getUri(), r.mimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
 			}
@@ -114,17 +114,17 @@ public class ChromecastPlayer extends LogicalPlayer {
 
 	@Override
 	public int getControls() {
-		return PLAYCONTROL | VOLUMECONTROL;
+		return Renderer.PLAYCONTROL | Renderer.VOLUMECONTROL;
 	}
 
 	private int translateState(MediaStatus.PlayerState s) {
-		switch (s) {
-			case IDLE: return STOPPED;
-			case PLAYING: // buffering is a kind of playing
-			case BUFFERING: return PLAYING;
-			case PAUSED: return PAUSED;
-			default: return -1;
-		}
+		return switch (s) {
+			case IDLE -> PlayerState.STOPPED;
+			// buffering is a kind of playing
+			case PLAYING, BUFFERING -> PlayerState.PLAYING;
+			case PAUSED -> PlayerState.PAUSED;
+			default -> -1;
+		};
 	}
 
 	public void startPoll() {
@@ -140,20 +140,20 @@ public class ChromecastPlayer extends LogicalPlayer {
 					if (status == null) {
 						continue;
 					}
-					state.playback = translateState(status.playerState);
+					state.setPlayback(translateState(status.playerState));
 					Media m = status.media;
 					if (m != null) {
 						if (m.url != null) {
-							state.uri = status.media.url;
+							state.setUri(status.media.url);
 						}
 						if (m.duration != null) {
-							state.duration = StringUtil.convertTimeToString(status.media.duration, "%02d:%02d:%02.0f");
+							state.setDuration(status.media.duration);
 						}
 					}
-					state.position = StringUtil.convertTimeToString(status.currentTime, "%02d:%02d:%02.0f");
+					state.setPosition(status.currentTime);
 					if (status.volume != null) {
-						state.volume = status.volume.level.intValue();
-						state.mute = status.volume.muted;
+						state.setVolume(status.volume.level.intValue());
+						state.setMuted(status.volume.muted);
 					}
 					alert();
 				} catch (InterruptedException | IOException e) {

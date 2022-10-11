@@ -110,7 +110,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		startStop = null;
 		subLang = "";
 		if (CONFIGURATION.isWebPlayerControllable()) {
-			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
+			setControls(PLAYCONTROL | VOLUMECONTROL);
 		}
 		gson = new Gson();
 		pushList = new ArrayList<>();
@@ -203,8 +203,8 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
 		}
-		active = true;
 		uuid = getConfName() + ":" + ip;
+		setActive(true);
 	}
 
 	@Override

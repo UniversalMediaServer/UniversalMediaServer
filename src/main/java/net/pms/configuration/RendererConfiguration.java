@@ -99,8 +99,8 @@ public class RendererConfiguration extends Renderer {
 	protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 	protected final LinkedHashSet<IRendererGuiListener> guiListeners = new LinkedHashSet<>();
 
-	public boolean loaded = false;
-	public boolean fileless = false;
+	protected boolean loaded = false;
+	protected boolean fileless = false;
 
 	// Holds MIME type aliases
 	protected Map<String, String> mimes;
@@ -443,7 +443,7 @@ public class RendererConfiguration extends Renderer {
 
 	public static boolean hasConnectedRenderer(int type) {
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if ((r.controls & type) != 0) {
+			if (r.isControllable(type)) {
 				return true;
 			}
 		}
@@ -453,7 +453,7 @@ public class RendererConfiguration extends Renderer {
 	public static List<RendererConfiguration> getConnectedRenderers(int type) {
 		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
 		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if (r.active && (r.controls & type) != 0) {
+			if (r.isActive() && r.isControllable(type)) {
 				renderers.add(r);
 			}
 		}
@@ -606,6 +606,10 @@ public class RendererConfiguration extends Renderer {
 		return true;
 	}
 
+	public boolean isLoaded() {
+		return loaded;
+	}
+
 	public static void calculateAllSpeeds() {
 		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
@@ -724,7 +728,7 @@ public class RendererConfiguration extends Renderer {
 				// Already seen, finish configuration if required
 				r = (DeviceConfiguration) ADDRESS_ASSOCIATION.get(ia);
 				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
-				if (!r.loaded || higher) {
+				if (!r.isLoaded() || higher) {
 					LOGGER.debug("Finishing configuration for {}", r);
 					if (higher) {
 						LOGGER.debug("Switching to higher priority renderer: {}", ref);
@@ -739,7 +743,7 @@ public class RendererConfiguration extends Renderer {
 				if (r.associateIP(ia)) {
 					PMS.get().setRendererFound(r);
 				}
-				r.active = true;
+				r.setActive(true);
 				if (r.isUpnpPostponed()) {
 					r.setUpnpMode(ALLOW);
 				}
@@ -1506,8 +1510,8 @@ public class RendererConfiguration extends Renderer {
 		return uuid != null && UPNPHelper.isUpnpDevice(uuid);
 	}
 
-	public boolean isControllable() {
-		return controls != 0;
+	public void setDetails(Map<String, String> value) {
+		details = value;
 	}
 
 	public Map<String, String> getDetails() {
@@ -1517,7 +1521,6 @@ public class RendererConfiguration extends Renderer {
 			} else {
 				details = new LinkedHashMap<String, String>() {
 					private static final long serialVersionUID = -3998102753945339020L;
-
 					{
 						put(Messages.getString("Name"), getRendererName());
 						if (getAddress() != null) {
@@ -1550,24 +1553,6 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
-	 * Returns the uuid of this renderer, if known. Default value is null.
-	 *
-	 * @return The uuid.
-	 */
-	public String getUUID() {
-		return uuid;
-	}
-
-	/**
-	 * Sets the uuid of this renderer.
-	 *
-	 * @param uuid The uuid.
-	 */
-	public void setUUID(String uuid) {
-		this.uuid = uuid;
-	}
-
-	/**
 	 * Returns the UPnP instance id of this renderer, if known. Default value is null.
 	 *
 	 * @return The instance id.
@@ -1591,7 +1576,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return Whether offline.
 	 */
 	public boolean isOffline() {
-		return !active;
+		return !isActive();
 	}
 
 	/**
@@ -1653,6 +1638,8 @@ public class RendererConfiguration extends Renderer {
 		if (player == null) {
 			player = isUpnpControllable() ? new UPNPPlayer((DeviceConfiguration) this) :
 				new PlaybackTimer((DeviceConfiguration) this);
+		} else if (player instanceof PlaybackTimer && isUpnpControllable()) {
+			player = new UPNPPlayer((DeviceConfiguration) this);
 		}
 		return player;
 	}
@@ -2895,7 +2882,7 @@ public class RendererConfiguration extends Renderer {
 		playingRes = dlna;
 		getPlayer();
 		if (dlna != null) {
-			player.getState().name = dlna.getDisplayName();
+			player.getState().setName(dlna.getDisplayName());
 			player.start();
 		} else {
 			player.reset();

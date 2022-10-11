@@ -17,11 +17,107 @@
  */
 package net.pms.renderers.devices.players;
 
-public class PlayerState {
-	public int playback;
-	public boolean mute;
-	public int volume;
-	public String position, duration;
-	public String name, uri, metadata;
-	public long buffer;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+
+public class PlayerState extends PlayerItem {
+	static final int UNKNOWN = -1;
+	static final int STOPPED = 0;
+	static final int PLAYING = 1;
+	static final int PAUSED = 2;
+
+	private int playback;
+	private boolean mute;
+	private int volume;
+	private String position;
+	private String duration;
+	private long buffer;
+
+	public int getPlayback() {
+		return playback;
+	}
+
+	public void setPlayback(int value) {
+		playback = value;
+	}
+
+	public boolean isUnknown() {
+		return playback == UNKNOWN;
+	}
+
+	public boolean isStopped() {
+		return playback == STOPPED;
+	}
+
+	public boolean isPlaying() {
+		return playback == PLAYING;
+	}
+
+	public boolean isPaused() {
+		return playback == PAUSED;
+	}
+
+	public boolean isMuted() {
+		return mute;
+	}
+
+	public void setMuted(boolean value) {
+		mute = value;
+	}
+
+	public int getVolume() {
+		return volume;
+	}
+
+	public void setVolume(int value) {
+		volume = value;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String value) {
+		duration = value;
+	}
+
+	public void setDuration(long value) {
+		duration = DurationFormatUtils.formatDuration(value, "HH:mm:ss");
+	}
+
+	public void setDuration(double value) {
+		duration = StringUtil.convertTimeToString(value, "%02d:%02d:%02.0f");
+	}
+
+	public String getPosition() {
+		return position;
+	}
+
+	public void setPosition(String value) {
+		position = value;
+	}
+
+	public void setPosition(long value) {
+		position = DurationFormatUtils.formatDuration(value, "HH:mm:ss");
+	}
+
+	public void setPosition(double value) {
+		position = StringUtil.convertTimeToString(value, "%02d:%02d:%02.0f");
+	}
+
+	public long getBuffer() {
+		return buffer;
+	}
+
+	public void setBuffer(long value) {
+		buffer = value;
+	}
+
+	public void reset() {
+		playback = STOPPED;
+		position = "";
+		duration = "";
+		name = " ";
+		buffer = 0;
+	}
 }

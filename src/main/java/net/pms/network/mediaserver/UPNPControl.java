@@ -40,7 +40,6 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererMap;
-import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
@@ -83,8 +82,8 @@ public class UPNPControl {
 	public static final int ACTIVE = 0;
 	public static final int CONTROLS = 1;
 	public static final int RENEW = 2;
-	public static final int AVT = BasicPlayer.PLAYCONTROL;
-	public static final int RC = BasicPlayer.VOLUMECONTROL;
+	public static final int AVT = Renderer.PLAYCONTROL;
+	public static final int RC = Renderer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
 
 	private static final boolean DEBUG = true; // log upnp state vars
@@ -274,14 +273,14 @@ public class UPNPControl {
 
 	public static boolean isActive(String uuid, String id) {
 		if (rendererMap.containsKey(uuid, id)) {
-			return rendererMap.get(uuid, id).active;
+			return rendererMap.get(uuid, id).isActive();
 		}
 		return false;
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
 		if (rendererMap.containsKey(uuid)) {
-			return rendererMap.get(uuid, "0").controls != 0;
+			return rendererMap.get(uuid, "0").isControllable();
 		}
 		return false;
 	}
@@ -355,8 +354,8 @@ public class UPNPControl {
 	}
 
 	public static String getDeviceIcon(Renderer r, int maxHeight) {
-		if (isUpnpDevice(r.uuid)) {
-			return getDeviceIcon(getDevice(r.uuid), maxHeight);
+		if (isUpnpDevice(r.getUUID())) {
+			return getDeviceIcon(getDevice(r.getUUID()), maxHeight);
 		}
 		return null;
 	}
@@ -808,7 +807,7 @@ public class UPNPControl {
 	public static boolean hasRenderer(int type) {
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
-			if ((r.controls & type) != 0) {
+			if (r.isControllable(type)) {
 				return true;
 			}
 		}

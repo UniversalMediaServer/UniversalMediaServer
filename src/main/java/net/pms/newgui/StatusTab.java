@@ -100,10 +100,10 @@ public class StatusTab {
 		@Override
 		public void actionPerformed(final ActionEvent e) {
 			PlayerState state = ((BasicPlayer) e.getSource()).getState();
-			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
-				UMSUtils.playedDurationStr(state.position, state.duration));
-			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
-			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
 			if (!name.equals(n)) {
 				name = n;
 				playingLabel.setText(name);
@@ -118,10 +118,10 @@ public class StatusTab {
 
 		@Override
 		public void refreshPlayerState(final PlayerState state) {
-			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
-				UMSUtils.playedDurationStr(state.position, state.duration));
-			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
-			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
 			if (!name.equals(n)) {
 				name = n;
 				playingLabel.setText(name);

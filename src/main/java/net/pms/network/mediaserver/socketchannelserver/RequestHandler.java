@@ -109,7 +109,7 @@ public class RequestHandler implements Runnable {
 
 			// If the renderer exists but isn't marked as loaded it means it's unrecognized
 			// by upnp and we still need to attempt http recognition here.
-			boolean unrecognized = renderer == null || !renderer.loaded;
+			boolean unrecognized = renderer == null || !renderer.isLoaded();
 			RendererConfiguration.SortedHeaderMap sortedHeaders = unrecognized ? new RendererConfiguration.SortedHeaderMap() : null;
 
 			// Gather all the headers

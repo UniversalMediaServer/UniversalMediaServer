@@ -87,10 +87,10 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 						i.setActive((boolean) value);
 						break;
 					case UPNPControl.RENEW:
-						i.renew = (boolean) value;
+						i.setRenew((boolean) value);
 						break;
 					case UPNPControl.CONTROLS:
-						i.controls = (int) value;
+						i.setControls((int) value);
 						break;
 					default:
 						break;

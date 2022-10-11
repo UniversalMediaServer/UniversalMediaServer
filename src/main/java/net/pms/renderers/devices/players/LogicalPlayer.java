@@ -47,7 +47,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	protected LogicalPlayer(DeviceConfiguration renderer) {
 		super(renderer);
 		playlist = new Playlist(this);
-		lastPlayback = STOPPED;
+		lastPlayback = PlayerState.STOPPED;
 		maxVol = renderer.getMaxVolume();
 		autoContinue = renderer.isAutoContinue();
 		addAllSiblings = renderer.isAutoAddAll();
@@ -83,21 +83,21 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void pressPlay(String uri, String metadata) {
 		forceStop = false;
-		if (state.playback == -1) {
+		if (state.isUnknown()) {
 			// unknown state, we assume it's stopped
-			state.playback = STOPPED;
+			state.setPlayback(PlayerState.STOPPED);
 		}
-		if (state.playback == PLAYING) {
+		if (state.isPlaying()) {
 			pause();
 		} else {
-			if (state.playback == STOPPED) {
+			if (state.isStopped()) {
 				PlaylistItem item = playlist.resolve(uri);
 				if (item != null) {
-					uri = item.uri;
-					metadata = item.metadata;
-					state.name = item.name;
+					uri = item.getUri();
+					metadata = item.getMetadata();
+					state.setName(item.getName());
 				}
-				if (uri != null && !uri.equals(state.uri)) {
+				if (uri != null && !uri.equals(state.getUri())) {
 					setURI(uri, metadata);
 				}
 			}
@@ -122,18 +122,18 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	public void step(int n) {
-		if (state.playback != STOPPED) {
+		if (!state.isStopped()) {
 			stop();
 		}
-		state.playback = STOPPED;
+		state.setPlayback(PlayerState.STOPPED);
 		playlist.step(n);
 		pressPlay(null, null);
 	}
 
 	@Override
 	public void alert() {
-		boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
-		lastPlayback = state.playback;
+		boolean stopping = state.isStopped() && lastPlayback != -1 && lastPlayback != PlayerState.STOPPED;
+		lastPlayback = state.getPlayback();
 		super.alert();
 		if (stopping && autoContinue && !forceStop) {
 			next();
@@ -142,7 +142,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 
 	@Override
 	public int getControls() {
-		return renderer.controls;
+		return renderer.getControls();
 	}
 
 	@Override
