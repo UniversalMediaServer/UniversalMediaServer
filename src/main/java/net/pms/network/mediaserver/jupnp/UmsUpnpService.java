@@ -44,11 +44,8 @@ public class UmsUpnpService extends UpnpServiceImpl {
 
 	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
 
-	private boolean addDevice = false;
-
-	public UmsUpnpService(boolean addDevice) {
-		super(new UmsUpnpServiceConfiguration(addDevice));
-		this.addDevice = addDevice;
+	public UmsUpnpService(boolean serveContentDirectory) {
+		super(new UmsUpnpServiceConfiguration(serveContentDirectory));
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
 		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
 			LOGGER.debug("Upnp set in silent log mode");
@@ -61,38 +58,11 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		}
 	}
 
-	public void setOwnHttpServer(boolean ownHttpServer) {
-		if (this.configuration instanceof UmsUpnpServiceConfiguration &&
-			((UmsUpnpServiceConfiguration) this.configuration).useOwnHttpServer() != ownHttpServer) {
-				((UmsUpnpServiceConfiguration) this.configuration).setOwnHttpServer(ownHttpServer);
-				if (isRunning) {
-					shutdown();
-					startup();
-				}
-		}
-	}
-
-	public final void addMediaServerDevice() {
-		addDevice = true;
-		if (registry != null && !registry.getLocalDevices().contains(mediaServerDevice)) {
-			registry.addDevice(mediaServerDevice);
-		}
-	}
-
-	public final void removeMediaServerDevice() {
-		addDevice = false;
-		if (registry != null && registry.getLocalDevices().contains(mediaServerDevice)) {
-			registry.removeDevice(mediaServerDevice);
-		}
-	}
-
 	@Override
 	protected Registry createRegistry(ProtocolFactory protocolFactory) {
 		Registry result = super.createRegistry(protocolFactory);
 		result.addListener(new UmsRegistryListener());
-		if (addDevice) {
-			result.addDevice(mediaServerDevice);
-		}
+		result.addDevice(mediaServerDevice);
 		return result;
 	}
 }

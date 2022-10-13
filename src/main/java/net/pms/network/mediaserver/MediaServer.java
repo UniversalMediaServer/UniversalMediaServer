@@ -19,7 +19,6 @@ package net.pms.network.mediaserver;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
@@ -29,12 +28,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.configuration.NetworkInterfaceAssociation;
-import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
-import net.pms.network.mediaserver.nettyserver.NettyServer;
-import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
-import net.pms.network.mediaserver.socketssdpserver.SocketSSDPServer;
 import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.types.DeviceType;
 import org.jupnp.transport.RouterException;
@@ -45,9 +40,8 @@ public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final Map<Integer, String> VERSIONS = Map.of(
-		1, "Sockets",
-		2, "Netty",
-		3, "Java",
+		1, "JUPnP+ (Java) alpha",
+		2, "JUPnP+ (Netty) alpha",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
@@ -55,7 +49,6 @@ public class MediaServer {
 	public static final int DEFAULT_VERSION = 4;
 
 	public static UmsUpnpService upnpService;
-	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
 	protected static int port = CONFIGURATION.getMediaServerPort();
@@ -101,42 +94,17 @@ public class MediaServer {
 			if (engineVersion == 0 || !VERSIONS.containsKey(engineVersion)) {
 				engineVersion = DEFAULT_VERSION;
 			}
-			try {
-				switch (engineVersion) {
-					case 1 -> {
-						httpMediaServer = new SocketChannelServer(inetAddress, port);
-						isStarted = httpMediaServer.start();
-					}
-					case 2 -> {
-						httpMediaServer = new NettyServer(inetAddress, port);
-						isStarted = httpMediaServer.start();
-					}
-					case 3 -> {
-						httpMediaServer = new JavaHttpServer(inetAddress, port);
-						isStarted = httpMediaServer.start();
-					}
-					default -> {
-						//we will handle requests via JUPnP
-						isStarted = true;
-					}
-				}
-			} catch (IOException ex) {
-				LOGGER.error("FATAL ERROR: Unable to bind on port: " + port + ", because: " + ex.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-				isStarted = false;
-				stop();
-			}
 			//start the upnp service
-			if (isStarted && CONFIGURATION.isUpnpEnabled()) {
+			if (CONFIGURATION.isUpnpEnabled()) {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
 						case 4, 5 -> {
-							upnpService = new UmsUpnpService(true);
+							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 						}
-						default -> {
-							upnpService = new UmsUpnpService(false);
+						case 1, 2 -> {
+							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 						}
 					}
@@ -153,15 +121,6 @@ public class MediaServer {
 						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 					}
 					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
-				}
-
-				//then start SSDP service if JUPnP does not
-				if (isStarted && upnpService.getRegistry().getLocalDevices().isEmpty()) {
-					isStarted = SocketSSDPServer.start(networkInterface);
-					if (!isStarted) {
-						LOGGER.error("FATAL ERROR: Unable to start socket ssdp service");
-						stop();
-					}
 				}
 			}
 			//start mDNS service
@@ -183,16 +142,11 @@ public class MediaServer {
 	public static synchronized void stop() {
 		status = ServerStatus.STOPPING;
 		MDNS.stop();
-		SocketSSDPServer.stop();
 		if (upnpService != null) {
 			LOGGER.debug("Shutting down UPnP (JUPnP) service");
 			upnpService.shutdown();
 			upnpService = null;
 			LOGGER.debug("UPnP service stopped");
-		}
-		if (httpMediaServer != null) {
-			httpMediaServer.stop();
-			httpMediaServer = null;
 		}
 		status = ServerStatus.STOPPED;
 		isStarted = false;
@@ -208,11 +162,7 @@ public class MediaServer {
 	}
 
 	public static String getURL() {
-		return getProtocol() + "://" + getAddress();
-	}
-
-	public static String getProtocol() {
-		return httpMediaServer != null && httpMediaServer.isHTTPS() ? "https" : "http";
+		return "http://" + getAddress();
 	}
 
 	public static String getAddress() {

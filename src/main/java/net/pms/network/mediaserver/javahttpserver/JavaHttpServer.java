@@ -49,7 +49,6 @@ public class JavaHttpServer extends HttpMediaServer {
 			localPort = server.getAddress().getPort();
 			server.createContext("/", new RequestHandler());
 			server.createContext("/api", new ApiHandler());
-			server.createContext("/console", new ConsoleHandler());
 			executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
 			server.setExecutor(executorService);
 			server.start();

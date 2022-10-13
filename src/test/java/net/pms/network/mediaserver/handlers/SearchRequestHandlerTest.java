@@ -69,13 +69,12 @@ public class SearchRequestHandlerTest {
 
 	@Test
 	public void testVideoFileSqlStatement() {
-		SearchRequestHandler srh = new SearchRequestHandler();
 		String s = "( upnp:class derivedfrom \"object.item.videoItem\" )";
 		SearchRequest sr = new SearchRequest();
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String result = srh.convertToFilesSql(sr, srh.getRequestType(s)).toString();
+		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s));
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
 			"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));

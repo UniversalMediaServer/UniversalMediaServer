@@ -96,14 +96,15 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 
 		private final Router router;
 		private final RequestHandler requestHandler;
+		private final boolean serveContentDirectory;
 
 		public RequestHttpHandler(Router router) {
 			this.router = router;
-			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration &&
-				((UmsUpnpServiceConfiguration) router.getConfiguration()).useOwnHttpServer()) {
-				requestHandler = new RequestHandler();
+			requestHandler = new RequestHandler();
+			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration routerConfiguration) {
+				serveContentDirectory = routerConfiguration.useOwnContentDirectory();
 			} else {
-				requestHandler = null;
+				serveContentDirectory = false;
 			}
 		}
 
@@ -127,7 +128,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}

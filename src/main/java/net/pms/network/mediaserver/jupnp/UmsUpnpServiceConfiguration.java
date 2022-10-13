@@ -68,14 +68,13 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	private final ExecutorService asyncProtocolExecutorService;
 	private final ExecutorService remoteListenerExecutorService;
 	private final ExecutorService registryListenerExecutorService;
-	private final UpnpHeaders umsHeaders;
+	private final UpnpHeaders umsHeaders = new UpnpHeaders();
 
-	private boolean ownHttpServer = false;
+	private boolean ownContentDirectory = false;
 
-	public UmsUpnpServiceConfiguration(boolean ownHttpServer) {
+	public UmsUpnpServiceConfiguration(boolean ownContentDirectory) {
 		super();
-		this.ownHttpServer = ownHttpServer;
-		umsHeaders = new UpnpHeaders();
+		this.ownContentDirectory = ownContentDirectory;
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 		multicastReceiverExecutorService = createDefaultExecutorService("multicast-receiver");
 		datagramIOExecutorService = createDefaultExecutorService("datagram-io");
@@ -110,41 +109,40 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		);
 	}
 
-	public boolean useOwnHttpServer() {
-		return ownHttpServer;
-	}
-
-	public void setOwnHttpServer(boolean ownHttpServer) {
-		this.ownHttpServer = ownHttpServer;
+	public boolean useOwnContentDirectory() {
+		return ownContentDirectory;
 	}
 
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		if (ownHttpServer) {
-			int engineVersion = CONFIGURATION.getServerEngine();
-			if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
-				engineVersion = MediaServer.DEFAULT_VERSION;
+		int engineVersion = CONFIGURATION.getServerEngine();
+		if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
+			engineVersion = MediaServer.DEFAULT_VERSION;
+		}
+		switch (engineVersion) {
+			case 1, 5 -> {
+				return new JdkHttpServerStreamServer(
+						new UmsStreamServerConfiguration(
+								networkAddressFactory.getStreamListenPort(),
+								true
+						)
+				);
 			}
-			switch (engineVersion) {
-				case 4:
-					return new NettyStreamServer(
-							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort(),
-									true
-							)
-					);
-				case 5:
-					return new JdkHttpServerStreamServer(
-							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort(),
-									true
-							)
-					);
+			case 2, 4 -> {
+				return new NettyStreamServer(
+						new UmsStreamServerConfiguration(
+								networkAddressFactory.getStreamListenPort(),
+								true
+						)
+				);
+			}
+			default -> {
+				//non listening server
+				return new JdkHttpServerStreamServer(
+					new UmsStreamServerConfiguration()
+				);
 			}
 		}
-		return new JdkHttpServerStreamServer(
-				new UmsStreamServerConfiguration()
-		);
 	}
 
 	@Override

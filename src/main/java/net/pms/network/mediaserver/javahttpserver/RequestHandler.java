@@ -65,23 +65,22 @@ import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.DbIdMediaType;
+import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.MediaType;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.dlna.virtual.MediaLibraryFolder;
+import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
-import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.dlna.DbIdMediaType;
-import net.pms.dlna.DbIdResourceLocator;
-import net.pms.encoders.HlsHelper;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
@@ -91,6 +90,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.service.sleep.SleepManager;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
@@ -196,37 +196,14 @@ public class RequestHandler implements HttpHandler {
 					uri = "upnp/control/content_directory";
 				} else if (uri.endsWith("/ContentDirectory/event")) {
 					uri = "upnp/event/content_directory";
-				} else if (uri.endsWith("/ConnectionManager/desc")) {
-					uri = "UPnP_AV_ConnectionManager_1.0.xml";
-				} else if (uri.endsWith("/ConnectionManager/action")) {
-					uri = "upnp/control/connection_manager";
-				} else if (uri.endsWith("/ConnectionManager/event")) {
-					uri = "upnp/event/connection_manager";
-				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/desc")) {
-					uri = "UPnP_AV_X_MS_MediaReceiverRegistrar_1.0.xml";
-				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/action")) {
-					uri = "upnp/control/x_ms_mediareceiverregistrar";
-				} else if (uri.endsWith("/X_MS_MediaReceiverRegistrar/event")) {
-					uri = "upnp/event/x_ms_mediareceiverregistrar";
-				} else if (uri.endsWith("/desc")) {
-					uri = "description/fetch";
 				}
 			}
 			if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
 				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
-			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.equals("description/fetch") || uri.endsWith("1.0.xml"))) {
-				sendResponse(exchange, renderer, 200, serverSpecHandler(exchange, uri, renderer), CONTENT_TYPE_XML_UTF8);
-			} else if (POST.equals(method) && (uri.contains("MS_MediaReceiverRegistrar_control") || uri.contains("control/x_ms_mediareceiverregistrar"))) {
-				sendResponse(exchange, renderer, 200, msMediaReceiverRegistrarHandler(soapaction), CONTENT_TYPE_XML_UTF8);
-			} else if (POST.equals(method) && uri.endsWith("upnp/control/connection_manager")) {
-				if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
-					sendResponse(exchange, renderer, 200, getProtocolInfoHandler(), CONTENT_TYPE_XML_UTF8);
-				} else {
-					//should never fall there
-					sendResponse(exchange, renderer, 200, "", CONTENT_TYPE_XML_UTF8);
-				}
+
+			//------------------------- START ContentDirectory -------------------------
 			} else if (POST.equals(method) && uri.endsWith("upnp/control/content_directory")) {
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 					sendResponse(exchange, renderer, 200, getSystemUpdateIdHandler(), CONTENT_TYPE_XML_UTF8);
@@ -244,11 +221,13 @@ public class RequestHandler implements HttpHandler {
 					sendResponse(exchange, renderer, 200, searchHandler(requestBody, renderer), CONTENT_TYPE_XML_UTF8);
 				} else {
 					LOGGER.debug("Unsupported action received: " + requestBody);
+					sendResponse(exchange, renderer, 200, notifyHandler(exchange), "text/xml");
 				}
 			} else if (SUBSCRIBE.equals(method)) {
 				sendResponse(exchange, renderer, 200, subscribeHandler(exchange, uri, soapaction), "text/xml");
 			} else if (NOTIFY.equals(method)) {
-				sendResponse(exchange, renderer, 200, notifyHandler(exchange), "text/xml");
+
+			//------------------------- END ContentDirectory -------------------------
 			}
 		} catch (IOException e) {
 			String message = e.getMessage();
@@ -262,7 +241,7 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, String message, String contentType) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, String message, String contentType) throws IOException {
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		exchange.getResponseHeaders().set("Content-Type", contentType);
 		if (message == null || message.length() == 0) {
@@ -290,11 +269,11 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream) throws IOException {
 		sendResponse(exchange, renderer, code, inputStream, -2, true);
 	}
 
-	public static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		if (inputStream == null) {
@@ -365,7 +344,7 @@ public class RequestHandler implements HttpHandler {
 		exchange.close();
 	}
 
-	public static void sendGetResponse(final HttpExchange exchange, final RendererConfiguration renderer, String uri) throws IOException {
+	private static void sendGetResponse(final HttpExchange exchange, final RendererConfiguration renderer, String uri) throws IOException {
 		// Request to retrieve a file
 		Range.Time timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		Range.Byte range = getRange(exchange.getRequestHeaders().getFirst("Range"));
@@ -786,7 +765,7 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	public static Range.Byte getRange(String rangeStr) {
+	private static Range.Byte getRange(String rangeStr) {
 		Range.Byte range = new Range.Byte(0L, 0L);
 		if (rangeStr == null || StringUtils.isEmpty(rangeStr)) {
 			return range;
@@ -813,7 +792,7 @@ public class RequestHandler implements HttpHandler {
 		return range;
 	}
 
-	public static Range.Time getTimeSeekRange(String timeSeekRangeStr) {
+	private static Range.Time getTimeSeekRange(String timeSeekRangeStr) {
 		Range.Time timeSeekRange = new Range.Time();
 		if (timeSeekRangeStr != null && timeSeekRangeStr.startsWith("npt=")) {
 			String[] params = timeSeekRangeStr.substring(4).split("[-/]");
@@ -836,21 +815,6 @@ public class RequestHandler implements HttpHandler {
 			}
 		}
 		return headers.entrySet();
-	}
-
-	/**
-	 * Wraps the payload around soap Envelope / Body tags.
-	 *
-	 * @param payload Soap body as a XML String
-	 * @return Soap message as a XML string
-	 */
-	private static StringBuilder createResponse(String payload) {
-		StringBuilder response = new StringBuilder();
-		response.append(HTTPXMLHelper.XML_HEADER).append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
-		response.append(payload).append(CRLF);
-		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER).append(CRLF);
-		return response;
 	}
 
 	/**
@@ -886,59 +850,21 @@ public class RequestHandler implements HttpHandler {
 		return getResourceInputStream(uri);
 	}
 
-	private static String getProtocolInfoHandler() {
-		return createResponse(HTTPXMLHelper.PROTOCOLINFO_RESPONSE).toString();
-	}
+	//------------------------- START ContentDirectory -------------------------
 
-	private static String serverSpecHandler(HttpExchange exchange, String uri, RendererConfiguration renderer) throws IOException {
-		exchange.getResponseHeaders().set("Cache-Control", "no-cache");
-		exchange.getResponseHeaders().set("Expires", "0");
-		exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
-		exchange.getResponseHeaders().set("Connection", "keep-alive");
-		InputStream iStream = getResourceInputStream((uri.equals("description/fetch") ? "PMS.xml" : uri));
-
-		byte[] b = new byte[iStream.available()];
-		iStream.read(b);
-		String s = new String(b, StandardCharsets.UTF_8);
-
-		if (uri.equals("description/fetch")) {
-			s = prepareUmsSpec(s, renderer);
-		}
-		return s;
-	}
-
-	private static String prepareUmsSpec(String umsXml, RendererConfiguration renderer) {
-		String result = umsXml.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-
-		if (MediaServer.getHost() != null) {
-			result = result.replace("[host]", MediaServer.getHost());
-			result = result.replace("[port]", "" + MediaServer.getPort());
-		}
-
-		String friendlyName = CONFIGURATION.getServerDisplayName();
-		if (renderer != null) {
-			if (renderer.isXbox360()) {
-				friendlyName += " : Windows Media Connect";
-				result = result.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-			} else if (renderer.isSamsung()) {
-				// register UMS as a AllShare service and enable built-in resume functionality (bookmark) on Samsung devices
-				result = result.replace("<serialNumber/>", "<serialNumber/>" + CRLF +
-						"<sec:ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:ProductCap>" + CRLF +
-						"<sec:X_ProductCap>smi,DCM10,getMediaInfo.sec,getCaptionInfo.sec</sec:X_ProductCap>");
-			}
-		}
-
-		result = result.replace("Universal Media Server", StringEscapeUtils.escapeXml10(friendlyName));
-		return result;
-	}
-
-	private static String msMediaReceiverRegistrarHandler(String soapaction) {
-		if (soapaction != null && soapaction.contains("IsAuthorized")) {
-			return createResponse(HTTPXMLHelper.XBOX_360_2).toString();
-		} else if (soapaction != null && soapaction.contains("IsValidated")) {
-			return createResponse(HTTPXMLHelper.XBOX_360_1).toString();
-		}
-		return "";
+	/**
+	 * Wraps the payload around soap Envelope / Body tags.
+	 *
+	 * @param payload Soap body as a XML String
+	 * @return Soap message as a XML string
+	 */
+	private static StringBuilder createResponse(String payload) {
+		StringBuilder response = new StringBuilder();
+		response.append(HTTPXMLHelper.XML_HEADER).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER).append(CRLF);
+		response.append(payload).append(CRLF);
+		response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER).append(CRLF);
+		return response;
 	}
 
 	private static String getSystemUpdateIdHandler() {
@@ -1125,10 +1051,10 @@ public class RequestHandler implements HttpHandler {
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
 			for (DLNAResource uf : files) {
-				if (uf instanceof PlaylistFolder) {
+				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
-						((PlaylistFolder) uf).resolve();
+						playlistFolder.resolve();
 					}
 				}
 
@@ -1284,8 +1210,8 @@ public class RequestHandler implements HttpHandler {
 				String addr = soapActionUrl.getHost();
 				int port = soapActionUrl.getPort();
 				try (
-						Socket sock = new Socket(addr, port);
-						OutputStream out = sock.getOutputStream()) {
+					Socket sock = new Socket(addr, port);
+					OutputStream out = sock.getOutputStream()) {
 					out.write(("NOTIFY /" + uri + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
@@ -1308,28 +1234,11 @@ public class RequestHandler implements HttpHandler {
 		}
 
 		StringBuilder response = new StringBuilder();
-		if (uri.contains("connection_manager")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
-			response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (uri.contains("content_directory")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
-			response.append(HTTPXMLHelper.eventProp("TransferIDs"));
-			response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-			response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (uri.contains("x_ms_mediareceiverregistrar")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
-			// though this is only a 'potemkin' implementation of an MRR,
-			// keep the MMR-related update ids in-sync with the system update id
-			response.append(HTTPXMLHelper.eventProp("AuthorizationGrantedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("AuthorizationDeniedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("ValidationSucceededUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("ValidationRevokedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		}
+		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
+		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
+		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
 
@@ -1352,6 +1261,8 @@ public class RequestHandler implements HttpHandler {
 		response.append("</e:propertyset>");
 		return response.toString();
 	}
+
+	//------------------------- END ContentDirectory -------------------------
 
 	/**
 	 * Returns a date somewhere in the far future.

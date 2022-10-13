@@ -156,14 +156,15 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 		private final Router router;
 		private final RequestHandlerV2 requestHandlerV2;
+		private final boolean serveContentDirectory;
 
 		public RequestUpstreamHandler(Router router, ChannelGroup allChannels) {
 			this.router = router;
-			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration &&
-				((UmsUpnpServiceConfiguration) router.getConfiguration()).useOwnHttpServer()) {
-				requestHandlerV2 = new RequestHandlerV2(allChannels);
+			requestHandlerV2 = new RequestHandlerV2(allChannels);
+			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration routerConfiguration) {
+				serveContentDirectory = routerConfiguration.useOwnContentDirectory();
 			} else {
-				requestHandlerV2 = null;
+				serveContentDirectory = false;
 			}
 		}
 
@@ -193,7 +194,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}

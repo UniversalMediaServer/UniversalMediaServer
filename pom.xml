@@ -106,7 +106,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.13.4</jackson.version>
+		<jackson.version>2.13.4.2</jackson.version>
 
 		<surefire-version>3.0.0-M7</surefire-version>
 
@@ -150,7 +150,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>4.0.0</version>
+		    <version>4.1.0</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
