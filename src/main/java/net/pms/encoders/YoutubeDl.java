@@ -46,7 +46,7 @@ public class YoutubeDl extends FFMpegVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -157,7 +157,7 @@ public class YoutubeDl extends FFMpegVideo {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

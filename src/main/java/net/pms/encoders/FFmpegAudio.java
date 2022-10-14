@@ -51,7 +51,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -66,12 +66,12 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

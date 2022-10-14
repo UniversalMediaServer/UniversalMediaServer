@@ -130,7 +130,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -366,7 +366,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -497,7 +497,7 @@ class PatternMap<T> extends ModAwareHashMap<String, T> {
 // (necessary because 'modCount' isn't accessible outside java.util)
 class ModAwareHashMap<K, V> extends HashMap<K, V> {
 	private static final long serialVersionUID = -5334451082377480129L;
-	public boolean modified = false;
+	protected boolean modified = false;
 
 	@Override
 	public void clear() {

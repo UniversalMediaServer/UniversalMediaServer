@@ -196,8 +196,8 @@ public final class GuiUtil {
 	// wider than a specified maximum.
 	public static class MarqueeLabel extends JLabel {
 		private static final long serialVersionUID = 8600355251271220610L;
-		public int speed, spacer, dir, maxWidth, interval = 33;
-		Timer timer = null;
+		private int speed, spacer, dir, maxWidth, interval = 33;
+		private Timer timer = null;
 
 		public MarqueeLabel(String text) {
 			this(text, 9999, 30, -1, 10);

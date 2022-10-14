@@ -95,7 +95,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = () -> {
 			try {
-				int n = -1;
+				int n;
 				byte[] data = new byte[65536];
 				zipFile = new ZipFile(file);
 				ZipEntry ze = zipFile.getEntry(zeName);

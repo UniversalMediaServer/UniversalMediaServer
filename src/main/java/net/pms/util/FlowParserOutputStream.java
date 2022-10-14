@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public abstract class FlowParserOutputStream extends OutputStream {
-	private ByteBuffer buffer;
-	private OutputStream out;
+	private final ByteBuffer buffer;
+	private final OutputStream out;
 	protected int neededByteNumber;
 	protected int streamableByteNumber;
 	protected boolean discard;
@@ -25,7 +25,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 	@Override
 	public void write(int b) throws IOException {
 	}
-	public int count;
+	private int count;
 
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
@@ -109,7 +109,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 	protected void writePayload(byte[] payload) throws IOException {
 		out.write(payload, 0, payload.length);
 	}
-	private byte[] zerobuffer;
+	private final byte[] zerobuffer;
 
 	protected void padWithZeros(int numberOfZeros) throws IOException {
 		if (numberOfZeros > 0) {
@@ -125,11 +125,12 @@ public abstract class FlowParserOutputStream extends OutputStream {
 
 	@Override
 	public void close() throws IOException {
-		int finalPos = buffer.position();
-		if (finalPos > 0 && streamableByteNumber > finalPos) {
-			out.write(buffer.array(), 0, finalPos);
-			padWithZeros(streamableByteNumber - finalPos);
+		try (out) {
+			int finalPos = buffer.position();
+			if (finalPos > 0 && streamableByteNumber > finalPos) {
+				out.write(buffer.array(), 0, finalPos);
+				padWithZeros(streamableByteNumber - finalPos);
+			}
 		}
-		out.close();
 	}
 }

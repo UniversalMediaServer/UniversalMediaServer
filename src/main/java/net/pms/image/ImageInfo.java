@@ -1043,20 +1043,20 @@ public abstract class ImageInfo implements Serializable {
 			);
 		}
 
-		if (colorSpaceType != null && parsedInfo.colorSpaceType != null && colorSpaceType != parsedInfo.colorSpaceType) {
-			if (
-				!(this instanceof JPEGInfo) ||
-				parsedInfo.colorSpaceType != ColorSpaceType.TYPE_YCbCr &&
-				colorSpaceType != ColorSpaceType.TYPE_RGB
-			) {
-				// ImageIO (TwelveMonkeys) will convert YCbCr to RGB when reading JPEGs, no reason to log that
-				LOGGER.debug(
-					"Warning: Parsed image color space type ({}) mismatches given color model " +
-					"color space type ({}) - using given color model color space type",
-					parsedInfo.colorSpaceType,
-					colorSpaceType
-				);
-			}
+		if (colorSpaceType != null &&
+			parsedInfo.colorSpaceType != null &&
+			colorSpaceType != parsedInfo.colorSpaceType &&
+			(!(this instanceof JPEGInfo) ||
+			parsedInfo.colorSpaceType != ColorSpaceType.TYPE_YCbCr &&
+			colorSpaceType != ColorSpaceType.TYPE_RGB)
+		) {
+			// ImageIO (TwelveMonkeys) will convert YCbCr to RGB when reading JPEGs, no reason to log that
+			LOGGER.debug(
+				"Warning: Parsed image color space type ({}) mismatches given color model " +
+				"color space type ({}) - using given color model color space type",
+				parsedInfo.colorSpaceType,
+				colorSpaceType
+			);
 		}
 	}
 

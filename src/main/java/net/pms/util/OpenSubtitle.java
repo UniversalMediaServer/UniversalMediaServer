@@ -3347,17 +3347,14 @@ public class OpenSubtitle {
 			this.openSubtitlesScore = openSubtitlesScore;
 			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
-				switch (matchedBy.toLowerCase(Locale.ROOT)) {
-					case "moviehash" -> {
-						tmpScore += 200d;
+				tmpScore += (
+					switch (matchedBy.toLowerCase(Locale.ROOT)) {
+						case "moviehash" -> 200d;
+						case "imdbid" -> 100d;
+						case "tag" -> 10d;
+						default -> 0d;
 					}
-					case "imdbid" -> {
-						tmpScore += 100d;
-					}
-					case "tag" -> {
-						tmpScore += 10d;
-					}
-				}
+				);
 			}
 			if (prettifier != null) {
 				Locale locale = PMS.getLocale();

@@ -355,7 +355,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioEmbedDtsInPcm() &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				renderer.isDTSPlayable();
 
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
@@ -364,7 +364,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioRemuxAC3() &&
 				params.getAid() != null &&
 				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek
 			) {
 				// AC-3 and AAC remux
@@ -688,7 +688,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -708,7 +708,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
@@ -725,7 +725,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -801,7 +801,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		List<String> cmdList = new ArrayList<>();
-		boolean avisynth = avisynth();
+		boolean avisynth = isAviSynthEngine();
 		if (params.getTimeSeek() > 0) {
 			params.setWaitBeforeStart(1);
 		} else if (renderer.isTranscodeFastStart()) {
@@ -829,7 +829,7 @@ public class FFMpegVideo extends Engine {
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
 			params.getAid().isAC3() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
 			params.getAid().getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
@@ -842,7 +842,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioEmbedDtsInPcm() &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				params.getMediaRenderer().isDTSPlayable();
 		}
 
@@ -905,7 +905,7 @@ public class FFMpegVideo extends Engine {
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-			} else if (avisynth()) {
+			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -936,7 +936,7 @@ public class FFMpegVideo extends Engine {
 			} else if (params.getSid() != null) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-			} else if (avisynth()) {
+			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -1693,7 +1693,7 @@ public class FFMpegVideo extends Engine {
 	 * @return
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isDisableSubtitles() || (params.getSid() == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.getSid() == null) || isAviSynthEngine();
 	}
 
 	@Override

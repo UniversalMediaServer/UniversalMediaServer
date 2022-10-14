@@ -27,13 +27,13 @@ import net.pms.configuration.DeviceConfiguration;
 /**
  * An empty implementation with some basic funtionalities defined.
  */
-public class MinimalPlayer implements BasicPlayer {
-	public DeviceConfiguration renderer;
+public abstract class MinimalPlayer implements BasicPlayer {
+	protected DeviceConfiguration renderer;
 	protected PlayerState state;
 	protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 	protected final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 
-	public MinimalPlayer(DeviceConfiguration renderer) {
+	protected MinimalPlayer(DeviceConfiguration renderer) {
 		this.renderer = renderer;
 		state = new PlayerState();
 		reset();
@@ -178,6 +178,10 @@ public class MinimalPlayer implements BasicPlayer {
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
+	}
+
+	public DeviceConfiguration getRenderer() {
+		return renderer;
 	}
 }
 

@@ -72,7 +72,7 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -87,7 +87,7 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

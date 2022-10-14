@@ -58,7 +58,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	public String id() {
 		if (player != null) {
-			return player.id().toString();
+			return player.getEngineId().toString();
 		} else if (otherConfigPanel != null) {
 			return "" + otherConfigPanel.hashCode();
 		} else {
@@ -69,7 +69,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	public JComponent getConfigPanel() {
 		if (player != null) {
 			if (player.isAvailable()) {
-				return Players.config(player.name());
+				return Players.config(player.getName());
 			}
 			return getWarningPanel();
 		} else if (otherConfigPanel != null) {

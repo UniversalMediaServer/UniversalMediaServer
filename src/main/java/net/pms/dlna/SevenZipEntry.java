@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
-import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
@@ -122,18 +121,14 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 					return;
 				}
 
-				realItem.extractSlow(new ISequentialOutStream() {
-
-					@Override
-					public int write(byte[] data) throws SevenZipException {
-						try {
-							out.write(data);
-						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
-							throw new SevenZipException();
-						}
-						return data.length;
+				realItem.extractSlow((byte[] data) -> {
+					try {
+						out.write(data);
+					} catch (IOException e) {
+						LOGGER.debug("Caught exception", e);
+						throw new SevenZipException();
 					}
+					return data.length;
 				});
 			} catch (FileNotFoundException | SevenZipException e) {
 				LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());

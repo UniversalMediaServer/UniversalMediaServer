@@ -38,7 +38,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -69,7 +69,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

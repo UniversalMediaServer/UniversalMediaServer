@@ -83,10 +83,8 @@ public class DLNAOrgFlags implements ProtocolInfoAttribute {
 				high &= ~(1L << 55);
 			}
 			high &= ~(1L << 54);
-			if (flags != null) {
-				if (flags.isCleartextByteFullDataSeek()) {
-					high |= 1L << 48;
-				}
+			if (flags != null && flags.isCleartextByteFullDataSeek()) {
+				high |= 1L << 48;
 			}
 			high &= ~(1L << 46);
 		} else {
@@ -125,14 +123,16 @@ public class DLNAOrgFlags implements ProtocolInfoAttribute {
 			throw new IllegalArgumentException("hexValue cannot be empty");
 		}
 		try {
-			if (hexValue.length() == 8) {
-				high = Long.parseLong(hexValue, 16) << 32;
-				low = 0;
-			} else if (hexValue.length() == 32) {
-				high = Long.parseLong(hexValue.substring(0, 8), 16) << 32 + Long.parseLong(hexValue.substring(8, 16), 16); //Unsigned
-				low  = Long.parseLong(hexValue.substring(16, 24), 16) << 32 + Long.parseLong(hexValue.substring(24), 16); //Unsigned
-			} else {
-				throw new IllegalArgumentException("hexValue must be 8 or 32 digits long");
+			switch (hexValue.length()) {
+				case 8 -> {
+					high = Long.parseLong(hexValue, 16) << 32;
+					low = 0;
+				}
+				case 32 -> {
+					high = Long.parseLong(hexValue.substring(0, 8), 16) << 32 + Long.parseLong(hexValue.substring(8, 16), 16); //Unsigned
+					low  = Long.parseLong(hexValue.substring(16, 24), 16) << 32 + Long.parseLong(hexValue.substring(24), 16); //Unsigned
+				}
+				default -> throw new IllegalArgumentException("hexValue must be 8 or 32 digits long");
 			}
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("hexValue must be a valid hexadecimal number with 8 or 32 digits", e);

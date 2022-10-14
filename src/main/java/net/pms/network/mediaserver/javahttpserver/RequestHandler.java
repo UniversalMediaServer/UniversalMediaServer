@@ -497,16 +497,11 @@ public class RequestHandler implements HttpHandler {
 				if (imageProfile == null) {
 					// Parsing failed for some reason, we'll have to pick a profile
 					if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
-						switch (dlna.getMedia().getImageInfo().getFormat()) {
-							case GIF:
-								imageProfile = DLNAImageProfile.GIF_LRG;
-								break;
-							case PNG:
-								imageProfile = DLNAImageProfile.PNG_LRG;
-								break;
-							default:
-								imageProfile = DLNAImageProfile.JPEG_LRG;
-						}
+						imageProfile = switch (dlna.getMedia().getImageInfo().getFormat()) {
+							case GIF -> DLNAImageProfile.GIF_LRG;
+							case PNG -> DLNAImageProfile.PNG_LRG;
+							default -> DLNAImageProfile.JPEG_LRG;
+						};
 					} else {
 						imageProfile = DLNAImageProfile.JPEG_LRG;
 					}
@@ -780,13 +775,13 @@ public class RequestHandler implements HttpHandler {
 		if (dashPos > 0) {
 			long firstPos = Long.parseLong(rangeStr.substring(0, dashPos));
 			if (dashPos < rangeStr.length() - 1) {
-				Long lastPos = Long.parseLong(rangeStr.substring(dashPos + 1, rangeStr.length()));
+				Long lastPos = Long.valueOf(rangeStr.substring(dashPos + 1, rangeStr.length()));
 				return new Range.Byte(firstPos, lastPos);
 			} else {
 				return new Range.Byte(firstPos, -1L);
 			}
 		} else if (dashPos == 0) {
-			return new Range.Byte(0L, Long.parseLong(rangeStr.substring(1)));
+			return new Range.Byte(0L, Long.valueOf(rangeStr.substring(1)));
 		}
 		LOGGER.warn("Range '" + rangeStr + "' is not well formed");
 		return range;

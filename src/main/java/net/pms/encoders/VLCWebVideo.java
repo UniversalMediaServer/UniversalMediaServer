@@ -37,7 +37,7 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -52,7 +52,7 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

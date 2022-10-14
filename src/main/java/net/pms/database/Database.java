@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public abstract class Database extends DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Database.class);
 
-	private final Boolean embedded;
+	private final boolean embedded;
 	private final HikariDataSource ds;
 	private final String dbName;
 

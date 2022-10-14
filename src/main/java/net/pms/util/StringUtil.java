@@ -804,28 +804,8 @@ public class StringUtil {
 		for (int i = 0; i < s.length(); i++) {
 			char ch = s.charAt(i);
 			switch (ch) {
-				case '+':
-				case '-':
-				case '&':
-				case '|':
-				case '!':
-				case '(':
-				case ')':
-				case '{':
-				case '}':
-				case '[':
-				case ']':
-				case '^':
-				case '\"':
-				case '~':
-				case '*':
-				case '?':
-				case ':':
-				case '\\':
-				case '/':
-					sb.append("\\");
-				default:
-					sb.append(ch);
+				case '+', '-', '&', '|', '!', '(', ')', '{', '}', '[', ']', '^', '\"', '~', '*', '?', ':', '\\', '/' -> sb.append("\\").append(ch);
+				default -> sb.append(ch);
 			}
 		}
 
@@ -843,22 +823,11 @@ public class StringUtil {
 		for (int i = 0; i < s.length(); i++) {
 			char ch = s.charAt(i);
 			switch (ch) {
-				case '\'':
-					sb.append("\\\\\\'");
-					break;
-				case ':':
-					sb.append("\\\\:");
-					break;
-				case '\\':
-					sb.append("/");
-					break;
-				case ']':
-				case '[':
-				case ',':
-				case ';':
-					sb.append("\\");
-				default:
-					sb.append(ch);
+				case '\'' -> sb.append("\\\\\\'");
+				case ':' -> sb.append("\\\\:");
+				case '\\' -> sb.append("/");
+				case ']', '[', ',', ';' -> sb.append("\\").append(ch);
+				default -> sb.append(ch);
 			}
 		}
 

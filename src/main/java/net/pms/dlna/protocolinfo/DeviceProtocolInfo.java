@@ -543,11 +543,9 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.writeLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			if (set != null) {
-				if (set.remove(protocolInfo)) {
-					updateImageProfiles();
-					return true;
-				}
+			if (set != null && set.remove(protocolInfo)) {
+				updateImageProfiles();
+				return true;
 			}
 			return false;
 		} finally {
@@ -911,15 +909,14 @@ public class DeviceProtocolInfo implements Serializable {
 		if (StringUtils.isBlank(element)) {
 			return null;
 		}
-		switch (element) {
-			/*
-			 * Seen on a LG-BP550-1, missing comma between elements
-			 */
-			case "http-get:*:audio/sonyoma:*http-get:*:audio/ogg:*":
-				SortedSet<ProtocolInfo> currentSet = new TreeSet<>();
-				currentSet.add(new ProtocolInfo("http-get:*:audio/sonyoma:*"));
-				currentSet.add(new ProtocolInfo("http-get:*:audio/ogg:*"));
-				return currentSet;
+		/*
+		 * Seen on a LG-BP550-1, missing comma between elements
+		 */
+		if (element.equals("http-get:*:audio/sonyoma:*http-get:*:audio/ogg:*")) {
+			SortedSet<ProtocolInfo> currentSet = new TreeSet<>();
+			currentSet.add(new ProtocolInfo("http-get:*:audio/sonyoma:*"));
+			currentSet.add(new ProtocolInfo("http-get:*:audio/ogg:*"));
+			return currentSet;
 		}
 		return null;
 	}

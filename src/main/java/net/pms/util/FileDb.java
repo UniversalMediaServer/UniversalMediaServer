@@ -142,10 +142,8 @@ public class FileDb {
 	}
 
 	public void addNoSync(String key, Object obj) {
-		if (!overwrite) {
-			if (get(key) != null) {
-				return;
-			}
+		if (!overwrite && get(key) != null) {
+			return;
 		}
 		db.put(key, obj);
 		hasNulls |= isNull(obj);

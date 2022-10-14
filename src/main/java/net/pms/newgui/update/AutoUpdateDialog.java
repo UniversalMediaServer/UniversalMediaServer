@@ -20,8 +20,6 @@ import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
@@ -32,7 +30,6 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
-	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdateDialog.class);
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {

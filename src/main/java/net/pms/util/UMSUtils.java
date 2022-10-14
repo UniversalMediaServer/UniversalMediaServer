@@ -49,6 +49,12 @@ public class UMSUtils {
 	}
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private UMSUtils() {
+	}
+
+	/**
 	 * Filters the list of resources in-place by removing all items that do
 	 * not match or contain searchString.
 	 *
@@ -396,7 +402,7 @@ public class UMSUtils {
 
 		private static Engine findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
 			for (Engine player : EngineFactory.getEngines(onlyEnabled, onlyAvailable)) {
-				if (playerName.equals(player.name())) {
+				if (playerName.equals(player.getName())) {
 					return player;
 				}
 			}

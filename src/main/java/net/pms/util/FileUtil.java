@@ -519,12 +519,20 @@ public class FileUtil {
 	}
 
 	private static final class FormattedNameAndEdition {
-		public String formattedName;
-		public String edition;
+		private final String formattedName;
+		private final String edition;
 
 		public FormattedNameAndEdition(String formattedName, String edition) {
 			this.formattedName = formattedName;
 			this.edition = edition;
+		}
+
+		public String getEdition() {
+			return edition;
+		}
+
+		public String getFormattedName() {
+			return formattedName;
 		}
 	}
 
@@ -948,9 +956,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION + "\\s", " S" + tvSeason + "E$2-$3 - ");
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION, " S" + tvSeason + "E$2-$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = removeFilenameEndMetadata(formattedName);
@@ -969,9 +977,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -994,9 +1002,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1019,9 +1027,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1044,9 +1052,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1070,9 +1078,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1099,9 +1107,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1135,9 +1143,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			formattedName = formattedName.replaceAll("\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = removeFilenameEndMetadata(formattedName);
@@ -1149,9 +1157,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s(19|20)(\\d{2})", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
@@ -1226,9 +1234,9 @@ public class FileUtil {
 			isMovieWithoutYear = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);

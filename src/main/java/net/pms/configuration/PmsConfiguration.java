@@ -3025,7 +3025,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new NullPointerException("engine cannot be null");
 		}
 
-		return isEngineEnabled(engine.id());
+		return isEngineEnabled(engine.getEngineId());
 	}
 
 	/**
@@ -3064,7 +3064,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param enabled the enabled status to set.
 	 */
 	public void setEngineEnabled(Engine engine, boolean enabled) {
-		setEngineEnabled(engine.id(), enabled);
+		setEngineEnabled(engine.getEngineId(), enabled);
 	}
 
 	/**
@@ -3082,7 +3082,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		String engines = configuration.getString(KEY_ENGINES);
 		if (StringUtils.isNotBlank(engines)) {
-			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.id().toString());
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.getEngineId().toString());
 			if (!engines.equals(capitalizedEngines)) {
 				configuration.setProperty(KEY_ENGINES, capitalizedEngines);
 			}
@@ -3090,7 +3090,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		engines = configuration.getString(KEY_ENGINES_PRIORITY);
 		if (StringUtils.isNotBlank(engines)) {
-			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.id().toString());
+			String capitalizedEngines = StringUtil.caseReplace(engines.trim(), engine.getEngineId().toString());
 			if (!engines.equals(capitalizedEngines)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, capitalizedEngines);
 			}
@@ -3168,7 +3168,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new NullPointerException("engine cannot be null");
 		}
 
-		return getEnginePriority(engine.id());
+		return getEnginePriority(engine.getEngineId());
 	}
 
 	/**
@@ -3186,7 +3186,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		setEnginePriorityAbove(engine.id(), aboveEngine == null ? null : aboveEngine.id());
+		setEnginePriorityAbove(engine.getEngineId(), aboveEngine == null ? null : aboveEngine.getEngineId());
 	}
 
 	/**
@@ -3243,7 +3243,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		setEnginePriorityBelow(engine.id(), belowEngine == null ? null : belowEngine.id());
+		setEnginePriorityBelow(engine.getEngineId(), belowEngine == null ? null : belowEngine.getEngineId());
 	}
 
 	/**
@@ -5561,7 +5561,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			if (engine != null) {
 				JsonObject jsonPlayer = new JsonObject();
 				jsonPlayer.add("id", new JsonPrimitive(engineId.getName()));
-				jsonPlayer.add("name", new JsonPrimitive(engine.name()));
+				jsonPlayer.add("name", new JsonPrimitive(engine.getName()));
 				jsonPlayer.add("isAvailable", new JsonPrimitive(engine.isAvailable()));
 				jsonPlayer.add("purpose", new JsonPrimitive(engine.purpose()));
 				jsonPlayer.add("statusText", engine.getStatusTextFullAsJsonArray());

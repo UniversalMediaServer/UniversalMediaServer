@@ -52,7 +52,7 @@ public class GeneralTab {
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
-	public JCheckBox smcheckBox;
+	private JCheckBox smcheckBox;
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
@@ -63,7 +63,7 @@ public class GeneralTab {
 	private JTextField serverName;
 	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ipFilter;
-	public JTextField maxbitrate;
+	private JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
 	private JComboBox<String> serverEngine;
 	private final PmsConfiguration configuration;

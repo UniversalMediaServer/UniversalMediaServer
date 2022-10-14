@@ -612,7 +612,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodingEngine = child.engine;
 						} else {
 							for (Engine tEngine : EngineFactory.getEngines()) {
-								String end = "[" + tEngine.id().toString() + "]";
+								String end = "[" + tEngine.getEngineId().toString() + "]";
 
 								if (name.endsWith(end)) {
 									nametruncate = name.lastIndexOf(end);
@@ -707,7 +707,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							Engine transcodingEngine = EngineFactory.getEngine(newChild);
 							newChild.setEngine(transcodingEngine);
 							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.format.toString(),
-								engine == null ? "null" : engine.name(), newChild.getName());
+								engine == null ? "null" : engine.getName(), newChild.getName());
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
@@ -1552,7 +1552,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String engineName = null;
 		if (engine != null) {
 			if (isNoName() || !configuration.isHideEngineNames()) {
-				engineName = "[" + engine.name() + (isAvisynth() ? " + AviSynth]" : "]");
+				engineName = "[" + engine.getName() + (isAvisynth() ? " + AviSynth]" : "]");
 			}
 		} else if (isNoName()) {
 			engineName = Messages.getString("NoTranscoding");
@@ -1991,14 +1991,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (engine != null) {
 						// VLC Web Video (Legacy) and tsMuxeR always output
 						// MPEG-TS
-						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.id()) || VideoLanVideoStreaming.ID.equals(engine.id());
+						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.getEngineId()) || VideoLanVideoStreaming.ID.equals(engine.getEngineId());
 
 						// Check if the renderer settings make the current
 						// engine always output MPEG-TS
 						if (!isOutputtingMPEGTS && mediaRenderer.isTranscodeToMPEGTS() &&
-							(MEncoderVideo.ID.equals(engine.id()) || FFMpegVideo.ID.equals(engine.id()) ||
-								VLCVideo.ID.equals(engine.id()) || AviSynthFFmpeg.ID.equals(engine.id()) ||
-								AviSynthMEncoder.ID.equals(engine.id()))) {
+							(MEncoderVideo.ID.equals(engine.getEngineId()) || FFMpegVideo.ID.equals(engine.getEngineId()) ||
+								VLCVideo.ID.equals(engine.getEngineId()) || AviSynthFFmpeg.ID.equals(engine.getEngineId()) ||
+								AviSynthMEncoder.ID.equals(engine.getEngineId()))) {
 							isOutputtingMPEGTS = true;
 						}
 
@@ -2006,9 +2006,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// MPEG-TS and the setting is enabled, it might be
 						// MPEG-TS
 						if (!isOutputtingMPEGTS &&
-							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.id())) ||
+							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.getEngineId())) ||
 								(configurationSpecificToRenderer.isFFmpegMuxWithTsMuxerWhenCompatible() &&
-									FFMpegVideo.ID.equals(engine.id())))) {
+									FFMpegVideo.ID.equals(engine.getEngineId())))) {
 							/*
 							 * Media renderer needs ORG_PN to be accurate. If
 							 * the value does not match the media, it won't play
@@ -2056,7 +2056,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (isOutputtingMPEGTS) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
-							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.id())) {
+							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
 							}
 						}
@@ -2707,11 +2707,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo,
 							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInf)));
 					}
-					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
-						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
-							resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo,
-								DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
-						}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo) &&
+						(DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer))
+					) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo,
+							DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
 					}
 				}
 			}
@@ -2858,10 +2858,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
 						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo, true));
 					}
-					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
-						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
-							resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
-						}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo) &&
+						(DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer))
+					) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
 					}
 				}
 			}
@@ -2877,12 +2877,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// Offering AlbumArt for video breaks the standard, but some
 				// renderers need it
 				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT:
-					case DLNAImageProfile.JPEG_SM_INT:
-					case DLNAImageProfile.JPEG_TN_INT:
-					case DLNAImageProfile.PNG_LRG_INT:
-					case DLNAImageProfile.PNG_TN_INT:
-						addAlbumArt(sb, resElement.getProfile());
+					case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(sb, resElement.getProfile());
 				}
 			}
 		}
@@ -3312,6 +3307,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}
@@ -3469,7 +3465,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// A URL
 			try {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
-			} catch (Exception e) {
+			} catch (IOException e) {
+				//dowwnload fail
 			}
 		}
 

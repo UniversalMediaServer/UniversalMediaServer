@@ -52,8 +52,7 @@ public class DbIdResourceLocator {
 	}
 
 	public static DLNAResource locateResource(String id) {
-		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id));
-		return resource;
+		return getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id));
 	}
 
 	public static String encodeDbid(DbIdTypeAndIdent2 typeIdent) {
@@ -83,9 +82,7 @@ public class DbIdResourceLocator {
 				try (Statement statement = connection.createStatement()) {
 					String sql;
 					switch (typeAndIdent.type) {
-						case TYPE_AUDIO:
-						case TYPE_VIDEO:
-						case TYPE_IMAGE:
+						case TYPE_AUDIO, TYPE_VIDEO, TYPE_IMAGE -> {
 							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
@@ -96,9 +93,8 @@ public class DbIdResourceLocator {
 									res.resolve();
 								}
 							}
-							break;
-
-						case TYPE_PLAYLIST:
+						}
+						case TYPE_PLAYLIST -> {
 							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
@@ -111,70 +107,66 @@ public class DbIdResourceLocator {
 									res.refreshChildren();
 								}
 							}
-							break;
-
-						case TYPE_ALBUM:
+						}
+						case TYPE_ALBUM -> {
 							sql = String.format(
-								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
-									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')",
-								typeAndIdent.ident);
+									"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+											"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')",
+									typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
-										new File(resultSet.getString("FILENAME")));
+											new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
+											new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
 								}
 							}
-							break;
-
-						case TYPE_MUSICBRAINZ_RECORDID:
+						}
+						case TYPE_MUSICBRAINZ_RECORDID -> {
 							sql = String.format(
-								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
-									"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + " = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK,
-								typeAndIdent.ident);
+									"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+											"WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + " = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK,
+									typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new VirtualFolderDbId(resultSet.getString("ALBUM"),
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
+											new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
 									res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums"))));
 									// Find "best track" logic should be optimized !!
 									String lastUuidTrack = "";
 									do {
 										String currentUuidTrack = resultSet.getString("MBID_TRACK");
-										if (currentUuidTrack.equals(lastUuidTrack)) {
-											continue;
-										} else {
+										if (!currentUuidTrack.equals(lastUuidTrack)) {
 											lastUuidTrack = currentUuidTrack;
 											DLNAResource item = new RealFileDbId(
-												new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
-												new File(resultSet.getString("FILENAME")));
+													new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
+													new File(resultSet.getString("FILENAME")));
 											item.resolve();
 											res.addChild(item);
 										}
 									} while (resultSet.next());
 								}
 							}
-							break;
-						case TYPE_MYMUSIC_ALBUM:
+						}
+						case TYPE_MYMUSIC_ALBUM -> {
 							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ", " + MediaTableAudiotracks.TABLE_COL_MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + ";";
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
 							}
 							DoubleRecordFilter filter = new DoubleRecordFilter();
 							res = new VirtualFolderDbId(
-								Messages.getString("MyAlbums"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums")),
-								"");
+									Messages.getString("MyAlbums"),
+									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums")),
+									"");
 							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 								res.setFakeParentId("0");
 							} else if (PMS.get().getLibrary().isEnabled()) {
@@ -186,92 +178,88 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									filter.addAlbum(new MusicBrainzAlbum(
-										resultSet.getString("MBID_RELEASE"),
-										resultSet.getString("ALBUM"),
-										resultSet.getString("ARTIST"),
-										resultSet.getInt("MEDIA_YEAR")));
+											resultSet.getString("MBID_RELEASE"),
+											resultSet.getString("ALBUM"),
+											resultSet.getString("ARTIST"),
+											resultSet.getInt("MEDIA_YEAR")));
 								}
 								for (MusicBrainzAlbum album : filter.getUniqueAlbumSet()) {
 									VirtualFolderDbId albumFolder = new VirtualFolderDbId(album.album, new DbIdTypeAndIdent2(
-										DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID,
-										album.mbReleaseid), "");
+											DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID,
+											album.mbReleaseid), "");
 									appendAlbumInformation(album, albumFolder);
 									res.addChild(albumFolder);
 								}
 							}
-							break;
-						case TYPE_PERSON_ALL_FILES:
+						}
+						case TYPE_PERSON_ALL_FILES -> {
 							sql = String.format(
-								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
-									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
-								typeAndIdent.ident, typeAndIdent.ident);
+									"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+											"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
+									typeAndIdent.ident, typeAndIdent.ident);
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PERSON : %s", sql));
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
-										new File(resultSet.getString("FILENAME")));
+											new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
+											new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
 								}
 							}
 							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
-							break;
-
-						case TYPE_PERSON:
+						}
+						case TYPE_PERSON -> {
 							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
-								"");
+									"");
 							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
+									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
 							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum_lowercase"),
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
+									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
-							break;
-
-						case TYPE_PERSON_ALBUM:
+						}
+						case TYPE_PERSON_ALBUM -> {
 							sql = String.format("SELECT DISTINCT(" + MediaTableAudiotracks.TABLE_COL_ALBUM + ") FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
-								typeAndIdent.ident);
+									typeAndIdent.ident);
 							res = new VirtualFolderDbId(
-								typeAndIdent.ident,
-								new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident),
-								""
+									typeAndIdent.ident,
+									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident),
+									""
 							);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									String album = resultSet.getString(1);
 									res.addChild(new VirtualFolderDbId(album, new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM_FILES,
-										typeAndIdent.ident + DbIdMediaType.SPLIT_CHARS + album), ""));
+											typeAndIdent.ident + DbIdMediaType.SPLIT_CHARS + album), ""));
 								}
 							}
 							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
-							break;
-
-						case TYPE_PERSON_ALBUM_FILES:
+						}
+						case TYPE_PERSON_ALBUM_FILES -> {
 							String[] identSplitted = typeAndIdent.ident.split(DbIdMediaType.SPLIT_CHARS);
 							sql = String.format(
-								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
-									"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s') AND (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
-								identSplitted[1], identSplitted[0], identSplitted[0]);
+									"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " +
+											"WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s') AND (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
+									identSplitted[1], identSplitted[0], identSplitted[0]);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],
-									new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
+										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
-										new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
-										new File(resultSet.getString("FILENAME")));
+											new DbIdTypeAndIdent2(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
+											new File(resultSet.getString("FILENAME")));
 									item.resolve();
 									res.addChild(item);
 								}
 							}
 							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent2(DbIdMediaType.TYPE_PERSON_ALBUM, identSplitted[0])));
-							break;
-						default:
-							throw new RuntimeException("Unknown Type");
+						}
+						default -> throw new RuntimeException("Unknown Type");
 					}
 				}
 			} else {

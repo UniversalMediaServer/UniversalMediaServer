@@ -47,17 +47,17 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return true;
 	}
 

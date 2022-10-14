@@ -264,11 +264,12 @@ public abstract class ExifInfo extends ImageInfo {
 						((ExifParseInfo) parsedInfo).exifColorSpace = ExifColorSpace.typeOf(i.intValue());
 					}
 				}
-			} else if (directory instanceof ExifThumbnailDirectory && !((ExifParseInfo) parsedInfo).hasExifThumbnail.booleanValue()) {
-				if (((ExifThumbnailDirectory) directory).containsTag(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH)) {
-					Integer i = ((ExifThumbnailDirectory) directory).getInteger(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH);
-					((ExifParseInfo) parsedInfo).hasExifThumbnail = Boolean.valueOf(i != null && i.intValue() > 0);
-				}
+			} else if (directory instanceof ExifThumbnailDirectory exifThumbnailDirectory &&
+					!((ExifParseInfo) parsedInfo).hasExifThumbnail &&
+					exifThumbnailDirectory.containsTag(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH)
+			) {
+				Integer i = exifThumbnailDirectory.getInteger(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH);
+				((ExifParseInfo) parsedInfo).hasExifThumbnail = i != null && i > 0;
 			}
 		}
 	}

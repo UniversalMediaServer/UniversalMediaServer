@@ -78,7 +78,7 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -117,7 +117,7 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

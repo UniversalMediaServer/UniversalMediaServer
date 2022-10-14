@@ -42,6 +42,12 @@ public class AccountService {
 	private static final Map<Integer, Group> GROUPS = new HashMap<>();
 	private static final Account FAKE_ADMIN_ACCOUNT = setFakeAdminAccount();
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private AccountService() {
+	}
+
 	public static Account getAccountByUserId(final int userId) {
 		Account result = new Account();
 		result.setUser(getUserById(userId));

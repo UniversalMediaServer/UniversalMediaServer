@@ -118,7 +118,6 @@ public class UmsContentDirectoryService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
 	private static final List<String> CAPS_SEARCH = List.of();
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
-	private static final String CAPS_WILDCARD = "*";
 	private static final String CRLF = "\r\n";
 
 	@UpnpStateVariable(sendEvents = false)

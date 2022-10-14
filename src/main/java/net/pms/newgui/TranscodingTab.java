@@ -127,9 +127,9 @@ public class TranscodingTab {
 	private JImageButton arrowUpButton;
 	private JImageButton toggleButton;
 	private enum ToggleButtonState {
-		Unknown("button-toggle-on_disabled.png"),
-		On("button-toggle-on.png"),
-		Off("button-toggle-off.png");
+		UNKNOWN("button-toggle-on_disabled.png"),
+		ON("button-toggle-on.png"),
+		OFF("button-toggle-off.png");
 
 		private final String iconName;
 		private ToggleButtonState(String name) {
@@ -185,7 +185,7 @@ public class TranscodingTab {
 		) {
 			arrowDownButton.setEnabled(false);
 			arrowUpButton.setEnabled(false);
-			toggleButton.setIconName(ToggleButtonState.Unknown.getIconName());
+			toggleButton.setIconName(ToggleButtonState.UNKNOWN.getIconName());
 			toggleButton.setEnabled(false);
 		} else {
 			TreeNodeSettings node = (TreeNodeSettings) path.getLastPathComponent();
@@ -195,10 +195,10 @@ public class TranscodingTab {
 			arrowDownButton.setEnabled(index != node.getParent().getChildCount() - 1);
 			Engine player = node.getPlayer();
 			if (player.isEnabled()) {
-				toggleButton.setIconName(ToggleButtonState.On.getIconName());
+				toggleButton.setIconName(ToggleButtonState.ON.getIconName());
 				toggleButton.setEnabled(true);
 			} else {
-				toggleButton.setIconName(ToggleButtonState.Off.getIconName());
+				toggleButton.setIconName(ToggleButtonState.OFF.getIconName());
 				toggleButton.setEnabled(player.isAvailable());
 			}
 		}
@@ -355,7 +355,7 @@ public class TranscodingTab {
 		}
 
 		for (Engine player : EngineFactory.getAllEngines()) {
-			TreeNodeSettings engine = new TreeNodeSettings(player.name(), player, null);
+			TreeNodeSettings engine = new TreeNodeSettings(player.getName(), player, null);
 
 			JComponent configPanel = engine.getConfigPanel();
 			if (configPanel == null) {

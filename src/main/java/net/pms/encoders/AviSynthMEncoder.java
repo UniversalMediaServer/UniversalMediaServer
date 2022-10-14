@@ -49,17 +49,17 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return true;
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

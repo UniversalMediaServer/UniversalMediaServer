@@ -39,7 +39,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -49,7 +49,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

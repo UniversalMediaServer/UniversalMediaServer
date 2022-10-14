@@ -70,6 +70,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 		byte[] gobbler = new byte[1024];
 		try {
 			while (is.read(gobbler) != -1) {
+				//do nothing
 			}
 		} catch (IOException e) {
 			LOGGER.error("Gobbling of {} failed with: {}", is.getClass(), e.getMessage());
@@ -116,6 +117,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 			try {
 				autoCloseable.close();
 			} catch (Exception e) {
+				//do nothing
 			}
 		}
 	}

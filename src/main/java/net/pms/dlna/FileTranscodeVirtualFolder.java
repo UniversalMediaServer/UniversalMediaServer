@@ -311,7 +311,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 					dlna.getName(),
 					dlna.getMediaAudio(),
 					dlna.getMediaSubtitle(),
-					dlna.getEngine() != null ? dlna.getEngine().name() : null);
+					dlna.getEngine() != null ? dlna.getEngine().getName() : null);
 
 				addChildInternal(dlna);
 				addChapterFolder(dlna);

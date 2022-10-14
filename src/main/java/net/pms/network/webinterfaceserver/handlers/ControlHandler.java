@@ -221,6 +221,7 @@ public class ControlHandler implements HttpHandler {
 				InetAddress ia = InetAddress.getByName(bumpAddress);
 				defaultRenderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 			} catch (UnknownHostException e) {
+				//do nothing
 			}
 		}
 		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
@@ -236,7 +237,7 @@ public class ControlHandler implements HttpHandler {
 	@Deprecated
 	public String getRenderers(InetAddress client) {
 		LogicalPlayer player = selectedPlayers.get(client);
-		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
+		RendererConfiguration selected = player != null ? player.getRenderer() : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.getUUID() : r, r == selected ? 1 : 0, r.getUUID()));

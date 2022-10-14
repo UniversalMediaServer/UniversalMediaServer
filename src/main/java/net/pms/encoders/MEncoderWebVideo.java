@@ -42,7 +42,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -130,12 +130,12 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

@@ -126,7 +126,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -141,7 +141,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
@@ -172,7 +172,7 @@ public class MEncoderVideo extends Engine {
 		defaultArgsList.add("-of");
 		if (wmv || isTranscodeToMPEGTS) {
 			defaultArgsList.add("lavf");
-		} else if (pcm && avisynth()) {
+		} else if (pcm && isAviSynthEngine()) {
 			defaultArgsList.add("avi");
 		} else if (pcm || dtsRemux || encodedAudioPassthrough) {
 			defaultArgsList.add("rawvideo");
@@ -418,7 +418,7 @@ public class MEncoderVideo extends Engine {
 	 *     3) avisynth()
 	 */
 	private boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isDisableSubtitles() || (params.getSid() == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.getSid() == null) || isAviSynthEngine();
 	}
 
 	@Override
@@ -432,7 +432,7 @@ public class MEncoderVideo extends Engine {
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		params.manageFastStart();
 
-		boolean avisynth = avisynth();
+		boolean avisynth = isAviSynthEngine();
 
 		final String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
@@ -510,7 +510,7 @@ public class MEncoderVideo extends Engine {
 		} else if (isDVD) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "this is a DVD track.");
-		} else if (avisynth()) {
+		} else if (isAviSynthEngine()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 		} else if (params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -663,14 +663,14 @@ public class MEncoderVideo extends Engine {
 			) &&
 			params.getAid() != null &&
 			params.getAid().isNonPCMEncodedAudio() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			params.getMediaRenderer().isMuxLPCMToMpeg();
 
 		if (
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
 			params.getAid().isAC3() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			params.getMediaRenderer().isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
@@ -689,7 +689,7 @@ public class MEncoderVideo extends Engine {
 				) &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				params.getMediaRenderer().isDTSPlayable() &&
 				!combinedCustomOptions.contains("acodec=");
 			pcm = isTsMuxeRVideoEngineActive &&
@@ -732,7 +732,7 @@ public class MEncoderVideo extends Engine {
 		// TODO when we can still use it?
 		ovccopy = false;
 
-		if (pcm && avisynth()) {
+		if (pcm && isAviSynthEngine()) {
 			params.setAvidemux(true);
 		}
 
@@ -797,7 +797,7 @@ public class MEncoderVideo extends Engine {
 			if (handleToken) {
 				token += ":threads=" + nThreads;
 
-				if (configuration.getSkipLoopFilterEnabled() && !avisynth()) {
+				if (configuration.getSkipLoopFilterEnabled() && !isAviSynthEngine()) {
 					token += ":skiploopfilter=all";
 				}
 
@@ -1259,7 +1259,7 @@ public class MEncoderVideo extends Engine {
 			}
 		}
 
-		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !avisynth() && params.getAid() != null && media.getAudioTracksList().size() > 1) {
+		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !isAviSynthEngine() && params.getAid() != null && media.getAudioTracksList().size() > 1) {
 			cmdList.add("-aid");
 			boolean lavf = false; // TODO Need to add support for LAVF demuxing
 			cmdList.add("" + (lavf ? params.getAid().getId() + 1 : params.getAid().getId()));
@@ -1341,7 +1341,7 @@ public class MEncoderVideo extends Engine {
 		}
 
 		// Make MEncoder output framerate correspond to InterFrame
-		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
+		if (isAviSynthEngine() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
 			ofps = switch (frameRateRatio) {
 				case "25" -> "50";
 				case "30" -> "60";
@@ -1395,7 +1395,7 @@ public class MEncoderVideo extends Engine {
 			rendererAspectRatio = (double) params.getMediaRenderer().getMaxVideoWidth() / (double) params.getMediaRenderer().getMaxVideoHeight();
 		}
 
-		if ((deinterlace || scaleBool) && !avisynth()) {
+		if ((deinterlace || scaleBool) && !isAviSynthEngine()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
 			StringBuilder vfValueVS              = new StringBuilder();
@@ -2102,7 +2102,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 

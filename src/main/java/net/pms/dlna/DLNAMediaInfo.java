@@ -178,7 +178,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	private volatile boolean mediaparsed;
 
-	public boolean ffmpegparsed;
+	private boolean ffmpegparsed;
 
 	/**
 	 * isUseMediaInfo-related, used to manage thumbnail management separated
@@ -479,7 +479,9 @@ public class DLNAMediaInfo implements Cloneable {
 				synchronized (ffmpegFailureLock) {
 					ffmpegFailure = true;
 				}
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 
 			pw.stopProcess();
 			synchronized (parsingLock) {
@@ -596,7 +598,7 @@ public class DLNAMediaInfo implements Cloneable {
 				if (file != null) {
 					try {
 						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(file))) {
 							af = AudioFileIO.readAs(file, "mp3");
 						} else {
 							af = AudioFileIO.read(file);
@@ -1840,7 +1842,9 @@ public class DLNAMediaInfo implements Cloneable {
 				synchronized (ffmpegAnnexbFailureLock) {
 					ffmpegAnnexbFailure = true;
 				}
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 			pw.stopProcess();
 		};
 
@@ -2914,10 +2918,9 @@ public class DLNAMediaInfo implements Cloneable {
 				return Mode3D.AYBD;
 			}
 			default -> {
+				return null;
 			}
 		}
-
-		return null;
 	}
 
 	private boolean isAnaglyph;

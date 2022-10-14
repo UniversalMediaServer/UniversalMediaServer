@@ -202,6 +202,7 @@ public class DatabaseEmbedded {
 			ConvertTraceFile.main("-traceFile", dbFilename + ".trace.db",
 					"-script", dbFilename + "_logging_report.txt");
 		} catch (SQLException ex) {
+			LOGGER.trace("Failed to create trace database logging report");
 		}
 	}
 

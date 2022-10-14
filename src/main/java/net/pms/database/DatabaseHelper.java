@@ -62,6 +62,12 @@ public abstract class DatabaseHelper {
 	protected static final int SIZE_MAX = 255;
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	protected DatabaseHelper() {
+	}
+
+	/**
 	 * Checks if a named table exists
 	 *
 	 * @param connection the {@link Connection} to use while performing the check

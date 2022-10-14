@@ -66,12 +66,12 @@ public class Playlist extends DefaultComboBoxModel {
 			LOGGER.error("An error occurred while resolving the item for URI \"{}\": {}", uri, e.getMessage());
 			LOGGER.trace("", e);
 		}
-		return (item != null && isValid(item, player.renderer)) ? item : null;
+		return (item != null && isValid(item, player.getRenderer())) ? item : null;
 	}
 
 	public void validate() {
 		for (int i = getSize() - 1; i > -1; i--) {
-			if (!isValid((PlaylistItem) getElementAt(i), player.renderer)) {
+			if (!isValid((PlaylistItem) getElementAt(i), player.getRenderer())) {
 				removeElementAt(i);
 			}
 		}
