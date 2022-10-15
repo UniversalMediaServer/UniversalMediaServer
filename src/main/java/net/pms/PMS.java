@@ -544,7 +544,6 @@ public class PMS {
 		credMgr = new CredMgr(configuration.getCredFile());
 
 		// init dbs
-		keysDb = new UmsKeysDb();
 		codes = new CodeDb();
 		masterCode = null;
 
@@ -1290,7 +1289,7 @@ PlatformUtils.INSTANCE.isAdmin();
 	}
 
 	private static String pidFile() {
-		return configuration.getDataFile("pms.pid");
+		return configuration.getDataFile("UMS.pid");
 	}
 
 	private static void killProc() throws SecurityException, IOException {
@@ -1589,16 +1588,6 @@ PlatformUtils.INSTANCE.isAdmin();
 
 	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
-	}
-
-	private UmsKeysDb keysDb;
-
-	public static String getKey(String key) {
-		return instance.keysDb.get(key);
-	}
-
-	public static void setKey(String key, String val) {
-		instance.keysDb.set(key, val);
 	}
 
 	/**
