@@ -286,10 +286,10 @@ public class OpenSubtitle {
 			String username = "";
 			if (credentials != null) {
 				// if we got credentials use them
-				if (isNotBlank(credentials.password)) {
-					pword = DigestUtils.md5Hex(credentials.password);
+				if (isNotBlank(credentials.getPassword())) {
+					pword = DigestUtils.md5Hex(credentials.getPassword());
 				}
-				username = credentials.username;
+				username = credentials.getUsername();
 			}
 
 			// Setup connection

@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -710,7 +709,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			}
 		}
 
-		DocumentBuilder builder = null;
+		DocumentBuilder builder;
 		try {
 			builder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
@@ -918,8 +917,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		ArrayList<ReleaseRecord> releaseList = new ArrayList<>(nodeList.getLength());
 		int nodeListLength = nodeList.getLength();
 		for (int i = 0; i < nodeListLength; i++) {
-			if (nodeList.item(i) instanceof Element) {
-				Element releaseElement = (Element) nodeList.item(i);
+			if (nodeList.item(i) instanceof Element releaseElement) {
 				ReleaseRecord release = new ReleaseRecord();
 				release.id = releaseElement.getAttribute("id");
 				try {
@@ -995,8 +993,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		Pattern pattern = Pattern.compile("\\d{4}");
 		ArrayList<ReleaseRecord> releaseList = new ArrayList<>(nodeList.getLength());
 		for (int i = 0; i < nodeList.getLength(); i++) {
-			if (nodeList.item(i) instanceof Element) {
-				Element recordingElement = (Element) nodeList.item(i);
+			if (nodeList.item(i) instanceof Element recordingElement) {
 				ReleaseRecord releaseTemplate = new ReleaseRecord();
 
 				try {

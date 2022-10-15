@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -532,36 +531,35 @@ public class SubtitleUtils {
 
 					for (i = 0; i < format.length; i++) {
 						switch (format[i].trim()) {
-							case "Fontname":
+							case "Fontname" -> {
 								if (!configuration.getFont().isEmpty()) {
 									params[i] = configuration.getFont();
 								}
-
-								break;
-							case "Fontsize":
+							}
+							case "Fontsize" -> {
 								if (!playResIsSet) {
 									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
-										Double.parseDouble(configuration.getAssScale())));
+											Double.parseDouble(configuration.getAssScale())));
 								} else {
 									params[i] = Integer
-										.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
+											.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
 								}
-
-								break;
-							case "PrimaryColour":
+							}
+							case "PrimaryColour" -> {
 								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
-								break;
-							case "Outline":
+							}
+							case "Outline" -> {
 								params[i] = configuration.getAssOutline();
-								break;
-							case "Shadow":
+							}
+							case "Shadow" -> {
 								params[i] = configuration.getAssShadow();
-								break;
-							case "MarginV":
+							}
+							case "MarginV" -> {
 								params[i] = configuration.getAssMargin();
-								break;
-							default:
-								break;
+							}
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 

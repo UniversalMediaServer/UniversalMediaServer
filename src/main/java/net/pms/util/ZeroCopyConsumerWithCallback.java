@@ -104,8 +104,8 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
 		final ContentDecoder decoder, final IOControl ioctrl) throws IOException {
 		Asserts.notNull(this.fileChannel, "File channel");
 		final long transferred;
-		if (decoder instanceof FileContentDecoder) {
-			transferred = ((FileContentDecoder) decoder).transfer(
+		if (decoder instanceof FileContentDecoder fileContentDecoder) {
+			transferred = fileContentDecoder.transfer(
 				this.fileChannel, this.idx, Integer.MAX_VALUE);
 		} else {
 			transferred = this.fileChannel.transferFrom(

@@ -211,8 +211,7 @@ public class PNGInfo extends ImageInfo {
 							}
 							// RGB without alpha
 							// Palette index
-							case 2, 3 ->
-							{
+							case 2, 3 -> {
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 							}

@@ -254,21 +254,22 @@ public final class Languages {
 		String languageTag = locale.getLanguage();
 		if (languageTag != null && !languageTag.isEmpty()) {
 			switch (languageTag) {
-				case "en":
+				case "en" -> {
 					if (locale.getCountry().equalsIgnoreCase("GB")) {
 						return "en-GB";
 					}
 					return "en-US";
-				case "pt":
+				}
+				case "pt" -> {
 					if (locale.getCountry().equalsIgnoreCase("BR")) {
 						return "pt-BR";
 					}
 					return "pt";
-				case "nb":
-				case "nn":
+				}
+				case "nb", "nn" -> {
 					return "no";
-				case "cmn":
-				case "zh":
+				}
+				case "cmn", "zh" -> {
 					if (locale.getScript().equalsIgnoreCase("Hans")) {
 						return "zh-Hans";
 					} else if (locale.getCountry().equalsIgnoreCase("CN") || locale.getCountry().equalsIgnoreCase("SG")) {
@@ -276,8 +277,10 @@ public final class Languages {
 					} else {
 						return "zh-Hant";
 					}
-				default:
+				}
+				default -> {
 					return languageTag;
+				}
 			}
 		}
 		return null;

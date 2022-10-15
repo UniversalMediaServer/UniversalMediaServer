@@ -14,7 +14,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.util;
 
 import java.io.ByteArrayInputStream;
@@ -951,7 +950,7 @@ public class StringUtil {
 		if (strings == null || strings.isEmpty()) {
 			return "";
 		}
-		return createReadableCombinedString(strings.toArray(new String[strings.size()]), false, separator, lastSeparator);
+		return createReadableCombinedString(strings.toArray(String[]::new), false, separator, lastSeparator);
 	}
 
 	/**
@@ -972,7 +971,7 @@ public class StringUtil {
 		if (strings == null || strings.isEmpty()) {
 			return "";
 		}
-		return createReadableCombinedString(strings.toArray(new String[strings.size()]), quote, separator, lastSeparator);
+		return createReadableCombinedString(strings.toArray(String[]::new), quote, separator, lastSeparator);
 	}
 
 	/**
@@ -1250,29 +1249,22 @@ public class StringUtil {
 		if (value == null) {
 			return false;
 		}
-		if (value instanceof Boolean) {
-			return ((Boolean) value).booleanValue();
+		if (value instanceof Boolean boolVal) {
+			return boolVal;
 		}
-		if (value instanceof Number) {
-			return unknownTrue ? ((Number) value).intValue() != 0 : ((Number) value).intValue() == 1;
+		if (value instanceof Number number) {
+			return unknownTrue ? number.intValue() != 0 : number.intValue() == 1;
 		}
 		String stringValue = value.toString();
 		if (isBlank(stringValue)) {
 			return false;
 		}
 		stringValue = stringValue.trim().toLowerCase(Locale.ROOT);
-		switch (stringValue) {
-			case "0":
-			case "false":
-			case "no":
-				return false;
-			case "1":
-			case "true":
-			case "yes":
-				return true;
-			default:
-				return unknownTrue;
-		}
+		return switch (stringValue) {
+			case "0", "false", "no" -> false;
+			case "1", "true", "yes" -> true;
+			default -> unknownTrue;
+		};
 	}
 
 	/**
