@@ -27,13 +27,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
-import net.pms.formats.Format.Identifier;
 import net.pms.formats.audio.*;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ExifInfo;
@@ -52,12 +51,11 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.UnknownFormatException;
-import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
+import net.pms.util.UnknownFormatException;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -707,13 +705,14 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					// Set container for formats that the normal parsing fails to do from Format
-					if (StringUtils.isBlank(container) && ext != null) {
-						if (ext.getIdentifier() == Identifier.ADPCM) {
-							audio.setCodecA(FormatConfiguration.ADPCM);
-						} else if (ext.getIdentifier() == Identifier.DSF) {
-							audio.setCodecA(FormatConfiguration.DSF);
-						} else if (ext.getIdentifier() == Identifier.DFF) {
-							audio.setCodecA(FormatConfiguration.DFF);
+					if (StringUtils.isBlank(container) && ext != null && ext.getIdentifier() != null) {
+						switch (ext.getIdentifier()) {
+							case ADPCM -> audio.setCodecA(FormatConfiguration.ADPCM);
+							case DSF -> audio.setCodecA(FormatConfiguration.DSF);
+							case DFF -> audio.setCodecA(FormatConfiguration.DFF);
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 
@@ -2994,7 +2993,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 
 	private static Double parseDurationString(String duration) {
-		return duration != null ? convertStringToTime(duration) : null;
+		return duration != null ? StringUtil.convertStringToTime(duration) : null;
 	}
 
 	/**

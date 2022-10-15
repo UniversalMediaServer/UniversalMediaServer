@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory;
 
 public class RarredEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RarredEntry.class);
-	private String name;
-	private File file;
-	private String fileHeaderName;
-	private long length;
+	private final String name;
+	private final File file;
+	private final String fileHeaderName;
+	private final long length;
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {

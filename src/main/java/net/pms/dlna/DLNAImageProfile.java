@@ -219,19 +219,16 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 */
 	public String getDefaultExtension() {
 		switch (imageProfileInt) {
-			case GIF_LRG_INT:
+			case GIF_LRG_INT -> {
 				return "gif";
-			case JPEG_LRG_INT:
-			case JPEG_MED_INT:
-			case JPEG_RES_H_V_INT:
-			case JPEG_SM_INT:
-			case JPEG_TN_INT:
+			}
+			case JPEG_LRG_INT, JPEG_MED_INT, JPEG_RES_H_V_INT, JPEG_SM_INT, JPEG_TN_INT -> {
 				return "jpg";
-			case PNG_LRG_INT:
-			case PNG_TN_INT:
+			}
+			case PNG_LRG_INT, PNG_TN_INT -> {
 				return "png";
-			default:
-				throw new IllegalStateException(
+			}
+			default -> throw new IllegalStateException(
 					"Profile value " + imageProfileInt + "is not implemented in DLNAImageProfile.getDefaultExtension()");
 		}
 	}
@@ -242,19 +239,16 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 */
 	public ImageFormat getFormat() {
 		switch (imageProfileInt) {
-			case GIF_LRG_INT:
+			case GIF_LRG_INT -> {
 				return ImageFormat.GIF;
-			case JPEG_LRG_INT:
-			case JPEG_MED_INT:
-			case JPEG_RES_H_V_INT:
-			case JPEG_SM_INT:
-			case JPEG_TN_INT:
+			}
+			case JPEG_LRG_INT, JPEG_MED_INT, JPEG_RES_H_V_INT, JPEG_SM_INT, JPEG_TN_INT -> {
 				return ImageFormat.JPEG;
-			case PNG_LRG_INT:
-			case PNG_TN_INT:
+			}
+			case PNG_LRG_INT, PNG_TN_INT -> {
 				return ImageFormat.PNG;
-			default:
-				throw new IllegalStateException("Profile is missing from switch statement");
+			}
+			default -> throw new IllegalStateException("Profile is missing from switch statement");
 		}
 	}
 
@@ -274,14 +268,16 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	 */
 	public MimeType getDefaultMimeType() {
 		switch (getFormat()) {
-			case GIF:
+			case GIF -> {
 				return MIMETYPE_GIF;
-			case JPEG:
+			}
+			case JPEG -> {
 				return MIMETYPE_JPEG;
-			case PNG:
+			}
+			case PNG -> {
 				return MIMETYPE_PNG;
-			default:
-				throw new IllegalStateException("Format is missing from switch statement");
+			}
+			default -> throw new IllegalStateException("Format is missing from switch statement");
 		}
 	}
 
@@ -486,43 +482,33 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 		 * blank and just sending it as a parameter, doing it this way allows
 		 * reuse of the default instances.
 		 */
-		switch (value) {
-			case GIF_LRG_INT:
-				return mimeType == null ?
-					DLNAImageProfile.GIF_LRG :
-					new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
-			case JPEG_LRG_INT:
-				return mimeType == null ?
-					DLNAImageProfile.JPEG_LRG :
-					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
-			case JPEG_MED_INT:
-				return mimeType == null ?
-					DLNAImageProfile.JPEG_MED :
-					new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
-			case JPEG_RES_H_V_INT:
-				return mimeType == null ?
-					DLNAImageProfile.JPEG_RES_H_V :
-					new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
-			case JPEG_SM_INT:
-				return mimeType == null ?
-					DLNAImageProfile.JPEG_SM :
-					new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
-			case JPEG_TN_INT:
-				return mimeType == null ?
-					DLNAImageProfile.JPEG_TN :
-					new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
-			case PNG_LRG_INT:
-				return mimeType == null ?
-					DLNAImageProfile.PNG_LRG :
-					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
-			case PNG_TN_INT:
-				return mimeType == null ?
-					DLNAImageProfile.PNG_TN :
-					new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
-			default:
-				return defaultImageProfile;
-
-		}
+		return switch (value) {
+			case GIF_LRG_INT -> mimeType == null ?
+				DLNAImageProfile.GIF_LRG :
+				new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
+			case JPEG_LRG_INT -> mimeType == null ?
+				DLNAImageProfile.JPEG_LRG :
+				new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
+			case JPEG_MED_INT -> mimeType == null ?
+				DLNAImageProfile.JPEG_MED :
+				new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
+			case JPEG_RES_H_V_INT -> mimeType == null ?
+				DLNAImageProfile.JPEG_RES_H_V :
+				new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
+			case JPEG_SM_INT -> mimeType == null ?
+				DLNAImageProfile.JPEG_SM :
+				new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
+			case JPEG_TN_INT -> mimeType == null ?
+				DLNAImageProfile.JPEG_TN :
+				new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
+			case PNG_LRG_INT -> mimeType == null ?
+				DLNAImageProfile.PNG_LRG :
+				new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
+			case PNG_TN_INT -> mimeType == null ?
+				DLNAImageProfile.PNG_TN :
+				new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
+			default -> defaultImageProfile;
+		};
 	}
 
 	/**
@@ -600,52 +586,61 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 		 * reuse of the default instances.
 		 */
 		switch (argument) {
-			case GIF_LRG_STRING:
+			case GIF_LRG_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.GIF_LRG :
-					new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
-			case JPEG_LRG_STRING:
+						DLNAImageProfile.GIF_LRG :
+						new DLNAImageProfile(GIF_LRG_INT, GIF_LRG_STRING, 1600, 1200, mimeType);
+			}
+			case JPEG_LRG_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.JPEG_LRG :
-					new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
-			case JPEG_MED_STRING:
+						DLNAImageProfile.JPEG_LRG :
+						new DLNAImageProfile(JPEG_LRG_INT, JPEG_LRG_STRING, 4096, 4096, mimeType);
+			}
+			case JPEG_MED_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.JPEG_MED :
-					new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
-			case JPEG_RES_H_V_STRING:
+						DLNAImageProfile.JPEG_MED :
+						new DLNAImageProfile(JPEG_MED_INT, JPEG_MED_STRING, 1024, 768, mimeType);
+			}
+			case JPEG_RES_H_V_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.JPEG_RES_H_V :
-					new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
-			case JPEG_SM_STRING:
+						DLNAImageProfile.JPEG_RES_H_V :
+						new DLNAImageProfile(JPEG_RES_H_V_INT, JPEG_RES_H_V_STRING, -1, -1, mimeType);
+			}
+			case JPEG_SM_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.JPEG_SM :
-					new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
-			case JPEG_TN_STRING:
+						DLNAImageProfile.JPEG_SM :
+						new DLNAImageProfile(JPEG_SM_INT, JPEG_SM_STRING, 640, 480, mimeType);
+			}
+			case JPEG_TN_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.JPEG_TN :
-					new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
-			case PNG_LRG_STRING:
+						DLNAImageProfile.JPEG_TN :
+						new DLNAImageProfile(JPEG_TN_INT, JPEG_TN_STRING, 160, 160, mimeType);
+			}
+			case PNG_LRG_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.PNG_LRG :
-					new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
-			case PNG_TN_STRING:
+						DLNAImageProfile.PNG_LRG :
+						new DLNAImageProfile(PNG_LRG_INT, PNG_LRG_STRING, 4096, 4096, mimeType);
+			}
+			case PNG_TN_STRING -> {
 				return mimeType == null ?
-					DLNAImageProfile.PNG_TN :
-					new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
-			default:
+						DLNAImageProfile.PNG_TN :
+						new DLNAImageProfile(PNG_TN_INT, PNG_TN_STRING, 160, 160, mimeType);
+			}
+			default -> {
 				if (argument.startsWith("JPEG_RES")) {
 					Matcher matcher = Pattern.compile("^JPEG_RES_?(\\d+)[X_](\\d+)").matcher(argument);
 					if (matcher.find()) {
 						return new DLNAImageProfile(
-							JPEG_RES_H_V_INT,
-							"JPEG_RES_" + matcher.group(1) + "_" + matcher.group(2),
-							Integer.parseInt(matcher.group(1)),
-							Integer.parseInt(matcher.group(2)),
-							mimeType
+								JPEG_RES_H_V_INT,
+								"JPEG_RES_" + matcher.group(1) + "_" + matcher.group(2),
+								Integer.parseInt(matcher.group(1)),
+								Integer.parseInt(matcher.group(2)),
+								mimeType
 						);
 					}
 				}
 				return defaultImageProfile;
+			}
 		}
 	}
 

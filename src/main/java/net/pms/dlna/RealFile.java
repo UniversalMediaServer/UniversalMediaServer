@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
@@ -302,7 +301,7 @@ public class RealFile extends MapFile {
 				if (getMedia() != null && getMedia().isSLS()) {
 					setFormat(getMedia().getAudioVariantFormat());
 				}
-			} catch (Exception e) {
+			} catch (SQLException e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
@@ -453,7 +452,7 @@ public class RealFile extends MapFile {
 				try {
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
 						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(getFile()))) {
 							af = AudioFileIO.readAs(getFile(), "mp3");
 						} else {
 							af = AudioFileIO.read(getFile());

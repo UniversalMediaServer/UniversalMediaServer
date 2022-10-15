@@ -17,11 +17,12 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,7 @@ public interface ProtocolInfoAttributeName extends Serializable {
 		private final ReentrantReadWriteLock instanceCacheLock = new ReentrantReadWriteLock();
 
 		/** The instance cache. */
-		private final HashSet<ProtocolInfoAttributeName> instanceCache = new HashSet<>();
+		private final Set<ProtocolInfoAttributeName> instanceCache = new HashSet<>();
 
 		/**
 		 * For internal use only, use {@link ProtocolInfoAttributeName#FACTORY}

@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 
 public class ZippedEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedEntry.class);
-	private File file;
-	private String zeName;
-	private long length;
+	private final File file;
+	private final String zeName;
+	private final long length;
 	private ZipFile zipFile;
 
 	@Override
@@ -104,7 +104,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 						out.write(data, 0, n);
 					}
 				}
-			} catch (Exception e) {
+			} catch (IOException e) {
 				LOGGER.error("Unpack error. Possibly harmless.", e);
 			} finally {
 				try {

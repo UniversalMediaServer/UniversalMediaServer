@@ -1,6 +1,5 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
- * Copyright (C) 2012  I. Sokolov
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

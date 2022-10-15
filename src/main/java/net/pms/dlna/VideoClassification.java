@@ -44,18 +44,13 @@ public enum VideoClassification {
 
 	@Override
 	public String toString() {
-		switch (this) {
-			case MOVIE:
-				return "Movie";
-			case SERIES:
-				return "Series";
-			case TV_PROGRAM:
-				return "TV Program";
-			case UNRELEASED:
-				return "Unreleased/Home Made";
-			default:
-				return name();
-		}
+		return switch (this) {
+			case MOVIE -> "Movie";
+			case SERIES -> "Series";
+			case TV_PROGRAM -> "TV Program";
+			case UNRELEASED -> "Unreleased/Home Made";
+			default -> name();
+		};
 	}
 
 	/**

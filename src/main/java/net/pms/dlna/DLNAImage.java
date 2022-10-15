@@ -215,15 +215,12 @@ public class DLNAImage extends Image {
 		}
 		DLNAComplianceResult result;
 		switch (imageInfo.getFormat()) {
-			case GIF:
-				if (dlnaThumbnail) {
-					return null;
-				}
-				if (DLNAImageProfile.GIF_LRG.checkCompliance(imageInfo).isAllCorrect()) {
+			case GIF -> {
+				if (!dlnaThumbnail && DLNAImageProfile.GIF_LRG.checkCompliance(imageInfo).isAllCorrect()) {
 					return DLNAImageProfile.GIF_LRG;
 				}
-				return null;
-			case JPEG:
+			}
+			case JPEG -> {
 				result = DLNAImageProfile.JPEG_TN.checkCompliance(imageInfo);
 				if (result.isAllCorrect()) {
 					return DLNAImageProfile.JPEG_TN;
@@ -239,21 +236,22 @@ public class DLNAImage extends Image {
 					}
 					return DLNAImageProfile.createJPEG_RES_H_V(imageInfo.getWidth(), imageInfo.getHeight());
 				}
-				return null;
-			case PNG:
+			}
+			case PNG -> {
 				result = DLNAImageProfile.PNG_TN.checkCompliance(imageInfo);
 				if (result.isAllCorrect()) {
 					return DLNAImageProfile.PNG_TN;
 				} else if (
-					result.isColorsCorrect() &&
-					result.isFormatCorrect() &&
-					DLNAImageProfile.PNG_LRG.isResolutionCorrect(imageInfo)
-				) {
+						result.isColorsCorrect() &&
+						result.isFormatCorrect() &&
+						DLNAImageProfile.PNG_LRG.isResolutionCorrect(imageInfo)
+						) {
 					return DLNAImageProfile.PNG_LRG;
 				}
-				return null;
-			default:
-
+			}
+			default -> {
+				//do nothing
+			}
 		}
 		return null;
 	}

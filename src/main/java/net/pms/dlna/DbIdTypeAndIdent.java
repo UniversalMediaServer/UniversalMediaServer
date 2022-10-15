@@ -22,7 +22,7 @@ package net.pms.dlna;
  * Should be renamed on the next release, then dev will have time to import DbIdTypeAndIdent2
  * on their git, that will allow rename to DbIdTypeAndIdent.
  */
-public class DbIdTypeAndIdent2 {
+public class DbIdTypeAndIdent {
 
 	/**
 	 * Media type
@@ -34,7 +34,7 @@ public class DbIdTypeAndIdent2 {
 	 */
 	public final String ident;
 
-	public DbIdTypeAndIdent2(DbIdMediaType type, String ident) {
+	public DbIdTypeAndIdent(DbIdMediaType type, String ident) {
 		super();
 		this.type = type;
 		if (ident == null) {

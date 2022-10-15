@@ -44,7 +44,7 @@ public enum MediaType {
 	 */
 	VIDEO(3);
 
-	private int value;
+	private final int value;
 	private MediaType(int value) {
 		this.value = value;
 	}

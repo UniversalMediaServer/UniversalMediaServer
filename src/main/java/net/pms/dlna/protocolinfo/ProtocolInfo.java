@@ -17,8 +17,6 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +29,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jupnp.support.model.Protocol;
 import org.jupnp.support.model.dlna.DLNAAttribute;
 import org.jupnp.support.model.dlna.DLNAProfiles;

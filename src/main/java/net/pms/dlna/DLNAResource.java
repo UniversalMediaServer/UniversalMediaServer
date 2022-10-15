@@ -746,7 +746,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Use device-specific conf, if any
 		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
-		Engine resolvedEngine = null;
+		Engine resolvedEngine;
 
 		if (media == null) {
 			media = new DLNAMediaInfo();

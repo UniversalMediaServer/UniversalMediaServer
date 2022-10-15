@@ -74,7 +74,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private void addVirtualMyMusicFolder() {
-		DbIdTypeAndIdent2 myAlbums = new DbIdTypeAndIdent2(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
+		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
 		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("MyAlbums"), myAlbums, "");
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (!getChildren().contains(myMusicFolder)) {

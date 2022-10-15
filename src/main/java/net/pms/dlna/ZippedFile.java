@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class ZippedFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedFile.class);
-	private File file;
+	private final File file;
 	private ZipFile zip;
 
 	public ZippedFile(File file) {

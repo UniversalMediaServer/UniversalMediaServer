@@ -17,7 +17,6 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,8 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
 import net.pms.formats.v2.SubtitleType;
@@ -45,6 +44,7 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

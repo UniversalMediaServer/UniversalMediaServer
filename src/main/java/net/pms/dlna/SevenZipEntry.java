@@ -1,6 +1,5 @@
 /*
- * Universal Media Server
- * Copyright (C) 2012  SharkHunter
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,9 +36,9 @@ import org.slf4j.LoggerFactory;
 
 public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
-	private File file;
-	private String zeName;
-	private long length;
+	private final File file;
+	private final String zeName;
+	private final long length;
 	private IInArchive arc;
 
 	@Override

@@ -34,12 +34,12 @@ import net.pms.formats.FormatFactory;
  * However this is just cosmetic. Any action can be performed.
  */
 public abstract class VirtualVideoAction extends DLNAResource {
+	private final String name;
+	private final String thumbnailIconOK;
+	private final String thumbnailIconKO;
+	private final String videoOk;
+	private final String videoKo;
 	private boolean enabled;
-	protected String name;
-	private String thumbnailIconOK;
-	private String thumbnailIconKO;
-	private String videoOk;
-	private String videoKo;
 	private long timer1;
 
 	/**

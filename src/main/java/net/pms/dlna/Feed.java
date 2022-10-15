@@ -88,8 +88,8 @@ public class Feed extends DLNAResource {
 					if ("group".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())) {
 						List<Content> subElts = elt.getContent();
 						for (Content subelt : subElts) {
-							if (subelt instanceof Element) {
-								parseElement((Element) subelt, false);
+							if (subelt instanceof Element element) {
+								parseElement(element, false);
 							}
 						}
 					}
@@ -114,8 +114,8 @@ public class Feed extends DLNAResource {
 			}
 			List<Content> subElts = elt.getContent();
 			for (Content subelt : subElts) {
-				if (subelt instanceof Element) {
-					parseElement((Element) subelt, false);
+				if (subelt instanceof Element element) {
+					parseElement(element, false);
 				}
 			}
 		}
