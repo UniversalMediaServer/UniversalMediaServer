@@ -96,8 +96,8 @@ import org.slf4j.LoggerFactory;
  * return a default value. Setters only store a value, they do not permanently save it to
  * file.
  */
-public class PmsConfiguration extends RendererConfiguration {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
+public class UmsConfiguration extends RendererConfiguration {
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsConfiguration.class);
 	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	protected static final int DEFAULT_MEDIA_SERVER_PORT = 5001;
 	protected static final int DEFAULT_WEB_GUI_PORT = 9001;
@@ -706,7 +706,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @throws org.apache.commons.configuration.ConfigurationException
 	 * @throws InterruptedException
 	 */
-	public PmsConfiguration() throws ConfigurationException, InterruptedException {
+	public UmsConfiguration() throws ConfigurationException, InterruptedException {
 		this(true);
 	}
 
@@ -719,7 +719,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @throws ConfigurationException
 	 * @throws InterruptedException
 	 */
-	public PmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
+	public UmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
 		super(0);
 
 		if (loadFile) {
@@ -785,7 +785,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 *
 	 * @param ignored this integer is ignored
 	 */
-	protected PmsConfiguration(int ignored) {
+	protected UmsConfiguration(int ignored) {
 		// Just instantiate
 		super(0);
 		tempFolder = null;
@@ -793,7 +793,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		filter = null;
 	}
 
-	protected PmsConfiguration(File f, String uuid) throws ConfigurationException {
+	protected UmsConfiguration(File f, String uuid) throws ConfigurationException {
 		// Just initialize super
 		super(f, uuid);
 		tempFolder = null;
@@ -1059,7 +1059,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			return null;
 		}
 
-		return PmsConfiguration.this.getEngineCustomPath(EngineFactory.getEngine(engineId, false, false));
+		return UmsConfiguration.this.getEngineCustomPath(EngineFactory.getEngine(engineId, false, false));
 	}
 
 	/**
@@ -1209,7 +1209,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for MPlayer
-	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 * both in {@link UmsConfiguration} and the {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
 	 */
@@ -1263,7 +1263,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * "tsMuxeR new" both in {@link PmsConfiguration} and the
+	 * "tsMuxeR new" both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
@@ -1310,7 +1310,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for FLAC
-	 * both in {@link PmsConfiguration} and the {@link ExternalProgramInfo}.
+	 * both in {@link UmsConfiguration} and the {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
 	 */
@@ -1356,7 +1356,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * Interframe both in {@link PmsConfiguration} and the
+	 * Interframe both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
@@ -1512,7 +1512,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Gets the language {@link String} as stored in the {@link PmsConfiguration}.
+	 * Gets the language {@link String} as stored in the {@link UmsConfiguration}.
 	 * May return <code>null</code>.
 	 * @return The language {@link String}
 	 */
@@ -4111,27 +4111,27 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public boolean isHideAdvancedOptions() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, true);
+		return getBoolean(UmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, true);
 	}
 
 	public void setHideAdvancedOptions(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
+		this.configuration.setProperty(UmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
 	}
 
 	public boolean isHideEmptyFolders() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, false);
+		return getBoolean(UmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, false);
 	}
 
 	public void setHideEmptyFolders(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, value);
+		this.configuration.setProperty(UmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, value);
 	}
 
 	public boolean isUseSymlinksTargetFile() {
-		return getBoolean(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, false);
+		return getBoolean(UmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, false);
 	}
 
 	public void setUseSymlinksTargetFile(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, value);
+		this.configuration.setProperty(UmsConfiguration.KEY_USE_SYMLINKS_TARGET_FILE, value);
 	}
 
 	/**
@@ -4140,7 +4140,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether the folder is shown
 	 */
 	public boolean isShowMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
+		return getBoolean(UmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 	}
 
 	/**
@@ -4149,7 +4149,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value whether the folder is shown
 	 */
 	public void setShowMediaLibraryFolder(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, value);
+		this.configuration.setProperty(UmsConfiguration.KEY_SHOW_MEDIA_LIBRARY_FOLDER, value);
 	}
 
 	/**
@@ -4304,7 +4304,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return whether the folder is shown
 	 */
 	public boolean isShowRecentlyPlayedFolder() {
-		return getBoolean(PmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
+		return getBoolean(UmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
 	}
 
 	/**
@@ -4313,7 +4313,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @param value whether the folder is shown
 	 */
 	public void setShowRecentlyPlayedFolder(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, value);
+		this.configuration.setProperty(UmsConfiguration.KEY_SHOW_RECENTLY_PLAYED_FOLDER, value);
 	}
 
 	/**
@@ -5577,7 +5577,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return
 	 */
 	public static synchronized JsonArray getAllSharedWebContentAsJsonArray() {
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 		File webConf = new File(configuration.getWebConfPath());
 		if (!webConf.exists()) {
 			configuration.writeDefaultWebConfigurationFile();
@@ -5712,7 +5712,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, "");
 		jObj.addProperty(KEY_OPEN_ARCHIVES, false);
 		jObj.addProperty(KEY_ENCODED_AUDIO_PASSTHROUGH, false);
-		JsonArray transcodingEngines = PmsConfiguration.getAllEnginesAsJsonArray();
+		JsonArray transcodingEngines = UmsConfiguration.getAllEnginesAsJsonArray();
 		jObj.add(KEY_ENGINES, transcodingEngines);
 		jObj.add(KEY_ENGINES_PRIORITY, transcodingEngines);
 		jObj.addProperty(KEY_FORCE_TRANSCODE_FOR_EXTENSIONS, "");

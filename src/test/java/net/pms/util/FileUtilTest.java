@@ -30,7 +30,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -50,7 +50,7 @@ public class FileUtilTest {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.setConfiguration(new UmsConfiguration(false));
 	}
 
 	@Test

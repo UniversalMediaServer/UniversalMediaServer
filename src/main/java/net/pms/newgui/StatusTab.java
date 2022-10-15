@@ -42,7 +42,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -214,7 +214,7 @@ public class StatusTab {
 	 * @todo choose better icons for these
 	 * @param configuration
 	 */
-	StatusTab(PmsConfiguration configuration) {
+	StatusTab(UmsConfiguration configuration) {
 		// Build Animations
 		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
 

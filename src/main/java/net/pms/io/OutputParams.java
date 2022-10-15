@@ -20,7 +20,7 @@ package net.pms.io;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -61,7 +61,7 @@ public final class OutputParams {
 	private boolean cleanup;
 	private HlsConfiguration hlsConfiguration;
 
-	public OutputParams(PmsConfiguration configuration) {
+	public OutputParams(UmsConfiguration configuration) {
 		if (configuration != null) {
 			setWaitBeforeStart(configuration.getVideoTranscodeStartDelay() * 1000);
 		} else {

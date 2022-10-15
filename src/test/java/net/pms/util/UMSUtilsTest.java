@@ -20,7 +20,7 @@ package net.pms.util;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,11 +36,11 @@ public class UMSUtilsTest {
 	@SuppressWarnings("static-method")
 	@BeforeEach
 	public final void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.setConfiguration(new UmsConfiguration(false));
 	}
 
 	@Test

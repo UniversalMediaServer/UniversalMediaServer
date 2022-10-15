@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public abstract class DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
 	private static final String ESCAPE_CHARACTER = "\\";
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	protected static final String LOG_CREATING_TABLE = "Creating database \"{}\" table: \"{}\"";
 	protected static final String LOG_UPGRADING_TABLE = "Upgrading database \"{}\" table \"{}\" from version {} to {}";

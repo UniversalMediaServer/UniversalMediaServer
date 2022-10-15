@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Engine;
@@ -71,7 +71,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
 	private String subLang;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] SUPPORTED_FORMATS = {
 		new GIF(),

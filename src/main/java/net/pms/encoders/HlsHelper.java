@@ -27,7 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -46,7 +46,7 @@ import net.pms.dlna.Range;
  * You SHOULD NOT use HE-AAC if your audio bit rate is above 64 kbit/s.
  */
 public class HlsHelper {
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String NONE_CONF_NAME = "NONE";
 	private static final String COPY_CONF_NAME = "COPY";
 

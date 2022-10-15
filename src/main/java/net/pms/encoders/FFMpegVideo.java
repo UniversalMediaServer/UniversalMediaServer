@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -785,7 +785,7 @@ public class FFMpegVideo extends Engine {
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 
 		/*
@@ -1313,7 +1313,7 @@ public class FFMpegVideo extends Engine {
 		params.setSecondReadMinSize(100000);
 		params.setWaitBeforeStart(1000);
 		// Use device-specific conf
-		PmsConfiguration prev = configuration;
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		HlsHelper.HlsConfiguration hlsConfiguration = params.getHlsConfiguration();
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
@@ -1497,7 +1497,7 @@ public class FFMpegVideo extends Engine {
 		return pw;
 	}
 
-	public static void setLogLevel(List<String> cmdList, PmsConfiguration configuration) {
+	public static void setLogLevel(List<String> cmdList, UmsConfiguration configuration) {
 		cmdList.add("-loglevel");
 		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
 		if (LOGGER.isTraceEnabled()) {
@@ -1517,7 +1517,7 @@ public class FFMpegVideo extends Engine {
 		}
 	}
 
-	public static void setDecodingOptions(List<String> cmdList, PmsConfiguration configuration, boolean avisynth) {
+	public static void setDecodingOptions(List<String> cmdList, UmsConfiguration configuration, boolean avisynth) {
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -1568,7 +1568,7 @@ public class FFMpegVideo extends Engine {
 		}
 	}
 
-	public static void setEncodingThreads(List<String> cmdList, PmsConfiguration configuration) {
+	public static void setEncodingThreads(List<String> cmdList, UmsConfiguration configuration) {
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not

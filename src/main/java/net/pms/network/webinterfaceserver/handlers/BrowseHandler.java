@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 public class BrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServerInterface parent;
 

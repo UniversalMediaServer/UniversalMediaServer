@@ -48,7 +48,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
@@ -2082,7 +2082,7 @@ public class FileUtil {
 		return null;
 	}
 
-	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
+	public static boolean isFileRelevant(File f, UmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
 		return (
 			(
@@ -2103,11 +2103,11 @@ public class FileUtil {
 		);
 	}
 
-	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+	public static boolean isFolderRelevant(File f, UmsConfiguration configuration) {
 		return isFolderRelevant(f, configuration, Collections.<String>emptySet());
 	}
 
-	public static boolean isFolderRelevant(File f, PmsConfiguration configuration, Set<String> ignoreFiles) {
+	public static boolean isFolderRelevant(File f, UmsConfiguration configuration, Set<String> ignoreFiles) {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 

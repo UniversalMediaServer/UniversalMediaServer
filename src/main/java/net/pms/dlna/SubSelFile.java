@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.util.OpenSubtitle;
@@ -243,7 +243,7 @@ public class SubSelFile extends VirtualFolder {
 	}
 
 	@Override
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
 		return "{" + Messages.getString("LiveSubtitles") + "}";
 	}
 

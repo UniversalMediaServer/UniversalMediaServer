@@ -35,7 +35,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
@@ -110,7 +110,7 @@ public class LoggingTest {
 
 		// Set up PMS configuration
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration());
+		PMS.setConfiguration(new UmsConfiguration());
 		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();
 
 		// Test logFilePath
@@ -133,7 +133,7 @@ public class LoggingTest {
 
 		// Set up a test (default) configuration
 		PMS.get();
-		PmsConfiguration configuration = new PmsConfiguration(false);
+		UmsConfiguration configuration = new UmsConfiguration(false);
 		PMS.setConfiguration(configuration);
 
 		// Load logback configuration

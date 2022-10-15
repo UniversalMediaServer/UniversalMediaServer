@@ -26,7 +26,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.UriFileRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
 	public enum State {

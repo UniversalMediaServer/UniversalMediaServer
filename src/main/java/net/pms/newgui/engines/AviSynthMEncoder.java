@@ -39,12 +39,12 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthMEncoder {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JTextArea textArea;
 	private static JCheckBox convertfps;
 	private static JCheckBox interframe;
@@ -160,7 +160,7 @@ public class AviSynthMEncoder {
 			if (event.getPropertyName() == null) {
 				return;
 			}
-			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(UmsConfiguration.KEY_GPU_ACCELERATION)) {
 				interframegpu.setEnabled(CONFIGURATION.isGPUAcceleration());
 			}
 		});

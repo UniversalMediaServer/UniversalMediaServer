@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	PmsConfiguration prevConf;
+	UmsConfiguration prevConf;
 
 	@BeforeAll
 	public static void SetUPClass() {
@@ -69,7 +69,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
@@ -400,7 +400,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testForcedDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to PlayStation 3
 		pmsConf.setRendererDefault("PlayStation 3");
@@ -426,7 +426,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testBogusDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to non existent renderer
 		pmsConf.setRendererDefault("Bogus Renderer");

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class RendererItem implements IRendererGuiListener {
 	private static final HashMap<RendererConfiguration, RendererItem> RENDERERS = new HashMap<>();
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
 	private static final Gson GSON = new Gson();

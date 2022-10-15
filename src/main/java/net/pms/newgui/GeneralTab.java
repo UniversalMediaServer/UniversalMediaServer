@@ -32,7 +32,7 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
@@ -66,7 +66,7 @@ public class GeneralTab {
 	private JTextField maxbitrate;
 	private JCheckBox adaptBitrate;
 	private JComboBox<String> serverEngine;
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private JCheckBox forceDefaultRenderer;
 	private JCheckBox extNetBox;
 	private JCheckBox appendProfileName;
@@ -77,7 +77,7 @@ public class GeneralTab {
 	private JCheckBox showSplashScreen;
 	private JTextField currentLanguage = new JTextField();
 
-	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	GeneralTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}

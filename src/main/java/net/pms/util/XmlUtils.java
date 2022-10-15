@@ -25,11 +25,11 @@ import javax.xml.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 
 public class XmlUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static UmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * This class is not meant to be instantiated.

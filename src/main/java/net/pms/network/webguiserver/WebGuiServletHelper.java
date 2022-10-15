@@ -42,7 +42,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class WebGuiServletHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServletHelper.class);
 	private static final Gson GSON = new Gson();
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String HTTPSERVER_REQUEST_BEGIN =  "============================= GUI HTTPSERVER REQUEST BEGIN ================================";
 	private static final String HTTPSERVER_REQUEST_END =    "============================= GUI HTTPSERVER REQUEST END ==================================";
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "============================= GUI HTTPSERVER RESPONSE BEGIN ===============================";

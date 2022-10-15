@@ -20,7 +20,7 @@ package net.pms.newgui.components;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,8 +41,8 @@ public class TextAreaFIFOTest {
 
 		assertEquals(textArea.getMaxLines(), 950, "InitialLines");
 		textArea.setMaxLines(0);
-		assertEquals(textArea.getMaxLines(), PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN, "MinLines");
+		assertEquals(textArea.getMaxLines(), UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN, "MinLines");
 		textArea.setMaxLines(1000000);
-		assertEquals(textArea.getMaxLines(), PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX, "MaxLines");
+		assertEquals(textArea.getMaxLines(), UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX, "MaxLines");
 	}
 }

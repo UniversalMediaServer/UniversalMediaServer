@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
 import net.pms.util.ExecutableErrorType;
@@ -62,7 +62,7 @@ public final class EngineFactory {
 	 */
 	private static final ArrayList<Engine> ENGINES = new ArrayList<>();
 
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static UmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * This sorts {@link Engine}s according to their configured priorities.
@@ -214,7 +214,7 @@ public final class EngineFactory {
 
 	/**
 	 * Used to (re)sort {@link #ENGINES} every time either {@link #ENGINES} or
-	 * {@link PmsConfiguration#enginesPriority} has changed so that
+	 * {@link UmsConfiguration#enginesPriority} has changed so that
 	 * {@link #ENGINES} are always sorted according to priority.
 	 */
 	public static void sortEngines() {

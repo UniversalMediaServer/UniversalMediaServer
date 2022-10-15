@@ -36,7 +36,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
@@ -60,19 +60,19 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 @WebServlet(name = "SettingsApiServlet", urlPatterns = {"/v1/api/settings"}, displayName = "Settings Api Servlet")
 public class SettingsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsApiServlet.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = PmsConfiguration.getWebSettingsWithDefaults();
+	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = UmsConfiguration.getWebSettingsWithDefaults();
 
-	private static final JsonArray AUDIO_COVER_SUPPLIERS = PmsConfiguration.getAudioCoverSuppliersAsJsonArray();
-	private static final JsonArray FFMPEG_LOGLEVEL = PmsConfiguration.getFfmpegLoglevels();
-	private static final JsonArray FULLY_PLAYED_ACTIONS = PmsConfiguration.getFullyPlayedActionsAsJsonArray();
+	private static final JsonArray AUDIO_COVER_SUPPLIERS = UmsConfiguration.getAudioCoverSuppliersAsJsonArray();
+	private static final JsonArray FFMPEG_LOGLEVEL = UmsConfiguration.getFfmpegLoglevels();
+	private static final JsonArray FULLY_PLAYED_ACTIONS = UmsConfiguration.getFullyPlayedActionsAsJsonArray();
 	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
-	private static final JsonArray SORT_METHODS = PmsConfiguration.getSortMethodsAsJsonArray();
-	private static final JsonArray SUBTITLES_CODEPAGES = PmsConfiguration.getSubtitlesCodepageArray();
-	private static final JsonArray SUBTITLES_DEPTH = PmsConfiguration.getSubtitlesDepthArray();
-	private static final JsonArray SUBTITLES_INFO_LEVELS = PmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
-	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = PmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonArray SORT_METHODS = UmsConfiguration.getSortMethodsAsJsonArray();
+	private static final JsonArray SUBTITLES_CODEPAGES = UmsConfiguration.getSubtitlesCodepageArray();
+	private static final JsonArray SUBTITLES_DEPTH = UmsConfiguration.getSubtitlesDepthArray();
+	private static final JsonArray SUBTITLES_INFO_LEVELS = UmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
+	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = UmsConfiguration.getEnginesPurposesAsJsonArray();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -118,7 +118,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
-				jsonResponse.add("transcodingEngines", PmsConfiguration.getAllEnginesAsJsonObject());
+				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
@@ -138,7 +138,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						configurationAsJson.add(key, array);
 					}
 				}
-				configurationAsJson.add("shared_web_content", PmsConfiguration.getAllSharedWebContentAsJsonArray());
+				configurationAsJson.add("shared_web_content", UmsConfiguration.getAllSharedWebContentAsJsonArray());
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");

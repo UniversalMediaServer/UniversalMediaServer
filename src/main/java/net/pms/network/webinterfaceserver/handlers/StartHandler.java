@@ -24,7 +24,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.util.HashMap;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.util.PropertiesUtil;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public class StartHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServerInterface parent;
 

@@ -33,7 +33,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 @WebServlet(name = "LogsApiServlet", urlPatterns = {"/v1/api/logs"}, displayName = "Logs Api Servlet")
 public class LogsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogsApiServlet.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static DbgPacker dbgPacker = null;
 
 	@Override

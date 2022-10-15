@@ -47,7 +47,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
@@ -125,7 +125,7 @@ public class RequestV2 extends HTTPResource {
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
 
-	private PmsConfiguration configuration = PMS.getConfiguration();
+	private UmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * A {@link String} that contains the uri with which this {@link RequestV2} was

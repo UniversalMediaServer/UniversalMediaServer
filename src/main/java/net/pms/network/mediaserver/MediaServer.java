@@ -24,7 +24,7 @@ import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.configuration.NetworkInterfaceAssociation;
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final Map<Integer, String> VERSIONS = Map.of(
 		1, "JUPnP+ (Java) alpha",
 		2, "JUPnP+ (Netty) alpha",

@@ -664,7 +664,7 @@ public class RootFolder extends DLNAResource {
 
 	/**
 	 * Returns Aperture folder. Used by manageRoot, so it is usually used as
-	 * a folder at the root folder. Only works when DMS is run on Mac OS X.
+	 * a folder at the root folder. Only works when UMS is run on Mac OS X.
 	 * TODO: Requirements for Aperture.
 	 */
 	private DLNAResource getApertureFolder() {
@@ -832,7 +832,7 @@ public class RootFolder extends DLNAResource {
 	/**
 	 * Returns the iTunes XML file. This file has all the information of the
 	 * iTunes database. The methods used in this function depends on whether
-	 * DMS runs on Mac OS X or Windows.
+	 * UMS runs on Mac OS X or Windows.
 	 *
 	 * @return (String) Absolute path to the iTunes XML file.
 	 * @throws Exception
@@ -1200,7 +1200,7 @@ public class RootFolder extends DLNAResource {
 			});
 		}
 
-		// Reboot DMS
+		// Reboot UMS
 		res.addChild(new VirtualVideoAction(Messages.getString("RebootUms"), true) {
 			@Override
 			public boolean enable() {

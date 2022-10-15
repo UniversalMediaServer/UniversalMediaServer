@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
@@ -488,7 +488,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	@Override
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
 		if (
 			getMedia() != null &&

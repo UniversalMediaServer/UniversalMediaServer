@@ -109,6 +109,17 @@ public class Services {
 	}
 
 	/**
+	 * Stops the {@link Services} {@link ProcessManager}.
+	 * This will cause its process terminator thread to terminate all managed
+	 * processes and stop.
+	 */
+	public static void stopProcessManager() {
+		if (instance != null && instance.processManager != null) {
+				instance.processManager.stop();
+		}
+	}
+
+	/**
 	 * Creates a new instance and starts the services. Isn't normally needed,
 	 * use {@link Services#create()} instead.
 	 */

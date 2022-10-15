@@ -49,7 +49,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.text.Document;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.*;
 import net.pms.newgui.util.FormLayoutUtil;
@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 	private JTextField jSearchBox, jSyslogHost;
 	private JComboBox<String> jTracesFilter, jSyslogFacility;
 	private JCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
@@ -138,7 +138,7 @@ public class TracesTab {
 	private LooksFrame looksFrame;
 	private ViewLevel viewLevel;
 
-	TracesTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	TracesTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}
@@ -330,9 +330,9 @@ public class TracesTab {
 		jBufferLabel.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jLineBuffer = new CustomJSpinner(new SpinnerIntModel(
 			configuration.getLoggingLogsTabLinebuffer(),
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN,
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_STEP
+			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN,
+			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
+			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_STEP
 		), true);
 		jLineBuffer.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jBufferLabel.setLabelFor(jLineBuffer);

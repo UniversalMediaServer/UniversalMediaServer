@@ -20,7 +20,7 @@ package net.pms.network.mediaserver.handlers;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
@@ -45,7 +45,7 @@ public class SearchRequestHandlerTest {
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
 		PMS.forceHeadless();
 		try {
-			PMS.setConfiguration(new PmsConfiguration(false));
+			PMS.setConfiguration(new UmsConfiguration(false));
 		} catch (Exception ex) {
 			throw new AssertionError(ex);
 		}

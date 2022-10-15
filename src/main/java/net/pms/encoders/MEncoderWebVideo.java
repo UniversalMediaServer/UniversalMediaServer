@@ -19,7 +19,7 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.io.IPipeProcess;
@@ -91,7 +91,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);

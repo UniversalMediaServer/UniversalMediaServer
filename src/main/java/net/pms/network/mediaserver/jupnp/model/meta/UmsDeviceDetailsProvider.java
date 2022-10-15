@@ -19,7 +19,7 @@ package net.pms.network.mediaserver.jupnp.model.meta;
 
 import java.net.URI;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.PropertiesUtil;
 import org.jupnp.model.meta.DeviceDetails;
 import org.jupnp.model.meta.ManufacturerDetails;
@@ -30,7 +30,7 @@ import org.jupnp.model.types.DLNACaps;
 import org.jupnp.model.types.DLNADoc;
 
 public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final String MANUFACTURER_NAME = "Universal Media Server";
 	private static final String MANUFACTURER_URL = "https://www.universalmediaserver.com/";

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -56,21 +56,21 @@ import org.slf4j.LoggerFactory;
  */
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
-	private static PmsConfiguration configuration;
+	private static UmsConfiguration configuration;
 
 	@BeforeAll
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.setConfiguration(new UmsConfiguration(false));
 		PMS.configureJNA();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 
 		// Initialize the RendererConfiguration
-		configuration = new PmsConfiguration(false);
+		configuration = new UmsConfiguration(false);
 	}
 
     /**
@@ -268,7 +268,7 @@ public class FormatRecognitionTest {
 	}
 
 	/**
-	 * When DMS is in the process of starting up, something particular happens.
+	 * When UMS is in the process of starting up, something particular happens.
 	 * The RootFolder is initialized and several VirtualVideoActions are added
 	 * as children. VirtualVideoActions use the MPG format and at the time of
 	 * initialization getDefaultRenderer() is used to determine whether or not
@@ -286,9 +286,9 @@ public class FormatRecognitionTest {
 		boolean configurationLoaded = false;
 
 		try {
-			// Initialize DMS configuration like at initialization time, this
+			// Initialize UMS configuration like at initialization time, this
 			// is relevant for RendererConfiguration.isCompatible().
-			PMS.setConfiguration(new PmsConfiguration());
+			PMS.setConfiguration(new UmsConfiguration());
 			configurationLoaded = true;
 		} catch (ConfigurationException e) {
 			e.printStackTrace();

@@ -30,17 +30,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
-public class PmsConfigurationTest {
+public class UmsConfigurationTest {
 
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 
 		// Create default configuration instance
-		configuration = new PmsConfiguration(false);
+		configuration = new UmsConfiguration(false);
 	}
 
 	/**
@@ -62,8 +62,8 @@ public class PmsConfigurationTest {
 		assertEquals(configuration.getLoggingFilterConsole(), Level.INFO, "LoggingFilterConsoleDefault");
 		assertEquals(configuration.getLoggingFilterLogsTab(), Level.INFO, "LoggingFilterLogsTabDefault");
 		assertEquals(configuration.getLoggingLogsTabLinebuffer(), 1000, "LoggingLogsTabLinebufferDefault");
-		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
-				configuration.getLoggingLogsTabLinebuffer() <= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
+		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
+				configuration.getLoggingLogsTabLinebuffer() <= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
 				"LoggingLogsTabLinebufferLegal");
 		assertEquals(configuration.getLoggingSyslogFacility(), "USER", "LoggingSyslogFacilityDefault");
 		assertEquals(configuration.getLoggingSyslogHost(), "", "LoggingSyslogHostDefault");

@@ -32,7 +32,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.WebPlayer;
@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 
 public class PlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String RETURN_PAGE = "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 
 	private final WebInterfaceServerHttpServerInterface parent;

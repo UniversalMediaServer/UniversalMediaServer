@@ -28,7 +28,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class DatabaseEmbedded {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseEmbedded.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Profiler PROFILER = new Profiler();
 	private static boolean collecting = false;
 

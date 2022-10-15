@@ -26,7 +26,7 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.LogicalPlayer;
@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 public class ControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControlHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
 	private final WebInterfaceServerHttpServerInterface parent;

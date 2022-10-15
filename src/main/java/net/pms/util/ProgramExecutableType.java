@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public enum ProgramExecutableType {
 
-	/** An executable bundled with DMS. */
+	/** An executable bundled with UMS. */
 	BUNDLED,
 
 	/** An executable reachable via the OS path. */

@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
 	private static final int THREAD_POOL_SIZE = 200;
 	private static final int THREAD_QUEUE_SIZE = 1000;

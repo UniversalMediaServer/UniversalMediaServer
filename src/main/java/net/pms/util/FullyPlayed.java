@@ -26,7 +26,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.MediaType;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static UmsConfiguration configuration = PMS.getConfiguration();
 	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/icon-fullyplayed.png";
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 	private static final int BLANK_IMAGE_RESOLUTION = 256;

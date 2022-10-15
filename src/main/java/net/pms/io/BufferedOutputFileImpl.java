@@ -28,7 +28,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.util.UMSUtils;
@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BufferedOutputFileImpl extends OutputStream implements BufferedOutputFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BufferedOutputFileImpl.class);
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 
 	/**
 	 * Initial size for the buffer in bytes.

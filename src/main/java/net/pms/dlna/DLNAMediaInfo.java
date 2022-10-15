@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
@@ -78,7 +78,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new Gson();
 	public static final long ENDFILE_POS = 99999475712L;
 
@@ -251,7 +251,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
 	 * AAC LC, ER AAC Scalable, and ER BSAC.
 	 * <p>
-	 * Since DMS currently only implements AAC-LC among the valid core layer
+	 * Since UMS currently only implements AAC-LC among the valid core layer
 	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
 	 * further codecs are added in the future, this test should be modified
 	 * accordingly.

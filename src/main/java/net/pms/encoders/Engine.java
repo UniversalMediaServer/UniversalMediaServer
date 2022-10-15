@@ -33,7 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
@@ -242,8 +242,8 @@ public abstract class Engine {
 		return executable == null ? null : executable.toString();
 	}
 
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected PmsConfiguration configuration = CONFIGURATION;
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected UmsConfiguration configuration = CONFIGURATION;
 
 	public boolean isAviSynthEngine() {
 		return false;
@@ -603,7 +603,7 @@ public abstract class Engine {
 	 *
 	 * @param customPath the new custom {@link Path} or {@code null} to clear.
 	 * @param setConfiguration whether or not the {@link Path} should also be
-	 *            stored in {@link PmsConfiguration}.
+	 *            stored in {@link UmsConfiguration}.
 	 * @return {@code true} if any changes were made as a result of this call,
 	 *         {@code false} otherwise.
 	 */

@@ -20,14 +20,14 @@ package net.pms.logging;
 import ch.qos.logback.core.PropertyDefinerBase;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurationReader;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 
 /**
  * Logback PropertyDefiner to set the root level, path and name for the <code>default logfile</code>.
  * @author thomas@innot.de
  */
 public class DebugLogPropertyDefiner extends PropertyDefinerBase {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	String key;
 

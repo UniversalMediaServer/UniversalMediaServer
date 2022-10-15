@@ -20,7 +20,7 @@ package net.pms.encoders;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.io.*;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.H264AnnexBInputStream;
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviDemuxerInputStream extends InputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviDemuxerInputStream.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private Process process;
 	private InputStream stream;

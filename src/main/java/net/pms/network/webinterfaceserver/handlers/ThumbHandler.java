@@ -23,7 +23,7 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdMediaType;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class ThumbHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final WebInterfaceServerHttpServerInterface parent;
 

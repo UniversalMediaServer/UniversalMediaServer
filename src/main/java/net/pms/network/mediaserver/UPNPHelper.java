@@ -21,7 +21,7 @@ import java.net.*;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.renderers.Renderer;
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class UPNPHelper extends UPNPControl {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPHelper.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final UPNPHelper INSTANCE = new UPNPHelper();
 

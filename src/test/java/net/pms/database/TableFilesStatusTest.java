@@ -21,7 +21,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.sql.Connection;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ public class TableFilesStatusTest {
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.setConfiguration(new UmsConfiguration(false));
 	}
 
 	/**

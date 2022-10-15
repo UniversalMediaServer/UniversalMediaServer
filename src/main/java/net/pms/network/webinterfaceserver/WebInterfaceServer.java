@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class WebInterfaceServer implements WebInterfaceServerInterface {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServer.class);
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 
 	protected final Map<String, RootFolder> roots;

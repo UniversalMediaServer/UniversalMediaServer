@@ -30,12 +30,12 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthFFmpeg {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JCheckBox interframegpu;
 	private static JCheckBox multithreading;
 	private static JCheckBox interframe;
@@ -105,7 +105,7 @@ public class AviSynthFFmpeg {
 			if (event.getPropertyName() == null) {
 				return;
 			}
-			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(UmsConfiguration.KEY_GPU_ACCELERATION)) {
 				interframegpu.setEnabled(CONFIGURATION.isGPUAcceleration());
 			}
 		});

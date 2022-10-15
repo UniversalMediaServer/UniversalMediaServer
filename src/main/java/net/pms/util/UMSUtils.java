@@ -21,7 +21,7 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Engine;
@@ -551,7 +551,7 @@ public class UMSUtils {
 	 *            be stored
 	 * @throws ConfigurationException
 	 */
-	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(UmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);

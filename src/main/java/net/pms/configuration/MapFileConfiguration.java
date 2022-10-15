@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private String name;
-	private List<MapFileConfiguration> children;
+	private final List<MapFileConfiguration> children;
 	private List<File> files;
 
 	private boolean addToMediaLibrary = true;

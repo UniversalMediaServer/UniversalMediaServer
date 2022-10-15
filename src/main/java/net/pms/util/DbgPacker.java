@@ -11,7 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.logging.LoggingConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +40,7 @@ public class DbgPacker {
 
 	protected void poll() {
 		// call the client callbacks
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
 		LOGGER.debug("Checking dbgpack property in UMS.conf");

@@ -40,7 +40,7 @@ public class TempFileMgr {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFileMgr.class);
 	private static final int DEFAULT_CLEAN_TIME = 14 * 24 * 3600 * 1000;
 	private static final int INTERVAL = 24 * 3600 * 1000;
-	private HashMap<File, Integer> files;
+	private final HashMap<File, Integer> files;
 
 	public TempFileMgr() {
 		files = new HashMap<>();
@@ -54,7 +54,7 @@ public class TempFileMgr {
 	public void add(File f, String str) {
 		try {
 			add(f, Integer.parseInt(str));
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			add(f);
 		}
 	}

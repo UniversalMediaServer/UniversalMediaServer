@@ -20,7 +20,7 @@ package net.pms.platform.linux;
 import com.sun.jna.Platform;
 import java.io.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.io.BufferedOutputFile;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LinuxPipeProcess implements IPipeProcess {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LinuxPipeProcess.class);
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 
 	private String linuxPipeName;
 	private WindowsNamedPipe mk;

@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 public class CodeDb implements DbHandler {
 	public static final String MASTER = "MASTER_CODE";
 
-	private FileDb db;
+	private final FileDb db;
 
 	public CodeDb() {
 		db = new FileDb(PMS.getConfiguration().getProfileDirectory() + File.separator + name(), this);
@@ -52,7 +52,7 @@ public class CodeDb implements DbHandler {
 	}
 
 	@Override
-	public String name() {
+	public final String name() {
 		return "UMS.code";
 	}
 }

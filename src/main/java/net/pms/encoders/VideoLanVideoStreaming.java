@@ -33,7 +33,7 @@ import net.pms.configuration.DeviceConfiguration;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.ExternalProgramInfo;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -136,7 +136,7 @@ public class VideoLanVideoStreaming extends Engine {
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();

@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import javax.jmdns.JmDNS;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.mdns.chromecast.ChromecastServiceListener;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class MDNS {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MDNS.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JmDNS jmDNS;
 
 	/**

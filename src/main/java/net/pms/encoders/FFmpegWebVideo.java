@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -160,7 +160,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Backup the existing configuration, to be restored at the end
 		// TODO: stop doing that
-		PmsConfiguration existingConfiguration = configuration;
+		UmsConfiguration existingConfiguration = configuration;
 
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		RendererConfiguration renderer = params.getMediaRenderer();

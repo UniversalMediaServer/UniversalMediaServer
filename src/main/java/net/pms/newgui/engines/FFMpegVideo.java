@@ -29,12 +29,12 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.newgui.GuiUtil;
 
 public class FFMpegVideo {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JComboBox<String> fFmpegLoggingLevel;
 	private static JCheckBox multithreading;
 	private static JCheckBox videoRemuxTsMuxer;

@@ -21,7 +21,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
 import net.pms.network.mediaserver.jupnp.registry.UmsRegistryListener;
 import org.jupnp.UpnpServiceImpl;
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class UmsUpnpService extends UpnpServiceImpl {
 
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
 

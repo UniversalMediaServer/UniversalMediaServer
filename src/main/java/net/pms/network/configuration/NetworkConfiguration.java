@@ -21,7 +21,7 @@ import com.google.gson.JsonArray;
 import java.net.*;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServerNetworkConfigurationListener;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class NetworkConfiguration {
 	 * The logger.
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(NetworkConfiguration.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * Interval for checking network configuration.
@@ -72,7 +72,7 @@ public class NetworkConfiguration {
 	/**
 	 * The list of configured network interface names that should be skipped.
 	 *
-	 * @see PmsConfiguration#getSkipNetworkInterfaces()
+	 * @see UmsConfiguration#getSkipNetworkInterfaces()
 	 */
 	private static final List<String> SKIP_NETWORK_INTERFACES = PMS.getConfiguration().getSkipNetworkInterfaces();
 	private static final List<NetworkConfigurationListenerInterface> LISTENERS = new ArrayList<>();

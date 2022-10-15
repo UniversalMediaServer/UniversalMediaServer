@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
@@ -79,7 +79,7 @@ import org.slf4j.LoggerFactory;
  */
 public class APIUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(APIUtils.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
 
 	/**

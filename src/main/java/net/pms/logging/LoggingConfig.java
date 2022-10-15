@@ -43,7 +43,7 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.Iterators;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.ILoggerFactory;
@@ -260,7 +260,7 @@ public class LoggingConfig {
 	}
 
 	private static synchronized void setConfigurableFilters(boolean setConsole, boolean setTraces) {
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting buffered logging. Make sure that loadFile() has been called first.");
 			return;
@@ -377,7 +377,7 @@ public class LoggingConfig {
 	*/
 	public static synchronized void setSyslog() {
 		ActionType action = ActionType.NONE;
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 
 		if (loggerContext == null) {
 			LOGGER.error("Unknown loggerContext, aborting syslog configuration. Make sure that loadFile() has been called first.");

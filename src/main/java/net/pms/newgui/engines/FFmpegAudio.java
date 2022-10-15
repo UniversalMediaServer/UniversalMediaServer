@@ -27,11 +27,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
 
 public class FFmpegAudio {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static JCheckBox noresample;
 
 	/**

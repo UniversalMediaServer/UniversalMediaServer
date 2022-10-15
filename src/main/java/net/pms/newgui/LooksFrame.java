@@ -39,7 +39,7 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
@@ -68,7 +68,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	public static final String START_SERVICE = "start.service";
 
 	private final AutoUpdater autoUpdater;
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private final WindowProperties windowProperties;
 
 	/**
@@ -263,7 +263,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull UmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
 		super(windowConfiguration.getGraphicsConfiguration());
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration can't be null");
@@ -642,7 +642,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	 * to restart the server.<br>
 	 * Currently the icon as well as the tool tip text of the restart button is being
 	 * changed.<br>
-	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
+	 * The actions requiring a server restart are defined by {@link UmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
 	 * @param required true if the server has to be restarted, false otherwise
 	 */

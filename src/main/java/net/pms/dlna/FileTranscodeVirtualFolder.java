@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.encoders.Engine;
@@ -320,7 +320,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	}
 
 	@Override
-	protected String getDisplayNameEngine(PmsConfiguration configuration) {
+	protected String getDisplayNameEngine(UmsConfiguration configuration) {
 		return null;
 	}
 }

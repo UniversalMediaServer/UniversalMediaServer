@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
@@ -103,7 +103,7 @@ public class RAW extends ImageBase {
 			return;
 		}
 
-		PmsConfiguration configuration = PMS.getConfiguration(renderer);
+		UmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			// Only parse using DCRaw if it is enabled
 			DCRaw dcraw = (DCRaw) EngineFactory.getActiveEngine(DCRaw.ID);

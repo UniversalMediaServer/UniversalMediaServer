@@ -81,14 +81,14 @@ public class RendererConfiguration extends Renderer {
 	public static final File NOFILE = new File("NOFILE");
 
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
+	protected static UmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
 
 	protected volatile RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected PmsConfiguration pmsConfiguration = pmsConfigurationStatic;
+	protected UmsConfiguration pmsConfiguration = pmsConfigurationStatic;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -263,7 +263,7 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @param pmsConf
 	 */
-	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
+	public static void loadRendererConfigurations(UmsConfiguration pmsConf) {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
 			pmsConfigurationStatic = pmsConf;
 			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
@@ -302,7 +302,7 @@ public class RendererConfiguration extends Renderer {
 									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 								}
 
-								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(PmsConfiguration.ALL_RENDERERS)) {
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(UmsConfiguration.ALL_RENDERERS)) {
 									enabledRendererConfs.add(r);
 								} else {
 									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
@@ -773,7 +773,7 @@ public class RendererConfiguration extends Renderer {
 		return configuration;
 	}
 
-	public PmsConfiguration getPmsConfiguration() {
+	public UmsConfiguration getPmsConfiguration() {
 		return pmsConfiguration;
 	}
 
@@ -2289,11 +2289,11 @@ public class RendererConfiguration extends Renderer {
 	 * @param dlna The {@link DLNAResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
-	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
+	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAResource dlna, Format format, PmsConfiguration configuration) {
+	public boolean isCompatible(DLNAResource dlna, Format format, UmsConfiguration configuration) {
 		DLNAMediaInfo mediaInfo;
 		if (dlna != null) {
 			mediaInfo = dlna.getMedia();
@@ -2452,7 +2452,7 @@ public class RendererConfiguration extends Renderer {
 
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("value", PmsConfiguration.ALL_RENDERERS);
+		jsonObject.addProperty("value", UmsConfiguration.ALL_RENDERERS);
 		jsonObject.addProperty("label", "i18n@AllRenderers");
 		jsonArray.add(jsonObject);
 		jsonObject = new JsonObject();

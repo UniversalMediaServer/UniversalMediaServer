@@ -50,8 +50,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.PmsConfiguration.SharedFolder;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.UmsConfiguration.SharedFolder;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -115,10 +115,10 @@ public class SharedContentTab {
 		return folderTableModel;
 	}
 
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
 
-	SharedContentTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	SharedContentTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}

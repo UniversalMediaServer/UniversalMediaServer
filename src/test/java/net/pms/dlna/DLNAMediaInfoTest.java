@@ -20,7 +20,7 @@ package net.pms.dlna;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.parsers.MediaInfoParser;
@@ -78,7 +78,7 @@ public class DLNAMediaInfoTest {
 		PMS.configureJNA();
 		PMS.forceHeadless();
 		try {
-			PMS.setConfiguration(new PmsConfiguration(false));
+			PMS.setConfiguration(new UmsConfiguration(false));
 		} catch (Exception ex) {
 			throw new AssertionError(ex);
 		}

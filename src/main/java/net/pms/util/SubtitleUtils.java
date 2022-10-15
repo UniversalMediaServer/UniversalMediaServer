@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
@@ -61,7 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
 	private static final char[] SUBTITLES_UPPER_CASE;
@@ -223,7 +223,7 @@ public class SubtitleUtils {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params,
-		PmsConfiguration configuration,
+		UmsConfiguration configuration,
 		SubtitleType subtitleType
 	) throws IOException {
 		if (
@@ -397,7 +397,7 @@ public class SubtitleUtils {
 		String fileName,
 		DLNAMediaInfo media,
 		OutputParams params,
-		PmsConfiguration configuration,
+		UmsConfiguration configuration,
 		SubtitleType outputSubtitleType
 	) {
 		if (!params.getSid().getType().isText()) {
@@ -480,7 +480,7 @@ public class SubtitleUtils {
 	public static File applyFontconfigToASSTempSubsFile(
 		File tempSubs,
 		DLNAMediaInfo media,
-		PmsConfiguration configuration
+		UmsConfiguration configuration
 	) throws IOException {
 		LOGGER.debug("Applying fontconfig to subtitles " + tempSubs.getName());
 		File outputSubs = tempSubs;

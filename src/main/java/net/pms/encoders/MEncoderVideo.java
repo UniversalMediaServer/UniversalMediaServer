@@ -33,7 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
@@ -298,8 +298,8 @@ public class MEncoderVideo extends Engine {
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
-		// Use device-specific DMS conf
-		PmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
+		// Use device-specific UMS conf
+		UmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
 		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
@@ -427,8 +427,8 @@ public class MEncoderVideo extends Engine {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		// Use device-specific DMS conf
-		PmsConfiguration prev = configuration;
+		// Use device-specific UMS conf
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		params.manageFastStart();
 

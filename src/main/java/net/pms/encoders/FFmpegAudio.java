@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -91,7 +91,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		PmsConfiguration prev = configuration;
+		UmsConfiguration prev = configuration;
 		// Use device-specific pms conf
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		final String filename = dlna.getFileName();

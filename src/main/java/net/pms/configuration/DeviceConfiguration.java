@@ -37,7 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceConfiguration extends PmsConfiguration {
+public class DeviceConfiguration extends UmsConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
 
 	public static final int DEVICE = 0;
@@ -92,7 +92,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 			cconf.addConfiguration(ref.getConfiguration());
 		}
 		// 3. The default pms configuration (read-only)
-		PmsConfiguration baseConf = PMS.getConfiguration();
+		UmsConfiguration baseConf = PMS.getConfiguration();
 		cconf.addConfiguration(baseConf.getConfiguration());
 
 		// Handle all queries (external and internal) via the composite configuration
@@ -211,7 +211,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return deviceDir;
 	}
 
-	public static void loadDeviceConfigurations(PmsConfiguration pmsConf) {
+	public static void loadDeviceConfigurations(UmsConfiguration pmsConf) {
 		deviceConfs = new HashMap<>();
 		xref = new HashMap<>();
 		deviceDir = new File(pmsConf.getProfileDirectory(), "renderers");

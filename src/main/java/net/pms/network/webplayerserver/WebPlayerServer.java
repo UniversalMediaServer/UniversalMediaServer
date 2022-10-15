@@ -19,13 +19,13 @@ package net.pms.network.webplayerserver;
 
 import java.io.IOException;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebPlayerServer {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 
 	public abstract Object getServer();

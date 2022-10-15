@@ -26,7 +26,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 
 /**
  * Wizard to ask users to make the UMS initial setting
@@ -40,7 +40,7 @@ public class Wizard {
 	private Wizard() {
 	}
 
-	public static void run(final PmsConfiguration configuration) {
+	public static void run(final UmsConfiguration configuration) {
 		// Total number of questions
 		int numberOfQuestions = 5;
 

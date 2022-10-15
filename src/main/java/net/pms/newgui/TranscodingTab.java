@@ -36,7 +36,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.newgui.components.CustomJButton;
@@ -63,11 +63,11 @@ public class TranscodingTab {
 	private static final String MAIN_ROW_SPEC = "fill:10:grow";
 	private static final String EMPTY_PANEL = "empty_panel";
 
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private ComponentOrientation orientation;
 	private LooksFrame looksFrame;
 
-	TranscodingTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	TranscodingTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale

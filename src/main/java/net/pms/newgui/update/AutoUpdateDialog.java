@@ -15,7 +15,7 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
@@ -30,7 +30,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {

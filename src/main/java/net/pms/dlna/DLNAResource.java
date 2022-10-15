@@ -63,8 +63,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
@@ -124,7 +124,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private volatile ImageInfo thumbnailImageInfo = null;
-	protected PmsConfiguration configuration = PMS.getConfiguration();
+	protected UmsConfiguration configuration = PMS.getConfiguration();
 
 	// private boolean subsAreValidForStreaming = false;
 
@@ -303,9 +303,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * String representing this resource ID. This string is used by the UPNP
 	 * ContentDirectory service. There is no hard spec on the actual numbering
-	 * except for the root container that always has to be "0". In DMS the
+	 * except for the root container that always has to be "0". In UMS the
 	 * format used is <i>number($number)+</i>. A common client that expects a
-	 * different format than the one used here is the XBox360. DMS translates
+	 * different format than the one used here is the XBox360. UMS translates
 	 * the XBox360 queries on the fly. For more info, check
 	 * <ul>
 	 * <li><a href="http://www.mperfect.net/whsUpnp360/">whsUpnp360</a></li>
@@ -746,7 +746,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public Engine resolveEngine(RendererConfiguration renderer) {
 		// Use device-specific conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
 		Engine resolvedEngine = null;
 
@@ -1255,7 +1255,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	protected final void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configurationSpecificToRenderer.getFolderLimit() && depthLimit()) {
@@ -1545,10 +1545,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed. Returns the display name for the default
 	 * renderer.
 	 *
-	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param configuration the {@link UmsConfiguration} to use.
 	 * @return The engine display name or {@code null}.
 	 */
-	protected String getDisplayNameEngine(PmsConfiguration configuration) {
+	protected String getDisplayNameEngine(UmsConfiguration configuration) {
 		String engineName = null;
 		if (engine != null) {
 			if (isNoName() || !configuration.isHideEngineNames()) {
@@ -1579,10 +1579,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed.
 	 *
 	 * @param renderer the {@link RendererConfiguration} to use.
-	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param configuration the {@link UmsConfiguration} to use.
 	 * @return The display name suffix or {@code ""}.
 	 */
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
 		if (media == null) {
 			return null;
 		}
@@ -1708,7 +1708,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The display name.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 
 		// Base
@@ -1922,7 +1922,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 * permission on when permitting seek-by-time.
 			 *
 			 * It's not clear if this is a bug in the DLNA libraries of these
-			 * renderers or a bug in DMS, but setting an option in the renderer
+			 * renderers or a bug in UMS, but setting an option in the renderer
 			 * conf that disables seek-by-byte when we permit seek-by-time -
 			 * e.g.:
 			 *
@@ -1966,7 +1966,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
 		// Use device-specific UMS conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
 		String dlnaOrgPnFlags = null;
@@ -2162,7 +2162,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		// Use device-specific configuration, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
@@ -3142,8 +3142,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, HlsConfiguration hlsConfiguration) throws IOException {
-		// Use device-specific DMS conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
+		// Use device-specific UMS conf, if any
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + engine);
 
 		// shagrath: small fix, regression on chapters
@@ -3390,7 +3390,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (media != null && !media.isThumbready() && configurationSpecificToRenderer.isThumbnailGenerationEnabled() &&
 			(renderer == null || renderer.isThumbnails())) {
 			Double seekPosition = (double) configurationSpecificToRenderer.getThumbnailSeekPos();
@@ -4041,7 +4041,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 		// Use device-specific pms conf
-		PmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
+		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 
 		// check for preferred audio
 		DLNAMediaAudio dtsTrack = null;
@@ -4093,7 +4093,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Use device-specific pms conf
-		PmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
+		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 		if (deviceSpecificConfiguration.isDisableSubtitles()) {
 			LOGGER.trace("Not resolving subtitles since subtitles are disabled");
 			return null;

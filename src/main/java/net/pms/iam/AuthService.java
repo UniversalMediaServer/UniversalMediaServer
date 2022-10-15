@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class AuthService {
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JWT_SECRET = CONFIGURATION.getJwtSecret();
 	private static final int TWO_HOURS_IN_MS = 7200000;
 	private static final String JWT_ISSUER = "UMS";

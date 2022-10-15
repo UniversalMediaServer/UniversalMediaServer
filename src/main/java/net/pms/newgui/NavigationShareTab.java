@@ -30,8 +30,8 @@ import java.sql.SQLException;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.util.FormLayoutUtil;
@@ -82,10 +82,10 @@ public class NavigationShareTab {
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
 
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
 
-	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	NavigationShareTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}
