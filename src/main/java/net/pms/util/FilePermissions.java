@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -349,37 +350,36 @@ public class FilePermissions {
 	 *         {@link EnumSet}.
 	 */
 	@Nonnull
-	public EnumSet<FileFlag> getFlags(FileFlag... checkFlag) {
+	public Set<FileFlag> getFlags(FileFlag... checkFlag) {
 		boolean checkRead = checkFlag.length == 0;
 		boolean checkWrite = checkFlag.length == 0;
 		boolean checkExecute = checkFlag.length == 0;
 		for (FileFlag flag : checkFlag) {
 			switch (flag) {
-				case BROWSE:
+				case BROWSE -> {
 					checkRead = true;
 					checkExecute = true;
-					break;
-				case EXECUTE:
+				}
+				case EXECUTE -> {
 					checkExecute = true;
-					break;
-				case FILE:
+				}
+				case FILE -> {
 					if (!isFile()) {
 						return EnumSet.noneOf(FileFlag.class);
 					}
-					break;
-				case FOLDER:
+				}
+				case FOLDER -> {
 					if (!isFolder()) {
 						return EnumSet.noneOf(FileFlag.class);
 					}
-					break;
-				case READ:
+				}
+				case READ -> {
 					checkRead = true;
-					break;
-				case WRITE:
+				}
+				case WRITE -> {
 					checkWrite = true;
-					break;
-				default:
-					throw new AssertionError("Flag " + flag.name() + "isn't implemented", null);
+				}
+				default -> throw new AssertionError("Flag " + flag.name() + "isn't implemented", null);
 			}
 		}
 		checkPermissions(checkRead, checkWrite, checkExecute);

@@ -156,9 +156,9 @@ public class LoggingTest {
 		assertFalse(file.isDirectory(), "LoggingConfigIsFile");
 
 		// Test getLogFilePaths() and LoggingConfigFileLoader.getLogFilePaths()
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
 		@SuppressWarnings("deprecation")
-		HashMap<String, String> compLogFilePaths = LoggingConfigFileLoader.getLogFilePaths();
+		Map<String, String> compLogFilePaths = LoggingConfigFileLoader.getLogFilePaths();
 		Iterator<Appender<ILoggingEvent>> iterator = rootLogger.iteratorForAppenders();
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();

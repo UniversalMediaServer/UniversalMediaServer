@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1075,9 +1076,9 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static ArrayList<String> getStrings(final Connection connection, String sql) {
-		ArrayList<String> list = new ArrayList<>();
-		HashSet<String> set = new HashSet<>();
+	public static List<String> getStrings(final Connection connection, String sql) {
+		List<String> list = new ArrayList<>();
+		Set<String> set = new HashSet<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + " WHERE " + sql));
@@ -1219,8 +1220,8 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static ArrayList<File> getFiles(final Connection connection, String sql) {
-		ArrayList<File> list = new ArrayList<>();
+	public static List<File> getFiles(final Connection connection, String sql) {
+		List<File> list = new ArrayList<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(

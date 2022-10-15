@@ -291,7 +291,7 @@ public class PMS {
 
 		LOGGER.info("Logging configuration file: {}", LoggingConfig.getConfigFilePath());
 
-		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
+		Map<String, String> lfps = LoggingConfig.getLogFilePaths();
 
 		// Logfile name(s) and path(s)
 		if (lfps != null && !lfps.isEmpty()) {

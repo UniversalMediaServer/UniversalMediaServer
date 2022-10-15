@@ -60,7 +60,7 @@ public class NavigationShareTab {
 	private JTextField defaultThumbFolder;
 	private JCheckBox iPhoto;
 	private JCheckBox aperture;
-	public static JCheckBox iTunes;
+	private JCheckBox iTunes;
 	private CustomJButton select;
 	private static CustomJButton cacheReset;
 	private JCheckBox ignoreTheWordThe;

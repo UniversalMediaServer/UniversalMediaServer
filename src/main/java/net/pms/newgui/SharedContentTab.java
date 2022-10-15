@@ -74,12 +74,12 @@ public class SharedContentTab {
 	);
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
+	//TODO : fix direct webContentList JTable access from RootFolder
+	public static JTable webContentList;
+	private static WebContentTableModel webContentTableModel;
 	private JPanel sharedPanel;
 	private JTable sharedFolders;
-	public static JTable webContentList;
 	private SharedFoldersTableModel folderTableModel;
-	public static WebContentTableModel webContentTableModel;
-	public static JCheckBox itunes;
 	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
 	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
 	private static final AnimatedIcon SCAN_NORMAL_ICON = (AnimatedIcon) SCAN_BUTTON.getIcon();

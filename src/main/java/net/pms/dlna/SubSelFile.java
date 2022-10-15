@@ -27,7 +27,7 @@ public class SubSelFile extends VirtualFolder {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		try {
 			return originalResource.getThumbnailInputStream();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			return super.getThumbnailInputStream();
 		}
 	}
@@ -40,7 +40,7 @@ public class SubSelFile extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		try {
-			ArrayList<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
+			List<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
 			if (subtitleItems == null || subtitleItems.isEmpty()) {
 				return;
 			}
@@ -74,7 +74,7 @@ public class SubSelFile extends VirtualFolder {
 		}
 	}
 
-	private static int removeLanguage(ArrayList<SubtitleItem> subtitles, LinkedHashMap<String, Integer> languages, String languageCode, int count) {
+	private static int removeLanguage(List<SubtitleItem> subtitles, Map<String, Integer> languages, String languageCode, int count) {
 		ListIterator<SubtitleItem> iterator = subtitles.listIterator(subtitles.size());
 		int removed = 0;
 		while (removed != count && iterator.hasPrevious()) {
@@ -91,10 +91,10 @@ public class SubSelFile extends VirtualFolder {
 			) {
 				Integer langCount = languages.get(languageCode);
 				if (langCount != null) {
-					if (langCount.intValue() == 1) {
+					if (langCount == 1) {
 						languages.remove(languageCode);
 					} else {
-						languages.put(languageCode, langCount.intValue() - 1);
+						languages.put(languageCode, langCount - 1);
 					}
 				}
 				iterator.remove();
@@ -104,19 +104,19 @@ public class SubSelFile extends VirtualFolder {
 		return removed;
 	}
 
-	private static void reduceSubtitles(ArrayList<SubtitleItem> subtitles, int limit) { //TODO: (Nad) Keep hash results
+	private static void reduceSubtitles(List<SubtitleItem> subtitles, int limit) { //TODO: (Nad) Keep hash results
 		int remove = subtitles.size() - limit;
 		if (remove <= 0) {
 			return;
 		}
 
-		LinkedHashMap<String, Integer> languages = new LinkedHashMap<>();
+		Map<String, Integer> languages = new LinkedHashMap<>();
 		for (SubtitleItem subtitle : subtitles) {
 			String languageCode = isBlank(subtitle.getLanguageCode()) ? null : subtitle.getLanguageCode();
 			if (!languages.containsKey(languageCode)) {
 				languages.put(languageCode, 1);
 			} else {
-				languages.put(languageCode, languages.get(languageCode).intValue() + 1);
+				languages.put(languageCode, languages.get(languageCode) + 1);
 			}
 		}
 
@@ -127,7 +127,7 @@ public class SubSelFile extends VirtualFolder {
 
 		if (remove > 0) {
 			// Build a sorted map where each language gets 30 extra points per step in the priority
-			ArrayList<LanguageRankedItem> languageRankedSubtitles = new ArrayList<>();
+			List<LanguageRankedItem> languageRankedSubtitles = new ArrayList<>();
 			int languagePreference = 0;
 			String languageCode = null;
 			for (SubtitleItem subtitle : subtitles) {
@@ -252,7 +252,7 @@ public class SubSelFile extends VirtualFolder {
 		private final SubtitleItem subtitleItem;
 
 		public LanguageRankedItem(double score, SubtitleItem subtitleItem) {
-			this.score = Double.valueOf(score);
+			this.score = score;
 			this.subtitleItem = subtitleItem;
 		}
 

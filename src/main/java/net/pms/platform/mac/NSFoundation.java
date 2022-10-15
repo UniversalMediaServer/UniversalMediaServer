@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -211,12 +212,12 @@ public class NSFoundation {
 	 * @return The {@link ArrayList} of {@link Path}s of folders.
 	 */
 	@Nonnull
-	public static ArrayList<Path> nsSearchPathForDirectoriesInDomains(
+	public static List<Path> nsSearchPathForDirectoriesInDomains(
 		NSSearchPathDirectory directory,
 		long domainMask,
 		boolean expandTilde
 	) {
-		ArrayList<Path> result = new ArrayList<>();
+		List<Path> result = new ArrayList<>();
 		CFArrayRef cfArrayRef = new CFArrayRef(
 			NSFoundationIF.INSTANCE.CFBridgingRetain(NSFoundationIF.INSTANCE.NSSearchPathForDirectoriesInDomains(
 				directory,

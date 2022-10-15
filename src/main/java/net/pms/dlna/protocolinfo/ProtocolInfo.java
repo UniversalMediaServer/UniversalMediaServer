@@ -495,7 +495,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 		if (isBlank(additionalInfo) || WILDCARD.equals(additionalInfo.trim())) {
 			return EMPTYMAP;
 		}
-		TreeMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
+		SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
 		String[] attributeStrings = additionalInfo.trim().toUpperCase(Locale.ROOT).split("\\s*;\\s*");
 		for (String attributeString : attributeStrings) {
 			if (isBlank(attributeString)) {

@@ -27,8 +27,8 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
@@ -341,7 +341,7 @@ public class RealFile extends MapFile {
 
 			for (File folder : folders) {
 				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
-				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				Set<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
 				if (!potentials.isEmpty()) {
 					// We have no rules for how to pick a particular one if there's multiple candidates
 					cachedThumbnail = potentials.iterator().next();

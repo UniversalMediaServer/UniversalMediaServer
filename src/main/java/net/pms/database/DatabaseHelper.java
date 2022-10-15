@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -283,8 +285,8 @@ public abstract class DatabaseHelper {
 	 * @return the rows of the first column of a result set
 	 * @throws SQLException
 	 */
-	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
-		HashSet<String> list = new HashSet<>();
+	public static Set<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		Set<String> list = new HashSet<>();
 
 		while (rs.next()) {
 			list.add(rs.getString(1));
@@ -299,10 +301,10 @@ public abstract class DatabaseHelper {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static HashMap<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
+	public static Map<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();
 		int columns = md.getColumnCount();
-		HashMap<String, Object> row = new HashMap<>(columns);
+		Map<String, Object> row = new HashMap<>(columns);
 		for (int i = 1; i <= columns; ++i) {
 			row.put(md.getColumnName(i), rs.getObject(i));
 		}

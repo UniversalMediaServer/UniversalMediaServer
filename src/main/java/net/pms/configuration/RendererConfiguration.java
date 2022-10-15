@@ -415,7 +415,7 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @return The list of enabled renderers.
 	 */
-	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
+	public static List<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
 	}
 
@@ -2440,15 +2440,15 @@ public class RendererConfiguration extends Renderer {
 		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
-	public static ArrayList<String> getAllRenderersNames() {
+	public static List<String> getAllRenderersNames() {
 		return ALL_RENDERERS_NAMES;
 	}
 
 	/**
 	 * @return all renderer names as a JSON array
 	 */
-	public synchronized static JsonArray getAllRendererNamesAsJsonArray() {
-		ArrayList<String> values = getAllRenderersNames();
+	public static synchronized JsonArray getAllRendererNamesAsJsonArray() {
+		List<String> values = getAllRenderersNames();
 
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
@@ -2473,8 +2473,8 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @return all default renderers as a JSON array
 	 */
-	public synchronized static JsonArray getEnabledRendererNamesAsJsonArray() {
-		ArrayList<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
+	public static synchronized JsonArray getEnabledRendererNamesAsJsonArray() {
+		List<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
 		GeneralTab.sortRendererConfigurationsByName(values);
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();

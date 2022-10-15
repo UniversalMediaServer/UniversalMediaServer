@@ -549,9 +549,9 @@ public class WebInterfaceServerUtil {
 		return null;
 	}
 
-	public static LinkedHashSet<String> getLangs(HttpExchange t) {
+	public static Set<String> getLangs(HttpExchange t) {
 		String hdr = t.getRequestHeaders().getFirst("Accept-language");
-		LinkedHashSet<String> result = new LinkedHashSet<>();
+		Set<String> result = new LinkedHashSet<>();
 		if (StringUtils.isEmpty(hdr)) {
 			return result;
 		}
@@ -565,7 +565,7 @@ public class WebInterfaceServerUtil {
 	}
 
 	public static String getFirstSupportedLanguage(HttpExchange t) {
-		LinkedHashSet<String> languages = getLangs(t);
+		Set<String> languages = getLangs(t);
 		for (String language : languages) {
 			String code = Languages.toLanguageTag(language);
 			if (code != null) {
@@ -606,8 +606,8 @@ public class WebInterfaceServerUtil {
 	 * - A template manager.
 	 */
 	public static class ResourceManager extends URLClassLoader {
-		private final HashSet<File> files;
-		private final HashMap<String, Template> templates;
+		private final Set<File> files = new HashSet<>();
+		private final Map<String, Template> templates = new HashMap<>();
 
 		public ResourceManager(String... urls) {
 			super(new URL[]{}, null);
@@ -618,8 +618,6 @@ public class WebInterfaceServerUtil {
 			} catch (MalformedURLException e) {
 				LOGGER.debug("Error adding resource url: " + e);
 			}
-			files = new HashSet<>();
-			templates = new HashMap<>();
 		}
 
 		public InputStream getInputStream(String filename) {
@@ -739,14 +737,11 @@ public class WebInterfaceServerUtil {
 		/**
 		 * Automatic recompiling
 		 */
-		FileWatcher.Listener recompiler = new FileWatcher.Listener() {
-			@Override
-			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-				String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
-				if (templates.containsKey(path)) {
-					templates.put(path, compile(getInputStream(path)));
-					LOGGER.info("Recompiling template: {}", path);
-				}
+		FileWatcher.Listener recompiler = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+			String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
+			if (templates.containsKey(path)) {
+				templates.put(path, compile(getInputStream(path)));
+				LOGGER.info("Recompiling template: {}", path);
 			}
 		};
 	}

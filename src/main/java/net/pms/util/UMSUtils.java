@@ -1,18 +1,19 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package net.pms.util;
 
@@ -128,8 +129,8 @@ public class UMSUtils {
 	 * @param method
 	 * @see #sort(java.util.ArrayList, int)
 	 */
-	public static void sort(List<File> files, int method) {
-		sort(files, method, false);
+	public static void sortFiles(List<File> files, int method) {
+		UMSUtils.sortFiles(files, method, false);
 	}
 
 	/**
@@ -140,7 +141,7 @@ public class UMSUtils {
 	 * @param isEpisodeWithinTVSeriesFolder
 	 * @see #sort(java.util.ArrayList, int)
 	 */
-	public static void sort(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
+	public static void sortFiles(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -183,9 +184,9 @@ public class UMSUtils {
 	 *
 	 * @param inputStrings
 	 * @param method
-	 * @see #sort(java.util.List, int)
+	 * @see #sortFiles(java.util.List, int)
 	 */
-	public static void sort(ArrayList<String> inputStrings, int method) {
+	public static void sortStrings(List<String> inputStrings, int method) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -595,7 +596,7 @@ public class UMSUtils {
 	 * @param b second list to compare
 	 * @return whether the lists are equal
 	 */
-	public static boolean isListsEqual(ArrayList<String> a, ArrayList<String> b) {
+	public static boolean isListsEqual(List<String> a, List<String> b) {
 		// Check for sizes and nulls
 		if (a == null && b == null) {
 			return true;
@@ -676,7 +677,7 @@ public class UMSUtils {
 	 *   ...
 	 * ]
 	 */
-	public synchronized static JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
+	public static synchronized JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
 		if (jsonArray == null) {
 			jsonArray = new JsonArray();
 		}

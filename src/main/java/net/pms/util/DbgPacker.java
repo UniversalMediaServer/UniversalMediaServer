@@ -3,7 +3,6 @@ package net.pms.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +26,7 @@ public class DbgPacker {
 	public DbgPacker() {
 		items = new LinkedHashMap<>();
 
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
 		if (!logFilePaths.isEmpty()) {
 			defaultLogFile = LoggingConfig.getLogFilePaths().get("default.log");
 			if (defaultLogFile == null) {

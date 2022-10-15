@@ -37,7 +37,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -586,7 +585,7 @@ public class TracesTab {
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		HashMap<String, String> logFiles = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFiles = LoggingConfig.getLogFilePaths();
 		for (Map.Entry<String, String> logger : logFiles.entrySet()) {
 			String loggerNameDisplay = logger.getKey();
 			if (logger.getKey().toLowerCase().startsWith("default.log")) {

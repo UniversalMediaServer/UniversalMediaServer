@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -638,7 +639,7 @@ public final class Languages {
 	 *
 	 * @return The resulting {@link HashMap}
 	 */
-	public static HashMap<String, TranslationStatistics> getTranslationsStatistics() {
+	public static Map<String, TranslationStatistics> getTranslationsStatistics() {
 		synchronized (TRANSLATIONS_STATISTICS) {
 			populateTranslationsStatistics();
 			return TRANSLATIONS_STATISTICS;

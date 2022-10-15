@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
@@ -636,7 +637,7 @@ public class LoggingConfig {
 		LOGGER.info("Verbose file logging pattern enforced");
 	}
 
-	public static HashMap<String, String> getLogFilePaths() {
+	public static Map<String, String> getLogFilePaths() {
 		synchronized (LOG_FILE_PATHS_LOCK) {
 			return LOG_FILE_PATHS;
 		}

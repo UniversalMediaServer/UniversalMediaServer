@@ -259,8 +259,8 @@ public class MapFile extends DLNAResource {
 		List<File> files = getFilesListForDirectories();
 
 		// Build a map of all files and their corresponding formats
-		HashSet<File> images = new HashSet<>();
-		HashSet<File> audioVideo = new HashSet<>();
+		Set<File> images = new HashSet<>();
+		Set<File> audioVideo = new HashSet<>();
 		Iterator<File> iterator = files.iterator();
 		while (iterator.hasNext()) {
 			File file = iterator.next();
@@ -283,7 +283,7 @@ public class MapFile extends DLNAResource {
 
 		// Remove cover/thumbnails from file list
 		if (!images.isEmpty() && !audioVideo.isEmpty()) {
-			HashSet<File> potentialMatches;
+			Set<File> potentialMatches;
 			for (File audioVideoFile : audioVideo) {
 				potentialMatches = getPotentialFileThumbnails(audioVideoFile, false);
 				iterator = images.iterator();
@@ -306,7 +306,7 @@ public class MapFile extends DLNAResource {
 			 * Note: If we done this at the level directly above we don't do it again
 			 * since all files start with the same letter then
 			 */
-			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
+			Map<String, List<File>> map = new TreeMap<>();
 			for (File f : files) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
@@ -333,7 +333,7 @@ public class MapFile extends DLNAResource {
 					// "other char"
 					c = '#';
 				}
-				ArrayList<File> l = map.get(String.valueOf(c));
+				List<File> l = map.get(String.valueOf(c));
 				if (l == null) {
 					// new letter
 					l = new ArrayList<>();
@@ -342,10 +342,10 @@ public class MapFile extends DLNAResource {
 				map.put(String.valueOf(c), l);
 			}
 
-			for (Entry<String, ArrayList<File>> entry : map.entrySet()) {
+			for (Entry<String, List<File>> entry : map.entrySet()) {
 				// loop over all letters, this avoids adding
 				// empty letters
-				UMSUtils.sort(entry.getValue(), sm);
+				UMSUtils.sortFiles(entry.getValue(), sm);
 				MapFile mf = new MapFile(getConf(), entry.getValue());
 				mf.forcedName = entry.getKey();
 				addChild(mf, true, isAddGlobally);
@@ -353,7 +353,7 @@ public class MapFile extends DLNAResource {
 			return;
 		}
 
-		UMSUtils.sort(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
+		UMSUtils.sortFiles(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
 
 		for (File f : files) {
 			if (f.isDirectory()) {
@@ -363,7 +363,7 @@ public class MapFile extends DLNAResource {
 
 		// For random sorting, we only randomize file entries
 		if (sm == UMSUtils.SORT_RANDOM) {
-			UMSUtils.sort(files, sm);
+			UMSUtils.sortFiles(files, sm);
 		}
 
 		for (File f : files) {
@@ -587,12 +587,12 @@ public class MapFile extends DLNAResource {
 	 *            returned {@link Set} if they {@link File#exists()}.
 	 * @return The {@link Set} of {@link File}s.
 	 */
-	public static HashSet<File> getPotentialFileThumbnails(
+	public static Set<File> getPotentialFileThumbnails(
 		File audioVideoFile,
 		boolean existingOnly
 	) {
 		File file;
-		HashSet<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
+		Set<File> potentialMatches = new HashSet<>(THUMBNAIL_EXTENSIONS.size() * 2);
 		for (String extension : THUMBNAIL_EXTENSIONS) {
 			file = FileUtil.replaceExtension(audioVideoFile, extension, false, true);
 			if (!existingOnly || file.exists()) {

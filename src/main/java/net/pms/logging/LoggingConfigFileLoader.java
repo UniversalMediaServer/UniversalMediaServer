@@ -18,6 +18,7 @@
 package net.pms.logging;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /*
  * This class is just a backwards compatible wrapper for LoggingConfig. It can
@@ -47,8 +48,8 @@ public class LoggingConfigFileLoader {
 	 * @return
 	 */
 	@Deprecated
-	public static HashMap<String, String> getLogFilePaths() {
-		HashMap<String, String> logFilePaths = new HashMap<>();
+	public static Map<String, String> getLogFilePaths() {
+		Map<String, String> logFilePaths = new HashMap<>();
 		// Copy logFilePaths from LoggingConfig and change "default.log" to "debug.log" for backwards compatibility.
 		logFilePaths.putAll(LoggingConfig.getLogFilePaths());
 		if (logFilePaths.containsKey("default.log")) {

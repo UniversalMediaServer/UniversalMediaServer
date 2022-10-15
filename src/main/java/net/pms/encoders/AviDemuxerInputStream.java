@@ -18,7 +18,7 @@
 package net.pms.encoders;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.*;
@@ -33,20 +33,20 @@ public class AviDemuxerInputStream extends InputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviDemuxerInputStream.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
+	private final Track[] track = new Track[2];
+	private final InputStream stream;
+	private final OutputStream vOut;
+	private final Thread parsing;
+	private final OutputParams params;
 	private Process process;
-	private InputStream stream;
-	private ArrayList<ProcessWrapper> attachedProcesses;
+	private List<ProcessWrapper> attachedProcesses;
 	private long readCount = -1;
 	private String streamVideoTag;
-	private Track[] track = new Track[2];
 	private int numberOfAudioChannels;
 	private OutputStream aOut;
-	private OutputStream vOut;
 	private long audiosize;
 	private long videosize;
 	private InputStream realIS;
-	private Thread parsing;
-	private OutputParams params;
 
 	@Override
 	public void close() throws IOException {
@@ -57,7 +57,7 @@ public class AviDemuxerInputStream extends InputStream {
 		super.close();
 	}
 
-	public AviDemuxerInputStream(InputStream fin, final OutputParams params, ArrayList<ProcessWrapper> at) throws IOException {
+	public AviDemuxerInputStream(InputStream fin, final OutputParams params, List<ProcessWrapper> at) throws IOException {
 		stream = fin;
 		LOGGER.trace("Opening AVI Stream");
 		this.attachedProcesses = at;
@@ -82,7 +82,7 @@ public class AviDemuxerInputStream extends InputStream {
 						while ((n = pin.read(b)) > -1) {
 							out.write(b, 0, n);
 						}
-					} catch (Exception e) {
+					} catch (IOException e) {
 						LOGGER.error(null, e);
 					}
 				};
@@ -285,7 +285,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 			try {
 				command = getString(stream, 4);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				LOGGER.trace("Error reading stream: " + e.getMessage());
 				break;
 			}
@@ -397,18 +397,21 @@ public class AviDemuxerInputStream extends InputStream {
 		 * Create integer
 		 */
 		switch (number) {
-			case 1:
+			case 1 -> {
 				return (buffer[0] & 0xff);
-			case 2:
+			}
+			case 2 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8);
-			case 3:
+			}
+			case 3 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
-					((buffer[2] & 0xff) << 16);
-			case 4:
+						((buffer[2] & 0xff) << 16);
+			}
+			case 4 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
-					((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
-			default:
-				throw new IOException("Illegal Read quantity");
+						((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
+			}
+			default -> throw new IOException("Illegal Read quantity");
 		}
 	}
 
