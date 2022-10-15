@@ -1001,7 +1001,7 @@ public class PMS {
 			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
 
 			// Load the (optional) LogBack config file.
-			// This has to be called after 'new PmsConfiguration'
+			// This has to be called after 'new UmsConfiguration'
 			LoggingConfig.loadFile();
 
 			// Check TRACE mode
@@ -1089,7 +1089,7 @@ public class PMS {
 	}
 
 	/**
-	 * Retrieves the {@link net.pms.configuration.UmsConfiguration PmsConfiguration} object
+	 * Retrieves the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
 	 * that contains all configured settings. The object provides getters for all
 	 * configurable settings.
 	 *
@@ -1101,13 +1101,13 @@ public class PMS {
 
 	/**
 	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
-	 * that applies to this device, which acts as its {@link net.pms.configuration.UmsConfiguration PmsConfiguration}.
+	 * that applies to this device, which acts as its {@link net.pms.configuration.UmsConfiguration UmsConfiguration}.
 	 *
-	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
+	 * This function should be used to resolve the relevant UmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
 	 * @param  renderer The renderer configuration.
-	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @return          The DeviceConfiguration object, if any, or the global UmsConfiguration.
 	 */
 	public static UmsConfiguration getConfiguration(RendererConfiguration renderer) {
 		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
@@ -1123,7 +1123,7 @@ public class PMS {
 	}
 
 	/**
-	 * Sets the {@link net.pms.configuration.UmsConfiguration PmsConfiguration} object
+	 * Sets the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
 	 * that contains all configured settings for UMS. The object provides getters for all
 	 * configurable UMS settings.
 	 *

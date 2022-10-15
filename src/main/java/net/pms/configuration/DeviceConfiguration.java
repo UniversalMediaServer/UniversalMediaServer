@@ -97,11 +97,11 @@ public class DeviceConfiguration extends UmsConfiguration {
 
 		// Handle all queries (external and internal) via the composite configuration
 		configuration = cconf;
-		pmsConfiguration = this;
+		umsConfiguration = this;
 
 		configurationReader = new ConfigurationReader(configuration, true);
 
-		// Sync our internal PmsConfiguration vars
+		// Sync our internal UmsConfiguration vars
 		// TODO: create new objects here instead?
 		tempFolder = baseConf.tempFolder;
 		filter = baseConf.filter;

@@ -17,17 +17,8 @@
  */
 package net.pms.dlna;
 
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,17 +46,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -80,11 +66,11 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
@@ -110,7 +96,21 @@ import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -145,7 +145,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private int specificType;
 	private String id;
-	private String pathId;
 	public static final RenderingHints THUMBNAIL_HINTS = new RenderingHints(RenderingHints.KEY_RENDERING,
 		RenderingHints.VALUE_RENDER_QUALITY);
 
@@ -180,7 +179,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * The time range for the file containing the start and end time in seconds.
 	 */
-	private Range.Time splitRange = new Range.Time();
+	private TimeRange splitRange = new TimeRange();
 	private int splitTrack;
 	private String fakeParentId;
 	private RendererConfiguration defaultRenderer;
@@ -296,8 +295,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			res.add(0, tmp.getId());
 			tmp = tmp.getParent();
 		}
-		pathId = StringUtils.join(res, '.');
-		return pathId;
+		return StringUtils.join(res, '.');
 	}
 
 	/**
@@ -3152,9 +3150,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the
 		// stream to be CBR!
 		int cbrVideoBitrate = mediarenderer.getCBRVideoBitrate();
-		long low = range.isByteRange() && range.isStartOffsetAvailable() ? range.asByteRange().getStart() : 0;
-		long high = range.isByteRange() && range.isEndLimitAvailable() ? range.asByteRange().getEnd() : -1;
-		Range.Time timeRange = range.createTimeRange();
+		long low = (range instanceof ByteRange byteRange && range.isStartOffsetAvailable()) ? byteRange.getStart() : 0;
+		long high = (range instanceof ByteRange byteRange && range.isEndLimitAvailable()) ? byteRange.getEnd() : -1;
+		TimeRange timeRange = range.createTimeRange();
 		if (engine != null && low > 0 && cbrVideoBitrate > 0) {
 			int usedBitRated = (int) ((cbrVideoBitrate + 256) * 1024 / (double) 8 * CONTAINER_OVERHEAD);
 			if (low > usedBitRated) {
@@ -3231,13 +3229,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		params.setTimeEnd(timeRange.getEndOrZero());
 		params.setShiftScr(timeseekAuto);
 		params.setHlsConfiguration(hlsConfiguration);
-		if (this instanceof IPushOutput) {
-			params.setStdIn((IPushOutput) this);
+		if (this instanceof IPushOutput iPushOutput) {
+			params.setStdIn(iPushOutput);
 		}
 
 		if (resume != null) {
-			if (range.isTimeRange()) {
-				resume.update((Range.Time) range, this);
+			if (range instanceof TimeRange tRange) {
+				resume.update(tRange, this);
 			}
 
 			params.setTimeSeek(resume.getTimeOffset() / 1000);
@@ -4343,7 +4341,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return The time range.
 	 */
-	public Range.Time getSplitRange() {
+	public TimeRange getSplitRange() {
 		return splitRange;
 	}
 
@@ -4353,7 +4351,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param splitRange The time range to set.
 	 * @since 1.50
 	 */
-	public void setSplitRange(Range.Time splitRange) {
+	public void setSplitRange(TimeRange splitRange) {
 		this.splitRange = splitRange;
 	}
 

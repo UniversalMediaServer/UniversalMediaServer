@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigurationReader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
-	private Map<String, Object> logMap = new HashMap<>();
+	private final Map<String, Object> logMap = new HashMap<>();
 	private final Configuration configuration;
 	private boolean logOverrides;
 	private Configuration dConf;
@@ -54,8 +54,7 @@ public class ConfigurationReader {
 
 	// quote strings
 	private String quote(Object value) {
-		if ((value != null) && (value instanceof String)) {
-			String s = (String) value;
+		if (value instanceof String s) {
 			return String.format("\"%s\"", s.replace("\"", "\\\""));
 		} else {
 			return String.valueOf(value);

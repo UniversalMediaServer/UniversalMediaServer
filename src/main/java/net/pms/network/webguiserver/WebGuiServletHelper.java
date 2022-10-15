@@ -406,17 +406,17 @@ public class WebGuiServletHelper {
 	}
 
 	public static String getLangs(HttpServletRequest req) {
-		String result = null;
+		StringBuilder result = new StringBuilder();
 		Enumeration<Locale> locales = req.getLocales();
 		while (locales.hasMoreElements()) {
 			Locale locale = locales.nextElement();
-			if (result == null) {
-				result = locale.getLanguage();
+			if (!result.isEmpty()) {
+				result.append(",");
 			} else {
-				result += "," + locale.getLanguage();
+				result.append(locale.getLanguage());
 			}
 		}
-		return result;
+		return result.toString();
 	}
 
 	public static URI getRequestReferer(HttpServletRequest req) {

@@ -66,22 +66,21 @@ import org.slf4j.LoggerFactory;
 public class LanguageSelection {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LanguageSelection.class);
 
-	private JComboBox<String> jLanguage;
-	private JOptionPane pane;
-	private JPanel rootPanel = new JPanel();
-	private JPanel selectionPanel = new JPanel();
-	private JPanel languagePanel = new JPanel();
-	private JButton selectButton = new JButton();
-	private JButton applyButton = new JButton();
-	private TitledBorder selectionPanelBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-	private TitledBorder infoTextBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-	private JTextArea descriptionText = new JTextArea();
-	private JTextArea warningText = new JTextArea();
-	private JEditorPane infoText = new JEditorPane();
 	private final Component parentComponent;
-	private KeyedComboBoxModel<String, String> keyedModel = new KeyedComboBoxModel<>();
+	private final JPanel rootPanel = new JPanel();
+	private final JPanel selectionPanel = new JPanel();
+	private final JPanel languagePanel = new JPanel();
+	private final JButton selectButton = new JButton();
+	private final JButton applyButton = new JButton();
+	private final TitledBorder selectionPanelBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+	private final TitledBorder infoTextBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+	private final JTextArea descriptionText = new JTextArea();
+	private final JTextArea warningText = new JTextArea();
+	private final JEditorPane infoText = new JEditorPane();
+	private final KeyedComboBoxModel<String, String> keyedModel = new KeyedComboBoxModel<>();
+
+	private JOptionPane pane;
 	private Locale locale;
-	private int textWidth;
 	private JDialog dialog;
 	private boolean aborted = false;
 	private boolean rebootOnChange;
@@ -258,7 +257,7 @@ public class LanguageSelection {
 		}
 		// Set the width of the text panels by font size to accommodate font scaling
 		float avgCharWidth = SwingUtils.getComponentAverageCharacterWidth(descriptionText);
-		textWidth = Math.round(avgCharWidth * 100);
+		int textWidth = Math.round(avgCharWidth * 100);
 		selectButton.setMargin(new Insets(Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth), Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth)));
 		applyButton.setMargin(new Insets(Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth), Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth)));
 
@@ -354,7 +353,7 @@ public class LanguageSelection {
 		descriptionText.setBorder(BorderFactory.createEmptyBorder(5, 15, 10, 15));
 		selectionPanel.add(descriptionText);
 
-		jLanguage = new JComboBox<>(keyedModel);
+		JComboBox<String> jLanguage = new JComboBox<>(keyedModel);
 		jLanguage.setEditable(false);
 		jLanguage.setPreferredSize(new Dimension(50, jLanguage.getPreferredSize().height));
 		jLanguage.addActionListener(new LanguageComboBoxActionListener());

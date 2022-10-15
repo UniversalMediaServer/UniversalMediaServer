@@ -49,7 +49,7 @@ public class Rotation {
 	 * 						a given image.
 	 */
 	public static Rotator newRotator(final double angle) {
-		Rotator r = new Rotator() {
+		return new Rotator() {
 
 			private double[] calculatePosition(double x, double y, double angle) {
 				angle = Math.toRadians(angle);
@@ -60,6 +60,7 @@ public class Rotation {
 				return new double[] {nx, ny};
 			}
 
+			@Override
 			public BufferedImage apply(BufferedImage img) {
 				int width = img.getWidth();
 				int height = img.getHeight();
@@ -116,8 +117,6 @@ public class Rotation {
 				return newImage;
 			}
 		};
-
-		return r;
 	}
 
 	/**

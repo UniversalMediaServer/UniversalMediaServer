@@ -32,7 +32,6 @@ public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
-	private MediaLibraryFolder tvShowsFolder;
 	private VirtualFolder vfAudio = null;
 
 	public boolean isEnabled() {
@@ -96,7 +95,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("DvdImages"), SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 32" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.ISOS);
 
 		// The following block contains all videos regardless of fully played status
-		tvShowsFolder = new MediaLibraryFolder(
+		MediaLibraryFolder tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("TvShows"),
 			new String[]{
 				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + "                              ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",

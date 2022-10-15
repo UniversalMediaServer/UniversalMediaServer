@@ -150,7 +150,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
 			return;
 		}
-		final String sqlSelect, sqlInsert;
+		final String sqlSelect;
+		final String sqlInsert;
 		final int id;
 		if (tvSeriesID != null) {
 			sqlSelect = SQL_GET_TVSERIESID_EXISTS;

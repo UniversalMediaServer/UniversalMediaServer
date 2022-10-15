@@ -968,11 +968,11 @@ public abstract class ImageInfo implements Serializable {
 			// DCRaw decodes pixels that's normally hidden because they are too
 			// expensive to decode for CPU restrained devices, so the resolution
 			// might be some pixels larger.
-			if (parsedInfo.width != null && width >= parsedInfo.width.intValue() && width <= (parsedInfo.width.intValue() + 40)) {
-				parsedWidth = Integer.valueOf(width);
+			if (parsedInfo.width != null && width >= parsedInfo.width && width <= (parsedInfo.width + 40)) {
+				parsedWidth = width;
 			}
-			if (parsedInfo.height != null && height >= parsedInfo.height.intValue() && height <= (parsedInfo.height.intValue() + 40)) {
-				parsedHeight = Integer.valueOf(height);
+			if (parsedInfo.height != null && height >= parsedInfo.height && height <= (parsedInfo.height + 40)) {
+				parsedHeight = height;
 			}
 		}
 

@@ -131,7 +131,7 @@ public class CodeEnter extends VirtualFolder {
 	}
 
 	public boolean validCode(DLNAResource r) {
-		if (r != null && r instanceof CodeAction) {
+		if (r instanceof CodeAction) {
 			// always ok
 			return true;
 		}

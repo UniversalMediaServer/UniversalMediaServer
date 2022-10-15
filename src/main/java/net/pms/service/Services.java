@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
  * to avoid the cost of synchronization each time a service reference is needed.
  * <p>
  * <b>Note:</b> This class holds instance references that relies on
- * {@link PmsConfiguration} being initialized. This is therefore not suitable to
- * hold instance references that must exist when {@link PmsConfiguration} itself
+ * {@link UmsConfiguration} being initialized. This is therefore not suitable to
+ * hold instance references that must exist when {@link UmsConfiguration} itself
  * is initialized.
  *
  * @author Nadahar

@@ -65,6 +65,7 @@ import net.pms.dlna.MediaType;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
+import net.pms.dlna.TimeRange;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
@@ -144,7 +145,7 @@ public class RequestV2 extends HTTPResource {
 	private RendererConfiguration mediaRenderer;
 	private String transferMode;
 	private String contentFeatures;
-	private final Range.Time range = new Range.Time();
+	private final TimeRange range = new TimeRange();
 
 	/**
 	 * When sending an input stream, the highRange indicates which byte to stop at.
@@ -550,7 +551,7 @@ public class RequestV2 extends HTTPResource {
 						// If range has not been initialized yet and the DLNAResource has its
 						// own start and end defined, initialize range with those values before
 						// requesting the input stream.
-						Range.Time splitRange = dlna.getSplitRange();
+						TimeRange splitRange = dlna.getSplitRange();
 
 						if (range.getStart() == null && splitRange.getStart() != null) {
 							range.setStart(splitRange.getStart());

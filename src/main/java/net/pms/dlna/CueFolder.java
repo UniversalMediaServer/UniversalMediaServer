@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.dlna.Range.Time;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
@@ -37,13 +36,13 @@ import org.slf4j.LoggerFactory;
 
 public class CueFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
-	private File playlistfile;
+	private final File playlistfile;
 
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
 
-	private boolean valid = true;
+	private final boolean valid = true;
 
 	public CueFolder(File f) {
 		playlistfile = f;
@@ -179,7 +178,7 @@ public class CueFolder extends DLNAResource {
 
 					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						DLNAResource lastTrack = addedResources.get(addedResources.size() - 1);
-						Time lastTrackSplitRange = lastTrack.getSplitRange();
+						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
 						DLNAMediaInfo lastTrackMedia = lastTrack.getMedia();
 
 						if (lastTrackSplitRange != null && lastTrackMedia != null) {

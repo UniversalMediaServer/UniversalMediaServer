@@ -32,7 +32,6 @@ import net.pms.newgui.GuiUtil;
 
 public class FFmpegAudio {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static JCheckBox noresample;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -55,7 +54,7 @@ public class FFmpegAudio {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), CONFIGURATION.isAudioResample());
+		JCheckBox noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), CONFIGURATION.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);

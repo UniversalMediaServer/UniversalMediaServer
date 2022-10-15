@@ -655,7 +655,7 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			if (se.getCause() != null && se.getCause() instanceof IOException) {
+			if (se.getCause() instanceof IOException iOException) {
 				if (se.getCause() instanceof InvalidClassException && se.toString().contains("net.pms.image.ExifInfo; local class incompatible")) {
 					/*
 					 * Serialization failed for ExifInfo or one of its subclasses,
@@ -691,7 +691,7 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace("", e2);
 					}
 				} else {
-					throw (IOException) se.getCause();
+					throw iOException;
 				}
 			}
 			throw se;

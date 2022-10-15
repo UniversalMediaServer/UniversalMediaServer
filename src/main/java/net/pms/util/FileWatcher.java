@@ -377,7 +377,8 @@ public class FileWatcher {
 	 * A runnable self-removing file event notice.
 	 */
 	static class Notice implements Runnable {
-		String filename, kind;
+		String filename;
+		String kind;
 		Watch watch;
 		boolean isDir;
 		HashMap notifierQueue = null;
@@ -397,11 +398,10 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || !(o instanceof Notice)) {
-				return false;
+			if (o instanceof Notice other) {
+				return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
 			}
-			Notice other = (Notice) o;
-			return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
+			return false;
 		}
 
 		@Override

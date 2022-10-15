@@ -364,7 +364,8 @@ public class UPNPControl {
 		URL base = getURL(d);
 		Icon icon = null;
 		String url = null;
-		int maxH = maxHeight == 0 ? 99999 : maxHeight, height = 0;
+		int maxH = maxHeight == 0 ? 99999 : maxHeight;
+		int height = 0;
 		for (Icon i : d.getIcons()) {
 			int h = i.getHeight();
 			if (h < maxH && h > height) {

@@ -128,31 +128,31 @@ public class GIFInfo extends ImageInfo {
 		}
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof GifHeaderDirectory) {
+			if (directory instanceof GifHeaderDirectory gifHeaderDirectory) {
 				parsedInfo.format = ImageFormat.GIF;
 				parsedInfo.numComponents = 3;
 				if (
-					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
+					gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
-				if (((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL)) {
+				if (gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL)) {
 					parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-					Integer i = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_BITS_PER_PIXEL);
+					Integer i = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_BITS_PER_PIXEL);
 					if (i != null) {
-						parsedInfo.bitDepth = i.intValue();
+						parsedInfo.bitDepth = i;
 					}
 				}
-				if (((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION)) {
-					String s = ((GifHeaderDirectory) directory).getString(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION, "US-ASCII");
+				if (gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION)) {
+					String s = gifHeaderDirectory.getString(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION, "US-ASCII");
 					if (s != null) {
 						((GIFParseInfo) parsedInfo).formatVersion = s;
 					}
 				}
-			} else if (directory instanceof GifControlDirectory) {
-				boolean isTransparent = ((GifControlDirectory) directory).isTransparent();
+			} else if (directory instanceof GifControlDirectory gifControlDirectory) {
+				boolean isTransparent = gifControlDirectory.isTransparent();
 				((GIFParseInfo) parsedInfo).hasTransparency = isTransparent;
 				if (isTransparent) {
 					if (parsedInfo.numComponents == null) {

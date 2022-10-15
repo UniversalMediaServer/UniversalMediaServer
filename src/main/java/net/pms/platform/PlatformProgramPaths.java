@@ -166,7 +166,7 @@ public abstract class PlatformProgramPaths {
 	 * Returns a platform dependent {@link PlatformProgramPaths} instance.
 	 * <p>
 	 * <b>Note:</b> The returned instance does not support customizable program
-	 * paths. Use {@link PmsConfiguration} to retrieve customizable
+	 * paths. Use {@link UmsConfiguration} to retrieve customizable
 	 * {@link ExternalProgramInfo} instances.
 	 *
 	 * @return The platform dependent {@link PlatformProgramPaths} instance.

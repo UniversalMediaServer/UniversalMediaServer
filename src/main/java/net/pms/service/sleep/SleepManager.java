@@ -62,7 +62,7 @@ public class SleepManager {
 	 */
 	protected int playingCount;
 
-	/** The cached value of {@link PmsConfiguration#getPreventSleep()} */
+	/** The cached value of {@link UmsConfiguration#getPreventSleep()} */
 	protected PreventSleepMode mode = PMS.getConfiguration().getPreventSleep();
 
 	/** An internal state flag tracking if sleep is currently prevented */

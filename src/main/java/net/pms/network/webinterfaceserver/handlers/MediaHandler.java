@@ -196,7 +196,7 @@ public class MediaHandler implements HttpHandler {
 				return;
 			}
 			media.setMimeType(mimeType);
-			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
+			ByteRange range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 			if (range.getEnd() == 0) {

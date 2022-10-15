@@ -38,9 +38,6 @@ public class TsMuxeRVideo {
 	private static final String COL_SPEC = "left:pref, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow";
 
-	private static JCheckBox tsmuxerforcefps;
-	private static JCheckBox muxallaudiotracks;
-
 	/**
 	 * This class is not meant to be instantiated.
 	 */
@@ -63,14 +60,14 @@ public class TsMuxeRVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		tsmuxerforcefps = new JCheckBox(Messages.getString("ForceFpsParsedFfmpeg"), CONFIGURATION.isTsmuxerForceFps());
+		JCheckBox tsmuxerforcefps = new JCheckBox(Messages.getString("ForceFpsParsedFfmpeg"), CONFIGURATION.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
 		tsmuxerforcefps.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		muxallaudiotracks = new JCheckBox(Messages.getString("MuxAllAudioTracks"), CONFIGURATION.isMuxAllAudioTracks());
+		JCheckBox muxallaudiotracks = new JCheckBox(Messages.getString("MuxAllAudioTracks"), CONFIGURATION.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
 		muxallaudiotracks.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED);

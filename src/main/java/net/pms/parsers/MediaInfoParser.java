@@ -1190,8 +1190,7 @@ public class MediaInfoParser {
 		}
 
 		value = value.trim();
-		int id = Integer.parseInt(value);
-		return id;
+		return Integer.parseInt(value);
 	}
 
 	public static String getSampleFrequency(String value) {

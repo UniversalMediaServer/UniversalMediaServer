@@ -81,14 +81,14 @@ public class RendererConfiguration extends Renderer {
 	public static final File NOFILE = new File("NOFILE");
 
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static UmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
+	protected static UmsConfiguration umsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
 
 	protected volatile RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected UmsConfiguration pmsConfiguration = pmsConfigurationStatic;
+	protected UmsConfiguration umsConfiguration = umsConfigurationStatic;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -247,14 +247,14 @@ public class RendererConfiguration extends Renderer {
 
 	/**
 	 * {@link #enabledRendererConfs} doesn't normally need locking since
-	 * modification is rare and {@link #loadRendererConfigurations(PmsConfiguration)}
+	 * modification is rare and {@link #loadRendererConfigurations(UmsConfiguration)}
 	 * is only called during {@link PMS#init()} (To avoid any chance of a
 	 * race condition proper locking should be implemented though). During
 	 * build on the other hand the method is called repeatedly and it is random
 	 * if a {@link ConcurrentModificationException} is thrown as a result.
 	 *
 	 * To avoid build problems, this is used to make sure that calls to
-	 * {@link #loadRendererConfigurations(PmsConfiguration)} is serialized.
+	 * {@link #loadRendererConfigurations(UmsConfiguration)} is serialized.
 	 */
 	public static final Object LOAD_RENDERER_CONFIGURATIONS_LOCK = new Object();
 
@@ -265,7 +265,7 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public static void loadRendererConfigurations(UmsConfiguration pmsConf) {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
-			pmsConfigurationStatic = pmsConf;
+			umsConfigurationStatic = pmsConf;
 			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
 
 			try {
@@ -515,7 +515,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static File getProfileRenderersDir() {
-		File file = new File(pmsConfigurationStatic.getProfileDirectory(), "renderers");
+		File file = new File(umsConfigurationStatic.getProfileDirectory(), "renderers");
 		if (file.isDirectory()) {
 			if (file.canRead()) {
 				return file;
@@ -548,7 +548,7 @@ public class RendererConfiguration extends Renderer {
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder();
-			if (pmsConfiguration.getUseCache()) {
+			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
 		}
@@ -593,8 +593,8 @@ public class RendererConfiguration extends Renderer {
 
 		if (
 			(
-				pmsConfiguration.isAutomaticMaximumBitrate() ||
-				pmsConfiguration.isSpeedDbg()
+				umsConfiguration.isAutomaticMaximumBitrate() ||
+				umsConfiguration.isSpeedDbg()
 			) &&
 			!(
 				sa.isLoopbackAddress() ||
@@ -662,7 +662,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (pmsConfigurationStatic.isRendererForceDefault()) {
+		if (umsConfigurationStatic.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -773,8 +773,8 @@ public class RendererConfiguration extends Renderer {
 		return configuration;
 	}
 
-	public UmsConfiguration getPmsConfiguration() {
-		return pmsConfiguration;
+	public UmsConfiguration getUmsConfiguration() {
+		return umsConfiguration;
 	}
 
 	public File getFile() {
@@ -986,7 +986,7 @@ public class RendererConfiguration extends Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
-		pmsConfiguration = pmsConfigurationStatic;
+		umsConfiguration = umsConfigurationStatic;
 
 		player = null;
 		buffer = 0;
@@ -1390,7 +1390,7 @@ public class RendererConfiguration extends Renderer {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.LPCM, null, null);
 
 					if (matchedMimeType != null) {
-						if (pmsConfiguration.isAudioResample()) {
+						if (umsConfiguration.isAudioResample()) {
 							if (isTranscodeAudioTo441()) {
 								matchedMimeType += ";rate=44100;channels=2";
 							} else {
@@ -1433,7 +1433,7 @@ public class RendererConfiguration extends Renderer {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
 
-					if (pmsConfiguration.isAudioResample()) {
+					if (umsConfiguration.isAudioResample()) {
 						if (isTranscodeAudioTo441()) {
 							matchedMimeType += ";rate=44100;channels=2";
 						} else {
@@ -2901,7 +2901,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getSubLanguage() {
-		return pmsConfiguration.getSubtitlesLanguages();
+		return umsConfiguration.getSubtitlesLanguages();
 	}
 
 	public static final String INFO = "info";

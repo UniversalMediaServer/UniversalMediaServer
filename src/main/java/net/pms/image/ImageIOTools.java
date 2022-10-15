@@ -241,7 +241,7 @@ public class ImageIOTools {
 					imageIOSupport = true;
 				}
 
-				ImageInfo imageInfo = ImageInfo.create(
+				return ImageInfo.create(
 					width,
 					height,
 					format,
@@ -251,7 +251,6 @@ public class ImageIOTools {
 					applyExifOrientation,
 					imageIOSupport
 				);
-				return imageInfo;
 			} finally {
 				reader.dispose();
 			}
@@ -281,7 +280,7 @@ public class ImageIOTools {
 		}
 
 		while (iter.hasNext()) {
-			ImageInputStreamSpi spi = (ImageInputStreamSpi) iter.next();
+			ImageInputStreamSpi spi = iter.next();
 			if (spi.getInputClass().isInstance(input)) {
 				try {
 					return spi.createInputStreamInstance(input, false, null);

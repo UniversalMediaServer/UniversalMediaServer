@@ -112,7 +112,7 @@ public abstract class TerminatedArray<E> extends PointerType implements List<E> 
 		if (buffer == null) {
 			return null;
 		}
-		long size = getElementSize() * (buffer.size() + 1);
+		long size = getElementSize() * (buffer.size() + 1L);
 		// Reuse the reserved memory if possible
 		if (!(getPointer() instanceof Memory) || ((Memory) getPointer()).size() < size) {
 			super.setPointer(new Memory(size));

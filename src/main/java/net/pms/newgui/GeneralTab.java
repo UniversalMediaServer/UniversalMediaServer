@@ -52,6 +52,9 @@ public class GeneralTab {
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
+	private final LooksFrame looksFrame;
+	private final JTextField currentLanguage = new JTextField();
+
 	private JCheckBox smcheckBox;
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
@@ -71,11 +74,9 @@ public class GeneralTab {
 	private JCheckBox extNetBox;
 	private JCheckBox appendProfileName;
 	private JCheckBox runWizardOnProgramStartup;
-	private LooksFrame looksFrame;
 	private JCheckBox singleInstance;
 	private CustomJButton installService;
 	private JCheckBox showSplashScreen;
-	private JTextField currentLanguage = new JTextField();
 
 	GeneralTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;

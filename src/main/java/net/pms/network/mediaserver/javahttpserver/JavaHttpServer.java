@@ -33,7 +33,6 @@ public class JavaHttpServer extends HttpMediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpServer.class);
 
 	private HttpServer server;
-	private ExecutorService executorService;
 
 	public JavaHttpServer(InetAddress inetAddress, int port) {
 		super(inetAddress, port);
@@ -49,7 +48,7 @@ public class JavaHttpServer extends HttpMediaServer {
 			localPort = server.getAddress().getPort();
 			server.createContext("/", new RequestHandler());
 			server.createContext("/api", new ApiHandler());
-			executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
+			ExecutorService executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
 			server.setExecutor(executorService);
 			server.start();
 			LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);

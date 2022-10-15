@@ -27,9 +27,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.dlna.ByteRange;
 import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.ImageEngine;
 import net.pms.image.Image;
@@ -79,12 +79,11 @@ public class RawHandler implements HttpHandler {
 			long len;
 			String mime;
 			InputStream in;
-			Range.Byte range;
+			ByteRange range;
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
-				if (root.getDefaultRenderer() instanceof WebRender) {
-					WebRender renderer = (WebRender) root.getDefaultRenderer();
+				if (root.getDefaultRenderer() instanceof WebRender renderer) {
 					supported = renderer.isImageFormatSupported(imageInfo.getFormat());
 				}
 				mime = dlna.getFormat() != null ?
@@ -92,7 +91,7 @@ public class RawHandler implements HttpHandler {
 					root.getDefaultRenderer().getMimeType(dlna);
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
-				range = new Range.Byte(0L, len);
+				range = new ByteRange(0L, len);
 				if (supported) {
 					in = dlna.getInputStream();
 				} else {

@@ -136,7 +136,8 @@ class OptionsHashMap extends LinkedHashMap<String, String> {
 	private static final long serialVersionUID = 7021453139296691483L;
 
 	public void addAll(List<String> args) {
-		String opt = null, optarg = null;
+		String opt = null;
+		String optarg = null;
 		args.add("-NULL");
 		for (String arg : args) {
 			if (arg.startsWith("-")) {

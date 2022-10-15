@@ -367,7 +367,7 @@ public class LoggingConfig {
 	}
 
 	/**
-	* Adds/modifies/removes a syslog appender based on PmsConfiguration and
+	* Adds/modifies/removes a syslog appender based on UmsConfiguration and
 	* disables/enables file appenders for easier access to syslog logging for
 	* users without in-depth knowledge of LogBack. Stops file appenders if
 	* syslog is started and vice versa.<P>

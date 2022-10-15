@@ -64,7 +64,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 				newChildNoSub.setNoName(true);
 				newChildNoSub.setMediaAudio(child.getMediaAudio());
 				newChildNoSub.setMediaSubtitle(child.getMediaSubtitle());
-				newChildNoSub.setSplitRange(new Range.Time(60.0 * i * interval, newChildNoSub.getMedia().getDurationInSeconds()));
+				newChildNoSub.setSplitRange(new TimeRange(60.0 * i * interval, newChildNoSub.getMedia().getDurationInSeconds()));
 
 				addChildInternal(newChildNoSub);
 			}

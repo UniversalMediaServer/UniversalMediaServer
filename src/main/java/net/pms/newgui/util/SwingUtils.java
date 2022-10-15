@@ -65,7 +65,7 @@ public class SwingUtils {
 
 		FontMetrics metrics = textComponent.getFontMetrics(textComponent.getFont());
 		FontRenderContext rendererContext = metrics.getFontRenderContext();
-		float formatWidth = width - textComponent.getInsets().left - textComponent.getInsets().right;
+		int formatWidth = width - textComponent.getInsets().left - textComponent.getInsets().right;
 
 		int lines = 0;
 		String[] paragraphs = text.split("\n");

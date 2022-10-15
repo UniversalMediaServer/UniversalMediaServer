@@ -66,7 +66,6 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	private int port;
 	private String ua;
 	private int browser = 0;
-	private String platform = null;
 	private int screenWidth = 0;
 	private int screenHeight = 0;
 	private boolean isTouchDevice = false;
@@ -195,7 +194,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		browser = getBrowser(userAgent);
 
 		if (info != null && UMS_INFO.reset(info).find()) {
-			platform = UMS_INFO.group(1).toLowerCase();
+			String platform = UMS_INFO.group(1).toLowerCase();
 			screenWidth = Integer.parseInt(UMS_INFO.group(2));
 			screenHeight = Integer.parseInt(UMS_INFO.group(3));
 			isTouchDevice = Boolean.parseBoolean(UMS_INFO.group(4));
@@ -299,7 +298,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		try {
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
-			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
+			slow = calculatedSpeed() < umsConfiguration.getWebLowSpeed();
 		} catch (InterruptedException | ExecutionException e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));

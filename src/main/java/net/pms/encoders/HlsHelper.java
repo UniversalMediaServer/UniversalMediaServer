@@ -34,6 +34,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
+import net.pms.dlna.TimeRange;
 
 /**
  * HlsConfiguration Helper.
@@ -307,7 +308,7 @@ public class HlsHelper {
 		return null;
 	}
 
-	public static Range.Time getTimeRange(String url) {
+	public static TimeRange getTimeRange(String url) {
 		if (!url.contains("/")) {
 			return null;
 		}
@@ -323,7 +324,7 @@ public class HlsHelper {
 			return null;
 		}
 		double askedStart =  Double.valueOf(position) * HlsHelper.DEFAULT_TARGETDURATION;
-		return new Range.Time(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
+		return new TimeRange(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
 	}
 
 	public static InputStream getInputStream(String url, DLNAResource resource, RendererConfiguration renderer) throws IOException {

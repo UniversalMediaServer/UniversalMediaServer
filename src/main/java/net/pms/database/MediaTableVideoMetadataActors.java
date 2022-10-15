@@ -144,7 +144,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		if (actors == null || !actors.isJsonArray() || actors.getAsJsonArray().isEmpty()) {
 			return;
 		}
-		final String sqlSelect, sqlInsert;
+		final String sqlSelect;
+		final String sqlInsert;
 		final int id;
 		if (tvSeriesID != null) {
 			sqlSelect = SQL_GET_TVSERIESID_EXISTS;

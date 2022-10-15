@@ -45,9 +45,9 @@ import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
+import net.pms.dlna.ByteRange;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
 import net.pms.util.APIUtils;
@@ -286,11 +286,11 @@ public class WebInterfaceServerUtil {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress) || !PMS.isReady();
 	}
 
-	private static Range.Byte nullRange(long len) {
-		return new Range.Byte(0L, len);
+	private static ByteRange nullRange(long len) {
+		return new ByteRange(0L, len);
 	}
 
-	public static Range.Byte parseRange(Headers hdr, long len) {
+	public static ByteRange parseRange(Headers hdr, long len) {
 		if (hdr == null) {
 			return nullRange(len);
 		}
@@ -302,14 +302,14 @@ public class WebInterfaceServerUtil {
 		return parseRange(r.get(0), len);
 	}
 
-	public static Range.Byte parseRange(String range, long len) {
+	public static ByteRange parseRange(String range, long len) {
 		if (range == null || "".equals(range)) {
 			return nullRange(len);
 		}
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
-		return new Range.Byte(start, end);
+		return new ByteRange(start, end);
 	}
 
 	public static void sendLogo(HttpExchange t) throws IOException {
@@ -389,7 +389,9 @@ public class WebInterfaceServerUtil {
 			return result;
 		}
 
-		int last = 0, next, l = qs.length();
+		int last = 0;
+		int next;
+		int l = qs.length();
 		while (last < l) {
 			next = qs.indexOf('&', last);
 			if (next == -1) {

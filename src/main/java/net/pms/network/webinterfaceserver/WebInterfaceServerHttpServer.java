@@ -67,11 +67,7 @@ import org.slf4j.LoggerFactory;
 public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface, WebInterfaceServerHttpServerInterface {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerHttpServer.class);
-	private KeyStore keyStore;
-	private KeyManagerFactory keyManagerFactory;
-	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
-	private SSLContext sslContext;
 
 	public WebInterfaceServerHttpServer() throws IOException {
 		this(DEFAULT_PORT);
@@ -137,21 +133,21 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 	private HttpServer httpsServer(InetSocketAddress address) throws IOException, GeneralSecurityException {
 		// Initialize the keystore
 		char[] password = "umsums".toCharArray();
-		keyStore = KeyStore.getInstance("JKS");
+		KeyStore keyStore = KeyStore.getInstance("JKS");
 		try (FileInputStream fis = new FileInputStream(FileUtil.appendPathSeparator(CONFIGURATION.getProfileDirectory()) + "UMS.jks")) {
 			keyStore.load(fis, password);
 		}
 
 		// Setup the key manager factory
-		keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 		keyManagerFactory.init(keyStore, password);
 
 		// Setup the trust manager factory
-		trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 		trustManagerFactory.init(keyStore);
 
 		HttpsServer httpsServer = HttpsServer.create(address, 0);
-		sslContext = SSLContext.getInstance("TLS");
+		SSLContext sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
 		httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {

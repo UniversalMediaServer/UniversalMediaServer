@@ -1033,7 +1033,7 @@ public class FFMpegVideo extends Engine {
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
 			// Audio bitrate
-			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
+			if (!ac3Remux && !dtsRemux && (type() != Format.AUDIO)) {
 				int channels = 0;
 				if (
 					(
@@ -1150,7 +1150,7 @@ public class FFMpegVideo extends Engine {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
+			File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 

@@ -75,8 +75,6 @@ public class SharedContentTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
 	private JPanel sharedPanel;
-	private JPanel sharedFoldersPanel;
-	private JPanel sharedWebContentPanel;
 	private JTable sharedFolders;
 	public static JTable webContentList;
 	private SharedFoldersTableModel folderTableModel;
@@ -111,9 +109,6 @@ public class SharedContentTab {
 	public static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
 	public static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
 
-	public SharedFoldersTableModel getDf() {
-		return folderTableModel;
-	}
 
 	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
@@ -195,8 +190,8 @@ public class SharedContentTab {
 		CellConstraints cc = new CellConstraints();
 
 		// Init all gui components
-		sharedFoldersPanel = initSharedFoldersGuiComponents(cc).build();
-		sharedWebContentPanel = initWebContentGuiComponents(cc).build();
+		JPanel sharedFoldersPanel = initSharedFoldersGuiComponents(cc).build();
+		JPanel sharedWebContentPanel = initWebContentGuiComponents(cc).build();
 
 		// Load WEB.conf after we are sure the GUI has initialized
 		String webConfPath = configuration.getWebConfPath();
@@ -224,6 +219,10 @@ public class SharedContentTab {
 
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	public SharedFoldersTableModel getDf() {
+		return folderTableModel;
 	}
 
 	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
@@ -738,7 +737,7 @@ public class SharedContentTab {
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
+			Vector rowVector = dataVector.elementAt(row);
 			if (aValue instanceof Boolean && column == 1) {
 				rowVector.setElementAt(aValue, 1);
 			} else {
@@ -758,6 +757,22 @@ public class SharedContentTab {
 		public void removeRow(int row) {
 			super.removeRow(row);
 			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
+		}
+
+		@SuppressWarnings("rawtypes")
+		private List<SharedFolder> getFolders(Vector<Vector<?>> tableVector) {
+			List<SharedFolder> result = new ArrayList<>();
+			if (tableVector != null) {
+				for (Vector rowVector : tableVector) {
+					if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
+						SharedFolder sharedFolder = new SharedFolder();
+						sharedFolder.path = (String) rowVector.get(0);
+						sharedFolder.monitored = (boolean) rowVector.get(1);
+						result.add(sharedFolder);
+					}
+				}
+			}
+			return result;
 		}
 	}
 
@@ -786,7 +801,7 @@ public class SharedContentTab {
 
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
+			Vector rowVector = dataVector.elementAt(row);
 			rowVector.setElementAt(aValue, column);
 			fireTableCellUpdated(row, column);
 			updateWebContentModel();
@@ -1032,19 +1047,4 @@ public class SharedContentTab {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private List<SharedFolder> getFolders(Vector<Vector<?>> tableVector) {
-		List<SharedFolder> result = new ArrayList<>();
-		if (tableVector != null) {
-			for (Vector rowVector : tableVector) {
-				if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
-					SharedFolder sharedFolder = new SharedFolder();
-					sharedFolder.path = (String) rowVector.get(0);
-					sharedFolder.monitored = (boolean) rowVector.get(1);
-					result.add(sharedFolder);
-				}
-			}
-		}
-		return result;
-	}
 }

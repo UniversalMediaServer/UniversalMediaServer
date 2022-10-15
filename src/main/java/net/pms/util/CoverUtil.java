@@ -59,15 +59,12 @@ public abstract class CoverUtil {
 	public static CoverUtil get() {
 		CoverSupplier supplier = PMS.getConfiguration().getAudioThumbnailMethod();
 		synchronized (INSTANCE_LOCK) {
-			switch (supplier.toInt()) {
-				case CoverSupplier.COVER_ART_ARCHIVE_INT:
-					if (instance == null || !(instance instanceof CoverArtArchiveUtil)) {
-						instance = new CoverArtArchiveUtil();
-					}
-					break;
-				default:
-					instance = null;
-					break;
+			if (supplier.toInt() == CoverSupplier.COVER_ART_ARCHIVE_INT) {
+				if (!(instance instanceof CoverArtArchiveUtil)) {
+					instance = new CoverArtArchiveUtil();
+				}
+			} else {
+				instance = null;
 			}
 			return instance;
 		}

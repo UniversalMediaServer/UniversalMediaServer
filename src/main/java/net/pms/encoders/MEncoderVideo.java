@@ -1889,7 +1889,7 @@ public class MEncoderVideo extends Engine {
 				pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
+				File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
 				String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 				pw = new ProcessWrapperImpl(cmd, params);
 
@@ -2211,11 +2211,11 @@ public class MEncoderVideo extends Engine {
 
 								Object result = interpreter.eval(key);
 
-								if (result != null && result instanceof Boolean && (Boolean) result) {
+								if (result instanceof Boolean boolval && boolval) {
 									sb.append(' ').append(value);
 								}
 							}
-						} catch (Throwable e) {
+						} catch (EvalError e) {
 							LOGGER.debug("Error while executing: " + key + " : " + e.getMessage());
 
 							if (verifyOnly) {

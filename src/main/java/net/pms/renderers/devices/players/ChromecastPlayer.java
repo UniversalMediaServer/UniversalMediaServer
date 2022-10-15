@@ -32,7 +32,6 @@ public class ChromecastPlayer extends LogicalPlayer {
 	private static final String MEDIA_PLAYER = "CC1AD845";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
 	private final ChromeCast api;
-	private Thread poller;
 
 	public ChromecastPlayer(DeviceConfiguration d, ChromeCast api) {
 		super(d);
@@ -162,7 +161,6 @@ public class ChromecastPlayer extends LogicalPlayer {
 			}
 		};
 
-		poller = new Thread(r);
-		poller.start();
+		new Thread(r).start();
 	}
 }

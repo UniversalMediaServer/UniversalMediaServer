@@ -57,6 +57,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
+import net.pms.dlna.ByteRange;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAMediaChapter;
@@ -71,6 +72,7 @@ import net.pms.dlna.MediaType;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
+import net.pms.dlna.TimeRange;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.HlsHelper;
@@ -346,8 +348,8 @@ public class RequestHandler implements HttpHandler {
 
 	private static void sendGetResponse(final HttpExchange exchange, final RendererConfiguration renderer, String uri) throws IOException {
 		// Request to retrieve a file
-		Range.Time timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
-		Range.Byte range = getRange(exchange.getRequestHeaders().getFirst("Range"));
+		TimeRange timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
+		ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
 		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		StartStopListenerDelegate startStopListenerDelegate = null;
 		DLNAResource dlna = null;
@@ -589,7 +591,7 @@ public class RequestHandler implements HttpHandler {
 				// If range has not been initialized yet and the DLNAResource has its
 				// own start and end defined, initialize range with those values before
 				// requesting the input stream.
-				Range.Time splitRange = dlna.getSplitRange();
+				TimeRange splitRange = dlna.getSplitRange();
 
 				if (timeseekrange.getStart() == null && splitRange.getStart() != null) {
 					timeseekrange.setStart(splitRange.getStart());
@@ -760,8 +762,8 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static Range.Byte getRange(String rangeStr) {
-		Range.Byte range = new Range.Byte(0L, 0L);
+	private static ByteRange getRange(String rangeStr) {
+		ByteRange range = new ByteRange(0L, 0L);
 		if (rangeStr == null || StringUtils.isEmpty(rangeStr)) {
 			return range;
 		}
@@ -776,19 +778,19 @@ public class RequestHandler implements HttpHandler {
 			long firstPos = Long.parseLong(rangeStr.substring(0, dashPos));
 			if (dashPos < rangeStr.length() - 1) {
 				Long lastPos = Long.valueOf(rangeStr.substring(dashPos + 1, rangeStr.length()));
-				return new Range.Byte(firstPos, lastPos);
+				return new ByteRange(firstPos, lastPos);
 			} else {
-				return new Range.Byte(firstPos, -1L);
+				return new ByteRange(firstPos, -1L);
 			}
 		} else if (dashPos == 0) {
-			return new Range.Byte(0L, Long.valueOf(rangeStr.substring(1)));
+			return new ByteRange(0L, Long.valueOf(rangeStr.substring(1)));
 		}
 		LOGGER.warn("Range '" + rangeStr + "' is not well formed");
 		return range;
 	}
 
-	private static Range.Time getTimeSeekRange(String timeSeekRangeStr) {
-		Range.Time timeSeekRange = new Range.Time();
+	private static TimeRange getTimeSeekRange(String timeSeekRangeStr) {
+		TimeRange timeSeekRange = new TimeRange();
 		if (timeSeekRangeStr != null && timeSeekRangeStr.startsWith("npt=")) {
 			String[] params = timeSeekRangeStr.substring(4).split("[-/]");
 			if (params.length > 1 && params[1].length() != 0) {

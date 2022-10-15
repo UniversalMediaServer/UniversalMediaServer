@@ -239,7 +239,7 @@ public class DVDISOTitle extends DLNAResource {
 		// No point in trying to re-parse the thumbnail later
 		getMedia().setThumbready(true);
 
-		length = nbsectors * 2048;
+		length = nbsectors * 2048L;
 
 		double d = 0;
 		if (duration != null) {
@@ -366,11 +366,9 @@ public class DVDISOTitle extends DLNAResource {
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			DLNAThumbnailInputStream inputStream = getMedia().getThumbnailInputStream();
-			return inputStream;
+			return getMedia().getThumbnailInputStream();
 		} else {
-			DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStream(null);
-			return inputStream;
+			return getGenericThumbnailInputStream(null);
 		}
 	}
 

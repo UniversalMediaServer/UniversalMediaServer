@@ -79,7 +79,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 
 	/**
 	 * Not to be instantiated, get the {@link ExternalProgramInfo} instances
-	 * from {@link PmsConfiguration} instead.
+	 * from {@link UmsConfiguration} instead.
 	 *
 	 * @param configuration the {@link Configuration} to use for custom paths.
 	 */

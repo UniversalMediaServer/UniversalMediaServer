@@ -344,8 +344,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 
-			if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
-				MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
+			if (rootResource instanceof MediaLibraryFolder folder) {
 				if (
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()

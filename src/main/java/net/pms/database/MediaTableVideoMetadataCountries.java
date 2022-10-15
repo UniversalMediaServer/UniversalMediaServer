@@ -147,7 +147,8 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		if (countries == null || !countries.isJsonArray() || countries.getAsJsonArray().isEmpty()) {
 			return;
 		}
-		final String sqlSelect, sqlInsert;
+		final String sqlSelect;
+		final String sqlInsert;
 		final int id;
 		if (tvSeriesID != null) {
 			sqlSelect = SQL_GET_TVSERIESID_EXISTS;

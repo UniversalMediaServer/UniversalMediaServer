@@ -236,18 +236,18 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			}
 			ch.close();
 		}
-	}
 
-	private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(
-			HttpVersion.HTTP_1_1, status);
-		response.headers().set(
-			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.setContent(ChannelBuffers.copiedBuffer(
-			"Failure: " + status.toString() + "\r\n", StandardCharsets.UTF_8));
+		private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+			HttpResponse response = new DefaultHttpResponse(
+				HttpVersion.HTTP_1_1, status);
+			response.headers().set(
+				HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			response.setContent(ChannelBuffers.copiedBuffer(
+				"Failure: " + status.toString() + "\r\n", StandardCharsets.UTF_8));
 
-		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+			// Close the connection as soon as the error message is sent.
+			ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		}
 	}
 
 	/**

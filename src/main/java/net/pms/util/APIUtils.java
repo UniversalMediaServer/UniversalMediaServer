@@ -338,7 +338,7 @@ public class APIUtils {
 					}
 				}
 
-				Boolean isTVEpisode = videoMetadata.isTVEpisode();
+				boolean isTVEpisode = videoMetadata.isTVEpisode();
 
 				try {
 					if (isTVEpisode) {

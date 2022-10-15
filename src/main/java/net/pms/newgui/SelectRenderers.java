@@ -163,22 +163,22 @@ public class SelectRenderers extends JPanel {
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
-					String rendererName = "";
+					StringBuilder rendererName = new StringBuilder();
 					if (path.getPathComponent(0).equals(allRenderers)) {
 						for (int i = 1; i < path.getPathCount(); i++) {
-							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode) {
+							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode searchableMutableTreeNode) {
 								if (!rendererName.isEmpty()) {
-									rendererName += " ";
+									rendererName.append(" ");
 								}
 
-								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
+								rendererName.append(searchableMutableTreeNode.getNodeName());
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
 
 						if (!rendererName.isEmpty()) {
-							selectedRenderers.add(rendererName);
+							selectedRenderers.add(rendererName.toString());
 						}
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());

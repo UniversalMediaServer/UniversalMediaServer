@@ -21,7 +21,7 @@ public class ResumeObj {
 
 	public static final String CLEAN_REG = "_hash_(\\d+)";
 
-	private File file;
+	private final File file;
 	private long offsetTime;
 	private long resDuration;
 	private long minDur;
@@ -154,7 +154,7 @@ public class ResumeObj {
 		return !file.exists();
 	}
 
-	public void update(Range.Time range, DLNAResource r) {
+	public void update(TimeRange range, DLNAResource r) {
 		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
 			long now = System.currentTimeMillis();
 			if (r.getMedia() != null) {

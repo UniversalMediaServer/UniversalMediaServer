@@ -44,6 +44,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
+import net.pms.dlna.ByteRange;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
@@ -53,7 +54,6 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DVDISOTitle;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
-import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -862,7 +862,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			DLNAResource dlna = res.get(0);
 			long len = dlna.length();
 			dlna.setEngine(null);
-			Range.Byte range = parseRange(req, len);
+			ByteRange range = parseRange(req, len);
 			AsyncContext async = req.startAsync();
 			InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 			if (len == 0) {
@@ -947,7 +947,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String mime;
 			InputStream in;
 			long len;
-			Range.Byte range;
+			ByteRange range;
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
@@ -978,7 +978,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					len = image == null ? 0 : image.getBytes(false).length;
 					in = image == null ? null : new ByteArrayInputStream(image.getBytes(false));
 				}
-				range = new Range.Byte(0L, len);
+				range = new ByteRange(0L, len);
 			} else {
 				return false;
 			}
@@ -1119,7 +1119,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			} else {
 				AsyncContext async = req.startAsync();
 				media.setMimeType(mimeType);
-				Range.Byte range = parseRange(req, resource.length());
+				ByteRange range = parseRange(req, resource.length());
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 				InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 				if (range.getEnd() == 0) {
@@ -1300,15 +1300,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static Range.Byte parseRange(HttpServletRequest req, long len) {
+	private static ByteRange parseRange(HttpServletRequest req, long len) {
 		String range = req.getHeader("Range");
 		if (range == null || "".equals(range)) {
-			return new Range.Byte(0L, len);
+			return new ByteRange(0L, len);
 		}
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
-		return new Range.Byte(start, end);
+		return new ByteRange(start, end);
 	}
 
 	/**

@@ -64,18 +64,8 @@ public class MEncoderVideo {
 	private static JTextField mencoderNoassOutline;
 	private static JTextField mencoderCustomOptions;
 	private static JTextField subq;
-	private static JCheckBox forcefps;
-	private static JCheckBox yadif;
-	private static JCheckBox scaler;
 	private static JTextField scaleX;
 	private static JTextField scaleY;
-	private static JCheckBox fc;
-	private static JCheckBox ass;
-	private static JCheckBox skipLoopFilter;
-	private static JCheckBox mencodermt;
-	private static JCheckBox videoremux;
-	private static JCheckBox normalizeaudio;
-	private static JCheckBox noskip;
 	private static JCheckBox intelligentsync;
 	private static JTextField ocw;
 	private static JTextField och;
@@ -102,7 +92,7 @@ public class MEncoderVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		mencodermt = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getMencoderMT());
+		JCheckBox mencodermt = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getMencoderMT());
 		mencodermt.setContentAreaFilled(false);
 		mencodermt.addActionListener((ActionEvent e) -> {
 			CONFIGURATION.setMencoderMT(mencodermt.isSelected());
@@ -110,7 +100,7 @@ public class MEncoderVideo {
 		mencodermt.setEnabled(Platform.isWindows() || Platform.isMac());
 		builder.add(GuiUtil.getPreferredSizeComponent(mencodermt), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		skipLoopFilter = new JCheckBox(Messages.getString("SkipLoopFilterDeblocking"), CONFIGURATION.getSkipLoopFilterEnabled());
+		JCheckBox skipLoopFilter = new JCheckBox(Messages.getString("SkipLoopFilterDeblocking"), CONFIGURATION.getSkipLoopFilterEnabled());
 		skipLoopFilter.setContentAreaFilled(false);
 		skipLoopFilter.setToolTipText(Messages.getString("CanDegradeQuality"));
 		skipLoopFilter.addItemListener((ItemEvent e) -> {
@@ -118,7 +108,7 @@ public class MEncoderVideo {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(skipLoopFilter), FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
 
-		noskip = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), CONFIGURATION.isMencoderNoOutOfSync());
+		JCheckBox noskip = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), CONFIGURATION.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
 		noskip.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED));
@@ -192,7 +182,7 @@ public class MEncoderVideo {
 		});
 		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
-		forcefps = new JCheckBox(Messages.getString("ForceFramerateParsedFfmpeg"), CONFIGURATION.isMencoderForceFps());
+		JCheckBox forcefps = new JCheckBox(Messages.getString("ForceFramerateParsedFfmpeg"), CONFIGURATION.isMencoderForceFps());
 		forcefps.setContentAreaFilled(false);
 		forcefps.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED);
@@ -200,14 +190,14 @@ public class MEncoderVideo {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(forcefps), FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
-		yadif = new JCheckBox(Messages.getString("DeinterlaceFilter_Sentencecase"), CONFIGURATION.isMencoderYadif());
+		JCheckBox yadif = new JCheckBox(Messages.getString("DeinterlaceFilter_Sentencecase"), CONFIGURATION.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
 		yadif.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(yadif), FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
-		scaler = new JCheckBox(Messages.getString("ChangeVideoResolution"));
+		JCheckBox scaler = new JCheckBox(Messages.getString("ChangeVideoResolution"));
 		scaler.setContentAreaFilled(false);
 		scaler.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderScaler(e.getStateChange() == ItemEvent.SELECTED);
@@ -251,14 +241,14 @@ public class MEncoderVideo {
 			scaleY.setEnabled(false);
 		}
 
-		videoremux = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), CONFIGURATION.isMencoderMuxWhenCompatible());
+		JCheckBox videoremux = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), CONFIGURATION.isMencoderMuxWhenCompatible());
 		videoremux.setContentAreaFilled(false);
 		videoremux.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(videoremux), FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
-		normalizeaudio = new JCheckBox(Messages.getString("NormalizeAudioVolume"), CONFIGURATION.isMEncoderNormalizeVolume());
+		JCheckBox normalizeaudio = new JCheckBox(Messages.getString("NormalizeAudioVolume"), CONFIGURATION.isMEncoderNormalizeVolume());
 		normalizeaudio.setContentAreaFilled(false);
 		normalizeaudio.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED));
@@ -348,7 +338,7 @@ public class MEncoderVideo {
 		builder.add(mencoderNoassBlur, FormLayoutUtil.flip(cc.xy(11, 27), colSpec, orientation));
 		builder.add(mencoderNoassSubpos, FormLayoutUtil.flip(cc.xy(15, 27), colSpec, orientation));
 
-		ass = new JCheckBox(Messages.getString("UseAssSubtitlesStyling"), CONFIGURATION.isMencoderAss());
+		JCheckBox ass = new JCheckBox(Messages.getString("UseAssSubtitlesStyling"), CONFIGURATION.isMencoderAss());
 		ass.setContentAreaFilled(false);
 		ass.addItemListener((ItemEvent e) -> {
 			if (e != null) {
@@ -358,7 +348,7 @@ public class MEncoderVideo {
 		builder.add(GuiUtil.getPreferredSizeComponent(ass), FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
 		ass.getItemListeners()[0].itemStateChanged(null);
 
-		fc = new JCheckBox(Messages.getString("FonconfigEmbeddedFonts"), CONFIGURATION.isMencoderFontConfig());
+		JCheckBox fc = new JCheckBox(Messages.getString("FonconfigEmbeddedFonts"), CONFIGURATION.isMencoderFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);

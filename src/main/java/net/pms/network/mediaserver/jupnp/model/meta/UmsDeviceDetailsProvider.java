@@ -57,7 +57,7 @@ public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
 			String webInterfaceUrl = "http" + (CONFIGURATION.getWebPlayerHttps() ? "s" : "") + "://" + umsinfo.getLocalAddress().getHostAddress() + ":" + CONFIGURATION.getWebPlayerServerPort();
 			presentationURI = URI.create(webInterfaceUrl);
 		}
-		DeviceDetails umsDetails = new DeviceDetails(
+		return new DeviceDetails(
 				null,
 				friendlyName,
 				MANUFACTURER_DETAILS,
@@ -69,7 +69,6 @@ public class UmsDeviceDetailsProvider implements DeviceDetailsProvider {
 				DLNA_CAPS,
 				SEC_CAP
 		);
-		return umsDetails;
 	}
 
 }

@@ -149,7 +149,8 @@ public final class MediaTableVideoMetadataIMDbRating extends MediaTable {
 		if (StringUtils.isBlank(imdbRating)) {
 			return;
 		}
-		final String sqlSelect, sqlInsert;
+		final String sqlSelect;
+		final String sqlInsert;
 		final int id;
 		if (tvSeriesID != null) {
 			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
