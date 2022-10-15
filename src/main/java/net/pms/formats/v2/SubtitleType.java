@@ -155,8 +155,7 @@ public enum SubtitleType {
 		int index,
 		String description,
 		String shortName,
-		List<String>
-		fileExtensions,
+		List<String> fileExtensions,
 		List<String> libMediaInfoCodecs,
 		Category category
 	) {

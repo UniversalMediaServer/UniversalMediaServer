@@ -43,14 +43,16 @@ public class AudioProperties {
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
-			case CHANNELS_NUMBER:
+			case CHANNELS_NUMBER -> {
 				return getNumberOfChannels();
-			case DELAY:
+			}
+			case DELAY -> {
 				return getAudioDelay();
-			case SAMPLE_FREQUENCY:
+			}
+			case SAMPLE_FREQUENCY -> {
 				return getSampleFrequency();
-			default:
-				throw new IllegalArgumentException("Unimplemented attribute");
+			}
+			default -> throw new IllegalArgumentException("Unimplemented attribute");
 		}
 	}
 

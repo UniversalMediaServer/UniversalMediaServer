@@ -127,14 +127,14 @@ public class BMPInfo extends ImageInfo {
 		}
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof BmpHeaderDirectory) {
+			if (directory instanceof BmpHeaderDirectory bmpHeaderDirectory) {
 				parsedInfo.format = ImageFormat.BMP;
 				if (
-					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
+					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
 			}
 			if (

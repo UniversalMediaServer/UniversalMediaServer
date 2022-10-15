@@ -114,12 +114,12 @@ public class JPEGSubsamplingNotation implements Serializable {
 
 		if (
 			directory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS) == null ||
-			directory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS).intValue() == 0
+			directory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS) == 0
 		) {
 			return new JPEGSubsamplingNotation(Double.NaN, Double.NaN, Double.NaN);
 		}
 
-		int numComponents = directory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS).intValue();
+		int numComponents = directory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS);
 		int luminanceIdx = -1;
 		JpegComponent[] components = new JpegComponent[numComponents];
 		for (int i = 0; i < numComponents; i++) {

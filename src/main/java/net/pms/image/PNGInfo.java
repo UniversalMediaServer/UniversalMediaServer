@@ -1,3 +1,20 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.image;
 
 import java.awt.color.ColorSpace;
@@ -187,24 +204,31 @@ public class PNGInfo extends ImageInfo {
 					if (i != null) {
 						((PNGParseInfo) parsedInfo).colorType = PngColorType.fromNumericValue(i);
 						switch (((PNGParseInfo) parsedInfo).colorType.getNumericValue()) {
-							case 0: // Grayscale without alpha
+							// Grayscale without alpha
+							case 0 -> {
 								parsedInfo.numComponents = 1;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
-								break;
-							case 2: // RGB without alpha
-							case 3: // Palette index
+							}
+							// RGB without alpha
+							// Palette index
+							case 2, 3 ->
+							{
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							case 4: // Grayscale with alpha
+							}
+							// Grayscale with alpha
+							case 4 -> {
 								parsedInfo.numComponents = 2;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
-								break;
-							case 6: // RGB with alpha
+							}
+							// RGB with alpha
+							case 6 -> {
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							default:
+							}
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 				}

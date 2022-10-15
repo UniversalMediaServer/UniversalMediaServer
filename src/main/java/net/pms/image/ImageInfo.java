@@ -147,75 +147,79 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
-			case ICNS:
-			case IFF:
-			case PICT:
-			case PNM:
-			case RGBE:
-			case SGI:
-			case TGA:
-			case WBMP:
+			case ICNS, IFF, PICT, PNM, RGBE, SGI, TGA, WBMP -> {
 				return new GenericImageInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case BMP:
+			}
+			case BMP -> {
 				return new BMPInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case CUR:
+			}
+			case CUR -> {
 				return new CURInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case DCX:
+			}
+			case DCX -> {
 				return new PCXInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case GIF:
+			}
+			case GIF -> {
 				return new GIFInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case ICO:
+			}
+			case ICO -> {
 				return new ICOInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case JPEG:
+			}
+			case JPEG -> {
 				return new JPEGInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case PCX:
+			}
+			case PCX -> {
 				return new PCXInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case PNG:
+			}
+			case PNG -> {
 				return new PNGInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case PSD:
+			}
+			case PSD -> {
 				return new PSDInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case TIFF:
+			}
+			case TIFF -> {
 				return new TIFFInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			case WEBP:
+			}
+			case WEBP -> {
 				return new WebPInfo(
-					width, height, format, size, colorModel, metadata,
-					applyExifOrientation, imageIOSupport
+						width, height, format, size, colorModel, metadata,
+						applyExifOrientation, imageIOSupport
 				);
-			default:
-				throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
+			}
+			default -> throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
 		}
 	}
 
@@ -255,8 +259,8 @@ public abstract class ImageInfo implements Serializable {
 			(width < 1 || height < 1) &&
 			parsedInfo.width != null && parsedInfo.height != null
 		) {
-			width = parsedInfo.width.intValue();
-			height = parsedInfo.height.intValue();
+			width = parsedInfo.width;
+			height = parsedInfo.height;
 		}
 		if (
 			applyExifOrientation &&
@@ -380,87 +384,91 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
-			case ICNS:
-			case IFF:
-			case PICT:
-			case PNM:
-			case RGBE:
-			case SGI:
-			case TGA:
-			case WBMP:
+			case ICNS, IFF, PICT, PNM, RGBE, SGI, TGA, WBMP -> {
 				return new GenericImageInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case BMP:
+			}
+			case BMP -> {
 				return new BMPInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case CUR:
+			}
+			case CUR -> {
 				return new CURInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case DCX:
+			}
+			case DCX -> {
 				return new PCXInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case GIF:
+			}
+			case GIF -> {
 				return new GIFInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case ICO:
+			}
+			case ICO -> {
 				return new ICOInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case JPEG:
+			}
+			case JPEG -> {
 				return new JPEGInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case PCX:
+			}
+			case PCX -> {
 				return new PCXInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case PNG:
+			}
+			case PNG -> {
 				return new PNGInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case PSD:
+			}
+			case PSD -> {
 				return new PSDInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case TIFF:
+			}
+			case TIFF -> {
 				return new TIFFInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			case WEBP:
+			}
+			case WEBP -> {
 				return new WebPInfo(
-					width, height, format, size, bitDepth, numComponents,
-					colorSpace, colorSpaceType, metadata, applyExifOrientation,
-					imageIOSupport
+						width, height, format, size, bitDepth, numComponents,
+						colorSpace, colorSpaceType, metadata, applyExifOrientation,
+						imageIOSupport
 				);
-			default:
-				throw new IllegalStateException("Format " + format + " is unknown for this ImageInfo.create()");
+			}
+			default -> throw new IllegalStateException("Format " + format + " is unknown for this ImageInfo.create()");
 		}
 	}
 
@@ -508,8 +516,8 @@ public abstract class ImageInfo implements Serializable {
 			(width < 1 || height < 1) &&
 			parsedInfo.width != null && parsedInfo.height != null
 		) {
-			width = parsedInfo.width.intValue();
-			height = parsedInfo.height.intValue();
+			width = parsedInfo.width;
+			height = parsedInfo.height;
 		}
 		if (
 			applyExifOrientation &&
@@ -537,8 +545,8 @@ public abstract class ImageInfo implements Serializable {
 		if (this instanceof JPEGInfo && parsedInfo.colorSpaceType == ColorSpaceType.TYPE_CMYK) {
 			// ImageIO will parse CMYK JPEGs with a RGB color model.
 			// Prefer the parsed info in that situation
-			this.bitDepth = parsedInfo.bitDepth != null ? parsedInfo.bitDepth.intValue() : bitDepth;
-			this.numComponents = parsedInfo.numComponents != null ? parsedInfo.numComponents.intValue() : numComponents;
+			this.bitDepth = parsedInfo.bitDepth != null ? parsedInfo.bitDepth : bitDepth;
+			this.numComponents = parsedInfo.numComponents != null ? parsedInfo.numComponents : numComponents;
 			this.colorSpace = null;
 			this.colorSpaceType = parsedInfo.colorSpaceType;
 		} else {
@@ -547,11 +555,11 @@ public abstract class ImageInfo implements Serializable {
 
 			this.bitDepth =
 				bitDepth == UNKNOWN && parsedInfo.bitDepth != null ?
-					parsedInfo.bitDepth.intValue() :
+					parsedInfo.bitDepth :
 					bitDepth;
 			this.numComponents =
 				numComponents == UNKNOWN && parsedInfo.numComponents != null ?
-					parsedInfo.numComponents.intValue() :
+					parsedInfo.numComponents :
 					numComponents;
 			this.colorSpace = colorSpace;
 			this.colorSpaceType =
@@ -647,75 +655,79 @@ public abstract class ImageInfo implements Serializable {
 		}
 
 		switch (format) {
-			case ICNS:
-			case IFF:
-			case PICT:
-			case PNM:
-			case RGBE:
-			case SGI:
-			case TGA:
-			case WBMP:
+			case ICNS, IFF, PICT, PNM, RGBE, SGI, TGA, WBMP -> {
 				return new GenericImageInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case BMP:
+			}
+			case BMP -> {
 				return new BMPInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case CUR:
+			}
+			case CUR -> {
 				return new CURInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case DCX:
+			}
+			case DCX -> {
 				return new PCXInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case GIF:
+			}
+			case GIF -> {
 				return new GIFInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case ICO:
+			}
+			case ICO -> {
 				return new ICOInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case JPEG:
+			}
+			case JPEG -> {
 				return new JPEGInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case PCX:
+			}
+			case PCX -> {
 				return new PCXInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case PNG:
+			}
+			case PNG -> {
 				return new PNGInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case PSD:
+			}
+			case PSD -> {
 				return new PSDInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case TIFF:
+			}
+			case TIFF -> {
 				return new TIFFInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			case WEBP:
+			}
+			case WEBP -> {
 				return new WebPInfo(
-					width, height, metadata, format, size,
-					applyExifOrientation, throwOnParseFailure
+						width, height, metadata, format, size,
+						applyExifOrientation, throwOnParseFailure
 				);
-			default:
-				throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
+			}
+			default -> throw new IllegalStateException("Format " + format + " is unknown for ImageInfo.create()");
 		}
 	}
 
@@ -758,8 +770,8 @@ public abstract class ImageInfo implements Serializable {
 			(width < 1 || height < 1) &&
 			parsedInfo.width != null && parsedInfo.height != null
 		) {
-			width = parsedInfo.width.intValue();
-			height = parsedInfo.height.intValue();
+			width = parsedInfo.width;
+			height = parsedInfo.height;
 		}
 
 		if (throwOnParseFailure && (width < 0 || height < 0)) {
@@ -788,8 +800,8 @@ public abstract class ImageInfo implements Serializable {
 			((ExifParseInfo) parsedInfo).exifOrientation == ExifOrientation.TOP_LEFT ?
 				size :
 				SIZE_UNKNOWN;
-		this.bitDepth = parsedInfo.bitDepth != null ? parsedInfo.bitDepth.intValue() : UNKNOWN;
-		this.numComponents = parsedInfo.numComponents != null ? parsedInfo.numComponents.intValue() : UNKNOWN;
+		this.bitDepth = parsedInfo.bitDepth != null ? parsedInfo.bitDepth : UNKNOWN;
+		this.numComponents = parsedInfo.numComponents != null ? parsedInfo.numComponents : UNKNOWN;
 		this.colorSpace = null;
 		this.colorSpaceType = parsedInfo.colorSpaceType;
 		this.imageIOSupport = false; // Implied by calling this constructor
@@ -962,8 +974,8 @@ public abstract class ImageInfo implements Serializable {
 			return;
 		}
 
-		int parsedWidth = parsedInfo.width != null ? parsedInfo.width.intValue() : UNKNOWN;
-		int parsedHeight = parsedInfo.height != null ? parsedInfo.height.intValue() : UNKNOWN;
+		int parsedWidth = parsedInfo.width != null ? parsedInfo.width : UNKNOWN;
+		int parsedHeight = parsedInfo.height != null ? parsedInfo.height : UNKNOWN;
 		if (this instanceof RAWInfo) {
 			// DCRaw decodes pixels that's normally hidden because they are too
 			// expensive to decode for CPU restrained devices, so the resolution
@@ -1019,7 +1031,7 @@ public abstract class ImageInfo implements Serializable {
 			return;
 		}
 
-		if (bitDepth != UNKNOWN && parsedInfo.bitDepth != null && bitDepth != parsedInfo.bitDepth.intValue()) {
+		if (bitDepth != UNKNOWN && parsedInfo.bitDepth != null && bitDepth != parsedInfo.bitDepth) {
 			if (
 				!(this instanceof GIFInfo) ||
 				parsedInfo.bitDepth >= 8
@@ -1034,7 +1046,7 @@ public abstract class ImageInfo implements Serializable {
 			}
 		}
 
-		if (numComponents != UNKNOWN && parsedInfo.numComponents != null && numComponents != parsedInfo.numComponents.intValue()) {
+		if (numComponents != UNKNOWN && parsedInfo.numComponents != null && numComponents != parsedInfo.numComponents) {
 			LOGGER.debug(
 				"Warning: Parsed image number of components ({}) mismatches given color model " +
 				"number of components ({}) - using given color model number of components",

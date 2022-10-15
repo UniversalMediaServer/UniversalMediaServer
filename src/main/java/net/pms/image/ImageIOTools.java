@@ -81,14 +81,12 @@ public class ImageIOTools {
 		} catch (RuntimeException | IOException e) {
 			try {
 				inputStream.close();
-			} catch (Exception e2) {
+			} catch (IOException e2) {
 				//Do nothing
 			}
-			if (e instanceof RuntimeException) {
+			if (e instanceof RuntimeException runtimeException) {
 				throw new ImageIORuntimeException(
-					"An error occurred while trying to read image: " + e.getMessage(),
-					(RuntimeException) e
-				);
+					"An error occurred while trying to read image: " + e.getMessage(), runtimeException);
 			}
 			throw e;
 		}
@@ -112,7 +110,7 @@ public class ImageIOTools {
 			throw new IllegalArgumentException("stream == null!");
 		}
 
-		try {
+		try (stream) {
 			Iterator<?> iter = ImageIO.getImageReaders(stream);
 			if (!iter.hasNext()) {
 				throw new UnknownFormatException("Unable to find a suitable image reader");
@@ -133,8 +131,6 @@ public class ImageIOTools {
 			return bufferedImage != null ? new ImageReaderResult(bufferedImage, inputFormat) : null;
 		} catch (RuntimeException e) {
 			throw new ImageIORuntimeException("An error occurred while trying to read image: " + e.getMessage(), e);
-		} finally {
-			stream.close();
 		}
 	}
 
@@ -233,7 +229,7 @@ public class ImageIOTools {
 						param.setSourceRegion(new Rectangle(1, 1));
 						reader.read(0, param);
 						imageIOSupport = true;
-					} catch (Exception e) {
+					} catch (IOException e) {
 						// Catch anything here, we simply want to test if it fails.
 						imageIOSupport = false;
 					}

@@ -253,7 +253,7 @@ public enum ImageFormat {
 				if (((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_COMPRESSION)) {
 					Integer i = ((ExifDirectoryBase) directory).getInteger(ExifDirectoryBase.TAG_COMPRESSION);
 					if (i != null) {
-						exifCompression = ExifCompression.typeOf(i.intValue());
+						exifCompression = ExifCompression.typeOf(i);
 					}
 				}
 				if (directory.containsTag(TAG_DNG_VERSION)) {
@@ -264,39 +264,27 @@ public enum ImageFormat {
 		// Nothing found by specific tags, use a generic approach based on Exif compression
 		if (exifCompression != null) {
 			switch (exifCompression) {
-				case ADOBE_DEFLATE:
-				case CCITT_1D:
-				case DEFLATE:
-				case IT8BL:
-				case IT8CTPAD:
-				case IT8LW:
-				case IT8MP:
-				case JBIG:
-				case JBIG2_TIFF_FX:
-				case JBIG_B_W:
-				case JBIG_COLOR:
-				case JPEG:
-				case JPEG_OLD_STYLE:
-				case LZW:
-				case PACKBITS:
-				case T4_GROUP_3_FAX:
-				case T6_GROUP_4_FAX:
-				case UNCOMPRESSED:
+				case ADOBE_DEFLATE, CCITT_1D, DEFLATE, IT8BL, IT8CTPAD, IT8LW, IT8MP, JBIG, JBIG2_TIFF_FX, JBIG_B_W, JBIG_COLOR, JPEG, JPEG_OLD_STYLE, LZW, PACKBITS, T4_GROUP_3_FAX, T6_GROUP_4_FAX, UNCOMPRESSED -> {
 					return ImageFormat.TIFF;
-				case DCS:
-				case KODAC_DCR_COMPRESSED:
+				}
+				case DCS, KODAC_DCR_COMPRESSED -> {
 					return ImageFormat.DCR;
-				case KODAK_KDC_COMPRESSED:
+				}
+				case KODAK_KDC_COMPRESSED -> {
 					return ImageFormat.KDC;
-				case NIKON_NEF_COMPRESSED:
+				}
+				case NIKON_NEF_COMPRESSED -> {
 					return ImageFormat.NEF;
-				case PENTAX_PEF_COMPRESSED:
+				}
+				case PENTAX_PEF_COMPRESSED -> {
 					return ImageFormat.PEF;
-				case SAMSUNG_SRW_COMPRESSED:
-				case SAMSUNG_SRW_COMPRESSED_2:
+				}
+				case SAMSUNG_SRW_COMPRESSED, SAMSUNG_SRW_COMPRESSED_2 -> {
 					return ImageFormat.SRW;
-				case SONY_ARW_COMPRESSED:
+				}
+				case SONY_ARW_COMPRESSED -> {
 					return ImageFormat.ARW;
+				}
 			}
 		}
 
@@ -309,24 +297,10 @@ public enum ImageFormat {
 	 *         image formats.
 	 */
 	public boolean isRaw() {
-		switch (this) {
-			case ARW:
-			case CR2:
-			case CRW:
-			case DCR:
-			case DNG:
-			case RAW:
-			case KDC:
-			case NEF:
-			case ORF:
-			case PEF:
-			case RAF:
-			case RW2:
-			case SRW:
-				return true;
-			default:
-				return false;
-		}
+		return switch (this) {
+			case ARW, CR2, CRW, DCR, DNG, RAW, KDC, NEF, ORF, PEF, RAF, RW2, SRW -> true;
+			default -> false;
+		};
 	}
 
 	/**
@@ -336,29 +310,10 @@ public enum ImageFormat {
 	 * @return Whether or not the format is supported by {@link ImageIO}.
 	 */
 	public boolean supportedByImageIO() {
-		switch (this) {
-			case BMP:
-			case CUR:
-			case DCX:
-			case GIF:
-			case ICNS:
-			case ICO:
-			case IFF:
-			case JPEG:
-			case PCX:
-			case PICT:
-			case PNG:
-			case PNM:
-			case PSD:
-			case RGBE:
-			case SGI:
-			case TGA:
-			case TIFF:
-			case WBMP:
-				return true;
-			default:
-				return false;
-		}
+		return switch (this) {
+			case BMP, CUR, DCX, GIF, ICNS, ICO, IFF, JPEG, PCX, PICT, PNG, PNM, PSD, RGBE, SGI, TGA, TIFF, WBMP -> true;
+			default -> false;
+		};
 	}
 
 	/**
@@ -366,52 +321,55 @@ public enum ImageFormat {
 	 */
 	public String toFormatConfiguration() {
 		switch (this) {
-			case ARW:
-			case CR2:
-			case CRW:
-			case DCR:
-			case DNG:
-			case RAW:
-			case KDC:
-			case NEF:
-			case ORF:
-			case PEF:
-			case RAF:
-			case RW2:
-			case SRW:
+			case ARW, CR2, CRW, DCR, DNG, RAW, KDC, NEF, ORF, PEF, RAF, RW2, SRW -> {
 				return FormatConfiguration.RAW;
-			case BMP:
+			}
+			case BMP -> {
 				return FormatConfiguration.BMP;
-			case CUR:
+			}
+			case CUR -> {
 				return FormatConfiguration.CUR;
-			case DCX:
+			}
+			case DCX -> {
 				return FormatConfiguration.PCX;
-			case GIF:
+			}
+			case GIF -> {
 				return FormatConfiguration.GIF;
-			case ICNS:
+			}
+			case ICNS -> {
 				return FormatConfiguration.ICNS;
-			case ICO:
+			}
+			case ICO -> {
 				return FormatConfiguration.ICO;
-			case JPEG:
+			}
+			case JPEG -> {
 				return FormatConfiguration.JPG;
-			case PCX:
+			}
+			case PCX -> {
 				return FormatConfiguration.PCX;
-			case PNG:
+			}
+			case PNG -> {
 				return FormatConfiguration.PNG;
-			case PNM:
+			}
+			case PNM -> {
 				return FormatConfiguration.PNM;
-			case PSD:
+			}
+			case PSD -> {
 				return FormatConfiguration.PSD;
-			case TIFF:
+			}
+			case TIFF -> {
 				return FormatConfiguration.TIFF;
-			case WBMP:
+			}
+			case WBMP -> {
 				return FormatConfiguration.WBMP;
-			case WEBP:
+			}
+			case WEBP -> {
 				return FormatConfiguration.WEBP;
-			case SOURCE:
-				throw new IllegalArgumentException("SOURCE cannot be translated into an actual format");
-			default:
+			}
+			case SOURCE -> throw new IllegalArgumentException("SOURCE cannot be translated into an actual format");
+			default -> {
 				return toString().toLowerCase(Locale.ROOT);
+			}
 		}
 	}
 }

@@ -18,10 +18,10 @@
 package net.pms.encoders;
 
 public class Track {
-	private String compressor;
-	private int scale;
-	private int rate;
-	private int sampleSize;
+	private final String compressor;
+	private final int scale;
+	private final int rate;
+	private final int sampleSize;
 	private int bitsPerSample;
 	private int nbAudio;
 	private byte[] bih;
