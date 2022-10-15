@@ -29,8 +29,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -389,7 +389,7 @@ public class FFMpegVideo extends Engine {
 				}
 			}
 
-			InputFile newInput = null;
+			InputFile newInput;
 			if (filename != null) {
 				newInput = new InputFile();
 				newInput.setFilename(filename);
@@ -1645,7 +1645,7 @@ public class FFMpegVideo extends Engine {
 	/**
 	 * A simple arg parser with basic quote comprehension
 	 */
-	protected static List<String> parseOptions(String str) {
+	public static List<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<>());
 	}
 
@@ -1769,7 +1769,7 @@ public class FFMpegVideo extends Engine {
 				return result.build();
 			}
 			if (output.getExitCode() == 0) {
-				if (output.getOutput() != null && output.getOutput().size() > 0) {
+				if (!output.getOutput().isEmpty()) {
 					Pattern pattern = Pattern.compile("^ffmpeg version\\s+(.*?)\\s+Copyright", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(0));
 					if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -1778,9 +1778,9 @@ public class FFMpegVideo extends Engine {
 				}
 				result.available(Boolean.TRUE);
 
-				if (result instanceof FFmpegExecutableInfoBuilder) {
+				if (result instanceof FFmpegExecutableInfoBuilder fFmpegExecutableInfoBuilder) {
 					List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
-					((FFmpegExecutableInfoBuilder) result).protocols(protocols);
+					fFmpegExecutableInfoBuilder.protocols(protocols);
 					if (!protocols.isEmpty()) {
 						LOGGER.warn("Couldn't parse any supported protocols for \"{}\"", executableInfo.getPath());
 					} else {
