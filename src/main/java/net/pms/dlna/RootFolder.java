@@ -35,6 +35,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebSourcesConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.MediaLibrary;
@@ -44,7 +45,6 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
 import net.pms.io.StreamGobbler;
-import net.pms.newgui.SharedContentTab;
 import net.pms.platform.PlatformUtils;
 import net.pms.service.LibraryScanner;
 import net.pms.util.CodeDb;
@@ -59,8 +59,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
+import net.pms.configuration.WebSourcesConfiguration.WebSourcesListener;
 
-public class RootFolder extends DLNAResource {
+public class RootFolder extends DLNAResource implements WebSourcesListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 	private final ArrayList<DLNAResource> webFolders;
 	private boolean running;
@@ -400,179 +401,72 @@ public class RootFolder extends DLNAResource {
 	 * Removes all web folders, re-parses the web config file, and adds a
 	 * file watcher for the file.
 	 */
-	public synchronized void loadWebConf() {
-		Integer currentlySelectedPosition = -1;
+	private synchronized void loadWebConf() {
+		WebSourcesConfiguration.addListener(this);
+	}
 
-		if (SharedContentTab.webContentList != null) {
-			currentlySelectedPosition = SharedContentTab.webContentList.getSelectedRow();
-		}
-
+	/**
+	 * This update the web sources config and populates the virtual Web folder.
+	 */
+	@Override
+	public synchronized void updateWebSources() {
 		for (DLNAResource d : webFolders) {
 			getChildren().remove(d);
 		}
 		webFolders.clear();
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (!webConf.exists()) {
-			configuration.writeDefaultWebConfigurationFile();
+		if (!configuration.getExternalNetwork()) {
+			return;
 		}
-		if (
-			webConf.exists() &&
-			configuration.getExternalNetwork() &&
-			(
-				SharedContentTab.lastWebContentUpdate == 1L ||
-				SharedContentTab.lastWebContentUpdate < (System.currentTimeMillis() - 2000)
-			)
-		) {
-			/**
-			 * If the GUI last updated less than 2 seconds ago, chances are good
-			 * that this method was triggered by changes in the GUI, which means
-			 * we can skip updating the GUI here (avoiding the peakaboo effect)
-			 */
-			LOGGER.trace("The last web content update via GUI was more than 2 seconds ago, refreshing");
-			parseWebConf(webConf, currentlySelectedPosition);
-			FileWatcher.add(new FileWatcher.Watch(webConf.getPath(), ROOT_WATCHER, this, RELOAD_WEB_CONF));
-		}
-		setLastModified(1);
-	}
+		for (WebSourcesConfiguration.WebSource webSource : WebSourcesConfiguration.getWebSources()) {
+			DLNAResource parent = null;
 
-	/**
-	 * This parses the web config and populates the virtual Web folder.
-	 *
-	 * @param webConf
-	 */
-	private synchronized void parseWebConf(File webConf, Integer currentlySelectedPosition) {
-		try {
-			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
+			if (webSource.getFolderName() != null) {
+				StringTokenizer st = new StringTokenizer(webSource.getFolderName(), ",");
+				DLNAResource currentRoot = this;
 
-					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
-						String key = line.substring(0, line.indexOf('='));
-						String value = line.substring(line.indexOf('=') + 1);
-						String[] keys = parseFeedKey(key);
-						String sourceType = keys[0];
-						String folderName = keys[1] == null ? null : keys[1];
+				while (st.hasMoreTokens()) {
+					String folder = st.nextToken();
+					parent = currentRoot.searchByName(folder);
 
-						try {
-							if (
-								sourceType.equals("imagefeed") ||
-								sourceType.equals("audiofeed") ||
-								sourceType.equals("videofeed") ||
-								sourceType.equals("audiostream") ||
-								sourceType.equals("videostream")
-							) {
-								String[] values = parseFeedValue(value);
-								String uri = values[0];
-								DLNAResource parent = null;
-
-								if (folderName != null) {
-									StringTokenizer st = new StringTokenizer(folderName, ",");
-									DLNAResource currentRoot = this;
-
-									while (st.hasMoreTokens()) {
-										String folder = st.nextToken();
-										parent = currentRoot.searchByName(folder);
-
-										if (parent == null) {
-											parent = new VirtualFolder(folder, "");
-											if (currentRoot == this) {
-												// parent is a top-level web folder
-												webFolders.add(parent);
-											}
-											currentRoot.addChild(parent);
-										}
-
-										currentRoot = parent;
-									}
-								}
-
-								if (parent == null) {
-									parent = this;
-								}
-
-								// Handle web playlists
-								if (sourceType.endsWith("stream")) {
-									int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
-									DLNAResource playlist = PlaylistFolder.getPlaylist(uri, values[1], type);
-									if (playlist != null) {
-										parent.addChild(playlist);
-										continue;
-									}
-								}
-
-								String optionalStreamThumbnail = values.length > 2 ? values[2] : null;
-
-								switch (sourceType) {
-									case "imagefeed" -> parent.addChild(new ImagesFeed(uri));
-									case "videofeed" -> {
-										// Convert YouTube channel URIs to their feed URIs
-										if (uri.contains("youtube.com/channel/")) {
-											uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-										}
-
-										parent.addChild(new VideosFeed(uri));
-									}
-									case "audiofeed" -> parent.addChild(new AudiosFeed(uri));
-									case "audiostream" -> parent.addChild(new WebAudioStream(uri, values[1], optionalStreamThumbnail));
-									case "videostream" -> parent.addChild(new WebVideoStream(uri, values[1], optionalStreamThumbnail));
-									default -> {
-										//do nothing
-									}
-								}
-							}
-						} catch (ArrayIndexOutOfBoundsException e) {
-							// catch exception here and go with parsing
-							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-							LOGGER.debug(null, e);
+					if (parent == null) {
+						parent = new VirtualFolder(folder, "");
+						if (currentRoot == this) {
+							// parent is a top-level web folder
+							webFolders.add(parent);
 						}
+						currentRoot.addChild(parent);
 					}
+
+					currentRoot = parent;
 				}
 			}
-		} catch (FileNotFoundException e) {
-			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
-		} catch (IOException e) {
-			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
-			LOGGER.debug("", e);
-		} finally {
-			if (SharedContentTab.webContentList != null) {
-				SharedContentTab.setWebContentGUIFromWebConfFile(webConf, currentlySelectedPosition);
+
+			if (parent == null) {
+				parent = this;
+			}
+
+			// Handle web playlists
+			String sourceType = webSource.getSourceType();
+			if (sourceType.endsWith("stream")) {
+				int type = sourceType.startsWith("audio") ? Format.AUDIO : Format.VIDEO;
+				DLNAResource playlist = PlaylistFolder.getPlaylist(webSource.getResourceName(), webSource.getUri(), type);
+				if (playlist != null) {
+					parent.addChild(playlist);
+					continue;
+				}
+			}
+			switch (sourceType) {
+				case "imagefeed" -> parent.addChild(new ImagesFeed(webSource.getUri()));
+				case "videofeed" -> parent.addChild(new VideosFeed(webSource.getUri()));
+				case "audiofeed" -> parent.addChild(new AudiosFeed(webSource.getResourceName()));
+				case "audiostream" -> parent.addChild(new WebAudioStream(webSource.getResourceName(), webSource.getUri(), webSource.getThumbnail()));
+				case "videostream" -> parent.addChild(new WebVideoStream(webSource.getResourceName(), webSource.getUri(), webSource.getThumbnail()));
+				default -> {
+					//do nothing
+				}
 			}
 		}
-	}
-
-	/**
-	 * Splits the first part of a WEB.conf spec into a pair of Strings
-	 * representing the resource type and its DLNA folder.
-	 *
-	 * @param spec (String) to be split
-	 * @return Array of (String) that represents the tokenized entry.
-	 */
-	public static String[] parseFeedKey(String spec) {
-		String[] pair = StringUtils.split(spec, ".", 2);
-
-		if (pair == null || pair.length < 2) {
-			pair = new String[2];
-		}
-
-		if (pair[0] == null) {
-			pair[0] = "";
-		}
-
-		return pair;
-	}
-
-	/**
-	 * Splits the second part of a WEB.conf spec into a triple of Strings
-	 * representing the DLNA path, resource URI, optional thumbnail URI
-	 * and name.
-	 *
-	 * @param spec (String) to be split
-	 * @return Array of (String) that represents the tokenized entry.
-	 */
-	public static String[] parseFeedValue(String spec) {
-		return spec.split(",");
+		setLastModified(1);
 	}
 
 	/**
@@ -1379,7 +1273,7 @@ public class RootFolder extends DLNAResource {
 
 	public static final FileWatcher.Listener ROOT_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
 		RootFolder r = (RootFolder) watch.getItem();
-		if (r != null && watch.flag == RELOAD_WEB_CONF) {
+		if (r != null && watch.isFlag(RELOAD_WEB_CONF)) {
 			r.loadWebConf();
 		}
 	};

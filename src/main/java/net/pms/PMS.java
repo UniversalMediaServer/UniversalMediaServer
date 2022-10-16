@@ -43,6 +43,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebSourcesConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
@@ -496,7 +497,7 @@ public class PMS {
 			String webConfPath = configuration.getWebConfPath();
 			File webConf = new File(webConfPath);
 			if (!webConf.exists()) {
-				configuration.writeDefaultWebConfigurationFile();
+				WebSourcesConfiguration.writeDefaultWebSourcesConfigurationFile();
 			}
 
 			// Ensure this only happens once

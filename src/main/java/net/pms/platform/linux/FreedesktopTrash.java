@@ -17,9 +17,13 @@
  */
 package net.pms.platform.linux;
 
+import com.sun.jna.Platform;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -28,17 +32,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import net.pms.util.FileUtil.InvalidFileSystemException;
-import net.pms.util.FileUtil.UnixMountPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.util.FilePermissions;
-import net.pms.util.FileUtil;
 
 public class FreedesktopTrash {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
@@ -139,10 +142,9 @@ public class FreedesktopTrash {
 	}
 
 	private static Path getTrashFolder(Path path) throws InvalidFileSystemException, IOException {
-
 		UnixMountPoint pathMountPoint;
 		try {
-			pathMountPoint = FileUtil.getMountPoint(path);
+			pathMountPoint = UnixMountPoint.getMountPoint(path);
 		} catch (InvalidFileSystemException e) {
 			throw new InvalidFileSystemException("Invalid file system for file: " + path.toAbsolutePath(), e);
 		}
@@ -151,7 +153,7 @@ public class FreedesktopTrash {
 		if (folder != null) {
 			UnixMountPoint homeMountPoint = null;
 			try {
-				homeMountPoint = FileUtil.getMountPoint(folder);
+				homeMountPoint = UnixMountPoint.getMountPoint(folder);
 			} catch (InvalidFileSystemException e) {
 				LOGGER.trace(e.getMessage(), e);
 				// homeMountPoint == null is ok, fails on .equals()
@@ -174,14 +176,14 @@ public class FreedesktopTrash {
 
 		// The file is on a different partition than the home folder
 		// or no home folder was found, look for $topdir/.Trash.
-		trashFolder = Paths.get(pathMountPoint.folder, ".Trash");
+		trashFolder = Paths.get(pathMountPoint.getFolder(), ".Trash");
 		if (Files.exists(trashFolder, LinkOption.NOFOLLOW_LINKS)) {
 			if (!Files.isSymbolicLink(trashFolder)) {
 				try {
-					if (FileUtil.isUnixStickyBit(trashFolder)) {
+					if (isUnixStickyBit(trashFolder)) {
 						if (verifyTrashFolder(trashFolder, false)) {
 							try {
-								trashFolder = Paths.get(trashFolder.toString(), String.valueOf(FileUtil.getUnixUID()));
+								trashFolder = Paths.get(trashFolder.toString(), String.valueOf(getUnixUID()));
 								if (verifyTrashFolder(trashFolder, true)) {
 									return trashFolder;
 								} else {
@@ -208,7 +210,7 @@ public class FreedesktopTrash {
 
 		// $topdir/.Trash not found, looking for $topdir/.Trash-$uid
 		try {
-			trashFolder = Paths.get(pathMountPoint.folder, ".Trash-" + FileUtil.getUnixUID());
+			trashFolder = Paths.get(pathMountPoint.getFolder(), ".Trash-" + getUnixUID());
 		} catch (IOException e) {
 			throw new IOException("Could not determine user id while resolving trash folder: " + e.getMessage(), e);
 		}
@@ -290,6 +292,57 @@ public class FreedesktopTrash {
 
 	public static void moveToTrash(File file) throws InvalidFileSystemException, IOException {
 		moveToTrash(file.toPath());
+	}
+
+	private static final int S_ISVTX = 512; // Unix sticky bit mask
+	public static boolean isUnixStickyBit(Path path) throws IOException, InvalidFileSystemException {
+		PosixFileAttributes attr = Files.readAttributes(path, PosixFileAttributes.class);
+		try {
+			Field stModeField = attr.getClass().getDeclaredField("st_mode");
+			stModeField.setAccessible(true);
+			int stMode = stModeField.getInt(attr);
+			return (stMode & S_ISVTX) > 0;
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			throw new InvalidFileSystemException("File is not on a Unix file system: " + e.getMessage(), e);
+		}
+	}
+
+	private static int unixUID = Integer.MIN_VALUE;
+	private static final Object UNIX_UID_LOCK = new Object();
+
+	/**
+	 * Gets the user ID on Unix based systems. This should not change during a
+	 * session and the lookup is expensive, so we cache the result.
+	 *
+	 * @return The Unix user ID
+	 * @throws IOException
+	 */
+	public static int getUnixUID() throws IOException {
+		if (
+			Platform.isAIX() || Platform.isFreeBSD() || Platform.isGNU() || Platform.iskFreeBSD() ||
+			Platform.isLinux() || Platform.isMac() || Platform.isNetBSD() || Platform.isOpenBSD() ||
+			Platform.isSolaris()
+		) {
+			synchronized (UNIX_UID_LOCK) {
+				if (unixUID < 0) {
+					String response;
+					Process id;
+					id = Runtime.getRuntime().exec("id -u");
+					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
+						response = reader.readLine();
+					}
+
+					try {
+						unixUID = Integer.parseInt(response);
+					} catch (NumberFormatException e) {
+						throw new UnsupportedOperationException("Unexpected response from OS: " + response, e);
+					}
+				}
+
+				return unixUID;
+			}
+		}
+		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
 	}
 
 }

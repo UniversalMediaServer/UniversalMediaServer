@@ -19,7 +19,6 @@ package net.pms.renderers.devices.players;
 
 import java.io.File;
 import java.util.List;
-import javax.swing.DefaultComboBoxModel;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
@@ -37,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public abstract class LogicalPlayer extends MinimalPlayer {
 
-	public Playlist playlist;
+	protected Playlist playlist;
 	protected boolean autoContinue;
 	protected boolean addAllSiblings;
 	protected boolean forceStop;
@@ -146,7 +145,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	@Override
-	public DefaultComboBoxModel getPlaylist() {
+	public Playlist getPlaylist() {
 		return playlist;
 	}
 

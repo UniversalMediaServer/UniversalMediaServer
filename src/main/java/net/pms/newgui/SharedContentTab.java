@@ -31,13 +31,6 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -52,30 +45,30 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SharedFolder;
+import net.pms.configuration.WebSourcesConfiguration;
+import net.pms.configuration.WebSourcesConfiguration.WebSource;
+import net.pms.configuration.WebSourcesConfiguration.WebSourcesListener;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.Feed;
-import static net.pms.dlna.RootFolder.parseFeedKey;
-import static net.pms.dlna.RootFolder.parseFeedValue;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.ShortcutFileSystemView;
 import net.pms.service.LibraryScanner;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SharedContentTab {
+public class SharedContentTab implements WebSourcesListener {
 	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
 		List.of(Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles"))
 	);
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
-	//TODO : fix direct webContentList JTable access from RootFolder
-	public static JTable webContentList;
+	private static JTable webContentList;
 	private static WebContentTableModel webContentTableModel;
 	private JPanel sharedPanel;
 	private JTable sharedFolders;
@@ -109,7 +102,6 @@ public class SharedContentTab {
 	public static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
 	public static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
 
-
 	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
 
@@ -118,57 +110,33 @@ public class SharedContentTab {
 		this.looksFrame = looksFrame;
 	}
 
-	public static long lastWebContentUpdate = 1L;
-
 	private void updateWebContentModel() {
-		List<String> entries = new ArrayList<>();
+		List<WebSourcesConfiguration.WebSource> entries = new ArrayList<>();
 
 		for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
 			String readableType = (String) webContentTableModel.getValueAt(i, 1);
-			String folders = (String) webContentTableModel.getValueAt(i, 2);
-			String configType;
-
+			String sourceType;
 			if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
-				configType = "imagefeed";
+				sourceType = "imagefeed";
 			} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
-				configType = "videofeed";
+				sourceType = "videofeed";
 			} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
-				configType = "audiofeed";
+				sourceType = "audiofeed";
 			} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
-				configType = "audiostream";
+				sourceType = "audiostream";
 			} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
-				configType = "videostream";
+				sourceType = "videostream";
 			} else {
 				// Skip the whole row if another value was used
 				continue;
 			}
-
-			String source = (String) webContentTableModel.getValueAt(i, 3);
 			String resourceName = (String) webContentTableModel.getValueAt(i, 0);
-
-			StringBuilder entryToAdd = new StringBuilder();
-			entryToAdd.append(configType).append(".").append(folders).append("=");
-
-			switch (configType) {
-				case "imagefeed", "videofeed", "audiofeed" -> {
-					entryToAdd.append(source);
-
-					if (resourceName != null) {
-						entryToAdd.append(",,,").append(resourceName);
-					}
-				}
-				default -> {
-					if (resourceName != null) {
-						entryToAdd.append(resourceName).append(",").append(source);
-					}
-				}
-			}
-
-			entries.add(entryToAdd.toString());
+			String folderName = (String) webContentTableModel.getValueAt(i, 2);
+			String uri = (String) webContentTableModel.getValueAt(i, 3);
+			entries.add(new WebSource(sourceType, folderName, uri, resourceName, null));
 		}
 
-		configuration.writeWebConfigurationFile(entries);
-		lastWebContentUpdate = System.currentTimeMillis();
+		WebSourcesConfiguration.writeWebSourcesConfiguration(entries);
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
@@ -194,14 +162,7 @@ public class SharedContentTab {
 		JPanel sharedWebContentPanel = initWebContentGuiComponents(cc).build();
 
 		// Load WEB.conf after we are sure the GUI has initialized
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (!webConf.exists()) {
-			configuration.writeDefaultWebConfigurationFile();
-		}
-		if (webConf.exists() && configuration.getExternalNetwork()) {
-			setWebContentGUIFromWebConfFile(webConf, webContentList.getSelectedRow());
-		}
+		WebSourcesConfiguration.addListener(this);
 
 		builder.add(sharedFoldersPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 		builder.add(sharedWebContentPanel, FormLayoutUtil.flip(cc.xyw(1, 3, 12), colSpec, orientation));
@@ -219,6 +180,10 @@ public class SharedContentTab {
 
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	public synchronized void updateWebSources() {
+		setWebContentGUIFromWebSourcesConf(configuration.getExternalNetwork());
 	}
 
 	public SharedFoldersTableModel getDf() {
@@ -576,7 +541,7 @@ public class SharedContentTab {
 
 				try {
 					String resourceName = null;
-					if (!isBlank(newEntrySource.getText())) {
+					if (!StringUtils.isBlank(newEntrySource.getText())) {
 						try {
 							if (
 								READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
@@ -765,9 +730,7 @@ public class SharedContentTab {
 			if (tableVector != null) {
 				for (Vector rowVector : tableVector) {
 					if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
-						SharedFolder sharedFolder = new SharedFolder();
-						sharedFolder.path = (String) rowVector.get(0);
-						sharedFolder.monitored = (boolean) rowVector.get(1);
+						SharedFolder sharedFolder = new SharedFolder((String) rowVector.get(0), (boolean) rowVector.get(1));
 						result.add(sharedFolder);
 					}
 				}
@@ -943,108 +906,51 @@ public class SharedContentTab {
 	}
 
 	/**
-	 * This parses the web config and populates the web section of this tab.
+	 * This parses the web sources config and populates the web section of this tab.
 	 *
-	 * @param webConf
-	 * @param previouslySelectedRow the row that was selected before this parsing
+	 * @param active if use external network
 	 */
-	public static synchronized void setWebContentGUIFromWebConfFile(File webConf, Integer previouslySelectedRow) {
-		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		SharedContentTab.webContentList.setEnabled(false);
+	public static synchronized void setWebContentGUIFromWebSourcesConf(boolean active) {
+		if (webContentList == null) {
+			return;
+		}
+		int previouslySelectedRow = webContentList.getSelectedRow();
+		webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		webContentList.setEnabled(false);
 
 		try {
 			// Remove any existing rows
 			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
+			if (active) {
+				for (WebSource webSource : WebSourcesConfiguration.getWebSources()) {
+					String readableType = getReadableSourceType(webSource.getSourceType());
+					webContentTableModel.addRow(new Object[]{webSource.getResourceName(), readableType, webSource.getFolderName(), webSource.getUri()});
+				}
 
-			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
-
-					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
-						String key = line.substring(0, line.indexOf('='));
-						String value = line.substring(line.indexOf('=') + 1);
-						String[] keys = parseFeedKey(key);
-						String sourceType = keys[0];
-						String folderName = keys[1] == null ? null : keys[1];
-
-						try {
-							if (
-								sourceType.equals("imagefeed") ||
-								sourceType.equals("audiofeed") ||
-								sourceType.equals("videofeed") ||
-								sourceType.equals("audiostream") ||
-								sourceType.equals("videostream")
-							) {
-								String[] values = parseFeedValue(value);
-								String uri = values[0];
-
-								String readableType = switch (sourceType) {
-									case "imagefeed" -> READABLE_TYPE_IMAGE_FEED;
-									case "videofeed" -> READABLE_TYPE_VIDEO_FEED;
-									case "audiofeed" -> READABLE_TYPE_AUDIO_FEED;
-									case "audiostream" -> READABLE_TYPE_AUDIO_STREAM;
-									case "videostream" -> READABLE_TYPE_VIDEO_STREAM;
-									default -> "";
-								};
-
-								// If the resource does not yet have a name, attempt to get one now
-								String resourceName = values.length > 3 && values[3] != null ? values[3] : null;
-								if (isBlank(resourceName)) {
-									try {
-										switch (sourceType) {
-											case "imagefeed":
-											case "videofeed":
-											case "audiofeed":
-												resourceName = values.length > 3 && values[3] != null ? values[3] : null;
-
-												// Convert YouTube channel URIs to their feed URIs
-												if (uri.contains("youtube.com/channel/")) {
-													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-												}
-												resourceName = Feed.getFeedTitle(uri);
-												break;
-											case "videostream":
-											case "audiostream":
-												resourceName = values.length > -1 && values[0] != null ? values[0] : null;
-												uri = values.length > 1 && values[1] != null ? values[1] : null;
-												break;
-											default:
-												break;
-										}
-									} catch (Exception e) {
-										LOGGER.debug("Error while getting feed title: " + e);
-									}
-								}
-
-								webContentTableModel.addRow(new Object[]{resourceName, readableType, folderName, uri});
-							}
-						} catch (ArrayIndexOutOfBoundsException e) {
-							// catch exception here and go with parsing
-							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-							LOGGER.debug(null, e);
-						}
+				// Re-select any row that was selected before we (re)parsed the config
+				if (previouslySelectedRow != -1) {
+					webContentList.changeSelection(previouslySelectedRow, 1, false, false);
+					Rectangle selectionToScrollTo = webContentList.getCellRect(previouslySelectedRow, 1, true);
+					if (!selectionToScrollTo.isEmpty()) {
+						webContentList.scrollRectToVisible(selectionToScrollTo);
 					}
 				}
 			}
-
-			// Re-select any row that was selected before we (re)parsed the config
-			if (previouslySelectedRow != null) {
-				webContentList.changeSelection(previouslySelectedRow, 1, false, false);
-				Rectangle selectionToScrollTo = webContentList.getCellRect(previouslySelectedRow, 1, true);
-				if (!selectionToScrollTo.isEmpty()) {
-					webContentList.scrollRectToVisible(selectionToScrollTo);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
-		} catch (IOException e) {
-			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
-			LOGGER.debug("", e);
 		} finally {
-			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			SharedContentTab.webContentList.setEnabled(true);
+			webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			webContentList.setEnabled(true);
 		}
+	}
+
+	private static String getReadableSourceType(String sourceType) {
+		return switch (sourceType) {
+			case "imagefeed" -> READABLE_TYPE_IMAGE_FEED;
+			case "videofeed" -> READABLE_TYPE_VIDEO_FEED;
+			case "audiofeed" -> READABLE_TYPE_AUDIO_FEED;
+			case "audiostream" -> READABLE_TYPE_AUDIO_STREAM;
+			case "videostream" -> READABLE_TYPE_VIDEO_STREAM;
+			default -> "";
+		};
 	}
 
 }

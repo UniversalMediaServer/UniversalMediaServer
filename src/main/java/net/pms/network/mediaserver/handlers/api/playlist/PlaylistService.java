@@ -13,8 +13,8 @@ public class PlaylistService implements ApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistService.class.getName());
 	public static final String PATH_MATCH = "playlist";
-	private PlaylistManager pm = new PlaylistManager();
-	private ObjectMapper om = new ObjectMapper();
+	private final PlaylistManager pm = new PlaylistManager();
+	private final ObjectMapper om = new ObjectMapper();
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {
@@ -27,34 +27,40 @@ public class PlaylistService implements ApiResponseHandler {
 				throw new RuntimeException(Messages.getString("PlaylistServiceDisabled"));
 			}
 			switch (uriLower) {
-				case "getallplaylists":
+				case "getallplaylists" -> {
 					LOGGER.trace("getallplaylists");
 					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 					return playlists;
-				case "getserverplaylists":
+				}
+				case "getserverplaylists" -> {
 					LOGGER.trace("getserverplaylists");
 					String serverPlaylists = om.writeValueAsString(pm.getServerAccessiblePlaylists());
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 					return serverPlaylists;
-				case "addsongtoplaylist":
+				}
+				case "addsongtoplaylist" -> {
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
-					pm.addSongToPlaylist(add.audiotrackId, add.playlistName);
+					pm.addSongToPlaylist(add.getAudiotrackId(), add.getPlaylistName());
 					return Messages.getString("SongAddedToPlaylist");
-				case "removesongfromplaylist":
+				}
+				case "removesongfromplaylist" -> {
 					LOGGER.trace("removesongfromplaylist");
 					AudioPlaylistVO remove = getParamsFromContent(content);
-					pm.removeSongFromPlaylist(remove.audiotrackId, remove.playlistName);
+					pm.removeSongFromPlaylist(remove.getAudiotrackId(), remove.getPlaylistName());
 					return Messages.getString("SongRemovedFromPlaylist");
-				case "createplaylist":
+				}
+				case "createplaylist" -> {
 					LOGGER.trace("createplaylist");
 					pm.createPlaylist(content);
 					return Messages.getString("PlaylistHasBeenCreated");
-				default:
+				}
+				default -> {
 					LOGGER.trace("default");
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 					return Messages.getString("NoServiceAvailableForPath") + " : " + uri;
+				}
 			}
 		} catch (Exception e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
@@ -64,11 +70,8 @@ public class PlaylistService implements ApiResponseHandler {
 
 	private AudioPlaylistVO getParamsFromContent(String content) {
 		try {
-			AudioPlaylistVO vo = new AudioPlaylistVO();
 			String[] contentArray = content.split("/");
-			vo.audiotrackId = Integer.parseInt(contentArray[0]);
-			vo.playlistName = contentArray[1];
-			return vo;
+			return new AudioPlaylistVO(Integer.valueOf(contentArray[0]), contentArray[1]);
 		} catch (Exception e) {
 			throw new RuntimeException("incorrect input parameter supplied to method");
 		}

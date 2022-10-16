@@ -491,10 +491,10 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				// Check if it's cached first
 				if (connection != null) {
 					CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(mBID);
-					if (result.found) {
-						if (result.cover != null) {
-							return result.cover;
-						} else if (System.currentTimeMillis() - result.modified.getTime() < EXPIRATION_TIME) {
+					if (result.isFounded()) {
+						if (result.hasCoverBytes()) {
+							return result.getCoverBytes();
+						} else if (System.currentTimeMillis() - result.getModifiedTime() < EXPIRATION_TIME) {
 							// If a lookup has been done within expireTime and no result,
 							// return null. Do another lookup after expireTime has passed
 							return null;
@@ -736,10 +736,10 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			// Check if it's cached first
 			if (dbconn != null) {
 				MusicBrainzReleasesResult result = MediaTableMusicBrainzReleases.findMBID(dbconn, tagInfo);
-				if (result.found) {
-					if (isNotBlank(result.mBID)) {
-						return result.mBID;
-					} else if (System.currentTimeMillis() - result.modified.getTime() < EXPIRATION_TIME) {
+				if (result.isFounded()) {
+					if (result.hasMusicBrainzId()) {
+						return result.getMusicBrainzId();
+					} else if (System.currentTimeMillis() - result.getModifiedTime() < EXPIRATION_TIME) {
 						// If a lookup has been done within expireTime and no result,
 						// return null. Do another lookup after expireTime has passed
 						return null;

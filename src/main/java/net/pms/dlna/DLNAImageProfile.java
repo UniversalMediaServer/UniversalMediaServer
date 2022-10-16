@@ -1456,14 +1456,13 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 	/**
 	 * Internal mutable compliance result data structure.
 	 */
-	@SuppressWarnings({"checkstyle:VisibilityModifier", "JavadocVariable"})
 	protected static class InternalComplianceResult {
-		public boolean resolutionCorrect = false;
-		public boolean formatCorrect = false;
-		public boolean colorsCorrect = false;
-		public int maxWidth;
-		public int maxHeight;
-		public List<String> failures = new ArrayList<>();
+		private boolean resolutionCorrect = false;
+		private boolean formatCorrect = false;
+		private boolean colorsCorrect = false;
+		private int maxWidth;
+		private int maxHeight;
+		private List<String> failures = new ArrayList<>();
 	}
 
 	/**

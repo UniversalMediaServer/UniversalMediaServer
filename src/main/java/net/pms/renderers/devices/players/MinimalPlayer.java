@@ -21,7 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.swing.DefaultComboBoxModel;
 import net.pms.configuration.DeviceConfiguration;
 
 /**
@@ -172,7 +171,7 @@ public abstract class MinimalPlayer implements BasicPlayer {
 	}
 
 	@Override
-	public DefaultComboBoxModel getPlaylist() {
+	public Playlist getPlaylist() {
 		return null;
 	}
 

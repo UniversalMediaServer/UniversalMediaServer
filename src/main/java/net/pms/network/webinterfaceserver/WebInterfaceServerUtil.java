@@ -738,7 +738,7 @@ public class WebInterfaceServerUtil {
 		 * Automatic recompiling
 		 */
 		FileWatcher.Listener recompiler = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-			String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
+			String path = watch.getFileSpec().startsWith("web/") ? watch.getFileSpec().substring(4) : watch.getFileSpec();
 			if (templates.containsKey(path)) {
 				templates.put(path, compile(getInputStream(path)));
 				LOGGER.info("Recompiling template: {}", path);

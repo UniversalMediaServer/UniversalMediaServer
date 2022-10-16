@@ -290,8 +290,8 @@ public final class PlaylistFolder extends DLNAResource {
 
 	private static class Entry {
 
-		public String fileName;
-		public String title;
+		private String fileName;
+		private String title;
 
 		@Override
 		public String toString() {

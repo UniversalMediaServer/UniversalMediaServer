@@ -95,47 +95,26 @@ public class ControlHandler implements HttpHandler {
 		Headers headers = httpExchange.getResponseHeaders();
 		if (player != null) {
 			switch (p[2]) {
-				case "status":
+				case "status" -> {
 					// limit status updates to one per second
 					UMSUtils.sleep(1000);
 					log = false;
-					break;
-				case "play":
-					player.pressPlay(translate(query.get("uri")), query.get("title"));
-					break;
-				case "stop":
-					player.pressStop();
-					break;
-				case "prev":
-					player.prev();
-					break;
-				case "next":
-					player.next();
-					break;
-				case "fwd":
-					player.forward();
-					break;
-				case "rew":
-					player.rewind();
-					break;
-				case "mute":
-					player.mute();
-					break;
-				case "setvolume":
-					player.setVolume(Integer.parseInt(query.get("vol")));
-					break;
-				case "add":
-					player.add(-1, translate(query.get("uri")), query.get("title"), null, true);
-					break;
-				case "remove":
-					player.remove(translate(query.get("uri")));
-					break;
-				case "clear":
-					player.clear();
-					break;
-				case "seturi":
-					player.setURI(translate(query.get("uri")), query.get("title"));
-					break;
+				}
+				case "play" -> player.pressPlay(translate(query.get("uri")), query.get("title"));
+				case "stop" -> player.pressStop();
+				case "prev" -> player.prev();
+				case "next" -> player.next();
+				case "fwd" -> player.forward();
+				case "rew" -> player.rewind();
+				case "mute" -> player.mute();
+				case "setvolume" -> player.setVolume(Integer.parseInt(query.get("vol")));
+				case "add" -> player.add(-1, translate(query.get("uri")), query.get("title"), null, true);
+				case "remove" -> player.remove(translate(query.get("uri")));
+				case "clear" -> player.clear();
+				case "seturi" -> player.setURI(translate(query.get("uri")), query.get("title"));
+				default -> {
+					//nothing to do
+				}
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
@@ -247,7 +226,7 @@ public class ControlHandler implements HttpHandler {
 
 	public String getPlaylist(LogicalPlayer player) {
 		ArrayList<String> json = new ArrayList<>();
-		Playlist playlist = player.playlist;
+		Playlist playlist = player.getPlaylist();
 		playlist.validate();
 		PlaylistItem selected = (PlaylistItem) playlist.getSelectedItem();
 		int i;

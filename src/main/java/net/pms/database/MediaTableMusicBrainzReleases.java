@@ -17,7 +17,6 @@
  */
 package net.pms.database;
 
-import static org.apache.commons.lang3.StringUtils.left;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +26,7 @@ import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is responsible for managing the MusicBrainz releases table. It
@@ -147,21 +146,35 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * A type class for returning results from MusicBrainzReleases database
 	 * lookup.
 	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	public static class MusicBrainzReleasesResult {
-
-		public boolean found = false;
-		public Timestamp modified = null;
-		public String mBID = null;
+		private final boolean found;
+		private final Timestamp modified;
+		private final String mBID;
 
 		public MusicBrainzReleasesResult() {
+			this(false, null, null);
 		}
 
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
 		public MusicBrainzReleasesResult(final boolean found, final Timestamp modified, final String mBID) {
 			this.found = found;
 			this.modified = modified;
 			this.mBID = mBID;
+		}
+
+		public boolean isFounded() {
+			return found;
+		}
+
+		public long getModifiedTime() {
+			return modified.getTime();
+		}
+
+		public boolean hasMusicBrainzId() {
+			return StringUtils.isNotBlank(mBID);
+		}
+
+		public String getMusicBrainzId() {
+			return mBID;
 		}
 	}
 
@@ -292,16 +305,16 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 						result.updateString("MBID", mBID);
 					}
 					if (StringUtil.hasValue(tagInfo.album)) {
-						result.updateString("ALBUM", left(tagInfo.album, 1000));
+						result.updateString("ALBUM", StringUtils.left(tagInfo.album, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.artist)) {
-						result.updateString("ARTIST", left(tagInfo.artist, 1000));
+						result.updateString("ARTIST", StringUtils.left(tagInfo.artist, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.title)) {
-						result.updateString("TITLE", left(tagInfo.title, 1000));
+						result.updateString("TITLE", StringUtils.left(tagInfo.title, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.year)) {
-						result.updateString("MEDIA_YEAR", left(tagInfo.year, 20));
+						result.updateString("MEDIA_YEAR", StringUtils.left(tagInfo.year, 20));
 					}
 					if (StringUtil.hasValue(tagInfo.artistId)) {
 						result.updateString("ARTIST_ID", tagInfo.artistId);

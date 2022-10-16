@@ -25,7 +25,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the Cover Art Archive table. It
@@ -118,18 +117,31 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * A type class for returning results from Cover Art Archive database
 	 * lookup.
 	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	public static class CoverArtArchiveResult {
+		private final boolean found;
+		private final Timestamp modified;
+		private final byte[] cover;
 
-		public boolean found = false;
-		public Timestamp modified = null;
-		public byte[] cover = null;
-
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
 		public CoverArtArchiveResult(final boolean found, final Timestamp modified, final byte[] cover) {
 			this.found = found;
 			this.modified = modified;
 			this.cover = cover;
+		}
+
+		public boolean isFounded() {
+			return found;
+		}
+
+		public long getModifiedTime() {
+			return modified.getTime();
+		}
+
+		public boolean hasCoverBytes() {
+			return cover != null;
+		}
+
+		public byte[] getCoverBytes() {
+			return cover;
 		}
 	}
 
