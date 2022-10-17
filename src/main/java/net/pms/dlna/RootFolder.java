@@ -1266,17 +1266,6 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 		}
 	}
 
-	// Automatic reloading
-
-	public static final int RELOAD_WEB_CONF = 1;
-
-	public static final FileWatcher.Listener ROOT_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-		RootFolder r = (RootFolder) watch.getItem();
-		if (r != null && watch.isFlag(RELOAD_WEB_CONF)) {
-			r.loadWebConf();
-		}
-	};
-
 	/**
 	 * Adds and removes files from the database when they are created, modified or
 	 * deleted on the hard drive.

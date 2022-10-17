@@ -96,6 +96,7 @@ public class WebSourcesConfiguration {
 	private static final List<WebSourcesListener> LISTENERS = new ArrayList<>();
 	private static final List<WebSource> SOURCES = getWebSourcesFromConfiguration();
 
+	// Automatic reloading
 	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
 		synchronized (SOURCES) {
 			SOURCES.clear();
@@ -109,6 +110,9 @@ public class WebSourcesConfiguration {
 			}
 		}
 	};
+	static {
+		FileWatcher.add(new FileWatcher.Watch(CONFIGURATION.getWebConfPath(), RELOAD_WATCHER));
+	}
 
 	/**
 	 * This parses the web config and return WebSource's List.

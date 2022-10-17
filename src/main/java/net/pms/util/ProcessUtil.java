@@ -72,10 +72,10 @@ public class ProcessUtil {
 
 	/**
 	 * Get the process ID on Unix.
-	 * 
+	 *
 	 * @param p the process
 	 * @return the process ID, null otherwise
-	 * 
+	 *
 	 * @deprecated use {@link ProcessManager.getProcessId} instead
 	 */
 	@Deprecated
