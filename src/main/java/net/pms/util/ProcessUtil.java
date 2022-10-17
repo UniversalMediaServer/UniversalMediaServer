@@ -70,7 +70,15 @@ public class ProcessUtil {
 		return exit;
 	}
 
-	// get the process ID on Unix (returns null otherwise)
+	/**
+	 * Get the process ID on Unix.
+	 * 
+	 * @param p the process
+	 * @return the process ID, null otherwise
+	 * 
+	 * @deprecated use {@link ProcessManager.getProcessId} instead
+	 */
+	@Deprecated
 	public static Integer getProcessID(Process p) {
 		Integer pid = null;
 
