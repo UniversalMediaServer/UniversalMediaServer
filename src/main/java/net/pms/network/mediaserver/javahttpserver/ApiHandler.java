@@ -19,7 +19,6 @@ package net.pms.network.mediaserver.javahttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -106,15 +105,15 @@ public class ApiHandler implements HttpHandler {
 	private static boolean validApiKeyPresent(String serverApiKey, String givenApiKey) {
 		boolean result = true;
 		try {
-			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes("UTF-8"));
-			byte[] serverApiKeyHash = DigestUtils.sha256(serverApiKey.getBytes("UTF-8"));
+			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes(StandardCharsets.UTF_8));
+			byte[] serverApiKeyHash = DigestUtils.sha256(serverApiKey.getBytes(StandardCharsets.UTF_8));
 			int pos = 0;
 			for (byte b : serverApiKeyHash) {
 				result = result && (b == givenApiKeyHash[pos++]);
 			}
 			LOGGER.debug("validApiKeyPresent : " + result);
 			return result;
-		} catch (UnsupportedEncodingException | RuntimeException e) {
+		} catch (RuntimeException e) {
 			LOGGER.error("cannot hash api key", e);
 			return false;
 		}

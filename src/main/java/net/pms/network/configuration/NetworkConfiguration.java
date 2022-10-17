@@ -563,9 +563,7 @@ public class NetworkConfiguration {
 
 			// We did not find any non-virtual INTERFACES, so choose the first virtual one if it exists
 			if (!virtualInterfaces.isEmpty()) {
-				for (Integer interfaceIndex : virtualInterfaces) {
-					return INTERFACES_ASSOCIATIONS.get(interfaceIndex);
-				}
+				return INTERFACES_ASSOCIATIONS.get(virtualInterfaces.get(0));
 			}
 
 			return null;

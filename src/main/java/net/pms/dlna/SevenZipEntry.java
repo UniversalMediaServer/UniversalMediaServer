@@ -149,6 +149,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			return;
 		}
 
+		// TODO: found seems not used here
 		boolean found = false;
 
 		if (!found) {

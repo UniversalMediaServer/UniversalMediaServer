@@ -55,14 +55,11 @@ public class GeneralTab {
 	private final JTextField currentLanguage = new JTextField();
 
 	private JComboBox<String> renderers;
-	private JComboBox<String> preventSleep;
 	private JTextField host;
 	private JTextField port;
 	private JTextField serverName;
-	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ipFilter;
 	private JTextField maxbitrate;
-	private JComboBox<String> serverEngine;
 	private final UmsConfiguration configuration;
 	private CustomJButton installService;
 
@@ -87,9 +84,7 @@ public class GeneralTab {
 
 		JCheckBox smcheckBox = new JCheckBox(Messages.getString("StartMinimizedSystemTray"), configuration.isMinimized());
 		smcheckBox.setContentAreaFilled(false);
-		smcheckBox.addItemListener((ItemEvent e) -> {
-			configuration.setMinimized((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		smcheckBox.addItemListener((ItemEvent e) -> configuration.setMinimized((e.getStateChange() == ItemEvent.SELECTED)));
 
 		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -128,9 +123,7 @@ public class GeneralTab {
 			JCheckBox appendProfileName = new JCheckBox(Messages.getString("AppendProfileName"), configuration.isAppendProfileName());
 			appendProfileName.setToolTipText(Messages.getString("WhenEnabledUmsProfileName"));
 			appendProfileName.setContentAreaFilled(false);
-			appendProfileName.addItemListener((ItemEvent e) -> {
-				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			appendProfileName.addItemListener((ItemEvent e) -> configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(GuiUtil.getPreferredSizeComponent(appendProfileName), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 		}
@@ -142,18 +135,14 @@ public class GeneralTab {
 		if (Platform.isWindows()) {
 			JCheckBox autoStart = new JCheckBox(Messages.getString("StartWithWindows"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
-			autoStart.addItemListener((ItemEvent e) -> {
-				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			autoStart.addItemListener((ItemEvent e) -> configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 			xpos += 2;
 		}
 
 		JCheckBox showSplashScreen = new JCheckBox(Messages.getString("EnableSplashScreen"), configuration.isShowSplashScreen());
 		showSplashScreen.setContentAreaFilled(false);
-		showSplashScreen.addItemListener((ItemEvent e) -> {
-			configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		showSplashScreen.addItemListener((ItemEvent e) -> configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED)));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		ypos += 2;
@@ -167,16 +156,12 @@ public class GeneralTab {
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("CheckForUpdates"));
-		checkForUpdates.addActionListener((ActionEvent e) -> {
-			looksFrame.checkForUpdates(false);
-		});
+		checkForUpdates.addActionListener((ActionEvent e) -> looksFrame.checkForUpdates(false));
 		builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		JCheckBox autoUpdateCheckBox = new JCheckBox(Messages.getString("CheckAutomaticallyForUpdates"), configuration.isAutoUpdate());
 		autoUpdateCheckBox.setContentAreaFilled(false);
-		autoUpdateCheckBox.addItemListener((ItemEvent e) -> {
-			configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		autoUpdateCheckBox.addItemListener((ItemEvent e) -> configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(autoUpdateCheckBox), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
 		if (!Build.isUpdatable()) {
@@ -199,9 +184,7 @@ public class GeneralTab {
 
 		JCheckBox runWizardOnProgramStartup = new JCheckBox(Messages.getString("RunTheConfigurationWizard"), configuration.isRunWizard());
 		runWizardOnProgramStartup.setContentAreaFilled(false);
-		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> {
-			configuration.setRunWizard(runWizardOnProgramStartup.isSelected());
-		});
+		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> configuration.setRunWizard(runWizardOnProgramStartup.isSelected()));
 		builder.add(GuiUtil.getPreferredSizeComponent(runWizardOnProgramStartup), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
@@ -209,9 +192,7 @@ public class GeneralTab {
 			JCheckBox singleInstance = new JCheckBox(Messages.getString("OnlyRunSingleInstance"), configuration.isRunSingleInstance());
 			singleInstance.setContentAreaFilled(false);
 			singleInstance.setToolTipText(Messages.getString("UmsRunAdministratorSingleInstance"));
-			singleInstance.addActionListener((ActionEvent e) -> {
-				configuration.setRunSingleInstance(singleInstance.isSelected());
-			});
+			singleInstance.addActionListener((ActionEvent e) -> configuration.setRunSingleInstance(singleInstance.isSelected()));
 			builder.add(GuiUtil.getPreferredSizeComponent(singleInstance), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 		}
@@ -327,7 +308,7 @@ public class GeneralTab {
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
-			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
+			JComboBox<String> networkinterfacesCBX = new JComboBox<>(networkInterfaces);
 			String savedNetworkInterface = configuration.getNetworkInterface();
 			// for backwards-compatibility check if the short network interface name is used
 			savedNetworkInterface = NetworkConfiguration.replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
@@ -393,7 +374,7 @@ public class GeneralTab {
 			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
-			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
+			JComboBox<String> serverEngine = new JComboBox<>(mediaServerEngineKcbm);
 			serverEngine.setToolTipText(Messages.getString("DefaultOptionIsHighlyRecommended"));
 			serverEngine.setEditable(false);
 			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
@@ -416,7 +397,7 @@ public class GeneralTab {
 			if (preventSleepSupported) {
 				builder.addLabel(Messages.getString("PreventSleep"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 				final KeyedComboBoxModel<PreventSleepMode, String> preventSleepModel = createPreventSleepModel();
-				preventSleep = new JComboBox<>(preventSleepModel);
+				JComboBox<String> preventSleep = new JComboBox<>(preventSleepModel);
 				preventSleep.setToolTipText(Messages.getString("DuringPlaybackPreventOperating"));
 				preventSleepModel.setSelectedKey(configuration.getPreventSleep());
 				preventSleep.addItemListener((ItemEvent e) -> {
@@ -446,9 +427,7 @@ public class GeneralTab {
 			JCheckBox forceDefaultRenderer = new JCheckBox(Messages.getString("ForceDefaultRenderer"), configuration.isRendererForceDefault());
 			forceDefaultRenderer.setToolTipText(Messages.getString("DisablesAutomaticDetection"));
 			forceDefaultRenderer.setContentAreaFilled(false);
-			forceDefaultRenderer.addItemListener((ItemEvent e) -> {
-				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			forceDefaultRenderer.addItemListener((ItemEvent e) -> configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(forceDefaultRenderer, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 
 			ypos += 2;
@@ -457,9 +436,7 @@ public class GeneralTab {
 			JCheckBox extNetBox = new JCheckBox(Messages.getString("EnableExternalNetwork"), configuration.getExternalNetwork());
 			extNetBox.setToolTipText(Messages.getString("ThisControlsWhetherUmsTry"));
 			extNetBox.setContentAreaFilled(false);
-			extNetBox.addItemListener((ItemEvent e) -> {
-				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			extNetBox.addItemListener((ItemEvent e) -> configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 		}
 

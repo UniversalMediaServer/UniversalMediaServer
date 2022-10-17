@@ -37,7 +37,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
 	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(1);
-	private static final List<Process> CURRENT_PROCESSES = Collections.synchronizedList(new ArrayList<>());;
+	private static final List<Process> CURRENT_PROCESSES = Collections.synchronizedList(new ArrayList<>());
 
 	private Process process;
 	private OutputConsumer stdoutConsumer;

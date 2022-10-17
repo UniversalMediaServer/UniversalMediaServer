@@ -17,7 +17,6 @@
 package net.pms.renderers.devices.players;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.network.mediaserver.UPNPControl;
@@ -42,7 +41,7 @@ public class PlaylistItem extends PlayerItem {
 				name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(UPNPControl.unescape(metadata)).find()) ?
 					DC_TITLE.group(1) :
 					new File(StringUtils.substringBefore(UPNPControl.unescape(uri), "?")).getName();
-			} catch (UnsupportedEncodingException e) {
+			} catch (IllegalArgumentException e) {
 				LOGGER.error("URL decoding error ", e);
 			}
 		}

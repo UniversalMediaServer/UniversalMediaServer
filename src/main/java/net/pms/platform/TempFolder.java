@@ -34,7 +34,7 @@ public class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
 	private static final String DEFAULT_TEMP_FOLDER_NAME = "UMS";
 	private final String userSpecifiedFolder;
-	private File tempFolder;
+	private File folder;
 
 	/**
 	 * @param userSpecifiedFolder may be null
@@ -44,14 +44,14 @@ public class TempFolder {
 	}
 
 	public synchronized File getTempFolder() throws IOException {
-		if (tempFolder == null) {
-			tempFolder = getTempFolder(userSpecifiedFolder);
+		if (folder == null) {
+			folder = getTempFolder(userSpecifiedFolder);
 		}
 
-		return tempFolder;
+		return folder;
 	}
 
-	private File getTempFolder(String userSpecifiedFolder) throws IOException {
+	private static File getTempFolder(String userSpecifiedFolder) throws IOException {
 		if (userSpecifiedFolder == null) {
 			return getSystemTempFolder();
 		}
@@ -64,7 +64,7 @@ public class TempFolder {
 		}
 	}
 
-	private File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
+	private static File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
 		if (userSpecifiedFolder == null || userSpecifiedFolder.length() == 0) {
 			throw new IOException("Temporary directory path must not be null or empty if specified");
 		}

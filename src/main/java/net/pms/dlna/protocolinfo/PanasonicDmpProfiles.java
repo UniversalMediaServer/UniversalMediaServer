@@ -413,8 +413,6 @@ public class PanasonicDmpProfiles implements Serializable {
 				mimeType = new MimeType("image", "png");
 			} else if (attribute.getValue().startsWith("GIF")) {
 				mimeType = new MimeType("image", "gif");
-			} else if (attribute.getValue().startsWith("MPEG")) {
-				mimeType = new MimeType("video", "mpeg");
 			} else if (attribute.getValue().startsWith("AC3")) {
 				mimeType = new MimeType("audio", "vnd.dolby.dd-raw");
 			} else if (attribute.getValue().startsWith("AMR")) {

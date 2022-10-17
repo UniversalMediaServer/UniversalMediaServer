@@ -1110,32 +1110,15 @@ public class XMLRPCUtil {
 				sb.append(getClass().getSimpleName()).append("[");
 			} else if (type != null) {
 				switch (type) {
-					case ARRAY:
-						sb.append("Array value[");
-						break;
-					case BASE64:
-						sb.append("Base64 value[");
-						break;
-					case BOOLEAN:
-						sb.append("Boolean value[");
-						break;
-					case DATETIME_ISO8601:
-						sb.append("Date value[");
-						break;
-					case DOUBLE:
-						sb.append("Double value[");
-						break;
-					case INT:
-						sb.append("Int value[");
-						break;
-					case STRING:
-						sb.append("String value[");
-						break;
-					case STRUCT:
-						sb.append("Struct value[");
-						break;
-					default:
-						sb.append(getClass().getSimpleName()).append("[");
+					case ARRAY -> sb.append("Array value[");
+					case BASE64 -> sb.append("Base64 value[");
+					case BOOLEAN -> sb.append("Boolean value[");
+					case DATETIME_ISO8601 -> sb.append("Date value[");
+					case DOUBLE -> sb.append("Double value[");
+					case INT -> sb.append("Int value[");
+					case STRING -> sb.append("String value[");
+					case STRUCT -> sb.append("Struct value[");
+					default -> sb.append(getClass().getSimpleName()).append("[");
 				}
 			} else {
 				sb.append("Untyped value[");
@@ -1144,11 +1127,11 @@ public class XMLRPCUtil {
 			if (type == XMLRPCTypes.BASE64) {
 				if (value == null) {
 					sb.append("null");
-				} else if (value instanceof Base64) {
-					if (((Base64) value).getSize() > 30) {
-						sb.append(((Base64) value).getSize()).append(" bytes");
+				} else if (value instanceof Base64 base64) {
+					if (base64.getSize() > 30) {
+						sb.append(base64.getSize()).append(" bytes");
 					} else {
-						sb.append("\"").append(new String(((Base64) value).getBytes(), StandardCharsets.ISO_8859_1)).append("\"");
+						sb.append("\"").append(new String(base64.getBytes(), StandardCharsets.ISO_8859_1)).append("\"");
 					}
 				} else {
 					sb.append("Invalid Base64 value");

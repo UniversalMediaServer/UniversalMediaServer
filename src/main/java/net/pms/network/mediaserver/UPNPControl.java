@@ -19,7 +19,6 @@ package net.pms.network.mediaserver;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -789,8 +788,8 @@ public class UPNPControl {
 		}
 	}
 
-	public static String unescape(String s) throws UnsupportedEncodingException {
-		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
+	public static String unescape(String s) throws IllegalArgumentException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, StandardCharsets.UTF_8)));
 	}
 
 	public static InetAddress getAddress(String uuid) {

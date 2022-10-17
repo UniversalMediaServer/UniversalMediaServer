@@ -62,9 +62,7 @@ public class AviSynthFFmpeg {
 
 		JCheckBox multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.isFfmpegAviSynthMultithreading());
 		multithreading.setContentAreaFilled(false);
-		multithreading.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		multithreading.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
 
 		JCheckBox interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), CONFIGURATION.getFfmpegAvisynthInterFrame());
@@ -84,16 +82,12 @@ public class AviSynthFFmpeg {
 
 		JCheckBox interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), CONFIGURATION.getFfmpegAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
-		interframegpu.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		interframegpu.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
 
 		JCheckBox convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), CONFIGURATION.getFfmpegAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
-		convertfps.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		convertfps.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
 
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {

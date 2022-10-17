@@ -17,6 +17,7 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -109,7 +110,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 		// - (http) header options
 		if (params.getHeader() != null && params.getHeader().length > 0) {
-			String hdr = new String(params.getHeader());
+			String hdr = new String(params.getHeader(), StandardCharsets.UTF_8);
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options

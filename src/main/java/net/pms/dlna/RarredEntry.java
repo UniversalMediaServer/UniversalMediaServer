@@ -132,6 +132,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 			return;
 		}
 
+		// TODO: found seems not used here
 		boolean found = false;
 
 		if (!found) {

@@ -75,13 +75,12 @@ public class DTSAudioOutputStream extends FlowParserOutputStream {
 		} else {
 			// DTS wrongly extracted ?... searching for start of the frame
 			for (int i = 3; i < 2020; i++) {
-				if (data.length > i && data[i - 3] == 127 && data[i - 2] == -2 && data[i - 1] == -128 && data[i] == 1) {
+				if (
 					// skip DTS first frame as it's incomplete
-					discard = true;
-					streamableByteNumber = i - 3;
-					break;
-				} else if (data.length > i && data[i - 3] == 100 && data[i - 2] == 88 && data[i - 1] == 32 && data[i] == 37) {
+					(data.length > i && data[i - 3] == 127 && data[i - 2] == -2 && data[i - 1] == -128 && data[i] == 1) ||
 					// skip DTS-HD first frame
+					(data.length > i && data[i - 3] == 100 && data[i - 2] == 88 && data[i - 1] == 32 && data[i] == 37)
+				) {
 					discard = true;
 					streamableByteNumber = i - 3;
 					break;

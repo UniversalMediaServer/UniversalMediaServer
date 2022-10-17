@@ -109,7 +109,7 @@ public class MediaServer {
 					}
 				}
 				try {
-					isStarted = upnpService.getRouter().isEnabled();
+					isStarted = upnpService != null && upnpService.getRouter().isEnabled();
 				} catch (RouterException ex) {
 					isStarted = false;
 				}

@@ -57,13 +57,13 @@ import org.slf4j.LoggerFactory;
 
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
-	private UmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private JTextField jSearchBox, jSyslogHost;
 	private JComboBox<String> jTracesFilter, jSyslogFacility;
 	private JCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
 	private JSpinner jLineBuffer, jSyslogPort;
 	private Pattern searchPattern = null;
-	private JLabel jSearchOutput = new JLabel();
+	private final JLabel jSearchOutput = new JLabel();
 	private TextAreaFIFO jList;
 	private JPanel jOptionsPanel;
 	private JLabel jBufferLabel;
@@ -133,8 +133,7 @@ public class TracesTab {
 		}
 	}
 
-	private LooksFrame looksFrame;
-	private ViewLevel viewLevel;
+	private final LooksFrame looksFrame;
 
 	TracesTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
@@ -145,7 +144,7 @@ public class TracesTab {
 	 * Set/update the visibility of all components affected by view level
 	 */
 	public void applyViewLevel() {
-		viewLevel = looksFrame.getViewLevel();
+		ViewLevel viewLevel = looksFrame.getViewLevel();
 
 		jCSSpace.setVisible(viewLevel.isGreaterOrEqual(ViewLevel.ADVANCED));
 		jCSSearch.setVisible(viewLevel.isGreaterOrEqual(ViewLevel.ADVANCED));
@@ -194,8 +193,8 @@ public class TracesTab {
 	}
 
 	private void searchTraces() {
-		boolean found = false;
-		Matcher match = null;
+		boolean found;
+		Matcher match;
 		Document document = jList.getDocument();
 		int flags = Pattern.UNICODE_CASE;
 		String find = jSearchBox.getText();

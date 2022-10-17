@@ -332,6 +332,7 @@ public class FileNamePrettifier {
 			name = convertFormattedNameToTitleCase(normalizeSpaces(removeFilenameEndMetadata(splitName[0])));
 			return;
 		}
+		// TODO: why matcher is assing twice ?
 		matcher = ANIME_SERIES_EPISODE.matcher(tmpName);
 		matcher = SERIES_DATE.matcher(tmpName);
 		if (matcher.find()) {

@@ -93,7 +93,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
-	private HelpTab ht;
 	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
@@ -542,7 +541,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		navigationSettingsTab = new NavigationShareTab(configuration, this);
 		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
-		ht = new HelpTab();
+		HelpTab ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("Status"), st.build());
 		tabbedPane.addTab(Messages.getString("Logs"), tt.build());

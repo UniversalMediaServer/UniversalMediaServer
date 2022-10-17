@@ -42,7 +42,6 @@ public class SelectRenderers extends JPanel {
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String ALL_RENDERERS_TREE_NAME = UmsConfiguration.ALL_RENDERERS;
-	private static List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
@@ -109,27 +108,27 @@ public class SelectRenderers extends JPanel {
 
 		srvTree.validate();
 		// Refresh setting if modified
-		savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
+		List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
 		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
-			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
-				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
+			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode rootNode) {
 				SearchableMutableTreeNode node = null;
 				List<TreePath> selectedRenderersPath = new ArrayList<>(savedSelectedRenderers.size());
 				for (String selectedRenderer : savedSelectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
-					} catch (IllegalChildException e) {}
+					} catch (IllegalChildException e) {
+					}
 
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
 				}
-				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(new TreePath[selectedRenderersPath.size()]));
+				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(TreePath[]::new));
 			} else {
 				LOGGER.error("Illegal node class in SelectRenderers.showDialog(): {}", root.getLastPathComponent().getClass().getSimpleName());
 			}

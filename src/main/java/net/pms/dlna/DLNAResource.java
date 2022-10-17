@@ -25,11 +25,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -1833,8 +1833,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected static String encode(String s) {
 		try {
-			return URLEncoder.encode(s, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			return URLEncoder.encode(s, StandardCharsets.UTF_8);
+		} catch (IllegalArgumentException e) {
 			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -4697,8 +4697,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
 	public static DLNAResource autoMatch(String uri, String name) {
 		try {
-			uri = URLDecoder.decode(uri, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
+		} catch (IllegalArgumentException e) {
 			LOGGER.error("URL decoding error ", e);
 		}
 

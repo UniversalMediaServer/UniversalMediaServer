@@ -1461,6 +1461,7 @@ public class ImagesUtil {
 					ImageInfo imageInfo;
 					// metadata is only null at this stage if inputImage != null and no rotation was necessary
 					if (metadata == null) {
+						// TODO: why imageInfo is assign and reassing just after
 						imageInfo = inputImage.getImageInfo();
 					}
 					imageInfo = ImageInfo.create(

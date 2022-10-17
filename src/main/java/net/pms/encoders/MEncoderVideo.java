@@ -858,6 +858,8 @@ public class MEncoderVideo extends Engine {
 				}
 			}
 
+			// TODO : check why we defaultMaxBitrates to set maximumBitrate not used
+
 			// Find out the maximum bandwidth we are supposed to use
 			int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 			int[] rendererMaxBitrates = new int[2];

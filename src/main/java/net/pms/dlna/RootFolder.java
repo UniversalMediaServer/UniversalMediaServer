@@ -858,7 +858,7 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 										genreName  = genreName.replace('\u0160', ' ').trim();
 
 										URI tURI2 = new URI(track.get("Location").toString());
-										File refFile = new File(URLDecoder.decode(tURI2.toURL().getFile(), "UTF-8"));
+										File refFile = new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8));
 										RealFile file = new RealFile(refFile, name);
 
 										// Put the track into the artist's album folder and the artist's "All tracks" folder
@@ -980,7 +980,7 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 										}
 
 										URI tURI2 = new URI(track.get("Location").toString());
-										RealFile file = new RealFile(new File(URLDecoder.decode(tURI2.toURL().getFile(), "UTF-8")), name);
+										RealFile file = new RealFile(new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8)), name);
 										pf.addChild(file);
 									}
 								}
