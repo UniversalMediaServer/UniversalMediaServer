@@ -43,8 +43,6 @@ import org.slf4j.LoggerFactory;
 public class WebSourcesConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSourcesConfiguration.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final List<WebSource> SOURCES = getWebSourcesFromConfiguration();
-	private static final List<WebSourcesListener> LISTENERS = new ArrayList<>();
 	private static final List<String> HEADER = Arrays.asList(
 		"##########################################################################################################",
 		"#                                                                                                        #",
@@ -95,6 +93,8 @@ public class WebSourcesConfiguration {
 		"# videostream.Web,TV=BFM TV (French TV),mms://vipmms9.yacast.net/bfm_bfmtv,http://upload.wikimedia.org/wikipedia/en/6/62/BFMTV.png",
 		"# videostream.Web,Webcams=View of Shanghai Harbour,mmst://www.onedir.com/cam3,http://media-cdn.tripadvisor.com/media/photo-s/00/1d/4b/d8/pudong-from-the-bund.jpg"
 	);
+	private static final List<WebSourcesListener> LISTENERS = new ArrayList<>();
+	private static final List<WebSource> SOURCES = getWebSourcesFromConfiguration();
 
 	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
 		synchronized (SOURCES) {
