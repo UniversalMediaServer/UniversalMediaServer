@@ -188,24 +188,15 @@ public class RequestHandler implements HttpHandler {
 				uri = uri.substring(1);
 			}
 
-			//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
-			//let transform JUPnP uri to old uri then handlerV2 can process
-			if (uri.startsWith("dev/" + PMS.get().udn())) {
-				if (uri.endsWith("/ContentDirectory/desc")) {
-					uri = "UPnP_AV_ContentDirectory_1.0.xml";
-				} else if (uri.endsWith("/ContentDirectory/action")) {
-					uri = "upnp/control/content_directory";
-				} else if (uri.endsWith("/ContentDirectory/event")) {
-					uri = "upnp/event/content_directory";
-				}
-			}
 			if ((GET.equals(method) || HEAD.equals(method)) && uri.startsWith("get/")) {
 				sendGetResponse(exchange, renderer, uri);
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				sendResponse(exchange, renderer, 200, imageHandler(exchange, uri));
 
 			//------------------------- START ContentDirectory -------------------------
-			} else if (POST.equals(method) && uri.endsWith("upnp/control/content_directory")) {
+			} else if (GET.equals(method) && uri.endsWith("/ContentDirectory/desc")) {
+				sendResponse(exchange, renderer, 200, contentDirectorySpec(exchange), CONTENT_TYPE_XML_UTF8);
+			} else if (POST.equals(method) && uri.endsWith("/ContentDirectory/action")) {
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 					sendResponse(exchange, renderer, 200, getSystemUpdateIdHandler(), CONTENT_TYPE_XML_UTF8);
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_SetBookmark")) {
@@ -225,9 +216,9 @@ public class RequestHandler implements HttpHandler {
 					sendResponse(exchange, renderer, 200, notifyHandler(exchange), "text/xml");
 				}
 			} else if (SUBSCRIBE.equals(method)) {
-				sendResponse(exchange, renderer, 200, subscribeHandler(exchange, uri, soapaction), "text/xml");
+				sendResponse(exchange, renderer, 200, subscribeHandler(exchange, uri, soapaction), CONTENT_TYPE_XML_UTF8);
 			} else if (NOTIFY.equals(method)) {
-
+				sendResponse(exchange, renderer, 200, notifyHandler(exchange), CONTENT_TYPE_XML_UTF8);
 			//------------------------- END ContentDirectory -------------------------
 			}
 		} catch (IOException e) {
@@ -847,6 +838,17 @@ public class RequestHandler implements HttpHandler {
 	}
 
 	//------------------------- START ContentDirectory -------------------------
+	private static String contentDirectorySpec(HttpExchange exchange) throws IOException {
+		exchange.getResponseHeaders().set("Cache-Control", "no-cache");
+		exchange.getResponseHeaders().set("Expires", "0");
+		exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
+		exchange.getResponseHeaders().set("Connection", "keep-alive");
+		InputStream iStream = getResourceInputStream("UPnP_AV_ContentDirectory_1.0.xml");
+
+		byte[] b = new byte[iStream.available()];
+		iStream.read(b);
+		return new String(b, StandardCharsets.UTF_8);
+	}
 
 	/**
 	 * Wraps the payload around soap Envelope / Body tags.
@@ -964,8 +966,7 @@ public class RequestHandler implements HttpHandler {
 	}
 
 	/**
-	 * Hybrid handler for Browse and Search requests. FIXME: Should be split up
-	 * into separate implementations!
+	 * Hybrid handler for Browse and Search requests.
 	 *
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string

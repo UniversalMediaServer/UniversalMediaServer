@@ -291,18 +291,6 @@ public class RequestV2 extends HTTPResource {
 				uri = uri.substring(1);
 			}
 
-			//to enable multiple device, JUPnP use dev desc location format http://host:port/dev/<udn>/desc
-			//let transform JUPnP uri to old uri then handlerV2 can process
-			if (uri.startsWith("dev/" + PMS.get().udn())) {
-				if (uri.endsWith("/ContentDirectory/desc")) {
-					uri = "UPnP_AV_ContentDirectory_1.0.xml";
-				} else if (uri.endsWith("/ContentDirectory/action")) {
-					uri = "upnp/control/content_directory";
-				} else if (uri.endsWith("/ContentDirectory/event")) {
-					uri = "upnp/event/content_directory";
-				}
-			}
-
 			if (uri.startsWith("api/")) {
 				ApiHandler api = new ApiHandler();
 				response.append(api.handleApiRequest(method, content, output, uri.substring(4), event));
@@ -713,7 +701,9 @@ public class RequestV2 extends HTTPResource {
 				inputStream = imageHandler(output);
 
 			//------------------------- START ContentDirectory -------------------------
-			} else if (POST.equals(method) && uri.endsWith("upnp/control/content_directory")) {
+			} else if (GET.equals(method) && uri.endsWith("/ContentDirectory/desc")) {
+				response.append(contentDirectorySpec(output));
+			} else if (POST.equals(method) && uri.endsWith("/ContentDirectory/action")) {
 				output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 					response.append(getSystemUpdateIdHandler());
@@ -737,7 +727,6 @@ public class RequestV2 extends HTTPResource {
 			} else if (method.getName().equals("NOTIFY")) {
 				response.append(notifyHandler(output));
 			//------------------------- END ContentDirectory -------------------------
-
 			}
 
 			output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
@@ -966,6 +955,17 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	//------------------------- START ContentDirectory -------------------------
+	private String contentDirectorySpec(HttpResponse output) throws IOException {
+		output.headers().set(HttpHeaders.Names.CACHE_CONTROL, HttpHeaders.Values.NO_CACHE);
+		output.headers().set(HttpHeaders.Names.EXPIRES, "0");
+		output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+		InputStream iStream = getResourceInputStream("UPnP_AV_ContentDirectory_1.0.xml");
+
+		byte[] b = new byte[iStream.available()];
+		iStream.read(b);
+		return new String(b, StandardCharsets.UTF_8);
+	}
 
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
@@ -1030,6 +1030,7 @@ public class RequestV2 extends HTTPResource {
 	/**
 	 * Hybrid handler for Browse and Search requests.
 	 * FIXME: Should be split up into separate implementations!
+	 * New implementation use JUPnP, so forgot this
 	 *
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string
@@ -1343,29 +1344,11 @@ public class RequestV2 extends HTTPResource {
 		} else {
 			LOGGER.debug("Expected soap action in request");
 		}
-
-		if (uri.contains("connection_manager")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
-			response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
-			response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (uri.contains("content_directory")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
-			response.append(HTTPXMLHelper.eventProp("TransferIDs"));
-			response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-			response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		} else if (uri.contains("x_ms_mediareceiverregistrar")) {
-			response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
-			// though this is only a 'potemkin' implementation of an MRR,
-			// keep the MMR-related update ids in-sync with the system update id
-			response.append(HTTPXMLHelper.eventProp("AuthorizationGrantedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("AuthorizationDeniedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("ValidationSucceededUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.eventProp("ValidationRevokedUpdateID", "" + DLNAResource.getSystemUpdateId()));
-			response.append(HTTPXMLHelper.EVENT_FOOTER);
-		}
+		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
+		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
+		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
 
