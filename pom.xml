@@ -62,7 +62,7 @@
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 
-		<twelvemonkeys-imageio-version>3.8.3</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.9.0</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -106,7 +106,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.13.4</jackson.version>
+		<jackson.version>2.13.4.2</jackson.version>
 
 		<surefire-version>3.0.0-M7</surefire-version>
 
@@ -150,7 +150,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>4.0.0</version>
+		    <version>4.1.0</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -567,7 +567,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.2.2</version>
+			<version>6.3.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
