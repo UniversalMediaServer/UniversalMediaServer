@@ -135,11 +135,20 @@ public class HlsHelper {
 				StringTokenizer st = new StringTokenizer(CONFIGURATION.getAudioLanguages(), ",");
 				while (st.hasMoreTokens() && mediaAudioDefault == null) {
 					String lang = st.nextToken().trim();
+					int stream = 0;
 					for (DLNAMediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 						if (mediaAudio.matchCode(lang)) {
+							// audioID for e.g. *.ts video is not the same like audio stream number
+							// which is used for creating m3u8 file and for transcoding in FFmpeg
+							if (mediaAudio.getId() >= 100) {
+								mediaAudio.setId(stream);
+							}
+
 							mediaAudioDefault = mediaAudio;
 							break;
 						}
+
+						stream ++;
 					}
 				}
 				//try to keep the codec to copy only
