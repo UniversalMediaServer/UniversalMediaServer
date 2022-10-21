@@ -11,3 +11,31 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.front-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-rows: 1;
+  column-gap: 20px;
+}
+
+.thumbnail-container {
+  text-align: center;
+  background-color: #181818;
+  cursor: pointer;
+  max-height: 180px;
+  margin-bottom: 20px;
+}
+
+.thumbnail-container:hover {
+  box-shadow: 0 6px 9px rgb(0 0 0 / 53%), 0 6px 9px rgb(0 0 0 / 53%);
+  -webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+  transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
+  color: #eee;
+}
+
+.thumbnail-image {
+  object-fit: contain;
+  max-width: 100%;
+  max-height: calc(100% - 26px);
+}

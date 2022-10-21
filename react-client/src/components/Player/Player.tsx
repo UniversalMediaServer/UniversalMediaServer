@@ -1,4 +1,4 @@
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Text, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -150,22 +150,18 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
     } else {
-      image = <Image src={playerApiUrl + "thumb/" + token + "/"  + media.id} fit="contain" height={160} alt={media.name} />;
+      image = <img src={playerApiUrl + "thumb/" + token + "/"  + media.id} alt={media.name} className='thumbnail-image' />;
     }
     return (
-      <Grid.Col xs={6} sm={6} md={4} lg={3} span={12}>
-        <Card shadow='sm' p='lg'
-          onClick={() => sse.askReqId(media.id, media.goal?media.goal:'browse')}
-          style={{cursor:'pointer'}}
-        >
-          <Card.Section>
-            {image}
-          </Card.Section>
-          <Text align='center' size='sm' lineClamp={1}>
-            {media.name}
-          </Text>
-        </Card>
-      </Grid.Col>
+      <div
+        className='thumbnail-container'
+        onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse' )}
+      >
+        {image}
+        <Text align='left' size='sm' lineClamp={1}>
+          {media.name}
+        </Text>
+      </div>
     )
   }
 
@@ -177,12 +173,12 @@ export const Player = () => {
     }
   }
 
-  const getMediasSelection = (selection:BaseMedia[], title:string) => {
+  const getMediasSelection = (selection: BaseMedia[], title: string) => {
     if (selection && selection.length > 0) {
       let medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Grid.Col span={12}><Card><Text align='center' size='lg'>{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
+      return (<><Title order={2} mb='md'>{i18n.get[title]}</Title><div className="front-page-grid">{medias}</div></>);
     }
   }
 
@@ -492,11 +488,11 @@ export const Player = () => {
                 {getShowMetadata()}
               </Grid>
              ) : (
-              <Grid>
+              <span>
                 {getMediaSelections()}
-				{getBrowseMetadata()}
+                {getBrowseMetadata()}
                 {getMedias()}
-              </Grid>
+              </span>
             )}
           </ScrollArea>
     </Box>
