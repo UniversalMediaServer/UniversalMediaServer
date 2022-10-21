@@ -61,7 +61,7 @@ export default function Settings() {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
-  const form = useForm({ initialValues: {} as any });
+  const form = useForm({ initialValues: {} as Record<string, unknown> });
   const formSetValues = form.setValues;
 
   const canModify = havePermission(session, Permissions.settings_modify);

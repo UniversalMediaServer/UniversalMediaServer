@@ -31,7 +31,7 @@ import { sendAction } from '../../services/actions-service';
 import { defaultTooltipSettings, openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
-export default function SharedContentSettings(form:UseFormReturnType<any>,configuration:any) {
+export default function SharedContentSettings(form:UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>,configuration:any) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
