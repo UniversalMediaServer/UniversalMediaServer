@@ -148,7 +148,7 @@ public class HlsHelper {
 							break;
 						}
 
-						stream ++;
+						stream++;
 					}
 				}
 				//try to keep the codec to copy only
