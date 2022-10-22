@@ -81,7 +81,7 @@ function App() {
                         padding='md'
                         navbarOffsetBreakpoint='sm'
                         navbar={navbar.value &&
-                          <Navbar hiddenBreakpoint='sm' hidden={!navbar.opened} width={{ sm: 200, lg: 300 }}>
+                          <Navbar hiddenBreakpoint='sm' hidden={!navbar.opened} width={{ sm: 200, lg: 300 }} p="xs">
                             <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                           </Navbar>}
                         header={<Header height={50} p='xs'>{
