@@ -158,18 +158,21 @@ export const Player = () => {
         onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse' )}
       >
         {image}
-        <Text align='left' size='sm' lineClamp={1}>
-          {media.name}
-        </Text>
+        <div className='thumbnail-text-wrapper'>
+          <Text align='left' size='sm' lineClamp={1} className='thumbnail-text'>
+            {media.name}
+          </Text>
+        </div>
       </div>
     )
   }
 
   const getMedias = () => {
     if (data.goal === 'browse') {
-      return data.medias.map((media: BaseMedia) => {
+      const mediaList = data.medias.map((media: BaseMedia) => {
         return getMedia(media);
       })
+      return (<><div className="media-grid">{mediaList}</div></>);
     }
   }
 
@@ -203,7 +206,7 @@ export const Player = () => {
               sx={(theme) => ({
                 cursor: 'pointer',
                 color: theme.colorScheme === 'dark' ? 'white' : 'black',
-				backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
                 '&:hover': {
                   backgroundColor:
                   theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
@@ -220,7 +223,10 @@ export const Player = () => {
 
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
-      return (<Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}><Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text></Group>);
+      return (
+        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+          <Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
+        </Group>);
     }
   }
 
@@ -340,26 +346,28 @@ export const Player = () => {
   const getMetadataGridCol = () => {
     if (metadata) {
       return (<>
-        <Grid.Col span={12}>
-          <Grid columns={20} justify="center">
-            <Grid.Col span={6}>
-              { images.poster }
-            </Grid.Col>
-            <Grid.Col span={12}  >
-              <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
-                { images.logo }
-                { getPlayControls() }
-                { getMetadataBaseMediaList('Actors', metadata.actors) }
-                { getMetadataString('Awards', metadata.awards) }
-                { getMetadataBaseMediaList('Country', metadata.countries) }
-                { getMetadataBaseMediaList('Director', metadata.directors) }
-                { getMetadataBaseMediaList('Genres', metadata.genres) }
-                { getMetadataString('Plot', metadata.plot) }
-                { getMetadataRatingList(metadata.ratings) }
-              </Card>
-            </Grid.Col>
-          </Grid>
-        </Grid.Col>
+        <Grid>
+          <Grid.Col span={12}>
+            <Grid columns={20} justify="center">
+              <Grid.Col span={6}>
+                { images.poster }
+              </Grid.Col>
+              <Grid.Col span={12}  >
+                <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                  { images.logo }
+                  { getPlayControls() }
+                  { getMetadataBaseMediaList('Actors', metadata.actors) }
+                  { getMetadataString('Awards', metadata.awards) }
+                  { getMetadataBaseMediaList('Country', metadata.countries) }
+                  { getMetadataBaseMediaList('Director', metadata.directors) }
+                  { getMetadataBaseMediaList('Genres', metadata.genres) }
+                  { getMetadataString('Plot', metadata.plot) }
+                  { getMetadataRatingList(metadata.ratings) }
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Grid.Col>
+        </Grid>
       </>);
     }
   }
@@ -475,26 +483,26 @@ export const Player = () => {
   }, [data, i18n.get, navbar.setValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
-    <Box style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
+    <Box style={{ backgroundImage: images.background ? 'url(' + images.background + ')' : 'none'}}>
       <LoadingOverlay visible={loading} />
-          {getBreadcrumbs()}
-          <ScrollArea offsetScrollbars viewportRef={mainScroll} >
-            {data.goal === 'play' ?
-              <Paper>
-                {getMediaPlayer()}
-              </Paper>
-             : data.goal === 'show' ? (
-              <Grid>
-                {getShowMetadata()}
-              </Grid>
-             ) : (
-              <span>
-                {getMediaSelections()}
-                {getBrowseMetadata()}
-                {getMedias()}
-              </span>
-            )}
-          </ScrollArea>
+      {getBreadcrumbs()}
+      <ScrollArea offsetScrollbars viewportRef={mainScroll}>
+        {data.goal === 'play' ?
+          <Paper>
+            {getMediaPlayer()}
+          </Paper>
+          : data.goal === 'show' ? (
+          <Grid>
+            {getShowMetadata()}
+          </Grid>
+          ) : (
+          <span>
+            {getMediaSelections()}
+            {getBrowseMetadata()}
+            {getMedias()}
+          </span>
+        )}
+      </ScrollArea>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">

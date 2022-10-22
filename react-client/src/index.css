@@ -12,7 +12,7 @@ code {
     monospace;
 }
 
-.front-page-grid {
+.media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   grid-template-rows: 1;
@@ -21,10 +21,22 @@ code {
 
 .thumbnail-container {
   text-align: center;
-  background-color: #181818;
+  background-color: #000;
   cursor: pointer;
-  max-height: 180px;
+  max-height: 220px;
   margin-bottom: 20px;
+}
+
+.front-page-grid {
+  height: 240px;
+  overflow-y: hidden;
+}
+
+.front-page-grid .thumbnail-container {
+  width: 310px;
+  display: inline-block;
+  margin-right: 20px;
+  height: 100%;
 }
 
 .thumbnail-container:hover {
@@ -36,6 +48,10 @@ code {
 
 .thumbnail-image {
   object-fit: contain;
-  max-width: 100%;
-  max-height: calc(100% - 26px);
+  width: 100%;
+  height: calc(100% - 46px);
+}
+
+.thumbnail-text-wrapper {
+  padding: 12px 12px 12px 15px;
 }
