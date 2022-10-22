@@ -178,7 +178,7 @@ export const Player = () => {
       let medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Title order={2} mb='md'>{i18n.get[title]}</Title><div className="front-page-grid">{medias}</div></>);
+      return (<><Title order={2} mb='md' size='h4' weight={400}>{i18n.get[title]}</Title><div className="front-page-grid">{medias}</div></>);
     }
   }
 
