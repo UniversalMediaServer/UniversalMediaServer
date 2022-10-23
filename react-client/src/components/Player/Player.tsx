@@ -62,7 +62,7 @@ export const Player = () => {
         mb="xs"
         shadow="xs"
         p="sm"
-        sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+        sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
       >
         <Group>
           <Breadcrumbs
@@ -368,7 +368,7 @@ export const Player = () => {
                 { images.poster }
               </Grid.Col>
               <Grid.Col span={12}  >
-                <Card shadow="sm" p="lg" radius="md" sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                <Card shadow="sm" p="lg" radius="md" sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
                   { images.logo }
                   { getPlayControls() }
                   { getMetadataBaseMediaList('Actors', metadata.actors) }
@@ -396,7 +396,7 @@ export const Player = () => {
               <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
             </Grid.Col>
             <Grid.Col span={12}  >
-              <Card shadow='sm' p='lg' radius='md'  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+              <Card shadow='sm' p='lg' radius='md'  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
                 <Text pb='xs'>{media.name}</Text>
                 { getPlayControls() }
               </Card>

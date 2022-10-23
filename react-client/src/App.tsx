@@ -32,6 +32,16 @@ import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
 
+import { Tuple, DefaultMantineColor } from '@mantine/core';
+
+type ExtendedCustomColors = 'darkTransparent' | 'lightTransparent' | DefaultMantineColor;
+
+declare module '@mantine/core' {
+  export interface MantineThemeColorsOverride {
+    colors: Record<ExtendedCustomColors, Tuple<string, 10>>;
+  }
+}
+
 function App() {
   const Player = lazy(() => import('./components/Player/Player'));
 
@@ -68,7 +78,14 @@ function App() {
             : // ltr cache
               undefined
         }
-        theme={{ colorScheme, dir: rtl ? 'rtl' : 'ltr' }}
+        theme={{
+          colorScheme,
+          dir: rtl ? 'rtl' : 'ltr',
+          colors: {
+            'darkTransparent': ['rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)'],
+            'lightTransparent': ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)'],
+          },
+        }}
       >
         <NotificationsProvider>
           <I18nProvider>
@@ -86,7 +103,7 @@ function App() {
                           hidden={!navbar.opened}
                           width={{ sm: 200, lg: 300 }}
                           p="xs"
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(31, 32, 35, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
                         >
                           <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                         </Navbar>}
@@ -94,7 +111,7 @@ function App() {
                         <Header
                           height={50}
                           p='xs'
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(31, 32, 35, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
                         >{
                           <Group position='apart'>
                             <Group position='left'>
