@@ -12,7 +12,7 @@ export const AudioPlayer = (apOptions: AudioPlayerOption) => {
 
   useEffect(() => {
     if (!videoRef.current || !document.body.contains(videoRef.current)) {return}
-    let options = {} as VideoJsPlayerOptions;
+    const options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
     options.sources=[{src:playerApiUrl + "media/" + apOptions.token + "/"  + apOptions.media.id, type: apOptions.media.mime}];

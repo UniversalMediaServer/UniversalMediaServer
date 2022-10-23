@@ -201,7 +201,7 @@ const Logs = () => {
     axios.get(logsApiUrl + 'packer')
       .then(function (response: any) {
         const items = response.data as PackerItem[];
-        let selItems = [];
+        const selItems = [];
         for (const item of items) {
           if (item.exists) {
             selItems.push(item.path);
@@ -215,7 +215,7 @@ const Logs = () => {
   const getPackerZip = () => {
     axios.post(logsApiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
       .then(function (response: any) {
-        let fileName = response.headers["content-disposition"].split("filename=")[1];
+        const fileName = response.headers["content-disposition"].split("filename=")[1];
 		const type = response.headers['content-type'];
 		const blob = new Blob([response.data], { type: type });
 		const link = document.createElement('a');
@@ -235,7 +235,7 @@ const Logs = () => {
 
   const logFileReader = new FileReader();
   logFileReader.onloadend = (e) => {
-    var contents = e?.target?.result;
+    const contents = e?.target?.result;
     setLogFileLogs(contents as string);
   };
 
@@ -245,8 +245,8 @@ const Logs = () => {
 
   const setLogFileLogs = (contents: string) => {
     const tmplines = contents.split(/\r?\n/);
-    let lines = [] as string[];
-    let threads = [] as string[];
+    const lines = [] as string[];
+    const threads = [] as string[];
     for (let i = 0; i < tmplines.length; i++) {
       if (tmplines[i].length > 30 && tmplines[i].substring(30, 31) === '[') {
         const thread = tmplines[i].substring(31, tmplines[i].indexOf(']')).replace(/[\d|-]+$/, '');

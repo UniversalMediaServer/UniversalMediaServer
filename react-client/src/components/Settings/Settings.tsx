@@ -101,7 +101,7 @@ export default function Settings() {
         if (!_.isEqual(configuration[key], values[key])) {
           changedValues[key] = values[key]?values[key]:null;
         }
-      };
+      }
 
       if (_.isEmpty(changedValues)) {
         showNotification({

@@ -151,7 +151,7 @@ export const Player = () => {
 
   const getMedia = (media: BaseMedia) => {
 	let image;
-    let icon = getMediaIcon(media, rtl);
+    const icon = getMediaIcon(media, rtl);
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
     } else {
@@ -183,7 +183,7 @@ export const Player = () => {
 
   const getMediasSelection = (selection: BaseMedia[], title: string) => {
     if (selection && selection.length > 0) {
-      let medias = selection.map((media: BaseMedia) => {
+      const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
       return (<><Title order={2} mb='md' size='h4' weight={400}>{i18n.get[title]}</Title><div className="front-page-grid">{medias}</div></>);
@@ -257,7 +257,7 @@ export const Player = () => {
     let background, logo, poster;
     if (metadata && metadata.images && metadata.images.length > 0) {
       const iso639 = i18n.language.substring(0,2);
-      let apiImagesList = metadata.images[0];
+      const apiImagesList = metadata.images[0];
       // Set the page background and color scheme
       if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
         let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
@@ -269,7 +269,7 @@ export const Player = () => {
           backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
         }
         if (backgrounds.length > 0) {
-          var randomBackground = Math.floor(Math.random() * (backgrounds.length));
+          const randomBackground = Math.floor(Math.random() * (backgrounds.length));
           background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
           document.body.style.backgroundImage='url(' + background + ')';
           const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
@@ -279,14 +279,14 @@ export const Player = () => {
       // Set a logo as the heading
       if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
         let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
-	      if (logos.length === 0) {
+        if (logos.length === 0) {
           logos = apiImagesList.logos.filter(logo => !logo.iso_639_1);
         }
         if (logos.length === 0) {
           logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === 'en');
         }
         if (logos.length > 0) {
-          let betterLogo = logos.reduce((previousValue, currentValue) => {
+          const betterLogo = logos.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
           logo = (
@@ -312,7 +312,7 @@ export const Player = () => {
           posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === 'en');
         }
         if (posters.length > 0) {
-          let betterPoster = posters.reduce((previousValue, currentValue) => {
+          const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
           poster = (<img style={{ maxHeight: '500px' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
@@ -446,7 +446,7 @@ export const Player = () => {
 
   useEffect(() => {
     const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
-      let icon = getMediaIcon(folder, rtl);
+      const icon = getMediaIcon(folder, rtl);
       if (icon) {
         return createElement(icon, {size:20});
       }
