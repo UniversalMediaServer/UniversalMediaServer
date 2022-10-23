@@ -58,13 +58,18 @@ export const Player = () => {
 
   const getBreadcrumbs = () => {
     return hasBreadcrumbs() ? (
-      <Paper mb='xs'>
+      <Paper
+        mb="xs"
+        shadow="xs"
+        p="sm"
+        sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+      >
         <Group>
           <Breadcrumbs
             styles={{separator: {margin: '0'}}}
           >
             {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
-			  <Button
+              <Button
                 style={breadcrumb.id ? {fontWeight: 400} : {cursor:'default'}}
                 onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
@@ -232,8 +237,10 @@ export const Player = () => {
 
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
-      return (<><Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
-	  <Text weight={700}>{i18n.get['Ratings']}: </Text></Group>
+      return (<>
+        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+          <Text weight={700}>{i18n.get['Ratings']}: </Text>
+        </Group>
         <List withPadding>
           { ratingsList.map((media: MediaRating) => {
             return (<List.Item>{media.source}: {media.value}</List.Item>);
@@ -264,12 +271,15 @@ export const Player = () => {
         if (backgrounds.length > 0) {
           var randomBackground = Math.floor(Math.random() * (backgrounds.length));
           background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+          document.body.style.backgroundImage='url(' + background + ')';
+          const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
+          mantineAppShellMain.style.backgroundColor='unset';
         }
       }
       // Set a logo as the heading
       if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
         let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
-		if (logos.length === 0) {
+	      if (logos.length === 0) {
           logos = apiImagesList.logos.filter(logo => !logo.iso_639_1);
         }
         if (logos.length === 0) {
@@ -305,17 +315,22 @@ export const Player = () => {
           let betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} ></Image>);
+          poster = (<img style={{ maxHeight: '500px' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} />);
         }
       }
       if (!poster && metadata.poster) {
-        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.poster} />);
+        poster = (<img style={{ maxHeight: '500px' }} src={metadata.poster} />);
       }
       if (!poster && media) {
-        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
+        poster = (<img style={{ maxHeight: '500px' }} src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
       }
+    } else {
+      document.body.style.backgroundImage = 'none';
+      const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
+      // mantineAppShellMain.style.backgroundColor = undefined;
     }
-    return {background:background, logo:logo, poster:poster};
+  
+    return { background: background, logo: logo, poster: poster };
   }
 
   const images = getMetadataImages(metadata, media);
@@ -346,14 +361,14 @@ export const Player = () => {
   const getMetadataGridCol = () => {
     if (metadata) {
       return (<>
-        <Grid>
+        <Grid mb="md">
           <Grid.Col span={12}>
             <Grid columns={20} justify="center">
               <Grid.Col span={6}>
                 { images.poster }
               </Grid.Col>
               <Grid.Col span={12}  >
-                <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
+                <Card shadow="sm" p="lg" radius="md" sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
                   { images.logo }
                   { getPlayControls() }
                   { getMetadataBaseMediaList('Actors', metadata.actors) }
@@ -483,7 +498,7 @@ export const Player = () => {
   }, [data, i18n.get, navbar.setValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
-    <Box style={{ backgroundImage: images.background ? 'url(' + images.background + ')' : 'none'}}>
+    <Box>
       <LoadingOverlay visible={loading} />
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars viewportRef={mainScroll}>
