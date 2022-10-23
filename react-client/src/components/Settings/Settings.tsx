@@ -88,7 +88,6 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
-	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
   const handleSubmit = async(values: typeof form.values) => {

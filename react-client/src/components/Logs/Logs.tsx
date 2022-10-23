@@ -55,7 +55,7 @@ const Logs = () => {
 
   const allLogLevels = logLevels.concat([
     { value: '6', label: i18n.get['All'] },
-   	{ value: '0', label: i18n.get['Off'] },
+    { value: '0', label: i18n.get['Off'] },
   ]);
 
   const getLogLevel = (level:string) => {
@@ -85,13 +85,13 @@ const Logs = () => {
     }
     axios.get(logsApiUrl)
       .then(function (response: any) {
-		setLogs(response.data.logs);
-		setLogThreadFilter([]);
-		setLogThreads([]);
+        setLogs(response.data.logs);
+        setLogThreadFilter([]);
+        setLogThreads([]);
         setRootLogLevel(getLogLevel(response.data.rootLogLevel));
         setGuiLogLevel(getLogLevel(response.data.guiLogLevel));
         setLogLevel(getLogLevel(response.data.guiLogLevel));
-		setTraceMode(response.data.traceMode);
+        setTraceMode(response.data.traceMode);
       })
       .catch(function () {
         showNotification({
@@ -107,7 +107,7 @@ const Logs = () => {
   useEffect(() => {
     const filterLogLevelFilter = (level:string) => {
       if (logLevelFilter.length === 0 || logLevelFilter.length === 5) { return true }
-	  return logLevelFilter.includes(level);
+      return logLevelFilter.includes(level);
     }
     const filterLogLevel = (logLine:string) => {
       if (logLevel === 0) { return false }
@@ -229,7 +229,7 @@ const Logs = () => {
 
   const getPackerItems = () => {
     return packerItems.map((packerItem : PackerItem) => (
-      <Checkbox value={packerItem.path} disabled={!packerItem.exists} label={packerItem.name} />
+      <Checkbox key={packerItem.path} value={packerItem.path} disabled={!packerItem.exists} label={packerItem.name} />
     ));	
   }
 
@@ -386,7 +386,7 @@ const Logs = () => {
           <Dropzone
             padding={5}
             onDrop={(files) => readLogFile(files)}
-			maxFiles={1}
+            maxFiles={1}
           >
             <Text align="center">Drop/Select log here</Text>
           </Dropzone>
@@ -401,10 +401,10 @@ const Logs = () => {
         <Prism
           noCopy
           language={'ums' as any}
-		>
+        >
           {activeLogs.join(fileMode ? '\n' : '')}
         </Prism>
-	  </ScrollArea>
+      </ScrollArea>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">

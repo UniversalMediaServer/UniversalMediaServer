@@ -29,8 +29,8 @@ export default function GeneralSettings(form:UseFormReturnType<any>,defaultConfi
       return {
         value : language.id,
         label: language.name
-		  + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
-		  + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
+        + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
+        + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
       };
     });
   }
