@@ -315,7 +315,7 @@ export const Player = () => {
           let betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<img style={{ maxHeight: '500px' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} />);
+          poster = (<img style={{ maxHeight: '500px' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
         }
       }
       if (!poster && metadata.poster) {
@@ -326,8 +326,6 @@ export const Player = () => {
       }
     } else {
       document.body.style.backgroundImage = 'none';
-      const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
-      // mantineAppShellMain.style.backgroundColor = undefined;
     }
   
     return { background: background, logo: logo, poster: poster };
