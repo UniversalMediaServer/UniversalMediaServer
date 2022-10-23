@@ -10,6 +10,12 @@ module.exports = {
         "plugin:react/jsx-runtime"
     ],
     "overrides": [
+        {
+            "files": ["**/**"],
+            "rules": {
+                "@typescript-eslint/no-empty-function": "off",
+            },
+        },
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {

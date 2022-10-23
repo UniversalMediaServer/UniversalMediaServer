@@ -123,7 +123,7 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
     ) : (
       <Stack justify="flex-start" align="flex-start" spacing="xs">
         {engines.map((value: string) => (
-          <Button variant="subtle" color='gray' size="xs" compact
+          <Button variant="subtle" color='gray' size="xs" compact key={value}
             leftIcon={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
@@ -137,7 +137,7 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
   const getTranscodingEnginesAccordionItems = () => {
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index:number) => {
       return (
-        <Accordion.Item value={'Transcoding' + index.toString()}>
+        <Accordion.Item value={'Transcoding' + index.toString()} key={index}>
           <Accordion.Control>{i18n.getI18nString(value)}</Accordion.Control>
           <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>);
@@ -152,7 +152,7 @@ export default function TranscodingSettings(form:UseFormReturnType<any>,defaultC
     for (let i = 0; i < rgbastr.length; i++) {
       const hex = (i < 3) ? parseInt(rgbastr[i]).toString(16) : Math.round(parseFloat(rgbastr[i]) * 255).toString(16);
       if (hex.length < 2) { hexa = hexa + '0' }
-	  hexa = hexa + hex;
+      hexa = hexa + hex;
     }
     return hexa;
   }

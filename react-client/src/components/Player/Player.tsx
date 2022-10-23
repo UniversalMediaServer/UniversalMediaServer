@@ -70,6 +70,7 @@ export const Player = () => {
           >
             {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
               <Button
+                key={breadcrumb.id ? breadcrumb.id : breadcrumb.name}
                 style={breadcrumb.id ? {fontWeight: 400} : {cursor:'default'}}
                 onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
@@ -208,6 +209,7 @@ export const Player = () => {
         { mediaList.map((media: BaseMedia) => {
           return (
             <Badge
+              key={media.id}
               sx={(theme) => ({
                 cursor: 'pointer',
                 color: theme.colorScheme === 'dark' ? 'white' : 'black',
@@ -243,7 +245,7 @@ export const Player = () => {
         </Group>
         <List withPadding>
           { ratingsList.map((media: MediaRating) => {
-            return (<List.Item>{media.source}: {media.value}</List.Item>);
+            return (<List.Item key={media.source}>{media.source}: {media.value}</List.Item>);
           })}
         </List>
       </>);
@@ -456,6 +458,7 @@ export const Player = () => {
       return data.folders.map((folder) => {
         return (
           <Button
+            key={folder.id}
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
@@ -472,6 +475,7 @@ export const Player = () => {
       return data.mediaLibraryFolders?.map((folder) => {
         return (
           <Button
+            key={folder.id}
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
