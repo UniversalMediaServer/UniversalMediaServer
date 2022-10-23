@@ -86,7 +86,7 @@ function App() {
                           hidden={!navbar.opened}
                           width={{ sm: 200, lg: 300 }}
                           p="xs"
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(31, 32, 35, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
                         >
                           <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                         </Navbar>}
@@ -94,7 +94,7 @@ function App() {
                         <Header
                           height={50}
                           p='xs'
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
+                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(31, 32, 35, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}
                         >{
                           <Group position='apart'>
                             <Group position='left'>
