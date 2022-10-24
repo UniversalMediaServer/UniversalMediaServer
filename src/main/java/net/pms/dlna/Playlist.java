@@ -88,7 +88,7 @@ public class Playlist extends VirtualFolder {
 			final Playlist self = this;
 			// Save
 			if (!isMode(AUTOSAVE)) {
-				addChild(new VirtualVideoAction(Messages.getString("Save"), true) {
+				addChild(new VirtualVideoAction(Messages.getString("Save"), true, null) {
 					@Override
 					public boolean enable() {
 						self.save();
@@ -97,7 +97,7 @@ public class Playlist extends VirtualFolder {
 				});
 			}
 			// Clear
-			addChild(new VirtualVideoAction(Messages.getString("Clear"), true) {
+			addChild(new VirtualVideoAction(Messages.getString("Clear"), true, null) {
 				@Override
 				public boolean enable() {
 					self.clear();
