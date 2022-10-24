@@ -2280,106 +2280,106 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/core@npm:5.5.6"
+"@mantine/core@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/core@npm:5.6.1"
   dependencies:
     "@floating-ui/react-dom-interactions": ^0.10.1
-    "@mantine/styles": 5.5.6
-    "@mantine/utils": 5.5.6
+    "@mantine/styles": 5.6.1
+    "@mantine/utils": 5.6.1
     "@radix-ui/react-scroll-area": 1.0.0
     react-textarea-autosize: 8.3.4
   peerDependencies:
-    "@mantine/hooks": 5.5.6
+    "@mantine/hooks": 5.6.1
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 42c6a0d2e195030d93a1d5fa3c858bd1861a6ca70b59c651d81c5380ec36a89056bb0c6ce0bb566500b5520c17c6ec59eab65edcc7f3279ada4e22a884cdd96d
+  checksum: 352f7a8d710fce5c3128d7f366dfd1b2ddcd714ca491ae1e89a77a95bb4e7d9ba4824647abcaeafb28017157a7b023b90ac87adbb67e8f970f35dce53f2153ae
   languageName: node
   linkType: hard
 
-"@mantine/dropzone@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/dropzone@npm:5.5.6"
+"@mantine/dropzone@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/dropzone@npm:5.6.1"
   dependencies:
-    "@mantine/utils": 5.5.6
-    react-dropzone: 14.2.2
+    "@mantine/utils": 5.6.1
+    react-dropzone: 14.2.3
   peerDependencies:
-    "@mantine/core": 5.5.6
-    "@mantine/hooks": 5.5.6
+    "@mantine/core": 5.6.1
+    "@mantine/hooks": 5.6.1
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: f8b00441e33ab8b2d3babcf06eb58cbb6f64162f58f217b8c89178f7626bc21ffdbf97ea438c77b55643177fde7c551a6d60c7fa08ac969558fd73d2e20f3977
+  checksum: 436bf0d1fd3b9e3a7e8ef807cab71ce1ae1a37f3a41f48f4f535a7c6f70dcb5d26536721b6df9470bf410805e22e1dfbb389ddab6b4f00b0825e920a00796a0a
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/form@npm:5.5.6"
+"@mantine/form@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/form@npm:5.6.1"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: e0dd21f62df38cb5786e685b6b0494ebc3557d9f5dcdf16a4a00f247c45246fb9ba86f7a868643aa927057f122e297fb1248e6441bc216aa00bc6f308bf2795c
+  checksum: d31c0e6e859c28d787073cf089fc8a912728e0b6f1698d018ad34c02b02f936bb03d7e0f04b53e9c95179849c6859ca01bb41f33409b4ec5bba63efe1ceeda7a
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/hooks@npm:5.5.6"
+"@mantine/hooks@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/hooks@npm:5.6.1"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 65108a62a49ad5c38f63aad8066bbe76dd81a294fe1062e3409eba6acd43846aa6bcffd554b726b6d189b1d0f40dd858734e2797b2395311b42e571281af9e31
+  checksum: a34b5917b0e57f5c8f80bc27fca31eab0b071fe167e4d99f3e2c64b7fcf995df5752ae45024128ddf7ab861667518628fbad863a0c7e90fe4f7d6cf4855812cc
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/modals@npm:5.5.6"
+"@mantine/modals@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/modals@npm:5.6.1"
   dependencies:
-    "@mantine/utils": 5.5.6
+    "@mantine/utils": 5.6.1
   peerDependencies:
-    "@mantine/core": 5.5.6
-    "@mantine/hooks": 5.5.6
+    "@mantine/core": 5.6.1
+    "@mantine/hooks": 5.6.1
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 86b3172c94383cd23a9fb4a3d3a4fa538e5fb2c3ab36905bbdea79311f2e8af45b44c8513a590b365fb6c36c12eccf78a8f000db42e4030d1f90f24cc453fb1e
+  checksum: a374a29aef0250e4411b502cba5f6753544c70299298f15b44a8321a75d84eb1d33c3def76e1d804c554f1bd14662c53d2fcbef25fcfa024d3dd20a4ac8945b2
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/notifications@npm:5.5.6"
+"@mantine/notifications@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/notifications@npm:5.6.1"
   dependencies:
-    "@mantine/utils": 5.5.6
+    "@mantine/utils": 5.6.1
     react-transition-group: 4.4.2
   peerDependencies:
-    "@mantine/core": 5.5.6
-    "@mantine/hooks": 5.5.6
+    "@mantine/core": 5.6.1
+    "@mantine/hooks": 5.6.1
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: d3a7688f1b7a7267a06575842d73cc2c6ab19ac9c5e539d7580f43e88e270e82b6a4574a334a3ba82bad20d4eed32d953033601a69ea6d2f0ba7c10aee45de38
+  checksum: 802c0bfaf247463fea36afd423654a3bf2c6c8945f46376899e2caaaa5c43700d92cc17ea252dd8bc9d5321c99cd0f2066f0feda1e797aa71df12e95212a6ae0
   languageName: node
   linkType: hard
 
-"@mantine/prism@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/prism@npm:5.5.6"
+"@mantine/prism@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/prism@npm:5.6.1"
   dependencies:
-    "@mantine/utils": 5.5.6
+    "@mantine/utils": 5.6.1
     prism-react-renderer: ^1.2.1
   peerDependencies:
-    "@mantine/core": 5.5.6
-    "@mantine/hooks": 5.5.6
+    "@mantine/core": 5.6.1
+    "@mantine/hooks": 5.6.1
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 158999708e8d3fd7682326b440e7505de86e484c5df58e3307aec095d2de1d71f090c3653b6eb73fcf9282c2fafed2fdfe025e3336a2ac79d4b293ca1da9d1c7
+  checksum: 9f5f0e4aaffeb2769c48d4bc15f2bf2fb187824c6e4ae4c20b55c8f95af4a1a5a1cf3f1d8f43978f72268ae3efa5df91f2eaa34e4bdd261905a72e2765a3f9ab
   languageName: node
   linkType: hard
 
-"@mantine/styles@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/styles@npm:5.5.6"
+"@mantine/styles@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/styles@npm:5.6.1"
   dependencies:
     clsx: 1.1.1
     csstype: 3.0.9
@@ -2387,16 +2387,16 @@ __metadata:
     "@emotion/react": ">=11.9.0"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: ebfa8d88184aa122d408e3a7917c99d1149d4702e4778971dd126e30431258fba35aedc2f925e1b9b336636476a55410f3d7b2349fa7861435ba80f81b102840
+  checksum: a0103279b6ee5f884ba81d5992a39288a78ab249b7ba49b1da30233a24217967e63e204eac9d77eccaeab75be8e74298a84b1d70052d06fca9f7ead7645921df
   languageName: node
   linkType: hard
 
-"@mantine/utils@npm:5.5.6":
-  version: 5.5.6
-  resolution: "@mantine/utils@npm:5.5.6"
+"@mantine/utils@npm:5.6.1":
+  version: 5.6.1
+  resolution: "@mantine/utils@npm:5.6.1"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 91a683bfebd8375f8aa279f366cda3e7a5481175407033cdec550b2f809442bb98df230a057db4892d38f4137204ba88e0a8082a4551efcc1966b2476a11661c
+  checksum: 97b366f91141d6a0ec4d6ab24f385db3046164c099ee5f9e4dd81f99deceef4ef46c6803ef0ecfee826a4695122ccd3b33a6e163aea91c573a18c50bb219d2b0
   languageName: node
   linkType: hard
 
@@ -3197,10 +3197,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:16.11.68":
-  version: 16.11.68
-  resolution: "@types/node@npm:16.11.68"
-  checksum: a35293b6b8867e10ab9e10b6cd5f0e4224a86256d5ef102581dcb9f79f35f255ad87443e8584ddf8dce1229ee28885c58187e41822cf8d1e82495e7897c47c3f
+"@types/node@npm:16.18.0":
+  version: 16.18.0
+  resolution: "@types/node@npm:16.18.0"
+  checksum: 4eb4b88012c7d3f527c1b4989cf085479d44ce418fb047fb8d3b545601a3e1fc436de8491b9734debeda8eae241963fb802cea87a5a5698bf5f6f3d489d446a8
   languageName: node
   linkType: hard
 
@@ -11323,16 +11323,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:14.2.2":
-  version: 14.2.2
-  resolution: "react-dropzone@npm:14.2.2"
+"react-dropzone@npm:14.2.3":
+  version: 14.2.3
+  resolution: "react-dropzone@npm:14.2.3"
   dependencies:
     attr-accept: ^2.2.2
     file-selector: ^0.6.0
     prop-types: ^15.8.1
   peerDependencies:
     react: ">= 16.8 || 18.0.0"
-  checksum: ef9ea7b3b5734e8eade2d29efc26da410dd7d6d046216331f6a51e2df4459c35f3a8f950fa7f723f3db6b0ead8aa68f58f6adbd39b98575c9fc8d8dfe02b671f
+  checksum: 174b744d5ca898cf3d84ec1aeb6cef5211c446697e45dc8ece8287a03d291f8d07253206d5a1247ef156fd385d65e7de666d4d5c2986020b8543b8f2434e8b40
   languageName: node
   linkType: hard
 
@@ -13124,20 +13124,20 @@ __metadata:
   resolution: "ums gui@workspace:."
   dependencies:
     "@emotion/react": 11.10.4
-    "@mantine/core": 5.5.6
-    "@mantine/dropzone": 5.5.6
-    "@mantine/form": 5.5.6
-    "@mantine/hooks": 5.5.6
-    "@mantine/modals": 5.5.6
-    "@mantine/notifications": 5.5.6
-    "@mantine/prism": 5.5.6
+    "@mantine/core": 5.6.1
+    "@mantine/dropzone": 5.6.1
+    "@mantine/form": 5.6.1
+    "@mantine/hooks": 5.6.1
+    "@mantine/modals": 5.6.1
+    "@mantine/notifications": 5.6.1
+    "@mantine/prism": 5.6.1
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/jest": 29.2.0
     "@types/lodash": 4.14.186
-    "@types/node": 16.11.68
+    "@types/node": 16.18.0
     "@types/react": 18.0.21
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.0.6
@@ -13166,7 +13166,7 @@ __metadata:
     video.js: 7.21.0
     videojs-contrib-quality-levels: 2.2.0
     videojs-hls-quality-selector: 1.1.4
-    web-vitals: 3.0.3
+    web-vitals: 3.0.4
   languageName: unknown
   linkType: soft
 
@@ -13517,10 +13517,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:3.0.3":
-  version: 3.0.3
-  resolution: "web-vitals@npm:3.0.3"
-  checksum: 77df36f83590afbab6872f94f01e9df536ec4b0a4421833b500306f5ee5f9cdebdcd9139cfd94801edfb555a56ad61d8a5d28529ade8c645f6c82b76aebca19e
+"web-vitals@npm:3.0.4":
+  version: 3.0.4
+  resolution: "web-vitals@npm:3.0.4"
+  checksum: b618a8e049e0c64948eea09c372db490802bcc8bcb30230a2bc69d9e243b1a2fa54d0f0ae19d5e63f19381df86db2a9260ca15ef620e10024888eab487a77d56
   languageName: node
   linkType: hard
 

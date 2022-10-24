@@ -21,6 +21,7 @@ import Login from './components/Login/Login'
 import Logs from './components/Logs/Logs'
 import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
+import SharedContent from './components/SharedContent/SharedContent';
 import UserMenu from './components/UserMenu/UserMenu';
 import NavbarContext from './contexts/navbar-context';
 import SessionContext from './contexts/session-context';
@@ -163,6 +164,7 @@ function App() {
                               <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
                               <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                               <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
+                              <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
                               <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
                               <Route
                                 path="/*"

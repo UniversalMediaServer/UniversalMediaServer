@@ -69,7 +69,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>161</binary-revision>
+		<binary-revision>162</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -149,7 +149,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>4.1.0</version>
+		    <version>4.2.0</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -159,14 +159,14 @@
 		</dependency>
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
-			<groupId>org.beanshell</groupId>
-			<artifactId>bsh-core</artifactId>
-			<version>2.0b4</version>
+			<groupId>org.apache-extras.beanshell</groupId>
+			<artifactId>bsh</artifactId>
+			<version>2.0b6</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -292,7 +292,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.17</version>
+			<version>0.4.18</version>
 		</dependency>
 
 		<!--
@@ -713,18 +713,6 @@
 
 				<!-- Filter to replace Maven properties -->
 				<filtering>true</filtering>
-			</resource>
-
-			<!-- 3) package filtered NSIS header files -->
-			<resource>
-				<directory>src/main/external-resources/windows/nsis-scripts</directory>
-				<includes>
-					<include>extra.nsh</include>
-				</includes>
-
-				<!-- Filter to replace Maven properties -->
-				<filtering>true</filtering>
-				<targetPath>..</targetPath>
 			</resource>
 		</resources>
 		<testResources>
@@ -1316,6 +1304,45 @@
 					</plugin>
 
 					<!--
+						Plugin to add scripts for nullsoft scriptable install system (NSIS).
+						The filtered file "target/extra.nsh", contains the definitions for
+						project variables like "${PROJECT_JRE_VERSION}" that can be used in the
+						"pms.nsi" and "setup.nsi" files.
+					-->
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.3.0</version>
+						<executions>
+							<execution>
+								<id>copy-resources</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${basedir}/target</outputDirectory>
+									<resources>          
+										<resource>
+											<directory>${project.external-resources}/windows/nsis-scripts</directory>
+											<includes>
+												<include>extra.nsh</include>
+											</includes>
+											<filtering>true</filtering>
+										</resource>
+										<resource>
+											<directory>${project.external-resources}/windows/nsis-scripts</directory>
+											<excludes>
+												<exclude>extra.nsh</exclude>
+											</excludes>
+											<filtering>false</filtering>
+										</resource>
+									</resources>              
+								</configuration>            
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
@@ -1331,7 +1358,7 @@
 								<configuration>
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
-									<setupScript>${project.external-resources}/windows/nsis-scripts/pms.nsi</setupScript>
+									<setupScript>${project.build.directory}/pms.nsi</setupScript>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -1345,7 +1372,7 @@
 								<configuration>
 									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
-									<setupScript>${project.external-resources}/windows/nsis-scripts/setup.nsi</setupScript>
+									<setupScript>${project.build.directory}/setup.nsi</setupScript>
 								</configuration>
 								<phase>package</phase>
 								<goals>

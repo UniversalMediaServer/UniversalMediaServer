@@ -1,6 +1,5 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -10,36 +9,11 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import {openGitHubNewIssue, settingsApiUrl} from '../../utils';
-import GeneralSettings from './GeneralSettings';
-import NavigationSettings from './NavigationSettings';
-import TranscodingSettings from './TranscodingSettings';
+import SharedContentSettings from './SharedContentSettings';
 
-export default function Settings() {
-  const [advancedSettings] = useLocalStorage<boolean>({
-    key: 'mantine-advanced-settings',
-    defaultValue: false,
-  });
+export default function SharedContent() {
   const [isLoading, setLoading] = useState(true);
-  const [defaultConfiguration, setDefaultConfiguration] = useState({} as any);
   const [configuration, setConfiguration] = useState({} as any);
-
-  // key/value pairs for dropdowns
-  const [selectionSettings, setSelectionSettings] = useState({
-    allRendererNames: [] as mantineSelectData[],
-    audioCoverSuppliers: [] as mantineSelectData[],
-    enabledRendererNames: [] as mantineSelectData[],
-    ffmpegLoglevels: [],
-    fullyPlayedActions: [] as mantineSelectData[],
-    gpuAccelerationMethod: [],
-    networkInterfaces: [],
-    serverEngines: [] as mantineSelectData[],
-    sortMethods: [] as mantineSelectData[],
-    subtitlesDepth: [],
-    subtitlesCodepages: [] as mantineSelectData[],
-    subtitlesInfoLevels: [] as mantineSelectData[],
-    transcodingEngines: {} as { [key: string]: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] } },
-    transcodingEnginesPurposes: [],
-  });
 
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
@@ -65,8 +39,6 @@ export default function Settings() {
     canView && axios.get(settingsApiUrl)
       .then(function (response: any) {
         const settingsResponse = response.data;
-        setSelectionSettings(settingsResponse);
-        setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
         // merge defaults with what we receive, which might only be non-default values
         const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
@@ -87,6 +59,7 @@ export default function Settings() {
       .then(function () {
         setLoading(false);
       });
+	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
   const handleSubmit = async(values: typeof form.values) => {
@@ -99,7 +72,7 @@ export default function Settings() {
         if (!_.isEqual(configuration[key], values[key])) {
           changedValues[key] = values[key]?values[key]:null;
         }
-      }
+      };
 
       if (_.isEmpty(changedValues)) {
         showNotification({
@@ -130,24 +103,12 @@ export default function Settings() {
   return canView ? (
     <Box sx={{ maxWidth: 1024 }} mx="auto">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Tabs defaultValue="GeneralSettings">
+        <Tabs defaultValue="SharedContent">
           <Tabs.List>
-            <Tabs.Tab value="GeneralSettings">{i18n.get['GeneralSettings']}</Tabs.Tab>
-            { advancedSettings &&
-              <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
-            }
-            <Tabs.Tab value="TranscodingSettings">{i18n.get['TranscodingSettings']}</Tabs.Tab>
+            <Tabs.Tab value="SharedContent">{i18n.get['SharedContent']}</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="GeneralSettings">
-            {GeneralSettings(form,defaultConfiguration,selectionSettings)}
-          </Tabs.Panel>
-          { advancedSettings &&
-            <Tabs.Panel value="NavigationSettings">
-              {NavigationSettings(form,defaultConfiguration,selectionSettings)}
-            </Tabs.Panel>
-          }
-          <Tabs.Panel value="TranscodingSettings">
-            { TranscodingSettings(form,defaultConfiguration,selectionSettings) }
+          <Tabs.Panel value="SharedContent">
+            { SharedContentSettings(form,configuration) }
           </Tabs.Panel>
         </Tabs>
         {canModify && (
