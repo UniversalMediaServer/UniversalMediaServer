@@ -59,3 +59,8 @@ code {
 .thumbnail-text-wrapper {
   padding: 12px 12px 12px 15px;
 }
+
+.poster {
+  max-width: 100%;
+  max-height: 100%;
+}

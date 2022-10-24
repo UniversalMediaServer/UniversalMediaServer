@@ -317,14 +317,14 @@ export const Player = () => {
           const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<img style={{ maxHeight: '500px' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
+          poster = (<img className="poster" src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
         }
       }
       if (!poster && metadata.poster) {
-        poster = (<img style={{ maxHeight: '500px' }} src={metadata.poster} />);
+        poster = (<img src={metadata.poster} />);
       }
       if (!poster && media) {
-        poster = (<img style={{ maxHeight: '500px' }} src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
+        poster = (<img src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
       }
     } else {
       document.body.style.backgroundImage = 'none';
