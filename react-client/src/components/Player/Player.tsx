@@ -256,28 +256,11 @@ export const Player = () => {
   const metadata = data.goal === 'show' ? (media as any).metadata : data.metadata;
 
   function getMetadataImages(metadata?: VideoMetadata, media?: BaseMedia) {
-    let background, logo, poster;
+    let logo, poster;
     if (metadata && metadata.images && metadata.images.length > 0) {
       const iso639 = i18n.language.substring(0,2);
       const apiImagesList = metadata.images[0];
-      // Set the page background and color scheme
-      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
-        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
-        if (backgrounds.length === 0) {
-          // TODO: Support i18n for backgrounds
-          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
-        }
-        if (backgrounds.length === 0) {
-          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
-        }
-        if (backgrounds.length > 0) {
-          const randomBackground = Math.floor(Math.random() * (backgrounds.length));
-          background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
-          document.body.style.backgroundImage='url(' + background + ')';
-          const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
-          mantineAppShellMain.style.backgroundColor='unset';
-        }
-      }
+
       // Set a logo as the heading
       if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
         let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
@@ -321,19 +304,82 @@ export const Player = () => {
         }
       }
       if (!poster && metadata.poster) {
-        poster = (<img src={metadata.poster} />);
+        poster = (<img className="poster" src={metadata.poster} />);
       }
       if (!poster && media) {
-        poster = (<img src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
+        poster = (<img className="poster" src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
       }
-    } else {
-      document.body.style.backgroundImage = 'none';
     }
   
-    return { background: background, logo: logo, poster: poster };
+    return { logo, poster };
   }
 
   const images = getMetadataImages(metadata, media);
+
+  /**
+   * Sorts through the metadata to select any relevant background
+   * image, preload it and fade it in, or if there is no metadata
+   * it fades out any previous one and unsets it.
+   */
+  function setMetadataBackground(metadata: VideoMetadata) {
+    let background = '';
+    if (metadata && metadata.images && metadata.images.length > 0) {
+      const iso639 = i18n.language.substring(0,2);
+      const apiImagesList = metadata.images[0];
+      // Set the page background and color scheme
+      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
+        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
+        if (backgrounds.length === 0) {
+          // TODO: Support i18n for backgrounds
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
+        }
+        if (backgrounds.length === 0) {
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
+        }
+        if (backgrounds.length > 0) {
+          const randomBackground = Math.floor(Math.random() * (backgrounds.length));
+          background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+
+          const backgroundImagePreCreation = new (window as any).Image() as HTMLImageElement;
+          // @ts-expect-error doesn't think crossorigin exists, using crossOrigin breaks it
+          backgroundImagePreCreation.crossorigin = '';
+          backgroundImagePreCreation.id = 'backgroundPreload';
+          backgroundImagePreCreation.onload = function() {
+            document.body.style.backgroundImage='url(' + background + ')';
+
+            const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
+            mantineAppShellMain.style.backgroundColor='unset';
+
+            const bodyBackgroundImageScreens = document.getElementsByClassName('bodyBackgroundImageScreen') as HTMLCollectionOf<HTMLElement>;
+            if (bodyBackgroundImageScreens && bodyBackgroundImageScreens[0]) {
+              const bodyBackgroundImageScreen = bodyBackgroundImageScreens[0];
+              // Set the background "screen" to invisible, to give a fade-in effect for the background image
+              bodyBackgroundImageScreen.style.backgroundColor = 'rgba(20, 21, 23, 0)';
+            }
+          }
+          setTimeout(function() {
+            backgroundImagePreCreation.src = background;
+            const backgroundPreloadContainer = document.getElementsByClassName('backgroundPreloadContainer')[0] as HTMLElement;
+            // TypeScript doesn't like assigning a non-String with innerHtml even though that's valid so we do the "unknown" trick
+            backgroundPreloadContainer.innerHTML = backgroundImagePreCreation as unknown as string;
+          });
+        }
+      }
+    } else {
+      // reset background image state
+      const bodyBackgroundImageScreens = document.getElementsByClassName('bodyBackgroundImageScreen') as HTMLCollectionOf<HTMLElement>;
+      if (bodyBackgroundImageScreens && bodyBackgroundImageScreens[0]) {
+        const bodyBackgroundImageScreen = bodyBackgroundImageScreens[0];
+        // Set the background "screen" to visible, to give a fade-out effect for the background image
+        bodyBackgroundImageScreen.style.backgroundColor = 'rgba(20, 21, 23, 0.99)';
+      }
+
+      // After the fade out is finished, clear the background image
+      setTimeout(() => {
+        document.body.style.backgroundImage = 'none';
+      }, 500);
+    }
+  }
 
   const getPlayControls = () => {
     if (data.goal === 'show') {
@@ -367,7 +413,7 @@ export const Player = () => {
               <Grid.Col span={6}>
                 { images.poster }
               </Grid.Col>
-              <Grid.Col span={12}  >
+              <Grid.Col span={12}>
                 <Card shadow="sm" p="lg" radius="md" sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
                   { images.logo }
                   { getPlayControls() }
@@ -396,7 +442,7 @@ export const Player = () => {
               <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
             </Grid.Col>
             <Grid.Col span={12}  >
-              <Card shadow='sm' p='lg' radius='md'  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
+              <Card shadow='sm' p='lg' radius='md' sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
                 <Text pb='xs'>{media.name}</Text>
                 { getPlayControls() }
               </Card>
@@ -426,23 +472,28 @@ export const Player = () => {
   useEffect(() => {
     if (token && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, {token:token,id:sse.reqId})
-      .then(function (response: any) {
-        setData(response.data);
-        window.scrollTo(0,0);
-      })
-      .catch(function () {
-        showNotification({
-          id: 'player-data-loading',
-          color: 'red',
-          title: 'Error',
-          message: 'Your browse data was not received from the server.',
-          autoClose: 3000,
+      axios.post(playerApiUrl + sse.reqType, { token: token, id: sse.reqId })
+        .then(function (response: any) {
+          console.log('set player data');
+          setData(response.data);
+          const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
+          setMetadataBackground(
+            response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
+          );
+          window.scrollTo(0,0);
+        })
+        .catch(function () {
+          showNotification({
+            id: 'player-data-loading',
+            color: 'red',
+            title: 'Error',
+            message: 'Your browse data was not received from the server.',
+            autoClose: 3000,
+          });
+        })
+        .then(function () {
+          setLoading(false);
         });
-      })
-      .then(function () {
-        setLoading(false);
-      });
     }
   }, [token, sse.reqType, sse.reqId]);
 
@@ -520,6 +571,9 @@ export const Player = () => {
           </span>
         )}
       </ScrollArea>
+      <div className="backgroundPreloadContainer">
+        <img id="backgroundPreload" crossOrigin="" />
+      </div>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">

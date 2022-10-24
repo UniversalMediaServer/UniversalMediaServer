@@ -93,7 +93,7 @@ function App() {
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
                 {session => (
-                  <div dir={rtl ? 'rtl' : 'ltr'}>
+                  <div dir={rtl ? 'rtl' : 'ltr'} className="bodyBackgroundImageScreen">
                     <AppShell
                       padding='md'
                       navbarOffsetBreakpoint='sm'

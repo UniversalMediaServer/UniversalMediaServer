@@ -11,6 +11,20 @@ body {
   min-height: 100%;
 }
 
+.bodyBackgroundImageScreen {
+	height: 100%;
+	width: 100%;
+	background-color: rgba(33, 33, 33, 1);
+	transition: background-color .5s ease-in-out;
+	-moz-transition: background-color .5s ease-in-out;
+	-webkit-transition: background-color .5s ease-in-out; 
+	-o-transition: background-color .5s ease-in-out; 
+}
+
+.backgroundPreloadContainer {
+	display: none;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
