@@ -1,5 +1,4 @@
 import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
 import { Prism } from '@mantine/prism';
 import { useContext, useState } from 'react';

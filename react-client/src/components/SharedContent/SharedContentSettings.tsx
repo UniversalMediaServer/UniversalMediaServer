@@ -1,5 +1,4 @@
 import { Accordion, ActionIcon, Group, Select, Switch, Table, Text, TextInput, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';

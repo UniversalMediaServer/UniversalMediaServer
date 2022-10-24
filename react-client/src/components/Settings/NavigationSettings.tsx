@@ -1,5 +1,4 @@
 import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useContext } from 'react';
 
 import I18nContext from '../../contexts/i18n-context';

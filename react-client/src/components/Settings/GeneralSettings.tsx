@@ -1,5 +1,4 @@
 import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
