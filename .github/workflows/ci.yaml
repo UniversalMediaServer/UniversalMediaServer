@@ -102,6 +102,7 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Run tests
         run: |
           sudo apt-get -y install libmms0
           wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
