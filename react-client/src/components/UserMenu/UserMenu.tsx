@@ -49,7 +49,7 @@ function UserMenu() {
       {!session.player && <>
         <Menu.Divider />
         <Menu.Label>{i18n.get['Settings']}</Menu.Label>
-        {havePermission(session, Permissions.settings_view)  && (
+        {havePermission(session, Permissions.settings_view) && (
           <Menu.Item
             icon={<Share size={14} />}
             onClick={() => { window.location.href = '/shared'; }}
@@ -65,7 +65,7 @@ function UserMenu() {
             {i18n.get['Tools']}
           </Menu.Item>
         )}
-        {havePermission(session, Permissions.settings_view)  && (
+        {havePermission(session, Permissions.settings_view) && (
           <Menu.Item
             icon={<Settings size={14} />}
             onClick={() => { window.location.href = '/settings'; }}
