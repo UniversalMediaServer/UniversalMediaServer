@@ -93,94 +93,94 @@ function App() {
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
                 {session => (
-                  <div dir={rtl ? 'rtl' : 'ltr'} className="bodyBackgroundImageScreen">
-                    <AppShell
-                      padding='md'
-                      navbarOffsetBreakpoint='sm'
-                      navbar={navbar.value &&
-                        <Navbar
-                          hiddenBreakpoint='sm'
-                          hidden={!navbar.opened}
-                          width={{ sm: 200, lg: 300 }}
-                          p="xs"
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
-                        >
-                          <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
-                        </Navbar>}
-                      header={
-                        <Header
-                          height={50}
-                          p='xs'
-                          sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
-                        >{
-                          <Group position='apart'>
-                            <Group position='left'>
-                              {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
-                                <Burger
-                                  opened={navbar.opened}
-                                  onClick={() => navbar.setOpened((o : boolean) => !o)}
-                                  size='sm'
-                                  mr='xl'
-                                />
-                              </MediaQuery>}
+                    <div dir={rtl ? 'rtl' : 'ltr'} className="bodyBackgroundImageScreen">
+                      <AppShell
+                        padding='md'
+                        navbarOffsetBreakpoint='sm'
+                        navbar={navbar.value &&
+                          <Navbar
+                            hiddenBreakpoint='sm'
+                            hidden={!navbar.opened}
+                            width={{ sm: 200, lg: 300 }}
+                            p="xs"
+                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                          >
+                            <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
+                          </Navbar>}
+                        header={
+                          <Header
+                            height={50}
+                            p='xs'
+                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                          >{
+                            <Group position='apart'>
+                              <Group position='left'>
+                                {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+                                  <Burger
+                                    opened={navbar.opened}
+                                    onClick={() => navbar.setOpened((o : boolean) => !o)}
+                                    size='sm'
+                                    mr='xl'
+                                  />
+                                </MediaQuery>}
+                              </Group>
+                              <Group position='right'>
+                                <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
+                                  {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                                </ActionIcon>
+                                <LanguagesMenu />
+                                {session.account && <UserMenu />}
+                              </Group>
                             </Group>
-                            <Group position='right'>
-                              <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                                {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                              </ActionIcon>
-                              <LanguagesMenu />
-                              {session.account && <UserMenu />}
-                            </Group>
-                          </Group>
-                        }</Header>
-                      }
-                      footer={
-                        <Footer height={0}>
-                        </Footer>
-                      }
-                      styles={(theme) => ({
-                        main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
-                      })}
-                    >
-                      {(session.initialized && session.player) ? (
-                        (!session.authenticate || session.account) ? (
+                          }</Header>
+                        }
+                        footer={
+                          <Footer height={0}>
+                          </Footer>
+                        }
+                        styles={(theme) => ({
+                          main: { backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0] },
+                        })}
+                      >
+                        {(session.initialized && session.player) ? (
+                          (!session.authenticate || session.account) ? (
+                            <Router>
+                              <Routes>
+                                <Route path='about' element={<About />}></Route>
+                                <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
+                                <Route index element={<PlayerEventProvider><Player /></PlayerEventProvider>} />
+                              </Routes>
+                            </Router>
+                          ) : (
+                            <PlayerLogin />
+                          )
+                        ) : session.account ? (
                           <Router>
                             <Routes>
-                              <Route path='about' element={<About />}></Route>
+                              <Route path='about' element={<ServerEventProvider><About /></ServerEventProvider>}></Route>
+                              <Route path='accounts' element={<ServerEventProvider><AccountsProvider><Accounts /></AccountsProvider></ServerEventProvider>}></Route>
+                              <Route path='actions' element={<Actions />}></Route>
+                              <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
                               <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
-                              <Route index element={<PlayerEventProvider><Player /></PlayerEventProvider>} />
+                              <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
+                              <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
+                              <Route
+                                path="/*"
+                                element={<Navigate replace to="/" />}
+                              />
                             </Routes>
                           </Router>
+                        ) : session.initialized ? (
+                          <Login />
                         ) : (
-                          <PlayerLogin />
-                        )
-                      ) : session.account ? (
-                        <Router>
-                          <Routes>
-                            <Route path='about' element={<ServerEventProvider><About /></ServerEventProvider>}></Route>
-                            <Route path='accounts' element={<ServerEventProvider><AccountsProvider><Accounts /></AccountsProvider></ServerEventProvider>}></Route>
-                            <Route path='actions' element={<Actions />}></Route>
-                            <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
-                            <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
-                            <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
-                            <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
-                            <Route
-                              path="/*"
-                              element={<Navigate replace to="/" />}
-                            />
-                          </Routes>
-                        </Router>
-                      ) : session.initialized ? (
-                        <Login />
-                      ) : (
-                        <Center>
-                          <Box sx={{ maxWidth: 1024 }} mx='auto'>
-                            <Loader size='xl' variant='dots' sx={{marginTop: '150px'}}/>
-                          </Box>
-                        </Center>
-                      )}
-                    </AppShell>
-                  </div>
+                          <Center>
+                            <Box sx={{ maxWidth: 1024 }} mx='auto'>
+                              <Loader size='xl' variant='dots' sx={{marginTop: '150px'}}/>
+                            </Box>
+                          </Center>
+                        )}
+                      </AppShell>
+                    </div>
                 )}
               </SessionContext.Consumer></SessionProvider>
             )}
