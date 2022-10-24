@@ -1,6 +1,6 @@
 import { Menu, ActionIcon } from '@mantine/core';
 import { useContext } from 'react';
-import { Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, Tool, User, Users } from 'tabler-icons-react';
+import { Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, Share, Tool, User, Users } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -49,6 +49,14 @@ function UserMenu() {
       {!session.player && <>
         <Menu.Divider />
         <Menu.Label>{i18n.get['Settings']}</Menu.Label>
+        {havePermission(session, Permissions.settings_view)  && (
+          <Menu.Item
+            icon={<Share size={14} />}
+            onClick={() => { window.location.href = '/shared'; }}
+          >
+            {i18n.get['SharedContent']}
+          </Menu.Item>
+        )}
         {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (
           <Menu.Item
             icon={<Tool size={14} />}
