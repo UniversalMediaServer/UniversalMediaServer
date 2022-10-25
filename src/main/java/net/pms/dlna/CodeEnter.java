@@ -23,7 +23,7 @@ public class CodeEnter extends VirtualFolder {
 
 	private abstract class CodeAction extends VirtualVideoAction {
 		public CodeAction(String name, boolean enable) {
-			super(name, enable);
+			super(name, enable, null);
 		}
 
 		@Override
