@@ -147,7 +147,7 @@ export const Player = () => {
             return QuestionMark;
         }
     }
-	return null;
+    return null;
   }
 
   const getMedia = (media: BaseMedia) => {
@@ -436,19 +436,21 @@ export const Player = () => {
   const getMediaGridCol = () => {
     if (media) {
       return (<>
-        <Grid.Col span={12}>
-          <Grid columns={20} justify='center'>
-            <Grid.Col span={6}>
-              <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
-            </Grid.Col>
-            <Grid.Col span={12}  >
-              <Card shadow='sm' p='lg' radius='md' sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
-                <Text pb='xs'>{media.name}</Text>
-                { getPlayControls() }
-              </Card>
-            </Grid.Col>
-          </Grid>
-        </Grid.Col>
+        <Grid mb="md">
+          <Grid.Col span={12}>
+            <Grid columns={20} justify='center'>
+              <Grid.Col span={6}>
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
+              </Grid.Col>
+              <Grid.Col span={12}  >
+                <Card shadow='sm' p='lg' radius='md' sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
+                  <Text pb='xs'>{media.name}</Text>
+                  { getPlayControls() }
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Grid.Col>
+        </Grid>
       </>);
     }
   }
@@ -474,7 +476,6 @@ export const Player = () => {
       setLoading(true);
       axios.post(playerApiUrl + sse.reqType, { token: token, id: sse.reqId })
         .then(function (response: any) {
-          console.log('set player data');
           setData(response.data);
           const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
           setMetadataBackground(
@@ -555,21 +556,21 @@ export const Player = () => {
       <LoadingOverlay visible={loading} />
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars viewportRef={mainScroll}>
-        {data.goal === 'play' ?
-          <Paper>
-            {getMediaPlayer()}
-          </Paper>
+        {
+          data.goal === 'play' ?
+            <Paper>
+              {getMediaPlayer()}
+            </Paper>
           : data.goal === 'show' ? (
-          <Grid>
-            {getShowMetadata()}
-          </Grid>
+            getShowMetadata()
           ) : (
-          <span>
-            {getMediaSelections()}
-            {getBrowseMetadata()}
-            {getMedias()}
-          </span>
-        )}
+            <span>
+              {getMediaSelections()}
+              {getBrowseMetadata()}
+              {getMedias()}
+            </span>
+          )
+        }
       </ScrollArea>
       <div className="backgroundPreloadContainer">
         <img id="backgroundPreload" crossOrigin="" />
