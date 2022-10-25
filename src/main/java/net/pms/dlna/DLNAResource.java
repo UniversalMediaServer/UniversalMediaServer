@@ -4945,8 +4945,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (dynamicPls != null) {
 			String str = Messages.getString("Add") + " " + child.getDisplayName() + " " + Messages.getString("ToDynamicPlaylist");
-			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
-
+			VirtualVideoAction vva = new VirtualVideoAction(str, true, null) {
 				@Override
 				public boolean enable() {
 					PMS.get().getDynamicPls().add(child);

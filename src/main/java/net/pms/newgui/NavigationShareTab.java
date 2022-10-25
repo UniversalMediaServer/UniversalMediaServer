@@ -327,6 +327,7 @@ public class NavigationShareTab {
 
 		// Show Server Settings folder
 		isShowFolderServerSettings = new JCheckBox(Messages.getString("ShowServerSettingsFolder"), configuration.isShowServerSettingsFolder());
+		isShowFolderServerSettings.setToolTipText(Messages.getString("WarningThisAllowsShutdownComputer"));
 		isShowFolderServerSettings.setContentAreaFilled(false);
 		isShowFolderServerSettings.addItemListener((ItemEvent e) -> {
 			configuration.setShowServerSettingsFolder((e.getStateChange() == ItemEvent.SELECTED));
