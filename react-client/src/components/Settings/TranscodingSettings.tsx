@@ -1,5 +1,4 @@
 import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
 import { Prism } from '@mantine/prism';
 import { useContext, useState } from 'react';
@@ -13,7 +12,11 @@ import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { mantineSelectData } from './Settings';
 
-export default function TranscodingSettings(form:UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>,defaultConfiguration:any,selectionSettings:any) {
+export default function TranscodingSettings(
+  form: any,
+  defaultConfiguration: any,
+  selectionSettings: any,
+) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -123,7 +126,7 @@ export default function TranscodingSettings(form:UseFormReturnType<Record<string
     ) : (
       <Stack justify="flex-start" align="flex-start" spacing="xs">
         {engines.map((value: string) => (
-          <Button variant="subtle" color='gray' size="xs" compact
+          <Button variant="subtle" color='gray' size="xs" compact key={value}
             leftIcon={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
@@ -137,7 +140,7 @@ export default function TranscodingSettings(form:UseFormReturnType<Record<string
   const getTranscodingEnginesAccordionItems = () => {
     return selectionSettings.transcodingEnginesPurposes.map((value: string, index:number) => {
       return (
-        <Accordion.Item value={'Transcoding' + index.toString()}>
+        <Accordion.Item value={'Transcoding' + index.toString()} key={index}>
           <Accordion.Control>{i18n.getI18nString(value)}</Accordion.Control>
           <Accordion.Panel>{getTranscodingEnginesList(index)}</Accordion.Panel>
         </Accordion.Item>);
@@ -152,7 +155,7 @@ export default function TranscodingSettings(form:UseFormReturnType<Record<string
     for (let i = 0; i < rgbastr.length; i++) {
       const hex = (i < 3) ? parseInt(rgbastr[i]).toString(16) : Math.round(parseFloat(rgbastr[i]) * 255).toString(16);
       if (hex.length < 2) { hexa = hexa + '0' }
-	  hexa = hexa + hex;
+      hexa = hexa + hex;
     }
     return hexa;
   }

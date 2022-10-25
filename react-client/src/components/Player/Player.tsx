@@ -1,4 +1,4 @@
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Container, Grid, Group, Image, List, LoadingOverlay, Paper, ScrollArea, Text, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -58,13 +58,19 @@ export const Player = () => {
 
   const getBreadcrumbs = () => {
     return hasBreadcrumbs() ? (
-      <Paper mb='xs'>
+      <Paper
+        mb="xs"
+        shadow="xs"
+        p="sm"
+        sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+      >
         <Group>
           <Breadcrumbs
             styles={{separator: {margin: '0'}}}
           >
             {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
-			  <Button
+              <Button
+                key={breadcrumb.id ? breadcrumb.id : breadcrumb.name}
                 style={breadcrumb.id ? {fontWeight: 400} : {cursor:'default'}}
                 onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
@@ -141,48 +147,48 @@ export const Player = () => {
             return QuestionMark;
         }
     }
-	return null;
+    return null;
   }
 
   const getMedia = (media: BaseMedia) => {
-	let image;
-    let icon = getMediaIcon(media, rtl);
+    let image;
+    const icon = getMediaIcon(media, rtl);
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
     } else {
-      image = <Image src={playerApiUrl + "thumb/" + token + "/"  + media.id} fit="contain" height={160} alt={media.name} />;
+      image = <img src={playerApiUrl + "thumb/" + token + "/"  + media.id} alt={media.name} className='thumbnail-image' />;
     }
     return (
-      <Grid.Col xs={6} sm={6} md={4} lg={3} span={12}>
-        <Card shadow='sm' p='lg'
-          onClick={() => sse.askReqId(media.id, media.goal?media.goal:'browse')}
-          style={{cursor:'pointer'}}
-        >
-          <Card.Section>
-            {image}
-          </Card.Section>
-          <Text align='center' size='sm' lineClamp={1}>
+      <div
+        className='thumbnail-container'
+        onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse' )}
+        key={media.id}
+      >
+        {image}
+        <div className='thumbnail-text-wrapper'>
+          <Text align='left' size='sm' lineClamp={1} className='thumbnail-text'>
             {media.name}
           </Text>
-        </Card>
-      </Grid.Col>
+        </div>
+      </div>
     )
   }
 
   const getMedias = () => {
     if (data.goal === 'browse') {
-      return data.medias.map((media: BaseMedia) => {
+      const mediaList = data.medias.map((media: BaseMedia) => {
         return getMedia(media);
       })
+      return (<><div className="media-grid">{mediaList}</div></>);
     }
   }
 
-  const getMediasSelection = (selection:BaseMedia[], title:string) => {
+  const getMediasSelection = (selection: BaseMedia[], title: string) => {
     if (selection && selection.length > 0) {
-      let medias = selection.map((media: BaseMedia) => {
+      const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Grid.Col span={12}><Card><Text align='center' size='lg'>{i18n.get[title]}</Text></Card></Grid.Col>{medias}</>);
+      return (<><Title order={2} mb='md' size='h4' weight={400}>{i18n.get[title]}</Title><div className="front-page-grid">{medias}</div></>);
     }
   }
 
@@ -204,10 +210,11 @@ export const Player = () => {
         { mediaList.map((media: BaseMedia) => {
           return (
             <Badge
+              key={media.id}
               sx={(theme) => ({
                 cursor: 'pointer',
                 color: theme.colorScheme === 'dark' ? 'white' : 'black',
-				backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
                 '&:hover': {
                   backgroundColor:
                   theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
@@ -224,17 +231,22 @@ export const Player = () => {
 
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
-      return (<Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}><Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text></Group>);
+      return (
+        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+          <Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
+        </Group>);
     }
   }
 
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
-      return (<><Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
-	  <Text weight={700}>{i18n.get['Ratings']}: </Text></Group>
+      return (<>
+        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+          <Text weight={700}>{i18n.get['Ratings']}: </Text>
+        </Group>
         <List withPadding>
           { ratingsList.map((media: MediaRating) => {
-            return (<List.Item>{media.source}: {media.value}</List.Item>);
+            return (<List.Item key={media.source}>{media.source}: {media.value}</List.Item>);
           })}
         </List>
       </>);
@@ -245,36 +257,22 @@ export const Player = () => {
   const metadata = data.goal === 'show' ? (media as any).metadata : data.metadata;
 
   function getMetadataImages(metadata?: VideoMetadata, media?: BaseMedia) {
-    let background, logo, poster;
+    let logo, poster;
     if (metadata && metadata.images && metadata.images.length > 0) {
       const iso639 = i18n.language.substring(0,2);
-      let apiImagesList = metadata.images[0];
-      // Set the page background and color scheme
-      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
-        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
-        if (backgrounds.length === 0) {
-          // TODO: Support i18n for backgrounds
-          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
-        }
-        if (backgrounds.length === 0) {
-          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
-        }
-        if (backgrounds.length > 0) {
-          var randomBackground = Math.floor(Math.random() * (backgrounds.length));
-          background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
-        }
-      }
+      const apiImagesList = metadata.images[0];
+
       // Set a logo as the heading
       if (apiImagesList && apiImagesList.logos && apiImagesList.logos.length > 0) {
         let logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === iso639);
-		if (logos.length === 0) {
+        if (logos.length === 0) {
           logos = apiImagesList.logos.filter(logo => !logo.iso_639_1);
         }
         if (logos.length === 0) {
           logos = apiImagesList.logos.filter(logo => logo.iso_639_1 === 'en');
         }
         if (logos.length > 0) {
-          let betterLogo = logos.reduce((previousValue, currentValue) => {
+          const betterLogo = logos.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
           logo = (
@@ -300,23 +298,89 @@ export const Player = () => {
           posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === 'en');
         }
         if (posters.length > 0) {
-          let betterPoster = posters.reduce((previousValue, currentValue) => {
+          const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} ></Image>);
+          poster = (<img className="poster" src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
         }
       }
       if (!poster && metadata.poster) {
-        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={metadata.poster} />);
+        poster = (<img className="poster" src={metadata.poster} />);
       }
       if (!poster && media) {
-        poster = (<Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
+        poster = (<img className="poster" src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
       }
     }
-    return {background:background, logo:logo, poster:poster};
+  
+    return { logo, poster };
   }
 
   const images = getMetadataImages(metadata, media);
+
+  /**
+   * Sorts through the metadata to select any relevant background
+   * image, preload it and fade it in, or if there is no metadata
+   * it fades out any previous one and unsets it.
+   */
+  function setMetadataBackground(metadata: VideoMetadata) {
+    let background = '';
+    if (metadata && metadata.images && metadata.images.length > 0) {
+      const iso639 = i18n.language.substring(0,2);
+      const apiImagesList = metadata.images[0];
+      // Set the page background and color scheme
+      if (apiImagesList && apiImagesList.backdrops && apiImagesList.backdrops.length > 0) {
+        let backgrounds = apiImagesList.backdrops.filter(backdrop => !backdrop.iso_639_1);
+        if (backgrounds.length === 0) {
+          // TODO: Support i18n for backgrounds
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === iso639);
+        }
+        if (backgrounds.length === 0) {
+          backgrounds = apiImagesList.backdrops.filter(backdrop => backdrop.iso_639_1 === 'en');
+        }
+        if (backgrounds.length > 0) {
+          const randomBackground = Math.floor(Math.random() * (backgrounds.length));
+          background = metadata.imageBaseURL + 'original' + backgrounds[randomBackground].file_path;
+
+          const backgroundImagePreCreation = new (window as any).Image() as HTMLImageElement;
+          // @ts-expect-error doesn't think crossorigin exists, using crossOrigin breaks it
+          backgroundImagePreCreation.crossorigin = '';
+          backgroundImagePreCreation.id = 'backgroundPreload';
+          backgroundImagePreCreation.onload = function() {
+            document.body.style.backgroundImage='url(' + background + ')';
+
+            const mantineAppShellMain = document.getElementsByClassName('mantine-AppShell-main')[0] as HTMLElement;
+            mantineAppShellMain.style.backgroundColor='unset';
+
+            const bodyBackgroundImageScreens = document.getElementsByClassName('bodyBackgroundImageScreen') as HTMLCollectionOf<HTMLElement>;
+            if (bodyBackgroundImageScreens && bodyBackgroundImageScreens[0]) {
+              const bodyBackgroundImageScreen = bodyBackgroundImageScreens[0];
+              // Set the background "screen" to invisible, to give a fade-in effect for the background image
+              bodyBackgroundImageScreen.style.backgroundColor = 'rgba(20, 21, 23, 0)';
+            }
+          }
+          setTimeout(function() {
+            backgroundImagePreCreation.src = background;
+            const backgroundPreloadContainer = document.getElementsByClassName('backgroundPreloadContainer')[0] as HTMLElement;
+            // TypeScript doesn't like assigning a non-String with innerHtml even though that's valid so we do the "unknown" trick
+            backgroundPreloadContainer.innerHTML = backgroundImagePreCreation as unknown as string;
+          });
+        }
+      }
+    } else {
+      // reset background image state
+      const bodyBackgroundImageScreens = document.getElementsByClassName('bodyBackgroundImageScreen') as HTMLCollectionOf<HTMLElement>;
+      if (bodyBackgroundImageScreens && bodyBackgroundImageScreens[0]) {
+        const bodyBackgroundImageScreen = bodyBackgroundImageScreens[0];
+        // Set the background "screen" to visible, to give a fade-out effect for the background image
+        bodyBackgroundImageScreen.style.backgroundColor = 'rgba(20, 21, 23, 0.99)';
+      }
+
+      // After the fade out is finished, clear the background image
+      setTimeout(() => {
+        document.body.style.backgroundImage = 'none';
+      }, 500);
+    }
+  }
 
   const getPlayControls = () => {
     if (data.goal === 'show') {
@@ -344,26 +408,28 @@ export const Player = () => {
   const getMetadataGridCol = () => {
     if (metadata) {
       return (<>
-        <Grid.Col span={12}>
-          <Grid columns={20} justify="center">
-            <Grid.Col span={6}>
-              { images.poster }
-            </Grid.Col>
-            <Grid.Col span={12}  >
-              <Card shadow="sm" p="lg" radius="md"  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
-                { images.logo }
-                { getPlayControls() }
-                { getMetadataBaseMediaList('Actors', metadata.actors) }
-                { getMetadataString('Awards', metadata.awards) }
-                { getMetadataBaseMediaList('Country', metadata.countries) }
-                { getMetadataBaseMediaList('Director', metadata.directors) }
-                { getMetadataBaseMediaList('Genres', metadata.genres) }
-                { getMetadataString('Plot', metadata.plot) }
-                { getMetadataRatingList(metadata.ratings) }
-              </Card>
-            </Grid.Col>
-          </Grid>
-        </Grid.Col>
+        <Grid mb="md">
+          <Grid.Col span={12}>
+            <Grid columns={20} justify="center">
+              <Grid.Col span={6}>
+                { images.poster }
+              </Grid.Col>
+              <Grid.Col span={12}>
+                <Card shadow="sm" p="lg" radius="md" sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
+                  { images.logo }
+                  { getPlayControls() }
+                  { getMetadataBaseMediaList('Actors', metadata.actors) }
+                  { getMetadataString('Awards', metadata.awards) }
+                  { getMetadataBaseMediaList('Country', metadata.countries) }
+                  { getMetadataBaseMediaList('Director', metadata.directors) }
+                  { getMetadataBaseMediaList('Genres', metadata.genres) }
+                  { getMetadataString('Plot', metadata.plot) }
+                  { getMetadataRatingList(metadata.ratings) }
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Grid.Col>
+        </Grid>
       </>);
     }
   }
@@ -371,19 +437,21 @@ export const Player = () => {
   const getMediaGridCol = () => {
     if (media) {
       return (<>
-        <Grid.Col span={12}>
-          <Grid columns={20} justify='center'>
-            <Grid.Col span={6}>
-              <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
-            </Grid.Col>
-            <Grid.Col span={12}  >
-              <Card shadow='sm' p='lg' radius='md'  sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)',})}>
-                <Text pb='xs'>{media.name}</Text>
-                { getPlayControls() }
-              </Card>
-            </Grid.Col>
-          </Grid>
-        </Grid.Col>
+        <Grid mb="md">
+          <Grid.Col span={12}>
+            <Grid columns={20} justify='center'>
+              <Grid.Col span={6}>
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
+              </Grid.Col>
+              <Grid.Col span={12}  >
+                <Card shadow='sm' p='lg' radius='md' sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
+                  <Text pb='xs'>{media.name}</Text>
+                  { getPlayControls() }
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Grid.Col>
+        </Grid>
       </>);
     }
   }
@@ -407,29 +475,33 @@ export const Player = () => {
   useEffect(() => {
     if (token && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, {token:token,id:sse.reqId})
-      .then(function (response: any) {
-        setData(response.data);
-        window.scrollTo(0,0);
-      })
-      .catch(function () {
-        showNotification({
-          id: 'player-data-loading',
-          color: 'red',
-          title: 'Error',
-          message: 'Your browse data was not received from the server.',
-          autoClose: 3000,
+      axios.post(playerApiUrl + sse.reqType, { token: token, id: sse.reqId })
+        .then(function (response: any) {
+          setData(response.data);
+          const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
+          setMetadataBackground(
+            response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
+          );
+          window.scrollTo(0,0);
+        })
+        .catch(function () {
+          showNotification({
+            id: 'player-data-loading',
+            color: 'red',
+            title: 'Error',
+            message: 'Your browse data was not received from the server.',
+            autoClose: 3000,
+          });
+        })
+        .then(function () {
+          setLoading(false);
         });
-      })
-      .then(function () {
-        setLoading(false);
-      });
     }
   }, [token, sse.reqType, sse.reqId]);
 
   useEffect(() => {
     const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
-      let icon = getMediaIcon(folder, rtl);
+      const icon = getMediaIcon(folder, rtl);
       if (icon) {
         return createElement(icon, {size:20});
       }
@@ -439,6 +511,7 @@ export const Player = () => {
       return data.folders.map((folder) => {
         return (
           <Button
+            key={folder.id}
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
@@ -455,6 +528,7 @@ export const Player = () => {
       return data.mediaLibraryFolders?.map((folder) => {
         return (
           <Button
+            key={folder.id}
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
@@ -479,26 +553,29 @@ export const Player = () => {
   }, [data, i18n.get, navbar.setValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
-    <Box style={{ backgroundImage:images.background?'url(' + images.background + ')':'none'}}>
+    <Box>
       <LoadingOverlay visible={loading} />
-          {getBreadcrumbs()}
-          <ScrollArea offsetScrollbars viewportRef={mainScroll} >
-            {data.goal === 'play' ?
-              <Paper>
-                {getMediaPlayer()}
-              </Paper>
-             : data.goal === 'show' ? (
-              <Grid>
-                {getShowMetadata()}
-              </Grid>
-             ) : (
-              <Grid>
-                {getMediaSelections()}
-				{getBrowseMetadata()}
-                {getMedias()}
-              </Grid>
-            )}
-          </ScrollArea>
+      {getBreadcrumbs()}
+      <ScrollArea offsetScrollbars viewportRef={mainScroll}>
+        {
+          data.goal === 'play' ?
+            <Paper>
+              {getMediaPlayer()}
+            </Paper>
+          : data.goal === 'show' ? (
+            getShowMetadata()
+          ) : (
+            <span>
+              {getMediaSelections()}
+              {getBrowseMetadata()}
+              {getMedias()}
+            </span>
+          )
+        }
+      </ScrollArea>
+      <div className="backgroundPreloadContainer">
+        <img id="backgroundPreload" crossOrigin="" />
+      </div>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">

@@ -1,5 +1,4 @@
 import { Accordion, Button, Checkbox, Group, NumberInput, Select, Stack, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useContext } from 'react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -10,7 +9,11 @@ import { allowHtml, defaultTooltipSettings } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 import { mantineSelectData } from './Settings';
 
-export default function NavigationSettings(form:UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>,defaultConfiguration:any,selectionSettings:any) {
+export default function NavigationSettings(
+  form: any,
+  defaultConfiguration: any,
+  selectionSettings: any,
+) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);

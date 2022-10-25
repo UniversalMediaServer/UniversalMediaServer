@@ -55,7 +55,7 @@ const Logs = () => {
 
   const allLogLevels = logLevels.concat([
     { value: '6', label: i18n.get['All'] },
-   	{ value: '0', label: i18n.get['Off'] },
+    { value: '0', label: i18n.get['Off'] },
   ]);
 
   const getLogLevel = (level:string) => {
@@ -85,13 +85,13 @@ const Logs = () => {
     }
     axios.get(logsApiUrl)
       .then(function (response: any) {
-		setLogs(response.data.logs);
-		setLogThreadFilter([]);
-		setLogThreads([]);
+        setLogs(response.data.logs);
+        setLogThreadFilter([]);
+        setLogThreads([]);
         setRootLogLevel(getLogLevel(response.data.rootLogLevel));
         setGuiLogLevel(getLogLevel(response.data.guiLogLevel));
         setLogLevel(getLogLevel(response.data.guiLogLevel));
-		setTraceMode(response.data.traceMode);
+        setTraceMode(response.data.traceMode);
       })
       .catch(function () {
         showNotification({
@@ -107,7 +107,7 @@ const Logs = () => {
   useEffect(() => {
     const filterLogLevelFilter = (level:string) => {
       if (logLevelFilter.length === 0 || logLevelFilter.length === 5) { return true }
-	  return logLevelFilter.includes(level);
+      return logLevelFilter.includes(level);
     }
     const filterLogLevel = (logLine:string) => {
       if (logLevel === 0) { return false }
@@ -140,9 +140,9 @@ const Logs = () => {
     if (logSearchFilter.search !== values.search || logSearchFilter.search !== values.search || logSearchFilter.search !== values.search) {
       setLogSearchFilter(values);
       setLogSearchFilterIndex(0);
-	} else {
+    } else {
       setLogSearchFilterIndex(logSearchFilterIndex+1);
-	}
+    }
   }
 
   useEffect(() => {
@@ -151,7 +151,7 @@ const Logs = () => {
       return logLine.includes(logSearchFilter.search);
     }
     const logsTemp = filteredLogs.map((e, i) => searchFilterLine(e) ? i : -1).filter(i => i !== -1);
-	setLogSearchFilterIndexes(logsTemp);
+    setLogSearchFilterIndexes(logsTemp);
   }, [filteredLogs, logSearchFilter]);
 
   useEffect(() => {
@@ -201,7 +201,7 @@ const Logs = () => {
     axios.get(logsApiUrl + 'packer')
       .then(function (response: any) {
         const items = response.data as PackerItem[];
-        let selItems = [];
+        const selItems = [];
         for (const item of items) {
           if (item.exists) {
             selItems.push(item.path);
@@ -215,7 +215,7 @@ const Logs = () => {
   const getPackerZip = () => {
     axios.post(logsApiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
       .then(function (response: any) {
-        let fileName = response.headers["content-disposition"].split("filename=")[1];
+        const fileName = response.headers["content-disposition"].split("filename=")[1];
 		const type = response.headers['content-type'];
 		const blob = new Blob([response.data], { type: type });
 		const link = document.createElement('a');
@@ -229,13 +229,13 @@ const Logs = () => {
 
   const getPackerItems = () => {
     return packerItems.map((packerItem : PackerItem) => (
-      <Checkbox value={packerItem.path} disabled={!packerItem.exists} label={packerItem.name} />
+      <Checkbox key={packerItem.path} value={packerItem.path} disabled={!packerItem.exists} label={packerItem.name} />
     ));	
   }
 
   const logFileReader = new FileReader();
   logFileReader.onloadend = (e) => {
-    var contents = e?.target?.result;
+    const contents = e?.target?.result;
     setLogFileLogs(contents as string);
   };
 
@@ -245,8 +245,8 @@ const Logs = () => {
 
   const setLogFileLogs = (contents: string) => {
     const tmplines = contents.split(/\r?\n/);
-    let lines = [] as string[];
-    let threads = [] as string[];
+    const lines = [] as string[];
+    const threads = [] as string[];
     for (let i = 0; i < tmplines.length; i++) {
       if (tmplines[i].length > 30 && tmplines[i].substring(30, 31) === '[') {
         const thread = tmplines[i].substring(31, tmplines[i].indexOf(']')).replace(/[\d|-]+$/, '');
@@ -386,7 +386,7 @@ const Logs = () => {
           <Dropzone
             padding={5}
             onDrop={(files) => readLogFile(files)}
-			maxFiles={1}
+            maxFiles={1}
           >
             <Text align="center">Drop/Select log here</Text>
           </Dropzone>
@@ -401,10 +401,10 @@ const Logs = () => {
         <Prism
           noCopy
           language={'ums' as any}
-		>
+        >
           {activeLogs.join(fileMode ? '\n' : '')}
         </Prism>
-	  </ScrollArea>
+      </ScrollArea>
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">

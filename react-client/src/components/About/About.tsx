@@ -18,7 +18,7 @@ const About = () => {
   const session = useContext(SessionContext);
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
   const languagesRows = i18n.languages.map((language) => (
-    <tr>
+    <tr key={language.id}>
       <td><Group style={{cursor: 'default'}}><ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em'}}/><Text>{language.name}</Text></Group></td>
       {language.id==='en-US' ? (
         <td><Group style={{cursor: 'default'}} position='right'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></td>
@@ -32,8 +32,8 @@ const About = () => {
       )}
     </tr>
   ));
-  const linksRows = aboutDatas.links.map((link:{key:string,value:string}) => (
-    <tr>
+  const linksRows = aboutDatas.links.map((link:{ key: string, value: string }) => (
+    <tr key={link.key}>
       <td><Text align="center" style={{cursor:'pointer'}} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></td>
     </tr>
   ));

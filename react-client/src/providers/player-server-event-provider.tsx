@@ -27,15 +27,15 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   }
 
   const askPlayId = (id:string) => {
-	  askReqId(id, 'play');
+    askReqId(id, 'play');
   }
 
   const askBrowseId = (id:string) => {
-	  askReqId(id, 'browse');
+    askReqId(id, 'browse');
   }
 
   const askShowId = (id:string) => {
-	  askReqId(id, 'show');
+    askReqId(id, 'show');
   }
 
   const setPlayerVolume = (volume:number) => {

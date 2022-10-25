@@ -59,7 +59,6 @@ export default function SharedContent() {
       .then(function () {
         setLoading(false);
       });
-	  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, formSetValues]);
 
   const handleSubmit = async(values: typeof form.values) => {
@@ -72,7 +71,7 @@ export default function SharedContent() {
         if (!_.isEqual(configuration[key], values[key])) {
           changedValues[key] = values[key]?values[key]:null;
         }
-      };
+      }
 
       if (_.isEmpty(changedValues)) {
         showNotification({
@@ -82,7 +81,7 @@ export default function SharedContent() {
       } else {
         await axios.post(settingsApiUrl, changedValues);
         setConfiguration(values);
-		setLoading(false);
+        setLoading(false);
         showNotification({
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationSaved'],

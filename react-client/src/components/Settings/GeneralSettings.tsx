@@ -1,5 +1,4 @@
 import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
@@ -9,7 +8,11 @@ import { havePermission, Permissions } from '../../services/accounts-service';
 import { allowHtml, defaultTooltipSettings } from '../../utils';
 import { mantineSelectData } from './Settings';
 
-export default function GeneralSettings(form:UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>,defaultConfiguration:any,selectionSettings:any) {
+export default function GeneralSettings(
+  form: any,
+  defaultConfiguration: any,
+  selectionSettings: any,
+) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -29,8 +32,8 @@ export default function GeneralSettings(form:UseFormReturnType<Record<string, un
       return {
         value : language.id,
         label: language.name
-		  + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
-		  + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
+        + (language.name!==language.defaultname?' ('+language.defaultname+')':'')
+        + (!language.id.startsWith('en-')?' ('+language.coverage+'%)':'')
       };
     });
   }
