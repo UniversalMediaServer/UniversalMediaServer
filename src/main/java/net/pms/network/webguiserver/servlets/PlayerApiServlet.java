@@ -921,13 +921,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (LOGGER.isTraceEnabled()) {
 				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
+			AsyncContext async = req.startAsync();
 			OutputStream os = resp.getOutputStream();
-			byte[] buffer = new byte[32 * 1024];
-			int bytes;
-			while ((bytes = in.read(buffer)) != -1) {
-				os.write(buffer, 0, bytes);
-			}
-			os.flush();
+			WebGuiServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
