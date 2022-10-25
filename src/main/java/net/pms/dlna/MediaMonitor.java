@@ -105,7 +105,7 @@ public class MediaMonitor extends VirtualFolder {
 	public void scanDir(File[] files, final DLNAResource res) {
 		if (files != null) {
 			final DLNAResource mm = this;
-			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true, null) {
 				@Override
 				public boolean enable() {
 					for (DLNAResource r : res.getChildren()) {

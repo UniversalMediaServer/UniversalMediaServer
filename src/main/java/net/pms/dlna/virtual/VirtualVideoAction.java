@@ -24,6 +24,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.FormatFactory;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Implements a container that when browsed, an action will be performed.
@@ -49,10 +50,15 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * @param enabled If true, a green tick mark is shown as thumbnail.
 	 *                If false, a red cross is shown. This initial value
 	 *                is usually changed via the {@link #enable()} function.
+	 * @param enabledIconOverride path to an icon to use for the enabled thumbnail
 	 */
-	protected VirtualVideoAction(String name, boolean enabled) {
+	protected VirtualVideoAction(String name, boolean enabled, String enabledIconOverride) {
 		this.name = name;
-		thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+		if (StringUtils.isNotBlank(enabledIconOverride)) {
+			thumbnailIconOK = enabledIconOverride;
+		} else {
+			thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+		}
 		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";
 		this.videoOk = "videos/action_success-512.mpg";
 		this.videoKo = "videos/button_cancel-512.mpg";
@@ -84,11 +90,11 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	}
 
 	/**
-	 * This function is called as an action from the UPNP client when
+	 * This function is called as an action from the UPnP client when
 	 * the user tries to play this item. This function calls instead the enable()
 	 * function in order to execute an action.
 	 * As the client expects to play an item, a really short video (less than
-	 * 1s) is shown with  the results of the action.
+	 * 1s) is shown with the results of the action.
 	 *
 	 * @see #enable()
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
@@ -171,7 +177,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	}
 
 	/**
-	 * TODO: (botijo) Why is ext being set here?
 	 * @return True, as this kind of item is always valid.
 	 * @see net.pms.dlna.DLNAResource#isValid()
 	 */

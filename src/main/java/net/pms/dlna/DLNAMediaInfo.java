@@ -1260,7 +1260,7 @@ public class DLNAMediaInfo implements Cloneable {
 								while (line.indexOf("      ") == 0) {
 									if (line.contains(": ")) {
 										int aa = line.indexOf(": ");
-										String key = line.substring(0, aa);
+										String key = line.substring(0, aa).trim();
 										String value = line.substring(aa + 2);
 										if ("title".equals(key)) {
 											//do not set title if it is default, it will be filled automatically later
@@ -1270,6 +1270,7 @@ public class DLNAMediaInfo implements Cloneable {
 										} else {
 											LOGGER.debug("New chapter metadata not handled \"" + key + "\" : \"" + value + "\"");
 										}
+										break;
 									} else {
 										fFmpegMetaDataNr += 1;
 										line = lines.get(fFmpegMetaDataNr);
