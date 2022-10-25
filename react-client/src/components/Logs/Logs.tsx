@@ -140,9 +140,9 @@ const Logs = () => {
     if (logSearchFilter.search !== values.search || logSearchFilter.search !== values.search || logSearchFilter.search !== values.search) {
       setLogSearchFilter(values);
       setLogSearchFilterIndex(0);
-	} else {
+    } else {
       setLogSearchFilterIndex(logSearchFilterIndex+1);
-	}
+    }
   }
 
   useEffect(() => {
@@ -151,7 +151,7 @@ const Logs = () => {
       return logLine.includes(logSearchFilter.search);
     }
     const logsTemp = filteredLogs.map((e, i) => searchFilterLine(e) ? i : -1).filter(i => i !== -1);
-	setLogSearchFilterIndexes(logsTemp);
+    setLogSearchFilterIndexes(logsTemp);
   }, [filteredLogs, logSearchFilter]);
 
   useEffect(() => {

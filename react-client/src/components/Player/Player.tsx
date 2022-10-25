@@ -151,7 +151,7 @@ export const Player = () => {
   }
 
   const getMedia = (media: BaseMedia) => {
-	let image;
+    let image;
     const icon = getMediaIcon(media, rtl);
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
@@ -162,6 +162,7 @@ export const Player = () => {
       <div
         className='thumbnail-container'
         onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse' )}
+        key={media.id}
       >
         {image}
         <div className='thumbnail-text-wrapper'>
