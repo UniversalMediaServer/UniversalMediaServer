@@ -49,6 +49,16 @@ import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
 
+import { Tuple, DefaultMantineColor } from '@mantine/core';
+
+type ExtendedCustomColors = 'darkTransparent' | 'lightTransparent' | DefaultMantineColor;
+
+declare module '@mantine/core' {
+  export interface MantineThemeColorsOverride {
+    colors: Record<ExtendedCustomColors, Tuple<string, 10>>;
+  }
+}
+
 function App() {
   const Player = lazy(() => import('./components/Player/Player'));
 
@@ -85,7 +95,14 @@ function App() {
             : // ltr cache
               undefined
         }
-        theme={{ colorScheme, dir: rtl ? 'rtl' : 'ltr' }}
+        theme={{
+          colorScheme,
+          dir: rtl ? 'rtl' : 'ltr',
+          colors: {
+            'darkTransparent': ['rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)', 'rgba(31, 32, 35, 0.6)'],
+            'lightTransparent': ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)'],
+          },
+        }}
       >
         <NotificationsProvider>
           <I18nProvider>
@@ -93,35 +110,47 @@ function App() {
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
                 {session => (
-                    <div dir={rtl ? 'rtl' : 'ltr'}>
+                    <div dir={rtl ? 'rtl' : 'ltr'} className="bodyBackgroundImageScreen">
                       <AppShell
                         padding='md'
                         navbarOffsetBreakpoint='sm'
                         navbar={navbar.value &&
-                          <Navbar hiddenBreakpoint='sm' hidden={!navbar.opened} width={{ sm: 200, lg: 300 }}>
+                          <Navbar
+                            hiddenBreakpoint='sm'
+                            hidden={!navbar.opened}
+                            width={{ sm: 200, lg: 300 }}
+                            p="xs"
+                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                          >
                             <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                           </Navbar>}
-                        header={<Header height={50} p='xs'>{
-                          <Group position='apart'>
-                            <Group position='left'>
-                              {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
-                                <Burger
-                                  opened={navbar.opened}
-                                  onClick={() => navbar.setOpened((o : boolean) => !o)}
-                                  size='sm'
-                                  mr='xl'
-                                />
-                              </MediaQuery>}
+                        header={
+                          <Header
+                            height={50}
+                            p='xs'
+                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                          >{
+                            <Group position='apart'>
+                              <Group position='left'>
+                                {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+                                  <Burger
+                                    opened={navbar.opened}
+                                    onClick={() => navbar.setOpened((o : boolean) => !o)}
+                                    size='sm'
+                                    mr='xl'
+                                  />
+                                </MediaQuery>}
+                              </Group>
+                              <Group position='right'>
+                                <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
+                                  {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                                </ActionIcon>
+                                <LanguagesMenu />
+                                {session.account && <UserMenu />}
+                              </Group>
                             </Group>
-                            <Group position='right'>
-                              <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                                {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                              </ActionIcon>
-                              <LanguagesMenu />
-                              {session.account && <UserMenu />}
-                            </Group>
-                          </Group>
-                        }</Header>}
+                          }</Header>
+                        }
                         footer={
                           <Footer height={0}>
                           </Footer>
@@ -149,7 +178,7 @@ function App() {
                               <Route path='accounts' element={<ServerEventProvider><AccountsProvider><Accounts /></AccountsProvider></ServerEventProvider>}></Route>
                               <Route path='actions' element={<Actions />}></Route>
                               <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
-							  <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
+                              <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                               <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
                               <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
                               <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />

@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Accordion, ActionIcon, Group, Select, Switch, Table, Text, TextInput, Tooltip } from '@mantine/core';
-import { UseFormReturnType } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -31,7 +30,10 @@ import { sendAction } from '../../services/actions-service';
 import { defaultTooltipSettings, openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
-export default function SharedContentSettings(form:UseFormReturnType<Record<string, unknown>, (values: Record<string, unknown>) => Record<string, unknown>>,configuration:any) {
+export default function SharedContentSettings(
+  form: any,
+  configuration: any,
+) {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
