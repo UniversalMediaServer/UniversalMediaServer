@@ -12630,10 +12630,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stylis@npm:4.1.2":
-  version: 4.1.2
-  resolution: "stylis@npm:4.1.2"
-  checksum: de5771526216ca156f7ccdece70d0e2b4d5611a2a64f34d0165707b06bd8b6ba7913f2eb9b7998c0f9145077079f46d5084b6a60c97ec10b8d776bef293e9f8c
+"stylis@npm:4.1.3":
+  version: 4.1.3
+  resolution: "stylis@npm:4.1.3"
+  checksum: d04dbffcb9bf2c5ca8d8dc09534203c75df3bf711d33973ea22038a99cc475412a350b661ebd99cbc01daa50d7eedcf0d130d121800eb7318759a197023442a6
   languageName: node
   linkType: hard
 
@@ -13159,7 +13159,7 @@ __metadata:
     react-movable: 3.0.4
     react-router-dom: 6.4.2
     react-scripts: 5.0.1
-    stylis: 4.1.2
+    stylis: 4.1.3
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.55.0
     typescript: 4.8.4
