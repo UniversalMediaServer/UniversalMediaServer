@@ -3256,7 +3256,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.0.7, @types/react-dom@npm:^18.0.0":
+"@types/react-dom@npm:18.0.8":
+  version: 18.0.8
+  resolution: "@types/react-dom@npm:18.0.8"
+  dependencies:
+    "@types/react": "*"
+  checksum: 522e5e949d05f35c6037a2290838c9c7ff92a9d06f7d96b993c7c3f5a86d8f3a6337e059c94e6fb0920227f445e5d1ce10fbfe3d9bbd95fb82a5539249d90646
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:^18.0.0":
   version: 18.0.7
   resolution: "@types/react-dom@npm:18.0.7"
   dependencies:
@@ -13270,7 +13279,7 @@ __metadata:
     "@types/node": 16.18.2
     "@types/react": 18.0.23
     "@types/react-color": 3.0.6
-    "@types/react-dom": 18.0.7
+    "@types/react-dom": 18.0.8
     "@types/video.js": 7.3.49
     "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
