@@ -37,5 +37,5 @@ export const sendAction = async(operation: string) => {
       .then((response) => {
         return response.data;
       });
-  };
+  }
 }

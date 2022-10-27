@@ -1270,9 +1270,7 @@ public class MediaTableFiles extends MediaTable {
 				Statement statement = connection.createStatement();
 				ResultSet resultSet = statement.executeQuery(query)
 			) {
-				LOGGER.info("executed query for " + title);
 				if (resultSet.next()) {
-					LOGGER.info("got result for " + title);
 					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
 				}
 			}

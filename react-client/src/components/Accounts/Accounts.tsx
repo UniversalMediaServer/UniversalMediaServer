@@ -53,7 +53,7 @@ const Accounts = () => {
         </div>
       </Group>
     );
-  };
+  }
 
   function NewUserForm() {
     const newUserForm = useForm({ initialValues: {username:null,password:null,groupid:"0",displayname:null} });
@@ -96,7 +96,7 @@ const Accounts = () => {
         </Group>
       </form>
     )
-  };
+  }
 
   function UserIdentityForm(user: UmsUser) {
     const userIdentityForm = useForm({ initialValues: {id:user.id,username:user.username,password:''} });
@@ -127,7 +127,7 @@ const Accounts = () => {
         </Group>
       </form>
     )
-  };
+  }
 
   function UserDisplayNameForm(user: UmsUser) {
     const userDisplayNameForm = useForm({ initialValues: {id:user.id,displayName:user.displayName} });
@@ -150,7 +150,7 @@ const Accounts = () => {
         </Group>
       </form>
     )
-  };
+  }
 
   function UserGroupForm(user: UmsUser) {
     const userGroupForm = useForm({ initialValues: {id:user.id,groupId:user.groupId.toString()} });
@@ -177,7 +177,7 @@ const Accounts = () => {
         )}
       </form>
     )
-  };
+  }
 
   function UserDeleteForm(user: UmsUser) {
     const userDeleteForm = useForm({ initialValues: {id:user.id} });
@@ -209,7 +209,7 @@ const Accounts = () => {
         )}
       </form>
     ); 
-  };
+  }
 
   function UserAccordion(user: UmsUser) {
     const userGroup = getUserGroup(user, accounts);
@@ -229,7 +229,7 @@ const Accounts = () => {
         </Accordion.Panel>
       </Accordion.Item>
     )
-  };
+  }
 
   function NewUserAccordion() {
     const user = {id:0,username:i18n.get['NewUser']} as UmsUser;
@@ -242,7 +242,7 @@ const Accounts = () => {
           <Accordion.Panel>{newUserForm}</Accordion.Panel>
         </Accordion.Item>
     ) : null;
-  };
+  }
 
   function UsersAccordions() {
     const newUserAccordion = canManageUsers ? NewUserAccordion() : null;
@@ -255,7 +255,7 @@ const Accounts = () => {
         {usersAccordions}
       </Accordion>
     );
-  };
+  }
 
   function GroupAccordionLabel(group: UmsGroup) {
     return (
@@ -266,7 +266,7 @@ const Accounts = () => {
         <Text>{group.displayName}</Text>
       </Group>
     );
-  };
+  }
 
   function GroupDisplayNameForm(group: UmsGroup) {
     const groupDisplayNameForm = useForm({ initialValues: {id:group.id,displayName:group.displayName} });
@@ -289,7 +289,7 @@ const Accounts = () => {
         </Group>
       </form>
     )
-  };
+  }
 
   function GroupPermissionsForm(group: UmsGroup) {
     const [permissions, setPermissions] = useState<number>(group.permissions?group.permissions.value:0);
@@ -329,7 +329,7 @@ const Accounts = () => {
         )}
       </form>
     )
-  };
+  }
 
   function GroupDeleteForm(group: UmsGroup) {
     const groupDeleteForm = useForm({ initialValues: {id:group.id} });
@@ -361,7 +361,7 @@ const Accounts = () => {
         )}
       </form>
     ) : null;
-  };
+  }
 
   function GroupAccordion(group: UmsGroup) {
     const groupAccordionLabel = GroupAccordionLabel(group);
@@ -379,7 +379,7 @@ const Accounts = () => {
         </Accordion.Panel>
       </Accordion.Item>
     ) : null;
-  };
+  }
 
   function NewGroupForm() {
     const newGroupForm = useForm({ initialValues: {displayName:''} });
@@ -402,7 +402,7 @@ const Accounts = () => {
         </Group>
       </form>
     )
-  };
+  }
 
   function NewGroupAccordion() {
     const group = {id:0,displayName:i18n.get['NewGroup']} as UmsGroup;
@@ -414,7 +414,7 @@ const Accounts = () => {
         <Accordion.Panel>{newGroupForm}</Accordion.Panel>
       </Accordion.Item>
     );
-  };
+  }
 
   function GroupsAccordions() {
     const newGroupAccordion = NewGroupAccordion();
@@ -427,7 +427,7 @@ const Accounts = () => {
         {groupsAccordions}
       </Accordion>
     );
-  };
+  }
 
   function AuthenticateLocalhostAdmin() {
     const [localhostOpened, setLocalhostOpened] = useState(false);
@@ -458,7 +458,7 @@ const Accounts = () => {
         <Text>{i18n.get['AuthenticateLocalhostAdminDisabled']}</Text>
       </Group>
     </>)
-  };
+  }
 
   function AuthenticationServiceButton() {
     const [authOpened, setAuthOpened] = useState(false);
@@ -490,7 +490,7 @@ const Accounts = () => {
         <Text>{i18n.get['AuthenticationServiceDisabled']}</Text>
       </Group>
     );
-  };
+  }
 
   return (
       <Box sx={{ maxWidth: 1024 }} mx="auto">

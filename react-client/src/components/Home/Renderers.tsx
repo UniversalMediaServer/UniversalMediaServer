@@ -67,21 +67,24 @@ const Renderers = () => {
         break;
       }
       switch(rendererAction.action) {
-        case 'renderer_add':
+        case 'renderer_add': {
           renderersTemp.push(rendererAction);
-        break;
-        case 'renderer_delete':
+          break;
+        }
+        case 'renderer_delete': {
           const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
           if (delIndex > -1) {
             renderersTemp.splice(delIndex, 1);
           }
-        break;
-        case 'renderer_update':
+          break;
+        }
+        case 'renderer_update': {
           const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
           if (index > -1) {
             renderersTemp[index] = rendererAction;
           }
           break;
+        }
       }
     }
     setRenderers(renderersTemp);
@@ -101,8 +104,8 @@ const Renderers = () => {
       });
   }, [askInfos]);
 
-  const renderersCards = renderers.map((renderer:Renderer) => (
-    <Grid.Col span={12} xs={6}>
+  const renderersCards = renderers.map((renderer: Renderer) => (
+    <Grid.Col span={12} xs={6} key={renderer.id}>
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
           <Group position='apart'>
@@ -166,7 +169,7 @@ const Renderers = () => {
     >
       <Table><tbody>
         {infos?.details.map((detail:RendererDetail) => (
-          <tr>
+          <tr key={detail.key}>
             <td>{i18n.getI18nString(detail.key)}</td>
             <td>{detail.value}</td>
           </tr>

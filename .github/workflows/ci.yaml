@@ -21,13 +21,15 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
@@ -41,13 +43,15 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run linter and tests
         run: mvn verify -P linter
 
@@ -61,13 +65,15 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
@@ -87,12 +93,15 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache Maven packages
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0

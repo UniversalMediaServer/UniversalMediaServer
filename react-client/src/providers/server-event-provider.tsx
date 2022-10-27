@@ -182,7 +182,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
       reloadable:reloadable,
       userConfiguration:userConfiguration,
       setUserConfiguration:setUserConfiguration,
-	  scanLibrary:scanLibrary,
+      scanLibrary:scanLibrary,
       hasRendererAction:hasRendererAction,
       getRendererAction:getRendererAction,
       hasNewLogLine:hasNewLogLine,
