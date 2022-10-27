@@ -468,7 +468,7 @@ public class ImagesUtil {
 			f = ByteArrayInputStream.class.getDeclaredField("buf");
 			f.setAccessible(true);
 			return (byte[]) f.get(inputStream);
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+		} catch (RuntimeException | NoSuchFieldException | IllegalAccessException e) {
 			LOGGER.debug("Unexpected reflection failure in retrieveByteArray(): {}", e.getMessage());
 			LOGGER.trace("", e);
 			return null;

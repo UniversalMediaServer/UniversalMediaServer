@@ -35,6 +35,10 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebFilters {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebFilters.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	/**
+	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
+	 */
+	private static final ReentrantReadWriteLock FILTERS_LOCK = new ReentrantReadWriteLock();
 
 	static {
 		readWebFilters(CONFIGURATION.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
@@ -42,10 +46,6 @@ public class FFmpegWebFilters {
 
 	private FFmpegWebFilters() { }
 
-	/**
-	 * Must be used to protect all access to {@link #excludes}, {@link #autoOptions} and {@link #replacements}
-	 */
-	private static final ReentrantReadWriteLock FILTERS_LOCK = new ReentrantReadWriteLock();
 
 	/**
 	 * All access must be protected with {@link #filtersLock}

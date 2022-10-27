@@ -171,7 +171,7 @@ public class WebSourcesConfiguration {
 										LOGGER.debug("Error while getting feed title: " + e);
 									}
 								}
-								result.add(new WebSource(sourceType, resourceName, folderName, uri, thumbnail));
+								result.add(new WebSource(sourceType, folderName, uri, resourceName, thumbnail));
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
 							// catch exception here and back to parsing
