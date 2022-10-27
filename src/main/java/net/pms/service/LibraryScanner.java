@@ -17,10 +17,13 @@
  */
 package net.pms.service;
 
-import net.pms.PMS;
-import net.pms.gui.GuiManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.gui.GuiManager;
 
 public class LibraryScanner {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibraryScanner.class);
@@ -43,6 +46,7 @@ public class LibraryScanner {
 					long start = System.currentTimeMillis();
 					PMS.get().getRootFolder(null).startScan();
 					LOGGER.info("Library scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
+					analyzeDb();
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 					LOGGER.trace("", e);
@@ -52,6 +56,15 @@ public class LibraryScanner {
 			scanner.setPriority(Thread.MIN_PRIORITY);
 			scanner.start();
 			GuiManager.setScanLibraryStatus(true, true);
+		}
+	}
+
+	private static void analyzeDb() {
+		PMS.get().getMediaDatabase();
+		try (Statement stmt = MediaDatabase.getConnectionIfAvailable().createStatement()) {
+			stmt.execute("ANALYSE");
+		} catch (SQLException e) {
+			LOGGER.warn("Error analyzing database", e);
 		}
 	}
 
