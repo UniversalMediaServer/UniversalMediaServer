@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -1122,7 +1123,7 @@ public class MediaTableFiles extends MediaTable {
 				try (
 					PreparedStatement ps = connection.prepareStatement("SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_MODIFIED + ", " + TABLE_COL_ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 					ResultSet rs = ps.executeQuery()) {
-					List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
+					List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
 					boolean isFileStillShared = false;
 					int oldpercent = 0;
 					int i = 0;
@@ -1135,8 +1136,8 @@ public class MediaTableFiles extends MediaTable {
 							rs.deleteRow();
 						} else {
 							// the file exists on the hard drive, but now check if we are still sharing it
-							for (Path folder : sharedFolders) {
-								if (filename.contains(folder.toString())) {
+							for (File folder : sharedFolders) {
+								if (filename.contains(folder.getAbsolutePath())) {
 									isFileStillShared = true;
 									break;
 								}

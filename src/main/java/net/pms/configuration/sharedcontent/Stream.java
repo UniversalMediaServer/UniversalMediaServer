@@ -16,14 +16,49 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public abstract class SharedContent {
-	private boolean active = true;
+public abstract class Stream extends SharedContent {
+	private String parent;
+	private String name;
+	private String uri;
+	private String thumbnail;
 
-	public boolean isActive() {
-		return active;
+	protected Stream(String parent, String name, String uri, String thumbnail) {
+		this.parent = parent;
+		this.name = name;
+		this.uri = uri;
+		this.thumbnail = thumbnail;
 	}
 
-	public void setActive(boolean value) {
-		active = value;
+	public void setParent(String value) {
+		parent = value;
 	}
+
+	public String getParent() {
+		return parent;
+	}
+
+	public void setName(String value) {
+		name = value;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setUri(String value) {
+		uri = value;
+	}
+
+	public String getUri() {
+		return uri;
+	}
+
+	public void setThumbnail(String value) {
+		thumbnail = value;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
 }

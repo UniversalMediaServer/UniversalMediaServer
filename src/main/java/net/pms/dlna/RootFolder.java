@@ -35,6 +35,11 @@ import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebSourcesConfiguration;
+import net.pms.configuration.WebSourcesConfiguration.WebSourcesListener;
+import net.pms.configuration.sharedcontent.Folder;
+import net.pms.configuration.sharedcontent.Folders;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.MediaLibrary;
@@ -58,7 +63,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
-import net.pms.configuration.WebSourcesConfiguration.WebSourcesListener;
 
 public class RootFolder extends DLNAResource implements WebSourcesListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
@@ -146,14 +150,9 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 		}
 
 		if (configuration.getUseCache()) {
-			List<Path> foldersMonitored = configuration.getMonitoredFolders();
+			List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 			if (!foldersMonitored.isEmpty()) {
-				File[] dirs = new File[foldersMonitored.size()];
-				int i = 0;
-				for (Path folderMonitored : foldersMonitored) {
-					dirs[i] = new File(folderMonitored.toAbsolutePath().toString().replace("&comma;", ","));
-					i++;
-				}
+				File[] dirs = foldersMonitored.toArray(File[]::new);
 				mon = new MediaMonitor(dirs);
 			}
 		}
@@ -177,35 +176,34 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 			}
 		}
 
-		for (DLNAResource r : getConfiguredFolders()) {
+		for (DLNAResource r : getConfiguredFolders2()) {
 			addChild(r, true, isAddGlobally);
+		}
+
+		for (DLNAResource r : getVirtualFolders2()) {
+			addChild(r);
 		}
 
 		/**
 		 * Changes to monitored folders trigger a rescan
 		 */
 		if (PMS.getConfiguration().getUseCache()) {
-			for (Path resource : configuration.getMonitoredFolders()) {
-				File file = new File(resource.toString());
+			for (File file : SharedContentConfiguration.getMonitoredFolders()) {
 				if (file.exists()) {
 					if (!file.isDirectory()) {
 						LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
 					} else {
-						LOGGER.trace("Creating FileWatcher for " + resource.toString());
+						LOGGER.trace("Creating FileWatcher for " + file.toString());
 						try {
-							FileWatcher.add(new FileWatcher.Watch(resource.toString() + File.separator + "**", LIBRARY_RESCANNER));
+							FileWatcher.add(new FileWatcher.Watch(file.toString() + File.separator + "**", LIBRARY_RESCANNER));
 						} catch (Exception e) {
-							LOGGER.warn("File watcher access denied for directory {}", resource.toString());
+							LOGGER.warn("File watcher access denied for directory {}", file.toString());
 						}
 					}
 				} else {
 					LOGGER.trace("Skip adding a FileWatcher for non-existent \"{}\"", file);
 				}
 			}
-		}
-
-		for (DLNAResource r : getVirtualFolders()) {
-			addChild(r);
 		}
 
 		if (isAddGlobally) {
@@ -383,6 +381,41 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 		return resources;
 	}
 
+	private List<RealFile> getConfiguredFolders2() {
+		List<RealFile> resources = new ArrayList<>();
+		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentSources();
+
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent instanceof Folder folder && folder.getFile() != null) {
+				resources.add(new RealFile(folder.getFile()));
+			}
+		}
+
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder(Messages.getString("SearchDiscFolders"), new FileSearch(resources));
+			addChild(sf);
+		}
+
+		return resources;
+	}
+
+	private static List<DLNAResource> getVirtualFolders2() {
+		List<DLNAResource> res = new ArrayList<>();
+		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentSources();
+
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent instanceof Folders folders) {
+				MapFileConfiguration conf = new MapFileConfiguration();
+				conf.setName(folders.getName());
+				conf.setFiles(folders.getFiles());
+				conf.setAddToMediaLibrary(folders.isAddToMediaLibrary());
+				res.add(new MapFile(conf));
+			}
+		}
+
+		return res;
+	}
+
 	private static List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parseVirtualFolders();
@@ -457,7 +490,7 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 			switch (sourceType) {
 				case "imagefeed" -> parent.addChild(new ImagesFeed(webSource.getUri()));
 				case "videofeed" -> parent.addChild(new VideosFeed(webSource.getUri()));
-				case "audiofeed" -> parent.addChild(new AudiosFeed(webSource.getResourceName()));
+				case "audiofeed" -> parent.addChild(new AudiosFeed(webSource.getUri()));
 				case "audiostream" -> parent.addChild(new WebAudioStream(webSource.getResourceName(), webSource.getUri(), webSource.getThumbnail()));
 				case "videostream" -> parent.addChild(new WebVideoStream(webSource.getResourceName(), webSource.getUri(), webSource.getThumbnail()));
 				default -> {
@@ -1387,7 +1420,7 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 	 */
 	public static void rescanLibraryFileOrFolder(String filename) {
 		if (
-			hasSameBasePath(PMS.getConfiguration().getSharedFolders(), filename) ||
+			hasSameBasePath2(SharedContentConfiguration.getSharedFolders(), filename) ||
 			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
 		) {
 			LOGGER.debug("rescanning file or folder : " + filename);
@@ -1414,6 +1447,15 @@ public class RootFolder extends DLNAResource implements WebSourcesListener {
 	public static boolean hasSameBasePath(List<Path> dirs, String content) {
 		for (Path path : dirs) {
 			if (content.startsWith(path.toString())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean hasSameBasePath2(List<File> dirs, String content) {
+		for (File file : dirs) {
+			if (content.startsWith(file.getAbsolutePath())) {
 				return true;
 			}
 		}

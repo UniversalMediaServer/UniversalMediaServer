@@ -16,14 +16,15 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public abstract class SharedContent {
-	private boolean active = true;
+public class FeedImage extends Feed {
+	protected static final String TYPE = "FeedImage";
 
-	public boolean isActive() {
-		return active;
+	public FeedImage(String folder, String uri) {
+		super(folder, null, uri);
 	}
 
-	public void setActive(boolean value) {
-		active = value;
+	public FeedImage(String folder, String name, String uri) {
+		super(folder, name, uri);
 	}
+
 }

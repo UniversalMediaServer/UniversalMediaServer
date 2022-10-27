@@ -16,14 +16,18 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public abstract class SharedContent {
-	private boolean active = true;
+public class StreamAudio extends Stream {
+	protected static final String TYPE = "StreamAudio";
 
-	public boolean isActive() {
-		return active;
+	public StreamAudio(String parent, String uri) {
+		super(parent, null, uri, null);
 	}
 
-	public void setActive(boolean value) {
-		active = value;
+	public StreamAudio(String parent, String name, String uri) {
+		super(parent, name, uri, null);
+	}
+
+	public StreamAudio(String parent, String name, String uri, String thumbnail) {
+		super(parent, name, uri, thumbnail);
 	}
 }

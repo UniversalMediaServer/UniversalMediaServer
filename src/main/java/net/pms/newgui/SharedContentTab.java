@@ -30,7 +30,7 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.nio.file.Path;
+import java.io.File;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +43,17 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.UmsConfiguration.SharedFolder;
 import net.pms.configuration.WebSourcesConfiguration;
 import net.pms.configuration.WebSourcesConfiguration.WebSource;
 import net.pms.configuration.WebSourcesConfiguration.WebSourcesListener;
+import net.pms.configuration.sharedcontent.FeedAudio;
+import net.pms.configuration.sharedcontent.FeedImage;
+import net.pms.configuration.sharedcontent.FeedVideo;
+import net.pms.configuration.sharedcontent.Folder;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.configuration.sharedcontent.StreamAudio;
+import net.pms.configuration.sharedcontent.StreamVideo;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -67,8 +74,8 @@ public class SharedContentTab implements WebSourcesListener {
 	);
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 
-	private static JTable webContentList;
-	private static WebContentTableModel webContentTableModel;
+	private static JTable sharedContentList;
+	private static SharedContentTableModel sharedContentTableModel;
 	private JPanel sharedPanel;
 	private JTable sharedFolders;
 	private SharedFoldersTableModel folderTableModel;
@@ -88,6 +95,7 @@ public class SharedContentTab implements WebSourcesListener {
 	private static final JImageButton ARROW_UP_BUTTON = new JImageButton("button-arrow-up.png");
 
 	private static final String[] TYPES_READABLE = new String[]{
+		Messages.getString("Folder"),
 		Messages.getString("Podcast"),
 		Messages.getString("VideoFeed"),
 		Messages.getString("ImageFeed"),
@@ -95,11 +103,12 @@ public class SharedContentTab implements WebSourcesListener {
 		Messages.getString("VideoStream"),
 	};
 
-	public static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[2];
-	public static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[1];
-	public static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[0];
-	public static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
-	public static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
+	public static final String READABLE_TYPE_FOLDER       = TYPES_READABLE[0];
+	public static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[1];
+	public static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[2];
+	public static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[3];
+	public static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[4];
+	public static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[5];
 
 	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
@@ -109,33 +118,81 @@ public class SharedContentTab implements WebSourcesListener {
 		this.looksFrame = looksFrame;
 	}
 
-	private void updateWebContentModel() {
-		List<WebSourcesConfiguration.WebSource> entries = new ArrayList<>();
+	/**
+	 * This parses the web sources config and populates the web section of this tab.
+	 *
+	 * @param active if use external network
+	 */
+	public static synchronized void updateSharedContent(boolean active) {
+		if (sharedContentList == null) {
+			return;
+		}
+		int previouslySelectedRow = sharedContentList.getSelectedRow();
+		sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		sharedContentList.setEnabled(false);
 
-		for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
-			String readableType = (String) webContentTableModel.getValueAt(i, 1);
-			String sourceType;
+		try {
+			// Remove any existing rows
+			((SharedContentTableModel) sharedContentList.getModel()).setRowCount(0);
+			for (SharedContent sharedContent : SharedContentConfiguration.getSharedContentSources()) {
+				if (sharedContent instanceof Folder folder) {
+					sharedContentTableModel.addRow(new Object[]{null, READABLE_TYPE_FOLDER, null, folder.getFile().getPath(), folder.isMonitored(), folder.isActive()});
+				} else if (sharedContent instanceof StreamAudio streamAudio) {
+					sharedContentTableModel.addRow(new Object[]{streamAudio.getName(), READABLE_TYPE_AUDIO_STREAM, streamAudio.getParent(), streamAudio.getUri(), null, streamAudio.isActive()});
+				} else if (sharedContent instanceof StreamVideo streamVideo) {
+					sharedContentTableModel.addRow(new Object[]{streamVideo.getName(), READABLE_TYPE_VIDEO_STREAM, streamVideo.getParent(), streamVideo.getUri(), null, streamVideo.isActive()});
+				} else if (sharedContent instanceof FeedAudio feedAudio) {
+					sharedContentTableModel.addRow(new Object[]{feedAudio.getName(), READABLE_TYPE_AUDIO_FEED, feedAudio.getParent(), feedAudio.getUri(), null, feedAudio.isActive()});
+				} else if (sharedContent instanceof FeedImage feedImage) {
+					sharedContentTableModel.addRow(new Object[]{feedImage.getName(), READABLE_TYPE_IMAGE_FEED, feedImage.getParent(), feedImage.getUri(), null, feedImage.isActive()});
+				} else if (sharedContent instanceof FeedVideo feedVideo) {
+					sharedContentTableModel.addRow(new Object[]{feedVideo.getName(), READABLE_TYPE_VIDEO_FEED, feedVideo.getParent(), feedVideo.getUri(), false, feedVideo.isActive()});
+				}
+			}
+			// Re-select any row that was selected before we (re)parsed the config
+			if (previouslySelectedRow != -1) {
+				sharedContentList.changeSelection(previouslySelectedRow, 1, false, false);
+				Rectangle selectionToScrollTo = sharedContentList.getCellRect(previouslySelectedRow, 1, true);
+				if (!selectionToScrollTo.isEmpty()) {
+					sharedContentList.scrollRectToVisible(selectionToScrollTo);
+				}
+			}
+		} finally {
+			sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			sharedContentList.setEnabled(true);
+		}
+	}
+
+	private void updateSharedContentModel() {
+		List<SharedContent> entries = new ArrayList<>();
+
+		for (int i = 0; i < sharedContentTableModel.getRowCount(); i++) {
+			String resourceName = (String) sharedContentTableModel.getValueAt(i, 0);
+			String readableType = (String) sharedContentTableModel.getValueAt(i, 1);
+			String folderName = (String) sharedContentTableModel.getValueAt(i, 2);
+			String uri = (String) sharedContentTableModel.getValueAt(i, 3);
+			Boolean status = (Boolean) sharedContentTableModel.getValueAt(i, 4);
+			Boolean enable = (Boolean) sharedContentTableModel.getValueAt(i, 5);
+
 			if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
-				sourceType = "imagefeed";
+				entries.add(new FeedImage(folderName, resourceName, uri));
 			} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
-				sourceType = "videofeed";
+				entries.add(new FeedVideo(folderName, resourceName, uri));
 			} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
-				sourceType = "audiofeed";
+				entries.add(new FeedAudio(folderName, resourceName, uri));
 			} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
-				sourceType = "audiostream";
+				entries.add(new StreamAudio(folderName, resourceName, uri));
 			} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
-				sourceType = "videostream";
+				entries.add(new StreamVideo(folderName, resourceName, uri));
+			} else if (readableType.equals(READABLE_TYPE_FOLDER)) {
+				entries.add(new Folder(new File(folderName), status));
 			} else {
 				// Skip the whole row if another value was used
 				continue;
 			}
-			String resourceName = (String) webContentTableModel.getValueAt(i, 0);
-			String folderName = (String) webContentTableModel.getValueAt(i, 2);
-			String uri = (String) webContentTableModel.getValueAt(i, 3);
-			entries.add(new WebSource(sourceType, folderName, uri, resourceName, null));
 		}
 
-		WebSourcesConfiguration.writeWebSourcesConfiguration(entries);
+		SharedContentConfiguration.setSharedContentConfiguration(entries);
 	}
 
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
@@ -181,8 +238,9 @@ public class SharedContentTab implements WebSourcesListener {
 		return scrollPane;
 	}
 
+	@Override
 	public synchronized void updateWebSources() {
-		setWebContentGUIFromWebSourcesConf(configuration.getExternalNetwork());
+		updateSharedContent(configuration.getExternalNetwork());
 	}
 
 	public SharedFoldersTableModel getDf() {
@@ -427,51 +485,61 @@ public class SharedContentTab implements WebSourcesListener {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		webContentTableModel = new WebContentTableModel();
-		webContentList = new JTable(webContentTableModel);
-		TableColumn column = webContentList.getColumnModel().getColumn(3);
+		sharedContentTableModel = new SharedContentTableModel();
+		sharedContentList = new JTable(sharedContentTableModel);
+		TableColumn column = sharedContentList.getColumnModel().getColumn(3);
 		column.setMinWidth(500);
 
-		webContentList.addMouseListener(new TableMouseListener(webContentList));
+		sharedContentList.addMouseListener(new TableMouseListener(sharedContentList));
 
 		/*
 		 * An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
 		 * to allow 2 pixels above and below the text.
 		 */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0, 0);
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedContentList.getCellRenderer(0, 0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		webContentList.setIntercellSpacing(new Dimension(8, 2));
+		sharedContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		sharedContentList.setIntercellSpacing(new Dimension(8, 2));
 
 		JImageButton but = new JImageButton("button-add-webcontent.png");
 		but.setToolTipText(Messages.getString("AddNewWebContent"));
 		but.addActionListener((ActionEvent e) -> {
 			JTextField newEntryName = new JTextField(25);
 			newEntryName.setEnabled(false);
-			newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+			newEntryName.setText(Messages.getString("AutoDetect"));
 
+			JTextField newEntryFolders = new JTextField(25);
+			newEntryFolders.setEnabled(false);
+			newEntryFolders.setText("");
+
+			JTextField newEntrySource = new JTextField(50);
+			
 			JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 			newEntryType.setEditable(false);
 			newEntryType.addItemListener((ItemEvent e1) -> {
-				if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
+				if (READABLE_TYPE_FOLDER.equals(e1.getItem().toString())) {
+					newEntryName.setEnabled(false);
+					newEntryName.setText(Messages.getString("AutoDetect"));
+					newEntryFolders.setEnabled(false);
+					newEntryFolders.setText("");
+				} else if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
 					READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
 					READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())
 				) {
 					newEntryName.setEnabled(false);
 					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					newEntryFolders.setEnabled(true);
+					newEntryFolders.setText("Web,");
 				} else if (READABLE_TYPE_AUDIO_STREAM.equals(e1.getItem().toString()) ||
 						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())
 				) {
 					newEntryName.setEnabled(true);
 					newEntryName.setText("");
+					newEntryFolders.setEnabled(true);
+					newEntryFolders.setText("Web,");
 				}
 			});
-
-			JTextField newEntryFolders = new JTextField(25);
-			newEntryFolders.setText("Web,");
-
-			JTextField newEntrySource = new JTextField(50);
 
 			JPanel addNewWebContentPanel = new JPanel();
 
@@ -535,8 +603,8 @@ public class SharedContentTab implements WebSourcesListener {
 
 			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 			if (result == JOptionPane.OK_OPTION) {
-				SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-				SharedContentTab.webContentList.setEnabled(false);
+				SharedContentTab.sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				SharedContentTab.sharedContentList.setEnabled(false);
 
 				try {
 					String resourceName = null;
@@ -558,12 +626,12 @@ public class SharedContentTab implements WebSourcesListener {
 							LOGGER.debug("Error while getting feed title on add: " + e);
 						}
 					}
-					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{resourceName, newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
-					webContentList.changeSelection(((WebContentTableModel) webContentList.getModel()).getRowCount() - 1, 1, false, false);
-					updateWebContentModel();
+					((SharedContentTableModel) sharedContentList.getModel()).addRow(new Object[]{resourceName, newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText(), false, true});
+					sharedContentList.changeSelection(((SharedContentTableModel) sharedContentList.getModel()).getRowCount() - 1, 1, false, false);
+					updateSharedContentModel();
 				} finally {
-					SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-					SharedContentTab.webContentList.setEnabled(true);
+					SharedContentTab.sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					SharedContentTab.sharedContentList.setEnabled(true);
 				}
 			}
 		});
@@ -572,13 +640,13 @@ public class SharedContentTab implements WebSourcesListener {
 		JImageButton but2 = new JImageButton("button-remove-folder.png");
 		but2.setToolTipText(Messages.getString("RemoveSelectedWebContent"));
 		but2.addActionListener((ActionEvent e) -> {
-			int currentlySelectedRow = webContentList.getSelectedRow();
+			int currentlySelectedRow = sharedContentList.getSelectedRow();
 			if (currentlySelectedRow > -1) {
 				if (currentlySelectedRow > 0) {
-					webContentList.changeSelection(currentlySelectedRow - 1, 1, false, false);
+					sharedContentList.changeSelection(currentlySelectedRow - 1, 1, false, false);
 				}
-				((WebContentTableModel) webContentList.getModel()).removeRow(currentlySelectedRow);
-				updateWebContentModel();
+				((SharedContentTableModel) sharedContentList.getModel()).removeRow(currentlySelectedRow);
+				updateSharedContentModel();
 			}
 		});
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
@@ -586,22 +654,28 @@ public class SharedContentTab implements WebSourcesListener {
 		JImageButton but3 = new JImageButton("button-arrow-down.png");
 		but3.setToolTipText(Messages.getString("MoveSelectedWebContentDown"));
 		but3.addActionListener((ActionEvent e) -> {
-			for (int i = 0; i < webContentList.getRowCount() - 1; i++) {
-				if (webContentList.isRowSelected(i)) {
-					Object name   = webContentList.getValueAt(i, 0);
-					Object type   = webContentList.getValueAt(i, 1);
-					Object folder = webContentList.getValueAt(i, 2);
-					Object source = webContentList.getValueAt(i, 3);
+			for (int i = 0; i < sharedContentList.getRowCount() - 1; i++) {
+				if (sharedContentList.isRowSelected(i)) {
+					Object name   = sharedContentList.getValueAt(i, 0);
+					Object type   = sharedContentList.getValueAt(i, 1);
+					Object folder = sharedContentList.getValueAt(i, 2);
+					Object source = sharedContentList.getValueAt(i, 3);
+					Object status = sharedContentList.getValueAt(i, 4);
+					Object enable = sharedContentList.getValueAt(i, 5);
 
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i, 0);
-					webContentList.setValueAt(name, i + 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i, 1);
-					webContentList.setValueAt(type, i + 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i, 2);
-					webContentList.setValueAt(folder, i + 1, 2);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 3), i, 3);
-					webContentList.setValueAt(source, i + 1, 3);
-					webContentList.changeSelection(i + 1, 1, false, false);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 0), i, 0);
+					sharedContentList.setValueAt(name, i + 1, 0);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 1), i, 1);
+					sharedContentList.setValueAt(type, i + 1, 1);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 2), i, 2);
+					sharedContentList.setValueAt(folder, i + 1, 2);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 3), i, 3);
+					sharedContentList.setValueAt(source, i + 1, 3);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 4), i, 4);
+					sharedContentList.setValueAt(status, i + 1, 4);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i + 1, 5), i, 5);
+					sharedContentList.setValueAt(enable, i + 1, 5);
+					sharedContentList.changeSelection(i + 1, 1, false, false);
 
 					break;
 				}
@@ -612,22 +686,28 @@ public class SharedContentTab implements WebSourcesListener {
 		JImageButton but4 = new JImageButton("button-arrow-up.png");
 		but4.setToolTipText(Messages.getString("MoveSelectedWebContentUp"));
 		but4.addActionListener((ActionEvent e) -> {
-			for (int i = 1; i < webContentList.getRowCount(); i++) {
-				if (webContentList.isRowSelected(i)) {
-					Object name   = webContentList.getValueAt(i, 0);
-					Object type   = webContentList.getValueAt(i, 1);
-					Object folder = webContentList.getValueAt(i, 2);
-					Object source = webContentList.getValueAt(i, 3);
+			for (int i = 1; i < sharedContentList.getRowCount(); i++) {
+				if (sharedContentList.isRowSelected(i)) {
+					Object name   = sharedContentList.getValueAt(i, 0);
+					Object type   = sharedContentList.getValueAt(i, 1);
+					Object folder = sharedContentList.getValueAt(i, 2);
+					Object source = sharedContentList.getValueAt(i, 3);
+					Object status = sharedContentList.getValueAt(i, 4);
+					Object enable = sharedContentList.getValueAt(i, 5);
 
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i, 0);
-					webContentList.setValueAt(name, i - 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i, 1);
-					webContentList.setValueAt(type, i - 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i, 2);
-					webContentList.setValueAt(folder, i - 1, 2);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 3), i, 3);
-					webContentList.setValueAt(source, i - 1, 3);
-					webContentList.changeSelection(i - 1, 1, false, false);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 0), i, 0);
+					sharedContentList.setValueAt(name, i - 1, 0);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 1), i, 1);
+					sharedContentList.setValueAt(type, i - 1, 1);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 2), i, 2);
+					sharedContentList.setValueAt(folder, i - 1, 2);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 3), i, 3);
+					sharedContentList.setValueAt(source, i - 1, 3);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 4), i, 4);
+					sharedContentList.setValueAt(status, i - 1, 4);
+					sharedContentList.setValueAt(sharedContentList.getValueAt(i - 1, 5), i, 5);
+					sharedContentList.setValueAt(enable, i - 1, 5);
+					sharedContentList.changeSelection(i - 1, 1, false, false);
 
 					break;
 				}
@@ -635,9 +715,9 @@ public class SharedContentTab implements WebSourcesListener {
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		JScrollPane pane = new JScrollPane(webContentList);
-		Dimension d = webContentList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, webContentList.getRowHeight() * 2));
+		JScrollPane pane = new JScrollPane(sharedContentList);
+		Dimension d = sharedContentList.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, sharedContentList.getRowHeight() * 2));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
@@ -645,14 +725,13 @@ public class SharedContentTab implements WebSourcesListener {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateSharedFolders() {
-		List<Path> folders = configuration.getSharedFolders();
+		List<Folder> folders = SharedContentConfiguration.getOldSharedFolders();
 		Vector<Vector<?>> newDataVector = new Vector<>();
 		if (!folders.isEmpty()) {
-			List<Path> foldersMonitored = configuration.getMonitoredFolders();
-			for (Path folder : folders) {
+			for (Folder folder : folders) {
 				Vector rowVector = new Vector();
-				rowVector.add(folder.toString());
-				rowVector.add(foldersMonitored.contains(folder));
+				rowVector.add(folder.getFile().toString());
+				rowVector.add(folder.isMonitored());
 				newDataVector.add(rowVector);
 			}
 		}
@@ -708,33 +787,66 @@ public class SharedContentTab implements WebSourcesListener {
 				rowVector.setElementAt(aValue, column);
 			}
 			fireTableCellUpdated(row, column);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
+			SharedContentConfiguration.setOldSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 
 		@Override
 		public void insertRow(int row, Vector rowData) {
 			super.insertRow(row, rowData);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
+			SharedContentConfiguration.setOldSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 
 		@Override
 		public void removeRow(int row) {
 			super.removeRow(row);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
+			SharedContentConfiguration.setOldSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
 		}
 
 		@SuppressWarnings("rawtypes")
-		private List<SharedFolder> getFolders(Vector<Vector<?>> tableVector) {
-			List<SharedFolder> result = new ArrayList<>();
+		private List<Folder> getFolders(Vector<Vector<?>> tableVector) {
+			List<Folder> result = new ArrayList<>();
 			if (tableVector != null) {
 				for (Vector rowVector : tableVector) {
 					if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
-						SharedFolder sharedFolder = new SharedFolder((String) rowVector.get(0), (boolean) rowVector.get(1));
+						Folder sharedFolder = new Folder(new File((String) rowVector.get(0)), (boolean) rowVector.get(1));
 						result.add(sharedFolder);
 					}
 				}
 			}
 			return result;
+		}
+	}
+
+	public class SharedContentTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = -4247839506937958655L;
+
+		public SharedContentTableModel() {
+			// Column headings
+			super(new String[]{
+				Messages.getString("Name"),
+				Messages.getString("Type"),
+				Messages.getString("VirtualFolders"),
+				Messages.getString("Source"),
+				Messages.getString("Status"),
+				Messages.getString("Enable"),
+			}, 0);
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return columnIndex == 4 || columnIndex == 5 ? Boolean.class : String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return column == 4 || column == 5;
+		}
+
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			Vector rowVector = dataVector.elementAt(row);
+			rowVector.setElementAt(aValue, column);
+			fireTableCellUpdated(row, column);
 		}
 	}
 
@@ -766,7 +878,7 @@ public class SharedContentTab implements WebSourcesListener {
 			Vector rowVector = dataVector.elementAt(row);
 			rowVector.setElementAt(aValue, column);
 			fireTableCellUpdated(row, column);
-			updateWebContentModel();
+			updateSharedContentModel();
 		}
 	}
 
@@ -786,10 +898,10 @@ public class SharedContentTab implements WebSourcesListener {
 
 			// more than one click in the same event triggers edit mode
 			if (event.getClickCount() == 2) {
-				String currentName    = (String) webContentList.getValueAt(currentRow, 0);
-				String currentType    = (String) webContentList.getValueAt(currentRow, 1);
-				String currentFolders = (String) webContentList.getValueAt(currentRow, 2);
-				String currentSource  = (String) webContentList.getValueAt(currentRow, 3);
+				String currentName    = (String) sharedContentList.getValueAt(currentRow, 0);
+				String currentType    = (String) sharedContentList.getValueAt(currentRow, 1);
+				String currentFolders = (String) sharedContentList.getValueAt(currentRow, 2);
+				String currentSource  = (String) sharedContentList.getValueAt(currentRow, 3);
 
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
@@ -800,11 +912,34 @@ public class SharedContentTab implements WebSourcesListener {
 					READABLE_TYPE_IMAGE_FEED.equals(currentType)
 				) {
 					newEntryName.setEnabled(false);
-					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					if (!StringUtils.isBlank(currentName)) {
+						newEntryName.setText(currentName);
+					} else {
+						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					}
+				} else if (
+					READABLE_TYPE_FOLDER.equals(currentType)
+				) {
+					newEntryName.setEnabled(false);
+					newEntryName.setText(Messages.getString("AutoDetect"));
 				} else {
 					newEntryName.setEnabled(true);
 					newEntryName.setText(currentName);
 				}
+
+				JTextField newEntryFolders = new JTextField(25);
+				if (
+					READABLE_TYPE_FOLDER.equals(currentType)
+				) {
+					newEntryFolders.setEnabled(false);
+					newEntryFolders.setText("");
+				} else {
+					newEntryFolders.setEnabled(false);
+					newEntryFolders.setText(currentFolders);
+				}
+
+				JTextField newEntrySource = new JTextField(50);
+				newEntrySource.setText(currentSource);
 
 				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
 				newEntryType.setEditable(false);
@@ -817,22 +952,27 @@ public class SharedContentTab implements WebSourcesListener {
 					) {
 						newEntryName.setEnabled(false);
 						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+						newEntryFolders.setEnabled(true);
+						newEntryFolders.setText("web/");
 					} else if (
 						READABLE_TYPE_AUDIO_STREAM.equals(e.getItem().toString()) ||
 						READABLE_TYPE_VIDEO_STREAM.equals(e.getItem().toString())
 					) {
 						newEntryName.setEnabled(true);
 						newEntryName.setText("");
+						newEntryFolders.setEnabled(true);
+						newEntryFolders.setText("web/");
+					} else if (
+						READABLE_TYPE_FOLDER.equals(currentType)
+					) {
+						newEntryName.setEnabled(false);
+						newEntryName.setText(Messages.getString("AutoDetect"));
+						newEntryFolders.setEnabled(false);
+						newEntryFolders.setText("");
 					}
 				});
 
-				JTextField newEntryFolders = new JTextField(25);
-				newEntryFolders.setText(currentFolders);
-
-				JTextField newEntrySource = new JTextField(50);
-				newEntrySource.setText(currentSource);
-
-				JPanel addNewWebContentPanel = new JPanel();
+				JPanel addNewSharedContentPanel = new JPanel();
 
 				JLabel labelName = new JLabel(Messages.getString("NameColon"));
 				JLabel labelType = new JLabel(Messages.getString("TypeColon"));
@@ -844,8 +984,8 @@ public class SharedContentTab implements WebSourcesListener {
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
 
-				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
-				addNewWebContentPanel.setLayout(layout);
+				GroupLayout layout = new GroupLayout(addNewSharedContentPanel);
+				addNewSharedContentPanel.setLayout(layout);
 
 				layout.setHorizontalGroup(
 					layout
@@ -892,52 +1032,15 @@ public class SharedContentTab implements WebSourcesListener {
 						)
 				);
 
-				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
+				int result = JOptionPane.showConfirmDialog(null, addNewSharedContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
-					webContentList.setValueAt(newEntryName.getText(),         currentRow, 0);
-					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 1);
-					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 2);
-					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 3);
-					updateWebContentModel();
+					sharedContentList.setValueAt(newEntryName.getText(),         currentRow, 0);
+					sharedContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 1);
+					sharedContentList.setValueAt(newEntryFolders.getText(),      currentRow, 2);
+					sharedContentList.setValueAt(newEntrySource.getText(),       currentRow, 3);
+					updateSharedContentModel();
 				}
 			}
-		}
-	}
-
-	/**
-	 * This parses the web sources config and populates the web section of this tab.
-	 *
-	 * @param active if use external network
-	 */
-	public static synchronized void setWebContentGUIFromWebSourcesConf(boolean active) {
-		if (webContentList == null) {
-			return;
-		}
-		int previouslySelectedRow = webContentList.getSelectedRow();
-		webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		webContentList.setEnabled(false);
-
-		try {
-			// Remove any existing rows
-			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
-			if (active) {
-				for (WebSource webSource : WebSourcesConfiguration.getWebSources()) {
-					String readableType = getReadableSourceType(webSource.getSourceType());
-					webContentTableModel.addRow(new Object[]{webSource.getResourceName(), readableType, webSource.getFolderName(), webSource.getUri()});
-				}
-
-				// Re-select any row that was selected before we (re)parsed the config
-				if (previouslySelectedRow != -1) {
-					webContentList.changeSelection(previouslySelectedRow, 1, false, false);
-					Rectangle selectionToScrollTo = webContentList.getCellRect(previouslySelectedRow, 1, true);
-					if (!selectionToScrollTo.isEmpty()) {
-						webContentList.scrollRectToVisible(selectionToScrollTo);
-					}
-				}
-			}
-		} finally {
-			webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			webContentList.setEnabled(true);
 		}
 	}
 

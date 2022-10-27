@@ -16,14 +16,39 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public abstract class SharedContent {
-	private boolean active = true;
+public abstract class Feed extends SharedContent {
+	private String parent;
+	private String name;
+	private String uri;
 
-	public boolean isActive() {
-		return active;
+	protected Feed(String parent, String name, String uri) {
+		this.parent = parent;
+		this.name = name;
+		this.uri = uri;
 	}
 
-	public void setActive(boolean value) {
-		active = value;
+	public void setParent(String value) {
+		parent = value;
 	}
+
+	public String getParent() {
+		return parent;
+	}
+
+	public void setName(String value) {
+		name = value;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setUri(String value) {
+		uri = value;
+	}
+
+	public String getUri() {
+		return uri;
+	}
+
 }

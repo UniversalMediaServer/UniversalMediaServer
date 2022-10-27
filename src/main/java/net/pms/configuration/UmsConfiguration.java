@@ -303,6 +303,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SERVER_HOSTNAME = "hostname";
 	protected static final String KEY_SERVER_NAME = "server_name";
 	protected static final String KEY_SERVER_PORT = "port";
+	protected static final String KEY_SHARED_CONF_PATH = "shared_conf";
 	protected static final String KEY_SHARES = "shares";
 	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
@@ -607,6 +608,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	protected static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
 
@@ -615,6 +617,9 @@ public class UmsConfiguration extends RendererConfiguration {
 
 	// Absolute path to profile file e.g. /path/to/UMS.conf
 	protected static final String PROFILE_PATH;
+
+	// Absolute path to SHARED.conf file e.g. /path/to/SHARED.conf
+	protected static String sharedConfPath;
 
 	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
 	protected static String webConfPath;
@@ -4416,6 +4421,28 @@ public class UmsConfiguration extends RendererConfiguration {
 		}
 
 		return getString(KEY_WEB_CONF_PATH, webConfPath);
+	}
+
+	/**
+	 * Returns the absolute path to the SHARED.conf file.
+	 * By default this is <pre>PROFILE_DIRECTORY + File.pathSeparator + SHARED.conf</pre>,
+	 * but it can be overridden via the <pre>shared_conf</pre> profile option.
+	 * The existence of the file is not checked.
+	 *
+	 * @return the path to the SHARED.conf file.
+	 */
+	public String getSharedConfPath() {
+		// Initialise this here rather than in the constructor or statically
+		// so that custom settings are logged to the logfile/Logs tab.
+		if (sharedConfPath == null) {
+			sharedConfPath = FileUtil.getFileLocation(
+				getString(KEY_SHARED_CONF_PATH, null),
+				PROFILE_DIRECTORY,
+				DEFAULT_SHARED_CONF_FILENAME
+			).getFilePath();
+		}
+
+		return getString(KEY_SHARED_CONF_PATH, sharedConfPath);
 	}
 
 	public String getProfileName() {
