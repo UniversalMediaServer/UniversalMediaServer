@@ -127,7 +127,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 			this.cover = cover;
 		}
 
-		public boolean isFounded() {
+		public boolean isFound() {
 			return found;
 		}
 

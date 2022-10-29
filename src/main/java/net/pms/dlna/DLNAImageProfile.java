@@ -1259,8 +1259,13 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 
 		switch (this.toInt()) {
 			case DLNAImageProfile.GIF_LRG_INT -> checkGIF(imageInfo, complianceResult);
-			case DLNAImageProfile.JPEG_LRG_INT, DLNAImageProfile.JPEG_MED_INT, DLNAImageProfile.JPEG_RES_H_V_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT -> checkJPEG(imageInfo, complianceResult);
-			case DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> checkPNG(imageInfo, complianceResult);
+			case DLNAImageProfile.JPEG_LRG_INT,
+				DLNAImageProfile.JPEG_MED_INT,
+				DLNAImageProfile.JPEG_RES_H_V_INT,
+				DLNAImageProfile.JPEG_SM_INT,
+				DLNAImageProfile.JPEG_TN_INT -> checkJPEG(imageInfo, complianceResult);
+			case DLNAImageProfile.PNG_LRG_INT,
+				DLNAImageProfile.PNG_TN_INT -> checkPNG(imageInfo, complianceResult);
 			default -> throw new IllegalStateException("Illegal DLNA media profile");
 		}
 

@@ -160,7 +160,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			this.mBID = mBID;
 		}
 
-		public boolean isFounded() {
+		public boolean isFound() {
 			return found;
 		}
 
