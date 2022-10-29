@@ -19,6 +19,7 @@ package net.pms.configuration.sharedcontent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.File;
 import java.io.IOException;
@@ -27,10 +28,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.util.FileWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,33 +45,30 @@ public class SharedContentConfiguration {
 		.registerTypeAdapter(File.class, new FileTypeAdapter())
 		.create();
 	private static final List<SharedContentListener> LISTENERS = new ArrayList<>();
-	private static final SharedContentArray SHARED_CONTENT_ARRAY = readConfiguration();
+	private static final SharedContentArray SHARED_CONTENT_ARRAY;
 
 	// Automatic reloading
-	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-		synchronized (SHARED_CONTENT_ARRAY) {
-			SHARED_CONTENT_ARRAY.clear();
-			SHARED_CONTENT_ARRAY.addAll(readConfiguration());
-			synchronized (LISTENERS) {
-				for (SharedContentListener listener : LISTENERS) {
-					if (listener != null) {
-						listener.updateSharedContent();
-					}
-				}
-			}
-		}
-	};
+	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> updateSharedContent(readConfiguration(), false);
+
 	static {
+		SHARED_CONTENT_ARRAY = readAllConfigurations();
 		FileWatcher.add(new FileWatcher.Watch(CONFIGURATION.getSharedConfPath(), RELOAD_WATCHER));
 	}
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SharedContentConfiguration() {}
 
 	/**
 	 * This return SharedContent's List.
 	 */
 	public static SharedContentArray getSharedContentSources() {
+		SharedContentArray result = new SharedContentArray();
 		synchronized (SHARED_CONTENT_ARRAY) {
-			return SHARED_CONTENT_ARRAY;
+			result.addAll(SHARED_CONTENT_ARRAY);
 		}
+		return result;
 	}
 
 	/**
@@ -84,7 +82,7 @@ public class SharedContentConfiguration {
 					files.add(folder.getFile());
 				} else if (sharedContent instanceof Folders folders && folders.getFolders() != null) {
 					for (Folder folder : folders.getFolders()) {
-						if (folder!= null && folder.getFile() != null) {
+						if (folder != null && folder.getFile() != null) {
 							files.add(folder.getFile());
 						}
 					}
@@ -102,7 +100,7 @@ public class SharedContentConfiguration {
 					files.add(folder.getFile());
 				} else if (sharedContent instanceof Folders folders && folders.getFolders() != null) {
 					for (Folder folder : folders.getFolders()) {
-						if (folder!= null && folder.isMonitored() && folder.getFile() != null) {
+						if (folder != null && folder.isMonitored() && folder.getFile() != null) {
 							files.add(folder.getFile());
 						}
 					}
@@ -119,33 +117,27 @@ public class SharedContentConfiguration {
 		}
 	}
 
-	public static synchronized SharedContentArray readConfiguration() {
-		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
-		try {
-			if (Files.exists(sharedConfFilePath)) {
-				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
-				return GSON.fromJson(json, SharedContentArray.class);
-			} else {
-				//import old settings
-				SharedContentArray oldConfig = OldConfigurationImporter.getOldConfigurations();
-				writeConfiguration(oldConfig);
+	public static void updateSharedContent(SharedContentArray values, boolean save) {
+		boolean updated = false;
+		synchronized (SHARED_CONTENT_ARRAY) {
+			if (!values.equals(SHARED_CONTENT_ARRAY)) {
+				SHARED_CONTENT_ARRAY.clear();
+				SHARED_CONTENT_ARRAY.addAll(values);
+				if (save) {
+					writeConfiguration();
+				}
+				sendSseApiUpdate();
+				updated = true;
 			}
-		} catch (IOException | JsonSyntaxException ex) {
-			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
-			LOGGER.debug(null, ex);
 		}
-		return new SharedContentArray();
-	}
-
-	public static synchronized void writeConfiguration(SharedContentArray value) {
-		if (SHARED_CONTENT_ARRAY != null && SHARED_CONTENT_ARRAY.equals(value)) {
-			return;
-		}
-		try {
-			Path webConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
-			Files.writeString(webConfFilePath, GSON.toJson(value), StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+		if (updated) {
+			synchronized (LISTENERS) {
+				for (SharedContentListener listener : LISTENERS) {
+					if (listener != null) {
+						listener.updateSharedContent();
+					}
+				}
+			}
 		}
 	}
 
@@ -158,52 +150,58 @@ public class SharedContentConfiguration {
 		return GSON.toJsonTree(SHARED_CONTENT_ARRAY).getAsJsonArray();
 	}
 
-	public interface SharedContentListener {
-		public void updateSharedContent();
+	public static void setFromJsonArray(JsonArray jsonArray) {
+		SharedContentArray values = GSON.fromJson(jsonArray, SharedContentArray.class);
+		updateSharedContent(values, true);
 	}
 
-
-
-
-	/**
-	 * Get shared directories excluding virtual folders.
-	 * Needed by old gui only because virtual folders are not implemented there.
-	 */
-	public static List<Folder> getOldSharedFolders() {
-		synchronized (SHARED_CONTENT_ARRAY) {
-			List<Folder> folders = new ArrayList<>();
-			for (SharedContent sharedContent : SHARED_CONTENT_ARRAY) {
-				if (sharedContent instanceof Folder folder && folder.getFile() != null) {
-					folders.add(folder);
-				}
+	private static synchronized SharedContentArray readAllConfigurations() {
+		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+		try {
+			if (Files.exists(sharedConfFilePath)) {
+				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
+				return GSON.fromJson(json, SharedContentArray.class);
+			} else {
+				//import old settings
+				SharedContentArray oldConfig = OldConfigurationImporter.getOldConfigurations();
+				updateSharedContent(oldConfig, true);
 			}
-			return folders;
+		} catch (IOException | JsonSyntaxException ex) {
+			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
+			LOGGER.debug(null, ex);
+		}
+		return new SharedContentArray();
+	}
+
+	private static synchronized SharedContentArray readConfiguration() {
+		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+		try {
+			if (Files.exists(sharedConfFilePath)) {
+				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
+				return GSON.fromJson(json, SharedContentArray.class);
+			}
+		} catch (IOException | JsonSyntaxException ex) {
+			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
+			LOGGER.debug(null, ex);
+		}
+		return new SharedContentArray();
+	}
+
+	private static synchronized void writeConfiguration() {
+		try {
+			Path webConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+			Files.writeString(webConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while writing the web config file: {}", e);
 		}
 	}
 
-	/**
-	 * Stores the shared folders in the configuration from the specified
-	 * value.
-	 *
-	 * Needed by old gui only because virtual folders are not implemented there.
-	 * @param tableSharedFolders the List of SharedFolder values to use.
-	 */
-	public static void setOldSharedFolders(List<Folder> tableSharedFolders) {
-
-	}
-
-	public static void setSharedContentConfiguration(List<SharedContent> tableSharedContent) {
-
-	}
-
-	private static boolean folderPathInList(Folder folder, List<Folder> folders) {
-		if (folder != null && folder.getFile() != null) {
-			for (Folder rowFolder : folders) {
-				if (rowFolder != null && rowFolder.getFile() != null && folder.getFile().getPath().equals(rowFolder.getFile().getPath())) {
-					return true;
-				}
-			}
-		}
-		return false;
+	private static synchronized void sendSseApiUpdate() {
+		JsonObject sharedMessage = new JsonObject();
+		sharedMessage.addProperty("action", "set_configuration_changed");
+		JsonObject sharedData = new JsonObject();
+		sharedData.add("shared_content", getAsJsonArray());
+		sharedMessage.add("value", sharedData);
+		SseApiServlet.broadcastSharedMessage(sharedMessage.toString());
 	}
 }

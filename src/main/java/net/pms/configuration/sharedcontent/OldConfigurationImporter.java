@@ -19,8 +19,6 @@ package net.pms.configuration.sharedcontent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;

@@ -14,13 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, ActionIcon, Group, Select, Switch, Table, Text, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Code, Group, Modal, Select, Table, TextInput, Tooltip } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowsVertical, EyeCheck, EyeOff, ListSearch, Loader, SquarePlus, SquareX, ZoomCheck } from 'tabler-icons-react';
+import { Analyze, AnalyzeOff, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Plus, Share, ShareOff, SquareX, ZoomCheck } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -38,9 +39,11 @@ export default function SharedContentSettings(
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
   const canModify = havePermission(session, Permissions.settings_modify);
-  const [sharedDirectories, setSharedDirectories] = useState([] as SharedDirectory[]);
-  const [sharedWebContent, setSharedWebContent] = useState([] as SharedWebContentItem[]);
+  const [sharedContents, setSharedContents] = useState([] as SharedContent[]);
   const [isLoading, setLoading] = useState(false);
+  const [newOpened, setNewOpened] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(-1);
+
   /**
    * Shared Directories
   */
@@ -64,12 +67,12 @@ export default function SharedContentSettings(
     setLoading(false);
   }
 
-  const markDirectoryFullyPlayed = async (item: SharedDirectory, isPlayed: boolean) => {
+  const markDirectoryFullyPlayed = async (item: string, isPlayed: boolean) => {
     setLoading(true);
     try {
       await axios.post(
         settingsApiUrl + 'mark-directory',
-        { directory: item.directory, isPlayed },
+        { directory: item, isPlayed },
       );
 
       showNotification({
@@ -86,95 +89,18 @@ export default function SharedContentSettings(
     setLoading(false);
   }
 
-  const updateSharedDirectoriesToSave = (sharedDirectoriesTemp: SharedDirectory[]) => {
-    setSharedDirectories(sharedDirectoriesTemp);
-
-    const sharedDirectoriesArray = [] as string[];
-    const monitoredDirectoriesArray = [] as string[];
-    _.each(sharedDirectoriesTemp, (sharedDirectory) => {
-      if (sharedDirectory.directory) {
-        sharedDirectoriesArray.push(sharedDirectory.directory);
-        if (sharedDirectory.isMonitored) {
-          monitoredDirectoriesArray.push(sharedDirectory.directory);
-        }
-      }
-    });
-    form.setFieldValue('folders', sharedDirectoriesArray);
-    form.setFieldValue('folders_monitored', monitoredDirectoriesArray);
-  }
-
-  const moveSharedDirectory = (oldIndex: number, newIndex: number) => {
-    let sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
-    sharedDirectoriesTemp = arrayMove(sharedDirectoriesTemp, oldIndex, newIndex);
-    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
-  }
-
-  const toggleMonitored = (item: SharedDirectory, isMonitored: boolean) => {
-    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
-    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
-      return realItem.directory === item.directory;
-    });
-    sharedDirectoriesTemp[index].isMonitored = isMonitored;
-    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
-  }
-
-  const setDirectory = (item: SharedDirectory, directory: string) => {
-    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
-    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
-      return realItem.directory === item.directory;
-    });
-    sharedDirectoriesTemp[index].directory = directory;
-
-    // ensure there is always an empty entry at the bottom
-    if (index === sharedDirectoriesTemp.length - 1) {
-      sharedDirectoriesTemp.push({ directory: '', isMonitored: true } as SharedDirectory);
-    }
-    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
-  }
-
-  const removeDirectory = (item: SharedDirectory) => {
-    const sharedDirectoriesTemp = _.cloneDeep(sharedDirectories);
-    const index = _.findIndex(sharedDirectoriesTemp, (realItem) => {
-      return realItem.directory === item.directory;
-    });
-    sharedDirectoriesTemp.splice(index, 1);
-    updateSharedDirectoriesToSave(sharedDirectoriesTemp);
-  }
-
   /**
-   * WebContent
+   * SharedContent
   */
-  const updateSharedWebContentToSave = (sharedWebContentTemp: SharedWebContentItem[]) => {
-    setSharedWebContent(sharedWebContentTemp);
-	const sharedWebContentForm = sharedWebContentTemp.filter(sharedWebContentItem => !sharedWebContentItem.isnew);
-    form.setFieldValue('shared_web_content', sharedWebContentForm);
-  }
-
-  const setSharedWebContentItemAttribute = (attribute: 'name' | 'folders' | 'source' | 'type', item: SharedWebContentItem, value: string | null) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    const index = _.findIndex(sharedWebContentTemp, (realItem) => {
-      return realItem.source === item.source;
-    });
-    if (value && sharedWebContentTemp[index][attribute] !== value) {
-      if (attribute === 'type' && value !== 'audiostream' && value !== 'videostream') {
-        sharedWebContentTemp[index]['name'] = '';
-      }
-      sharedWebContentTemp[index][attribute] = value;
-      updateSharedWebContentToSave(sharedWebContentTemp);
-    }
-  }
-
-  const getSharedWebContentFeedName = async (item: SharedWebContentItem) => {
+  const updateSharedContentFeedName = async (value: Feed) => {
     setLoading(true);
     try {
-      const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-      const index = _.findIndex(sharedWebContentTemp, (realItem) => {
-        return realItem.source === item.source;
-      });
-      const response: { data: { name: string } } = await axios.post(settingsApiUrl + 'web-content-name', { source: item.source });
+      const sharedContentsTemp = _.cloneDeep(sharedContents);
+      const index = sharedContents.indexOf(value);
+      const response: { data: { name: string } } = await axios.post(settingsApiUrl + 'web-content-name', { source: value.uri });
       if (response.data.name) {
-        sharedWebContentTemp[index].name = response.data.name;
-        updateSharedWebContentToSave(sharedWebContentTemp);
+        (sharedContentsTemp[index] as Feed).name = response.data.name;
+        setSharedContents(sharedContentsTemp);
       } else {
         showNotification({
           color: 'orange',
@@ -192,87 +118,220 @@ export default function SharedContentSettings(
     setLoading(false);
   }
 
-  const addSharedWebContentItem = () => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    sharedWebContentTemp[sharedWebContentTemp.length - 1].isnew = false;
-    sharedWebContentTemp.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,', isnew: true } as SharedWebContentItem);
-    updateSharedWebContentToSave(sharedWebContentTemp);
+  const getSharedContentTypeLocalized= (value: string) => {
+    switch (value) {
+      case 'FeedAudio':
+        return i18n.get['Podcast'];
+      case 'FeedImage':
+        return i18n.get['ImageFeed'];
+      case 'FeedVideo':
+        return i18n.get['VideoFeed'];
+      case 'StreamAudio':
+        return i18n.get['AudioStream'];
+      case 'StreamVideo':
+        return i18n.get['VideoStream'];
+      case 'Folder':
+        return i18n.get['Folder'];
+      case 'Folders':
+        return i18n.get['VirtualFolders'];
+	}	  
   }
 
-  const removeSharedWebContentItem = (item: SharedWebContentItem) => {
-    const sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    const index = _.findIndex(sharedWebContentTemp, (realItem) => {
-      return realItem.source === item.source;
-    });
-    sharedWebContentTemp.splice(index, 1);
-    updateSharedWebContentToSave(sharedWebContentTemp);
+  const getSharedContentParents = (value: Feed | Stream | Folders) => {
+    if (!value.parent) {
+      return null;
+    }
+    const parents = value.parent.split('/');
+    return parents.map((parent: string, index) => (
+      <Code color='teal' key={index} mr='xs'>{parent}</Code>
+    ));
   }
 
-  const moveSharedWebContentItem = (oldIndex: number, newIndex: number) => {
-    let sharedWebContentTemp = _.cloneDeep(sharedWebContent);
-    sharedWebContentTemp = arrayMove(sharedWebContentTemp, oldIndex, newIndex);
-    updateSharedWebContentToSave(sharedWebContentTemp);
+  const getSharedContentFeedView = (value: Feed) => {
+    const type = getSharedContentTypeLocalized(value.type);
+    return (
+      <div>
+        <div>{type}</div>
+        <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get['FeedNameNotFound']}</Code>}</div>
+        <div><Code color='blue'>{value.uri}</Code></div>
+      </div>
+    );
   }
 
-  useEffect(() => {
-        const sharedWebContentTemp = _.merge([], configuration.shared_web_content);
-		sharedWebContentTemp.push({ source: '', name: '', type: 'audiofeed', folders: 'Web,', isnew: true } as SharedWebContentItem);
-        setSharedWebContent(sharedWebContentTemp);
+  const getSharedContentStreamView = (value: Stream) => {
+    const type = getSharedContentTypeLocalized(value.type);
+    return (
+      <div>
+        <div>{type}</div>
+        <div>{getSharedContentParents(value)}<Code color='teal'>{value.name}</Code></div>
+        <div><Code color='blue'>{value.uri}</Code></div>
+      </div>
+    );
+  }
 
-        // convert the folders and folders_monitored strings into a more usable structure
-        const sharedContentTemp = [];
-        if (configuration.folders) {
-          for (let i = 0; i < configuration.folders.length; i++) {
-            const sharedFolder = configuration.folders[i];
-            const isMonitored = configuration.folders_monitored.indexOf(sharedFolder) > -1;
-            sharedContentTemp.push({
-              directory: sharedFolder,
-              isMonitored,
-            });
-          }
-        }
-        sharedContentTemp.push({ directory: '', isMonitored: true } as SharedDirectory);
+  const toggleFolderMonitored = (value: Folder) => {
+    const sharedContentsTemp = _.cloneDeep(sharedContents);
+    const index = sharedContents.indexOf(value);
+    (sharedContentsTemp[index] as Folder).monitored = !(sharedContentsTemp[index] as Folder).monitored;
+    setSharedContents(sharedContentsTemp);
+  }
 
-        setSharedDirectories(sharedContentTemp);
-  }, [configuration]);
+  const getFolderName = (value: string) => {
+    return value?.split('\\').pop()?.split('/').pop();
+  }
 
-  return (
-      <Accordion mt="xl">
-        <Accordion.Item value="SharedFolders">
-          <Accordion.Control>{i18n.get['SharedFolders']}</Accordion.Control>
-          <Accordion.Panel>
+  const getSharedContentFolderView = (value: Folder) => {
+    const type = getSharedContentTypeLocalized(value.type);
+    return (
+      <div>
+        <div>{type}</div>
+        <div><Code color='teal'>{getFolderName(value.file)}</Code></div>
+        <div><Code color='blue'>{value.file}</Code></div>
+      </div>
+    );
+  }
+
+  const getSharedContentFoldersChildsView = (value: Folders) => {
+    return value.childs ? value.childs.map((child: Folder, index) => (
+      <div key={index}><Code color='blue'>{child.file}</Code></div>
+    )) : null;
+  }
+
+  const getSharedContentFoldersView = (value: Folders) => {
+    const type = getSharedContentTypeLocalized(value.type);
+    return (
+      <div>
+        <div>{type}</div>
+        <div>{getSharedContentParents(value)}<Code color='teal'>{value.name}</Code></div>
+		{getSharedContentFoldersChildsView(value)}
+      </div>
+    );
+  }
+
+  const getSharedContentView = (value: SharedContent) => {
+    switch (value.type) {
+      case 'FeedAudio':
+      case 'FeedImage':
+      case 'FeedVideo':
+        return getSharedContentFeedView(value as Feed);
+      case 'StreamAudio':
+      case 'StreamVideo':
+        return getSharedContentStreamView(value as Stream);
+      case 'Folder':
+        return getSharedContentFolderView(value as Folder);
+      case 'Folders':
+        return getSharedContentFoldersView(value as Folders);
+	}
+	return (<div>{i18n.get['Unknown']}</div>);
+  }
+
+  const getSharedContentFeedActions = (value: Feed) => {
+    return (
+      <Tooltip label={i18n.get['UpdateFeedName']} {...defaultTooltipSettings}>
+        <ActionIcon
+          color='blue'
+          variant='transparent'
+          disabled={!canModify || !value.uri || isLoading}
+          onClick={() => updateSharedContentFeedName(value)}
+        >
+          <ZoomCheck />
+        </ActionIcon>
+      </Tooltip>
+    );
+  }
+
+  const getSharedContentFolderActions = (value: Folder) => {
+    return (
+      <>
+        <Tooltip label={i18n.get['MonitorPlayedStatusFiles']} {...defaultTooltipSettings}>
+          <ActionIcon
+            color="blue"
+            variant="transparent"
+            disabled={!canModify || !configuration.use_cache}
+            onClick={() => toggleFolderMonitored(value)}
+          >
+            {value.monitored ? <Analyze /> : <AnalyzeOff />}
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label={i18n.get['MarkContentsFullyPlayed']} {...defaultTooltipSettings}>
+          <ActionIcon
+            color="blue"
+            variant="transparent"
+            disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
+            onClick={() => markDirectoryFullyPlayed(value.file, true)}
+          >
+            <EyeCheck />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label={i18n.get['MarkContentsUnplayed']} {...defaultTooltipSettings}>
+          <ActionIcon
+            color="green"
+            variant="transparent"
+            disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
+            onClick={() => markDirectoryFullyPlayed(value.file, false)}
+          >
+            <EyeOff />
+          </ActionIcon>
+        </Tooltip>
+      </>
+    );
+  }
+
+  const getSharedContentActions = (item: SharedContent) => {
+    switch (item.type) {
+      case 'FeedAudio':
+      case 'FeedImage':
+      case 'FeedVideo':
+        return getSharedContentFeedActions(item as Feed);
+      case 'Folder':
+        return getSharedContentFolderActions(item as Folder);
+	}
+	return (<></>);
+  }
+
+  const editSharedContentItem = (value: SharedContent) => {
+    const index = sharedContents.indexOf(value);
+    setEditingIndex(index);
+    setNewOpened(true);
+  }
+
+  const toogleSharedContentItemActive = (item: SharedContent) => {
+    const sharedContentsTemp = _.cloneDeep(sharedContents);
+    const index = sharedContents.indexOf(item);
+    sharedContentsTemp[index].active = !sharedContentsTemp[index].active;
+	setSharedContents(sharedContentsTemp);
+  }
+
+  const removeSharedContentItem = (item: SharedContent) => {
+    const sharedContentsTemp = _.cloneDeep(sharedContents);
+    const index = sharedContents.indexOf(item);
+    sharedContentsTemp.splice(index, 1);
+    setSharedContents(sharedContentsTemp);
+  }
+
+  const moveSharedContentItem = (oldIndex: number, newIndex: number) => {
+    let sharedContentsTemp = _.cloneDeep(sharedContents);
+    sharedContentsTemp = arrayMove(sharedContentsTemp, oldIndex, newIndex);
+    setSharedContents(sharedContentsTemp);
+  }
+
+  const getSharedContentsList = () => {
+    return (
             <List
               lockVertically
-              values={sharedDirectories}
+              values={sharedContents}
               onChange={({ oldIndex, newIndex }) => {
-                canModify && moveSharedDirectory(oldIndex, newIndex);
+                canModify && moveSharedContentItem(oldIndex, newIndex);
               }}
               renderList={
                 ({ children, props }) => {
                   return (
-                    <Table>
+                    <Table highlightOnHover>
                       <thead>
                         <tr>
                           <th></th>
-                          <th>{i18n.get['Folder']}</th>
-                          <th>{i18n.get['MonitorPlayedStatusFiles']}</th>
-                          <th>
-                            <Group position="right">
-                              <Tooltip label={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}>
-                                <ActionIcon
-                                  size="xl"
-                                  disabled={!canModify || isLoading || !sse.scanLibrary.enabled || (!configuration.use_cache && !sse.scanLibrary.running)}
-                                  variant="transparent"
-                                  color={sse.scanLibrary.running ? "red" : "blue"}
-                                  title={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
-                                  onClick={() => sse.scanLibrary.running ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
-                                >
-                                  <ListSearch />
-                                  {sse.scanLibrary.running  && (<Loader />)}
-                                </ActionIcon>
-                              </Tooltip>
-                            </Group>
-                          </th>
+                          <th>Share</th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody {...props}>
@@ -292,56 +351,47 @@ export default function SharedContentSettings(
                           size={20}
                           style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
                           variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                          disabled={!canModify || !value.directory}
+                          disabled={!canModify}
                         >
                           <ArrowsVertical />
                         </ActionIcon>
                       </td>
                       <td>
-                        <DirectoryChooser
-                          disabled={!canModify}
-                          size="xs"
-                          path={value.directory}
-                          callback={(directory: string) => setDirectory(value, directory)}
-                        ></DirectoryChooser>
+                        {getSharedContentView(value)}
                       </td>
                       <td>
-                        <Switch
-                          disabled={!canModify || !value.directory}
-                          checked={value.isMonitored}
-                          onChange={(event) => toggleMonitored(value, event.currentTarget.checked)}
-                        />
-                      </td>
-                      <td align="right">
-                        <Group position="right">
-                          <Tooltip label={i18n.get['MarkContentsFullyPlayed']}>
-                            <ActionIcon
-                              color="blue"
-                              variant="transparent"
-                              disabled={!canModify || !value.directory || isLoading}
-                              onClick={() => markDirectoryFullyPlayed(value, true)}
-                            >
-                              <EyeCheck />
-                            </ActionIcon>
-                          </Tooltip>
-                          <Tooltip label={i18n.get['MarkContentsUnplayed']}>
-                            <ActionIcon
-                              color="green"
-                              variant="transparent"
-                              disabled={!canModify || !value.directory || isLoading}
-                              onClick={() => markDirectoryFullyPlayed(value, false)}
-                            >
-                              <EyeOff />
-                            </ActionIcon>
-                          </Tooltip>
-                          <ActionIcon
-                            color="red"
-                            variant="transparent"
-                            disabled={!canModify || !value.directory}
-                            onClick={() => removeDirectory(value)}
-                          >
-                            <SquareX />
-                          </ActionIcon>
+                      <Group position='right'>
+                        {getSharedContentActions(value)}
+                        <Tooltip label={i18n.get['Edit']} {...defaultTooltipSettings}>
+                        <ActionIcon
+                          color='green'
+                          variant='transparent'
+                          disabled={!canModify}
+                          onClick={() => editSharedContentItem(value)}
+                        >
+                          <Edit />
+                        </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label={value.active ? i18n.get['Disable'] : i18n.get['Enable']} {...defaultTooltipSettings}>
+                        <ActionIcon
+                          color={value.active ? 'blue' : 'orange'}
+                          variant='transparent'
+                          disabled={!canModify}
+                          onClick={() => toogleSharedContentItemActive(value)}
+                        >
+                          {value.active ? <Share /> : <ShareOff />}
+                        </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label={i18n.get['Delete']} {...defaultTooltipSettings}>
+                        <ActionIcon
+                          color='red'
+                          variant='transparent'
+                          disabled={!canModify}
+                          onClick={() => removeSharedContentItem(value)}
+                        >
+                          <SquareX />
+                        </ActionIcon>
+                        </Tooltip>
                         </Group>
                       </td>
                     </tr>
@@ -349,141 +399,229 @@ export default function SharedContentSettings(
                 }
               }
             />
-          </Accordion.Panel>
-        </Accordion.Item>
-        <Accordion.Item value="WebContent">
-          <Accordion.Control>{i18n.get['WebContent']}</Accordion.Control>
-          <Accordion.Panel>
-            <List
-              lockVertically
-              values={sharedWebContent}
-              onChange={({ oldIndex, newIndex }) => {
-                canModify && moveSharedWebContentItem(oldIndex, newIndex);
-              }}
-              renderList={
-                ({ children, props }) => {
-                  return (
-                    <Table>
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>{i18n.get['Type']}</th>
-                          <th>{i18n.get['Name']}</th>
-                          <th>{i18n.get['VirtualFolders']}</th>
-                          <th>{i18n.get['Source']}</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody {...props}>
-                        {children}
-                      </tbody>
-                    </Table>
-                  )
-                }
-              }
-              renderItem={
-                ({ value, props, isDragged, isSelected }) => {
-                  return (
-                    <tr {...props}>
-                      <td>
-                        <ActionIcon
-                          data-movable-handle
-                          size={20}
-                          style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
-                          variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                          disabled={!canModify || value.isnew}
-                        >
-                          <ArrowsVertical />
-                        </ActionIcon>
-                      </td>
-                      <td>
-                        <Select
-                          disabled={!canModify}
-                          data={[
-                            {value: 'audiofeed', label: i18n.get['Podcast']},
-                            {value: 'videofeed', label: i18n.get['VideoFeed']},
-                            {value: 'imagefeed', label: i18n.get['ImageFeed']},
-                            {value: 'audiostream', label: i18n.get['AudioStream']},
-                            {value: 'videostream', label: i18n.get['VideoStream']},
-                          ]}
-                          withinPortal={true}
-                          size="xs"
-                          value={value.type}
-                          onChange={(itemValue) => setSharedWebContentItemAttribute('type', value, itemValue)}
-                        />
-                      </td>
-                      <td>
-                        {(value.type !== 'audiostream' && value.type !== 'videostream') ? (
-                          <Group>
-                            <Tooltip label={i18n.get['NamesSetAutomaticallyFeeds']} {...defaultTooltipSettings}>
-                              <Text lineClamp={1}>
-                                {value.name ? value.name : '-'}
-                              </Text>
-                            </Tooltip>
-                            <ActionIcon
-                              color="red"
-                              variant="transparent"
-                              disabled={!canModify || !value.source || isLoading}
-                              onClick={() => getSharedWebContentFeedName(value)}
-                            >
-                              <ZoomCheck />
-                            </ActionIcon>
-                          </Group>
-                        ) : (
-                          <TextInput
-                            size="xs"
-                            disabled={!canModify}
-                            value={value.name}
-                            onChange={(event) => setSharedWebContentItemAttribute('name', value, event.currentTarget.value)}
-                          />
-						)}
-                      </td>
-                      <td>
-                        <TextInput
-                          size="xs"
-                          disabled={!canModify}
-                          value={value.folders}
-                          onChange={(event) => setSharedWebContentItemAttribute('folders', value, event.currentTarget.value)}
-                        />
-                      </td>
-                      <td>
-                        <TextInput
-                          size="xs"
-                          disabled={!canModify}
-                          value={value.source}
-                          onChange={(event) => setSharedWebContentItemAttribute('source', value, event.currentTarget.value)}
-                        />
-                      </td>
-                      <td>
-                        {!value.isnew ? (
-                          <ActionIcon
-                            color="red"
-                            variant="transparent"
-                            disabled={!canModify}
-                            onClick={() => removeSharedWebContentItem(value)}
-                          >
-                            <SquareX />
-                          </ActionIcon>
-                        ) : (
-                          <ActionIcon
-                            color="green"
-                            variant="transparent"
-                            disabled={!canModify || !value.source || (!value.name && (value.type === 'audiostream' || value.type === 'videostream'))}
-                            onClick={() => addSharedWebContentItem()}
-                          >
-                            <SquarePlus />
-                          </ActionIcon>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                }
-              }
-            />
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
-      );
+    );
+  }
+
+  const modalForm = useForm({
+    initialValues: {
+      contentType: 'Folder',
+      contentName: '',
+      contentPath: '',
+      contentSource: '',
+      contentChilds: [] as Folder[],
+    },
+  });
+
+  const getSharedContentChilds = () => {
+    return modalForm.values['contentChilds'] && modalForm.values['contentChilds'].length > 0 ? (<>
+      <label>{i18n.get['SharedFolders']}</label>
+      {getSharedContentChildsDirectoryChooser()}
+	</>) : null;
+  }
+
+  const getSharedContentChildsDirectoryChooser = () => {
+    return modalForm.values['contentChilds'].map((child: Folder, index) => (
+      <Group key={index} position='apart' spacing={0}>
+        <DirectoryChooser
+          disabled={!canModify}
+          size='xs'
+          path={child.file}
+          callback={(directory: string) => setSharedContentChild(directory, index)}
+        ></DirectoryChooser>
+        <ActionIcon variant='filled' color='red' onClick={() => removeSharedContentChild(index)}>
+          <FolderX size={18} />
+        </ActionIcon>
+      </Group>
+    ))
+  }
+
+  const setSharedContentChild = (file: string, index: number) => {
+    const contentChilds = _.cloneDeep(modalForm.values['contentChilds']);
+    if (index < 0) {
+      contentChilds.push({type:'Folder',file:file,monitored:true,metadata:true,active:true} as Folder);
+    } else {
+      contentChilds[index].file = file;
+    }
+    modalForm.setFieldValue('contentChilds', contentChilds);
+  }
+
+  const removeSharedContentChild = (index: number) => {
+    const contentChilds = _.cloneDeep(modalForm.values['contentChilds']);
+    contentChilds.splice(index, 1);
+    modalForm.setFieldValue('contentChilds', contentChilds);
+  }
+
+  const getSharedContentModifyModal = () => {
+    const isNew = editingIndex < 0;
+    return (
+      <Modal overflow='inside' opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
+        <Select
+          disabled={!canModify || !isNew}
+          label={i18n.get['Type']}
+          data={[
+            {value: 'Folder', label: i18n.get['Folder']},
+            {value: 'Folders', label: i18n.get['VirtualFolders']},
+            {value: 'FeedAudio', label: i18n.get['Podcast']},
+            {value: 'FeedImage', label: i18n.get['ImageFeed']},
+            {value: 'FeedVideo', label: i18n.get['VideoFeed']},
+            {value: 'StreamAudio', label: i18n.get['AudioStream']},
+            {value: 'StreamVideo', label: i18n.get['VideoStream']},
+          ]}
+          {...modalForm.getInputProps('contentType')}
+        ></Select>
+        { modalForm.values['contentType'] !== 'Folder' && (
+          <TextInput
+            disabled={!canModify || modalForm.values['contentType'].startsWith('Feed')}
+            label={i18n.get['Name']}
+            placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get['NamesSetAutomaticallyFeeds'] : ''}
+            name="contentName"
+            sx={{ flex: 1 }}
+            {...modalForm.getInputProps('contentName')}
+          />
+        )}
+        { modalForm.values['contentType'] !== 'Folder' && (
+          <TextInput
+            disabled={!canModify}
+            label={i18n.get['Path']}
+            placeholder={modalForm.values['contentType'] !== 'Folders' ? 'Web' : ''}
+            name="contentPath"
+            sx={{ flex: 1 }}
+            {...modalForm.getInputProps('contentPath')}
+          />
+        )}
+        { modalForm.values['contentType'] === 'Folder' ? (
+          <DirectoryChooser
+            disabled={!canModify}
+            label={i18n.get['Folder']}
+            size='xs'
+            path={modalForm.values['contentSource']}
+            callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
+          ></DirectoryChooser>
+		) : modalForm.values['contentType'] !== 'Folders' && (
+          <TextInput
+            disabled={!canModify}
+            label={i18n.get['SourceURLColon']}
+            name="contentSource"
+            sx={{ flex: 1 }}
+            {...modalForm.getInputProps('contentSource')}
+          />
+        )}
+        { modalForm.values['contentType'] === 'Folders' && (<>
+          {getSharedContentChilds()}
+          <label>{i18n.get['AddFolder']}</label>
+          <DirectoryChooser
+            disabled={!canModify}
+            size='xs'
+            path={''}
+            callback={(directory: string) => setSharedContentChild(directory, -1)}
+          ></DirectoryChooser>
+        </>)}
+        <Group position='right' mt='sm'>
+          <Button variant="outline" onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false)}}>
+            {canModify ? isNew ? i18n.get['Add'] : i18n.get['Apply'] : i18n.get['Close']}
+          </Button>
+        </Group>
+      </Modal>
+    );
+  }
+
+  const saveModal = (values: typeof modalForm.values) => {
+    const sharedContentsTemp = _.cloneDeep(sharedContents);
+    switch(values.contentType) {
+      case 'Folder':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({type:values.contentType,active:true,file:values.contentSource,monitored:true,metadata:true} as Folder);
+        } else {
+          (sharedContentsTemp[editingIndex] as Folder).file = values.contentSource;
+        }
+      break;
+      case 'Folders':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,childs:values.contentChilds} as Folders);
+        } else {
+          (sharedContentsTemp[editingIndex] as Folders).parent = values.contentPath;
+          (sharedContentsTemp[editingIndex] as Folders).name = values.contentName;
+          (sharedContentsTemp[editingIndex] as Folders).childs = values.contentChilds;
+        }
+      break;
+      case 'FeedAudio':
+      case 'FeedImage':
+      case 'FeedVideo':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,uri:values.contentSource} as Feed);
+        } else {
+          (sharedContentsTemp[editingIndex] as Feed).parent = values.contentPath;
+          (sharedContentsTemp[editingIndex] as Feed).name = values.contentName;
+          (sharedContentsTemp[editingIndex] as Feed).uri = values.contentSource;
+        }
+      break;
+      case 'StreamAudio':
+      case 'StreamVideo':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,uri:values.contentSource} as Stream);
+        } else {
+          (sharedContentsTemp[editingIndex] as Stream).parent = values.contentPath;
+          (sharedContentsTemp[editingIndex] as Stream).name = values.contentName;
+          (sharedContentsTemp[editingIndex] as Stream).uri = values.contentSource;
+        }
+      break;
+    }
+    setSharedContents(sharedContentsTemp);
+    setNewOpened(false);
+    setEditingIndex(-1);
+  };
+
+  const getScanSharedFoldersButton = () => {
+    const haveFolder = sharedContents.find(sharedContent => sharedContent.type.startsWith('Folder'));
+    return haveFolder ? (
+      <Tooltip label={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']} {...defaultTooltipSettings}>
+        <ActionIcon
+          size="xl"
+          disabled={!canModify || isLoading || !sse.scanLibrary.enabled || (!configuration.use_cache && !sse.scanLibrary.running)}
+          variant="transparent"
+          color={sse.scanLibrary.running ? "red" : "blue"}
+          title={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
+          onClick={() => sse.scanLibrary.running ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+        >
+          <ListSearch />
+          {sse.scanLibrary.running  && (<Loader />)}
+        </ActionIcon>
+      </Tooltip>
+    ) : null;
+  }
+
+  useEffect(() => {
+    form.setFieldValue('shared_content', sharedContents);
+  }, [sharedContents]);
+
+  useEffect(() => {
+    const sharedContent = editingIndex > -1 ? sharedContents.at(editingIndex) : null;
+    const isNew = !sharedContent;
+    const contentType = isNew ? 'Folder' : sharedContent.type;
+    const contentName = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).name;
+    const contentPath = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).parent;
+    const contentSource = isNew || sharedContent.type === 'Folders' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file;
+    const contentChilds = isNew || sharedContent.type !== 'Folders' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : [];
+    modalForm.setValues({contentType:contentType,contentName:contentName,contentPath:contentPath,contentSource:contentSource,contentChilds:contentChilds});
+  }, [sharedContents, editingIndex]);
+
+  useEffect(() => {
+    const sharedContentTemp = _.merge([], configuration.shared_content);
+    setSharedContents(sharedContentTemp);
+  }, [configuration]);
+
+  return (
+    <>
+      <Group>
+        <Button leftIcon={<Plus />} variant='outline' onClick={() => {setEditingIndex(-1); setNewOpened(true)}}>
+          {i18n.get['AddNewSharedContent']}
+        </Button>
+        {getScanSharedFoldersButton()}
+      </Group>
+      {getSharedContentModifyModal()}
+      {getSharedContentsList()}
+    </>
+  );
 }
 
 interface SharedDirectory {
@@ -497,4 +635,32 @@ interface SharedWebContentItem {
   folders: string;
   source: string;
   isnew?: boolean;
+}
+
+interface SharedContent {
+  type: string;
+  active: boolean;
+}
+
+interface Folder extends SharedContent {
+  file: string;
+  monitored: boolean;
+  metadata: boolean;
+}
+
+interface Folders extends SharedContent {
+  parent: string;
+  name: string;
+  childs: Folder[];
+  addToMediaLibrary: boolean;
+}
+
+interface Feed extends SharedContent {
+  parent: string;
+  name: string;
+  uri: string;
+}
+
+interface Stream extends Feed {
+  thumbnail: string;
 }

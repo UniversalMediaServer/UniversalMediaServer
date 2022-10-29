@@ -72,7 +72,8 @@ public class Folder extends SharedContent {
 			if (file == null && other.file != null) {
 				return false;
 			}
-			return (metadata == other.metadata &&
+			return (active == other.active &&
+				metadata == other.metadata &&
 				monitored == other.monitored &&
 				((file == null && other.file == null) ||
 				file != null && file.equals(other.file)));
@@ -83,6 +84,7 @@ public class Folder extends SharedContent {
 	@Override
 	public int hashCode() {
 		int hash = 7;
+		hash = 83 * hash + (this.active ? 1 : 0);
 		hash = 83 * hash + (this.file != null ? Objects.hashCode(this.file.getPath()) : 0);
 		hash = 83 * hash + (this.monitored ? 1 : 0);
 		hash = 83 * hash + (this.metadata ? 1 : 0);

@@ -16,6 +16,8 @@
  */
 package net.pms.configuration.sharedcontent;
 
+import java.util.Objects;
+
 public abstract class Stream extends SharedContent {
 	private String parent;
 	private String name;
@@ -60,5 +62,33 @@ public abstract class Stream extends SharedContent {
 	public String getThumbnail() {
 		return thumbnail;
 	}
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (o instanceof Stream other) {
+			return (active == other.active &&
+				((parent == null && other.parent == null) ||
+				parent != null && parent.equals(other.parent)) &&
+				((name == null && other.name == null) ||
+				name != null && name.equals(other.name)) &&
+				((uri == null && other.uri == null) ||
+				uri != null && uri.equals(other.uri)) &&
+				((thumbnail == null && other.thumbnail == null) ||
+				thumbnail != null && thumbnail.equals(other.thumbnail)));
+		}
+		return false;
+	}
 
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 83 * hash + (this.active ? 1 : 0);
+		hash = 83 * hash + (Objects.hashCode(this.parent));
+		hash = 83 * hash + (Objects.hashCode(this.name));
+		hash = 83 * hash + (Objects.hashCode(this.uri));
+		hash = 83 * hash + (Objects.hashCode(this.thumbnail));
+		return hash;
+	}
 }

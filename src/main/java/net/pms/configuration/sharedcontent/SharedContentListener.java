@@ -16,14 +16,6 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public abstract class SharedContent {
-	protected boolean active = true;
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean value) {
-		active = value;
-	}
+public interface SharedContentListener {
+	public void updateSharedContent();
 }

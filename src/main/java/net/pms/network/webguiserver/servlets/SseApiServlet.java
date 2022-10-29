@@ -49,6 +49,7 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static final List<ServerSentEvents> SSE_HOME_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_LOGS_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
+	private static final List<ServerSentEvents> SSE_SHARED_INSTANCES = new ArrayList<>();
 
 	public static final String BASE_PATH = "/v1/api/sse";
 
@@ -96,6 +97,7 @@ public class SseApiServlet extends GuiHttpServlet {
 						case WebGuiServlet.BASE_PATH -> SSE_HOME_INSTANCES.add(sse);
 						case WebGuiServlet.LOGS_BASE_PATH -> SSE_LOGS_INSTANCES.add(sse);
 						case WebGuiServlet.SETTINGS_BASE_PATH -> SSE_SETTINGS_INSTANCES.add(sse);
+						case WebGuiServlet.SHARED_BASE_PATH -> SSE_SHARED_INSTANCES.add(sse);
 						case WebGuiServlet.ABOUT_BASE_PATH -> SSE_ABOUT_INSTANCES.add(sse);
 					}
 				}
@@ -136,6 +138,23 @@ public class SseApiServlet extends GuiHttpServlet {
 	public static void broadcastSettingsMessage(String message) {
 		synchronized (SSE_INSTANCES) {
 			for (Iterator<ServerSentEvents> sseIterator = SSE_SETTINGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				ServerSentEvents sse = sseIterator.next();
+				if (!sse.isOpened()) {
+					sseIterator.remove();
+				} else {
+					sse.sendMessage(message);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Broadcast a message to settings page Server Sent Events Streams
+	 * @param message
+	 */
+	public static void broadcastSharedMessage(String message) {
+		synchronized (SSE_INSTANCES) {
+			for (Iterator<ServerSentEvents> sseIterator = SSE_SHARED_INSTANCES.iterator(); sseIterator.hasNext();) {
 				ServerSentEvents sse = sseIterator.next();
 				if (!sse.isOpened()) {
 					sseIterator.remove();

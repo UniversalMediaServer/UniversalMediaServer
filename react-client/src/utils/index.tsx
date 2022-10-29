@@ -38,4 +38,5 @@ export const logsApiUrl = '/v1/api/logs/';
 export const playerApiUrl = '/v1/api/player/';
 export const renderersApiUrl = '/v1/api/renderers/';
 export const settingsApiUrl = '/v1/api/settings/';
+export const sharedApiUrl = '/v1/api/shared/';
 export const sseApiUrl = '/v1/api/sse/';

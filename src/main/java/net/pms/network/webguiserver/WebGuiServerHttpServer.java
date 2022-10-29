@@ -33,6 +33,7 @@ import net.pms.network.webguiserver.servlets.LogsApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
+import net.pms.network.webguiserver.servlets.SharedContentApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
 
@@ -73,6 +74,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(PlayerApiServlet.class);
 				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SettingsApiServlet.class);
+				container.createServlet(SharedContentApiServlet.class);
 				container.createServlet(SseApiServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());

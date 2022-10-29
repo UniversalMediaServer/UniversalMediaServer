@@ -19,6 +19,7 @@ package net.pms.configuration.sharedcontent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Folders extends SharedContent {
 	protected static final String TYPE = "Folders";
@@ -86,4 +87,44 @@ public class Folders extends SharedContent {
 		return result;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (o instanceof Folders other) {
+			if (childs == null) {
+				if (other.childs != null) {
+					return false;
+				}
+			} else {
+				if (other.childs == null || other.childs.size() != childs.size()) {
+					return false;
+				}
+				for (int i = 0; i < childs.size(); i++) {
+					if (!childs.get(i).equals(other.childs.get(i))) {
+						return false;
+					}
+				}
+			}
+			return (active == other.active &&
+				addToMediaLibrary == other.addToMediaLibrary &&
+				((parent == null && other.parent == null) ||
+				parent != null && parent.equals(other.parent)) &&
+				((name == null && other.name == null) ||
+				name != null && name.equals(other.name)));
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 83 * hash + (this.active ? 1 : 0);
+		hash = 83 * hash + (Objects.hashCode(this.name));
+		hash = 83 * hash + (Objects.hashCode(this.parent));
+		hash = 83 * hash + (Objects.hashCode(this.childs));
+		hash = 83 * hash + (this.addToMediaLibrary ? 1 : 0);
+		return hash;
+	}
 }

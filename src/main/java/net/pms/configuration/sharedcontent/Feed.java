@@ -16,6 +16,8 @@
  */
 package net.pms.configuration.sharedcontent;
 
+import java.util.Objects;
+
 public abstract class Feed extends SharedContent {
 	private String parent;
 	private String name;
@@ -51,4 +53,30 @@ public abstract class Feed extends SharedContent {
 		return uri;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (o instanceof Feed other) {
+			return (active == other.active &&
+				((parent == null && other.parent == null) ||
+				parent != null && parent.equals(other.parent)) &&
+				((name == null && other.name == null) ||
+				name != null && name.equals(other.name)) &&
+				((uri == null && other.uri == null) ||
+				uri != null && uri.equals(other.uri)));
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 83 * hash + (this.active ? 1 : 0);
+		hash = 83 * hash + (Objects.hashCode(this.parent));
+		hash = 83 * hash + (Objects.hashCode(this.name));
+		hash = 83 * hash + (Objects.hashCode(this.uri));
+		return hash;
+	}
 }

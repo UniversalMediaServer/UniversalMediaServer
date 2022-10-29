@@ -24,7 +24,7 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import {openGitHubNewIssue, settingsApiUrl} from '../../utils';
+import {openGitHubNewIssue, sharedApiUrl} from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
 
 export default function SharedContent() {
@@ -50,17 +50,12 @@ export default function SharedContent() {
     formSetValues(userConfig);
   }, [configuration, sse, formSetValues]);
 
-  // Code here will run just like componentDidMount
   useEffect(() => {
-    canView && axios.get(settingsApiUrl)
+    canView && axios.get(sharedApiUrl)
       .then(function (response: any) {
-        const settingsResponse = response.data;
-
-        // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
-
-        setConfiguration(userConfig);
-        formSetValues(userConfig);
+        const sharedResponse = response.data;
+        setConfiguration(sharedResponse);
+        formSetValues(sharedResponse);
       })
       .catch(function () {
         showNotification({
@@ -95,7 +90,7 @@ export default function SharedContent() {
           message: i18n.get['ConfigurationHasNoChanges'],
         })
       } else {
-        await axios.post(settingsApiUrl, changedValues);
+        await axios.post(sharedApiUrl, changedValues);
         setConfiguration(values);
         setLoading(false);
         showNotification({
@@ -140,9 +135,4 @@ export default function SharedContent() {
       <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
     </Box>
   );
-}
-
-export interface mantineSelectData {
-  value: string;
-  label: string;
 }
