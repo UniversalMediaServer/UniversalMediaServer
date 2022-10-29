@@ -491,7 +491,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				// Check if it's cached first
 				if (connection != null) {
 					CoverArtArchiveResult result = MediaTableCoverArtArchive.findMBID(mBID);
-					if (result.isFounded()) {
+					if (result.isFound()) {
 						if (result.hasCoverBytes()) {
 							return result.getCoverBytes();
 						} else if (System.currentTimeMillis() - result.getModifiedTime() < EXPIRATION_TIME) {
@@ -736,7 +736,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			// Check if it's cached first
 			if (dbconn != null) {
 				MusicBrainzReleasesResult result = MediaTableMusicBrainzReleases.findMBID(dbconn, tagInfo);
-				if (result.isFounded()) {
+				if (result.isFound()) {
 					if (result.hasMusicBrainzId()) {
 						return result.getMusicBrainzId();
 					} else if (System.currentTimeMillis() - result.getModifiedTime() < EXPIRATION_TIME) {

@@ -53,7 +53,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(typeIdent.ident);
-		if (!res.isFounded()) {
+		if (!res.isFound()) {
 			try {
 				return super.getThumbnailInputStream();
 			} catch (IOException e) {
