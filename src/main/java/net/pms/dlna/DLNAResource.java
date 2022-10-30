@@ -51,7 +51,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
-import net.pms.configuration.sharedcontent.SharedContentWithPath;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
