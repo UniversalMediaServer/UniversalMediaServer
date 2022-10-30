@@ -16,18 +16,19 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public class StreamAudio extends Stream {
-	protected static final String TYPE = "StreamAudio";
+public class FeedAudioContent extends FeedContent {
+	protected static final String TYPE = "FeedAudio";
 
-	public StreamAudio(String parent, String uri) {
-		super(parent, null, uri, null);
+	public FeedAudioContent(String folder, String uri) {
+		super(folder, null, uri);
 	}
 
-	public StreamAudio(String parent, String name, String uri) {
-		super(parent, name, uri, null);
+	public FeedAudioContent(String parent, String name, String uri) {
+		super(parent, name, uri);
 	}
 
-	public StreamAudio(String parent, String name, String uri, String thumbnail) {
-		super(parent, name, uri, thumbnail);
+	@Override
+	public String getType() {
+		return TYPE;
 	}
 }

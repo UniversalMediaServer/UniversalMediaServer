@@ -14,9 +14,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.configuration;
+package net.pms.configuration.old;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
@@ -27,24 +26,36 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author mfranco
+ * Old MapFileConfiguration from file VirtualFolders.conf or field
+ * virtual_folders from UMS.conf.
+ * Now handled by SharedContentConfiguration
  */
 public class MapFileConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFileConfiguration.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private String name;
-	private final List<MapFileConfiguration> children;
-	private List<File> files;
+	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
+	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 
-	private boolean addToMediaLibrary = true;
+	private final String name;
+	private final List<MapFileConfiguration> children;
+	private final List<File> files;
+	private final boolean addToMediaLibrary;
+
+	public MapFileConfiguration() {
+		name = null;
+		children = new ArrayList<>();
+		files = new ArrayList<>();
+		addToMediaLibrary = true;
+	}
 
 	public String getName() {
 		return name;
@@ -62,31 +73,13 @@ public class MapFileConfiguration {
 		return addToMediaLibrary;
 	}
 
-	public void setName(String n) {
-		name = n;
-	}
-
-	public void setFiles(List<File> f) {
-		files = f;
-	}
-
-	public void setAddToMediaLibrary(boolean addToMediaLibrary) {
-		this.addToMediaLibrary = addToMediaLibrary;
-	}
-
-	public MapFileConfiguration() {
-		children = new ArrayList<>();
-		files = new ArrayList<>();
-	}
-
 	public static List<MapFileConfiguration> parseVirtualFolders() {
 		String conf;
 
-		if (isNotBlank(CONFIGURATION.getVirtualFoldersFile())) {
+		if (StringUtils.isNotBlank(getVirtualFoldersFile())) {
 			// Get the virtual folder info from the user's file
-			conf = CONFIGURATION.getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
+			conf = getVirtualFoldersFile().trim().replaceAll("&comma;", ",");
 			File file = new File(CONFIGURATION.getProfileDirectory(), conf);
-			conf = null;
 
 			try {
 				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
@@ -95,9 +88,9 @@ public class MapFileConfiguration {
 				LOGGER.debug("", e);
 				return null;
 			}
-		} else if (isNotBlank(CONFIGURATION.getVirtualFolders())) {
+		} else if (StringUtils.isNotBlank(getVirtualFolders())) {
 			// Get the virtual folder info from the config string
-			conf = CONFIGURATION.getVirtualFolders().trim().replaceAll("&comma;", ",");
+			conf = getVirtualFolders().trim().replaceAll("&comma;", ",");
 
 			// Convert our syntax into JSON syntax
 			String[] arrayLevel0 = conf.split(";");
@@ -148,6 +141,14 @@ public class MapFileConfiguration {
 		Gson gson = gsonBuilder.create();
 		Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
 		return gson.fromJson(conf, listType);
+	}
+
+	private static String getVirtualFolders() {
+		return CONFIGURATION.getString(KEY_VIRTUAL_FOLDERS, "");
+	}
+
+	private static String getVirtualFoldersFile() {
+		return CONFIGURATION.getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 }
 

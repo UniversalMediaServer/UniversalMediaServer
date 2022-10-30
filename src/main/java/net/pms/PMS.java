@@ -42,7 +42,6 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebSourcesConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
@@ -485,18 +484,6 @@ public class PMS {
 			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				configuration.setEngineEnabled(YoutubeDl.ID, true);
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
-			}
-
-			// Set default local shared content if the wizard has not set it
-			if (configuration.isSharedFoldersEmpty()) {
-				configuration.setSharedFoldersToDefault();
-			}
-
-			// Set default remote shared content
-			String webConfPath = configuration.getWebConfPath();
-			File webConf = new File(webConfPath);
-			if (!webConf.exists()) {
-				WebSourcesConfiguration.writeDefaultWebSourcesConfigurationFile();
 			}
 
 			// Ensure this only happens once

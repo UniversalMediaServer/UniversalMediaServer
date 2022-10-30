@@ -21,6 +21,8 @@ import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentArray;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.service.Services;
@@ -83,7 +85,7 @@ public class DLNAMediaInfoTest {
 		}
 		assert PMS.getConfiguration() != null;
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		PMS.getConfiguration().setSharedFolders(null);
+		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), false);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 

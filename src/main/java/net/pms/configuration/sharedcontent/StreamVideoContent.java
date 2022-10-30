@@ -16,15 +16,30 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public class FeedVideo extends Feed {
-	protected static final String TYPE = "FeedVideo";
+import net.pms.formats.Format;
 
-	public FeedVideo(String folder, String uri) {
-		super(folder, uri, null);
+public class StreamVideoContent extends StreamContent {
+	protected static final String TYPE = "StreamVideo";
+
+	public StreamVideoContent(String parent, String uri) {
+		super(parent, null, uri, null);
 	}
 
-	public FeedVideo(String folder, String uri, String name) {
-		super(folder, uri, name);
+	public StreamVideoContent(String parent, String name, String uri) {
+		super(parent, name, uri, null);
 	}
 
+	public StreamVideoContent(String parent, String name, String uri, String thumbnail) {
+		super(parent, name, uri, thumbnail);
+	}
+
+	@Override
+	public int getFormat() {
+		return Format.VIDEO;
+	}
+
+	@Override
+	public String getType() {
+		return TYPE;
+	}
 }

@@ -16,20 +16,19 @@
  */
 package net.pms.configuration.sharedcontent;
 
-import java.io.Serializable;
+public class FeedImageContent extends FeedContent {
+	protected static final String TYPE = "FeedImage";
 
-public abstract class SharedContent implements Serializable {
-	protected boolean active = true;
-
-	public boolean isActive() {
-		return active;
+	public FeedImageContent(String folder, String uri) {
+		super(folder, null, uri);
 	}
 
-	public void setActive(boolean value) {
-		active = value;
+	public FeedImageContent(String folder, String name, String uri) {
+		super(folder, name, uri);
 	}
 
-	public abstract String getType();
-
-	public abstract boolean isExternalContent();
+	@Override
+	public String getType() {
+		return TYPE;
+	}
 }

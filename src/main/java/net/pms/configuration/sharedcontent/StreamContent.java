@@ -18,23 +18,16 @@ package net.pms.configuration.sharedcontent;
 
 import java.util.Objects;
 
-public abstract class Feed extends SharedContent {
-	private String parent;
+public abstract class StreamContent extends SharedContentWithPath {
 	private String name;
 	private String uri;
+	private String thumbnail;
 
-	protected Feed(String parent, String name, String uri) {
+	protected StreamContent(String parent, String name, String uri, String thumbnail) {
 		this.parent = parent;
 		this.name = name;
 		this.uri = uri;
-	}
-
-	public void setParent(String value) {
-		parent = value;
-	}
-
-	public String getParent() {
-		return parent;
+		this.thumbnail = thumbnail;
 	}
 
 	public void setName(String value) {
@@ -53,19 +46,36 @@ public abstract class Feed extends SharedContent {
 		return uri;
 	}
 
+	public void setThumbnail(String value) {
+		thumbnail = value;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	@Override
+	public boolean isExternalContent() {
+		return true;
+	}
+
+	public abstract int getFormat();
+
 	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof Feed other) {
+		if (o instanceof StreamContent other) {
 			return (active == other.active &&
 				((parent == null && other.parent == null) ||
 				parent != null && parent.equals(other.parent)) &&
 				((name == null && other.name == null) ||
 				name != null && name.equals(other.name)) &&
 				((uri == null && other.uri == null) ||
-				uri != null && uri.equals(other.uri)));
+				uri != null && uri.equals(other.uri)) &&
+				((thumbnail == null && other.thumbnail == null) ||
+				thumbnail != null && thumbnail.equals(other.thumbnail)));
 		}
 		return false;
 	}
@@ -77,6 +87,7 @@ public abstract class Feed extends SharedContent {
 		hash = 83 * hash + (Objects.hashCode(this.parent));
 		hash = 83 * hash + (Objects.hashCode(this.name));
 		hash = 83 * hash + (Objects.hashCode(this.uri));
+		hash = 83 * hash + (Objects.hashCode(this.thumbnail));
 		return hash;
 	}
 }

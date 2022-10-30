@@ -21,6 +21,8 @@ import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentArray;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
@@ -50,7 +52,7 @@ public class SearchRequestHandlerTest {
 		}
 		assert PMS.getConfiguration() != null;
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		PMS.getConfiguration().setSharedFolders(null);
+		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), false);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 

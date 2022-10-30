@@ -16,7 +16,6 @@
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
-import net.pms.configuration.MapFileConfiguration;
+import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
@@ -35,8 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MapFile extends DLNAResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
+public class VirtualFile extends DLNAResource {
+	private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFile.class);
 
 	/**
 	 * An array of {@link String}s that defines the lower-case representation of
@@ -51,30 +50,45 @@ public class MapFile extends DLNAResource {
 	 */
 	public static final Set<String> EXTENSIONS_DENYLIST = Set.of("!qB", "!ut", "1", "dmg", "exe");
 
+	private final String forcedName;
+	private final List<File> files;
+	private final List<VirtualFolderContent> virtualFolders;
+
 	private List<File> discoverable;
 	private List<File> emptyFoldersToRescan;
-	private String forcedName;
+
+	protected String name;
+	private boolean addToMediaLibrary = true;
 	private ArrayList<RealFile> searchList;
 	private File potentialCover;
-	private MapFileConfiguration conf;
 
-	public MapFile() {
-		this.conf = new MapFileConfiguration();
+	public VirtualFile() {
+		setLastModified(0);
+		files = new ArrayList<>();
+		virtualFolders = new ArrayList<>();
+		forcedName = null;
+	}
+
+	public VirtualFile(VirtualFolderContent virtualFolder) {
+		name = virtualFolder.getName();
+		addToMediaLibrary = virtualFolder.isAddToMediaLibrary();
+		files = virtualFolder.getFiles();
+		virtualFolders = virtualFolder.getVirtualFolders();
 		setLastModified(0);
 		forcedName = null;
 	}
 
-	public MapFile(MapFileConfiguration conf) {
-		this.conf = conf;
-		setLastModified(0);
-		forcedName = null;
-	}
-
-	public MapFile(MapFileConfiguration conf, List<File> list) {
-		this.conf = conf;
+	public VirtualFile(VirtualFile virtualFile, List<File> list, String forcedName) {
+		addToMediaLibrary = virtualFile.isAddToMediaLibrary();
+		files = virtualFile.getFiles();
+		virtualFolders = new ArrayList<>();
 		setLastModified(0);
 		this.discoverable = list;
-		forcedName = null;
+		this.forcedName = forcedName;
+	}
+
+	public List<File> getFiles() {
+		return files;
 	}
 
 	private void manageFile(File f, boolean isAddGlobally) {
@@ -139,7 +153,7 @@ public class MapFile extends DLNAResource {
 						}
 
 						//we need to propagate the flag in order to make all hierarchy stay outside the media library if needed
-						rf.getConf().setAddToMediaLibrary(this.getConf().isAddToMediaLibrary());
+						rf.setAddToMediaLibrary(addToMediaLibrary);
 						if (searchList != null) {
 							searchList.add(rf);
 						}
@@ -161,7 +175,7 @@ public class MapFile extends DLNAResource {
 		List<File> out = new ArrayList<>();
 		ArrayList<String> ignoredDirectoryNames = configuration.getIgnoredFolderNames();
 		String directoryName;
-		for (File directory : this.conf.getFiles()) {
+		for (File directory : getFiles()) {
 			directoryName = directory == null || directory.getName() == null ? "unnamed" : directory.getName();
 			if (directory == null || !directory.isDirectory()) {
 				LOGGER.trace("Ignoring {} because it is not a valid directory", directoryName);
@@ -175,21 +189,21 @@ public class MapFile extends DLNAResource {
 			}
 
 			if (directory.canRead()) {
-				File[] files = directory.listFiles((File parentDirectory, String name) -> {
+				File[] listFiles = directory.listFiles((File parentDirectory, String file) -> {
 					// Accept any directory
-					Path path = Paths.get(parentDirectory + File.separator + name);
+					Path path = Paths.get(parentDirectory + File.separator + file);
 					if (Files.isDirectory(path)) {
 						return true;
 					}
 
 					// We want to find only media files
-					return isPotentialMediaFile(name);
+					return isPotentialMediaFile(file);
 				});
 
-				if (files == null) {
+				if (listFiles == null) {
 					LOGGER.warn("Can't read files from directory: {}", directory.getAbsolutePath());
 				} else {
-					out.addAll(Arrays.asList(files));
+					out.addAll(Arrays.asList(listFiles));
 				}
 			} else {
 				LOGGER.warn("Can't read directory: {}", directory.getAbsolutePath());
@@ -220,8 +234,10 @@ public class MapFile extends DLNAResource {
 			addChild(new SearchFolder(fs));
 		}
 		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
-			if (vfolder < getConf().getChildren().size()) {
-				addChild(new MapFile(getConf().getChildren().get(vfolder)), true, isAddGlobally);
+			if (vfolder < virtualFolders.size()) {
+				VirtualFolderContent virtualFolder = virtualFolders.get(vfolder);
+				DLNAResource parent = getSharedContentParent(virtualFolder.getParent());
+				parent.addChild(new VirtualFile(virtualFolder), true, isAddGlobally);
 				++vfolder;
 			} else {
 				if (discoverable.isEmpty()) {
@@ -255,12 +271,12 @@ public class MapFile extends DLNAResource {
 
 		int sm = configuration.getSortMethod(getPath());
 
-		List<File> files = getFilesListForDirectories();
+		List<File> childrenFiles = getFilesListForDirectories();
 
 		// Build a map of all files and their corresponding formats
 		Set<File> images = new HashSet<>();
 		Set<File> audioVideo = new HashSet<>();
-		Iterator<File> iterator = files.iterator();
+		Iterator<File> iterator = childrenFiles.iterator();
 		while (iterator.hasNext()) {
 			File file = iterator.next();
 			if (file.isFile()) {
@@ -290,14 +306,14 @@ public class MapFile extends DLNAResource {
 					File imageFile = iterator.next();
 					if (potentialMatches.contains(imageFile)) {
 						iterator.remove();
-						files.remove(imageFile);
+						childrenFiles.remove(imageFile);
 					}
 				}
 			}
 		}
 
 		// ATZ handling
-		if (files.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {
+		if (childrenFiles.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			/*
 			 * Too many files to display at once, add A-Z folders
 			 * instead and let the filters begin
@@ -306,7 +322,7 @@ public class MapFile extends DLNAResource {
 			 * since all files start with the same letter then
 			 */
 			Map<String, List<File>> map = new TreeMap<>();
-			for (File f : files) {
+			for (File f : childrenFiles) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
 					continue;
@@ -345,16 +361,15 @@ public class MapFile extends DLNAResource {
 				// loop over all letters, this avoids adding
 				// empty letters
 				UMSUtils.sortFiles(entry.getValue(), sm);
-				MapFile mf = new MapFile(getConf(), entry.getValue());
-				mf.forcedName = entry.getKey();
+				VirtualFile mf = new VirtualFile(this, entry.getValue(), entry.getKey());
 				addChild(mf, true, isAddGlobally);
 			}
 			return;
 		}
 
-		UMSUtils.sortFiles(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
+		UMSUtils.sortFiles(childrenFiles, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
 
-		for (File f : files) {
+		for (File f : childrenFiles) {
 			if (f.isDirectory()) {
 				discoverable.add(f); // manageFile(f);
 			}
@@ -362,10 +377,10 @@ public class MapFile extends DLNAResource {
 
 		// For random sorting, we only randomize file entries
 		if (sm == UMSUtils.SORT_RANDOM) {
-			UMSUtils.sortFiles(files, sm);
+			UMSUtils.sortFiles(childrenFiles, sm);
 		}
 
-		for (File f : files) {
+		for (File f : childrenFiles) {
 			if (f.isFile()) {
 				discoverable.add(f); // manageFile(f);
 			}
@@ -378,22 +393,6 @@ public class MapFile extends DLNAResource {
 		discoverable = null;
 		discoverChildren(str, isAddGlobally);
 		analyzeChildren(-1, isAddGlobally);
-	}
-
-	/**
-	 * @return the conf
-	 * @since 1.50
-	 */
-	protected MapFileConfiguration getConf() {
-		return conf;
-	}
-
-	/**
-	 * @param conf the conf to set
-	 * @since 1.50
-	 */
-	protected void setConf(MapFileConfiguration conf) {
-		this.conf = conf;
 	}
 
 	/**
@@ -416,7 +415,7 @@ public class MapFile extends DLNAResource {
 	public boolean isRefreshNeeded() {
 		long modified = 0;
 
-		for (File f : this.getConf().getFiles()) {
+		for (File f : getFiles()) {
 			if (f != null) {
 				modified = Math.max(modified, f.lastModified());
 			}
@@ -453,9 +452,13 @@ public class MapFile extends DLNAResource {
 		return (getParent() instanceof SearchFolder);
 	}
 
+	public void setAddToMediaLibrary(boolean value) {
+		addToMediaLibrary = value;
+	}
+
 	@Override
 	public boolean isAddToMediaLibrary() {
-		return getConf().isAddToMediaLibrary();
+		return addToMediaLibrary;
 	}
 
 	@Override
@@ -471,7 +474,7 @@ public class MapFile extends DLNAResource {
 	@Override
 	public String getName() {
 		if (StringUtils.isEmpty(forcedName)) {
-			return this.getConf().getName();
+			return name;
 		}
 		return forcedName;
 	}
@@ -566,7 +569,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		String fileName = file.getName();
-		if (isBlank(fileName)) {
+		if (StringUtils.isBlank(fileName)) {
 			return false;
 		}
 		if (evaluateExtension && !isPotentialThumbnail(fileName)) {
@@ -612,7 +615,7 @@ public class MapFile extends DLNAResource {
 	 *
 	 * @param file the {@link File} to evaluate.
 	 * @return {@code true} if {@code file} has one of the predefined
-	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(File file) {
@@ -626,7 +629,7 @@ public class MapFile extends DLNAResource {
 	 *
 	 * @param fileName the file name to evaluate.
 	 * @return {@code true} if {@code fileName} has one of the predefined
-	 *         {@link MapFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
+	 *         {@link VirtualFile#THUMBNAIL_EXTENSIONS} extensions, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean isPotentialThumbnail(String fileName) {
@@ -639,7 +642,7 @@ public class MapFile extends DLNAResource {
 	 *
 	 * @param fileName the file name to evaluate.
 	 * @return {@code true} if {@code fileName} has not the one of the predefined
-	 *         {@link MapFile#EXTENSIONS_DENYLIST} extensions, {@code false}
+	 *         {@link VirtualFile#EXTENSIONS_DENYLIST} extensions, {@code false}
 	 *         otherwise.
 	 */
 	public static boolean isPotentialMediaFile(String fileName) {

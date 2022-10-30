@@ -132,12 +132,12 @@ export default function SharedContentSettings(
         return i18n.get['VideoStream'];
       case 'Folder':
         return i18n.get['Folder'];
-      case 'Folders':
+      case 'VirtualFolder':
         return i18n.get['VirtualFolders'];
 	}	  
   }
 
-  const getSharedContentParents = (value: Feed | Stream | Folders) => {
+  const getSharedContentParents = (value: Feed | Stream | VirtualFolder) => {
     if (!value.parent) {
       return null;
     }
@@ -191,19 +191,20 @@ export default function SharedContentSettings(
     );
   }
 
-  const getSharedContentFoldersChildsView = (value: Folders) => {
-    return value.childs ? value.childs.map((child: Folder, index) => (
-      <div key={index}><Code color='blue'>{child.file}</Code></div>
+  const getSharedContentVirtualFolderChildsView = (value: VirtualFolder) => {
+    return value.childs ? value.childs.map((child: SharedContent, index) => (
+      child.type === 'Folder' && 
+      <div key={index}><Code color='blue'>{(child as Folder).file}</Code></div>
     )) : null;
   }
 
-  const getSharedContentFoldersView = (value: Folders) => {
+  const getSharedContentVirtualFolderView = (value: VirtualFolder) => {
     const type = getSharedContentTypeLocalized(value.type);
     return (
       <div>
         <div>{type}</div>
         <div>{getSharedContentParents(value)}<Code color='teal'>{value.name}</Code></div>
-		{getSharedContentFoldersChildsView(value)}
+		{getSharedContentVirtualFolderChildsView(value)}
       </div>
     );
   }
@@ -219,8 +220,8 @@ export default function SharedContentSettings(
         return getSharedContentStreamView(value as Stream);
       case 'Folder':
         return getSharedContentFolderView(value as Folder);
-      case 'Folders':
-        return getSharedContentFoldersView(value as Folders);
+      case 'VirtualFolder':
+        return getSharedContentVirtualFolderView(value as VirtualFolder);
 	}
 	return (<div>{i18n.get['Unknown']}</div>);
   }
@@ -460,7 +461,7 @@ export default function SharedContentSettings(
           label={i18n.get['Type']}
           data={[
             {value: 'Folder', label: i18n.get['Folder']},
-            {value: 'Folders', label: i18n.get['VirtualFolders']},
+            {value: 'VirtualFolder', label: i18n.get['VirtualFolders']},
             {value: 'FeedAudio', label: i18n.get['Podcast']},
             {value: 'FeedImage', label: i18n.get['ImageFeed']},
             {value: 'FeedVideo', label: i18n.get['VideoFeed']},
@@ -483,7 +484,7 @@ export default function SharedContentSettings(
           <TextInput
             disabled={!canModify}
             label={i18n.get['Path']}
-            placeholder={modalForm.values['contentType'] !== 'Folders' ? 'Web' : ''}
+            placeholder={modalForm.values['contentType'] !== 'VirtualFolder' ? 'Web' : ''}
             name="contentPath"
             sx={{ flex: 1 }}
             {...modalForm.getInputProps('contentPath')}
@@ -497,7 +498,7 @@ export default function SharedContentSettings(
             path={modalForm.values['contentSource']}
             callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
           ></DirectoryChooser>
-		) : modalForm.values['contentType'] !== 'Folders' && (
+		) : modalForm.values['contentType'] !== 'VirtualFolder' && (
           <TextInput
             disabled={!canModify}
             label={i18n.get['SourceURLColon']}
@@ -506,7 +507,7 @@ export default function SharedContentSettings(
             {...modalForm.getInputProps('contentSource')}
           />
         )}
-        { modalForm.values['contentType'] === 'Folders' && (<>
+        { modalForm.values['contentType'] === 'VirtualFolder' && (<>
           {getSharedContentChilds()}
           <label>{i18n.get['AddFolder']}</label>
           <DirectoryChooser
@@ -535,13 +536,13 @@ export default function SharedContentSettings(
           (sharedContentsTemp[editingIndex] as Folder).file = values.contentSource;
         }
       break;
-      case 'Folders':
+      case 'VirtualFolder':
         if (editingIndex < 0) {
-          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,childs:values.contentChilds} as Folders);
+          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,childs:values.contentChilds,addToMediaLibrary:true} as VirtualFolder);
         } else {
-          (sharedContentsTemp[editingIndex] as Folders).parent = values.contentPath;
-          (sharedContentsTemp[editingIndex] as Folders).name = values.contentName;
-          (sharedContentsTemp[editingIndex] as Folders).childs = values.contentChilds;
+          (sharedContentsTemp[editingIndex] as VirtualFolder).parent = values.contentPath;
+          (sharedContentsTemp[editingIndex] as VirtualFolder).name = values.contentName;
+          (sharedContentsTemp[editingIndex] as VirtualFolder).childs = values.contentChilds;
         }
       break;
       case 'FeedAudio':
@@ -600,8 +601,8 @@ export default function SharedContentSettings(
     const contentType = isNew ? 'Folder' : sharedContent.type;
     const contentName = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).name;
     const contentPath = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).parent;
-    const contentSource = isNew || sharedContent.type === 'Folders' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file;
-    const contentChilds = isNew || sharedContent.type !== 'Folders' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : [];
+    const contentSource = isNew || sharedContent.type === 'VirtualFolder' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file;
+    const contentChilds = isNew || sharedContent.type !== 'VirtualFolder' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : [];
     modalForm.setValues({contentType:contentType,contentName:contentName,contentPath:contentPath,contentSource:contentSource,contentChilds:contentChilds});
   }, [sharedContents, editingIndex]);
 
@@ -624,19 +625,6 @@ export default function SharedContentSettings(
   );
 }
 
-interface SharedDirectory {
-  directory: string;
-  isMonitored: boolean;
-}
-
-interface SharedWebContentItem {
-  name: string;
-  type: string;
-  folders: string;
-  source: string;
-  isnew?: boolean;
-}
-
 interface SharedContent {
   type: string;
   active: boolean;
@@ -648,10 +636,10 @@ interface Folder extends SharedContent {
   metadata: boolean;
 }
 
-interface Folders extends SharedContent {
+interface VirtualFolder extends SharedContent {
   parent: string;
   name: string;
-  childs: Folder[];
+  childs: SharedContent[];
   addToMediaLibrary: boolean;
 }
 

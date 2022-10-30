@@ -21,34 +21,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Folders extends SharedContent {
-	protected static final String TYPE = "Folders";
-	private String parent;
+public class VirtualFolderContent extends SharedContentWithPath {
+	protected static final String TYPE = "VirtualFolder";
 	private String name;
-	private List<Folder> childs;
+	private List<SharedContent> childs;
 	private boolean addToMediaLibrary;
 
-	public Folders(String name, List<Folder> childs) {
+	public VirtualFolderContent(String name, List<SharedContent> childs) {
 		this(null, name, childs, true);
 	}
 
-	public Folders(String parent, String name, List<Folder> childs) {
+	public VirtualFolderContent(String parent, String name, List<SharedContent> childs) {
 		this(parent, name, childs, true);
 	}
 
-	public Folders(String parent, String name, List<Folder> childs, boolean addToMediaLibrary) {
+	public VirtualFolderContent(String parent, String name, List<SharedContent> childs, boolean addToMediaLibrary) {
 		this.parent = parent;
 		this.name = name;
 		this.childs = childs;
 		this.addToMediaLibrary = addToMediaLibrary;
-	}
-
-	public void setParent(String value) {
-		parent = value;
-	}
-
-	public String getParent() {
-		return parent;
 	}
 
 	public void setName(String value) {
@@ -59,11 +50,11 @@ public class Folders extends SharedContent {
 		return name;
 	}
 
-	public void setFolders(List<Folder> value) {
+	public void setChilds(List<SharedContent> value) {
 		childs = value;
 	}
 
-	public List<Folder> getFolders() {
+	public List<SharedContent> getChilds() {
 		return childs;
 	}
 
@@ -78,8 +69,8 @@ public class Folders extends SharedContent {
 	public List<File> getFiles() {
 		List<File> result = new ArrayList<>();
 		if (childs != null) {
-			for (Folder folder : childs) {
-				if (folder != null && folder.getFile() != null) {
+			for (SharedContent sharedContent : childs) {
+				if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
 					result.add(folder.getFile());
 				}
 			}
@@ -87,12 +78,34 @@ public class Folders extends SharedContent {
 		return result;
 	}
 
+	public List<VirtualFolderContent> getVirtualFolders() {
+		List<VirtualFolderContent> result = new ArrayList<>();
+		if (childs != null) {
+			for (SharedContent sharedContent : childs) {
+				if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+					result.add(virtualFolder);
+				}
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public String getType() {
+		return TYPE;
+	}
+
+	@Override
+	public boolean isExternalContent() {
+		return false;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof Folders other) {
+		if (o instanceof VirtualFolderContent other) {
 			if (childs == null) {
 				if (other.childs != null) {
 					return false;

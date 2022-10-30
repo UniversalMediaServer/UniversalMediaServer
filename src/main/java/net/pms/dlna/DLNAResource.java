@@ -51,6 +51,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
+import net.pms.configuration.sharedcontent.SharedContentWithPath;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -928,7 +929,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return the transcode virtual folder
 	 */
-	// XXX package-private: used by MapFile; should be protected?
+	// XXX package-private: used by VirtualFile; should be protected?
 	TranscodeVirtualFolder getTranscodeFolder() {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
@@ -1288,10 +1289,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 */
 			if (forced) {
 				// This seems to follow the same code path as the else below in
-				// the case of MapFile, because
+				// the case of VirtualFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded ->
 				// doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile)
+				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -5108,4 +5109,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isAddToMediaLibrary() {
 		return true;
 	}
+
+	/**
+	 * Create a path of virtual folders if it doesn't already exist.
+	 *
+	 * @param parentPath the full virtual folder path (slash-delimited).
+	 */
+	protected DLNAResource getSharedContentParent(String parentPath) {
+		DLNAResource result = null;
+		if (parentPath != null) {
+			StringTokenizer st = new StringTokenizer(parentPath, "/");
+			DLNAResource currentRoot = this;
+			while (st.hasMoreTokens()) {
+				String folder = st.nextToken();
+				result = currentRoot.searchByName(folder);
+				if (result == null) {
+					result = new VirtualFolder(folder, "");
+					currentRoot.addChild(result);
+				}
+				currentRoot = result;
+			}
+		}
+		if (result == null) {
+			result = this;
+		}
+		return result;
+	}
+
 }

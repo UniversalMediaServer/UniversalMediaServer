@@ -16,15 +16,19 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public class FeedAudio extends Feed {
-	protected static final String TYPE = "FeedAudio";
+public class FeedVideoContent extends FeedContent {
+	protected static final String TYPE = "FeedVideo";
 
-	public FeedAudio(String folder, String uri) {
-		super(folder, null, uri);
+	public FeedVideoContent(String folder, String uri) {
+		super(folder, uri, null);
 	}
 
-	public FeedAudio(String parent, String name, String uri) {
-		super(parent, name, uri);
+	public FeedVideoContent(String folder, String uri, String name) {
+		super(folder, uri, name);
 	}
 
+	@Override
+	public String getType() {
+		return TYPE;
+	}
 }

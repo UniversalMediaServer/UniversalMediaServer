@@ -16,15 +16,15 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public class FeedImage extends Feed {
-	protected static final String TYPE = "FeedImage";
+public abstract class SharedContentWithPath extends SharedContent {
+	protected String parent;
 
-	public FeedImage(String folder, String uri) {
-		super(folder, null, uri);
+	public void setParent(String value) {
+		parent = value;
 	}
 
-	public FeedImage(String folder, String name, String uri) {
-		super(folder, name, uri);
+	public String getParent() {
+		return parent;
 	}
 
 }

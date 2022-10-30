@@ -16,18 +16,30 @@
  */
 package net.pms.configuration.sharedcontent;
 
-public class StreamVideo extends Stream {
-	protected static final String TYPE = "StreamVideo";
+import net.pms.formats.Format;
 
-	public StreamVideo(String parent, String uri) {
+public class StreamAudioContent extends StreamContent {
+	protected static final String TYPE = "StreamAudio";
+
+	public StreamAudioContent(String parent, String uri) {
 		super(parent, null, uri, null);
 	}
 
-	public StreamVideo(String parent, String name, String uri) {
+	public StreamAudioContent(String parent, String name, String uri) {
 		super(parent, name, uri, null);
 	}
 
-	public StreamVideo(String parent, String name, String uri, String thumbnail) {
+	public StreamAudioContent(String parent, String name, String uri, String thumbnail) {
 		super(parent, name, uri, thumbnail);
+	}
+
+	@Override
+	public int getFormat() {
+		return Format.AUDIO;
+	}
+
+	@Override
+	public String getType() {
+		return TYPE;
 	}
 }

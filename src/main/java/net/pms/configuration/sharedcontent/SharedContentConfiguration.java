@@ -31,8 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.old.OldConfigurationImporter;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
+import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,13 +48,13 @@ public class SharedContentConfiguration {
 		.registerTypeAdapter(File.class, new FileTypeAdapter())
 		.create();
 	private static final List<SharedContentListener> LISTENERS = new ArrayList<>();
-	private static final SharedContentArray SHARED_CONTENT_ARRAY;
+	private static final SharedContentArray SHARED_CONTENT_ARRAY = new SharedContentArray();
 
 	// Automatic reloading
 	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> updateSharedContent(readConfiguration(), false);
 
 	static {
-		SHARED_CONTENT_ARRAY = readAllConfigurations();
+		updateSharedContent(readAllConfigurations(), false);
 		FileWatcher.add(new FileWatcher.Watch(CONFIGURATION.getSharedConfPath(), RELOAD_WATCHER));
 	}
 
@@ -63,12 +66,10 @@ public class SharedContentConfiguration {
 	/**
 	 * This return SharedContent's List.
 	 */
-	public static SharedContentArray getSharedContentSources() {
-		SharedContentArray result = new SharedContentArray();
+	public static SharedContentArray getSharedContentArray() {
 		synchronized (SHARED_CONTENT_ARRAY) {
-			result.addAll(SHARED_CONTENT_ARRAY);
+			return (SharedContentArray) SerializationUtils.clone(SHARED_CONTENT_ARRAY);
 		}
-		return result;
 	}
 
 	/**
@@ -76,38 +77,41 @@ public class SharedContentConfiguration {
 	 */
 	public static List<File> getSharedFolders() {
 		synchronized (SHARED_CONTENT_ARRAY) {
-			List<File> files = new ArrayList<>();
-			for (SharedContent sharedContent : SHARED_CONTENT_ARRAY) {
-				if (sharedContent instanceof Folder folder && folder.getFile() != null) {
-					files.add(folder.getFile());
-				} else if (sharedContent instanceof Folders folders && folders.getFolders() != null) {
-					for (Folder folder : folders.getFolders()) {
-						if (folder != null && folder.getFile() != null) {
-							files.add(folder.getFile());
-						}
-					}
-				}
-			}
-			return files;
+			return getSharedFolders(SHARED_CONTENT_ARRAY);
 		}
 	}
 
+	public static List<File> getSharedFolders(List<SharedContent> sharedContents) {
+		List<File> files = new ArrayList<>();
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
+				files.add(folder.getFile());
+			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+				files.addAll(getSharedFolders(folders.getChilds()));
+			}
+		}
+		return files;
+	}
+
+	/**
+	 * Get all monitored directories including virtual folders.
+	 */
 	public static List<File> getMonitoredFolders() {
 		synchronized (SHARED_CONTENT_ARRAY) {
-			List<File> files = new ArrayList<>();
-			for (SharedContent sharedContent : SHARED_CONTENT_ARRAY) {
-				if (sharedContent instanceof Folder folder && folder.isMonitored() && folder.getFile() != null) {
-					files.add(folder.getFile());
-				} else if (sharedContent instanceof Folders folders && folders.getFolders() != null) {
-					for (Folder folder : folders.getFolders()) {
-						if (folder != null && folder.isMonitored() && folder.getFile() != null) {
-							files.add(folder.getFile());
-						}
-					}
-				}
-			}
-			return files;
+			return getMonitoredFolders(SHARED_CONTENT_ARRAY);
 		}
+	}
+
+	public static List<File> getMonitoredFolders(List<SharedContent> sharedContents) {
+		List<File> files = new ArrayList<>();
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent instanceof FolderContent folder && folder.isMonitored() && folder.getFile() != null) {
+				files.add(folder.getFile());
+			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+				files.addAll(getMonitoredFolders(folders.getChilds()));
+			}
+		}
+		return files;
 	}
 
 	public static void addListener(SharedContentListener listener) {
@@ -127,6 +131,9 @@ public class SharedContentConfiguration {
 					writeConfiguration();
 				}
 				sendSseApiUpdate();
+				if (PMS.isReady()) {
+					PMS.get().resetRenderersRoot();
+				}
 				updated = true;
 			}
 		}
@@ -155,6 +162,18 @@ public class SharedContentConfiguration {
 		updateSharedContent(values, true);
 	}
 
+	/**
+	 * This just preserves wizard functionality of offering the user a choice
+	 * to share a directory.
+	 *
+	 * @param directory
+	 */
+	public static void addFolderShared(File directory) {
+		SharedContentArray values = getSharedContentArray();
+		values.add(new FolderContent(directory));
+		updateSharedContent(values, true);
+	}
+
 	private static synchronized SharedContentArray readAllConfigurations() {
 		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 		try {
@@ -164,7 +183,12 @@ public class SharedContentConfiguration {
 			} else {
 				//import old settings
 				SharedContentArray oldConfig = OldConfigurationImporter.getOldConfigurations();
+				if (oldConfig.isEmpty()) {
+					//no shared conf files, set to default
+					oldConfig = defaultConfiguration();
+				}
 				updateSharedContent(oldConfig, true);
+				return oldConfig;
 			}
 		} catch (IOException | JsonSyntaxException ex) {
 			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
@@ -185,6 +209,18 @@ public class SharedContentConfiguration {
 			LOGGER.debug(null, ex);
 		}
 		return new SharedContentArray();
+	}
+
+	/**
+	 * Gets the shared folders and the monitor folders to the platform default
+	 * folders.
+	 */
+	private static synchronized SharedContentArray defaultConfiguration() {
+		SharedContentArray result = new SharedContentArray();
+		for (Path path : PlatformUtils.INSTANCE.getDefaultFolders()) {
+			result.add(new FolderContent(path.toFile()));
+		}
+		return result;
 	}
 
 	private static synchronized void writeConfiguration() {

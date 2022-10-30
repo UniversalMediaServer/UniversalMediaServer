@@ -33,7 +33,7 @@ public class SharedContentTypeAdapter implements JsonSerializer<SharedContent>, 
 	@Override
 	public JsonElement serialize(SharedContent src, Type typeOfSrc, JsonSerializationContext context) {
 		JsonObject result = context.serialize(src).getAsJsonObject();
-		result.addProperty("type", src.getClass().getSimpleName());
+		result.addProperty("type", src.getType());
 		return result;
 	}
 
@@ -45,13 +45,13 @@ public class SharedContentTypeAdapter implements JsonSerializer<SharedContent>, 
 				String type = sharedContent.remove("type").getAsString();
 				try {
 					return switch (type) {
-						case Folder.TYPE -> context.deserialize(sharedContent, Folder.class);
-						case Folders.TYPE -> context.deserialize(sharedContent, Folders.class);
-						case FeedAudio.TYPE -> context.deserialize(sharedContent, FeedAudio.class);
-						case FeedImage.TYPE -> context.deserialize(sharedContent, FeedImage.class);
-						case FeedVideo.TYPE -> context.deserialize(sharedContent, FeedVideo.class);
-						case StreamAudio.TYPE -> context.deserialize(sharedContent, StreamAudio.class);
-						case StreamVideo.TYPE -> context.deserialize(sharedContent, StreamVideo.class);
+						case FolderContent.TYPE -> context.deserialize(sharedContent, FolderContent.class);
+						case VirtualFolderContent.TYPE -> context.deserialize(sharedContent, VirtualFolderContent.class);
+						case FeedAudioContent.TYPE -> context.deserialize(sharedContent, FeedAudioContent.class);
+						case FeedImageContent.TYPE -> context.deserialize(sharedContent, FeedImageContent.class);
+						case FeedVideoContent.TYPE -> context.deserialize(sharedContent, FeedVideoContent.class);
+						case StreamAudioContent.TYPE -> context.deserialize(sharedContent, StreamAudioContent.class);
+						case StreamVideoContent.TYPE -> context.deserialize(sharedContent, StreamVideoContent.class);
 						default -> null;
 					};
 				} catch (JsonParseException e) {

@@ -35,9 +35,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebSourcesConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.Feed;
@@ -138,7 +137,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						configurationAsJson.add(key, array);
 					}
 				}
-				configurationAsJson.add("shared_web_content", WebSourcesConfiguration.getAllWebSourcesAsJsonArray());
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
@@ -177,13 +175,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 					for (Entry<String, JsonElement> configurationSetting : data.entrySet()) {
 						String key = configurationSetting.getKey();
 						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
-							if (key.equals("shared_web_content")) {
-								if (configurationSetting.getValue() instanceof JsonArray array) {
-									WebSourcesConfiguration.writeWebSourcesConfiguration(array);
-								}
-							} else {
-								LOGGER.trace("The key {} is not allowed", key);
-							}
+							LOGGER.trace("The key {} is not allowed", key);
 							continue;
 						}
 						if (configurationSetting.getValue() instanceof JsonPrimitive element) {

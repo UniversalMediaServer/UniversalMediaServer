@@ -19,21 +19,21 @@ package net.pms.configuration.sharedcontent;
 import java.io.File;
 import java.util.Objects;
 
-public class Folder extends SharedContent {
+public class FolderContent extends SharedContent {
 	protected static final String TYPE = "Folder";
 	private File file;
 	private boolean monitored;
 	private boolean metadata;
 
-	public Folder(File file) {
+	public FolderContent(File file) {
 		this(file, true, true);
 	}
 
-	public Folder(File file, boolean monitored) {
+	public FolderContent(File file, boolean monitored) {
 		this(file, monitored, true);
 	}
 
-	public Folder(File file, boolean monitored, boolean metadata) {
+	public FolderContent(File file, boolean monitored, boolean metadata) {
 		this.file = file;
 		this.monitored = monitored;
 		this.metadata = metadata;
@@ -64,11 +64,21 @@ public class Folder extends SharedContent {
 	}
 
 	@Override
+	public boolean isExternalContent() {
+		return false;
+	}
+
+	@Override
+	public String getType() {
+		return TYPE;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof Folder other) {
+		if (o instanceof FolderContent other) {
 			if (file == null && other.file != null) {
 				return false;
 			}
@@ -89,5 +99,10 @@ public class Folder extends SharedContent {
 		hash = 83 * hash + (this.monitored ? 1 : 0);
 		hash = 83 * hash + (this.metadata ? 1 : 0);
 		return hash;
+	}
+
+	@Override
+	public String toString() {
+		return this.file != null ? this.file.getPath() : "Empty Folder";
 	}
 }

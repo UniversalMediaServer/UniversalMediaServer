@@ -29,7 +29,6 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,18 +39,19 @@ import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.sharedcontent.FeedAudio;
-import net.pms.configuration.sharedcontent.FeedImage;
-import net.pms.configuration.sharedcontent.FeedVideo;
-import net.pms.configuration.sharedcontent.Folder;
-import net.pms.configuration.sharedcontent.Folders;
+import net.pms.configuration.sharedcontent.FeedAudioContent;
+import net.pms.configuration.sharedcontent.FeedContent;
+import net.pms.configuration.sharedcontent.FeedImageContent;
+import net.pms.configuration.sharedcontent.FeedVideoContent;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
-import net.pms.configuration.sharedcontent.Stream;
-import net.pms.configuration.sharedcontent.StreamAudio;
-import net.pms.configuration.sharedcontent.StreamVideo;
+import net.pms.configuration.sharedcontent.StreamContent;
+import net.pms.configuration.sharedcontent.StreamAudioContent;
+import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.dlna.Feed;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
@@ -129,23 +129,25 @@ public class SharedContentTab implements SharedContentListener {
 			// Remove any existing rows
 			((SharedContentTableModel) sharedContentList.getModel()).setRowCount(0);
 			for (SharedContent sharedContent : sharedContentArray) {
-				if (sharedContent instanceof Folder folder) {
+				if (sharedContent instanceof FolderContent folder) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDER, null, null, folder.getFile().getPath(), folder.isMonitored(), folder.isActive()});
-				} else if (sharedContent instanceof Folders folders) {
-					List<String> files = new ArrayList<>();
-					for (File file : folders.getFiles()) {
-						files.add(file.getPath());
+				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+					List<String> childs = new ArrayList<>();
+					for (SharedContent child : virtualFolder.getChilds()) {
+						if (child != null) {
+							childs.add(child.toString());
+						}
 					}
-					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDERS, folders.getParent(), folders.getName(), String.join(", ", files), null, folders.isActive()});
-				} else if (sharedContent instanceof StreamAudio streamAudio) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDERS, virtualFolder.getParent(), virtualFolder.getName(), String.join(", ", childs), null, virtualFolder.isActive()});
+				} else if (sharedContent instanceof StreamAudioContent streamAudio) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_AUDIO_STREAM, streamAudio.getParent(), streamAudio.getName(), streamAudio.getUri(), null, streamAudio.isActive()});
-				} else if (sharedContent instanceof StreamVideo streamVideo) {
+				} else if (sharedContent instanceof StreamVideoContent streamVideo) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_VIDEO_STREAM, streamVideo.getParent(), streamVideo.getName(), streamVideo.getUri(), null, streamVideo.isActive()});
-				} else if (sharedContent instanceof FeedAudio feedAudio) {
+				} else if (sharedContent instanceof FeedAudioContent feedAudio) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_AUDIO_FEED, feedAudio.getParent(), feedAudio.getName(), feedAudio.getUri(), null, feedAudio.isActive()});
-				} else if (sharedContent instanceof FeedImage feedImage) {
+				} else if (sharedContent instanceof FeedImageContent feedImage) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_IMAGE_FEED, feedImage.getParent(), feedImage.getName(), feedImage.getUri(), null, feedImage.isActive()});
-				} else if (sharedContent instanceof FeedVideo feedVideo) {
+				} else if (sharedContent instanceof FeedVideoContent feedVideo) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_VIDEO_FEED, feedVideo.getParent(), feedVideo.getName(), feedVideo.getUri(), false, feedVideo.isActive()});
 				}
 			}
@@ -203,7 +205,7 @@ public class SharedContentTab implements SharedContentListener {
 	 */
 	@Override
 	public synchronized void updateSharedContent() {
-		sharedContentArray = SharedContentConfiguration.getSharedContentSources();
+		sharedContentArray = SharedContentConfiguration.getSharedContentArray();
 		refreshSharedContent();
 	}
 
@@ -255,9 +257,9 @@ public class SharedContentTab implements SharedContentListener {
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				int firstSelectedRow = sharedContentList.getSelectedRow();
 				if (firstSelectedRow >= 0) {
-					sharedContentArray.add(firstSelectedRow, new Folder(chooser.getSelectedFile()));
+					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile()));
 				} else {
-					sharedContentArray.add(new Folder(chooser.getSelectedFile()));
+					sharedContentArray.add(new FolderContent(chooser.getSelectedFile()));
 				}
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
 			}
@@ -379,15 +381,15 @@ public class SharedContentTab implements SharedContentListener {
 					}
 					String selectedItem = newEntryType.getSelectedItem().toString();
 					if (selectedItem.equals(READABLE_TYPE_AUDIO_FEED)) {
-						sharedContentArray.add(new FeedAudio(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+						sharedContentArray.add(new FeedAudioContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
 					} else if (selectedItem.equals(READABLE_TYPE_IMAGE_FEED)) {
-						sharedContentArray.add(new FeedImage(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+						sharedContentArray.add(new FeedImageContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
 					} else if (selectedItem.equals(READABLE_TYPE_VIDEO_FEED)) {
-						sharedContentArray.add(new FeedVideo(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+						sharedContentArray.add(new FeedVideoContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
 					} else if (selectedItem.equals(READABLE_TYPE_AUDIO_STREAM)) {
-						sharedContentArray.add(new StreamAudio(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+						sharedContentArray.add(new StreamAudioContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
 					} else if (selectedItem.equals(READABLE_TYPE_VIDEO_STREAM)) {
-						sharedContentArray.add(new StreamVideo(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+						sharedContentArray.add(new StreamVideoContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
 					}
 					refreshSharedContent();
 					sharedContentList.changeSelection(((SharedContentTableModel) sharedContentList.getModel()).getRowCount() - 1, 1, false, false);
@@ -564,7 +566,7 @@ public class SharedContentTab implements SharedContentListener {
 				String currentName    = (String) sharedContentList.getValueAt(currentRow, 2);
 				String currentSource  = (String) sharedContentList.getValueAt(currentRow, 3);
 
-				if (sharedContent instanceof Folder folder) {
+				if (sharedContent instanceof FolderContent folder) {
 					JFileChooser chooser;
 					try {
 						chooser = new JFileChooser();
@@ -682,23 +684,17 @@ public class SharedContentTab implements SharedContentListener {
 
 				int result = JOptionPane.showConfirmDialog(null, addNewSharedContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
-					String selectedItem = newEntryType.getSelectedItem().toString();
-					if (selectedItem.equals(READABLE_TYPE_FOLDERS)) {
-						((Folders) sharedContentArray.get(currentRow)).setName(newEntryName.getText());
-						((Folders) sharedContentArray.get(currentRow)).setParent(newEntryFolders.getText());
-					} else if (selectedItem.equals(READABLE_TYPE_AUDIO_FEED) ||
-							selectedItem.equals(READABLE_TYPE_IMAGE_FEED) ||
-							selectedItem.equals(READABLE_TYPE_VIDEO_FEED)
-					) {
-						((net.pms.configuration.sharedcontent.Feed) sharedContentArray.get(currentRow)).setName(newEntryName.getText());
-						((net.pms.configuration.sharedcontent.Feed) sharedContentArray.get(currentRow)).setParent(newEntryFolders.getText());
-						((net.pms.configuration.sharedcontent.Feed) sharedContentArray.get(currentRow)).setUri(newEntrySource.getText());
-					} else if (selectedItem.equals(READABLE_TYPE_AUDIO_STREAM) ||
-							selectedItem.equals(READABLE_TYPE_VIDEO_STREAM)
-					) {
-						((Stream) sharedContentArray.get(currentRow)).setName(newEntryName.getText());
-						((Stream) sharedContentArray.get(currentRow)).setParent(newEntryFolders.getText());
-						((Stream) sharedContentArray.get(currentRow)).setUri(newEntrySource.getText());
+					if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+						virtualFolder.setName(newEntryName.getText());
+						virtualFolder.setParent(newEntryFolders.getText());
+					} else if (sharedContent instanceof StreamContent stream) {
+						stream.setName(newEntryName.getText());
+						stream.setParent(newEntryFolders.getText());
+						stream.setUri(newEntrySource.getText());
+					} else if (sharedContent instanceof FeedContent feed) {
+						feed.setName(newEntryName.getText());
+						feed.setParent(newEntryFolders.getText());
+						feed.setUri(newEntrySource.getText());
 					}
 					SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 				}

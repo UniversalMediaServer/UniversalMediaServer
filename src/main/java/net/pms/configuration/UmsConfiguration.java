@@ -30,19 +30,15 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.RootFolder;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.EngineId;
@@ -196,9 +192,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	protected static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
-	protected static final String KEY_FOLDERS = "folders";
-	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
-	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -342,8 +335,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	protected static final String KEY_UUID = "uuid";
 	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
-	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
 	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
@@ -546,8 +537,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		KEY_CHAPTER_SUPPORT,
 		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_DISABLE_TRANSCODING,
-		KEY_FOLDERS,
-		KEY_FOLDERS_MONITORED,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
@@ -3332,26 +3321,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);
 	}
 
-	private final Object sharedFoldersLock = new Object();
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean sharedFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> sharedFolders;
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean monitoredFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> monitoredFolders;
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean ignoredFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> ignoredFolders;
-
 	private ArrayList<String> ignoredFolderNames;
 
 	/**
@@ -3359,66 +3328,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	private boolean ignoredFolderNamesRead;
 
-	private void readSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!sharedFoldersRead) {
-				sharedFolders = getFolders(KEY_FOLDERS);
-				sharedFoldersRead = true;
-			}
-		}
-	}
-
-	/**
-	 * @return {@code true} if the configured shared folders are empty,
-	 *         {@code false} otherwise.
-	 */
-	public boolean isSharedFoldersEmpty() {
-		synchronized (sharedFoldersLock) {
-			readSharedFolders();
-			return sharedFolders.isEmpty();
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of shared folders.
-	 */
-	@Nonnull
-	public List<Path> getSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			readSharedFolders();
-			return new ArrayList<>(sharedFolders);
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of monitored folders.
-	 */
-	@Nonnull
-	public List<Path> getMonitoredFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!monitoredFoldersRead) {
-				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
-				monitoredFoldersRead = true;
-			}
-
-			return new ArrayList<>(monitoredFolders);
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of ignored folders.
-	 */
-	@Nonnull
-	public List<Path> getIgnoredFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!ignoredFoldersRead) {
-				ignoredFolders = getFolders(KEY_FOLDERS_IGNORED);
-				ignoredFoldersRead = true;
-			}
-
-			return ignoredFolders;
-		}
-	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
@@ -3451,178 +3360,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		}
 
 		return ignoredFolderNames;
-	}
-
-	/**
-	 * Transforms a comma-separated list of directory entries into an
-	 * {@link ArrayList} of {@link Path}s. Verifies that the folder exists and
-	 * is valid.
-	 *
-	 * @param key the {@link Configuration} key to read.
-	 * @return The {@link List} of folders or {@code null}.
-	 */
-	@Nonnull
-	protected ArrayList<Path> getFolders(String key) {
-		String foldersString = configuration.getString(key, null);
-
-		ArrayList<Path> folders = new ArrayList<>();
-		if (foldersString == null || foldersString.length() == 0) {
-			return folders;
-		}
-
-		String[] foldersArray = foldersString.trim().split("\\s*,\\s*");
-
-		for (String folder : foldersArray) {
-			/*
-			 * Unescape embedded commas. Note: Backslashing isn't safe as it
-			 * conflicts with the Windows path separator.
-			 */
-			folder = folder.replace("&comma;", ",");
-
-			if (KEY_FOLDERS.equals(key)) {
-				LOGGER.info("Checking shared folder: \"{}\"", folder);
-			}
-
-			Path path = Paths.get(folder);
-			if (Files.exists(path)) {
-				if (!Files.isDirectory(path)) {
-					if (KEY_FOLDERS.equals(key)) {
-						LOGGER.warn(
-							"The \"{}\" is not a folder! Please remove it from your shared folders " +
-							"list on the \"{}\" tab or in the configuration file.",
-							folder,
-							Messages.getString("SharedContent")
-						);
-					} else {
-						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
-					}
-				}
-			} else if (KEY_FOLDERS.equals(key)) {
-				LOGGER.warn(
-					"\"{}\" does not exist. Please remove it from your shared folders " +
-					"list on the \"{}\" tab or in the configuration file.",
-					folder,
-					Messages.getString("SharedContent")
-				);
-			} else {
-				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
-			}
-
-			// add the path even if there are problems so that the user can update the shared folders as required.
-			folders.add(path);
-		}
-
-		return folders;
-	}
-
-	/**
-	 * This just preserves wizard functionality of offering the user a choice
-	 * to share a directory.
-	 *
-	 * @param directoryPath
-	 */
-	public void setOnlySharedDirectory(String directoryPath) {
-		synchronized (sharedFoldersLock) {
-			configuration.setProperty(KEY_FOLDERS, directoryPath);
-			configuration.setProperty(KEY_FOLDERS_MONITORED, directoryPath);
-			ArrayList<Path> tmpSharedfolders = new ArrayList<>();
-			Path folder = Paths.get(directoryPath);
-			tmpSharedfolders.add(folder);
-			sharedFolders = tmpSharedfolders;
-			monitoredFolders = tmpSharedfolders;
-			sharedFoldersRead = true;
-			monitoredFoldersRead = true;
-		}
-	}
-
-	public static class SharedFolder {
-		private final String path;
-		private final boolean monitored;
-
-		public SharedFolder(String path, boolean monitored) {
-			this.path = path;
-			this.monitored = monitored;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public boolean isMonitored() {
-			return monitored;
-		}
-
-	}
-
-	/**
-	 * Stores the shared folders in the configuration from the specified
-	 * value.
-	 *
-	 * @param tableSharedFolders the List of SharedFolder values to use.
-	 */
-	public void setSharedFolders(List<SharedFolder> tableSharedFolders) {
-		if (tableSharedFolders == null || tableSharedFolders.isEmpty()) {
-			synchronized (sharedFoldersLock) {
-				if (!sharedFoldersRead || !sharedFolders.isEmpty()) {
-					configuration.setProperty(KEY_FOLDERS, "");
-					sharedFolders = new ArrayList<>();
-					sharedFoldersRead = true;
-				}
-
-				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
-					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
-					monitoredFolders = new ArrayList<>();
-					monitoredFoldersRead = true;
-				}
-			}
-			return;
-		}
-		String listSeparator = String.valueOf(LIST_SEPARATOR);
-		ArrayList<Path> tmpSharedfolders = new ArrayList<>();
-		ArrayList<Path> tmpMonitoredFolders = new ArrayList<>();
-		for (SharedFolder rowSharedFolder : tableSharedFolders) {
-			String folderPath = rowSharedFolder.getPath();
-			/*
-			 * Escape embedded commas. Note: Backslashing isn't safe as it
-			 * conflicts with the Windows path separator.
-			 */
-			if (folderPath.contains(listSeparator)) {
-				folderPath = folderPath.replace(listSeparator, "&comma;");
-			}
-			Path folder = Paths.get(folderPath);
-			tmpSharedfolders.add(folder);
-			if (rowSharedFolder.isMonitored()) {
-				tmpMonitoredFolders.add(folder);
-			}
-		}
-		synchronized (sharedFoldersLock) {
-			if (!sharedFoldersRead || !sharedFolders.equals(tmpSharedfolders)) {
-				configuration.setProperty(KEY_FOLDERS, StringUtils.join(tmpSharedfolders, LIST_SEPARATOR));
-				sharedFolders = tmpSharedfolders;
-				sharedFoldersRead = true;
-			}
-
-			if (!monitoredFoldersRead || !monitoredFolders.equals(tmpMonitoredFolders)) {
-				configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(tmpMonitoredFolders, LIST_SEPARATOR));
-				monitoredFolders = tmpMonitoredFolders;
-				monitoredFoldersRead = true;
-			}
-		}
-	}
-
-	/**
-	 * Sets the shared folders and the monitor folders to the platform default
-	 * folders.
-	 */
-	public void setSharedFoldersToDefault() {
-		synchronized (sharedFoldersLock) {
-			sharedFolders = new ArrayList<>(RootFolder.getDefaultFolders());
-			configuration.setProperty(KEY_FOLDERS, StringUtils.join(sharedFolders, LIST_SEPARATOR));
-			sharedFoldersRead = true;
-			monitoredFolders = new ArrayList<>(RootFolder.getDefaultFolders());
-			configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(monitoredFolders, LIST_SEPARATOR));
-			monitoredFoldersRead = true;
-		}
 	}
 
 	public String getNetworkInterface() {
@@ -4382,14 +4119,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	public void setRendererForceDefault(boolean value) {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
-	}
-
-	public String getVirtualFolders() {
-		return getString(KEY_VIRTUAL_FOLDERS, "");
-	}
-
-	public String getVirtualFoldersFile() {
-		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
@@ -5557,8 +5286,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 		jObj.addProperty("fmpeg_sox", true);
-		jObj.add(KEY_FOLDERS, new JsonArray());
-		jObj.add(KEY_FOLDERS_MONITORED, new JsonArray());
 		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
