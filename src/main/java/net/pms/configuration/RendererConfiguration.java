@@ -140,6 +140,7 @@ public class RendererConfiguration extends Renderer {
 	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	protected static final String CHARMAP = "CharMap";
 	protected static final String CHUNKED_TRANSFER = "ChunkedTransfer";
+	protected static final String CUSTOM_FFMPEG_AUDIO_OPTIONS = "CustomFFmpegAudioOptions";
 	protected static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	protected static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	protected static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
@@ -2375,6 +2376,10 @@ public class RendererConfiguration extends Renderer {
 
 	public int getAutoPlayTmo() {
 		return getInt(AUTO_PLAY_TMO, 5000);
+	}
+
+	public String getCustomFFmpegAudioOptions() {
+		return getString(CUSTOM_FFMPEG_AUDIO_OPTIONS, "");
 	}
 
 	public String getCustomFFmpegOptions() {
