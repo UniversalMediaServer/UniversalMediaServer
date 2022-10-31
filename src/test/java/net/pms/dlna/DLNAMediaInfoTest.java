@@ -63,6 +63,7 @@ public class DLNAMediaInfoTest {
 		"video-xvid-mp3.avi",
 		"video-h265_dolbyvision_p05.05-eac3_atmos.mkv",
 		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
+		"video-h264-6ch-ac4.mp4",
 	};
 
 	/**
@@ -239,6 +240,11 @@ public class DLNAMediaInfoTest {
 				case 23:
 					assertEquals(mediaInfo.toString(),
 						"Container: MKV, Size: 7799945, Overall Bitrate: 10372267, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska"
+					);
+					break;
+				case 24:
+					assertThat(mediaInfo.toString()).isEqualTo(
+						"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Video Tracks: 1, Video Codec: h264, Duration: 0:01:11.905, Video Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.970, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Reference Frame Count: 2, AVC Level: 4, AVC Profile: main, Audio Tracks: 1 [Audio Codec: ac4, Bitrate: 128000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4"
 					);
 					break;
 				default:
