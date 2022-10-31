@@ -20,8 +20,10 @@ import java.net.*;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.DeviceConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAResource;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererMap;
@@ -47,7 +49,7 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected void rendererReady(String uuid) {
-		RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUUID(uuid);
+		RendererConfiguration r = RendererConfigurations.getRendererConfigurationByUUID(uuid);
 		if (r != null) {
 			r.getPlayer();
 		}
@@ -55,8 +57,8 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected boolean isBlocked(String uuid) {
-		int mode = DeviceConfiguration.getDeviceUpnpMode(uuid, true);
-		if (mode != RendererConfiguration.ALLOW) {
+		int mode = DeviceConfigurations.getDeviceUpnpMode(uuid, true);
+		if (mode != RendererConfiguration.UPNP_ALLOW) {
 			LOGGER.debug("Upnp service is {} for {}", RendererConfiguration.getUpnpModeString(mode), uuid);
 			return true;
 		}
@@ -68,9 +70,9 @@ public class UPNPHelper extends UPNPControl {
 		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			DeviceConfiguration r = (DeviceConfiguration) RendererConfigurations.getRendererConfigurationBySocketAddress(socket);
 			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
-				RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 
 			if (r != null && !r.isUpnpAllowed()) {
 				LOGGER.debug("Upnp service is {} for \"{}\"", r.getUpnpModeString(), r);

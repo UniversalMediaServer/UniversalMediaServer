@@ -29,6 +29,7 @@ import java.util.Objects;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.Feed;
+import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +41,15 @@ import org.slf4j.LoggerFactory;
 public class WebSourcesConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSourcesConfiguration.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 
 	/**
 	 * This parses the web config and return WebSource's List.
 	 */
 	public static synchronized List<WebSource> getWebSourcesFromConfiguration() {
 		List<WebSource> result = new ArrayList<>();
-		File webConf = new File(CONFIGURATION.getWebConfPath());
+		File webConf = new File(getWebConfPath());
 		if (!webConf.exists()) {
 			return result;
 		}
@@ -147,6 +150,23 @@ public class WebSourcesConfiguration {
 	 */
 	private static String[] parseFeedValue(String spec) {
 		return spec.split(",");
+	}
+
+	/**
+	 * Returns the absolute path to the WEB.conf file. By default
+	 * this is <pre>PROFILE_DIRECTORY + File.pathSeparator + WEB.conf</pre>,
+	 * but it can be overridden via the <pre>web_conf</pre> profile option.
+	 * The existence of the file is not checked.
+	 *
+	 * @return the path to the WEB.conf file.
+	 */
+	public static String getWebConfPath() {
+		String webConfPath = FileUtil.getFileLocation(
+				CONFIGURATION.getString(KEY_WEB_CONF_PATH, null),
+				CONFIGURATION.getProfileDirectory(),
+				DEFAULT_WEB_CONF_FILENAME
+			).getFilePath();
+		return CONFIGURATION.getString(KEY_WEB_CONF_PATH, webConfPath);
 	}
 
 	public static class WebSource {

@@ -36,6 +36,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
@@ -123,20 +124,20 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Attempt 1: If the reguested url contains the no-transcode tag, force
 		// the default streaming-only conf.
 		if (request.getUri().contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfiguration.getStreamingConf();
+			renderer = RendererConfigurations.getStreamingConf();
 			LOGGER.debug("Forcing streaming.");
 		}
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(ia);
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
 		if (renderer == null || !renderer.isLoaded()) {
 			// Attempt 3: try to recognize the renderer by matching headers
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
+			renderer = RendererConfigurations.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
 
 		if (renderer != null) {
@@ -232,7 +233,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfiguration.resolve(ia, null);
+			renderer = RendererConfigurations.resolve(ia, null);
 			request.setMediaRenderer(renderer);
 			if (renderer != null) {
 				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());

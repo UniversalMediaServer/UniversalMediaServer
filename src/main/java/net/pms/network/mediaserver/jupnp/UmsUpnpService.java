@@ -64,4 +64,8 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		result.addDevice(mediaServerDevice);
 		return result;
 	}
+
+	public void sendAlive() {
+		getProtocolFactory().createSendingNotificationAlive(mediaServerDevice).run();
+	}
 }

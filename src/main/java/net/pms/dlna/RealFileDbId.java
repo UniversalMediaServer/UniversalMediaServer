@@ -17,7 +17,7 @@
 package net.pms.dlna;
 
 import java.io.File;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.formats.Format;
 import net.pms.formats.PLAYLIST;
 
@@ -50,7 +50,7 @@ public final class RealFileDbId extends RealFile {
 	public DLNAResource getParent() {
 		DLNAResource parent = super.getParent();
 		if (parent == null) {
-			parent = RendererConfiguration.getDefaultConf().getRootFolder();
+			parent = RendererConfigurations.getDefaultConf().getRootFolder();
 			setParent(parent);
 		}
 		return parent;

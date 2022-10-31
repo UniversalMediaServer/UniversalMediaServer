@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.sharedcontent.FeedAudioContent;
 import net.pms.configuration.sharedcontent.FeedImageContent;
 import net.pms.configuration.sharedcontent.FeedVideoContent;
@@ -258,7 +258,7 @@ public class RootFolder extends DLNAResource {
 			discoverChildren(false);
 		}
 
-		setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		LOGGER.debug("Starting scan of: {}", this.getName());
 		if (running) {
 			Connection connection = null;
@@ -1303,7 +1303,7 @@ public class RootFolder extends DLNAResource {
 		// TODO: Can this use UnattachedFolder and add instead?
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
-		rf.getParent().setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		rf.getParent().setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		rf.resolveFormat();
 		rf.syncResolve();
 
@@ -1348,7 +1348,7 @@ public class RootFolder extends DLNAResource {
 						file = file.getParentFile();
 					}
 					DLNAResource dir = new RealFile(file);
-					dir.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+					dir.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 					dir.doRefreshChildren();
 					PMS.get().getRootFolder(null).scan(dir);
 				};

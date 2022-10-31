@@ -117,17 +117,17 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	@Override
 	public boolean load(File f) {
 		// FIXME: These are just preliminary
-		configuration.addProperty(MEDIAPARSERV2, true);
-		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
-		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
-		configuration.addProperty(SUPPORTED, "f:m4a m:audio/mp4");
-		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
-		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
-		configuration.addProperty(TRANSCODE_AUDIO, MP3);
-		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
-		configuration.addProperty(HLS_MULTI_VIDEO_QUALITY, true);
-		configuration.addProperty(HLS_VERSION, 6);
+		configuration.addProperty(KEY_MEDIAPARSERV2, true);
+		configuration.addProperty(KEY_MEDIAPARSERV2_THUMB, true);
+		configuration.addProperty(KEY_SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
+		configuration.addProperty(KEY_SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
+		configuration.addProperty(KEY_SUPPORTED, "f:m4a m:audio/mp4");
+		configuration.addProperty(KEY_SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
+		configuration.addProperty(KEY_SUPPORTED, "f:wav n:2 m:audio/wav");
+		configuration.addProperty(KEY_TRANSCODE_AUDIO, TRANSCODE_TO_MP3);
+		configuration.addProperty(KEY_TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
+		configuration.addProperty(KEY_HLS_MULTI_VIDEO_QUALITY, true);
+		configuration.addProperty(KEY_HLS_VERSION, 6);
 		return true;
 	}
 

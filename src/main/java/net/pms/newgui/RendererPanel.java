@@ -32,7 +32,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.DeviceConfigurations;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.newgui.components.CustomJButton;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -111,7 +113,7 @@ public class RendererPanel extends JPanel {
 		open.setFocusPainted(false);
 		open.addActionListener((final ActionEvent e) -> {
 			DeviceConfiguration d = (DeviceConfiguration) renderer;
-			File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
+			File f = chooseConf(DeviceConfigurations.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
 			if (f != null) {
 				File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
 				buildEditBar(true);
@@ -226,12 +228,12 @@ public class RendererPanel extends JPanel {
 	}
 
 	public File chooseReferenceConf() {
-		JFileChooser fc = new JFileChooser(RendererConfiguration.getRenderersDir());
+		JFileChooser fc = new JFileChooser(RendererConfigurations.getRenderersDir());
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
 		fc.addChoosableFileFilter(filter);
 		fc.setAcceptAllFileFilterUsed(true);
-		File defaultRef = new File(RendererConfiguration.getRenderersDir(), "DefaultRenderer.conf");
+		File defaultRef = new File(RendererConfigurations.getRenderersDir(), "DefaultRenderer.conf");
 		if (defaultRef.exists()) {
 			fc.setSelectedFile(defaultRef);
 		}

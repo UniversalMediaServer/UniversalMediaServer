@@ -96,7 +96,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public int getAliveIntervalMillis() {
-		return CONFIGURATION.getAliveDelay() != 0 ? CONFIGURATION.getAliveDelay() : 30000;
+		return CONFIGURATION.getUpnpSendAliveDelay() != 0 ? CONFIGURATION.getUpnpSendAliveDelay() : 30000;
 	}
 
 	@Override

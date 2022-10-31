@@ -35,7 +35,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
@@ -115,8 +115,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
 				jsonResponse.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
-				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
-				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
+				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
+				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();

@@ -29,7 +29,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
@@ -152,19 +152,12 @@ public class BrowseHandler implements HttpHandler {
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 						HashMap<String, String> item = new HashMap<>();
 						String faIcon;
-						switch (name) {
-							case "Video":
-								faIcon = "fa-video";
-								break;
-							case "Audio":
-								faIcon = "fa-music";
-								break;
-							case "Photo":
-								faIcon = "fa-images";
-								break;
-							default:
-								faIcon = "fa-folder";
-							}
+						faIcon = switch (name) {
+							case "Video" -> "fa-video";
+							case "Audio" -> "fa-music";
+							case "Photo" -> "fa-images";
+							default -> "fa-folder";
+						};
 						thumbHTML.append("<a href=\"/browse/").append(idForWeb);
 						thumbHTML.append("\" title=\"").append(name).append("\">");
 						thumbHTML.append("<i class=\"fas ").append(faIcon).append(" fa-5x\"></i>");
@@ -425,7 +418,7 @@ public class BrowseHandler implements HttpHandler {
 	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = WebInterfaceServerUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		boolean upnpControl = RendererConfigurations.hasConnectedControlPlayers();
 		String pageTypeUri = "/play/";
 		if (resource.isFolder()) {
 			pageTypeUri = "/browse/";

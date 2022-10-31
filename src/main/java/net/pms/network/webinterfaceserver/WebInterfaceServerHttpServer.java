@@ -40,7 +40,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
@@ -230,7 +230,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 			}
 
 			root.discoverChildren();

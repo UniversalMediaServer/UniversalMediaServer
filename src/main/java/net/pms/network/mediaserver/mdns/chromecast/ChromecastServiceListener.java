@@ -27,6 +27,7 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.ChromecastDevice;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +43,7 @@ public class ChromecastServiceListener implements ServiceListener {
 	private ArrayList<ChromecastDevice> chromeCasts;
 
 	public ChromecastServiceListener() throws IOException {
-		renderer = RendererConfiguration.getRendererConfigurationByName("Chromecast");
+		renderer = RendererConfigurations.getRendererConfigurationByName("Chromecast");
 		chromeCasts = new ArrayList<>();
 		if (!PMS.getConfiguration().isChromecastDbg()) {
 			ch.qos.logback.classic.Logger logger =

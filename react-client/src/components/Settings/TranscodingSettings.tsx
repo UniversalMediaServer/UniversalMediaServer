@@ -834,7 +834,7 @@ export default function TranscodingSettings(
             disabled={!canModify}
             size="xs"
             label={i18n.get['UseSoxHigherQualityAudio']}
-            {...form.getInputProps('fmpeg_sox', { type: 'checkbox' })}
+            {...form.getInputProps('ffmpeg_sox', { type: 'checkbox' })}
           />
           <NumberInput
             disabled={!canModify}

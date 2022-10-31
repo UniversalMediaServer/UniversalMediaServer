@@ -21,6 +21,7 @@ import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -111,7 +112,7 @@ public class DLNAMediaInfoTest {
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test", "test");
-		parent.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		parent.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		PMS.getGlobalRepo().add(parent);
 
 		for (int i = 0; i < test_files.length; ++i) {

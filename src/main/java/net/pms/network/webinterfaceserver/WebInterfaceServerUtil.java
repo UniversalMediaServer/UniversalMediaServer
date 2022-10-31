@@ -40,6 +40,7 @@ import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
@@ -452,7 +453,7 @@ public class WebInterfaceServerUtil {
 	public static WebRender matchRenderer(String user, HttpExchange t) {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
+		RendererConfiguration r = RendererConfigurations.find(confName, t.getRemoteAddress().getAddress());
 		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
 			(WebRender) r : null;
 	}

@@ -174,6 +174,25 @@ public class SharedContentConfiguration {
 		updateSharedContent(values, true);
 	}
 
+	/**
+	 * Get Shared contents configuration.
+	 * First, parse shared contents configs file (default to SHARED.conf).
+	 * If not exists, try to update from old shared contents configs files (WEB.conf, VirtualFolders.conf and UMS.conf)
+	 * If no results, default to the default media folders on your computer.
+	 * That is:
+	 * On macOS:
+	 *    - /user/Movies
+	 *    - /user/Music
+	 *    - /user/Pictures
+	 *  On Windows:
+	 *    - /user/Music
+	 *    - /user/Pictures
+	 *    - /user/Videos
+	 *  On Linux:
+	 *    - /user
+	 *
+	 * @return the SharedContentArray.
+	 */
 	private static synchronized SharedContentArray readAllConfigurations() {
 		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 		try {
@@ -184,7 +203,7 @@ public class SharedContentConfiguration {
 				//import old settings
 				SharedContentArray oldConfig = OldConfigurationImporter.getOldConfigurations();
 				if (oldConfig.isEmpty()) {
-					//no shared conf files, set to default
+					//no shared conf files, set to default media folders
 					oldConfig = defaultConfiguration();
 				}
 				updateSharedContent(oldConfig, true);

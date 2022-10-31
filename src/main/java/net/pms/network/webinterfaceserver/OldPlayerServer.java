@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.UUID;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
@@ -137,7 +137,7 @@ public class OldPlayerServer extends WebInterfaceServer implements WebInterfaceS
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 			}
 
 			root.discoverChildren();

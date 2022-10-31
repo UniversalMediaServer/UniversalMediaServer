@@ -49,6 +49,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
@@ -2968,7 +2969,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						rendererIp = InetAddress.getByName(rendererId);
 						RendererConfiguration renderer;
 						if (incomingRenderer == null) {
-							renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(rendererIp);
 						} else {
 							renderer = incomingRenderer;
 						}
@@ -3030,7 +3031,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer;
 							if (incomingRenderer == null) {
-								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+								renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(rendererIp);
 							} else {
 								renderer = incomingRenderer;
 							}
@@ -4830,7 +4831,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return index > -1 ? TEMP.getChildren().get(index) : TEMP.recreate(objectId, name, renderer);
 			}
 			if (renderer == null) {
-				renderer = RendererConfiguration.getDefaultConf();
+				renderer = RendererConfigurations.getDefaultConf();
 			}
 
 			return PMS.get().getRootFolder(renderer).getDLNAResource(objectId, renderer);

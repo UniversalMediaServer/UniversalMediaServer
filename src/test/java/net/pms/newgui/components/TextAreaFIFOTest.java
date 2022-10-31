@@ -40,8 +40,8 @@ public class TextAreaFIFOTest {
 
 		assertEquals(textArea.getMaxLines(), 950, "InitialLines");
 		textArea.setMaxLines(0);
-		assertEquals(textArea.getMaxLines(), UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN, "MinLines");
+		assertEquals(textArea.getMaxLines(), UmsConfiguration.getLoggingLogsTabLinebufferMin(), "MinLines");
 		textArea.setMaxLines(1000000);
-		assertEquals(textArea.getMaxLines(), UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX, "MaxLines");
+		assertEquals(textArea.getMaxLines(), UmsConfiguration.getLoggingLogsTabLinebufferMax(), "MaxLines");
 	}
 }

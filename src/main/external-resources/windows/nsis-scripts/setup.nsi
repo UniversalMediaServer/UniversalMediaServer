@@ -274,9 +274,7 @@ Section "Program Files"
 	SetOutPath "$INSTDIR"
 	SetOverwrite off
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
 	; Remove old renderer files to prevent conflicts
 	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
@@ -398,9 +396,7 @@ Section "Program Files"
 
 	AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
 	; Remove existing firewall rules in case they need updating
 	ExecWait 'netsh advfirewall firewall delete rule name=UMS'

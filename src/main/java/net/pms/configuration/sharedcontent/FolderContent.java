@@ -51,6 +51,11 @@ public class FolderContent extends SharedContent {
 		monitored = value;
 	}
 
+	/**
+	 * isMonitored mean monitored for changes like file additions/removals, and
+	 * fully played status.
+	 * @return monitored state.
+	 */
 	public boolean isMonitored() {
 		return monitored;
 	}

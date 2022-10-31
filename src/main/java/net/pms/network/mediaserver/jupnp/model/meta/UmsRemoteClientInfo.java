@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.slf4j.Logger;
@@ -59,14 +60,14 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 		/*
 		* don't use that now...
 		if (uri.contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfiguration.getStreamingConf();
+			renderer = RendererConfigurations.getStreamingConf();
 			LOGGER.debug("Forcing streaming.");
 		}
 		*/
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
+			renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
@@ -78,14 +79,14 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 			for (Entry<String, List<String>> header : info.getRequestHeaders().entrySet()) {
 				headers.put(header.getKey(), header.getValue().get(0));
 			}
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
+			renderer = RendererConfigurations.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
 		}
 		// Still no media renderer recognized?
 		if (renderer == null) {
 			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfiguration.resolve(info.getRemoteAddress(), null);
+			renderer = RendererConfigurations.resolve(info.getRemoteAddress(), null);
 			// If RendererConfiguration.resolve() didn't return the default renderer
 			// it means we know via upnp that it's not really a renderer.
 			if (renderer != null) {
