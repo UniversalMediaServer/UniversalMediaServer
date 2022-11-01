@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network;
 
@@ -232,26 +231,22 @@ public abstract class HTTPResource {
 			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
 		}
 
-		FileOutputStream fOUT;
 		try (InputStream in = conn.getInputStream()) {
-			fOUT = null;
-			if (saveOnDisk && f != null) {
-				// fileName = convertURLToFileName(fileName);
-				fOUT = new FileOutputStream(f);
-			}
 			byte[] buf = new byte[4096];
 			int n;
-			while ((n = in.read(buf)) > -1) {
-				bytes.write(buf, 0, n);
+			if (saveOnDisk && f != null) {
+				try (FileOutputStream fOUT = new FileOutputStream(f)) {
+					while ((n = in.read(buf)) > -1) {
+						bytes.write(buf, 0, n);
+						fOUT.write(buf, 0, n);
+					}
+				}
+			} else {
 
-				if (fOUT != null) {
-					fOUT.write(buf, 0, n);
+				while ((n = in.read(buf)) > -1) {
+					bytes.write(buf, 0, n);
 				}
 			}
-		}
-
-		if (fOUT != null) {
-			fOUT.close();
 		}
 
 		return bytes.toByteArray();
@@ -287,17 +282,13 @@ public abstract class HTTPResource {
 			orgPN += "SD";
 		}
 
-		switch (index) {
-			case 1:
-				orgPN += "_NA";
-				break;
-			case 2:
-				orgPN += "_JP";
-				break;
-			default:
-				orgPN += "_EU";
-				break;
-		}
+		orgPN += (
+			switch (index) {
+				case 1 -> "_NA";
+				case 2 -> "_JP";
+				default -> "_EU";
+			}
+		);
 
 		if (!isStreaming) {
 			orgPN += "_ISO";
@@ -309,17 +300,13 @@ public abstract class HTTPResource {
 	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
-		switch (index) {
-			case 1:
-				orgPN += "_NA";
-				break;
-			case 2:
-				orgPN += "_JP";
-				break;
-			default:
-				orgPN += "_EU";
-				break;
-		}
+		orgPN += (
+			switch (index) {
+				case 1 -> "_NA";
+				case 2 -> "_JP";
+				default -> "_EU";
+			}
+		);
 
 		if (!isStreaming) {
 			orgPN += "_ISO";

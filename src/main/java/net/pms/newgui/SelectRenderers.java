@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.newgui;
@@ -29,7 +28,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.newgui.components.IllegalChildException;
@@ -41,9 +40,8 @@ import org.slf4j.LoggerFactory;
 public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final String ALL_RENDERERS_TREE_NAME = PmsConfiguration.ALL_RENDERERS;
-	private static List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final String ALL_RENDERERS_TREE_NAME = UmsConfiguration.ALL_RENDERERS;
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
@@ -110,27 +108,27 @@ public class SelectRenderers extends JPanel {
 
 		srvTree.validate();
 		// Refresh setting if modified
-		savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
+		List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
 		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
-			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
-				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
+			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode rootNode) {
 				SearchableMutableTreeNode node = null;
 				List<TreePath> selectedRenderersPath = new ArrayList<>(savedSelectedRenderers.size());
 				for (String selectedRenderer : savedSelectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
-					} catch (IllegalChildException e) {}
+					} catch (IllegalChildException e) {
+					}
 
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
 				}
-				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(new TreePath[selectedRenderersPath.size()]));
+				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(TreePath[]::new));
 			} else {
 				LOGGER.error("Illegal node class in SelectRenderers.showDialog(): {}", root.getLastPathComponent().getClass().getSimpleName());
 			}
@@ -163,22 +161,22 @@ public class SelectRenderers extends JPanel {
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
-					String rendererName = "";
+					StringBuilder rendererName = new StringBuilder();
 					if (path.getPathComponent(0).equals(allRenderers)) {
 						for (int i = 1; i < path.getPathCount(); i++) {
-							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode) {
+							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode searchableMutableTreeNode) {
 								if (!rendererName.isEmpty()) {
-									rendererName += " ";
+									rendererName.append(" ");
 								}
 
-								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
+								rendererName.append(searchableMutableTreeNode.getNodeName());
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
 
 						if (!rendererName.isEmpty()) {
-							selectedRenderers.add(rendererName);
+							selectedRenderers.add(rendererName.toString());
 						}
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());

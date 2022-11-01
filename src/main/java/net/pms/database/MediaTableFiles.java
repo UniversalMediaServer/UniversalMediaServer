@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -655,7 +655,7 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			if (se.getCause() != null && se.getCause() instanceof IOException) {
+			if (se.getCause() instanceof IOException iOException) {
 				if (se.getCause() instanceof InvalidClassException && se.toString().contains("net.pms.image.ExifInfo; local class incompatible")) {
 					/*
 					 * Serialization failed for ExifInfo or one of its subclasses,
@@ -691,7 +691,7 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace("", e2);
 					}
 				} else {
-					throw (IOException) se.getCause();
+					throw iOException;
 				}
 			}
 			throw se;
@@ -1075,9 +1075,9 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static ArrayList<String> getStrings(final Connection connection, String sql) {
-		ArrayList<String> list = new ArrayList<>();
-		HashSet<String> set = new HashSet<>();
+	public static List<String> getStrings(final Connection connection, String sql) {
+		List<String> list = new ArrayList<>();
+		Set<String> set = new HashSet<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + " WHERE " + sql));
@@ -1219,8 +1219,8 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static ArrayList<File> getFiles(final Connection connection, String sql) {
-		ArrayList<File> list = new ArrayList<>();
+	public static List<File> getFiles(final Connection connection, String sql) {
+		List<File> list = new ArrayList<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(

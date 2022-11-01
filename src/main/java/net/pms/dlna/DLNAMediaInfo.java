@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -27,13 +26,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
-import net.pms.formats.Format.Identifier;
 import net.pms.formats.audio.*;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ExifInfo;
@@ -52,12 +50,11 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.UnknownFormatException;
-import static net.pms.util.StringUtil.*;
 import net.pms.util.UMSUtils;
+import net.pms.util.UnknownFormatException;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -78,7 +75,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Gson GSON = new Gson();
 	public static final long ENDFILE_POS = 99999475712L;
 
@@ -178,7 +175,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	private volatile boolean mediaparsed;
 
-	public boolean ffmpegparsed;
+	private boolean ffmpegparsed;
 
 	/**
 	 * isUseMediaInfo-related, used to manage thumbnail management separated
@@ -251,7 +248,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * core layer. Valid cores include AAC-LC, AAC Scalable (without LTP), ER
 	 * AAC LC, ER AAC Scalable, and ER BSAC.
 	 * <p>
-	 * Since DMS currently only implements AAC-LC among the valid core layer
+	 * Since UMS currently only implements AAC-LC among the valid core layer
 	 * codecs, AAC-LC is the only core layer format "approved" by this test. If
 	 * further codecs are added in the future, this test should be modified
 	 * accordingly.
@@ -479,7 +476,9 @@ public class DLNAMediaInfo implements Cloneable {
 				synchronized (ffmpegFailureLock) {
 					ffmpegFailure = true;
 				}
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 
 			pw.stopProcess();
 			synchronized (parsingLock) {
@@ -596,7 +595,7 @@ public class DLNAMediaInfo implements Cloneable {
 				if (file != null) {
 					try {
 						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(file).toLowerCase(Locale.ROOT))) {
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(file))) {
 							af = AudioFileIO.readAs(file, "mp3");
 						} else {
 							af = AudioFileIO.read(file);
@@ -705,13 +704,14 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					// Set container for formats that the normal parsing fails to do from Format
-					if (StringUtils.isBlank(container) && ext != null) {
-						if (ext.getIdentifier() == Identifier.ADPCM) {
-							audio.setCodecA(FormatConfiguration.ADPCM);
-						} else if (ext.getIdentifier() == Identifier.DSF) {
-							audio.setCodecA(FormatConfiguration.DSF);
-						} else if (ext.getIdentifier() == Identifier.DFF) {
-							audio.setCodecA(FormatConfiguration.DFF);
+					if (StringUtils.isBlank(container) && ext != null && ext.getIdentifier() != null) {
+						switch (ext.getIdentifier()) {
+							case ADPCM -> audio.setCodecA(FormatConfiguration.ADPCM);
+							case DSF -> audio.setCodecA(FormatConfiguration.DSF);
+							case DFF -> audio.setCodecA(FormatConfiguration.DFF);
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 
@@ -1841,7 +1841,9 @@ public class DLNAMediaInfo implements Cloneable {
 				synchronized (ffmpegAnnexbFailureLock) {
 					ffmpegAnnexbFailure = true;
 				}
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 			pw.stopProcess();
 		};
 
@@ -2915,10 +2917,9 @@ public class DLNAMediaInfo implements Cloneable {
 				return Mode3D.AYBD;
 			}
 			default -> {
+				return null;
 			}
 		}
-
-		return null;
 	}
 
 	private boolean isAnaglyph;
@@ -2992,7 +2993,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 
 	private static Double parseDurationString(String duration) {
-		return duration != null ? convertStringToTime(duration) : null;
+		return duration != null ? StringUtil.convertStringToTime(duration) : null;
 	}
 
 	/**

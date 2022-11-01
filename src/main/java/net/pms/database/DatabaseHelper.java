@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
@@ -30,9 +29,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public abstract class DatabaseHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHelper.class);
 	private static final String ESCAPE_CHARACTER = "\\";
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	protected static final String LOG_CREATING_TABLE = "Creating database \"{}\" table: \"{}\"";
 	protected static final String LOG_UPGRADING_TABLE = "Upgrading database \"{}\" table \"{}\" from version {} to {}";
@@ -60,6 +61,12 @@ public abstract class DatabaseHelper {
 
 	// Generic constant for the maximum string size: 255 chars
 	protected static final int SIZE_MAX = 255;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	protected DatabaseHelper() {
+	}
 
 	/**
 	 * Checks if a named table exists
@@ -277,8 +284,8 @@ public abstract class DatabaseHelper {
 	 * @return the rows of the first column of a result set
 	 * @throws SQLException
 	 */
-	public static HashSet<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
-		HashSet<String> list = new HashSet<>();
+	public static Set<String> convertResultSetToHashSet(ResultSet rs) throws SQLException {
+		Set<String> list = new HashSet<>();
 
 		while (rs.next()) {
 			list.add(rs.getString(1));
@@ -293,10 +300,10 @@ public abstract class DatabaseHelper {
 	 * @return
 	 * @throws SQLException
 	 */
-	public static HashMap<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
+	public static Map<String, Object> convertSingleResultSetToList(ResultSet rs) throws SQLException {
 		ResultSetMetaData md = rs.getMetaData();
 		int columns = md.getColumnCount();
-		HashMap<String, Object> row = new HashMap<>(columns);
+		Map<String, Object> row = new HashMap<>(columns);
 		for (int i = 1; i <= columns; ++i) {
 			row.put(md.getColumnName(i), rs.getObject(i));
 		}

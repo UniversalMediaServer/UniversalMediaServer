@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -27,8 +26,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Locale;
+import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
@@ -302,7 +300,7 @@ public class RealFile extends MapFile {
 				if (getMedia() != null && getMedia().isSLS()) {
 					setFormat(getMedia().getAudioVariantFormat());
 				}
-			} catch (Exception e) {
+			} catch (SQLException e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
@@ -341,7 +339,7 @@ public class RealFile extends MapFile {
 
 			for (File folder : folders) {
 				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
-				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				Set<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
 				if (!potentials.isEmpty()) {
 					// We have no rules for how to pick a particular one if there's multiple candidates
 					cachedThumbnail = potentials.iterator().next();
@@ -453,7 +451,7 @@ public class RealFile extends MapFile {
 				try {
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
 						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(getFile()))) {
 							af = AudioFileIO.readAs(getFile(), "mp3");
 						} else {
 							af = AudioFileIO.read(getFile());

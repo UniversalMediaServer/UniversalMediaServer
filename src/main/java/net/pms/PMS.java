@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms;
 
@@ -41,8 +40,9 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebSourcesConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
@@ -113,7 +113,7 @@ public class PMS {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PMS.class);
 
 	// TODO(tcox):  This shouldn't be static
-	private static PmsConfiguration configuration;
+	private static UmsConfiguration configuration;
 
 	/**
 	 * Universally Unique Identifier used in the UPnP mediaServer.
@@ -291,7 +291,7 @@ public class PMS {
 
 		LOGGER.info("Logging configuration file: {}", LoggingConfig.getConfigFilePath());
 
-		HashMap<String, String> lfps = LoggingConfig.getLogFilePaths();
+		Map<String, String> lfps = LoggingConfig.getLogFilePaths();
 
 		// Logfile name(s) and path(s)
 		if (lfps != null && !lfps.isEmpty()) {
@@ -496,7 +496,7 @@ public class PMS {
 			String webConfPath = configuration.getWebConfPath();
 			File webConf = new File(webConfPath);
 			if (!webConf.exists()) {
-				configuration.writeDefaultWebConfigurationFile();
+				WebSourcesConfiguration.writeDefaultWebSourcesConfigurationFile();
 			}
 
 			// Ensure this only happens once
@@ -518,17 +518,17 @@ public class PMS {
 
 		configuration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
-				if (PmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				if (UmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
-				} else if (PmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				} else if (UmsConfiguration.NEED_RENDERERS_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
-				} else if (PmsConfiguration.NEED_WEB_GUI_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				} else if (UmsConfiguration.NEED_WEB_GUI_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
-				} else if (PmsConfiguration.NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				} else if (UmsConfiguration.NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetWebPlayerServer();
-				} else if (PmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				} else if (UmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
-				} else if (PmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				} else if (UmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersRoot();
 				}
 				GuiManager.setConfigurationChanged(event.getPropertyName());
@@ -544,7 +544,6 @@ public class PMS {
 		credMgr = new CredMgr(configuration.getCredFile());
 
 		// init dbs
-		keysDb = new UmsKeysDb();
 		codes = new CodeDb();
 		masterCode = null;
 
@@ -587,7 +586,7 @@ public class PMS {
 		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
-PlatformUtils.INSTANCE.isAdmin();
+
 		// Check the existence of VSFilter / DirectVobSub
 		if (PlatformUtils.INSTANCE.isAviSynthAvailable() && PlatformUtils.INSTANCE.getAvsPluginsDir() != null) {
 			LOGGER.debug("AviSynth plugins directory: " + PlatformUtils.INSTANCE.getAvsPluginsDir().getAbsolutePath());
@@ -981,7 +980,7 @@ PlatformUtils.INSTANCE.isAdmin();
 		}
 
 		try {
-			configuration = new PmsConfiguration();
+			configuration = new UmsConfiguration();
 			assert configuration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
@@ -1002,7 +1001,7 @@ PlatformUtils.INSTANCE.isAdmin();
 			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
 
 			// Load the (optional) LogBack config file.
-			// This has to be called after 'new PmsConfiguration'
+			// This has to be called after 'new UmsConfiguration'
 			LoggingConfig.loadFile();
 
 			// Check TRACE mode
@@ -1090,47 +1089,47 @@ PlatformUtils.INSTANCE.isAdmin();
 	}
 
 	/**
-	 * Retrieves the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
+	 * Retrieves the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
 	 * that contains all configured settings. The object provides getters for all
 	 * configurable settings.
 	 *
 	 * @return The configuration object
 	 */
-	public static PmsConfiguration getConfiguration() {
+	public static UmsConfiguration getConfiguration() {
 		return configuration;
 	}
 
 	/**
 	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
-	 * that applies to this device, which acts as its {@link net.pms.configuration.PmsConfiguration PmsConfiguration}.
+	 * that applies to this device, which acts as its {@link net.pms.configuration.UmsConfiguration UmsConfiguration}.
 	 *
-	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
+	 * This function should be used to resolve the relevant UmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
 	 * @param  renderer The renderer configuration.
-	 * @return          The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 * @return          The DeviceConfiguration object, if any, or the global UmsConfiguration.
 	 */
-	public static PmsConfiguration getConfiguration(RendererConfiguration renderer) {
+	public static UmsConfiguration getConfiguration(RendererConfiguration renderer) {
 		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
 	}
 
-	public static PmsConfiguration getConfiguration(OutputParams params) {
+	public static UmsConfiguration getConfiguration(OutputParams params) {
 		return getConfiguration(params != null ? params.getMediaRenderer() : null);
 	}
 
 	// Note: this should be used only when no RendererConfiguration or OutputParams is available
-	public static PmsConfiguration getConfiguration(DLNAResource dlna) {
+	public static UmsConfiguration getConfiguration(DLNAResource dlna) {
 		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}
 
 	/**
-	 * Sets the {@link net.pms.configuration.PmsConfiguration PmsConfiguration} object
+	 * Sets the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
 	 * that contains all configured settings for UMS. The object provides getters for all
 	 * configurable UMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
-	public static void setConfiguration(PmsConfiguration conf) {
+	public static void setConfiguration(UmsConfiguration conf) {
 		configuration = conf;
 	}
 
@@ -1160,9 +1159,7 @@ PlatformUtils.INSTANCE.isAdmin();
 
 			LOGGER.debug("Shutting down all active processes");
 
-			if (Services.processManager() != null) {
-				Services.processManager().stop();
-			}
+			Services.stopProcessManager();
 			ProcessWrapperImpl.destroyCurrentProcesses();
 		} catch (InterruptedException e) {
 			LOGGER.debug("Interrupted while shutting down..");
@@ -1290,7 +1287,7 @@ PlatformUtils.INSTANCE.isAdmin();
 	}
 
 	private static String pidFile() {
-		return configuration.getDataFile("pms.pid");
+		return configuration.getDataFile("UMS.pid");
 	}
 
 	private static void killProc() throws SecurityException, IOException {
@@ -1589,16 +1586,6 @@ PlatformUtils.INSTANCE.isAdmin();
 
 	public static boolean verifyCred(String owner, String tag, String user, String pwd) {
 		return instance.credMgr.verify(owner, tag, user, pwd);
-	}
-
-	private UmsKeysDb keysDb;
-
-	public static String getKey(String key) {
-		return instance.keysDb.get(key);
-	}
-
-	public static void setKey(String key, String val) {
-		instance.keysDb.set(key, val);
 	}
 
 	/**

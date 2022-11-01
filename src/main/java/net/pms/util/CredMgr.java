@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.io.*;
@@ -11,8 +27,21 @@ import org.slf4j.LoggerFactory;
 
 public class CredMgr {
 	public static class Credential {
-		public String username;
-		public String password;
+		private final String username;
+		private final String password;
+
+		private Credential(String username, String password) {
+			this.username = username;
+			this.password = password;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public String getPassword() {
+			return password;
+		}
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CredMgr.class);
@@ -32,14 +61,11 @@ public class CredMgr {
 		}
 	}
 
-	public static final FileWatcher.Listener RELOADER = new FileWatcher.Listener() {
-		@Override
-		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-			try {
-				((CredMgr) watch.getItem()).readFile();
-			} catch (IOException e) {
-				LOGGER.debug("Error during credfile init " + e);
-			}
+	public static final FileWatcher.Listener RELOADER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+		try {
+			((CredMgr) watch.getItem()).readFile();
+		} catch (IOException e) {
+			LOGGER.debug("Error during credfile init " + e);
 		}
 	};
 
@@ -78,9 +104,7 @@ public class CredMgr {
 					tags.put(tkey, tag);
 				}
 				MultiKey key = new MultiKey(s1[0], tag);
-				Credential val = new Credential();
-				val.username = s2[0];
-				val.password = s2[1];
+				Credential val = new Credential(s2[0], s2[1]);
 				ArrayList<Credential> old = credentials.get(key);
 				if (old == null) {
 					old = new ArrayList<>();
@@ -123,9 +147,9 @@ public class CredMgr {
 			return false;
 		}
 		for (Credential c : list) {
-			if (user.equals(c.username)) {
+			if (user.equals(c.getUsername())) {
 				// found user compare pwd
-				return pwd.equals(c.password);
+				return pwd.equals(c.getPassword());
 			}
 		}
 		// nothing found

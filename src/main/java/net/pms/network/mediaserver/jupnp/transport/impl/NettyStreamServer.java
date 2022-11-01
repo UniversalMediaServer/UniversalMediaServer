@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
@@ -156,14 +155,15 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 		private final Router router;
 		private final RequestHandlerV2 requestHandlerV2;
+		private final boolean serveContentDirectory;
 
 		public RequestUpstreamHandler(Router router, ChannelGroup allChannels) {
 			this.router = router;
-			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration &&
-				((UmsUpnpServiceConfiguration) router.getConfiguration()).useOwnHttpServer()) {
-				requestHandlerV2 = new RequestHandlerV2(allChannels);
+			requestHandlerV2 = new RequestHandlerV2(allChannels);
+			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration routerConfiguration) {
+				serveContentDirectory = routerConfiguration.useOwnContentDirectory();
 			} else {
-				requestHandlerV2 = null;
+				serveContentDirectory = false;
 			}
 		}
 
@@ -193,7 +193,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}
@@ -235,18 +235,18 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			}
 			ch.close();
 		}
-	}
 
-	private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-		HttpResponse response = new DefaultHttpResponse(
-			HttpVersion.HTTP_1_1, status);
-		response.headers().set(
-			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.setContent(ChannelBuffers.copiedBuffer(
-			"Failure: " + status.toString() + "\r\n", StandardCharsets.UTF_8));
+		private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+			HttpResponse response = new DefaultHttpResponse(
+				HttpVersion.HTTP_1_1, status);
+			response.headers().set(
+				HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+			response.setContent(ChannelBuffers.copiedBuffer(
+				"Failure: " + status.toString() + "\r\n", StandardCharsets.UTF_8));
 
-		// Close the connection as soon as the error message is sent.
-		ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+			// Close the connection as soon as the error message is sent.
+			ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
+		}
 	}
 
 	/**

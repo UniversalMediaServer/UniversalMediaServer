@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp;
 
@@ -26,7 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
@@ -55,7 +54,7 @@ import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
 	private static final int THREAD_POOL_SIZE = 200;
 	private static final int THREAD_QUEUE_SIZE = 1000;
@@ -68,14 +67,13 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	private final ExecutorService asyncProtocolExecutorService;
 	private final ExecutorService remoteListenerExecutorService;
 	private final ExecutorService registryListenerExecutorService;
-	private final UpnpHeaders umsHeaders;
+	private final UpnpHeaders umsHeaders = new UpnpHeaders();
 
-	private boolean ownHttpServer = false;
+	private boolean ownContentDirectory = false;
 
-	public UmsUpnpServiceConfiguration(boolean ownHttpServer) {
+	public UmsUpnpServiceConfiguration(boolean ownContentDirectory) {
 		super();
-		this.ownHttpServer = ownHttpServer;
-		umsHeaders = new UpnpHeaders();
+		this.ownContentDirectory = ownContentDirectory;
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 		multicastReceiverExecutorService = createDefaultExecutorService("multicast-receiver");
 		datagramIOExecutorService = createDefaultExecutorService("datagram-io");
@@ -110,41 +108,40 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		);
 	}
 
-	public boolean useOwnHttpServer() {
-		return ownHttpServer;
-	}
-
-	public void setOwnHttpServer(boolean ownHttpServer) {
-		this.ownHttpServer = ownHttpServer;
+	public boolean useOwnContentDirectory() {
+		return ownContentDirectory;
 	}
 
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		if (ownHttpServer) {
-			int engineVersion = CONFIGURATION.getServerEngine();
-			if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
-				engineVersion = MediaServer.DEFAULT_VERSION;
+		int engineVersion = CONFIGURATION.getServerEngine();
+		if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
+			engineVersion = MediaServer.DEFAULT_VERSION;
+		}
+		switch (engineVersion) {
+			case 1, 5 -> {
+				return new JdkHttpServerStreamServer(
+						new UmsStreamServerConfiguration(
+								networkAddressFactory.getStreamListenPort(),
+								true
+						)
+				);
 			}
-			switch (engineVersion) {
-				case 4:
-					return new NettyStreamServer(
-							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort(),
-									true
-							)
-					);
-				case 5:
-					return new JdkHttpServerStreamServer(
-							new UmsStreamServerConfiguration(
-									networkAddressFactory.getStreamListenPort(),
-									true
-							)
-					);
+			case 2, 4 -> {
+				return new NettyStreamServer(
+						new UmsStreamServerConfiguration(
+								networkAddressFactory.getStreamListenPort(),
+								true
+						)
+				);
+			}
+			default -> {
+				//non listening server
+				return new JdkHttpServerStreamServer(
+					new UmsStreamServerConfiguration()
+				);
 			}
 		}
-		return new JdkHttpServerStreamServer(
-				new UmsStreamServerConfiguration()
-		);
 	}
 
 	@Override

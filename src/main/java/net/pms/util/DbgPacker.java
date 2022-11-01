@@ -1,9 +1,24 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -11,7 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.logging.LoggingConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +42,7 @@ public class DbgPacker {
 	public DbgPacker() {
 		items = new LinkedHashMap<>();
 
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
 		if (!logFilePaths.isEmpty()) {
 			defaultLogFile = LoggingConfig.getLogFilePaths().get("default.log");
 			if (defaultLogFile == null) {
@@ -40,7 +55,7 @@ public class DbgPacker {
 
 	protected void poll() {
 		// call the client callbacks
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
 		LOGGER.debug("Checking dbgpack property in UMS.conf");

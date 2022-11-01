@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
@@ -33,7 +32,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
@@ -126,7 +125,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -141,7 +140,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
@@ -172,7 +171,7 @@ public class MEncoderVideo extends Engine {
 		defaultArgsList.add("-of");
 		if (wmv || isTranscodeToMPEGTS) {
 			defaultArgsList.add("lavf");
-		} else if (pcm && avisynth()) {
+		} else if (pcm && isAviSynthEngine()) {
 			defaultArgsList.add("avi");
 		} else if (pcm || dtsRemux || encodedAudioPassthrough) {
 			defaultArgsList.add("rawvideo");
@@ -298,8 +297,8 @@ public class MEncoderVideo extends Engine {
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
-		// Use device-specific DMS conf
-		PmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
+		// Use device-specific UMS conf
+		UmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
 		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
@@ -418,7 +417,7 @@ public class MEncoderVideo extends Engine {
 	 *     3) avisynth()
 	 */
 	private boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isDisableSubtitles() || (params.getSid() == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.getSid() == null) || isAviSynthEngine();
 	}
 
 	@Override
@@ -427,12 +426,12 @@ public class MEncoderVideo extends Engine {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		// Use device-specific DMS conf
-		PmsConfiguration prev = configuration;
+		// Use device-specific UMS conf
+		UmsConfiguration prev = configuration;
 		configuration = (DeviceConfiguration) params.getMediaRenderer();
 		params.manageFastStart();
 
-		boolean avisynth = avisynth();
+		boolean avisynth = isAviSynthEngine();
 
 		final String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
@@ -510,7 +509,7 @@ public class MEncoderVideo extends Engine {
 		} else if (isDVD) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "this is a DVD track.");
-		} else if (avisynth()) {
+		} else if (isAviSynthEngine()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 		} else if (params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -663,14 +662,14 @@ public class MEncoderVideo extends Engine {
 			) &&
 			params.getAid() != null &&
 			params.getAid().isNonPCMEncodedAudio() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			params.getMediaRenderer().isMuxLPCMToMpeg();
 
 		if (
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
 			params.getAid().isAC3() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			params.getMediaRenderer().isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
@@ -689,7 +688,7 @@ public class MEncoderVideo extends Engine {
 				) &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				params.getMediaRenderer().isDTSPlayable() &&
 				!combinedCustomOptions.contains("acodec=");
 			pcm = isTsMuxeRVideoEngineActive &&
@@ -732,7 +731,7 @@ public class MEncoderVideo extends Engine {
 		// TODO when we can still use it?
 		ovccopy = false;
 
-		if (pcm && avisynth()) {
+		if (pcm && isAviSynthEngine()) {
 			params.setAvidemux(true);
 		}
 
@@ -797,7 +796,7 @@ public class MEncoderVideo extends Engine {
 			if (handleToken) {
 				token += ":threads=" + nThreads;
 
-				if (configuration.getSkipLoopFilterEnabled() && !avisynth()) {
+				if (configuration.getSkipLoopFilterEnabled() && !isAviSynthEngine()) {
 					token += ":skiploopfilter=all";
 				}
 
@@ -858,6 +857,8 @@ public class MEncoderVideo extends Engine {
 					}
 				}
 			}
+
+			// TODO : check why we defaultMaxBitrates to set maximumBitrate not used
 
 			// Find out the maximum bandwidth we are supposed to use
 			int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
@@ -1259,7 +1260,7 @@ public class MEncoderVideo extends Engine {
 			}
 		}
 
-		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !avisynth() && params.getAid() != null && media.getAudioTracksList().size() > 1) {
+		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !isAviSynthEngine() && params.getAid() != null && media.getAudioTracksList().size() > 1) {
 			cmdList.add("-aid");
 			boolean lavf = false; // TODO Need to add support for LAVF demuxing
 			cmdList.add("" + (lavf ? params.getAid().getId() + 1 : params.getAid().getId()));
@@ -1341,7 +1342,7 @@ public class MEncoderVideo extends Engine {
 		}
 
 		// Make MEncoder output framerate correspond to InterFrame
-		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
+		if (isAviSynthEngine() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
 			ofps = switch (frameRateRatio) {
 				case "25" -> "50";
 				case "30" -> "60";
@@ -1395,7 +1396,7 @@ public class MEncoderVideo extends Engine {
 			rendererAspectRatio = (double) params.getMediaRenderer().getMaxVideoWidth() / (double) params.getMediaRenderer().getMaxVideoHeight();
 		}
 
-		if ((deinterlace || scaleBool) && !avisynth()) {
+		if ((deinterlace || scaleBool) && !isAviSynthEngine()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
 			StringBuilder vfValueVS              = new StringBuilder();
@@ -1889,7 +1890,7 @@ public class MEncoderVideo extends Engine {
 				pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-				File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
+				File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
 				String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 				pw = new ProcessWrapperImpl(cmd, params);
 
@@ -2102,7 +2103,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -2211,11 +2212,11 @@ public class MEncoderVideo extends Engine {
 
 								Object result = interpreter.eval(key);
 
-								if (result != null && result instanceof Boolean && (Boolean) result) {
+								if (result instanceof Boolean boolval && boolval) {
 									sb.append(' ').append(value);
 								}
 							}
-						} catch (Throwable e) {
+						} catch (EvalError e) {
 							LOGGER.debug("Error while executing: " + key + " : " + e.getMessage());
 
 							if (verifyOnly) {

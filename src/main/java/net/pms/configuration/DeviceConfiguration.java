@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -37,7 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceConfiguration extends PmsConfiguration {
+public class DeviceConfiguration extends UmsConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
 
 	public static final int DEVICE = 0;
@@ -92,16 +91,16 @@ public class DeviceConfiguration extends PmsConfiguration {
 			cconf.addConfiguration(ref.getConfiguration());
 		}
 		// 3. The default pms configuration (read-only)
-		PmsConfiguration baseConf = PMS.getConfiguration();
+		UmsConfiguration baseConf = PMS.getConfiguration();
 		cconf.addConfiguration(baseConf.getConfiguration());
 
 		// Handle all queries (external and internal) via the composite configuration
 		configuration = cconf;
-		pmsConfiguration = this;
+		umsConfiguration = this;
 
 		configurationReader = new ConfigurationReader(configuration, true);
 
-		// Sync our internal PmsConfiguration vars
+		// Sync our internal UmsConfiguration vars
 		// TODO: create new objects here instead?
 		tempFolder = baseConf.tempFolder;
 		filter = baseConf.filter;
@@ -211,7 +210,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return deviceDir;
 	}
 
-	public static void loadDeviceConfigurations(PmsConfiguration pmsConf) {
+	public static void loadDeviceConfigurations(UmsConfiguration pmsConf) {
 		deviceConfs = new HashMap<>();
 		xref = new HashMap<>();
 		deviceDir = new File(pmsConf.getProfileDirectory(), "renderers");

@@ -2,18 +2,17 @@
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webguiserver.servlets;
 
@@ -39,11 +38,12 @@ import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
+import net.pms.dlna.ByteRange;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
@@ -53,7 +53,6 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DVDISOTitle;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
-import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -96,7 +95,7 @@ import org.slf4j.LoggerFactory;
 @WebServlet(name = "PlayerApiServlet", urlPatterns = {"/v1/api/player"}, displayName = "Player Api Servlet")
 public class PlayerApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Map<String, WebPlayerRootFolder> ROOTS = new HashMap<>();
 	private static final String MIME_TRANS = HTTPResource.OGG_TYPEMIME;
 
@@ -862,7 +861,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			DLNAResource dlna = res.get(0);
 			long len = dlna.length();
 			dlna.setEngine(null);
-			Range.Byte range = parseRange(req, len);
+			ByteRange range = parseRange(req, len);
 			AsyncContext async = req.startAsync();
 			InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 			if (len == 0) {
@@ -943,7 +942,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String mime;
 			InputStream in;
 			long len;
-			Range.Byte range;
+			ByteRange range;
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
@@ -974,7 +973,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					len = image == null ? 0 : image.getBytes(false).length;
 					in = image == null ? null : new ByteArrayInputStream(image.getBytes(false));
 				}
-				range = new Range.Byte(0L, len);
+				range = new ByteRange(0L, len);
 			} else {
 				return false;
 			}
@@ -1115,7 +1114,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			} else {
 				AsyncContext async = req.startAsync();
 				media.setMimeType(mimeType);
-				Range.Byte range = parseRange(req, resource.length());
+				ByteRange range = parseRange(req, resource.length());
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 				InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 				if (range.getEnd() == 0) {
@@ -1296,15 +1295,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static Range.Byte parseRange(HttpServletRequest req, long len) {
+	private static ByteRange parseRange(HttpServletRequest req, long len) {
 		String range = req.getHeader("Range");
 		if (range == null || "".equals(range)) {
-			return new Range.Byte(0L, len);
+			return new ByteRange(0L, len);
 		}
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
-		return new Range.Byte(start, end);
+		return new ByteRange(start, end);
 	}
 
 	/**

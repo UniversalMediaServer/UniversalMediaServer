@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -150,28 +151,28 @@ public final class Languages {
 	private static Locale lastpreferredLocale = null;
 
 	public static class TranslationStatistics {
-		public String name;
-		public int phrases;
-		public int phrasesApproved;
-		public int phrasesTranslated;
-		public int words;
-		public int wordsApproved;
-		public int wordsTranslated;
-		public int approved;
-		public int translated;
+		protected String name;
+		protected int phrases;
+		protected int phrasesApproved;
+		protected int phrasesTranslated;
+		protected int words;
+		protected int wordsApproved;
+		protected int wordsTranslated;
+		protected int approved;
+		protected int translated;
 	}
 
 	/*
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private static class LanguageEntry implements Comparable<LanguageEntry> {
-		public String tag;
-		public String name;
-		public String defaultname;
-		public String country;
-		public Locale locale = null;
-		public int coveragePercent;
-		public int approvedPercent;
+		protected String tag;
+		protected String name;
+		protected String defaultname;
+		protected String country;
+		protected Locale locale = null;
+		protected int coveragePercent;
+		protected int approvedPercent;
 
 		@Override
 		public int compareTo(LanguageEntry entry) {
@@ -253,21 +254,22 @@ public final class Languages {
 		String languageTag = locale.getLanguage();
 		if (languageTag != null && !languageTag.isEmpty()) {
 			switch (languageTag) {
-				case "en":
+				case "en" -> {
 					if (locale.getCountry().equalsIgnoreCase("GB")) {
 						return "en-GB";
 					}
 					return "en-US";
-				case "pt":
+				}
+				case "pt" -> {
 					if (locale.getCountry().equalsIgnoreCase("BR")) {
 						return "pt-BR";
 					}
 					return "pt";
-				case "nb":
-				case "nn":
+				}
+				case "nb", "nn" -> {
 					return "no";
-				case "cmn":
-				case "zh":
+				}
+				case "cmn", "zh" -> {
 					if (locale.getScript().equalsIgnoreCase("Hans")) {
 						return "zh-Hans";
 					} else if (locale.getCountry().equalsIgnoreCase("CN") || locale.getCountry().equalsIgnoreCase("SG")) {
@@ -275,8 +277,10 @@ public final class Languages {
 					} else {
 						return "zh-Hant";
 					}
-				default:
+				}
+				default -> {
 					return languageTag;
+				}
 			}
 		}
 		return null;
@@ -293,18 +297,16 @@ public final class Languages {
 			return "";
 		}
 		switch (languageTag.toLowerCase(Locale.US)) {
-			case "en-gb":
+			case "en-gb" -> {
 				return "en-GB";
-			case "pt-br":
+			}
+			case "pt-br" -> {
 				return "pt-BR";
-			case "cmn-cn":
-			case "cmn-sg":
-			case "cmn-hans":
-			case "zh-cn":
-			case "zh-sg":
-			case "zh-hans":
+			}
+			case "cmn-cn", "cmn-sg", "cmn-hans", "zh-cn", "zh-sg", "zh-hans" -> {
 				return "zh-Hans";
-			default:
+			}
+			default -> {
 				if (languageTag.indexOf('-') > 0) {
 					languageTag = languageTag.substring(0, languageTag.indexOf('-'));
 				}
@@ -317,6 +319,7 @@ public final class Languages {
 				} else {
 					return languageTag.toLowerCase(Locale.US);
 				}
+			}
 		}
 	}
 
@@ -639,7 +642,7 @@ public final class Languages {
 	 *
 	 * @return The resulting {@link HashMap}
 	 */
-	public static HashMap<String, TranslationStatistics> getTranslationsStatistics() {
+	public static Map<String, TranslationStatistics> getTranslationsStatistics() {
 		synchronized (TRANSLATIONS_STATISTICS) {
 			populateTranslationsStatistics();
 			return TRANSLATIONS_STATISTICS;

@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -30,17 +29,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
-public class PmsConfigurationTest {
+public class UmsConfigurationTest {
 
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 
 		// Create default configuration instance
-		configuration = new PmsConfiguration(false);
+		configuration = new UmsConfiguration(false);
 	}
 
 	/**
@@ -62,8 +61,8 @@ public class PmsConfigurationTest {
 		assertEquals(configuration.getLoggingFilterConsole(), Level.INFO, "LoggingFilterConsoleDefault");
 		assertEquals(configuration.getLoggingFilterLogsTab(), Level.INFO, "LoggingFilterLogsTabDefault");
 		assertEquals(configuration.getLoggingLogsTabLinebuffer(), 1000, "LoggingLogsTabLinebufferDefault");
-		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
-				configuration.getLoggingLogsTabLinebuffer() <= PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
+		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
+				configuration.getLoggingLogsTabLinebuffer() <= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
 				"LoggingLogsTabLinebufferLegal");
 		assertEquals(configuration.getLoggingSyslogFacility(), "USER", "LoggingSyslogFacilityDefault");
 		assertEquals(configuration.getLoggingSyslogHost(), "", "LoggingSyslogHostDefault");

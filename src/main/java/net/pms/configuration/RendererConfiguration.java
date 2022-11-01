@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -81,14 +80,14 @@ public class RendererConfiguration extends Renderer {
 	public static final File NOFILE = new File("NOFILE");
 
 	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
-	protected static PmsConfiguration pmsConfigurationStatic = PMS.getConfiguration();
+	protected static UmsConfiguration umsConfigurationStatic = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static DeviceConfiguration streamingConf;
 
 	protected volatile RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
-	protected PmsConfiguration pmsConfiguration = pmsConfigurationStatic;
+	protected UmsConfiguration umsConfiguration = umsConfigurationStatic;
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
@@ -247,14 +246,14 @@ public class RendererConfiguration extends Renderer {
 
 	/**
 	 * {@link #enabledRendererConfs} doesn't normally need locking since
-	 * modification is rare and {@link #loadRendererConfigurations(PmsConfiguration)}
+	 * modification is rare and {@link #loadRendererConfigurations(UmsConfiguration)}
 	 * is only called during {@link PMS#init()} (To avoid any chance of a
 	 * race condition proper locking should be implemented though). During
 	 * build on the other hand the method is called repeatedly and it is random
 	 * if a {@link ConcurrentModificationException} is thrown as a result.
 	 *
 	 * To avoid build problems, this is used to make sure that calls to
-	 * {@link #loadRendererConfigurations(PmsConfiguration)} is serialized.
+	 * {@link #loadRendererConfigurations(UmsConfiguration)} is serialized.
 	 */
 	public static final Object LOAD_RENDERER_CONFIGURATIONS_LOCK = new Object();
 
@@ -263,9 +262,9 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @param pmsConf
 	 */
-	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
+	public static void loadRendererConfigurations(UmsConfiguration pmsConf) {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
-			pmsConfigurationStatic = pmsConf;
+			umsConfigurationStatic = pmsConf;
 			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
 
 			try {
@@ -302,7 +301,7 @@ public class RendererConfiguration extends Renderer {
 									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 								}
 
-								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(PmsConfiguration.ALL_RENDERERS)) {
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(UmsConfiguration.ALL_RENDERERS)) {
 									enabledRendererConfs.add(r);
 								} else {
 									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
@@ -415,7 +414,7 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @return The list of enabled renderers.
 	 */
-	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
+	public static List<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
 	}
 
@@ -515,7 +514,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static File getProfileRenderersDir() {
-		File file = new File(pmsConfigurationStatic.getProfileDirectory(), "renderers");
+		File file = new File(umsConfigurationStatic.getProfileDirectory(), "renderers");
 		if (file.isDirectory()) {
 			if (file.canRead()) {
 				return file;
@@ -548,7 +547,7 @@ public class RendererConfiguration extends Renderer {
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder();
-			if (pmsConfiguration.getUseCache()) {
+			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
 		}
@@ -593,8 +592,8 @@ public class RendererConfiguration extends Renderer {
 
 		if (
 			(
-				pmsConfiguration.isAutomaticMaximumBitrate() ||
-				pmsConfiguration.isSpeedDbg()
+				umsConfiguration.isAutomaticMaximumBitrate() ||
+				umsConfiguration.isSpeedDbg()
 			) &&
 			!(
 				sa.isLoopbackAddress() ||
@@ -662,7 +661,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (pmsConfigurationStatic.isRendererForceDefault()) {
+		if (umsConfigurationStatic.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return defaultConf;
@@ -773,8 +772,8 @@ public class RendererConfiguration extends Renderer {
 		return configuration;
 	}
 
-	public PmsConfiguration getPmsConfiguration() {
-		return pmsConfiguration;
+	public UmsConfiguration getUmsConfiguration() {
+		return umsConfiguration;
 	}
 
 	public File getFile() {
@@ -986,7 +985,7 @@ public class RendererConfiguration extends Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
-		pmsConfiguration = pmsConfigurationStatic;
+		umsConfiguration = umsConfigurationStatic;
 
 		player = null;
 		buffer = 0;
@@ -1390,7 +1389,7 @@ public class RendererConfiguration extends Renderer {
 					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.LPCM, null, null);
 
 					if (matchedMimeType != null) {
-						if (pmsConfiguration.isAudioResample()) {
+						if (umsConfiguration.isAudioResample()) {
 							if (isTranscodeAudioTo441()) {
 								matchedMimeType += ";rate=44100;channels=2";
 							} else {
@@ -1433,7 +1432,7 @@ public class RendererConfiguration extends Renderer {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
 
-					if (pmsConfiguration.isAudioResample()) {
+					if (umsConfiguration.isAudioResample()) {
 						if (isTranscodeAudioTo441()) {
 							matchedMimeType += ";rate=44100;channels=2";
 						} else {
@@ -2289,11 +2288,11 @@ public class RendererConfiguration extends Renderer {
 	 * @param dlna The {@link DLNAResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
-	 * @param configuration The {@link PmsConfiguration} to use while evaluating compatibility
+	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAResource dlna, Format format, PmsConfiguration configuration) {
+	public boolean isCompatible(DLNAResource dlna, Format format, UmsConfiguration configuration) {
 		DLNAMediaInfo mediaInfo;
 		if (dlna != null) {
 			mediaInfo = dlna.getMedia();
@@ -2440,19 +2439,19 @@ public class RendererConfiguration extends Renderer {
 		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
-	public static ArrayList<String> getAllRenderersNames() {
+	public static List<String> getAllRenderersNames() {
 		return ALL_RENDERERS_NAMES;
 	}
 
 	/**
 	 * @return all renderer names as a JSON array
 	 */
-	public synchronized static JsonArray getAllRendererNamesAsJsonArray() {
-		ArrayList<String> values = getAllRenderersNames();
+	public static synchronized JsonArray getAllRendererNamesAsJsonArray() {
+		List<String> values = getAllRenderersNames();
 
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("value", PmsConfiguration.ALL_RENDERERS);
+		jsonObject.addProperty("value", UmsConfiguration.ALL_RENDERERS);
 		jsonObject.addProperty("label", "i18n@AllRenderers");
 		jsonArray.add(jsonObject);
 		jsonObject = new JsonObject();
@@ -2473,8 +2472,8 @@ public class RendererConfiguration extends Renderer {
 	 *
 	 * @return all default renderers as a JSON array
 	 */
-	public synchronized static JsonArray getEnabledRendererNamesAsJsonArray() {
-		ArrayList<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
+	public static synchronized JsonArray getEnabledRendererNamesAsJsonArray() {
+		List<RendererConfiguration> values = RendererConfiguration.getEnabledRenderersConfigurations();
 		GeneralTab.sortRendererConfigurationsByName(values);
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
@@ -2901,7 +2900,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public String getSubLanguage() {
-		return pmsConfiguration.getSubtitlesLanguages();
+		return umsConfiguration.getSubtitlesLanguages();
 	}
 
 	public static final String INFO = "info";

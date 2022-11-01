@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp;
 
@@ -21,7 +20,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
 import net.pms.network.mediaserver.jupnp.registry.UmsRegistryListener;
 import org.jupnp.UpnpServiceImpl;
@@ -40,15 +39,12 @@ import org.slf4j.LoggerFactory;
 public class UmsUpnpService extends UpnpServiceImpl {
 
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
 
-	private boolean addDevice = false;
-
-	public UmsUpnpService(boolean addDevice) {
-		super(new UmsUpnpServiceConfiguration(addDevice));
-		this.addDevice = addDevice;
+	public UmsUpnpService(boolean serveContentDirectory) {
+		super(new UmsUpnpServiceConfiguration(serveContentDirectory));
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
 		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
 			LOGGER.debug("Upnp set in silent log mode");
@@ -61,38 +57,11 @@ public class UmsUpnpService extends UpnpServiceImpl {
 		}
 	}
 
-	public void setOwnHttpServer(boolean ownHttpServer) {
-		if (this.configuration instanceof UmsUpnpServiceConfiguration &&
-			((UmsUpnpServiceConfiguration) this.configuration).useOwnHttpServer() != ownHttpServer) {
-				((UmsUpnpServiceConfiguration) this.configuration).setOwnHttpServer(ownHttpServer);
-				if (isRunning) {
-					shutdown();
-					startup();
-				}
-		}
-	}
-
-	public final void addMediaServerDevice() {
-		addDevice = true;
-		if (registry != null && !registry.getLocalDevices().contains(mediaServerDevice)) {
-			registry.addDevice(mediaServerDevice);
-		}
-	}
-
-	public final void removeMediaServerDevice() {
-		addDevice = false;
-		if (registry != null && registry.getLocalDevices().contains(mediaServerDevice)) {
-			registry.removeDevice(mediaServerDevice);
-		}
-	}
-
 	@Override
 	protected Registry createRegistry(ProtocolFactory protocolFactory) {
 		Registry result = super.createRegistry(protocolFactory);
 		result.addListener(new UmsRegistryListener());
-		if (addDevice) {
-			result.addDevice(mediaServerDevice);
-		}
+		result.addDevice(mediaServerDevice);
 		return result;
 	}
 }

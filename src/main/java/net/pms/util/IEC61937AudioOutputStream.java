@@ -1,3 +1,25 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+package net.pms.util;
+
+import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Class used to embed HD Audio data (AC3, DTS, DTSHD?, TRUEHD?) into a LPCM stream, according to IEC-61937, used by S/PDIF
  *
@@ -12,16 +34,10 @@
  *
  * @author Arnaud Brochard
  */
-package net.pms.util;
-
-import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IEC61937AudioOutputStream.class);
-	private static int[] bits = new int[]{16, 16, 20, 20, 0, 24, 24};
-	private static int[] samplerates = new int[]{
+	private static final int[] BITS = new int[]{16, 16, 20, 20, 0, 24, 24};
+	private static final int[] SAMPLE_RATES = new int[]{
 		0,
 		8000,
 		16000,
@@ -39,16 +55,16 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 		96000,
 		192000
 	};
+
+	private final PCMAudioOutputStream out;
+	private final boolean usepreamble;
+
 	private boolean ac3 = false;
 	private boolean dts = false;
 	private boolean dtsHD = false;
 	private int framesize;
-	private int blocks;
-	private int sampleRate;
-	private PCMAudioOutputStream out;
 	private int padding;
 	private byte[] preamble;
-	private boolean usepreamble;
 	private byte[] dtshdpreamble;
 	private int period;
 
@@ -77,8 +93,8 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 			dts = true;
 			streamableByteNumber = framesize;
 			if (framesize == 0 || dtsHD) {
-				blocks = ((data[off + 4] & 0x01) << 6) + ((data[off + 5] & 0xfc) >> 2);
-				sampleRate = samplerates[((data[off + 8] >> 2) & 0x0f)];
+				int blocks = ((data[off + 4] & 0x01) << 6) + ((data[off + 5] & 0xfc) >> 2);
+				int sampleRate = SAMPLE_RATES[((data[off + 8] >> 2) & 0x0f)];
 				framesize = ((data[off + 5] & 0x03) << 12) + ((data[off + 6] & 0xff) << 4) + ((data[off + 7] & 0xf0) >> 4) + 1;
 				int framesizeSup = 0;
 				int dtsRate = 48000;
@@ -95,7 +111,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 				if (usepreamble && preamble == null) {
 					int bitspersample = ((data[off + 11] & 0x01) << 2) + ((data[off + 12] & 0xfc) >> 6);
 					if (bitspersample < 7) {
-						LOGGER.trace("DTS bits per sample: " + bits[bitspersample]);
+						LOGGER.trace("DTS bits per sample: " + BITS[bitspersample]);
 					}
 					preamble = new byte[8];
 					preamble[1] = 114; // syncword1
@@ -123,29 +139,15 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 					}
 					if (dtsHD) {
 						period = dtsRate * (blocks << 5) / sampleRate;
-						byte subtype = 0x0;
-						switch (period) {
-							case 512:
-								subtype = 0x0;
-								break;
-							case 1024:
-								subtype = 0x1;
-								break;
-							case 2048:
-								subtype = 0x2;
-								break;
-							case 4096:
-								subtype = 0x3;
-								break;
-							case 8192:
-								subtype = 0x4;
-								break;
-							case 16384:
-								subtype = 0x5;
-								break;
-							default:
-								break;
-						}
+						byte subtype = switch (period) {
+							case 512 -> 0x0;
+							case 1024 -> 0x1;
+							case 2048 -> 0x2;
+							case 4096 -> 0x3;
+							case 8192 -> 0x4;
+							case 16384 -> 0x5;
+							default -> 0x0;
+						};
 						preamble[4] = subtype;
 						dtshdpreamble = new byte[12];
 						dtshdpreamble[0] = 1;
@@ -227,14 +229,13 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 		} else {
 			// DTS wrongly extracted ?... searching for start of the frame
 			for (int i = 3; i < 2020; i++) {
-				if (data.length > i && data[i - 3] == 127 && data[i - 2] == -2 && data[i - 1] == -128 && data[i] == 1) {
+				if (
 					// skip DTS first frame as it's incomplete
-					discard = true;
-					streamableByteNumber = i - 3;
-					break;
-				} else if (data.length > i && data[i - 3] == 100 && data[i - 2] == 88 && data[i - 1] == 32 && data[i] == 37) {
+					(data.length > i && data[i - 3] == 127 && data[i - 2] == -2 && data[i - 1] == -128 && data[i] == 1) ||
 					// skip DTS-HD first frame
 					// stray HD frame ?
+					(data.length > i && data[i - 3] == 100 && data[i - 2] == 88 && data[i - 1] == 32 && data[i] == 37)
+				) {
 					discard = true;
 					streamableByteNumber = i - 3;
 					break;

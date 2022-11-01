@@ -1,24 +1,22 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.renderers.devices.players;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.network.mediaserver.UPNPControl;
@@ -43,7 +41,7 @@ public class PlaylistItem extends PlayerItem {
 				name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(UPNPControl.unescape(metadata)).find()) ?
 					DC_TITLE.group(1) :
 					new File(StringUtils.substringBefore(UPNPControl.unescape(uri), "?")).getName();
-			} catch (UnsupportedEncodingException e) {
+			} catch (IllegalArgumentException e) {
 				LOGGER.error("URL decoding error ", e);
 			}
 		}

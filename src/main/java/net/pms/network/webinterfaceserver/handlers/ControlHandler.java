@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -26,7 +25,7 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.LogicalPlayer;
@@ -47,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public class ControlHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControlHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String JSON_STATE = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
 	private final WebInterfaceServerHttpServerInterface parent;
@@ -95,47 +94,26 @@ public class ControlHandler implements HttpHandler {
 		Headers headers = httpExchange.getResponseHeaders();
 		if (player != null) {
 			switch (p[2]) {
-				case "status":
+				case "status" -> {
 					// limit status updates to one per second
 					UMSUtils.sleep(1000);
 					log = false;
-					break;
-				case "play":
-					player.pressPlay(translate(query.get("uri")), query.get("title"));
-					break;
-				case "stop":
-					player.pressStop();
-					break;
-				case "prev":
-					player.prev();
-					break;
-				case "next":
-					player.next();
-					break;
-				case "fwd":
-					player.forward();
-					break;
-				case "rew":
-					player.rewind();
-					break;
-				case "mute":
-					player.mute();
-					break;
-				case "setvolume":
-					player.setVolume(Integer.parseInt(query.get("vol")));
-					break;
-				case "add":
-					player.add(-1, translate(query.get("uri")), query.get("title"), null, true);
-					break;
-				case "remove":
-					player.remove(translate(query.get("uri")));
-					break;
-				case "clear":
-					player.clear();
-					break;
-				case "seturi":
-					player.setURI(translate(query.get("uri")), query.get("title"));
-					break;
+				}
+				case "play" -> player.pressPlay(translate(query.get("uri")), query.get("title"));
+				case "stop" -> player.pressStop();
+				case "prev" -> player.prev();
+				case "next" -> player.next();
+				case "fwd" -> player.forward();
+				case "rew" -> player.rewind();
+				case "mute" -> player.mute();
+				case "setvolume" -> player.setVolume(Integer.parseInt(query.get("vol")));
+				case "add" -> player.add(-1, translate(query.get("uri")), query.get("title"), null, true);
+				case "remove" -> player.remove(translate(query.get("uri")));
+				case "clear" -> player.clear();
+				case "seturi" -> player.setURI(translate(query.get("uri")), query.get("title"));
+				default -> {
+					//nothing to do
+				}
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
@@ -221,6 +199,7 @@ public class ControlHandler implements HttpHandler {
 				InetAddress ia = InetAddress.getByName(bumpAddress);
 				defaultRenderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 			} catch (UnknownHostException e) {
+				//do nothing
 			}
 		}
 		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
@@ -236,7 +215,7 @@ public class ControlHandler implements HttpHandler {
 	@Deprecated
 	public String getRenderers(InetAddress client) {
 		LogicalPlayer player = selectedPlayers.get(client);
-		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
+		RendererConfiguration selected = player != null ? player.getRenderer() : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.getUUID() : r, r == selected ? 1 : 0, r.getUUID()));
@@ -246,7 +225,7 @@ public class ControlHandler implements HttpHandler {
 
 	public String getPlaylist(LogicalPlayer player) {
 		ArrayList<String> json = new ArrayList<>();
-		Playlist playlist = player.playlist;
+		Playlist playlist = player.getPlaylist();
 		playlist.validate();
 		PlaylistItem selected = (PlaylistItem) playlist.getSelectedItem();
 		int i;

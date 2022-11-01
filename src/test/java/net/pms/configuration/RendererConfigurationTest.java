@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	PmsConfiguration prevConf;
+	UmsConfiguration prevConf;
 
 	@BeforeAll
 	public static void SetUPClass() {
@@ -69,7 +68,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
@@ -400,7 +399,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testForcedDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to PlayStation 3
 		pmsConf.setRendererDefault("PlayStation 3");
@@ -426,7 +425,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testBogusDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to non existent renderer
 		pmsConf.setRendererDefault("Bogus Renderer");
