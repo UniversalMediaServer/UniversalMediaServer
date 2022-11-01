@@ -63,7 +63,7 @@
     "@testing-library/react": "13.4.0",
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "29.2.1",
-    "@types/lodash": "4.14.186",
+    "@types/lodash": "4.14.187",
     "@types/node": "16.18.3",
     "@types/react": "18.0.24",
     "@types/react-color": "3.0.6",
