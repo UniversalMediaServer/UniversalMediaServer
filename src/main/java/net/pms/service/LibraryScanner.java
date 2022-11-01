@@ -61,7 +61,7 @@ public class LibraryScanner {
 	private static void analyzeDb() {
 		PMS.get().getMediaDatabase();
 		try (Statement stmt = MediaDatabase.getConnectionIfAvailable().createStatement()) {
-			stmt.execute("ANALYSE");
+			stmt.execute("ANALYZE SAMPLE_SIZE 0");
 		} catch (SQLException e) {
 			LOGGER.warn("Error analyzing database", e);
 		}
