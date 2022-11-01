@@ -76,7 +76,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 
 	/** The {@link Configuration} key for the custom FFMS2 path. */
 	public static final String KEY_FFMS2_PATH  = "ffms2_path";
-	
+
 	/** The {@link Configuration} key for the 2DTO3D executable type. */
 	public static final String KEY_2DTO3D_EXECUTABLE_TYPE = "2DTO3D_executable_type";
 

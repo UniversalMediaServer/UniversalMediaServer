@@ -17,7 +17,6 @@
  */
 package net.pms.platform.windows;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -25,18 +24,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nonnull;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
-import net.pms.util.FilePermissions;
-import net.pms.util.FileUtil;
+import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
-import net.pms.platform.linux.LinuxProgramPaths;
-import net.pms.platform.PlatformProgramPaths;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of paths to external programs on Windows.
@@ -246,17 +250,15 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		if (tmpFFMS2 == null || !Files.exists(tmpFFMS2)) {
 			tmpFFMS2 = PLATFORM_BINARIES_FOLDER.resolve("ffms2");
 		}
-		
+
 		ffms2Info = new ExternalProgramInfo("ffms2", ProgramExecutableType.BUNDLED);
-		
+
 		if (Platform.is64Bit()) {
 			ffms2Info.setPath(ProgramExecutableType.BUNDLED, tmpFFMS2.resolve("x64"));
+		} else {
+			ffms2Info.setPath(ProgramExecutableType.BUNDLED, tmpFFMS2.resolve("x86"));
 		}
-		else
-		{
-			ffms2Info.setPath(ProgramExecutableType.BUNDLED, tmpFFMS2.resolve("x86"));			
-		}
-		
+
 		// CtrlSender
 		Path tmpCtrlSender = Paths.get("src/main/external-resources/lib/ctrlsender/ctrlsender.exe");
 		if (!Files.exists(tmpCtrlSender)) {
@@ -355,8 +357,8 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getFFMS2() {
 		return ffms2Info;
-	}	
-	
+	}
+
 	@Override
 	public ExternalProgramInfo getConvert2dTo3d() {
 		return convert2dTo3dInfo;
