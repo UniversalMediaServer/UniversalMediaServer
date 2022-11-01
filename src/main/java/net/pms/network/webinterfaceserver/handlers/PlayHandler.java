@@ -60,6 +60,8 @@ public class PlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayHandler.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String RETURN_PAGE = "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+	private static final String NOTIFY_INFO = "info";
+	private static final String NOTIFY_OK = "okay";
 
 	private final WebInterfaceServerHttpServerInterface parent;
 
@@ -114,12 +116,12 @@ public class PlayHandler implements HttpHandler {
 					if (op.equals("add")) {
 						PMS.get().getDynamicPls().add(r);
 						synchronized (renderer) {
-							renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+							renderer.notify(NOTIFY_OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
 						}
 					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 						((Playlist) r.getParent()).remove(r);
 						synchronized (renderer) {
-							renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+							renderer.notify(NOTIFY_INFO, "Removed '" + r.getDisplayName() + "' from playlist");
 						}
 					}
 				}
@@ -202,9 +204,9 @@ public class PlayHandler implements HttpHandler {
 				// waste of resource to play dummy video
 				synchronized (renderer) {
 					if (((VirtualVideoAction) rootResource).enable()) {
-						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
+						renderer.notify(NOTIFY_INFO, rootResource.getName() + " enabled");
 					} else {
-						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+						renderer.notify(NOTIFY_INFO, rootResource.getName() + " disabled");
 					}
 				}
 				return RETURN_PAGE;

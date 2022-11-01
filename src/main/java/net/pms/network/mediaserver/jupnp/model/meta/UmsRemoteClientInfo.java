@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.RendererConfigurations;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.slf4j.Logger;
@@ -56,37 +56,26 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 	}
 
 	public static RendererConfiguration toRendererConfiguration(RemoteClientInfo info) {
-		RendererConfiguration renderer = null;
-		/*
-		* don't use that now...
-		if (uri.contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfigurations.getStreamingConf();
-			LOGGER.debug("Forcing streaming.");
-		}
-		*/
-
-		if (renderer == null) {
-			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
-		}
+		// Attempt 1: try to recognize the renderer by its socket address from previous requests
+		RendererConfiguration renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
 		if (renderer == null || !renderer.isLoaded()) {
-			// Attempt 3: try to recognize the renderer by matching headers
+			// Attempt 2: try to recognize the renderer by matching headers
 			//let's take only the first header as getRendererConfigurationByHeaders doesn't support multiple values
 			Map<String, String> headers = new HashMap<>();
 			for (Entry<String, List<String>> header : info.getRequestHeaders().entrySet()) {
 				headers.put(header.getKey(), header.getValue().get(0));
 			}
-			renderer = RendererConfigurations.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
+			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
 		}
 		// Still no media renderer recognized?
 		if (renderer == null) {
-			// Attempt 4: Not really an attempt; all other attempts to recognize
+			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfigurations.resolve(info.getRemoteAddress(), null);
+			renderer = ConnectedRenderers.resolve(info.getRemoteAddress(), null);
 			// If RendererConfiguration.resolve() didn't return the default renderer
 			// it means we know via upnp that it's not really a renderer.
 			if (renderer != null) {

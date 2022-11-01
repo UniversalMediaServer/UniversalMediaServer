@@ -77,6 +77,7 @@ import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -710,7 +711,7 @@ public class PMS {
 	public void resetRenderers(boolean delete) {
 		RendererConfigurations.loadRendererConfigurations();
 		if (delete) {
-			RendererConfigurations.deleteAllConnectedRenderers();
+			ConnectedRenderers.deleteAllConnectedRenderers();
 			OldPlayerServer.deleteRenderers();
 			WebGuiServer.deleteAllRenderers();
 		}
@@ -732,7 +733,7 @@ public class PMS {
 	 * The trigger is configuration change.
 	 */
 	public void resetRenderersRoot() {
-		RendererConfigurations.resetAllRenderers();
+		ConnectedRenderers.resetAllRenderers();
 		OldPlayerServer.resetRenderers();
 		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();

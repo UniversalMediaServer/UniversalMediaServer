@@ -102,7 +102,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		ip = "";
 		port = 0;
 		ua = "";
-		fileless = true;
+		setFileless(true);
 		String userFmt = CONFIGURATION.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : WebInterfaceServerUtil.transMime();
 		startStop = null;

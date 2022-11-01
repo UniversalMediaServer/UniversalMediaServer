@@ -140,18 +140,20 @@ public class StatusTab {
 
 		@Override
 		public void delete() {
-			try {
-				// Delete the popup if open
-				if (frame != null) {
-					frame.dispose();
-					frame = null;
+			SwingUtilities.invokeLater(() -> {
+				try {
+					// Delete the popup if open
+					if (frame != null) {
+						frame.dispose();
+						frame = null;
+					}
+					Container parent = panel.getParent();
+					parent.remove(panel);
+					parent.revalidate();
+					parent.repaint();
+				} catch (Exception e) {
 				}
-				Container parent = panel.getParent();
-				parent.remove(panel);
-				parent.revalidate();
-				parent.repaint();
-			} catch (Exception e) {
-			}
+			});
 		}
 
 		public JPanel getPanel() {

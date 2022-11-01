@@ -33,7 +33,7 @@ public class DeviceConfiguration extends UmsConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
 
 	private static final int DEVICE = 0;
-	public static final int RENDERER = 1;
+	private static final int RENDERER = 1;
 	//private static final int UMSCONF = 2; // not used
 
 	private PropertiesConfiguration deviceConf = null;
@@ -200,7 +200,6 @@ public class DeviceConfiguration extends UmsConfiguration {
 		return false;
 	}
 
-
 	public static File createDeviceFile(DeviceConfiguration r, String filename, boolean load) {
 		File file = null;
 		try {
@@ -218,7 +217,7 @@ public class DeviceConfiguration extends UmsConfiguration {
 			conf.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
 			conf.add("# and UMS.conf for program options.");
 			conf.add("");
-			conf.add("# Options in this file override the default settings for the specific " + DeviceConfiguration.getSimpleName(r) + " device(s) listed below.");
+			conf.add("# Options in this file override the default settings for the specific " + getSimpleName(r) + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
 			conf.add("");
 			conf.add(KEY_DEVICE_ID + " = " + r.getId());

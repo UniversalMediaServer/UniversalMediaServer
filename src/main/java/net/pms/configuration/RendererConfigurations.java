@@ -18,23 +18,15 @@ package net.pms.configuration;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.awt.event.ActionEvent;
 import java.io.File;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import net.pms.PMS;
-import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.newgui.GeneralTab;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SortedHeaderMap;
@@ -44,16 +36,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handle all renderers configs.
- * It should be splitted in config / ADDRESS_ASSOCIATION, upnp etc
+ * This class maintain all renderers configs enabled in UMS conf.
  */
 public class RendererConfigurations {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfigurations.class);
-	public static final String ALL_RENDERERS = "All renderers";
-	protected static UmsConfiguration umsConfiguration = PMS.getConfiguration();
+	public static final String ALL_RENDERERS_KEY = "All renderers";
+	public static final String NO_RENDERERS_KEY = "None";
 
 	/**
-	 * {@link #enabledRendererConfs} doesn't normally need locking since
+	 * {@link #ENABLED_RENDERERS_CONFS} doesn't normally need locking since
 	 * modification is rare and {@link #loadRendererConfigurations(UmsConfiguration)}
 	 * is only called during {@link PMS#init()} (To avoid any chance of a
 	 * race condition proper locking should be implemented though). During
@@ -64,22 +55,43 @@ public class RendererConfigurations {
 	 * {@link #loadRendererConfigurations(UmsConfiguration)} is serialized.
 	 */
 	private static final Object LOAD_RENDERER_CONFIGURATIONS_LOCK = new Object();
-	private static final ArrayList<String> ALL_RENDERERS_NAMES = new ArrayList<>();
-	private static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = new HashMap<>();
+	private static final List<String> ALL_RENDERERS_NAMES = Collections.synchronizedList(new ArrayList<>());
+
+	/**
+	 * A loading priority comparator
+	 */
+	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = (RendererConfiguration r1, RendererConfiguration r2) -> {
+		if (r1 == null || r2 == null) {
+			if (r1 == null && r2 == null) {
+				return 0;
+			}
+			return (r1 == null) ? 1 : -1;
+		}
+		int p1 = r1.getLoadingPriority();
+		int p2 = r2.getLoadingPriority();
+		if (p1 > p2) {
+			return -1;
+		} else if (p1 < p2) {
+			return 1;
+		}
+		return r1.getConfName().compareToIgnoreCase(r2.getConfName());
+	};
+	private static final SortedSet<RendererConfiguration> ENABLED_RENDERERS_CONFS = Collections.synchronizedSortedSet(new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR));
+
 	private static RendererConfiguration defaultConf;
 	private static DeviceConfiguration streamingConf;
-
-	private static TreeSet<RendererConfiguration> enabledRendererConfs;
 
 	/**
 	 * This class is not meant to be instantiated.
 	 */
 	private RendererConfigurations() {}
 
+	//TODO : Assign this dynamically on UMS conf update.
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
 	}
 
+	//TODO : Assign this dynamically on UMS conf update.
 	public static RendererConfiguration getStreamingConf() {
 		return streamingConf;
 	}
@@ -90,79 +102,53 @@ public class RendererConfigurations {
 	 * @return The list of enabled renderers.
 	 */
 	public static List<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs != null ? new ArrayList<>(enabledRendererConfs) : null;
+		return new ArrayList<>(ENABLED_RENDERERS_CONFS);
+	}
+
+	public static void addRendererConfiguration(RendererConfiguration r) {
+		ENABLED_RENDERERS_CONFS.add(r);
 	}
 
 	/**
-	 * Returns the list of all connected renderer devices.
+	 * Tries to find a matching renderer configuration based on the name of
+	 * the renderer.
+	 * Returns true if the provided name is equal to or a substring of the
+	 * renderer name defined in a configuration, where case does not matter.
 	 *
-	 * @return The list of connected renderers.
+	 * @param name The renderer name to match.
+	 * @return The matching renderer configuration or <code>null</code>
+	 *
+	 * @since 1.50.1
 	 */
-	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
-		// We need to check both UPnP and http sides to ensure a complete list
-		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
-		renderers.addAll(ADDRESS_ASSOCIATION.values());
-		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
-		renderers.addAll(PMS.get().getFoundRenderers());
-		return renderers;
-	}
-
-	public static boolean hasConnectedAVTransportPlayers() {
-		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
-	}
-
-	public static List<RendererConfiguration> getConnectedAVTransportPlayers() {
-		return UPNPHelper.getRenderers(UPNPHelper.AVT);
-	}
-
-	public static boolean hasConnectedRenderer(int type) {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if (r.isControllable(type)) {
-				return true;
+	public static RendererConfiguration getRendererConfigurationByName(String name) {
+		for (RendererConfiguration conf : ENABLED_RENDERERS_CONFS) {
+			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
+				return conf;
 			}
 		}
-		return false;
+		return null;
 	}
 
-	public static List<RendererConfiguration> getConnectedRenderers(int type) {
-		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if (r.isActive() && r.isControllable(type)) {
-				renderers.add(r);
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+		if (PMS.getConfiguration().isRendererForceDefault()) {
+			// Force default renderer
+			RendererConfiguration r = getDefaultConf();
+			LOGGER.debug("Forcing renderer match to \"" + r.getRendererName() + "\"");
+			return r;
+		}
+		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+			if (r.match(sortedHeaders)) {
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				return r;
 			}
 		}
-		return renderers;
+		return null;
 	}
 
-	public static boolean hasConnectedControlPlayers() {
-		return hasConnectedRenderer(UPNPHelper.ANY);
-	}
-
-	public static List<RendererConfiguration> getConnectedControlPlayers() {
-		return getConnectedRenderers(UPNPHelper.ANY);
-	}
-
-	/**
-	 * Searches for an instance of this renderer connected at the given address.
-	 *
-	 * @param r the renderer.
-	 * @param ia the address.
-	 * @return the matching renderer or null.
-	 */
-	public static RendererConfiguration find(RendererConfiguration r, InetAddress ia) {
-		return find(r.getConfName(), ia);
-	}
-
-	/**
-	 * Searches for a renderer of this name connected at the given address.
-	 *
-	 * @param name the renderer name.
-	 * @param ia the address.
-	 * @return the matching renderer or null.
-	 */
-	public static RendererConfiguration find(String name, InetAddress ia) {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			if (ia.equals(r.getAddress()) && name.equals(r.getConfName())) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
+		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
+			if (r.matchUPNPDetails(details)) {
+				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
 				return r;
 			}
 		}
@@ -189,7 +175,7 @@ public class RendererConfigurations {
 	}
 
 	public static File getProfileRenderersDir() {
-		File file = new File(umsConfiguration.getProfileDirectory(), "renderers");
+		File file = new File(PMS.getConfiguration().getProfileDirectory(), "renderers");
 		if (file.isDirectory()) {
 			if (file.canRead()) {
 				return file;
@@ -199,226 +185,8 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	/**
-	 * Delete connected renderers devices.
-	 */
-	public static void deleteAllConnectedRenderers() {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			delete(r, 0);
-		}
-	}
-
-	public static void resetAllRenderers() {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
-			r.setRootFolder(null);
-		}
-		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since
-		// these are now for reference only and never actually populate their root folders.
-		for (RendererConfiguration r : enabledRendererConfs) {
-			r.setRootFolder(null);
-		}
-	}
-
-	public static void addRendererConfigurationAssociation(InetAddress sa, RendererConfiguration r) {
-		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
-
-		RendererConfiguration prev = ADDRESS_ASSOCIATION.put(sa, r);
-		if (prev != null) {
-			// We've displaced a previous renderer at this address, so
-			// check  if it's a ghost instance that should be deleted.
-			verify(prev);
-		}
-	}
-
-	public static boolean hasRendererConfigurationInetAddress(RendererConfiguration r) {
-		return ADDRESS_ASSOCIATION.containsValue(r);
-	}
-
-	public static InetAddress getRendererConfigurationInetAddress(RendererConfiguration r) {
-		for (Entry<InetAddress, RendererConfiguration> entry : RendererConfigurations.ADDRESS_ASSOCIATION.entrySet()) {
-			if (entry.getValue() == r) {
-				return entry.getKey();
-			}
-		}
-		return null;
-	}
-
-	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		RendererConfiguration r = ADDRESS_ASSOCIATION.get(sa);
-		if (r != null) {
-			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
-		}
-		return r;
-	}
-
-	/**
-	 * Tries to find a matching renderer configuration based on the given collection of
-	 * request headers
-	 *
-	 * @param headers The headers.
-	 * @param ia The request's origin address.
-	 * @return The matching renderer configuration or <code>null</code>
-	 */
-	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers, InetAddress ia) {
-		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers), ia);
-	}
-
-	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
-		RendererConfiguration r = null;
-		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
-		if (ref != null) {
-			boolean isNew = !ADDRESS_ASSOCIATION.containsKey(ia);
-			r = resolve(ia, ref);
-			if (r != null) {
-				LOGGER.trace(
-					"Matched {}media renderer \"{}\" based on headers {}",
-					isNew ? "new " : "",
-					r.getRendererName(),
-					sortedHeaders
-				);
-			}
-		}
-		return r;
-	}
-
-	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
-		if (umsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.debug("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return defaultConf;
-		}
-		for (RendererConfiguration r : getEnabledRenderersConfigurations()) {
-			if (r.match(sortedHeaders)) {
-				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
-				return r;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Tries to find a matching renderer configuration based on the name of
-	 * the renderer. Returns true if the provided name is equal to or a
-	 * substring of the renderer name defined in a configuration, where case
-	 * does not matter.
-	 *
-	 * @param name The renderer name to match.
-	 * @return The matching renderer configuration or <code>null</code>
-	 *
-	 * @since 1.50.1
-	 */
-	public static RendererConfiguration getRendererConfigurationByName(String name) {
-		for (RendererConfiguration conf : enabledRendererConfs) {
-			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
-				return conf;
-			}
-		}
-
-		return null;
-	}
-
-	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
-		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
-			if (uuid.equals(conf.getUUID())) {
-				return conf;
-			}
-		}
-
-		return null;
-	}
-
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
-		for (RendererConfiguration r : enabledRendererConfs) {
-			if (r.matchUPNPDetails(details)) {
-				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
-				return r;
-			}
-		}
-		return null;
-	}
-
-	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
-		DeviceConfiguration r = null;
-		boolean recognized = ref != null;
-		if (!recognized) {
-			ref = getDefaultConf();
-		}
-		try {
-			if (ADDRESS_ASSOCIATION.containsKey(ia)) {
-				// Already seen, finish configuration if required
-				r = (DeviceConfiguration) ADDRESS_ASSOCIATION.get(ia);
-				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
-				if (!r.isLoaded() || higher) {
-					LOGGER.debug("Finishing configuration for {}", r);
-					if (higher) {
-						LOGGER.debug("Switching to higher priority renderer: {}", ref);
-					}
-					r.inherit(ref);
-					// update gui
-					r.updateRendererGui();
-				}
-			} else if (!UPNPHelper.isNonRenderer(ia)) {
-				// It's brand new
-				r = new DeviceConfiguration(ref, ia);
-				if (r.associateIP(ia)) {
-					PMS.get().setRendererFound(r);
-				}
-				r.setActive(true);
-				if (r.isUpnpPostponed()) {
-					r.setUpnpMode(RendererConfiguration.UPNP_ALLOW);
-				}
-			}
-		} catch (ConfigurationException e) {
-			LOGGER.error("Configuration error while resolving renderer: {}", e.getMessage());
-			LOGGER.trace("", e);
-		} catch (InterruptedException e) {
-			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
-			return null;
-		}
-		if (!recognized) {
-			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
-			LOGGER.trace("Marking renderer \"{}\" at {} as unrecognized", r, ia.getHostAddress());
-			if (r != null) {
-				r.resetLoaded();
-			}
-		}
-		return r;
-	}
-
-	public static void verify(RendererConfiguration r) {
-		// FIXME: this is a very fallible, incomplete validity test for use only until
-		// we find something better. The assumption is that renderers unable determine
-		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
-		// address association to a newer renderer at the same ip) are "invalid".
-		if (r.getUpnpMode() != RendererConfiguration.UPNP_BLOCK && r.getAddress() == null) {
-			LOGGER.debug("Purging renderer {} as invalid", r);
-			r.delete(0);
-		}
-	}
-
-	public static void delete(final RendererConfiguration r, int delay) {
-		r.setActive(false);
-		// Using javax.swing.Timer because of gui (this works in headless mode too).
-		javax.swing.Timer t = new javax.swing.Timer(delay, (ActionEvent event) -> {
-			// Make sure we haven't been reactivated while asleep
-			if (!r.isActive()) {
-				LOGGER.debug("Deleting renderer " + r);
-				r.deleteGuis();
-				PMS.get().getFoundRenderers().remove(r);
-				UPNPHelper.getInstance().removeRenderer(r);
-				InetAddress ia = r.getAddress();
-				if (ADDRESS_ASSOCIATION.get(ia) == r) {
-					ADDRESS_ASSOCIATION.remove(ia);
-				}
-				// TODO: actually delete rootfolder, etc.
-			}
-		});
-		t.setRepeats(false);
-		t.start();
-	}
-
 	public static List<String> getAllRenderersNames() {
-		return ALL_RENDERERS_NAMES;
+		return new ArrayList<>(ALL_RENDERERS_NAMES);
 	}
 
 	/**
@@ -429,11 +197,11 @@ public class RendererConfigurations {
 
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty("value", ALL_RENDERERS);
+		jsonObject.addProperty("value", ALL_RENDERERS_KEY);
 		jsonObject.addProperty("label", "i18n@AllRenderers");
 		jsonArray.add(jsonObject);
 		jsonObject = new JsonObject();
-		jsonObject.addProperty("value", "None");
+		jsonObject.addProperty("value", NO_RENDERERS_KEY);
 		jsonObject.addProperty("label", "i18n@None");
 		jsonArray.add(jsonObject);
 		for (int i = 0; i < values.size(); i++) {
@@ -468,29 +236,15 @@ public class RendererConfigurations {
 		return jsonArray;
 	}
 
-	public static void calculateAllSpeeds() {
-		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
-			InetAddress sa = entry.getKey();
-			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
-				continue;
-			}
-			RendererConfiguration r = entry.getValue();
-			if (!r.isOffline()) {
-				SpeedStats.getSpeedInMBits(sa, r.getRendererName());
-			}
-		}
-	}
-
 	/**
 	 * Load all renderer configuration files and set up the default renderer.
 	 *
-	 * @param umsConf
+	 * TODO : Assign this dynamically on UMS conf update.
+	 * For now, it need a complete app restart.
 	 */
-	public static void loadRendererConfigurations() {
+	public static synchronized void loadRendererConfigurations() {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
-			umsConfiguration = PMS.getConfiguration();
-			enabledRendererConfs = new TreeSet<>(RENDERER_LOADING_PRIORITY_COMPARATOR);
-
+			ENABLED_RENDERERS_CONFS.clear();
 			try {
 				defaultConf = new RendererConfiguration();
 				streamingConf = new DeviceConfiguration();
@@ -508,7 +262,7 @@ public class RendererConfigurations {
 					Arrays.sort(confs);
 					int rank = 1;
 
-					List<String> selectedRenderers = umsConfiguration.getSelectedRenderers();
+					List<String> selectedRenderers = PMS.getConfiguration().getSelectedRenderers();
 					for (File f : confs) {
 						if (f.getName().endsWith(".conf")) {
 							try {
@@ -525,8 +279,8 @@ public class RendererConfigurations {
 									renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
 								}
 
-								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(ALL_RENDERERS)) {
-									enabledRendererConfs.add(r);
+								if (selectedRenderers.contains(rendererName) || selectedRenderers.contains(renderersGroup) || selectedRenderers.contains(ALL_RENDERERS_KEY)) {
+									ENABLED_RENDERERS_CONFS.add(r);
 								} else {
 									LOGGER.debug("Ignored \"{}\" configuration", rendererName);
 								}
@@ -539,14 +293,14 @@ public class RendererConfigurations {
 			}
 		}
 
-		LOGGER.info("Enabled " + enabledRendererConfs.size() + " configurations, listed in order of loading priority:");
-		for (RendererConfiguration r : enabledRendererConfs) {
+		LOGGER.info("Enabled " + ENABLED_RENDERERS_CONFS.size() + " configurations, listed in order of loading priority:");
+		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
 			LOGGER.info(":   " + r);
 		}
 
-		if (!enabledRendererConfs.isEmpty()) {
+		if (!ENABLED_RENDERERS_CONFS.isEmpty()) {
 			// See if a different default configuration was configured
-			String rendererFallback = umsConfiguration.getRendererDefault();
+			String rendererFallback = PMS.getConfiguration().getRendererDefault();
 
 			if (StringUtils.isNotBlank(rendererFallback)) {
 				RendererConfiguration fallbackConf = getRendererConfigurationByName(rendererFallback);
@@ -558,22 +312,7 @@ public class RendererConfigurations {
 			}
 		}
 		Collections.sort(ALL_RENDERERS_NAMES, String.CASE_INSENSITIVE_ORDER);
-		DeviceConfigurations.loadDeviceConfigurations(umsConfiguration);
+		DeviceConfigurations.loadDeviceConfigurations();
 	}
 
-	public static void addRendererConfiguration(RendererConfiguration r) {
-		enabledRendererConfs.add(r);
-	}
-
-	/**
-	 * A loading priority comparator
-	 */
-	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = (RendererConfiguration r1, RendererConfiguration r2) -> {
-		if (r1 == null || r2 == null) {
-			return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
-		}
-		int p1 = r1.getLoadingPriority();
-		int p2 = r2.getLoadingPriority();
-		return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
-	};
 }

@@ -50,6 +50,7 @@ import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
 import net.pms.platform.windows.WindowsRegistry;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.Services;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -75,7 +76,6 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1041,7 +1041,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	public Path getEngineCustomPath(@Nullable Engine engine) {
 		if (
 			engine == null ||
-			isBlank(engine.getConfigurablePathKey()) ||
+			StringUtils.isBlank(engine.getConfigurablePathKey()) ||
 			!(programPaths instanceof ConfigurableProgramPaths)
 		) {
 			return null;
@@ -1081,7 +1081,7 @@ public class UmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		if (isBlank(engine.getConfigurablePathKey())) {
+		if (StringUtils.isBlank(engine.getConfigurablePathKey())) {
 			throw new IllegalStateException(
 				"Can't set custom executable path for engine " + engine + "because it has no configurable path key"
 			);
@@ -2283,7 +2283,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @return The selected renderers as a list.
 	 */
 	public List<String> getSelectedRenderers() {
-		return getStringList(KEY_SELECTED_RENDERERS, RendererConfigurations.ALL_RENDERERS);
+		return getStringList(KEY_SELECTED_RENDERERS, RendererConfigurations.ALL_RENDERERS_KEY);
 	}
 
 	/**
@@ -2293,7 +2293,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
-			value = "None";
+			value = RendererConfigurations.NO_RENDERERS_KEY;
 		}
 
 		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
@@ -2922,7 +2922,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 			String engines = configuration.getString(KEY_ENGINES);
 			enabledEngines = stringToEngineIdSet(engines);
-			if (isBlank(engines)) {
+			if (StringUtils.isBlank(engines)) {
 				configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 			}
 
@@ -3070,7 +3070,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
 			enginesPriority = stringToEngineIdSet(enginesPriorityString);
-			if (isBlank(enginesPriorityString)) {
+			if (StringUtils.isBlank(enginesPriorityString)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
 
@@ -3255,7 +3255,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 	private static UniqueList<EngineId> stringToEngineIdSet(String input) {
 		UniqueList<EngineId> output = new UniqueList<>();
-		if (isBlank(input)) {
+		if (StringUtils.isBlank(input)) {
 			output.addAll(StandardEngineId.ALL);
 			return output;
 		}
@@ -4879,7 +4879,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
 			// get all bitrates from renderers
-			RendererConfigurations.calculateAllSpeeds();
+			ConnectedRenderers.calculateAllSpeeds();
 		}
 
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
@@ -5077,7 +5077,7 @@ public class UmsConfiguration extends RendererConfiguration {
 		 *         if the parsing failed.
 		 */
 		public static SubtitlesInfoLevel typeOf(String infoLevelString) {
-			if (isBlank(infoLevelString)) {
+			if (StringUtils.isBlank(infoLevelString)) {
 				return null;
 			}
 			infoLevelString = infoLevelString.trim().toLowerCase(Locale.ROOT);
@@ -5276,7 +5276,7 @@ public class UmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_RENDERER_FORCE_DEFAULT, false);
 		jObj.addProperty(KEY_RESUME, true);
 		JsonArray allRenderers = new JsonArray();
-		allRenderers.add(RendererConfigurations.ALL_RENDERERS);
+		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
 		jObj.addProperty(KEY_SERVER_ENGINE, "0");
 		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");

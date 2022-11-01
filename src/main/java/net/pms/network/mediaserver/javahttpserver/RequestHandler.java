@@ -91,6 +91,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.service.sleep.SleepManager;
@@ -1300,21 +1301,21 @@ public class RequestHandler implements HttpHandler {
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(ia);
+			renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(ia);
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
 		if (renderer == null || !renderer.isLoaded()) {
 			// Attempt 3: try to recognize the renderer by matching headers
-			renderer = RendererConfigurations.getRendererConfigurationByHeaders(headers, ia);
+			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers, ia);
 		}
 		// Still no media renderer recognized?
 		if (renderer == null) {
 			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfigurations.resolve(ia, null);
+			renderer = ConnectedRenderers.resolve(ia, null);
 			// If RendererConfiguration.resolve() didn't return the default renderer
 			// it means we know via upnp that it's not really a renderer.
 			if (renderer != null) {

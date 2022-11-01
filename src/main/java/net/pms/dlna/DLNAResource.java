@@ -85,6 +85,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
@@ -941,8 +942,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// search for transcode folder
 		for (DLNAResource child : children) {
-			if (child instanceof TranscodeVirtualFolder) {
-				return (TranscodeVirtualFolder) child;
+			if (child instanceof TranscodeVirtualFolder transcodeVirtualFolder) {
+				return transcodeVirtualFolder;
 			}
 		}
 
@@ -2739,12 +2740,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Offering AlbumArt here breaks the standard, but some renderers
 			// need it
 			switch (resElement.getProfile().toInt()) {
-				case DLNAImageProfile.GIF_LRG_INT:
-				case DLNAImageProfile.JPEG_SM_INT:
-				case DLNAImageProfile.JPEG_TN_INT:
-				case DLNAImageProfile.PNG_LRG_INT:
-				case DLNAImageProfile.PNG_TN_INT:
-					addAlbumArt(sb, resElement.getProfile());
+				case DLNAImageProfile.GIF_LRG_INT,
+					DLNAImageProfile.JPEG_SM_INT,
+					DLNAImageProfile.JPEG_TN_INT,
+					DLNAImageProfile.PNG_LRG_INT,
+					DLNAImageProfile.PNG_TN_INT
+					-> addAlbumArt(sb, resElement.getProfile());
 			}
 		}
 	}
@@ -2969,7 +2970,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						rendererIp = InetAddress.getByName(rendererId);
 						RendererConfiguration renderer;
 						if (incomingRenderer == null) {
-							renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(rendererIp);
+							renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 						} else {
 							renderer = incomingRenderer;
 						}
@@ -3031,7 +3032,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer;
 							if (incomingRenderer == null) {
-								renderer = RendererConfigurations.getRendererConfigurationBySocketAddress(rendererIp);
+								renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 							} else {
 								renderer = incomingRenderer;
 							}

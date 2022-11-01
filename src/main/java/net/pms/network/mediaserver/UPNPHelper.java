@@ -25,6 +25,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererMap;
 import org.apache.commons.configuration.ConfigurationException;
@@ -49,7 +50,7 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected void rendererReady(String uuid) {
-		RendererConfiguration r = RendererConfigurations.getRendererConfigurationByUUID(uuid);
+		RendererConfiguration r = ConnectedRenderers.getRendererConfigurationByUUID(uuid);
 		if (r != null) {
 			r.getPlayer();
 		}
@@ -70,7 +71,7 @@ public class UPNPHelper extends UPNPControl {
 		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			DeviceConfiguration r = (DeviceConfiguration) RendererConfigurations.getRendererConfigurationBySocketAddress(socket);
+			DeviceConfiguration r = (DeviceConfiguration) ConnectedRenderers.getRendererConfigurationBySocketAddress(socket);
 			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
 				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 

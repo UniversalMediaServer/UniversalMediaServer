@@ -27,7 +27,6 @@ import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.LogicalPlayer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -38,6 +37,7 @@ import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.util.StringUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -173,7 +173,7 @@ public class ControlHandler implements HttpHandler {
 		LogicalPlayer player = players.get(uuid);
 		if (player == null) {
 			try {
-				RendererConfiguration renderer = RendererConfigurations.getRendererConfigurationByUUID(uuid);
+				RendererConfiguration renderer = ConnectedRenderers.getRendererConfigurationByUUID(uuid);
 				if (renderer != null) {
 					player = (LogicalPlayer) renderer.getPlayer();
 					players.put(uuid, player);
@@ -198,7 +198,7 @@ public class ControlHandler implements HttpHandler {
 		if (defaultRenderer == null && bumpAddress != null) {
 			try {
 				InetAddress ia = InetAddress.getByName(bumpAddress);
-				defaultRenderer = RendererConfigurations.getRendererConfigurationBySocketAddress(ia);
+				defaultRenderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(ia);
 			} catch (UnknownHostException e) {
 				//do nothing
 			}
@@ -218,7 +218,7 @@ public class ControlHandler implements HttpHandler {
 		LogicalPlayer player = selectedPlayers.get(client);
 		RendererConfiguration selected = player != null ? player.getRenderer() : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
-		for (RendererConfiguration r : RendererConfigurations.getConnectedControlPlayers()) {
+		for (RendererConfiguration r : ConnectedRenderers.getConnectedControlPlayers()) {
 			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.getUUID() : r, r == selected ? 1 : 0, r.getUUID()));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";

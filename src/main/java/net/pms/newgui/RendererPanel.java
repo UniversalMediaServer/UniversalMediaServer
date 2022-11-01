@@ -128,7 +128,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public JButton referenceButton() {
-		final File ref = ((DeviceConfiguration) renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
+		final File ref = ((DeviceConfiguration) renderer).getParentFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
 		open.setToolTipText(exists ? (Messages.getString("OpenParentConfiguration") + ": " + ref) : Messages.getString("NoParentConfiguration"));

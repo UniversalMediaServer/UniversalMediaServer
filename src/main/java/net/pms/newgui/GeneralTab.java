@@ -204,7 +204,7 @@ public class GeneralTab {
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
@@ -567,7 +567,7 @@ public class GeneralTab {
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {

@@ -44,6 +44,7 @@ import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -66,7 +67,7 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static final UmsConfiguration UMS_CONFIGURATION = PMS.getConfiguration();
+	private static final StringUtil.LaxUnicodeUnescaper LAX_UNICODE_UNESCAPER = new StringUtil.LaxUnicodeUnescaper();
 
 	/**
 	 * renderer configuration property keys.
@@ -190,9 +191,13 @@ public class RendererConfiguration extends Renderer {
 	public static final File NOFILE = new File("NOFILE");
 	public static final String UNKNOWN_ICON = "unknown.png";
 
-	private static StringUtil.LaxUnicodeUnescaper laxUnicodeUnescaper = new StringUtil.LaxUnicodeUnescaper();
-
-	private static int maximumBitrateTotal = 0;
+	/**
+	 * Upnp service startup management
+	 */
+	public static final int UPNP_BLOCK = -2;
+	private static final int UPNP_POSTPONE = -1;
+	private static final int UPNP_NONE = 0;
+	public static final int UPNP_ALLOW = 1;
 
 	private final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 	private final LinkedHashSet<IRendererGuiListener> guiListeners = new LinkedHashSet<>();
@@ -203,8 +208,9 @@ public class RendererConfiguration extends Renderer {
 	protected Configuration configuration;
 	protected UmsConfiguration umsConfiguration = PMS.getConfiguration();
 	protected boolean loaded = false;
-	protected boolean fileless = false;
 
+	private boolean fileless = false;
+	private volatile int upnpMode = UPNP_NONE;
 	private volatile RootFolder rootFolder;
 	private File file;
 	private FormatConfiguration formatConfiguration;
@@ -225,14 +231,10 @@ public class RendererConfiguration extends Renderer {
 	private String inset;
 	private String dots;
 
-	public static final String INFO = "info";
-	public static final String OK = "okay";
-	public static final String WARN = "warn";
-	public static final String ERR = "err";
-
 	private DLNAResource playingRes;
-
 	private long buffer;
+	private int maximumBitrateTotal = 0;
+
 	public RendererConfiguration() throws ConfigurationException {
 		this(null, null);
 	}
@@ -265,10 +267,6 @@ public class RendererConfiguration extends Renderer {
 		buffer = 0;
 
 		init(f);
-	}
-
-	public void setRank(int value) {
-		rank = value;
 	}
 
 	public int getInt(String key, int def) {
@@ -346,6 +344,7 @@ public class RendererConfiguration extends Renderer {
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder();
+			rootFolder.setDefaultRenderer(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -379,7 +378,7 @@ public class RendererConfiguration extends Renderer {
 			return false;
 		}
 
-		RendererConfigurations.addRendererConfigurationAssociation(sa, this);
+		ConnectedRenderers.addRendererConfigurationAssociation(sa, this);
 		resetUpnpMode();
 
 		if (
@@ -421,20 +420,15 @@ public class RendererConfiguration extends Renderer {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
-	public static String getSimpleName(RendererConfiguration r) {
-		return StringUtils.substringBefore(r.getRendererName(), "(").trim();
-	}
-
-	public static String getDefaultFilename(RendererConfiguration r) {
-		String id = r.getId();
-		return (getSimpleName(r) + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id)).replace(" ", "") + ".conf";
-	}
-
 	public File getUsableFile() {
 		File f = getFile();
 		if (f == null || f.equals(NOFILE)) {
 			String name = getSimpleName(this);
-			f = new File(RendererConfigurations.getRenderersDir(), name.equals(getSimpleName(RendererConfigurations.getDefaultConf())) ? getDefaultFilename(this) :  (name.replace(" ", "") + ".conf"));
+			if (name.equals(getSimpleName(RendererConfigurations.getDefaultConf()))) {
+				f = new File(RendererConfigurations.getRenderersDir(), getDefaultFilename(this));
+			} else {
+				f = new File(RendererConfigurations.getRenderersDir(), name.replace(" ", "") + ".conf");
+			}
 		}
 		return f;
 	}
@@ -443,8 +437,12 @@ public class RendererConfiguration extends Renderer {
 		return fileless;
 	}
 
-	public void setFileless(boolean b) {
+	public final void setFileless(boolean b) {
 		fileless = b;
+	}
+
+	public void setRank(int value) {
+		rank = value;
 	}
 
 	public int getRank() {
@@ -1013,15 +1011,11 @@ public class RendererConfiguration extends Renderer {
 			if (isUpnp()) {
 				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
 			} else {
-				details = new LinkedHashMap<String, String>() {
-					private static final long serialVersionUID = -3998102753945339020L;
-					{
-						put(Messages.getString("Name"), getRendererName());
-						if (getAddress() != null) {
-							put(Messages.getString("Address"), getAddress().getHostAddress());
-						}
-					}
-				};
+				details = new LinkedHashMap<>();
+				details.put(Messages.getString("Name"), getRendererName());
+				if (getAddress() != null) {
+					details.put(Messages.getString("Address"), getAddress().getHostAddress());
+				}
 			}
 		}
 		return details;
@@ -1088,7 +1082,7 @@ public class RendererConfiguration extends Renderer {
 	 * @return Has address.
 	 */
 	public boolean hasAssociatedAddress() {
-		return RendererConfigurations.hasRendererConfigurationInetAddress(this);
+		return ConnectedRenderers.hasInetAddressForRendererConfiguration(this);
 	}
 
 	/**
@@ -1106,7 +1100,7 @@ public class RendererConfiguration extends Renderer {
 			}
 		}
 		// Otherwise check the address association
-		return RendererConfigurations.getRendererConfigurationInetAddress(this);
+		return ConnectedRenderers.getRendererConfigurationInetAddress(this);
 	}
 
 	/**
@@ -1212,7 +1206,7 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public void delete(int delay) {
-		RendererConfigurations.delete(this, delay);
+		ConnectedRenderers.delete(this, delay);
 	}
 
 	/**
@@ -1223,9 +1217,12 @@ public class RendererConfiguration extends Renderer {
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		return (details != null && details.containsKey("friendlyName")) ? details.get("friendlyName") :
-			isUpnp() ? UPNPHelper.getFriendlyName(uuid) :
-			getConfName();
+		if (details != null && details.containsKey("friendlyName")) {
+			return details.get("friendlyName");
+		} else if (isUpnp()) {
+			return UPNPHelper.getFriendlyName(uuid);
+		}
+		return getConfName();
 	}
 
 	public String getConfName() {
@@ -1433,6 +1430,7 @@ public class RendererConfiguration extends Renderer {
 
 				return calculatedSpeed;
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				return 0;
 			} catch (ExecutionException e) {
 				LOGGER.debug("Automatic maximum bitrate calculation failed with: {}", e.getCause().getMessage());
@@ -1537,6 +1535,9 @@ public class RendererConfiguration extends Renderer {
 				case "vqscale" -> returnString.append("-q:v ").append(pairArray[1]).append(' ');
 				case "vqmin" -> returnString.append("-qmin ").append(pairArray[1]).append(' ');
 				case "vqmax" -> returnString.append("-qmax ").append(pairArray[1]).append(' ');
+				default -> {
+					//setting not yet handled
+				}
 			}
 		}
 
@@ -1975,18 +1976,6 @@ public class RendererConfiguration extends Renderer {
 		return name;
 	}
 
-	public static int getIntAt(String s, String key, int fallback) {
-		if (StringUtils.isBlank(s) || StringUtils.isBlank(key)) {
-			return fallback;
-		}
-
-		try {
-			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-			return fallback;
-		}
-	}
-
 	/**
 	 * List of the renderer supported external subtitles formats
 	 * for streaming together with streaming (not transcoded) video, for all
@@ -2150,7 +2139,7 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public int calculatedSpeed() throws InterruptedException, ExecutionException {
 		int max = getInt(KEY_MAX_VIDEO_BITRATE, 0);
-		InetAddress addr = RendererConfigurations.getRendererConfigurationInetAddress(this);
+		InetAddress addr = ConnectedRenderers.getRendererConfigurationInetAddress(this);
 		if (addr != null) {
 			Future<Integer> speed = SpeedStats.getSpeedInMBitsStored(addr);
 			if (speed != null) {
@@ -2200,48 +2189,6 @@ public class RendererConfiguration extends Renderer {
 	public int getLoadingPriority() {
 		return getInt(KEY_LOADING_PRIORITY, 0);
 	}
-
-	/**
-	 * A loading priority comparator
-	 */
-	public static final Comparator<RendererConfiguration> RENDERER_LOADING_PRIORITY_COMPARATOR = (RendererConfiguration r1, RendererConfiguration r2) -> {
-		if (r1 == null || r2 == null) {
-			return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
-		}
-		int p1 = r1.getLoadingPriority();
-		int p2 = r2.getLoadingPriority();
-		return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getConfName().compareToIgnoreCase(r2.getConfName());
-	};
-
-	private static int[] getVideoBitrateConfig(String bitrate) {
-		int[] bitrates = new int[2];
-
-		if (bitrate.contains("(") && bitrate.contains(")")) {
-			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
-		}
-
-		if (bitrate.contains("(")) {
-			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
-		}
-
-		if (StringUtils.isBlank(bitrate)) {
-			bitrate = "0";
-		}
-
-		bitrates[0] = (int) Double.parseDouble(bitrate);
-
-		return bitrates;
-	}
-
-	/**
-	 * Automatic reloading
-	 */
-	private static final FileWatcher.Listener RELOADER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-		RendererConfiguration r = (RendererConfiguration) watch.getItem();
-		if (r != null && r.getFile().equals(new File(filename))) {
-			r.reset();
-		}
-	};
 
 	public DLNAResource getPlayingRes() {
 		return playingRes;
@@ -2300,36 +2247,6 @@ public class RendererConfiguration extends Renderer {
 		}
 		// Note: this might be a comma-separated list of ids
 		return d;
-	}
-
-	/**
-	 * Upnp service startup management
-	 */
-	public static final int UPNP_BLOCK = -2;
-	public static final int UPNP_POSTPONE = -1;
-	public static final int UPNP_NONE = 0;
-	public static final int UPNP_ALLOW = 1;
-
-	protected volatile int upnpMode = UPNP_NONE;
-
-	public static int getUpnpMode(String mode) {
-		if (mode != null) {
-			return switch (mode.trim().toLowerCase()) {
-				case "false" -> UPNP_BLOCK;
-				case "postpone" -> UPNP_POSTPONE;
-				default -> UPNP_ALLOW;
-			};
-		}
-		return UPNP_ALLOW;
-	}
-
-	public static String getUpnpModeString(int mode) {
-		return switch (mode) {
-			case UPNP_BLOCK -> "blocked";
-			case UPNP_POSTPONE -> "postponed";
-			case UPNP_NONE -> "unknown";
-			default -> "allowed";
-		};
 	}
 
 	public int getUpnpMode() {
@@ -2515,6 +2432,77 @@ public class RendererConfiguration extends Renderer {
 		return configurationReader;
 	}
 
+	private static int[] getVideoBitrateConfig(String bitrate) {
+		int[] bitrates = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
+		}
+
+		if (StringUtils.isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
+	}
+
+	private static int getIntAt(String s, String key, int fallback) {
+		if (StringUtils.isBlank(s) || StringUtils.isBlank(key)) {
+			return fallback;
+		}
+
+		try {
+			return Integer.parseInt((s + " ").split(key)[1].split("\\D")[0]);
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+			return fallback;
+		}
+	}
+
+	/**
+	 * Automatic reloading
+	 */
+	private static final FileWatcher.Listener RELOADER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+		RendererConfiguration r = (RendererConfiguration) watch.getItem();
+		if (r != null && r.getFile().equals(new File(filename))) {
+			r.reset();
+		}
+	};
+
+	public static int getUpnpMode(String mode) {
+		if (mode != null) {
+			return switch (mode.trim().toLowerCase()) {
+				case "false" -> UPNP_BLOCK;
+				case "postpone" -> UPNP_POSTPONE;
+				default -> UPNP_ALLOW;
+			};
+		}
+		return UPNP_ALLOW;
+	}
+
+	public static String getUpnpModeString(int mode) {
+		return switch (mode) {
+			case UPNP_BLOCK -> "blocked";
+			case UPNP_POSTPONE -> "postponed";
+			case UPNP_NONE -> "unknown";
+			default -> "allowed";
+		};
+	}
+
+	public static String getSimpleName(RendererConfiguration r) {
+		return StringUtils.substringBefore(r.getRendererName(), "(").trim();
+	}
+
+	public static String getDefaultFilename(RendererConfiguration r) {
+		String id = r.getId();
+		return (getSimpleName(r) + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id)).replace(" ", "") + ".conf";
+	}
+
 	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
 		try {
 			ArrayList<String> conf = new ArrayList<>();
@@ -2526,7 +2514,7 @@ public class RendererConfiguration extends Renderer {
 			// Add the header and identifiers
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
-			conf.add("#" + (hasRef ? " Based on " + ref.getName() : ""));
+			conf.add("#" + (ref != null && ref != NOFILE ? " Based on " + ref.getName() : ""));
 			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
@@ -2617,7 +2605,7 @@ public class RendererConfiguration extends Renderer {
 						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
 						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
 						// unescape any double-backslashes, then escape all backslashes before parsing
-						super.parseProperty(laxUnicodeUnescaper.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
+						super.parseProperty(LAX_UNICODE_UNESCAPER.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
 					}
 				};
 			}

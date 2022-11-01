@@ -41,7 +41,6 @@ public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static final String ALL_RENDERERS_TREE_NAME = RendererConfigurations.ALL_RENDERERS;
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
@@ -112,7 +111,7 @@ public class SelectRenderers extends JPanel {
 		TreePath root = new TreePath(allRenderers);
 		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
-		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
+		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(RendererConfigurations.ALL_RENDERERS_KEY)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
 			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode rootNode) {
@@ -155,7 +154,7 @@ public class SelectRenderers extends JPanel {
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				if (CONFIGURATION.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
+				if (CONFIGURATION.setSelectedRenderers(RendererConfigurations.ALL_RENDERERS_KEY)) {
 					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			} else {

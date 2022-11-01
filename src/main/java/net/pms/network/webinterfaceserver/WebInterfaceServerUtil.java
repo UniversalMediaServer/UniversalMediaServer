@@ -40,7 +40,6 @@ import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
@@ -50,6 +49,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -453,9 +453,9 @@ public class WebInterfaceServerUtil {
 	public static WebRender matchRenderer(String user, HttpExchange t) {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfigurations.find(confName, t.getRemoteAddress().getAddress());
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
-			(WebRender) r : null;
+		RendererConfiguration r = ConnectedRenderers.find(confName, t.getRemoteAddress().getAddress());
+		return (r instanceof WebRender webRender && (StringUtils.isBlank(user) || user.equals(webRender.getUser()))) ?
+			webRender : null;
 	}
 
 	public static String getCookie(String name, HttpExchange t) {

@@ -29,7 +29,6 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
@@ -42,6 +41,7 @@ import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -418,7 +418,7 @@ public class BrowseHandler implements HttpHandler {
 	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = WebInterfaceServerUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfigurations.hasConnectedControlPlayers();
+		boolean upnpControl = ConnectedRenderers.hasConnectedControlPlayers();
 		String pageTypeUri = "/play/";
 		if (resource.isFolder()) {
 			pageTypeUri = "/browse/";

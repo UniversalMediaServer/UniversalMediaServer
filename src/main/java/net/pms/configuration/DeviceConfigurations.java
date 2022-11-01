@@ -20,11 +20,15 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import net.pms.PMS;
 import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -37,8 +41,9 @@ import org.slf4j.LoggerFactory;
  */
 public class DeviceConfigurations {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfigurations.class);
-	private static HashMap<String, PropertiesConfiguration> deviceConfs = new HashMap<>();
-	private static final HashMap<String, String> XREF = new HashMap<>();
+	private static final Map<String, String> XREF = Collections.synchronizedMap(new HashMap<>());
+	private static Map<String, PropertiesConfiguration> deviceConfs = Collections.synchronizedMap(new HashMap<>());
+
 	private static File deviceDir;
 
 	/**
@@ -94,7 +99,7 @@ public class DeviceConfigurations {
 	public static List<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
 		ArrayList<RendererConfiguration> devices = new ArrayList<>();
 		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration) renderer).getRef() : renderer;
-		for (RendererConfiguration r : RendererConfigurations.getConnectedRenderersConfigurations()) {
+		for (RendererConfiguration r : ConnectedRenderers.getConnectedRenderersConfigurations()) {
 			if (r instanceof DeviceConfiguration deviceConfiguration && deviceConfiguration.getRef() == ref) {
 				devices.add(r);
 			}
@@ -130,10 +135,10 @@ public class DeviceConfigurations {
 		return idsList;
 	}
 
-	public static void loadDeviceConfigurations(UmsConfiguration pmsConf) {
+	public static void loadDeviceConfigurations() {
 		deviceConfs.clear();
 		XREF.clear();
-		deviceDir = new File(pmsConf.getProfileDirectory(), "renderers");
+		deviceDir = new File(PMS.getConfiguration().getProfileDirectory(), "renderers");
 		if (deviceDir.exists()) {
 			LOGGER.info("Loading device configurations from " + deviceDir.getAbsolutePath());
 			File[] files = deviceDir.listFiles();
@@ -173,8 +178,8 @@ public class DeviceConfigurations {
 				if (!idsList.isEmpty()) {
 					ids.addAll(idsList);
 				}
-				for (RendererConfiguration r : RendererConfigurations.getConnectedRenderersConfigurations()) {
-					if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration) r).getId())) {
+				for (RendererConfiguration r : ConnectedRenderers.getConnectedRenderersConfigurations()) {
+					if (r instanceof DeviceConfiguration d && ids.contains(d.getId())) {
 						r.reset();
 					}
 				}
