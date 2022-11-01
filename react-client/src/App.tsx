@@ -165,6 +165,7 @@ function App() {
                               <Routes>
                                 <Route path='about' element={<About />}></Route>
                                 <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
+                                <Route path='player/:req/:id' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                                 <Route index element={<PlayerEventProvider><Player /></PlayerEventProvider>} />
                               </Routes>
                             </Router>
@@ -179,6 +180,7 @@ function App() {
                               <Route path='actions' element={<Actions />}></Route>
                               <Route path='logs' element={<ServerEventProvider><Logs /></ServerEventProvider>}></Route>
                               <Route path='player' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
+                              <Route path='player/:req/:id' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                               <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
                               <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
                               <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />

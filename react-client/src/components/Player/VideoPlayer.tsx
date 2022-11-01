@@ -32,7 +32,9 @@ declare module 'video.js' {
   }
 }
 
-videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
+if (!videojs.getPlugin('hlsQualitySelector')) {
+  videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
+}
 
 export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
