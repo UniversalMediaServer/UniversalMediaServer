@@ -19,6 +19,7 @@ import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
+import { useParams } from "react-router-dom";
 import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -39,6 +40,7 @@ export const Player = () => {
   const navbar = useContext(NavbarContext);
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
+  const { req, id } = useParams();
 
   const [rtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
@@ -485,6 +487,12 @@ export const Player = () => {
   }
 
   useEffect(() => {
+    if (id && req) {
+      sse.askReqId(id, req);
+    }
+  }, [req, id]);
+
+  useEffect(() => {
     ((!session.authenticate || havePermission(session, Permissions.web_player_browse)) && getToken())
   }, [session]);
 
@@ -499,6 +507,10 @@ export const Player = () => {
             response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
           );
           window.scrollTo(0,0);
+          const url = '/player/' + sse.reqType + '/' + sse.reqId;
+          if (url !== history.state) {
+            window.history.pushState(url, '', url);
+          }
         })
         .catch(function () {
           showNotification({
