@@ -344,8 +344,8 @@ public class RealFile extends VirtualFile {
 					break;
 				}
 			}
-			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof VirtualFile) {
-				cachedThumbnail = ((VirtualFile) getParent()).getPotentialCover();
+			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() instanceof VirtualFile virtualFile) {
+				cachedThumbnail = virtualFile.getPotentialCover();
 			}
 		}
 

@@ -151,8 +151,7 @@ public class BrowseHandler implements HttpHandler {
 						StringBuilder thumbHTML = new StringBuilder();
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 						HashMap<String, String> item = new HashMap<>();
-						String faIcon;
-						faIcon = switch (name) {
+						String faIcon = switch (name) {
 							case "Video" -> "fa-video";
 							case "Audio" -> "fa-music";
 							case "Photo" -> "fa-images";

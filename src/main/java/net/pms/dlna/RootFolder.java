@@ -1336,7 +1336,7 @@ public class RootFolder extends DLNAResource {
 	 */
 	public static void rescanLibraryFileOrFolder(String filename) {
 		if (
-			hasSameBasePath2(SharedContentConfiguration.getSharedFolders(), filename) ||
+			hasSameBasePathFromFiles(SharedContentConfiguration.getSharedFolders(), filename) ||
 			hasSameBasePath(RootFolder.getDefaultFolders(), filename)
 		) {
 			LOGGER.debug("rescanning file or folder : " + filename);
@@ -1360,18 +1360,18 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public static boolean hasSameBasePath(List<Path> dirs, String content) {
+	public static boolean hasSameBasePath(List<Path> dirs, String filename) {
 		for (Path path : dirs) {
-			if (content.startsWith(path.toString())) {
+			if (filename.startsWith(path.toString())) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public static boolean hasSameBasePath2(List<File> dirs, String content) {
+	public static boolean hasSameBasePathFromFiles(List<File> dirs, String filename) {
 		for (File file : dirs) {
-			if (content.startsWith(file.getAbsolutePath())) {
+			if (filename.startsWith(file.getAbsolutePath())) {
 				return true;
 			}
 		}

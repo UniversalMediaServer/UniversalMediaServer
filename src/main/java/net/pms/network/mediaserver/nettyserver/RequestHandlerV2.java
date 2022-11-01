@@ -160,9 +160,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				} else if (temp.equalsIgnoreCase("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
-					String nums = headerLine.substring(
-							headerLine.toUpperCase().indexOf(
-									"RANGE: BYTES=") + 13).trim();
+					String nums = headerLine.substring(headerLine.toUpperCase().indexOf("RANGE: BYTES=") + 13).trim();
 					StringTokenizer st = new StringTokenizer(nums, "-");
 					if (!nums.startsWith("-")) {
 						request.setLowRange(Long.parseLong(st.nextToken()));

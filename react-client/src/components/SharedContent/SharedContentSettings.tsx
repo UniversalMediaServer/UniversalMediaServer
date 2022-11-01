@@ -28,7 +28,7 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
-import { defaultTooltipSettings, openGitHubNewIssue, settingsApiUrl } from '../../utils';
+import { defaultTooltipSettings, openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function SharedContentSettings(
@@ -71,7 +71,7 @@ export default function SharedContentSettings(
     setLoading(true);
     try {
       await axios.post(
-        settingsApiUrl + 'mark-directory',
+        sharedApiUrl + 'mark-directory',
         { directory: item, isPlayed },
       );
 
@@ -97,7 +97,7 @@ export default function SharedContentSettings(
     try {
       const sharedContentsTemp = _.cloneDeep(sharedContents);
       const index = sharedContents.indexOf(value);
-      const response: { data: { name: string } } = await axios.post(settingsApiUrl + 'web-content-name', { source: value.uri });
+      const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: value.uri });
       if (response.data.name) {
         (sharedContentsTemp[index] as Feed).name = response.data.name;
         setSharedContents(sharedContentsTemp);
