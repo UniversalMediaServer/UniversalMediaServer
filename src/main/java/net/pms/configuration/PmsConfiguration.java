@@ -1346,7 +1346,7 @@ public class PmsConfiguration extends RendererConfiguration {
 		}
 		return executable == null ? null : executable.toString();
 	}
-	
+
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
 	 * Interframe both in {@link PmsConfiguration} and the
@@ -1391,7 +1391,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 		((ConfigurableProgramPaths) programPaths).setCustomConvert2dTo3dPath(customPath);
 	}
-			
+
 	/**
 	 * @return The {@link ExternalProgramInfo} for youtube-dl.
 	 */
@@ -2838,11 +2838,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getFFmpegGPUDecodingAccelerationMethod() {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
 	}
-	
+
 	public String getFFmpegGPUH264EncodingAccelerationMethod() {
 		return getString(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
 	}
-	
+
 	public String getFFmpegGPUH265EncodingAccelerationMethod() {
 		return getString(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
 	}
@@ -2854,7 +2854,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getFFmpegGPUDecodingAccelerationThreadNumber() {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, "1");
 	}
-	
+
 	public void setFFmpegGPUH264EncodingAccelerationMethod(String value) {
 		configuration.setProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, value);
 	}
@@ -2872,13 +2872,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
-		return new String[] { "libx264", "h264_nvenc", "h264_amf", "h264_qsv", "h264_mf", "libx264rgb" };
+		return new String[] {"libx264", "h264_nvenc", "h264_amf", "h264_qsv", "h264_mf", "libx264rgb"};
 	}
 
 	public String[] getFFmpegAvailableGPUH265EncodingAccelerationMethods() {
-		return new String[] { "libx265", "hevc_nvenc", "hevc_amf", "hevc_qsv", "hevc_mf"  };
+		return new String[] {"libx265", "hevc_nvenc", "hevc_amf", "hevc_qsv", "hevc_mf"};
 	}
-	
+
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
 		configuration.setProperty(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, collectionToString(methods));
 	}
@@ -2925,7 +2925,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getFfmpegAvisynthInterFrameGPU() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 	}
-			
+
 	/**
 	 * Whether we should use FFMS2 instead of DirectShowSource in AviSynth.
 	 *
@@ -2996,13 +2996,13 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
 	 * 2D to 3D conversion.
-	 * 
+	 *
 	 * @param value The index of the format.
 	 */
 	public void setFfmpegAvisynthOutputFormat3D(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
-	
+
 	/**
 	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
 	 * 2D to 3D conversion.
@@ -3022,7 +3022,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
 	}
-	
+
 	/**
 	 * Whether we should resize the input 2D video for 3D conversion in AviSynth.
 	 *
@@ -3040,11 +3040,11 @@ public class PmsConfiguration extends RendererConfiguration {
 	public boolean getFfmpegAvisynthHorizontalResize() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
 	}
-	
+
 	public String getFfmpegAvisynthHorizontalResizeResolution() {
 		return getString(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
 	}
-	
+
 	public void setFfmpegAvisynthHorizontalResizeResolution(String value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, value);
 	}

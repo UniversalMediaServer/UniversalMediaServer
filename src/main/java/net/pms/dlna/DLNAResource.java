@@ -217,7 +217,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasExternalSubtitles;
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
-	
+
 	private double lastTimeSeek = -1.0;
 
 	protected DLNAResource() {

@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -31,8 +35,6 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
@@ -115,39 +117,37 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String interframePath  		= configuration.getInterFramePath();
 			String ffms2Path 	   		= configuration.getFFMS2Path();
 			String convert2dTo3DPath	= configuration.getConvert2dTo3dPath();
-			
+
 			if (configuration.getFfmpegAvisynthUseFFMS2()) {
-				
+
 				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
-				
+
 				String fpsNum   = "fpsnum=" + numerator;
 				String fpsDen   = "fpsden=" + denominator;
-				
+
 				String convertfps = "";
-				
+
 				if (configuration.getFfmpegAvisynthConvertFps()) {
 					convertfps = ", " + fpsNum + ", " + fpsDen;
-				}	
-				
+				}
+
 				// atrack:
 				// A value of -1 means select the first available audio track. Default (-2) means audio is disabled.
-				
+
 				int audioTrack = -1;
-				
+
 				// seekmode:
 				// 1: Safe normal (the default). Bases seeking decisions on the keyframe positions reported by libavformat.
-				// 2: Unsafe normal. Same as mode 1, but no error will be thrown if the exact seek destination has to be guessed. 
-							
-				int seekMode   = 2; 
-				
+				// 2: Unsafe normal. Same as mode 1, but no error will be thrown if the exact seek destination has to be guessed.
+
+				int seekMode   = 2;
+
 				movieLine += "\n" +
 				"PluginPath = \"" + ffms2Path + "\"\n" +
 				"LoadPlugin(PluginPath+\"\\ffms2.dll\")\n";
-				
+
 				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
-			}
-			else
-			{
+			} else {
 				String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
 
 				String directShowFPS = "";
@@ -162,26 +162,23 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 				movieLine       += "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 			}
-			
+
 			int cores = 1;
 			if (configuration.isFfmpegAviSynthMultithreading()) {
-				
+
 				cores = configuration.getNumberOfCpuCores();
 
-				if (configuration.isFfmpegAviSynthPlusMode())
-				{
+				if (configuration.isFfmpegAviSynthPlusMode()) {
 					// AviSynth+ multi-threading
-					
+
 					// Goes at the start of the file to initiate multithreading
 					mtLine1 = "SetFilterMTMode(\"DEFAULT_MT_MODE\", 2)\n";
-				
+
 					// Goes at the end of the script file to support AviSynth+ multithreading
 					mtPrefetchLine = "Prefetch(" + cores + ")\n";
-				}
-				else
-				{
+				} else {
 					// AviSynth multi-threading
-					
+
 					// Goes at the start of the file to initiate multithreading
 					mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + cores + ")\n";
 					// Goes after the input line to make multithreading more efficient
@@ -243,29 +240,29 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			if (configuration.getFfmpegAvisynth2Dto3D()) {
 
-				lines.add("video2d=Last" );
-				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)" );
-				lines.add("video2dFromSeekPoint=Trim(video2d,seekFrame,0)" );
+				lines.add("video2d=Last");
+				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
+				lines.add("video2dFromSeekPoint=Trim(video2d,seekFrame,0)");
 
-				lines.add( "\n" +
+				lines.add("\n" +
 				"PluginPath = \"" + convert2dTo3DPath + "\"\n" +
-				"LoadPlugin(PluginPath+\"\\mvtools2.dll\")\n" +						
-				"Import(PluginPath+\"\\convert2dto3d.avsi\")\n\n" );
-				
+				"LoadPlugin(PluginPath+\"\\mvtools2.dll\")\n" +
+				"Import(PluginPath+\"\\convert2dto3d.avsi\")\n\n");
+
 				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + configuration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + configuration.getFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ")");
-				
-			    // lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)"); 
+
+				// lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)");
 			}
 
 			if (configuration.getFfmpegAvisynthInterFrame()) {
 				lines.add(mtLine2);
 				lines.add(interframeLines);
 			}
-			
+
 			if (configuration.isFfmpegAviSynthMultithreading() && configuration.isFfmpegAviSynthPlusMode()) {
-				lines.add(mtPrefetchLine);				
+				lines.add(mtPrefetchLine);
 			}
-			
+
 			if (fullyManaged) {
 				for (String s : lines) {
 					if (s.contains("<moviefilename>")) {

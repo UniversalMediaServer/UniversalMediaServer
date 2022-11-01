@@ -17,16 +17,19 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -45,12 +48,6 @@ public class FFMpegVideo {
 	private static JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber;
 	private static JComboBox<String> fFmpegGPUH264EncodingAccelerationMethod;
 	private static JComboBox<String> fFmpegGPUH265EncodingAccelerationMethod;
-
-	/**
-	 * This class is not meant to be instantiated.
-	 */
-	private FFMpegVideo() {
-	}
 
 	public static JComponent config() {
 		return config("GeneralSettings");
@@ -172,7 +169,7 @@ public class FFMpegVideo {
 		});
 		fFmpegGPUH264EncodingAccelerationMethod.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUH264EncodingAccelerationMethod), cc.xy(3, y));
-		
+
 		y += 2;
 		builder.add(new JLabel(Messages.getString("GPUH265EncodingAccelerationMethod")), cc.xy(1, y));
 

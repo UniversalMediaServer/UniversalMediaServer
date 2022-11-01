@@ -17,16 +17,28 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
-import java.io.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
 import net.pms.Messages;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -37,7 +49,15 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.io.*;
+import net.pms.io.ListProcessWrapperResult;
+import net.pms.io.OutputParams;
+import net.pms.io.OutputTextLogger;
+import net.pms.io.PipeIPCProcess;
+import net.pms.io.PipeProcess;
+import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.SimpleProcessWrapper;
+import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.OutputOverride;
@@ -52,11 +72,6 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.Version;
-import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * Pure FFmpeg video player.
@@ -446,8 +461,7 @@ public class FFMpegVideo extends Engine {
 
 					}
 
-					if (selectedTranscodeAccelerationMethod == null
-							|| selectedTranscodeAccelerationMethod.startsWith("libx")) {
+					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx")) {
 						if (!customFFmpegOptions.contains("-preset")) {
 							transcodeOptions.add("-preset");
 							transcodeOptions.add("ultrafast");
@@ -870,7 +884,7 @@ public class FFMpegVideo extends Engine {
 		String frameRateNumber = media.getValidFps(false);
 
 		boolean delegateSeekToAVSScript = avisynth;
-		
+
 		// Set seeks
 		if (params.getTimeSeek() > 0 && !delegateSeekToAVSScript) {
 			cmdList.add("-ss");
@@ -881,7 +895,7 @@ public class FFMpegVideo extends Engine {
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
 			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.getSid(), params.getTimeSeek(), frameRateRatio, frameRateNumber, configuration);
-			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));			
+			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {
 				cmdList.add("pipe:");

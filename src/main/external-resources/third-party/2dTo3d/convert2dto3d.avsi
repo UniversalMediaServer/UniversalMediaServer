@@ -1,8 +1,7 @@
-## Script for 2D to 3D On-the-Fly Real-time Video Conversion with Avisynth(+) and UniversalMediaServer 
-## Integrations, updates (e.g. to support AviSynth+ 64 bit), corrections and additions for use in UniversalMediaServer by Dr. Thomas Richard Judge 2022.
+## Script for 2D to 3D On-the-Fly Real-time Video Conversion with Avisynth(+) and UniversalMediaServer
+## Copyright Dr. Thomas Richard Judge 2022.  
 
-
-## UniversalMediaServer generates multi-threading script wrapper code, plugin loading code and algorithm, output format, size and brightness options based on UI selections 
+## UniversalMediaServer generates multi-threading script wrapper code, plugin loading code and algorithm, output format and size options based on UI selections 
 ## before calling this function with the video2d clip and other parameters set.
 
 function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "resize", int "hzTargetSize", bool "incBrightness" ) {
@@ -21,38 +20,93 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	videoW = width(video2d)
 	videoH = height(video2d)
 
-	## Resize if resizing is enabled and the video width is greater than hzTargetSize
-	(resize == true && videoW > hzTargetSize) ? Eval("""
-			video2d = Lanczos4Resize(video2d, hzTargetSize, hzTargetSize * videoH / videoW)
-		""") : ""
+	## 
+	## 	
+	## Values for outputFormat and their meaning 
+	## 			
+	## 1. FullSBS3dFormat=SBS (Full Side by Side) - Left Eye First
+	## 2. FullTB3dFormat=TB/OU (Full Top/Bottom a.k.a Over/Under) - Left Eye First
+	## 3. HalfSBS3dFormat=HSBS (Half Side by Side) - Left Eye First
+	## 4. HalfTB3dFormat=HTB/HOU (Half Top/Bottom a.k.a Half Over/Under) - Left Eye First
+	## 5. HalfUpSBS3dFormat=HSBS Upscaled (Half Side by Side) - Left Eye First
+	## 6. HalfUpTB3dFormat=HTB/HOU Upscaled (Half Top/Bottom a.k.a Half Over/Under) - Left Eye First
+	## 
+	## 
 
+	## Calculate required input resolution of the video before 3D processing based on target size
+	## If resizing is needed calculate the new target video size based on hzTargetSize otherwise disable resizing 
+	(resize == true && videoW > hzTargetSize) ? Eval("""
+			videoH = hzTargetSize * videoH / videoW
+			videoW = hzTargetSize
+	""") : Eval("""
+			resize = false
+		""") 
+
+	(algorithm == 2 && resize == true) ? Eval("""
+		video2d = Lanczos4Resize(video2d, videoW, videoH)
+		""") : ""
+			
 	subtitle = "Invalid algorithm specified"
 
 		algorithm == 2 ? Eval("""
-			subtitle = "Motion and Lighting Depth Detection"
-			video3d = JermanisFinal(video2d, outputFormat=outputFormat, resize=resize, hzTargetSize=hzTargetSize, incBrightness=incBrightness)
+			subtitle = "Pulfrich and Lighting Depth Detection"
+			video3d = PulfrichAndLight(video2d, outputFormat=outputFormat)
 		""") : Eval("""
-			video3d = BelevPulfrichBase(video2d, outputFormat=outputFormat, resize=resize, hzTargetSize=hzTargetSize, incBrightness=incBrightness)
 			subtitle = "Pulfrich Base" # Default
+			video3d = PulfrichBase(video2d, outputFormat=outputFormat, videoW=videoW, videoH=videoH)
 		""") 
+
+	resize = false
+	        
+	videoW = width(video3d)
+	videoH = height(video3d)
+
+	## If HSBS format is requested then half the width of the video. 
+	## This halves the horizontal resolution for each eye for target devices that stretch Half SBS horizontally by a factor of two.
+	outputFormat == 3 ? Eval("""
+		videoW = videoW / 2
+		resize = true
+	""") : ""
+
+	## If HTB/HOU format is requested then half the height of the video. 
+	## This halves the vertical resolution for each eye for target devices that stretch HTB/HOU vertically by a factor of two.
+	outputFormat == 4 ? Eval("""
+		videoH = videoH / 2
+		resize = true
+	""") : ""		
 		
+	## If HSBS Upscaled format is requested then double the height of the video. 
+	## This retains full original resolution for each eye for target devices that stretch Half SBS horizontally by a factor of two.
+	## CPU/GPU intensive for re-encoding and increased file size over the network compared to Full SBS and Half SBS.
+	outputFormat == 5 ? Eval("""
+		videoH = videoH * 2
+		resize = true
+	""") : ""
+
+	## HTB/HOU Upscaled format is requested then double the width of video. 
+	## This retains full original resolution for each eye for target devices that stretch HTB/HOU vertically by a factor of two.
+	## CPU/GPU intensive for re-encoding and increased file size over the network compared to Full TB and Half TB.
+	outputFormat == 6 ? Eval("""
+		videoW = videoW * 2
+		resize = true
+	""") : ""
+	
+	(resize == true) ? Eval("""
+		video3d = Lanczos4Resize(video3d, videoW, videoH)
+			""") : ""
+	
 ## 	video3d = Subtitle(video3d, subtitle, align=9)
 	
 	return video3d
 }
 
-function BelevPulfrichBase(clip video2d, int "outputFormat", bool "resize", int "hzTargetSize", bool "incBrightness" ) {
+function PulfrichBase(clip video2d, int "outputFormat", int "videoW", int "videoH" ) {
  
+## Based on:
 ## https://3dvision-blog.com/1220-2d-to-3d-realtime-video-conversion-script-for-avisynth-v0-3/
 ## by Anton Belev at 3D Vision Blog 
 ## http://www.3dvision-blog.com
-## Additionally extended by Martin Haverland at audiomh.de for quality resize
-## and different output modes including interlaced format for use in non-3d specific players e.g. windows media player.
-## Creation date 12/01/2010 - based on version 0.3b of original author's script (TJ)
-
-## Get video width/height
-videoW = width(video2d)
-videoH = height(video2d)
+## Obsolete output formats removed and support for latest formats added by Dr. Thomas Richard Judge 2022. 
 
 ## Set the frame stretch factor
 ## Lower the value 100 to increase frame stretch, may introduce ghosting
@@ -65,64 +119,34 @@ CropW = (ResW - videoW) / 2
 f1 = video2d
 f2 = DeleteFrame(video2d, 0)
 
-
 ## Stretch the right frame to further the depth effect
-f1 = LanczosResize(f1, ResW, videoH)
+f1 = Lanczos4Resize(f1, ResW, videoH)
 f1 = Crop(f1, 0, 0, videoW, videoH)
 
 ## Stretch the left frame to further the depth effect
-f2 = LanczosResize(f2, ResW, videoH)
+f2 = Lanczos4Resize(f2, ResW, videoH)
 f2 = Crop(f2, CropW, 0, videoW, videoH) 
 
 outputFormat == 2 ? Eval("""
 		StackVertical(f2, f1)
-	""") :  Eval("""
+	"""): \
+outputFormat == 4 ? Eval("""
+		StackVertical(f2, f1)
+	"""): \	
+outputFormat == 6 ? Eval("""
+		StackVertical(f2, f1)
+	"""): \		
+	  Eval("""
 		StackHorizontal(f2, f1)
-	""") 
-
-## Output the two video frames in a page flipping format for shutter glasses etc.
-## The Tweak as proposed by eslave is for brighter image, modify the value 30
-# f1 = f1.ConvertToYV12.Tweak(Bright=30)
-# f2 = f2.ConvertToYV12.Tweak(Bright=30)
-# Interleave(f2,f1)
-
-
-## Output the two video frames in anaglyph red-cyan as proposed by eslave
-# MergeRGB(f2.ShowRed, f1.ShowGreen, f1.ShowBlue)
-
-## For reversed anaglyph i.e. cyan-red
-# MergeRGB(f1.ShowRed, f2.ShowGreen, f2.ShowBlue)
-
-
-## Output the two video frames in anaglyph yellow-blue as proposed by eslave (untested)
-# f1 = f1.ConvertToYV12(matrix="PC.601").tweak(bright=12.5, sat=1.25, coring=false)
-# f1 = f1.ConvertToRGB32
-# f1 = f1.Levels(0, 1.05, 255, 0, 255, coring=false)
-# MergeRGB(f2.ShowRed, f1.ShowGreen, f1.ShowBlue)
-
-## Output the two video frames in anaglyph blue-Yellow as proposed by eslave (untested)
-# f2 = f2.ConvertToYV12(matrix="PC.601").tweak(bright=12.5, sat=1.25, coring=false)
-# f2 = f2.ConvertToRGB32
-# f2 = f2.Levels(0, 1.05, 255, 0, 255, coring=false)
-# MergeRGB(f1.ShowRed, f2.ShowGreen, f2.ShowBlue)
-
-
-## Output two video frames in Interlaced mode
-## Used for Zalman Trimon, Acer Aspire 3D etc.
-# f1 = SeparateFields(f1)
-# f1 = SelectEven(f1)
-# f2 = SeparateFields(f2)
-# f2 = SelectOdd(f2)
-# interleave(f2,f1)
-# AssumeFieldBased()
-# weave()
+	""")
 
 Return Last
 }
 
-function JermanisFinal(clip video2d, int "outputFormat", bool "resize", int "hzTargetSize", bool "incBrightness" ) {
+function PulfrichAndLight(clip video2d, int "outputFormat") {
 
-################################################################
+# Based on code:
+#
 #                           2D to 3D CONVERSION  
 #  Copyright (C) 2010   under GPL by    Branko Jermanis        <branko.jermanis@hi.htnet.hr>
 #  My web pages: "Nikola Tesla and My Thoughts":   http://free-ri.htnet.hr/Branko/index.html
@@ -141,51 +165,22 @@ function JermanisFinal(clip video2d, int "outputFormat", bool "resize", int "hzT
 # For multimedia linux, I suggest Mint audio/video distribution:
 # (I add real time kernel, JACK, Ardour, Hidrogen, Rosegarden... with M-Audio 1010LT sound card)
 # Tip: press ESC for Grub, add gksudo in properties of icons, disable Timidity server on start and add starting line in JACK
-# Creation date 20/12/2010 - based on original author's 0.9 version of the script - note this is very CPU/GPU intensive but works well (TJ)
+# Creation date 20/12/2010 - based on original author's 0.9 version of the script - note this is very CPU/GPU intensive - seems to generate a lot of artefacts (TJ)
 ################################################################
 
-fL=video2d.ConvertToYV12
+fL=ConvertToRGB32(video2d)
 
 W = width(fL)
 H = height(fL)
 
 fR = DeleteFrame(fL, 0)  # Set the right frame with one frame difference
 
-# If W is less than 640, algorithm for light depth will not work good enough (integer number will eat pixels, because it depend of dW/2).
-dW =  W / 128   # More depth perception, but little more artifact on details (it is useful for me on 640x480 video)
+## Made dW fixed rather than derived from image size (TJ)
+dW = 4
 
-######################    M O T I O N    D E P T H     D E T E C T I O N    ###############
-
-
-## Motion mask:
-super = MSuper(fL)
-bvectors = MAnalyse(super, isb = true, blksize=32)  #  greatest blocksize, less problem with picture and best speed (I have been reported that on Vista 64 bit has error with 32 with some old version of mvtools2.dll). 
-
-m = MMask(fL, bvectors, kind=3, ml=1)
-m = RGBAdjust(ConvertToRGB32(m),1,1,1,1,-127,-255,-255)
-m1 = RGBAdjust(ShowRed(m), .5, .5, .5, 1,0,0,0,0,255,255,255,1).Invert
-
-fL = ConvertToRGB32(fL)   # Input in RGB, because of 'crop-even' problem with YV12 (on some movie)
-fR = ConvertToRGB32(fR)
-
-# Replace moving object on frame with opposite movement from next frame (copy/paste from R to L):
-m = Layer( fL, Mask(fR, m1) )
-fL = Layer( fR, Mask(fL, m1) )
-fR = m
-
-# Possible improvement in this part of code :
-# 1. Some detection when  camera  rotate around object create opposite Pulfrich effect, and then it need opposite switching left/right frames (rare condition)
-# 2. With high speed vertical movement, frames are too different and create bad visual overlap, and it will be better switch off this cut/paste system
+## Removed Motion Depth Detection as Caused Unacceptable Artefacts (TJ)
 
 ######################  LIGHTING    DEPTH    DETECTION   ( ideas from Caleb Davis code)  ####################
-
-# On 0.5 version I replace Overlay with Layer function. It is faster function (2x)...
-
-# Add more pixels for less than HD video resolution because quality and depth improvement (for HD source, it can be disabled, for better speed):
-# Disable as modern videos in 2022 tend to be HD (TJ)
-# W = 2*W
-# fL = LanczosResize(fL, W, H)
-# fR = LanczosResize(fR, W, H)
 
 #Create L mask:
 fG = Greyscale(fL)
@@ -213,42 +208,18 @@ m12 = Layer(m2, Mask(m1, m1), x= dW, op="add")          # Resize mask to right
 fR = Layer(fR, Mask(fR, m12.Invert), x= dW/2)  # move dark part of picture to right on R frame 
 fR = Layer(fR, Mask(fR, m12), x= -1*dW/2)       # move light part of picture to left on R frame
 
-# Going back to standard input Width (for HD source, it can be disabled, for better speed):
-# Disable as modern videos in 2022 tend to be HD (TJ)
-# W = W/2
-# fL = LanczosResize(fL, W, H)
-# fR = LanczosResize(fR, W, H)
-
-# Possible improvement in this part of code :
-# 1. Sometimes background is more white than foreground. Then it will be better if this is in reverse.
-
-####################  OUTPUT TO GLASSES:  #############################
-
-
-##  UNIVERSAL FILE FORMAT OUTPUT
-
 outputFormat == 2 ? Eval("""
 		StackVertical(fL, fR)
-	""") :  Eval("""
+	"""): \
+outputFormat == 4 ? Eval("""
+		StackVertical(fL, fR)
+	"""): \	
+outputFormat == 6 ? Eval("""
+		StackVertical(fL, fR)
+	"""): \		
+	  Eval("""
 		StackHorizontal(fL, fR)
-	""") 
-
-##################      TECHNOLOGICAL INFO:       #########################
-
-
-### Good FPS conversion algorithm:
-#super = MSuper(video)
-#bvectors = MAnalyse(super, isb = true, blksize=4, chroma=true, truemotion=true, search = 3)
-#fvectors = MAnalyse(super, isb = false, blksize=4, chroma=true, truemotion=true, search = 3 )
-#video = MFlowFps(video, super, bvectors, fvectors, num=60, den=1)     # going to  60 fps
-
-# Interesting setup:
-# 1. DLP projector (ViewSonic 120Hz PJD6211 or better)
-# 2. DLP-link active switching glasses without connection or emitters: XpanD X102
-# 3. We need white LED emmiters (and electronic) for simulate this white flash from projector for possible using this kind of glasses on 120 Hz monitors.
-# (white flash sync is when active glasses are in switching position, and both eyes are black)
-# VirtualDub can open this script. Chose video-compress-xvid, and than Save as AVI, can create useful output file.
-# You need lot of CPU power...
+	""")
 
 	Return Last
 }
