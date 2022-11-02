@@ -10,7 +10,7 @@
     "@mantine/form": "5.6.3",
     "@mantine/hooks": "5.6.3",
     "@mantine/modals": "5.6.3",
-    "@mantine/notifications": "5.6.3",
+    "@mantine/notifications": "5.6.4",
     "@mantine/prism": "5.6.3",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.1.3",
