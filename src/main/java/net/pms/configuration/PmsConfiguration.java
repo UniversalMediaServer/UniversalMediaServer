@@ -17,14 +17,8 @@
  */
 package net.pms.configuration;
 
-import net.pms.util.ProgramExecutableType;
-import net.pms.platform.TempFolder;
-import net.pms.util.IpFilter;
-import net.pms.util.ExternalProgramInfo;
-import net.pms.platform.PlatformProgramPaths;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import ch.qos.logback.classic.Level;
-import com.sun.jna.Platform;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,11 +31,32 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
+import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -52,32 +67,29 @@ import net.pms.encoders.EngineId;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
+import net.pms.platform.TempFolder;
 import net.pms.platform.windows.WindowsRegistry;
 import net.pms.service.PreventSleepMode;
 import net.pms.service.Services;
 import net.pms.service.SleepManager;
 import net.pms.util.CoverSupplier;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
+import net.pms.util.IpFilter;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
+import net.pms.util.ProgramExecutableType;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Container for all configurable UMS settings. Settings are typically defined by three things:
@@ -2990,7 +3002,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return The index of the format.
 	 */
 	public int getFfmpegAvisynthOutputFormat3D() {
-		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 1);
+		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 4);
 	}
 
 	/**
