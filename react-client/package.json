@@ -6,7 +6,7 @@
   "dependencies": {
     "@emotion/react": "11.10.5",
     "@mantine/core": "5.6.3",
-    "@mantine/dropzone": "5.6.3",
+    "@mantine/dropzone": "5.6.4",
     "@mantine/form": "5.6.3",
     "@mantine/hooks": "5.6.3",
     "@mantine/modals": "5.6.3",
