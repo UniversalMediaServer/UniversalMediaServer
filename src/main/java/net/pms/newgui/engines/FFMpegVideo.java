@@ -49,6 +49,12 @@ public class FFMpegVideo {
 	private static JComboBox<String> fFmpegGPUH264EncodingAccelerationMethod;
 	private static JComboBox<String> fFmpegGPUH265EncodingAccelerationMethod;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private FFMpegVideo() {
+	}
+
 	public static JComponent config() {
 		return config("GeneralSettings");
 	}

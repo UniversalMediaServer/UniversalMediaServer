@@ -63,6 +63,12 @@ public class AviSynthFFmpeg {
 
 	private static final String COMMON_COL_SPEC = "left:pref, 0:grow";
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private AviSynthFFmpeg() {
+	}
+
 	private static ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 
 	public static JComponent config() {

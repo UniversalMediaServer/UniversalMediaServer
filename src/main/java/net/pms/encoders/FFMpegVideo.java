@@ -49,11 +49,11 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.IPipeProcess;
 import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
 import net.pms.io.PipeIPCProcess;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
@@ -449,10 +449,7 @@ public class FFMpegVideo extends Engine {
 
 						transcodeOptions.add(selectedTranscodeAccelerationMethod);
 
-						if (selectedTranscodeAccelerationMethod.startsWith("libx")) {
-							transcodeOptions.add("-tune");
-							transcodeOptions.add("zerolatency");
-						}
+						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
 
 						if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
 							transcodeOptions.add("-preset");
@@ -464,7 +461,10 @@ public class FFMpegVideo extends Engine {
 					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx")) {
 						if (!customFFmpegOptions.contains("-preset")) {
 							transcodeOptions.add("-preset");
-							transcodeOptions.add("ultrafast");
+
+							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+
+							transcodeOptions.add("superfast");
 						}
 						if (!customFFmpegOptions.contains("-level")) {
 							transcodeOptions.add("-level");
