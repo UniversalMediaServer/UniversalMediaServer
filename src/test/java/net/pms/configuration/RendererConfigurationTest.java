@@ -19,10 +19,7 @@ package net.pms.configuration;
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
-import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
-import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByUPNPDetails;
-import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
+import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +69,7 @@ public class RendererConfigurationTest {
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Cases that are too generic should not match anything
 		testHeaders(
@@ -407,7 +404,7 @@ public class RendererConfigurationTest {
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Known and unknown renderers should always return default
 		testHeaders(
@@ -433,7 +430,7 @@ public class RendererConfigurationTest {
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeaders(
@@ -459,7 +456,7 @@ public class RendererConfigurationTest {
 		for (String header : headerLines) {
 			headers.put(header);
 		}
-		RendererConfiguration rc = getRendererConfigurationByHeaders(headers);
+		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByHeaders(headers);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
 			assertNotNull(rc, "Recognized renderer for header \"" + headers + "\"");
@@ -485,7 +482,7 @@ public class RendererConfigurationTest {
 	 * @param upnpDetails         One or more raw header lines
 	 */
 	private void testUPNPDetails(String correctRendererName, String upnpDetails) {
-		RendererConfiguration rc = getRendererConfigurationByUPNPDetails(upnpDetails);
+		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByUPNPDetails(upnpDetails);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
 			assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");

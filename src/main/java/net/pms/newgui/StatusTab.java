@@ -43,6 +43,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.gui.EConnectionState;
@@ -139,18 +140,20 @@ public class StatusTab {
 
 		@Override
 		public void delete() {
-			try {
-				// Delete the popup if open
-				if (frame != null) {
-					frame.dispose();
-					frame = null;
+			SwingUtilities.invokeLater(() -> {
+				try {
+					// Delete the popup if open
+					if (frame != null) {
+						frame.dispose();
+						frame = null;
+					}
+					Container parent = panel.getParent();
+					parent.remove(panel);
+					parent.revalidate();
+					parent.repaint();
+				} catch (Exception e) {
 				}
-				Container parent = panel.getParent();
-				parent.remove(panel);
-				parent.revalidate();
-				parent.repaint();
-			} catch (Exception e) {
-			}
+			});
 		}
 
 		public JPanel getPanel() {
@@ -506,12 +509,12 @@ public class StatusTab {
 
 				if (!f.isAbsolute() && f.getParent() == null) {
 					// filename, try profile renderers dir
-					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+					f = new File(RendererConfigurations.getProfileRenderersDir(), icon);
 					if (f.isFile()) {
 						is = new FileInputStream(f);
 					} else {
 						//try renderers dir
-						f = new File(RendererConfiguration.getRenderersDir(), icon);
+						f = new File(RendererConfigurations.getRenderersDir(), icon);
 						if (f.isFile()) {
 							is = new FileInputStream(f);
 						}

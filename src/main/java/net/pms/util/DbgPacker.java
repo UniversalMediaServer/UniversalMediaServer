@@ -26,10 +26,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.logging.LoggingConfig;
-import org.apache.commons.lang3.StringUtils;
+import net.pms.renderers.ConnectedRenderers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ public class DbgPacker {
 		}
 
 		// add confs of connected renderers
-		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
+		for (RendererConfiguration r : ConnectedRenderers.getConnectedRenderersConfigurations()) {
 			add(r.getFile());
 			if (((DeviceConfiguration) r).isCustomized()) {
 				add(((DeviceConfiguration) r).getParentFile());
@@ -76,13 +76,7 @@ public class DbgPacker {
 		// insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
 
-		// add virtual folders file if it exists
-		String vfolders = configuration.getVirtualFoldersFile();
-		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(profileDirectory, vfolders));
-		}
-
-		add(new File(profileDirectory, "WEB.conf"));
+		add(new File(profileDirectory, "SHARED.conf"));
 		add(new File(configuration.getProfilePath()));
 		if (defaultLogFile != null && !defaultLogFile.isEmpty()) {
 			add(new File(defaultLogFile + ".prev.zip"));

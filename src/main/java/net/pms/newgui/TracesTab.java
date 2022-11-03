@@ -327,9 +327,9 @@ public class TracesTab {
 		jBufferLabel.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jLineBuffer = new CustomJSpinner(new SpinnerIntModel(
 			configuration.getLoggingLogsTabLinebuffer(),
-			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN,
-			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
-			UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_STEP
+			UmsConfiguration.getLoggingLogsTabLinebufferMin(),
+			UmsConfiguration.getLoggingLogsTabLinebufferMax(),
+			UmsConfiguration.getLoggingLogsTabLinebufferStep()
 		), true);
 		jLineBuffer.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jBufferLabel.setLabelFor(jLineBuffer);

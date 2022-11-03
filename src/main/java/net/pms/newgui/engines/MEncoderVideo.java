@@ -368,20 +368,22 @@ public class MEncoderVideo {
 			if (event.getPropertyName() == null) {
 				return;
 			}
-			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(UmsConfiguration.KEY_DISABLE_SUBTITLES)) {
+			if ((!event.isBeforeUpdate())) {
 				boolean enabled = !CONFIGURATION.isDisableSubtitles();
-				ass.setEnabled(enabled);
-				fc.setEnabled(enabled);
-				mencoderNoassScale.setEnabled(enabled);
-				mencoderNoassOutline.setEnabled(enabled);
-				mencoderNoassBlur.setEnabled(enabled);
-				mencoderNoassSubpos.setEnabled(enabled);
-				ocw.setEnabled(enabled);
-				och.setEnabled(enabled);
-				subq.setEnabled(enabled);
+				if (ass.isEnabled() != enabled) {
+					ass.setEnabled(enabled);
+					fc.setEnabled(enabled);
+					mencoderNoassScale.setEnabled(enabled);
+					mencoderNoassOutline.setEnabled(enabled);
+					mencoderNoassBlur.setEnabled(enabled);
+					mencoderNoassSubpos.setEnabled(enabled);
+					ocw.setEnabled(enabled);
+					och.setEnabled(enabled);
+					subq.setEnabled(enabled);
 
-				if (enabled) {
-					ass.getItemListeners()[0].itemStateChanged(null);
+					if (enabled) {
+						ass.getItemListeners()[0].itemStateChanged(null);
+					}
 				}
 			}
 		});

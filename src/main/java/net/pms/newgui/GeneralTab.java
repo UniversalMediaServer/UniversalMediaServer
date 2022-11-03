@@ -33,6 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.Build;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.CustomJButton;
@@ -197,13 +198,13 @@ public class GeneralTab {
 			ypos += 2;
 		}
 
-		List<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
+		List<RendererConfiguration> allConfs = RendererConfigurations.getEnabledRenderersConfigurations();
 		List<Object> keyValues = new ArrayList<>();
 		List<Object> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
@@ -560,13 +561,13 @@ public class GeneralTab {
 	 * initialized.
 	 */
 	public void addRenderers() {
-		List<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
+		List<RendererConfiguration> allConfs = RendererConfigurations.getEnabledRenderersConfigurations();
 		List<String> keyValues = new ArrayList<>();
 		List<String> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {

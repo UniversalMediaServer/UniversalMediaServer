@@ -39,8 +39,8 @@ public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final Map<Integer, String> VERSIONS = Map.of(
-		1, "JUPnP+ (Java) alpha",
-		2, "JUPnP+ (Netty) alpha",
+		1, "JUPnP+ (Java)",
+		2, "JUPnP+ (Netty)",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
@@ -116,6 +116,7 @@ public class MediaServer {
 				if (!isStarted) {
 					LOGGER.error("FATAL ERROR: Unable to start upnp service");
 				} else {
+					upnpService.sendAlive();
 					for (DeviceType t : UPNPHelper.MEDIA_RENDERER_TYPES) {
 						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 					}

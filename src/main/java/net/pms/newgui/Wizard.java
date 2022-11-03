@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 
 /**
  * Wizard to ask users to make the UMS initial setting
@@ -172,7 +173,7 @@ public class Wizard {
 					chooser.setDialogTitle(Messages.getString("FinallyChooseFolderShare"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
+						SharedContentConfiguration.addFolderShared(chooser.getSelectedFile());
 						// } else {
 						// If the user cancels this option, the default directories
 						// will be used.

@@ -42,7 +42,7 @@ import net.pms.configuration.Build;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebSourcesConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
@@ -77,6 +77,7 @@ import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -150,7 +151,7 @@ public class PMS {
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
 		if (renderer == null) {
-			renderer = RendererConfiguration.getDefaultConf();
+			renderer = RendererConfigurations.getDefaultConf();
 		}
 
 		if (renderer == null) {
@@ -333,17 +334,6 @@ public class PMS {
 		}
 		LOGGER.info("Profile name: {}", configuration.getProfileName());
 		LOGGER.info("");
-		if (configuration.useWebPlayerServer()) {
-			String webConfPath = configuration.getWebConfPath();
-			LOGGER.info("Web configuration file: {}", webConfPath);
-			try {
-				// Don't use the {} syntax here as the check needs to be performed on every log level
-				LOGGER.info("Web configuration file permissions: " + FileUtil.getFilePermissions(webConfPath));
-			} catch (FileNotFoundException e) {
-				LOGGER.warn("Web configuration file not found: {}", e.getMessage());
-			}
-			LOGGER.info("");
-		}
 
 		/**
 		 * Ensure the data directory is created. On Windows this is
@@ -487,18 +477,6 @@ public class PMS {
 				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
 
-			// Set default local shared content if the wizard has not set it
-			if (configuration.isSharedFoldersEmpty()) {
-				configuration.setSharedFoldersToDefault();
-			}
-
-			// Set default remote shared content
-			String webConfPath = configuration.getWebConfPath();
-			File webConf = new File(webConfPath);
-			if (!webConf.exists()) {
-				WebSourcesConfiguration.writeDefaultWebSourcesConfigurationFile();
-			}
-
 			// Ensure this only happens once
 			configuration.setHasRunOnce();
 		}
@@ -547,7 +525,7 @@ public class PMS {
 		codes = new CodeDb();
 		masterCode = null;
 
-		RendererConfiguration.loadRendererConfigurations(configuration);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
 		if (!configuration.isDisableSubtitles()) {
@@ -646,10 +624,8 @@ public class PMS {
 		// initialize the cache
 		mediaLibrary = new MediaLibrary();
 
-		// XXX: this must be called:
-		//     a) *after* loading plugins i.e. plugins register root folders then RootFolder.discoverChildren adds them
-		//     b) *after* mediaLibrary is initialized, if enabled (above)
-		getRootFolder(RendererConfiguration.getDefaultConf());
+		// XXX: this must be called *after* mediaLibrary is initialized, if enabled (above)
+		getRootFolder(RendererConfigurations.getDefaultConf());
 
 		// Ensure up-to-date API metadata versions
 		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
@@ -733,9 +709,9 @@ public class PMS {
 	 * @param delete True if removal of known renderers is needed
 	 */
 	public void resetRenderers(boolean delete) {
-		RendererConfiguration.loadRendererConfigurations(configuration);
+		RendererConfigurations.loadRendererConfigurations();
 		if (delete) {
-			RendererConfiguration.deleteAllConnectedRenderers();
+			ConnectedRenderers.deleteAllConnectedRenderers();
 			OldPlayerServer.deleteRenderers();
 			WebGuiServer.deleteAllRenderers();
 		}
@@ -757,7 +733,7 @@ public class PMS {
 	 * The trigger is configuration change.
 	 */
 	public void resetRenderersRoot() {
-		RendererConfiguration.resetAllRenderers();
+		ConnectedRenderers.resetAllRenderers();
 		OldPlayerServer.resetRenderers();
 		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();

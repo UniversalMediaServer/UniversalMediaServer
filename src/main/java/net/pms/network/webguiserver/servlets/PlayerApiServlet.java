@@ -40,6 +40,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
@@ -345,7 +346,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			render.setActive(true);
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
-			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+			root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		}
 		root.discoverChildren();
 		synchronized (ROOTS) {

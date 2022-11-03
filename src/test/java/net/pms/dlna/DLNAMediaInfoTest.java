@@ -21,6 +21,9 @@ import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.sharedcontent.SharedContentArray;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.service.Services;
@@ -83,7 +86,7 @@ public class DLNAMediaInfoTest {
 		}
 		assert PMS.getConfiguration() != null;
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		PMS.getConfiguration().setSharedFolders(null);
+		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), false);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 
@@ -109,7 +112,7 @@ public class DLNAMediaInfoTest {
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test", "test");
-		parent.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		parent.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		PMS.getGlobalRepo().add(parent);
 
 		for (int i = 0; i < test_files.length; ++i) {

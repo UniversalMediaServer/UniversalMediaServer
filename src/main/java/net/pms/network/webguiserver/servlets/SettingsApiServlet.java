@@ -24,7 +24,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,12 +34,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebSourcesConfiguration;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.Feed;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -116,8 +111,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
 				jsonResponse.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
-				jsonResponse.add("allRendererNames", RendererConfiguration.getAllRendererNamesAsJsonArray());
-				jsonResponse.add("enabledRendererNames", RendererConfiguration.getEnabledRendererNamesAsJsonArray());
+				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
+				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
@@ -138,7 +133,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						configurationAsJson.add(key, array);
 					}
 				}
-				configurationAsJson.add("shared_web_content", WebSourcesConfiguration.getAllWebSourcesAsJsonArray());
 				jsonResponse.add("userSettings", configurationAsJson);
 
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
@@ -177,13 +171,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 					for (Entry<String, JsonElement> configurationSetting : data.entrySet()) {
 						String key = configurationSetting.getKey();
 						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
-							if (key.equals("shared_web_content")) {
-								if (configurationSetting.getValue() instanceof JsonArray array) {
-									WebSourcesConfiguration.writeWebSourcesConfiguration(array);
-								}
-							} else {
-								LOGGER.trace("The key {} is not allowed", key);
-							}
+							LOGGER.trace("The key {} is not allowed", key);
 							continue;
 						}
 						if (configurationSetting.getValue() instanceof JsonPrimitive element) {
@@ -235,56 +223,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 						return;
 					}
 					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
-				}
-				case "/web-content-name" -> {
-					//only logged users for security concerns
-					Account account = AuthService.getAccountLoggedIn(req);
-					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
-						return;
-					}
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
-					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
-					if (request.has("source")) {
-						String webContentName;
-						try {
-							webContentName = Feed.getFeedTitle(request.get("source").getAsString());
-						} catch (Exception e) {
-							webContentName = "";
-						}
-						WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
-					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
-					}
-				}
-				case "/mark-directory" -> {
-					//only logged users for security concerns
-					Account account = AuthService.getAccountLoggedIn(req);
-					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
-						return;
-					}
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
-					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
-
-					String directory = request.get("directory").getAsString();
-					Boolean isPlayed = request.get("isPlayed").getAsBoolean();
-					Connection connection = null;
-					try {
-						connection = MediaDatabase.getConnectionIfAvailable();
-						if (connection != null) {
-							MediaTableFilesStatus.setDirectoryFullyPlayed(connection, directory, isPlayed);
-						}
-					} finally {
-						MediaDatabase.close(connection);
-					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("SettingsApiServlet request not available : {}", path);

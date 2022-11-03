@@ -30,19 +30,15 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.RootFolder;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.EngineId;
@@ -54,6 +50,7 @@ import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
 import net.pms.platform.windows.WindowsRegistry;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.Services;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -79,7 +76,6 @@ import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,14 +88,33 @@ import org.slf4j.LoggerFactory;
  */
 public class UmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsConfiguration.class);
-	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
-	protected static final int DEFAULT_MEDIA_SERVER_PORT = 5001;
-	protected static final int DEFAULT_WEB_GUI_PORT = 9001;
-	protected static final int DEFAULT_WEB_PLAYER_PORT = 9002;
+
+	/*
+	 * Hard coded values
+	 */
+	private static final int DEFAULT_MEDIA_SERVER_PORT = 5001;
+	private static final int DEFAULT_WEB_GUI_PORT = 9001;
+	private static final int DEFAULT_WEB_PLAYER_PORT = 9002;
 	// 90000 lines is approximately 10 MiB depending on locale and message length
-	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
-	public static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
-	public static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
+	private static final int LOGGING_LOGS_TAB_LINEBUFFER_MAX = 90000;
+	private static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
+	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
+	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
+	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
+	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
+	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
+	/*
+	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
+	 * for -lavdopts.
+	 * The Windows SubJunk Builds can take 16 for both, but we keep it at 8
+	 * for compatibility with other operating systems.
+	 */
+	private static final int MENCODER_MAX_THREADS = 8;
+	private static final int WEB_MAX_THREADS = 100;
+	private static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
+	private static final int BUFFER_MEMORY_FACTOR = 368;
+	private static final char LIST_SEPARATOR = ',';
 
 	private static volatile boolean enabledEnginesBuilt = false;
 	private static final ReentrantReadWriteLock ENABLED_ENGINES_LOCK = new ReentrantReadWriteLock();
@@ -109,283 +124,336 @@ public class UmsConfiguration extends RendererConfiguration {
 	private static final ReentrantReadWriteLock ENGINES_PRIORITY_LOCK = new ReentrantReadWriteLock();
 	private static UniqueList<EngineId> enginesPriority;
 
+	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
+	// See Build for more details
+	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
+
+	// The default profile name displayed on the renderer
+	private static String hostName;
+
+	private static String defaultAviSynthScript;
+
+	private static int maxMaxMemoryBufferSize = MAX_MAX_MEMORY_DEFAULT_SIZE;
+
 	/*
-	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
-	 * for -lavdopts.
-	 * The Windows SubJunk Builds can take 16 for both, but we keep it at 8
-	 * for compatibility with other operating systems.
+		The following code enables a single setting - UMS_PROFILE - to be used to
+		initialize PROFILE_PATH i.e. the path to the current session's profile (AKA UMS.conf).
+		It also initializes PROFILE_DIRECTORY - i.e. the directory the profile is located in -
+		which is needed to detect the default SHARED.conf location (anything else?).
+
+		While this convention - and therefore PROFILE_DIRECTORY - will remain,
+		adding more configurables - e.g. web_conf = ... - is on the TODO list.
+
+		UMS_PROFILE is read (in this order) from the property ums.profile.path or the
+		environment variable UMS_PROFILE. If UMS is launched with the command-line option
+		"profiles" (e.g. from a shortcut), it displays a file chooser dialog that
+		allows the ums.profile.path property to be set. This makes it easy to run UMS
+		under multiple profiles without fiddling with environment variables, properties or
+		command-line arguments.
+
+		1) if UMS_PROFILE is not set, UMS.conf is located in:
+
+			Windows:             %ALLUSERSPROFILE%\$build
+			Mac OS X:            $HOME/Library/Application Support/$build
+			Everything else:     $HOME/.config/$build
+
+		- where $build is a subdirectory that ensures incompatible UMS builds don't target/clobber
+		the same configuration files. The default value for $build is "UMS". Other builds might use e.g.
+		"UMS Rendr Edition" or "ums-mlx".
+
+		2) if a relative or absolute *directory path* is supplied (the directory must exist),
+		it is used as the profile directory and the profile is located there under the default profile name (UMS.conf):
+
+			UMS_PROFILE = /absolute/path/to/dir
+			UMS_PROFILE = relative/path/to/dir # relative to the working directory
+
+		Amongst other things, this can be used to restore the legacy behaviour of locating UMS.conf in the current
+		working directory e.g.:
+
+			UMS_PROFILE=. ./UMS.sh
+
+		3) if a relative or absolute *file path* is supplied (the file doesn't have to exist),
+		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir:
+
+			UMS_PROFILE = UMS.conf            # profile dir = .
+			UMS_PROFILE = folder/dev.conf     # profile dir = folder
+			UMS_PROFILE = /path/to/some.file  # profile dir = /path/to/
 	 */
-	protected static final int MENCODER_MAX_THREADS = 8;
 
-	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
-	protected static final String KEY_ALIVE_DELAY = "ALIVE_delay";
-	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
-	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
-	protected static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
-	protected static final String KEY_ATZ_LIMIT = "atz_limit";
-	protected static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
-	protected static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
-	protected static final String KEY_AUDIO_BITRATE = "audio_bitrate";
-	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
-	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
-	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
-	protected static final String KEY_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
-	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
-	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
-	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
-	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
-	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
-	protected static final String KEY_AUDIO_UPDATE_RATING_TAG = "audio_update_rating_tag";
-	protected static final String KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN = "authenticate_localhost_as_admin";
-	protected static final String KEY_AUTHENTICATION_ENABLED = "authentication_enabled";
-	protected static final String KEY_AUTO_UPDATE = "auto_update";
-	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
-	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
-	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
-	protected static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
-	protected static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
-	protected static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
-	protected static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
-	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
-	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
-	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
-	protected static final String KEY_API_KEY = "api_key";
-	protected static final String KEY_BUFFER_MAX = "buffer_max";
-	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
-	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
-	protected static final String KEY_CHROMECAST_DBG = "chromecast_debug";
-	protected static final String KEY_CHROMECAST_EXT = "chromecast_extension";
-	protected static final String KEY_CODE_CHARS = "code_charset";
-	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
-	protected static final String KEY_CODE_TMO = "code_valid_timeout";
-	protected static final String KEY_CODE_USE = "code_enable";
-	public    static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
-	protected static final String KEY_DATABASE_MEDIA_CACHE_SIZE_KB = "database_media_cache_size";
-	protected static final String KEY_DATABASE_MEDIA_USE_CACHE_SOFT = "database_media_use_cache_soft";
-	protected static final String KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES = "database_media_use_memory_indexes";
-	protected static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
-	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
-	public    static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
-	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
-	protected static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
-	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
-	protected static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
-	protected static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
-	protected static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
-	protected static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
-	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
-	protected static final String KEY_ENGINES = "engines";
-	protected static final String KEY_ENGINES_PRIORITY = "engines_priority";
+	// Path to directory containing UMS config files
+	private static final String PROFILE_DIRECTORY;
+
+	// Absolute path to profile file e.g. /path/to/UMS.conf
+	private static final String PROFILE_PATH;
+
+	// Absolute path to SHARED.conf file e.g. /path/to/SHARED.conf
+	private static String sharedConfPath;
+
+	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
+	// "project.skelprofile.dir" project property
+	private static final String SKEL_PROFILE_PATH;
+
+	private static final String SYSTEM_PROFILE_DIRECTORY;
+
+	/*
+	 * Configuration file keys
+	 */
+	private static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
+	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
+	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
+	private static final String KEY_ATZ_LIMIT = "atz_limit";
+	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
+	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
+	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
+	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
+	private static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	private static final String KEY_AUDIO_LIKES_IN_ROOT_FOLDER = "audio_likes_visible_root";
+	private static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
+	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
+	private static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
+	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
+	private static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
+	private static final String KEY_AUDIO_UPDATE_RATING_TAG = "audio_update_rating_tag";
+	private static final String KEY_AUTHENTICATE_LOCALHOST_AS_ADMIN = "authenticate_localhost_as_admin";
+	private static final String KEY_AUTHENTICATION_ENABLED = "authentication_enabled";
+	private static final String KEY_AUTO_UPDATE = "auto_update";
+	private static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
+	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
+	private static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
+	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
+	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
+	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
+	private static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
+	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
+	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
+	private static final String KEY_API_KEY = "api_key";
+	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
+	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	private static final String KEY_CHROMECAST_DBG = "chromecast_debug";
+	private static final String KEY_CHROMECAST_EXT = "chromecast_extension";
+	private static final String KEY_CODE_CHARS = "code_charset";
+	private static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
+	private static final String KEY_CODE_TMO = "code_valid_timeout";
+	private static final String KEY_CODE_USE = "code_enable";
+	private static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
+	private static final String KEY_DATABASE_MEDIA_CACHE_SIZE_KB = "database_media_cache_size";
+	private static final String KEY_DATABASE_MEDIA_USE_CACHE_SOFT = "database_media_use_cache_soft";
+	private static final String KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES = "database_media_use_memory_indexes";
+	private static final String KEY_DISABLE_EXTERNAL_ENTITIES = "disable_external_entities";
+	private static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
+	private static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
+	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
+	private static final String KEY_DISABLE_TRANSCODING = "disable_transcoding";
+	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
+	private static final String KEY_DYNAMIC_PLS = "dynamic_playlist";
+	private static final String KEY_DYNAMIC_PLS_AUTO_SAVE = "dynamic_playlist_auto_save";
+	private static final String KEY_DYNAMIC_PLS_HIDE = "dynamic_playlist_hide_folder";
+	private static final String KEY_DYNAMIC_PLS_SAVE_PATH = "dynamic_playlist_save_path";
+	private static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
+	private static final String KEY_ENGINES = "engines";
+	private static final String KEY_ENGINES_PRIORITY = "engines_priority";
 	/* Start without external network (increase startup speed) */
-	public static final String KEY_EXTERNAL_NETWORK = "external_network";
-	// TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
-	protected static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
-	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
-	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
-	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
-	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
-	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
-	protected static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
-	protected static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
-	protected static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
-	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
-	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
-	protected static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
-	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
-	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
-	protected static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
-	protected static final String KEY_FOLDERS = "folders";
-	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
-	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
-	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
-	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
-	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
-	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
-	protected static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
-	protected static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
-	public    static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
-	protected static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
-	protected static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
-	protected static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
-	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
-	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
-	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
-	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	protected static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
-	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
-	protected static final String KEY_INFO_DB_RETRY = "infodb_retry";
-	protected static final String KEY_IP_FILTER = "ip_filter";
-	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
-	protected static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
-	protected static final String KEY_LANGUAGE = "language";
-	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
-	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	protected static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
-	protected static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
-	protected static final String KEY_LOGGING_BUFFERED = "logging_buffered";
-	protected static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
-	protected static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
-	protected static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
-	protected static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
-	protected static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
-	protected static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
-	protected static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
-	protected static final String KEY_LOG_DATABASE = "log_database";
-	protected static final String KEY_MANAGED_PLAYLIST_FOLDER = "managed_playlist_folder";
-	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
-	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
-	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
-	protected static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
-	protected static final String KEY_MENCODER_ASS = "mencoder_ass";
-	protected static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
-	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
-	protected static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
-	protected static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
-	protected static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
-	protected static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
-	protected static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
-	protected static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
-	protected static final String KEY_MENCODER_MT = "mencoder_mt";
-	protected static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
-	protected static final String KEY_MENCODER_NOASS_BLUR = "mencoder_noass_blur";
-	protected static final String KEY_MENCODER_NOASS_OUTLINE = "mencoder_noass_outline";
-	protected static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
-	protected static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
-	protected static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
-	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
-	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
-	protected static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
-	protected static final String KEY_MENCODER_SCALER = "mencoder_scaler";
-	protected static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
-	protected static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
-	protected static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
-	protected static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
-	protected static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
-	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
-	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
-	protected static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
-	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
-	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
-	protected static final String KEY_MINIMIZED = "minimized";
-	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
-	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
-	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
-	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
-	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
-	protected static final String KEY_OVERSCAN = "mencoder_overscan";
-	protected static final String KEY_PLAYLIST_AUTO_ADD_ALL = "playlist_auto_add_all";
-	protected static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
-	protected static final String KEY_PLAYLIST_AUTO_PLAY = "playlist_auto_play";
-	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
-	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-	protected static final String KEY_PREVENT_SLEEP = "prevent_sleep";
-	protected static final String KEY_PROFILE_NAME = "name";
-	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
-	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
-	protected static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
-	protected static final String KEY_RESUME = "resume";
-	protected static final String KEY_RESUME_BACK = "resume_back";
-	protected static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
-	protected static final String KEY_RESUME_REWIND = "resume_rewind";
-	protected static final String KEY_ROOT_LOG_LEVEL = "log_level";
-	protected static final String KEY_RUN_WIZARD = "run_wizard";
-	protected static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
-	protected static final String KEY_SCRIPT_DIR = "script_dir";
-	protected static final String KEY_SEARCH_FOLDER = "search_folder";
-	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
-	protected static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
-	protected static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
-	protected static final String KEY_SELECTED_RENDERERS = "selected_renderers";
-	protected static final String KEY_SERVER_ENGINE = "server_engine";
-	protected static final String KEY_SERVER_HOSTNAME = "hostname";
-	protected static final String KEY_SERVER_NAME = "server_name";
-	protected static final String KEY_SERVER_PORT = "port";
-	protected static final String KEY_SHARES = "shares";
-	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
-	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
-	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
-	protected static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
-	protected static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
-	protected static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
-	protected static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
-	protected static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
-	protected static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
-	protected static final String KEY_SINGLE = "single_instance";
-	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
-	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
-	protected static final String KEY_SORT_METHOD = "sort_method";
-	protected static final String KEY_SORT_PATHS = "sort_paths";
-	protected static final String KEY_SPEED_DBG = "speed_debug";
-	protected static final String KEY_SUBS_COLOR = "subtitles_color";
-	protected static final String KEY_SUBS_FONT = "subtitles_font";
-	protected static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
-	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
-	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
-	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
-	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
-	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
-	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
-	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
-	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
-	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
-	protected static final String KEY_UPNP_DEBUG = "upnp_debug";
-	protected static final String KEY_UPNP_ENABLED = "upnp_enable";
-	protected static final String KEY_UPNP_PORT = "upnp_port";
-	protected static final String KEY_USE_CACHE = "use_cache";
-	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
-	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
-	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	protected static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
-	protected static final String KEY_UUID = "uuid";
-	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
-	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
-	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
-	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
-	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
-	protected static final String KEY_VLC_SCALE = "vlc_scale";
-	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
-	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
-	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
-	protected static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
-	protected static final String KEY_WEB_CONF_PATH = "web_conf";
-	protected static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
-	protected static final String KEY_WEB_GUI_PORT = "web_gui_port";
-	protected static final String KEY_WEB_LOW_SPEED = "web_low_speed";
-	protected static final String KEY_WEB_PATH = "web_path";
-	protected static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
-	protected static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
-	protected static final String KEY_WEB_PLAYER_CONT_IMAGE = "web_player_continue_image";
-	protected static final String KEY_WEB_PLAYER_CONT_VIDEO = "web_player_continue_video";
-	protected static final String KEY_WEB_PLAYER_CONTROLLABLE = "web_player_controllable";
-	protected static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
-	protected static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
-	protected static final String KEY_WEB_PLAYER_ENABLE = "web_player_enable";
-	protected static final String KEY_WEB_PLAYER_HTTPS = "web_player_https";
-	protected static final String KEY_WEB_PLAYER_IMAGE_SLIDE = "web_player_image_show_delay";
-	protected static final String KEY_WEB_PLAYER_LOOP_AUDIO = "web_player_loop_audio";
-	protected static final String KEY_WEB_PLAYER_LOOP_IMAGE = "web_player_loop_image";
-	protected static final String KEY_WEB_PLAYER_LOOP_VIDEO = "web_player_loop_video";
-	protected static final String KEY_WEB_PLAYER_MP4_TRANS = "web_mp4_trans";
-	protected static final String KEY_WEB_PLAYER_PORT = "web_player_port";
-	protected static final String KEY_WEB_PLAYER_SUB_LANG = "web_use_browser_sub_lang";
-	protected static final String KEY_WEB_PLAYER_SUBS_TRANS = "web_subtitles_transcoded";
-	protected static final String KEY_WEB_THREADS = "web_threads";
-	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
-
-	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-
-	protected static final String SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	private static final String KEY_EXTERNAL_NETWORK = "external_network";
+	private static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
+	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
+	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
+	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
+	private static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
+	private static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
+	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
+	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	private static final String KEY_FFMPEG_SOX = "ffmpeg_sox";
+	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FOLDER_LIMIT = "folder_limit";
+	private static final String KEY_FOLDER_NAMES_IGNORED = "folder_names_ignored";
+	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
+	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
+	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
+	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	private static final String KEY_FULLY_PLAYED_ACTION = "fully_played_action";
+	private static final String KEY_FULLY_PLAYED_OUTPUT_DIRECTORY = "fully_played_output_directory";
+	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	private static final String KEY_GUI_LOG_SEARCH_CASE_SENSITIVE = "gui_log_search_case_sensitive";
+	private static final String KEY_GUI_LOG_SEARCH_MULTILINE = "gui_log_search_multiline";
+	private static final String KEY_GUI_LOG_SEARCH_USE_REGEX = "gui_log_search_use_regex";
+	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
+	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
+	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
+	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
+	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
+	private static final String KEY_INFO_DB_RETRY = "infodb_retry";
+	private static final String KEY_IP_FILTER = "ip_filter";
+	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
+	private static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
+	private static final String KEY_LANGUAGE = "language";
+	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
+	private static final String KEY_LOG_SYSTEM_INFO = "log_system_info";
+	private static final String KEY_LOGGING_LOGFILE_NAME = "logging_logfile_name";
+	private static final String KEY_LOGGING_BUFFERED = "logging_buffered";
+	private static final String KEY_LOGGING_FILTER_CONSOLE = "logging_filter_console";
+	private static final String KEY_LOGGING_FILTER_LOGS_TAB = "logging_filter_logs_tab";
+	private static final String KEY_LOGGING_LOGS_TAB_LINEBUFFER = "logging_logs_tab_linebuffer";
+	private static final String KEY_LOGGING_SYSLOG_FACILITY = "logging_syslog_facility";
+	private static final String KEY_LOGGING_SYSLOG_HOST = "logging_syslog_host";
+	private static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
+	private static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
+	private static final String KEY_LOG_DATABASE = "log_database";
+	private static final String KEY_MANAGED_PLAYLIST_FOLDER = "managed_playlist_folder";
+	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
+	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
+	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
+	private static final String KEY_MENCODER_ASS = "mencoder_ass";
+	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
+	private static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
+	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
+	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
+	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
+	private static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
+	private static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
+	private static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
+	private static final String KEY_MENCODER_MT = "mencoder_mt";
+	private static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
+	private static final String KEY_MENCODER_NOASS_BLUR = "mencoder_noass_blur";
+	private static final String KEY_MENCODER_NOASS_OUTLINE = "mencoder_noass_outline";
+	private static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
+	private static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
+	private static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
+	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
+	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
+	private static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
+	private static final String KEY_MENCODER_SCALER = "mencoder_scaler";
+	private static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
+	private static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
+	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
+	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
+	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
+	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
+	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
+	private static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
+	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
+	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
+	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
+	private static final String KEY_MINIMIZED = "minimized";
+	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
+	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
+	private static final String KEY_NETWORK_INTERFACE = "network_interface";
+	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
+	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
+	private static final String KEY_OVERSCAN = "mencoder_overscan";
+	private static final String KEY_PLAYLIST_AUTO_ADD_ALL = "playlist_auto_add_all";
+	private static final String KEY_PLAYLIST_AUTO_CONT = "playlist_auto_continue";
+	private static final String KEY_PLAYLIST_AUTO_PLAY = "playlist_auto_play";
+	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+	private static final String KEY_PREVENT_SLEEP = "prevent_sleep";
+	private static final String KEY_PROFILE_NAME = "name";
+	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
+	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_RESUME = "resume";
+	private static final String KEY_RESUME_BACK = "resume_back";
+	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
+	private static final String KEY_RESUME_REWIND = "resume_rewind";
+	private static final String KEY_ROOT_LOG_LEVEL = "log_level";
+	private static final String KEY_RUN_WIZARD = "run_wizard";
+	private static final String KEY_SCAN_SHARED_FOLDERS_ON_STARTUP = "scan_shared_folders_on_startup";
+	private static final String KEY_SCRIPT_DIR = "script_dir";
+	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
+	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
+	private static final String KEY_SELECTED_RENDERERS = "selected_renderers";
+	private static final String KEY_SERVER_ENGINE = "server_engine";
+	private static final String KEY_SERVER_HOSTNAME = "hostname";
+	private static final String KEY_SERVER_NAME = "server_name";
+	private static final String KEY_SERVER_PORT = "port";
+	private static final String KEY_SHARED_CONF_PATH = "shared_conf";
+	private static final String KEY_SHARES = "shares";
+	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
+	private static final String KEY_SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
+	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
+	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
+	private static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
+	private static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
+	private static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
+	private static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
+	private static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
+	private static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
+	private static final String KEY_SINGLE = "single_instance";
+	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
+	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
+	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SORT_PATHS = "sort_paths";
+	private static final String KEY_SPEED_DBG = "speed_debug";
+	private static final String KEY_SUBS_COLOR = "subtitles_color";
+	private static final String KEY_SUBS_FONT = "subtitles_font";
+	private static final String KEY_SUBS_INFO_LEVEL = "subs_info_level";
+	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
+	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
+	private static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
+	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
+	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
+	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
+	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
+	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
+	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
+	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
+	private static final String KEY_UPNP_DEBUG = "upnp_debug";
+	private static final String KEY_UPNP_ENABLED = "upnp_enable";
+	private static final String KEY_UPNP_PORT = "upnp_port";
+	private static final String KEY_USE_CACHE = "use_cache";
+	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
+	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
+	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
+	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
+	private static final String KEY_UUID = "uuid";
+	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
+	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
+	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
+	private static final String KEY_VLC_SCALE = "vlc_scale";
+	private static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
+	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
+	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	private static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
+	private static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
+	private static final String KEY_WEB_GUI_PORT = "web_gui_port";
+	private static final String KEY_WEB_LOW_SPEED = "web_low_speed";
+	private static final String KEY_WEB_PATH = "web_path";
+	private static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
+	private static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
+	private static final String KEY_WEB_PLAYER_CONT_IMAGE = "web_player_continue_image";
+	private static final String KEY_WEB_PLAYER_CONT_VIDEO = "web_player_continue_video";
+	private static final String KEY_WEB_PLAYER_CONTROLLABLE = "web_player_controllable";
+	private static final String KEY_WEB_PLAYER_CONTROLS = "web_player_controls";
+	private static final String KEY_WEB_PLAYER_DOWNLOAD = "web_player_download";
+	private static final String KEY_WEB_PLAYER_ENABLE = "web_player_enable";
+	private static final String KEY_WEB_PLAYER_HTTPS = "web_player_https";
+	private static final String KEY_WEB_PLAYER_IMAGE_SLIDE = "web_player_image_show_delay";
+	private static final String KEY_WEB_PLAYER_LOOP_AUDIO = "web_player_loop_audio";
+	private static final String KEY_WEB_PLAYER_LOOP_IMAGE = "web_player_loop_image";
+	private static final String KEY_WEB_PLAYER_LOOP_VIDEO = "web_player_loop_video";
+	private static final String KEY_WEB_PLAYER_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_PLAYER_PORT = "web_player_port";
+	private static final String KEY_WEB_PLAYER_SUB_LANG = "web_use_browser_sub_lang";
+	private static final String KEY_WEB_PLAYER_SUBS_TRANS = "web_subtitles_transcoded";
+	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_TRANSCODE = "web_transcode";
+	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	/**
 	 * Old Web interface stuff
 	 */
 	// TODO: remove on old player removal
 	@Deprecated
-	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
+	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	@Deprecated
 	private static final String KEY_BUMP_ADDRESS = "bump";
 	@Deprecated
@@ -406,80 +474,39 @@ public class UmsConfiguration extends RendererConfiguration {
 	private static final String KEY_WEB_WIDTH = "web_width";
 
 	/**
-	 * Keys deprecated
-	 */
-
-	/**
-	 * @deprecated, replaced by {@link #KEY_SERVER_ENGINE}
-	 */
-	@Deprecated
-	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
-
-	/**
-	 * @deprecated, replaced by {@link #KEY_SUBS_INFO_LEVEL}
-	 */
-	@Deprecated
-	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
-
-
-	/**
-	 * Keys not used
-	 */
-	@Deprecated
-	private static final String KEY_NO_FOLDERS = "no_shared";
-
-
-	protected static final int WEB_MAX_THREADS = 100;
-
-	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
-	// See Build for more details
-	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
-
-	// The default profile name displayed on the renderer
-	protected static String hostName;
-
-	protected static String defaultAviSynthScript;
-	protected static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
-	protected static final int BUFFER_MEMORY_FACTOR = 368;
-	protected static int maxMaxMemoryBufferSize = MAX_MAX_MEMORY_DEFAULT_SIZE;
-	protected static final char LIST_SEPARATOR = ',';
-	public static final String ALL_RENDERERS = "All renderers";
-
-	// Path to default logfile directory
-	protected String defaultLogFileDir = null;
-
-	// Path to default zipped logfile directory
-	protected String defaultZippedLogFileDir = null;
-
-	protected TempFolder tempFolder;
-	protected IpFilter filter;
-
-	@Nonnull
-	protected final PlatformProgramPaths programPaths;
-
-	/**
 	 * The map of keys that need to be refactored.
 	 * Keys will be refactored on next start.
 	 */
-	public static final Map<String, String> REFACTORED_KEYS = Map.of(
+	private static final Map<String, String> REFACTORED_KEYS = Map.ofEntries(
 		//since 11.5
-		"web_enable", KEY_WEB_PLAYER_ENABLE,
-		"web_continue_audio", KEY_WEB_PLAYER_CONT_AUDIO,
-		"web_continue_image", KEY_WEB_PLAYER_CONT_IMAGE,
-		"web_continue_video", KEY_WEB_PLAYER_CONT_VIDEO,
-		"web_https", KEY_WEB_PLAYER_HTTPS,
-		"web_control", KEY_WEB_PLAYER_CONTROLLABLE,
-		"web_image_show_delay", KEY_WEB_PLAYER_IMAGE_SLIDE,
-		"web_loop_audio", KEY_WEB_PLAYER_LOOP_AUDIO,
-		"web_loop_image", KEY_WEB_PLAYER_LOOP_IMAGE,
-		"web_loop_video", KEY_WEB_PLAYER_LOOP_VIDEO
+		new AbstractMap.SimpleEntry<>("web_enable", KEY_WEB_PLAYER_ENABLE),
+		new AbstractMap.SimpleEntry<>("web_continue_audio", KEY_WEB_PLAYER_CONT_AUDIO),
+		new AbstractMap.SimpleEntry<>("web_continue_image", KEY_WEB_PLAYER_CONT_IMAGE),
+		new AbstractMap.SimpleEntry<>("web_continue_video", KEY_WEB_PLAYER_CONT_VIDEO),
+		new AbstractMap.SimpleEntry<>("web_https", KEY_WEB_PLAYER_HTTPS),
+		new AbstractMap.SimpleEntry<>("web_control", KEY_WEB_PLAYER_CONTROLLABLE),
+		new AbstractMap.SimpleEntry<>("web_image_show_delay", KEY_WEB_PLAYER_IMAGE_SLIDE),
+		new AbstractMap.SimpleEntry<>("web_loop_audio", KEY_WEB_PLAYER_LOOP_AUDIO),
+		new AbstractMap.SimpleEntry<>("web_loop_image", KEY_WEB_PLAYER_LOOP_IMAGE),
+		new AbstractMap.SimpleEntry<>("web_loop_video", KEY_WEB_PLAYER_LOOP_VIDEO),
+		//since 11.6
+		new AbstractMap.SimpleEntry<>("fmpeg_sox", KEY_FFMPEG_SOX),
+		new AbstractMap.SimpleEntry<>("ALIVE_delay", KEY_UPNP_ALIVE_DELAY)
 	);
 
 	/**
 	 * The set of keys that was removed.
 	 * Keys will be delete on next start.
 	 */
-	public static final Set<String> REMOVED_KEYS = Set.of(
+	private static final Set<String> REMOVED_KEYS = Set.of(
+		"alternativeffmpegpath",	//not used
+		"buffer_max",				//not used
+		"http_engine_v2",			//replaced
+		"hide_subs_info",			//replaced
+		"media_lib_sort",			//not used
+		"no_shared",				//not used
+		"plugin_purge",				//not used
+		"proxy"						//not used
 	);
 
 	/**
@@ -545,8 +572,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		KEY_CHAPTER_SUPPORT,
 		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_DISABLE_TRANSCODING,
-		KEY_FOLDERS,
-		KEY_FOLDERS_MONITORED,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
@@ -560,71 +585,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		KEY_SHOW_TRANSCODE_FOLDER,
 		KEY_SORT_METHOD
 	);
-
-	/*
-		The following code enables a single setting - UMS_PROFILE - to be used to
-		initialize PROFILE_PATH i.e. the path to the current session's profile (AKA UMS.conf).
-		It also initializes PROFILE_DIRECTORY - i.e. the directory the profile is located in -
-		which is needed to detect the default WEB.conf location (anything else?).
-
-		While this convention - and therefore PROFILE_DIRECTORY - will remain,
-		adding more configurables - e.g. web_conf = ... - is on the TODO list.
-
-		UMS_PROFILE is read (in this order) from the property ums.profile.path or the
-		environment variable UMS_PROFILE. If UMS is launched with the command-line option
-		"profiles" (e.g. from a shortcut), it displays a file chooser dialog that
-		allows the ums.profile.path property to be set. This makes it easy to run UMS
-		under multiple profiles without fiddling with environment variables, properties or
-		command-line arguments.
-
-		1) if UMS_PROFILE is not set, UMS.conf is located in:
-
-			Windows:             %ALLUSERSPROFILE%\$build
-			Mac OS X:            $HOME/Library/Application Support/$build
-			Everything else:     $HOME/.config/$build
-
-		- where $build is a subdirectory that ensures incompatible UMS builds don't target/clobber
-		the same configuration files. The default value for $build is "UMS". Other builds might use e.g.
-		"UMS Rendr Edition" or "ums-mlx".
-
-		2) if a relative or absolute *directory path* is supplied (the directory must exist),
-		it is used as the profile directory and the profile is located there under the default profile name (UMS.conf):
-
-			UMS_PROFILE = /absolute/path/to/dir
-			UMS_PROFILE = relative/path/to/dir # relative to the working directory
-
-		Amongst other things, this can be used to restore the legacy behaviour of locating UMS.conf in the current
-		working directory e.g.:
-
-			UMS_PROFILE=. ./UMS.sh
-
-		3) if a relative or absolute *file path* is supplied (the file doesn't have to exist),
-		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir:
-
-			UMS_PROFILE = UMS.conf            # profile dir = .
-			UMS_PROFILE = folder/dev.conf     # profile dir = folder
-			UMS_PROFILE = /path/to/some.file  # profile dir = /path/to/
-	 */
-	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
-	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
-	protected static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
-
-	// Path to directory containing UMS config files
-	protected static final String PROFILE_DIRECTORY;
-
-	// Absolute path to profile file e.g. /path/to/UMS.conf
-	protected static final String PROFILE_PATH;
-
-	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
-	protected static String webConfPath;
-
-	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
-	// "project.skelprofile.dir" project property
-	protected static final String SKEL_PROFILE_PATH;
-
-	protected static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
-	protected static final String SYSTEM_PROFILE_DIRECTORY;
 
 	static {
 		// first of all, set up the path to the default system profile directory
@@ -693,6 +653,18 @@ public class UmsConfiguration extends RendererConfiguration {
 			SKEL_PROFILE_PATH = null;
 		}
 	}
+
+	// Path to default logfile directory
+	private String defaultLogFileDir = null;
+
+	// Path to default zipped logfile directory
+	private String defaultZippedLogFileDir = null;
+
+	@Nonnull
+	private final PlatformProgramPaths programPaths;
+
+	protected TempFolder tempFolder;
+	protected IpFilter filter;
 
 	/**
 	 * Default constructor that will attempt to load the PMS configuration file
@@ -1069,7 +1041,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	public Path getEngineCustomPath(@Nullable Engine engine) {
 		if (
 			engine == null ||
-			isBlank(engine.getConfigurablePathKey()) ||
+			StringUtils.isBlank(engine.getConfigurablePathKey()) ||
 			!(programPaths instanceof ConfigurableProgramPaths)
 		) {
 			return null;
@@ -1109,7 +1081,7 @@ public class UmsConfiguration extends RendererConfiguration {
 			throw new IllegalArgumentException("engine cannot be null");
 		}
 
-		if (isBlank(engine.getConfigurablePathKey())) {
+		if (StringUtils.isBlank(engine.getConfigurablePathKey())) {
 			throw new IllegalStateException(
 				"Can't set custom executable path for engine " + engine + "because it has no configurable path key"
 			);
@@ -1431,17 +1403,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @return the MediaServer engine version selected, or 0 for default.
 	 */
 	public int getServerEngine() {
-		int value = getInt(KEY_SERVER_ENGINE, -1);
-		if (value == -1) {
-			//check old isHTTPEngineV2
-			if (getBoolean(KEY_HTTP_ENGINE_V2, true)) {
-				value = 0;
-			} else {
-				value = 1;
-			}
-			configuration.setProperty(KEY_SERVER_ENGINE, value);
-		}
-		return value;
+		return getInt(KEY_SERVER_ENGINE, 0);
 	}
 
 	public void setServerEngine(int value) {
@@ -2321,7 +2283,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @return The selected renderers as a list.
 	 */
 	public List<String> getSelectedRenderers() {
-		return getStringList(KEY_SELECTED_RENDERERS, ALL_RENDERERS);
+		return getStringList(KEY_SELECTED_RENDERERS, RendererConfigurations.ALL_RENDERERS_KEY);
 	}
 
 	/**
@@ -2331,7 +2293,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
-			value = "None";
+			value = RendererConfigurations.NO_RENDERERS_KEY;
 		}
 
 		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {
@@ -2960,7 +2922,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 			String engines = configuration.getString(KEY_ENGINES);
 			enabledEngines = stringToEngineIdSet(engines);
-			if (isBlank(engines)) {
+			if (StringUtils.isBlank(engines)) {
 				configuration.setProperty(KEY_ENGINES, collectionToString(enabledEngines));
 			}
 
@@ -3108,7 +3070,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 			String enginesPriorityString = configuration.getString(KEY_ENGINES_PRIORITY);
 			enginesPriority = stringToEngineIdSet(enginesPriorityString);
-			if (isBlank(enginesPriorityString)) {
+			if (StringUtils.isBlank(enginesPriorityString)) {
 				configuration.setProperty(KEY_ENGINES_PRIORITY, collectionToString(enginesPriority));
 			}
 
@@ -3293,7 +3255,7 @@ public class UmsConfiguration extends RendererConfiguration {
 
 	private static UniqueList<EngineId> stringToEngineIdSet(String input) {
 		UniqueList<EngineId> output = new UniqueList<>();
-		if (isBlank(input)) {
+		if (StringUtils.isBlank(input)) {
 			output.addAll(StandardEngineId.ALL);
 			return output;
 		}
@@ -3327,26 +3289,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);
 	}
 
-	private final Object sharedFoldersLock = new Object();
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean sharedFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> sharedFolders;
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean monitoredFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> monitoredFolders;
-
-	@GuardedBy("sharedFoldersLock")
-	private boolean ignoredFoldersRead;
-
-	@GuardedBy("sharedFoldersLock")
-	private ArrayList<Path> ignoredFolders;
-
 	private ArrayList<String> ignoredFolderNames;
 
 	/**
@@ -3354,66 +3296,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	private boolean ignoredFolderNamesRead;
 
-	private void readSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!sharedFoldersRead) {
-				sharedFolders = getFolders(KEY_FOLDERS);
-				sharedFoldersRead = true;
-			}
-		}
-	}
-
-	/**
-	 * @return {@code true} if the configured shared folders are empty,
-	 *         {@code false} otherwise.
-	 */
-	public boolean isSharedFoldersEmpty() {
-		synchronized (sharedFoldersLock) {
-			readSharedFolders();
-			return sharedFolders.isEmpty();
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of shared folders.
-	 */
-	@Nonnull
-	public List<Path> getSharedFolders() {
-		synchronized (sharedFoldersLock) {
-			readSharedFolders();
-			return new ArrayList<>(sharedFolders);
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of monitored folders.
-	 */
-	@Nonnull
-	public List<Path> getMonitoredFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!monitoredFoldersRead) {
-				monitoredFolders = getFolders(KEY_FOLDERS_MONITORED);
-				monitoredFoldersRead = true;
-			}
-
-			return new ArrayList<>(monitoredFolders);
-		}
-	}
-
-	/**
-	 * @return The {@link List} of {@link Path}s of ignored folders.
-	 */
-	@Nonnull
-	public List<Path> getIgnoredFolders() {
-		synchronized (sharedFoldersLock) {
-			if (!ignoredFoldersRead) {
-				ignoredFolders = getFolders(KEY_FOLDERS_IGNORED);
-				ignoredFoldersRead = true;
-			}
-
-			return ignoredFolders;
-		}
-	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
@@ -3448,178 +3330,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		return ignoredFolderNames;
 	}
 
-	/**
-	 * Transforms a comma-separated list of directory entries into an
-	 * {@link ArrayList} of {@link Path}s. Verifies that the folder exists and
-	 * is valid.
-	 *
-	 * @param key the {@link Configuration} key to read.
-	 * @return The {@link List} of folders or {@code null}.
-	 */
-	@Nonnull
-	protected ArrayList<Path> getFolders(String key) {
-		String foldersString = configuration.getString(key, null);
-
-		ArrayList<Path> folders = new ArrayList<>();
-		if (foldersString == null || foldersString.length() == 0) {
-			return folders;
-		}
-
-		String[] foldersArray = foldersString.trim().split("\\s*,\\s*");
-
-		for (String folder : foldersArray) {
-			/*
-			 * Unescape embedded commas. Note: Backslashing isn't safe as it
-			 * conflicts with the Windows path separator.
-			 */
-			folder = folder.replace("&comma;", ",");
-
-			if (KEY_FOLDERS.equals(key)) {
-				LOGGER.info("Checking shared folder: \"{}\"", folder);
-			}
-
-			Path path = Paths.get(folder);
-			if (Files.exists(path)) {
-				if (!Files.isDirectory(path)) {
-					if (KEY_FOLDERS.equals(key)) {
-						LOGGER.warn(
-							"The \"{}\" is not a folder! Please remove it from your shared folders " +
-							"list on the \"{}\" tab or in the configuration file.",
-							folder,
-							Messages.getString("SharedContent")
-						);
-					} else {
-						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
-					}
-				}
-			} else if (KEY_FOLDERS.equals(key)) {
-				LOGGER.warn(
-					"\"{}\" does not exist. Please remove it from your shared folders " +
-					"list on the \"{}\" tab or in the configuration file.",
-					folder,
-					Messages.getString("SharedContent")
-				);
-			} else {
-				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
-			}
-
-			// add the path even if there are problems so that the user can update the shared folders as required.
-			folders.add(path);
-		}
-
-		return folders;
-	}
-
-	/**
-	 * This just preserves wizard functionality of offering the user a choice
-	 * to share a directory.
-	 *
-	 * @param directoryPath
-	 */
-	public void setOnlySharedDirectory(String directoryPath) {
-		synchronized (sharedFoldersLock) {
-			configuration.setProperty(KEY_FOLDERS, directoryPath);
-			configuration.setProperty(KEY_FOLDERS_MONITORED, directoryPath);
-			ArrayList<Path> tmpSharedfolders = new ArrayList<>();
-			Path folder = Paths.get(directoryPath);
-			tmpSharedfolders.add(folder);
-			sharedFolders = tmpSharedfolders;
-			monitoredFolders = tmpSharedfolders;
-			sharedFoldersRead = true;
-			monitoredFoldersRead = true;
-		}
-	}
-
-	public static class SharedFolder {
-		private final String path;
-		private final boolean monitored;
-
-		public SharedFolder(String path, boolean monitored) {
-			this.path = path;
-			this.monitored = monitored;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public boolean isMonitored() {
-			return monitored;
-		}
-
-	}
-
-	/**
-	 * Stores the shared folders in the configuration from the specified
-	 * value.
-	 *
-	 * @param tableSharedFolders the List of SharedFolder values to use.
-	 */
-	public void setSharedFolders(List<SharedFolder> tableSharedFolders) {
-		if (tableSharedFolders == null || tableSharedFolders.isEmpty()) {
-			synchronized (sharedFoldersLock) {
-				if (!sharedFoldersRead || !sharedFolders.isEmpty()) {
-					configuration.setProperty(KEY_FOLDERS, "");
-					sharedFolders = new ArrayList<>();
-					sharedFoldersRead = true;
-				}
-
-				if (!monitoredFoldersRead || !monitoredFolders.isEmpty()) {
-					configuration.setProperty(KEY_FOLDERS_MONITORED, "");
-					monitoredFolders = new ArrayList<>();
-					monitoredFoldersRead = true;
-				}
-			}
-			return;
-		}
-		String listSeparator = String.valueOf(LIST_SEPARATOR);
-		ArrayList<Path> tmpSharedfolders = new ArrayList<>();
-		ArrayList<Path> tmpMonitoredFolders = new ArrayList<>();
-		for (SharedFolder rowSharedFolder : tableSharedFolders) {
-			String folderPath = rowSharedFolder.getPath();
-			/*
-			 * Escape embedded commas. Note: Backslashing isn't safe as it
-			 * conflicts with the Windows path separator.
-			 */
-			if (folderPath.contains(listSeparator)) {
-				folderPath = folderPath.replace(listSeparator, "&comma;");
-			}
-			Path folder = Paths.get(folderPath);
-			tmpSharedfolders.add(folder);
-			if (rowSharedFolder.isMonitored()) {
-				tmpMonitoredFolders.add(folder);
-			}
-		}
-		synchronized (sharedFoldersLock) {
-			if (!sharedFoldersRead || !sharedFolders.equals(tmpSharedfolders)) {
-				configuration.setProperty(KEY_FOLDERS, StringUtils.join(tmpSharedfolders, LIST_SEPARATOR));
-				sharedFolders = tmpSharedfolders;
-				sharedFoldersRead = true;
-			}
-
-			if (!monitoredFoldersRead || !monitoredFolders.equals(tmpMonitoredFolders)) {
-				configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(tmpMonitoredFolders, LIST_SEPARATOR));
-				monitoredFolders = tmpMonitoredFolders;
-				monitoredFoldersRead = true;
-			}
-		}
-	}
-
-	/**
-	 * Sets the shared folders and the monitor folders to the platform default
-	 * folders.
-	 */
-	public void setSharedFoldersToDefault() {
-		synchronized (sharedFoldersLock) {
-			sharedFolders = new ArrayList<>(RootFolder.getDefaultFolders());
-			configuration.setProperty(KEY_FOLDERS, StringUtils.join(sharedFolders, LIST_SEPARATOR));
-			sharedFoldersRead = true;
-			monitoredFolders = new ArrayList<>(RootFolder.getDefaultFolders());
-			configuration.setProperty(KEY_FOLDERS_MONITORED, StringUtils.join(monitoredFolders, LIST_SEPARATOR));
-			monitoredFoldersRead = true;
-		}
-	}
-
 	public String getNetworkInterface() {
 		return getString(KEY_NETWORK_INTERFACE, "");
 	}
@@ -3645,13 +3355,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		if (subtitlesInfoLevel != null) {
 			return subtitlesInfoLevel;
 		}
-
-		// Check the old parameter for backwards compatibility
-		Boolean value = configuration.getBoolean(KEY_HIDE_SUBS_INFO, null);
-		if (value != null) {
-			return value ? SubtitlesInfoLevel.NONE : SubtitlesInfoLevel.FULL;
-		}
-
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
 	public static synchronized JsonArray getFfmpegLoglevels() {
@@ -4379,14 +4082,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getVirtualFolders() {
-		return getString(KEY_VIRTUAL_FOLDERS, "");
-	}
-
-	public String getVirtualFoldersFile() {
-		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
-	}
-
 	public String getProfilePath() {
 		return PROFILE_PATH;
 	}
@@ -4396,26 +4091,25 @@ public class UmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns the absolute path to the WEB.conf file. By default
-	 * this is <pre>PROFILE_DIRECTORY + File.pathSeparator + WEB.conf</pre>,
-	 * but it can be overridden via the <pre>web_conf</pre> profile option.
+	 * Returns the absolute path to the SHARED.conf file.
+	 * By default this is <pre>PROFILE_DIRECTORY + File.pathSeparator + SHARED.conf</pre>,
+	 * but it can be overridden via the <pre>shared_conf</pre> profile option.
 	 * The existence of the file is not checked.
 	 *
-	 * @return the path to the WEB.conf file.
+	 * @return the path to the SHARED.conf file.
 	 */
-	public String getWebConfPath() {
-		// Initialise this here rather than in the constructor
-		// or statically so that custom settings are logged
-		// to the logfile/Logs tab.
-		if (webConfPath == null) {
-			webConfPath = FileUtil.getFileLocation(
-				getString(KEY_WEB_CONF_PATH, null),
+	public String getSharedConfPath() {
+		// Initialise this here rather than in the constructor or statically
+		// so that custom settings are logged to the logfile/Logs tab.
+		if (sharedConfPath == null) {
+			sharedConfPath = FileUtil.getFileLocation(
+				getString(KEY_SHARED_CONF_PATH, null),
 				PROFILE_DIRECTORY,
-				DEFAULT_WEB_CONF_FILENAME
+				DEFAULT_SHARED_CONF_FILENAME
 			).getFilePath();
 		}
 
-		return getString(KEY_WEB_CONF_PATH, webConfPath);
+		return getString(KEY_SHARED_CONF_PATH, sharedConfPath);
 	}
 
 	public String getProfileName() {
@@ -4737,6 +4431,18 @@ public class UmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_LOGGING_FILTER_LOGS_TAB, value.levelStr);
 	}
 
+	public static int getLoggingLogsTabLinebufferMin() {
+		return LOGGING_LOGS_TAB_LINEBUFFER_MIN;
+	}
+
+	public static int getLoggingLogsTabLinebufferMax() {
+		return LOGGING_LOGS_TAB_LINEBUFFER_MAX;
+	}
+
+	public static int getLoggingLogsTabLinebufferStep() {
+		return LOGGING_LOGS_TAB_LINEBUFFER_STEP;
+	}
+
 	public int getLoggingLogsTabLinebuffer() {
 		return Math.min(Math.max(getInt(KEY_LOGGING_LOGS_TAB_LINEBUFFER, 1000), LOGGING_LOGS_TAB_LINEBUFFER_MIN), LOGGING_LOGS_TAB_LINEBUFFER_MAX);
 	}
@@ -4989,16 +4695,6 @@ public class UmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_SINGLE, true);
 	}
 
-	@Deprecated
-	public boolean getNoFolders(String tag) {
-		if (tag == null) {
-			return getBoolean(KEY_NO_FOLDERS, false);
-		}
-
-		String x = (tag.toLowerCase() + ".no_shared").replace(" ", "_");
-		return getBoolean(x, false);
-	}
-
 	public File getWebPath() {
 		File path = new File(getString(KEY_WEB_PATH, "web"));
 		if (!path.exists()) {
@@ -5183,7 +4879,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
 			// get all bitrates from renderers
-			RendererConfiguration.calculateAllSpeeds();
+			ConnectedRenderers.calculateAllSpeeds();
 		}
 
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
@@ -5310,8 +5006,8 @@ public class UmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_INFO_DB_RETRY, false);
 	}
 
-	public int getAliveDelay() {
-		return getInt(KEY_ALIVE_DELAY, 0);
+	public int getUpnpSendAliveDelay() {
+		return getInt(KEY_UPNP_ALIVE_DELAY, 0);
 	}
 
 	/**
@@ -5320,11 +5016,11 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @return if info will be shown
 	 */
 	public boolean showInfoAboutVideoAutomaticSetting() {
-		return getBoolean(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, true);
+		return getBoolean(KEY_SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, true);
 	}
 
 	public void setShowInfoAboutVideoAutomaticSetting(boolean value) {
-		configuration.setProperty(SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
+		configuration.setProperty(KEY_SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING, value);
 	}
 
 	/**
@@ -5381,7 +5077,7 @@ public class UmsConfiguration extends RendererConfiguration {
 		 *         if the parsing failed.
 		 */
 		public static SubtitlesInfoLevel typeOf(String infoLevelString) {
-			if (isBlank(infoLevelString)) {
+			if (StringUtils.isBlank(infoLevelString)) {
 				return null;
 			}
 			infoLevelString = infoLevelString.trim().toLowerCase(Locale.ROOT);
@@ -5529,9 +5225,7 @@ public class UmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
-		jObj.addProperty("fmpeg_sox", true);
-		jObj.add(KEY_FOLDERS, new JsonArray());
-		jObj.add(KEY_FOLDERS_MONITORED, new JsonArray());
+		jObj.addProperty(KEY_FFMPEG_SOX, true);
 		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
@@ -5582,7 +5276,7 @@ public class UmsConfiguration extends RendererConfiguration {
 		jObj.addProperty(KEY_RENDERER_FORCE_DEFAULT, false);
 		jObj.addProperty(KEY_RESUME, true);
 		JsonArray allRenderers = new JsonArray();
-		allRenderers.add(ALL_RENDERERS);
+		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
 		jObj.addProperty(KEY_SERVER_ENGINE, "0");
 		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");

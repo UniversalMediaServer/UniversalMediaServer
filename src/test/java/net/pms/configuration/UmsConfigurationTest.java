@@ -61,8 +61,8 @@ public class UmsConfigurationTest {
 		assertEquals(configuration.getLoggingFilterConsole(), Level.INFO, "LoggingFilterConsoleDefault");
 		assertEquals(configuration.getLoggingFilterLogsTab(), Level.INFO, "LoggingFilterLogsTabDefault");
 		assertEquals(configuration.getLoggingLogsTabLinebuffer(), 1000, "LoggingLogsTabLinebufferDefault");
-		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN &&
-				configuration.getLoggingLogsTabLinebuffer() <= UmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
+		assertTrue(configuration.getLoggingLogsTabLinebuffer() >= UmsConfiguration.getLoggingLogsTabLinebufferMin() &&
+				configuration.getLoggingLogsTabLinebuffer() <= UmsConfiguration.getLoggingLogsTabLinebufferMax(),
 				"LoggingLogsTabLinebufferLegal");
 		assertEquals(configuration.getLoggingSyslogFacility(), "USER", "LoggingSyslogFacilityDefault");
 		assertEquals(configuration.getLoggingSyslogHost(), "", "LoggingSyslogHostDefault");

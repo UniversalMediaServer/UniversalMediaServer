@@ -29,7 +29,6 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
@@ -42,6 +41,7 @@ import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -151,20 +151,12 @@ public class BrowseHandler implements HttpHandler {
 						StringBuilder thumbHTML = new StringBuilder();
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 						HashMap<String, String> item = new HashMap<>();
-						String faIcon;
-						switch (name) {
-							case "Video":
-								faIcon = "fa-video";
-								break;
-							case "Audio":
-								faIcon = "fa-music";
-								break;
-							case "Photo":
-								faIcon = "fa-images";
-								break;
-							default:
-								faIcon = "fa-folder";
-							}
+						String faIcon = switch (name) {
+							case "Video" -> "fa-video";
+							case "Audio" -> "fa-music";
+							case "Photo" -> "fa-images";
+							default -> "fa-folder";
+						};
 						thumbHTML.append("<a href=\"/browse/").append(idForWeb);
 						thumbHTML.append("\" title=\"").append(name).append("\">");
 						thumbHTML.append("<i class=\"fas ").append(faIcon).append(" fa-5x\"></i>");
@@ -425,7 +417,7 @@ public class BrowseHandler implements HttpHandler {
 	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = WebInterfaceServerUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		boolean upnpControl = ConnectedRenderers.hasConnectedControlPlayers();
 		String pageTypeUri = "/play/";
 		if (resource.isFolder()) {
 			pageTypeUri = "/browse/";

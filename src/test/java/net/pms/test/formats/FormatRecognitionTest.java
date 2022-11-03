@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -79,7 +80,7 @@ public class FormatRecognitionTest {
     public void testRendererConfigurationBasics() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 		assertFalse(conf.isCompatible(null, null, configuration),
 			"With nothing provided isCompatible() should return false");
@@ -93,7 +94,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		// Construct regular two channel MP3 information
@@ -126,7 +127,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -160,7 +161,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -190,7 +191,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -330,7 +331,7 @@ public class FormatRecognitionTest {
 	public void testSubtitlesRecognition() throws FileNotFoundException {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
+		RendererConfiguration renderer = RendererConfigurations.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull(renderer, "Renderer named \"Panasonic TX-L32V10E\" not found.");
 		
 		DLNAResource dlna = new RealFile(new File("test.avi"));

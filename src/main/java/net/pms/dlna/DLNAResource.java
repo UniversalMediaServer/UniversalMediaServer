@@ -49,6 +49,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
@@ -84,6 +85,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
@@ -928,7 +930,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return the transcode virtual folder
 	 */
-	// XXX package-private: used by MapFile; should be protected?
+	// XXX package-private: used by VirtualFile; should be protected?
 	TranscodeVirtualFolder getTranscodeFolder() {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
@@ -940,8 +942,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// search for transcode folder
 		for (DLNAResource child : children) {
-			if (child instanceof TranscodeVirtualFolder) {
-				return (TranscodeVirtualFolder) child;
+			if (child instanceof TranscodeVirtualFolder transcodeVirtualFolder) {
+				return transcodeVirtualFolder;
 			}
 		}
 
@@ -1288,10 +1290,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 */
 			if (forced) {
 				// This seems to follow the same code path as the else below in
-				// the case of MapFile, because
+				// the case of VirtualFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded ->
 				// doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile)
+				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -2738,12 +2740,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Offering AlbumArt here breaks the standard, but some renderers
 			// need it
 			switch (resElement.getProfile().toInt()) {
-				case DLNAImageProfile.GIF_LRG_INT:
-				case DLNAImageProfile.JPEG_SM_INT:
-				case DLNAImageProfile.JPEG_TN_INT:
-				case DLNAImageProfile.PNG_LRG_INT:
-				case DLNAImageProfile.PNG_TN_INT:
-					addAlbumArt(sb, resElement.getProfile());
+				case DLNAImageProfile.GIF_LRG_INT,
+					DLNAImageProfile.JPEG_SM_INT,
+					DLNAImageProfile.JPEG_TN_INT,
+					DLNAImageProfile.PNG_LRG_INT,
+					DLNAImageProfile.PNG_TN_INT
+					-> addAlbumArt(sb, resElement.getProfile());
 			}
 		}
 	}
@@ -2968,7 +2970,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						rendererIp = InetAddress.getByName(rendererId);
 						RendererConfiguration renderer;
 						if (incomingRenderer == null) {
-							renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 						} else {
 							renderer = incomingRenderer;
 						}
@@ -3030,7 +3032,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer;
 							if (incomingRenderer == null) {
-								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+								renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 							} else {
 								renderer = incomingRenderer;
 							}
@@ -4830,7 +4832,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return index > -1 ? TEMP.getChildren().get(index) : TEMP.recreate(objectId, name, renderer);
 			}
 			if (renderer == null) {
-				renderer = RendererConfiguration.getDefaultConf();
+				renderer = RendererConfigurations.getDefaultConf();
 			}
 
 			return PMS.get().getRootFolder(renderer).getDLNAResource(objectId, renderer);
@@ -5108,4 +5110,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isAddToMediaLibrary() {
 		return true;
 	}
+
+	/**
+	 * Create a path of virtual folders if it doesn't already exist.
+	 *
+	 * @param parentPath the full virtual folder path (slash-delimited).
+	 */
+	protected DLNAResource getSharedContentParent(String parentPath) {
+		DLNAResource result = null;
+		if (parentPath != null) {
+			StringTokenizer st = new StringTokenizer(parentPath, "/");
+			DLNAResource currentRoot = this;
+			while (st.hasMoreTokens()) {
+				String folder = st.nextToken();
+				result = currentRoot.searchByName(folder);
+				if (result == null) {
+					result = new VirtualFolder(folder, "");
+					currentRoot.addChild(result);
+				}
+				currentRoot = result;
+			}
+		}
+		if (result == null) {
+			result = this;
+		}
+		return result;
+	}
+
 }

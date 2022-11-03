@@ -19,7 +19,6 @@ package net.pms.dlna;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
@@ -32,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
@@ -178,10 +178,10 @@ public class MediaMonitor extends VirtualFolder {
 		String fullPathToFile = realFile.getFile().getAbsolutePath();
 
 		boolean isMonitored = false;
-		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 		if (!foldersMonitored.isEmpty()) {
-			for (Path folderMonitored : foldersMonitored) {
-				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
+			for (File folderMonitored : foldersMonitored) {
+				if (fullPathToFile.contains(folderMonitored.getAbsolutePath())) {
 					isMonitored = true;
 					break;
 				}

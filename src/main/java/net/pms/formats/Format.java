@@ -18,6 +18,7 @@ package net.pms.formats;
 
 import java.util.Locale;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
@@ -193,7 +194,7 @@ public abstract class Format implements Cloneable {
 			referenceRenderer = renderer;
 		} else {
 			// Use the default renderer as reference
-			referenceRenderer = RendererConfiguration.getDefaultConf();
+			referenceRenderer = RendererConfigurations.getDefaultConf();
 		}
 
 		// Let the renderer configuration decide on native compatibility

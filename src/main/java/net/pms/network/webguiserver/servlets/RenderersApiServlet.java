@@ -27,6 +27,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -161,13 +162,13 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					File f = new File(icon);
 					if (!f.isAbsolute() && f.getParent() == null) {
 						// filename, try profile renderers dir
-						f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+						f = new File(RendererConfigurations.getProfileRenderersDir(), icon);
 						if (f.isFile() && f.exists()) {
 							is = new FileInputStream(f);
 							mime = WebGuiServletHelper.getMimeType(f.getName());
 						} else {
 							//try renderers dir
-							f = new File(RendererConfiguration.getRenderersDir(), icon);
+							f = new File(RendererConfigurations.getRenderersDir(), icon);
 							if (f.isFile() && f.exists()) {
 								is = new FileInputStream(f);
 								mime = WebGuiServletHelper.getMimeType(f.getName());

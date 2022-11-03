@@ -21,7 +21,7 @@ import java.net.InetAddress;
 import javax.jmdns.JmDNS;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.mdns.chromecast.ChromecastServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class MDNS {
 
 	public static boolean start(InetAddress inetAddress) {
 		if (jmDNS == null && CONFIGURATION.useChromecastExt()) {
-			if (RendererConfiguration.getRendererConfigurationByName("Chromecast") != null) {
+			if (RendererConfigurations.getRendererConfigurationByName("Chromecast") != null) {
 				try {
 					LOGGER.info("Starting mDNS service (JmDNS version {}) on host {}", JmDNS.VERSION, inetAddress.getHostAddress());
 					jmDNS = JmDNS.create(inetAddress);
