@@ -1269,20 +1269,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
-									
-										<!-- Copy ffms2 to its destination -->
-										<mkdir dir="${project.binaries}/win32/ffms2" />
-										<copy todir="${project.binaries}/win32/ffms2" overwrite="true">
-											<fileset dir="${project.external-resources}/third-party/ffms2" />
-										</copy>									
-
-										<!-- Copy 2dTo3d to its destination -->
-										<mkdir dir="${project.binaries}/win32/2dTo3d" />
-										<copy todir="${project.binaries}/win32/2dTo3d" overwrite="true">
-											<fileset dir="${project.external-resources}/third-party/2dTo3d" />
-										</copy>									
-									
+									<target>									
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
@@ -1310,6 +1297,18 @@
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
 										<mkdir dir="${project.binaries}/windows/winxp" />
 										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
+										
+										<!-- Copy 2dTo3d to its destination -->
+										<mkdir dir="${project.binaries}/windows/2dTo3d" />
+										<copy todir="${project.binaries}/windows/2dTo3d" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/2dTo3d" />
+										</copy>									
+
+										<!-- Copy ffms2 to its destination -->
+										<mkdir dir="${project.binaries}/windows/ffms2" />
+										<copy todir="${project.binaries}/windows/ffms2" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/ffms2" />
+										</copy>																			
 									</target>
 								</configuration>
 							</execution>
