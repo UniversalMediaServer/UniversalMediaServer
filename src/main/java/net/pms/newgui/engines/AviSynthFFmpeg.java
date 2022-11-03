@@ -121,7 +121,7 @@ public class AviSynthFFmpeg {
 			if (event.getPropertyName() == null) {
 				return;
 			}
-			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+			if ((!event.isBeforeUpdate()) && interframegpu.isEnabled() != CONFIGURATION.isGPUAcceleration()) {
 				interframegpu.setEnabled(CONFIGURATION.isGPUAcceleration());
 			}
 		});

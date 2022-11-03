@@ -79,7 +79,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, double timeSeek, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, double timeSeek, String frameRateRatio, String frameRateNumber, UmsConfiguration configuration) throws IOException {
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
