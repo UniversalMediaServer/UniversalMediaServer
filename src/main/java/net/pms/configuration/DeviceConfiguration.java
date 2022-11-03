@@ -34,7 +34,6 @@ public class DeviceConfiguration extends UmsConfiguration {
 
 	private static final int DEVICE = 0;
 	private static final int RENDERER = 1;
-	//private static final int UMSCONF = 2; // not used
 
 	private PropertiesConfiguration deviceConf = null;
 	private RendererConfiguration ref = null;
