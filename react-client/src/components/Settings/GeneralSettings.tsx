@@ -90,7 +90,7 @@ export default function GeneralSettings(
             </Accordion.Panel>
           </Accordion.Item>
           <Accordion.Item value='GUI'>
-            <Accordion.Control>{i18n.get['Gui']}</Accordion.Control>
+            <Accordion.Control>{i18n.get['GraphicalUserInterface']}</Accordion.Control>
             <Accordion.Panel>
                 <Checkbox
                   disabled={!canModify}

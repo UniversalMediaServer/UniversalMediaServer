@@ -64,7 +64,7 @@ const About = () => {
           id: 'about-data-loading',
           color: 'red',
           title: i18n.get["Error"],
-          message: i18n.get["DatasNotReceived"],
+          message: i18n.get["DataNotReceived"],
           autoClose: 3000,
         });
       });

@@ -191,7 +191,7 @@ const Accounts = () => {
         <Divider my="sm" />
         { opened ? (
           <Group position="right" mt="md">
-            <Text color="red">{i18n.get['UserWillBeDeleted']}</Text>
+            <Text color="red">{i18n.get['WarningUserWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
@@ -343,7 +343,7 @@ const Accounts = () => {
         <Divider my="sm" />
         { opened ? (
           <Group position="right" mt="md">
-            <Text color="red">{i18n.get['GroupWillBeDeleted']}</Text>
+            <Text color="red">{i18n.get['WarningGroupWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
@@ -533,7 +533,7 @@ const Accounts = () => {
             <UsersAccordions />
           ) : (
             <Box sx={{ maxWidth: 1024 }} mx="auto">
-              <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
+              <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
             </Box>
           )}
       </Box>

@@ -112,7 +112,7 @@ export default function SharedContentSettings(
       showNotification({
         color: 'red',
         title: i18n.get['Error'],
-        message: i18n.get['DatasNotReceived'],
+        message: i18n.get['DataNotReceived'],
       })
     }
     setLoading(false);

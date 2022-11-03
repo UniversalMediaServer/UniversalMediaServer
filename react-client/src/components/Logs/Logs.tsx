@@ -114,7 +114,7 @@ const Logs = () => {
           id: 'logs-data-loading',
           color: 'red',
           title: i18n.get["Error"],
-          message: i18n.get["DatasNotReceived"],
+          message: i18n.get["DataNotReceived"],
           autoClose: 3000,
         });
       });
@@ -424,7 +424,7 @@ const Logs = () => {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">
-      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
+      <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   )
 };

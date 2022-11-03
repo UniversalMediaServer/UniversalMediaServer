@@ -96,7 +96,7 @@ const Actions = () => {
           onClose={() => setShutdownApplicationOpened(false)}
           title={<Text color='red'>{i18n.get['Warning']}</Text>}
         >
-          <Text weight={600}>{i18n.get['ThisCloseApp']}</Text>
+          <Text weight={600}>{i18n.get['ThisClosesApp']}</Text>
           <List>
             <List.Item><Code>{i18n.get['NetworkConnectionsWillClosed']}</Code></List.Item>
             <List.Item><Code color='red'>{i18n.get['YouWillNotAbleAccessServer']}</Code></List.Item>
@@ -123,7 +123,7 @@ const Actions = () => {
           </Tooltip>
         )}
         {canShutdownApplication && (
-          <Tooltip label={i18n.get['ThisCloseApp']} {...defaultTooltipSettings}>
+          <Tooltip label={i18n.get['ThisClosesApp']} {...defaultTooltipSettings}>
             <Button leftIcon={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true)}}>{i18n.get['ShutdownApplication']}</Button>
           </Tooltip>
         )}

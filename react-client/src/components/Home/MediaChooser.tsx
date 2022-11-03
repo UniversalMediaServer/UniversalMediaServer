@@ -70,7 +70,7 @@ export default function MediaChooser(props: {
           id: 'data-loading',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['DatasNotReceived'],
+          message: i18n.get['DataNotReceived'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });

@@ -607,7 +607,7 @@ export const Player = () => {
     </Box>
   ) : (
     <Box sx={{ maxWidth: 1024 }} mx="auto">
-      <Text color="red">{i18n.get['YouNotHaveAccessArea']}</Text>
+      <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 };
