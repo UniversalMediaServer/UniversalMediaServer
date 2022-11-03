@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image.thumbnailator;
 
 import net.coobird.thumbnailator.filters.ImageFilter;
@@ -32,24 +48,28 @@ public final class ExifFilterUtils {
 	 */
 	public static ImageFilter getFilterForOrientation(Orientation orientation) {
 		Pipeline filters = new Pipeline();
-
-		if (orientation == Orientation.TOP_RIGHT) {
-			filters.add(Flip.HORIZONTAL);
-		} else if (orientation == Orientation.BOTTOM_RIGHT) {
-			filters.add(Rotation.ROTATE_180_DEGREES);
-		} else if (orientation == Orientation.BOTTOM_LEFT) {
-			filters.add(Rotation.ROTATE_180_DEGREES);
-			filters.add(Flip.HORIZONTAL);
-		} else if (orientation == Orientation.LEFT_TOP) {
-			filters.add(Rotation.RIGHT_90_DEGREES);
-			filters.add(Flip.HORIZONTAL);
-		} else if (orientation == Orientation.RIGHT_TOP) {
-			filters.add(Rotation.RIGHT_90_DEGREES);
-		} else if (orientation == Orientation.RIGHT_BOTTOM) {
-			filters.add(Rotation.LEFT_90_DEGREES);
-			filters.add(Flip.HORIZONTAL);
-		} else if (orientation == Orientation.LEFT_BOTTOM) {
-			filters.add(Rotation.LEFT_90_DEGREES);
+		if (null != orientation) {
+			switch (orientation) {
+				case TOP_RIGHT -> filters.add(Flip.HORIZONTAL);
+				case BOTTOM_RIGHT -> filters.add(Rotation.ROTATE_180_DEGREES);
+				case BOTTOM_LEFT -> {
+					filters.add(Rotation.ROTATE_180_DEGREES);
+					filters.add(Flip.HORIZONTAL);
+				}
+				case LEFT_TOP -> {
+					filters.add(Rotation.RIGHT_90_DEGREES);
+					filters.add(Flip.HORIZONTAL);
+				}
+				case RIGHT_TOP -> filters.add(Rotation.RIGHT_90_DEGREES);
+				case RIGHT_BOTTOM -> {
+					filters.add(Rotation.LEFT_90_DEGREES);
+					filters.add(Flip.HORIZONTAL);
+				}
+				case LEFT_BOTTOM -> filters.add(Rotation.LEFT_90_DEGREES);
+				default -> {
+					//nothing to do
+				}
+			}
 		}
 
 		return filters;

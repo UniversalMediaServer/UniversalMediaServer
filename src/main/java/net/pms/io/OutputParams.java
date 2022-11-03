@@ -1,26 +1,25 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -39,8 +38,8 @@ public final class OutputParams {
 	private int fromFrame;
 	private int toFrame;
 	private int waitbeforestart;
-	private PipeProcess[] inputpipes = new PipeProcess[2];
-	private PipeProcess[] outputpipes = new PipeProcess[2];
+	private IPipeProcess[] inputpipes = new IPipeProcess[2];
+	private IPipeProcess[] outputpipes = new IPipeProcess[2];
 	private DLNAMediaAudio aid;
 	private DLNAMediaSubtitle sid;
 	private int secondReadMinSize;
@@ -61,7 +60,7 @@ public final class OutputParams {
 	private boolean cleanup;
 	private HlsConfiguration hlsConfiguration;
 
-	public OutputParams(PmsConfiguration configuration) {
+	public OutputParams(UmsConfiguration configuration) {
 		if (configuration != null) {
 			setWaitBeforeStart(configuration.getVideoTranscodeStartDelay() * 1000);
 		} else {
@@ -207,19 +206,19 @@ public final class OutputParams {
 		this.toFrame = toFrame;
 	}
 
-	public PipeProcess[] getOutputPipes() {
+	public IPipeProcess[] getOutputPipes() {
 		return outputpipes;
 	}
 
-	public void setOutputPipes(PipeProcess[] outputpipes) {
+	public void setOutputPipes(IPipeProcess[] outputpipes) {
 		this.outputpipes = outputpipes;
 	}
 
-	public PipeProcess[] getInputPipes() {
+	public IPipeProcess[] getInputPipes() {
 		return inputpipes;
 	}
 
-	public void setInputPipes(PipeProcess[] inputpipes) {
+	public void setInputPipes(IPipeProcess[] inputpipes) {
 		this.inputpipes = inputpipes;
 	}
 

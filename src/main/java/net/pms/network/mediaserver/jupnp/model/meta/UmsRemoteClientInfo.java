@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp.model.meta;
 
@@ -24,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.slf4j.Logger;
@@ -56,37 +56,26 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 	}
 
 	public static RendererConfiguration toRendererConfiguration(RemoteClientInfo info) {
-		RendererConfiguration renderer = null;
-		/*
-		* don't use that now...
-		if (uri.contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfiguration.getStreamingConf();
-			LOGGER.debug("Forcing streaming.");
-		}
-		*/
-
-		if (renderer == null) {
-			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
-		}
+		// Attempt 1: try to recognize the renderer by its socket address from previous requests
+		RendererConfiguration renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || !renderer.loaded) {
-			// Attempt 3: try to recognize the renderer by matching headers
+		if (renderer == null || !renderer.isLoaded()) {
+			// Attempt 2: try to recognize the renderer by matching headers
 			//let's take only the first header as getRendererConfigurationByHeaders doesn't support multiple values
 			Map<String, String> headers = new HashMap<>();
 			for (Entry<String, List<String>> header : info.getRequestHeaders().entrySet()) {
 				headers.put(header.getKey(), header.getValue().get(0));
 			}
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
+			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
 		}
 		// Still no media renderer recognized?
 		if (renderer == null) {
-			// Attempt 4: Not really an attempt; all other attempts to recognize
+			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfiguration.resolve(info.getRemoteAddress(), null);
+			renderer = ConnectedRenderers.resolve(info.getRemoteAddress(), null);
 			// If RendererConfiguration.resolve() didn't return the default renderer
 			// it means we know via upnp that it's not really a renderer.
 			if (renderer != null) {

@@ -1,33 +1,23 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,11 +25,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -55,17 +45,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.PmsConfiguration.SubtitlesInfoLevel;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -80,11 +66,11 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
@@ -99,6 +85,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.BasicThreadFactory;
@@ -110,7 +97,21 @@ import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -124,7 +125,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private volatile ImageInfo thumbnailImageInfo = null;
-	protected PmsConfiguration configuration = PMS.getConfiguration();
+	protected UmsConfiguration configuration = PMS.getConfiguration();
 
 	// private boolean subsAreValidForStreaming = false;
 
@@ -145,7 +146,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private int specificType;
 	private String id;
-	private String pathId;
 	public static final RenderingHints THUMBNAIL_HINTS = new RenderingHints(RenderingHints.KEY_RENDERING,
 		RenderingHints.VALUE_RENDER_QUALITY);
 
@@ -180,7 +180,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * The time range for the file containing the start and end time in seconds.
 	 */
-	private Range.Time splitRange = new Range.Time();
+	private TimeRange splitRange = new TimeRange();
 	private int splitTrack;
 	private String fakeParentId;
 	private RendererConfiguration defaultRenderer;
@@ -298,16 +298,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			res.add(0, tmp.getId());
 			tmp = tmp.getParent();
 		}
-		pathId = StringUtils.join(res, '.');
-		return pathId;
+		return StringUtils.join(res, '.');
 	}
 
 	/**
 	 * String representing this resource ID. This string is used by the UPNP
 	 * ContentDirectory service. There is no hard spec on the actual numbering
-	 * except for the root container that always has to be "0". In DMS the
+	 * except for the root container that always has to be "0". In UMS the
 	 * format used is <i>number($number)+</i>. A common client that expects a
-	 * different format than the one used here is the XBox360. DMS translates
+	 * different format than the one used here is the XBox360. UMS translates
 	 * the XBox360 queries on the fly. For more info, check
 	 * <ul>
 	 * <li><a href="http://www.mperfect.net/whsUpnp360/">whsUpnp360</a></li>
@@ -614,7 +613,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							transcodingEngine = child.engine;
 						} else {
 							for (Engine tEngine : EngineFactory.getEngines()) {
-								String end = "[" + tEngine.id().toString() + "]";
+								String end = "[" + tEngine.getEngineId().toString() + "]";
 
 								if (name.endsWith(end)) {
 									nametruncate = name.lastIndexOf(end);
@@ -709,7 +708,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							Engine transcodingEngine = EngineFactory.getEngine(newChild);
 							newChild.setEngine(transcodingEngine);
 							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.format.toString(),
-								engine == null ? "null" : engine.name(), newChild.getName());
+								engine == null ? "null" : engine.getName(), newChild.getName());
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
@@ -748,9 +747,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public Engine resolveEngine(RendererConfiguration renderer) {
 		// Use device-specific conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
-		Engine resolvedEngine = null;
+		Engine resolvedEngine;
 
 		if (media == null) {
 			media = new DLNAMediaInfo();
@@ -933,7 +932,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return the transcode virtual folder
 	 */
-	// XXX package-private: used by MapFile; should be protected?
+	// XXX package-private: used by VirtualFile; should be protected?
 	TranscodeVirtualFolder getTranscodeFolder() {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
@@ -945,8 +944,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// search for transcode folder
 		for (DLNAResource child : children) {
-			if (child instanceof TranscodeVirtualFolder) {
-				return (TranscodeVirtualFolder) child;
+			if (child instanceof TranscodeVirtualFolder transcodeVirtualFolder) {
+				return transcodeVirtualFolder;
 			}
 		}
 
@@ -1184,7 +1183,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
-					if (res.getMedia().getFirstAudioTrack() == null) {
+					if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
 						return false;
 					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
@@ -1257,7 +1256,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	protected final void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configurationSpecificToRenderer.getFolderLimit() && depthLimit()) {
@@ -1293,10 +1292,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 */
 			if (forced) {
 				// This seems to follow the same code path as the else below in
-				// the case of MapFile, because
+				// the case of VirtualFile, because
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded ->
 				// doRefreshChildren, which is what happens below
-				// (refreshChildren is not overridden in MapFile)
+				// (refreshChildren is not overridden in VirtualFile)
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -1547,14 +1546,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed. Returns the display name for the default
 	 * renderer.
 	 *
-	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param configuration the {@link UmsConfiguration} to use.
 	 * @return The engine display name or {@code null}.
 	 */
-	protected String getDisplayNameEngine(PmsConfiguration configuration) {
+	protected String getDisplayNameEngine(UmsConfiguration configuration) {
 		String engineName = null;
 		if (engine != null) {
 			if (isNoName() || !configuration.isHideEngineNames()) {
-				engineName = "[" + engine.name() + (isAvisynth() ? " + AviSynth]" : "]");
+				engineName = "[" + engine.getName() + (isAvisynth() ? " + AviSynth]" : "]");
 			}
 		} else if (isNoName()) {
 			engineName = Messages.getString("NoTranscoding");
@@ -1581,10 +1580,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none should be displayed.
 	 *
 	 * @param renderer the {@link RendererConfiguration} to use.
-	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param configuration the {@link UmsConfiguration} to use.
 	 * @return The display name suffix or {@code ""}.
 	 */
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
 		if (media == null) {
 			return null;
 		}
@@ -1710,7 +1709,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The display name.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 
 		// Base
@@ -1838,8 +1837,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected static String encode(String s) {
 		try {
-			return URLEncoder.encode(s, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			return URLEncoder.encode(s, StandardCharsets.UTF_8);
+		} catch (IllegalArgumentException e) {
 			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());
 			LOGGER.trace("", e);
 		}
@@ -1924,7 +1923,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			 * permission on when permitting seek-by-time.
 			 *
 			 * It's not clear if this is a bug in the DLNA libraries of these
-			 * renderers or a bug in DMS, but setting an option in the renderer
+			 * renderers or a bug in UMS, but setting an option in the renderer
 			 * conf that disables seek-by-byte when we permit seek-by-time -
 			 * e.g.:
 			 *
@@ -1968,7 +1967,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private String getDlnaOrgPnFlags(RendererConfiguration mediaRenderer, int localizationValue) {
 		// Use device-specific UMS conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		String mime = getRendererMimeType(mediaRenderer);
 
 		String dlnaOrgPnFlags = null;
@@ -1993,14 +1992,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (engine != null) {
 						// VLC Web Video (Legacy) and tsMuxeR always output
 						// MPEG-TS
-						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.id()) || VideoLanVideoStreaming.ID.equals(engine.id());
+						boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.getEngineId()) || VideoLanVideoStreaming.ID.equals(engine.getEngineId());
 
 						// Check if the renderer settings make the current
 						// engine always output MPEG-TS
 						if (!isOutputtingMPEGTS && mediaRenderer.isTranscodeToMPEGTS() &&
-							(MEncoderVideo.ID.equals(engine.id()) || FFMpegVideo.ID.equals(engine.id()) ||
-								VLCVideo.ID.equals(engine.id()) || AviSynthFFmpeg.ID.equals(engine.id()) ||
-								AviSynthMEncoder.ID.equals(engine.id()))) {
+							(MEncoderVideo.ID.equals(engine.getEngineId()) || FFMpegVideo.ID.equals(engine.getEngineId()) ||
+								VLCVideo.ID.equals(engine.getEngineId()) || AviSynthFFmpeg.ID.equals(engine.getEngineId()) ||
+								AviSynthMEncoder.ID.equals(engine.getEngineId()))) {
 							isOutputtingMPEGTS = true;
 						}
 
@@ -2008,9 +2007,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// MPEG-TS and the setting is enabled, it might be
 						// MPEG-TS
 						if (!isOutputtingMPEGTS &&
-							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.id())) ||
+							((configurationSpecificToRenderer.isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.getEngineId())) ||
 								(configurationSpecificToRenderer.isFFmpegMuxWithTsMuxerWhenCompatible() &&
-									FFMpegVideo.ID.equals(engine.id())))) {
+									FFMpegVideo.ID.equals(engine.getEngineId())))) {
 							/*
 							 * Media renderer needs ORG_PN to be accurate. If
 							 * the value does not match the media, it won't play
@@ -2058,7 +2057,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (isOutputtingMPEGTS) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
-							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.id())) {
+							if (mediaRenderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, mediaRenderer, false);
 							}
 						}
@@ -2164,7 +2163,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		// Use device-specific configuration, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = mediaRenderer.isXbox360();
@@ -2709,11 +2708,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo,
 							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInf)));
 					}
-					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
-						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
-							resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo,
-								DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
-						}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo) &&
+						(DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer))
+					) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo,
+							DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
 					}
 				}
 			}
@@ -2743,12 +2742,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Offering AlbumArt here breaks the standard, but some renderers
 			// need it
 			switch (resElement.getProfile().toInt()) {
-				case DLNAImageProfile.GIF_LRG_INT:
-				case DLNAImageProfile.JPEG_SM_INT:
-				case DLNAImageProfile.JPEG_TN_INT:
-				case DLNAImageProfile.PNG_LRG_INT:
-				case DLNAImageProfile.PNG_TN_INT:
-					addAlbumArt(sb, resElement.getProfile());
+				case DLNAImageProfile.GIF_LRG_INT,
+					DLNAImageProfile.JPEG_SM_INT,
+					DLNAImageProfile.JPEG_TN_INT,
+					DLNAImageProfile.PNG_LRG_INT,
+					DLNAImageProfile.PNG_TN_INT
+					-> addAlbumArt(sb, resElement.getProfile());
 			}
 		}
 	}
@@ -2860,10 +2859,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
 						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo, true));
 					}
-					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo)) {
-						if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
-							resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
-						}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo) &&
+						(DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer))
+					) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo, true));
 					}
 				}
 			}
@@ -2879,12 +2878,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// Offering AlbumArt for video breaks the standard, but some
 				// renderers need it
 				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT:
-					case DLNAImageProfile.JPEG_SM_INT:
-					case DLNAImageProfile.JPEG_TN_INT:
-					case DLNAImageProfile.PNG_LRG_INT:
-					case DLNAImageProfile.PNG_TN_INT:
-						addAlbumArt(sb, resElement.getProfile());
+					case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(sb, resElement.getProfile());
 				}
 			}
 		}
@@ -2978,7 +2972,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						rendererIp = InetAddress.getByName(rendererId);
 						RendererConfiguration renderer;
 						if (incomingRenderer == null) {
-							renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 						} else {
 							renderer = incomingRenderer;
 						}
@@ -3040,7 +3034,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer;
 							if (incomingRenderer == null) {
-								renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+								renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(rendererIp);
 							} else {
 								renderer = incomingRenderer;
 							}
@@ -3149,8 +3143,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer, HlsConfiguration hlsConfiguration) throws IOException {
-		// Use device-specific DMS conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
+		// Use device-specific UMS conf, if any
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + engine);
 
 		// shagrath: small fix, regression on chapters
@@ -3159,9 +3153,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the
 		// stream to be CBR!
 		int cbrVideoBitrate = mediarenderer.getCBRVideoBitrate();
-		long low = range.isByteRange() && range.isStartOffsetAvailable() ? range.asByteRange().getStart() : 0;
-		long high = range.isByteRange() && range.isEndLimitAvailable() ? range.asByteRange().getEnd() : -1;
-		Range.Time timeRange = range.createTimeRange();
+		long low = (range instanceof ByteRange byteRange && range.isStartOffsetAvailable()) ? byteRange.getStart() : 0;
+		long high = (range instanceof ByteRange byteRange && range.isEndLimitAvailable()) ? byteRange.getEnd() : -1;
+		TimeRange timeRange = range.createTimeRange();
 		if (engine != null && low > 0 && cbrVideoBitrate > 0) {
 			int usedBitRated = (int) ((cbrVideoBitrate + 256) * 1024 / (double) 8 * CONTAINER_OVERHEAD);
 			if (low > usedBitRated) {
@@ -3238,13 +3232,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		params.setTimeEnd(timeRange.getEndOrZero());
 		params.setShiftScr(timeseekAuto);
 		params.setHlsConfiguration(hlsConfiguration);
-		if (this instanceof IPushOutput) {
-			params.setStdIn((IPushOutput) this);
+		if (this instanceof IPushOutput iPushOutput) {
+			params.setStdIn(iPushOutput);
 		}
 
 		if (resume != null) {
-			if (range.isTimeRange()) {
-				resume.update((Range.Time) range, this);
+			if (range instanceof TimeRange tRange) {
+				resume.update(tRange, this);
 			}
 
 			params.setTimeSeek(resume.getTimeOffset() / 1000);
@@ -3326,6 +3320,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}
@@ -3408,7 +3403,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile, RendererConfiguration renderer) {
 		// Use device-specific conf, if any
-		PmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		if (media != null && !media.isThumbready() && configurationSpecificToRenderer.isThumbnailGenerationEnabled() &&
 			(renderer == null || renderer.isThumbnails())) {
 			Double seekPosition = (double) configurationSpecificToRenderer.getThumbnailSeekPos();
@@ -3483,7 +3478,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// A URL
 			try {
 				return DLNAThumbnailInputStream.toThumbnailInputStream(downloadAndSend(thumb, true));
-			} catch (Exception e) {
+			} catch (IOException e) {
+				//dowwnload fail
 			}
 		}
 
@@ -4058,7 +4054,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 		// Use device-specific pms conf
-		PmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
+		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 
 		// check for preferred audio
 		DLNAMediaAudio dtsTrack = null;
@@ -4110,7 +4106,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Use device-specific pms conf
-		PmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
+		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 		if (deviceSpecificConfiguration.isDisableSubtitles()) {
 			LOGGER.trace("Not resolving subtitles since subtitles are disabled");
 			return null;
@@ -4360,7 +4356,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return The time range.
 	 */
-	public Range.Time getSplitRange() {
+	public TimeRange getSplitRange() {
 		return splitRange;
 	}
 
@@ -4370,7 +4366,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param splitRange The time range to set.
 	 * @since 1.50
 	 */
-	public void setSplitRange(Range.Time splitRange) {
+	public void setSplitRange(TimeRange splitRange) {
 		this.splitRange = splitRange;
 	}
 
@@ -4717,8 +4713,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
 	public static DLNAResource autoMatch(String uri, String name) {
 		try {
-			uri = URLDecoder.decode(uri, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
+			uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
+		} catch (IllegalArgumentException e) {
 			LOGGER.error("URL decoding error ", e);
 		}
 
@@ -4850,7 +4846,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return index > -1 ? TEMP.getChildren().get(index) : TEMP.recreate(objectId, name, renderer);
 			}
 			if (renderer == null) {
-				renderer = RendererConfiguration.getDefaultConf();
+				renderer = RendererConfigurations.getDefaultConf();
 			}
 
 			return PMS.get().getRootFolder(renderer).getDLNAResource(objectId, renderer);
@@ -4965,8 +4961,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (dynamicPls != null) {
 			String str = Messages.getString("Add") + " " + child.getDisplayName() + " " + Messages.getString("ToDynamicPlaylist");
-			VirtualVideoAction vva = new VirtualVideoAction(str, true) {
-
+			VirtualVideoAction vva = new VirtualVideoAction(str, true, null) {
 				@Override
 				public boolean enable() {
 					PMS.get().getDynamicPls().add(child);
@@ -5129,4 +5124,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isAddToMediaLibrary() {
 		return true;
 	}
+
+	/**
+	 * Create a path of virtual folders if it doesn't already exist.
+	 *
+	 * @param parentPath the full virtual folder path (slash-delimited).
+	 */
+	protected DLNAResource getSharedContentParent(String parentPath) {
+		DLNAResource result = null;
+		if (parentPath != null) {
+			StringTokenizer st = new StringTokenizer(parentPath, "/");
+			DLNAResource currentRoot = this;
+			while (st.hasMoreTokens()) {
+				String folder = st.nextToken();
+				result = currentRoot.searchByName(folder);
+				if (result == null) {
+					result = new VirtualFolder(folder, "");
+					currentRoot.addChild(result);
+				}
+				currentRoot = result;
+			}
+		}
+		if (result == null) {
+			result = this;
+		}
+		return result;
+	}
+
 }

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui;
 
 import com.sun.jna.Platform;
@@ -5,14 +21,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -76,22 +90,6 @@ public class DbgPacker extends net.pms.util.DbgPacker implements ActionListener 
 		c.weightx = 0.0;
 		top.add(openZip, c);
 		return top;
-	}
-
-	private void writeToZip(ZipOutputStream out, File f) throws Exception {
-		byte[] buf = new byte[1024];
-		int len;
-		if (!f.exists()) {
-			LOGGER.debug("DbgPack file {} does not exist - ignoring", f.getAbsolutePath());
-			return;
-		}
-		try (FileInputStream in = new FileInputStream(f)) {
-			out.putNextEntry(new ZipEntry(f.getName()));
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			out.closeEntry();
-		}
 	}
 
 	private boolean saveDialog() {

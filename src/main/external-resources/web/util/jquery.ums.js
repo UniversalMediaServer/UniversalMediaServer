@@ -205,21 +205,23 @@ function umsAjax(u, reload) {
 var polling, refused, streamevent;
 
 function serverDataHandler(data) {
-	switch (data[0]) {
-		case 'seturl':
-			window.location.replace(data[1]);
-			break;
-		case 'control':
-			if (typeof control === 'function') {
-				control(data[1], data[2]);
-			}
-			break;
-		case 'notify':
-			notify(data[1], data[2]);
-			break;
-		case 'close':
-			streamevent.close();
-			break;
+	if (data.action === 'player') {
+		switch (data.request) {
+			case 'setPlayId':
+				window.location.replace('/play/' + data.arg0);
+				break;
+			case 'control':
+				if (typeof control === 'function') {
+					control(data.arg0, data.arg1);
+				}
+				break;
+			case 'notify':
+				notify(data.arg0, data.arg1);
+				break;
+			case 'close':
+				streamevent.close();
+				break;
+		}
 	}
 }
 
@@ -251,7 +253,9 @@ function stream() {
 		refused = 0;
 		if (event.data) {
 			var data = JSON.parse(event.data);
-			serverDataHandler(data);
+			if (data.action === 'player') {
+				serverDataHandler(data);
+			}
 		}
 	});
 	streamevent.addEventListener('ping', function() {

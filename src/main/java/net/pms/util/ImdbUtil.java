@@ -1,12 +1,24 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,7 +29,8 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.platform.windows.WindowsUtils;
+import net.pms.platform.PlatformUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +72,7 @@ public class ImdbUtil {
 	 */
 	public static String extractImdbId(Path file, boolean scanNfo) {
 		String imdbId = extractFromFileName(file, FILENAME_IMDB_ID);
-		if (isNotBlank(imdbId)) {
+		if (StringUtils.isNotBlank(imdbId)) {
 			return removeTT(imdbId);
 		}
 		return scanNfo ? extractImdbIdFromNfo(file) : null;
@@ -104,7 +117,7 @@ public class ImdbUtil {
 			Path nfoFileNamePath = nfoFile.getFileName();
 			String nfoFileName = nfoFileNamePath == null ? null : nfoFileNamePath.toString();
 			Path parent = nfoFile.getParent();
-			if (isNotBlank(nfoFileName) && parent != null) {
+			if (StringUtils.isNotBlank(nfoFileName) && parent != null) {
 				HashMap<Path, Double> candidates = new HashMap<>();
 				try (DirectoryStream<Path> nfoFiles =  Files.newDirectoryStream(parent, (Path entry) -> {
 					String extension = FileUtil.getExtension(entry.getFileName());
@@ -113,7 +126,7 @@ public class ImdbUtil {
 					for (Path entry : nfoFiles) {
 						Path entryFileNamePath = entry.getFileName();
 						String entryName = entryFileNamePath == null ? null : entryFileNamePath.toString();
-						if (isBlank(entryName)) {
+						if (StringUtils.isBlank(entryName)) {
 							continue;
 						}
 						double score = new JaroWinklerSimilarity().apply(nfoFileName, entryName);
@@ -170,15 +183,7 @@ public class ImdbUtil {
 			LOGGER.trace("", e);
 		}
 		if (charset == null) {
-			if (Platform.isWindows()) {
-				// Because UMS is configured to erroneously always set the default charset to UTF-8, this is useless for Windows
-				charset = WindowsUtils.getOEMCharset();
-				if (charset == null) {
-					charset = StandardCharsets.US_ASCII;
-				}
-			} else {
-				charset = Charset.defaultCharset();
-			}
+			charset = PlatformUtils.INSTANCE.getDefaultCharset();
 			LOGGER.debug(
 				"Failed to detect the character encoding of \"{}\", falling back to the default charset \"{}\"",
 				nfoFile,
@@ -212,7 +217,7 @@ public class ImdbUtil {
 	 * @return The "{@code tt}" prefixed IMDb ID.
 	 */
 	public static String ensureTT(String imdbId) {
-		if (isBlank(imdbId)) {
+		if (StringUtils.isBlank(imdbId)) {
 			return imdbId;
 		}
 		imdbId = imdbId.trim().toLowerCase(Locale.ROOT);
@@ -227,7 +232,7 @@ public class ImdbUtil {
 	 * @return The IMDb ID without a "{@code tt}" prefix.
 	 */
 	public static String removeTT(String imdbId) {
-		if (isBlank(imdbId)) {
+		if (StringUtils.isBlank(imdbId)) {
 			return imdbId;
 		}
 		imdbId = imdbId.trim().toLowerCase(Locale.ROOT);

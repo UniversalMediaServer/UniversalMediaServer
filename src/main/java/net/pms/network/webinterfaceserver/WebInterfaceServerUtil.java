@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver;
 
@@ -45,11 +44,12 @@ import net.pms.renderers.devices.WebRender;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
+import net.pms.dlna.ByteRange;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.network.HTTPResource;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
@@ -240,7 +240,7 @@ public class WebInterfaceServerUtil {
 
 	private static boolean getResponseIsChunked(HttpExchange exchange) {
 		return exchange.getResponseHeaders().containsKey("Transfer-Encoding") &&
-				exchange.getResponseHeaders().getFirst("Transfer-Encoding").toLowerCase().equals("chunked");
+				exchange.getResponseHeaders().getFirst("Transfer-Encoding").equalsIgnoreCase("chunked");
 	}
 
 	public static String read(File f) {
@@ -286,11 +286,11 @@ public class WebInterfaceServerUtil {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress) || !PMS.isReady();
 	}
 
-	private static Range.Byte nullRange(long len) {
-		return new Range.Byte(0L, len);
+	private static ByteRange nullRange(long len) {
+		return new ByteRange(0L, len);
 	}
 
-	public static Range.Byte parseRange(Headers hdr, long len) {
+	public static ByteRange parseRange(Headers hdr, long len) {
 		if (hdr == null) {
 			return nullRange(len);
 		}
@@ -302,14 +302,14 @@ public class WebInterfaceServerUtil {
 		return parseRange(r.get(0), len);
 	}
 
-	public static Range.Byte parseRange(String range, long len) {
+	public static ByteRange parseRange(String range, long len) {
 		if (range == null || "".equals(range)) {
 			return nullRange(len);
 		}
 		String[] tmp = range.split("=")[1].split("-");
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
-		return new Range.Byte(start, end);
+		return new ByteRange(start, end);
 	}
 
 	public static void sendLogo(HttpExchange t) throws IOException {
@@ -389,7 +389,9 @@ public class WebInterfaceServerUtil {
 			return result;
 		}
 
-		int last = 0, next, l = qs.length();
+		int last = 0;
+		int next;
+		int l = qs.length();
 		while (last < l) {
 			next = qs.indexOf('&', last);
 			if (next == -1) {
@@ -451,9 +453,9 @@ public class WebInterfaceServerUtil {
 	public static WebRender matchRenderer(String user, HttpExchange t) {
 		int browser = WebRender.getBrowser(t.getRequestHeaders().getFirst("User-agent"));
 		String confName = WebRender.getBrowserName(browser);
-		RendererConfiguration r = RendererConfiguration.find(confName, t.getRemoteAddress().getAddress());
-		return ((r instanceof WebRender) && (StringUtils.isBlank(user) || user.equals(((WebRender) r).getUser()))) ?
-			(WebRender) r : null;
+		RendererConfiguration r = ConnectedRenderers.find(confName, t.getRemoteAddress().getAddress());
+		return (r instanceof WebRender webRender && (StringUtils.isBlank(user) || user.equals(webRender.getUser()))) ?
+			webRender : null;
 	}
 
 	public static String getCookie(String name, HttpExchange t) {
@@ -510,7 +512,7 @@ public class WebInterfaceServerUtil {
 
 	public static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	private static IpFilter bumpFilter = null;
@@ -547,9 +549,9 @@ public class WebInterfaceServerUtil {
 		return null;
 	}
 
-	public static LinkedHashSet<String> getLangs(HttpExchange t) {
+	public static Set<String> getLangs(HttpExchange t) {
 		String hdr = t.getRequestHeaders().getFirst("Accept-language");
-		LinkedHashSet<String> result = new LinkedHashSet<>();
+		Set<String> result = new LinkedHashSet<>();
 		if (StringUtils.isEmpty(hdr)) {
 			return result;
 		}
@@ -563,7 +565,7 @@ public class WebInterfaceServerUtil {
 	}
 
 	public static String getFirstSupportedLanguage(HttpExchange t) {
-		LinkedHashSet<String> languages = getLangs(t);
+		Set<String> languages = getLangs(t);
 		for (String language : languages) {
 			String code = Languages.toLanguageTag(language);
 			if (code != null) {
@@ -604,8 +606,8 @@ public class WebInterfaceServerUtil {
 	 * - A template manager.
 	 */
 	public static class ResourceManager extends URLClassLoader {
-		private final HashSet<File> files;
-		private final HashMap<String, Template> templates;
+		private final Set<File> files = new HashSet<>();
+		private final Map<String, Template> templates = new HashMap<>();
 
 		public ResourceManager(String... urls) {
 			super(new URL[]{}, null);
@@ -616,8 +618,6 @@ public class WebInterfaceServerUtil {
 			} catch (MalformedURLException e) {
 				LOGGER.debug("Error adding resource url: " + e);
 			}
-			files = new HashSet<>();
-			templates = new HashMap<>();
 		}
 
 		public InputStream getInputStream(String filename) {
@@ -737,14 +737,11 @@ public class WebInterfaceServerUtil {
 		/**
 		 * Automatic recompiling
 		 */
-		FileWatcher.Listener recompiler = new FileWatcher.Listener() {
-			@Override
-			public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
-				String path = watch.fspec.startsWith("web/") ? watch.fspec.substring(4) : watch.fspec;
-				if (templates.containsKey(path)) {
-					templates.put(path, compile(getInputStream(path)));
-					LOGGER.info("Recompiling template: {}", path);
-				}
+		FileWatcher.Listener recompiler = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
+			String path = watch.getFileSpec().startsWith("web/") ? watch.getFileSpec().substring(4) : watch.getFileSpec();
+			if (templates.containsKey(path)) {
+				templates.put(path, compile(getInputStream(path)));
+				LOGGER.info("Recompiling template: {}", path);
 			}
 		};
 	}
@@ -764,7 +761,6 @@ public class WebInterfaceServerUtil {
 	public static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, String language, boolean isTVSeries, RootFolder rootFolder) {
 		JsonObject result = getAPIMetadataAsJsonObject(resource, isTVSeries, rootFolder);
 		if (result != null) {
-			result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 			result.addProperty("actorsTranslation", WebInterfaceServerUtil.getMsgString("Actors", language));
 			result.addProperty("awardsTranslation", WebInterfaceServerUtil.getMsgString("Awards", language));
 			result.addProperty("countryTranslation", WebInterfaceServerUtil.getMsgString("Country", language));
@@ -857,6 +853,7 @@ public class WebInterfaceServerUtil {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, rootFolder);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, rootFolder);
 		addStringDlnaId(result, "rated", ratedFolder, rootFolder);
+		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
 
 		return result;
 	}

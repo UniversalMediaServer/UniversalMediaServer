@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
@@ -42,8 +41,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.gui.EConnectionState;
@@ -64,17 +64,18 @@ public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
 	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
+	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
 
 	public static class RendererItem implements ActionListener, IRendererGuiListener {
-		public ImagePanel icon;
-		public JLabel label;
-		public GuiUtil.MarqueeLabel playingLabel;
-		public GuiUtil.FixedPanel playing;
-		public JLabel time;
-		public JFrame frame;
-		public GuiUtil.SmoothProgressBar rendererProgressBar;
-		public RendererPanel rendererPanel;
-		public String name = " ";
+		private final ImagePanel icon;
+		private final JLabel label;
+		private final GuiUtil.MarqueeLabel playingLabel;
+		private final GuiUtil.FixedPanel playing;
+		private final JLabel time;
+		private JFrame frame;
+		private final GuiUtil.SmoothProgressBar rendererProgressBar;
+		private RendererPanel rendererPanel;
+		private String name = " ";
 		private JPanel panel = null;
 
 		public RendererItem(RendererConfiguration renderer) {
@@ -100,22 +101,28 @@ public class StatusTab {
 		@Override
 		public void actionPerformed(final ActionEvent e) {
 			PlayerState state = ((BasicPlayer) e.getSource()).getState();
-			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
-				UMSUtils.playedDurationStr(state.position, state.duration));
-			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
-			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
 			if (!name.equals(n)) {
 				name = n;
 				playingLabel.setText(name);
+			}
+			// Maximize the playing label width if not already done
+			if (playing.getSize().width == 0) {
+				int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
+				playing.setSize(w, (int) playingLabel.getSize().getHeight());
+				playingLabel.setMaxWidth(w);
 			}
 		}
 
 		@Override
 		public void refreshPlayerState(final PlayerState state) {
-			time.setText((state.playback == BasicPlayer.STOPPED || StringUtil.isZeroTime(state.position)) ? " " :
-				UMSUtils.playedDurationStr(state.position, state.duration));
-			rendererProgressBar.setValue((int) (100 * state.buffer / bufferSize));
-			String n = (state.playback == BasicPlayer.STOPPED || StringUtils.isBlank(state.name)) ? " " : state.name;
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
 			if (!name.equals(n)) {
 				name = n;
 				playingLabel.setText(name);
@@ -133,18 +140,20 @@ public class StatusTab {
 
 		@Override
 		public void delete() {
-			try {
-				// Delete the popup if open
-				if (frame != null) {
-					frame.dispose();
-					frame = null;
+			SwingUtilities.invokeLater(() -> {
+				try {
+					// Delete the popup if open
+					if (frame != null) {
+						frame.dispose();
+						frame = null;
+					}
+					Container parent = panel.getParent();
+					parent.remove(panel);
+					parent.revalidate();
+					parent.repaint();
+				} catch (Exception e) {
 				}
-				Container parent = panel.getParent();
-				parent.remove(panel);
-				parent.revalidate();
-				parent.repaint();
-			} catch (Exception e) {
-			}
+			});
 		}
 
 		public JPanel getPanel() {
@@ -186,14 +195,10 @@ public class StatusTab {
 	private JPanel renderers;
 	private JLabel mediaServerBindLabel;
 	private JLabel interfaceServerBindLabel;
-	private JProgressBar memoryProgressBar;
 	private GuiUtil.SegmentedProgressBarUI memBarUI;
-	private JLabel bitrateLabel;
 	private JLabel currentBitrate;
-	private JLabel currentBitrateLabel;
 	private JLabel peakBitrate;
-	private JLabel peakBitrateLabel;
-	private static DecimalFormat formatter = new DecimalFormat("#,###");
+
 	private static int bufferSize;
 	private EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
@@ -208,7 +213,7 @@ public class StatusTab {
 	 * @todo choose better icons for these
 	 * @param configuration
 	 */
-	StatusTab(PmsConfiguration configuration) {
+	StatusTab(UmsConfiguration configuration) {
 		// Build Animations
 		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
 
@@ -229,7 +234,7 @@ public class StatusTab {
 			this.connectionState = connectionState;
 			AnimatedIcon oldIcon = (AnimatedIcon) connectionStatus.getIcon();
 			switch (connectionState) {
-				case SEARCHING:
+				case SEARCHING -> {
 					connectionStatus.setToolTipText(Messages.getString("SearchingForRenderers"));
 					searchingIcon.restartArm();
 					if (oldIcon != null) {
@@ -237,8 +242,8 @@ public class StatusTab {
 					} else {
 						connectionStatus.setIcon(searchingIcon);
 					}
-					break;
-				case CONNECTED:
+				}
+				case CONNECTED -> {
 					connectionStatus.setToolTipText(Messages.getString("Connected"));
 					connectedIcon.restartArm();
 					if (oldIcon != null) {
@@ -246,8 +251,8 @@ public class StatusTab {
 					} else {
 						connectionStatus.setIcon(connectedIcon);
 					}
-					break;
-				case DISCONNECTED:
+				}
+				case DISCONNECTED -> {
 					connectionStatus.setToolTipText(Messages.getString("NoRenderersWereFound"));
 					disconnectedIcon.restartArm();
 					if (oldIcon != null) {
@@ -255,8 +260,8 @@ public class StatusTab {
 					} else {
 						connectionStatus.setIcon(disconnectedIcon);
 					}
-					break;
-				case BLOCKED:
+				}
+				case BLOCKED -> {
 					connectionStatus.setToolTipText(Messages.getString("PortBlockedChangeIt"));
 					blockedIcon.reset();
 					if (oldIcon != null) {
@@ -264,9 +269,8 @@ public class StatusTab {
 					} else {
 						connectionStatus.setIcon(blockedIcon);
 					}
-					break;
-				default:
-					connectionStatus.setIcon(null);
+				}
+				default -> connectionStatus.setIcon(null);
 			}
 		}
 	}
@@ -356,7 +360,7 @@ public class StatusTab {
 		memBarUI.addSegment("", MEM_COLOR);
 		memBarUI.addSegment("", BUF_COLOR);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
-		memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
+		JProgressBar memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
 		memoryProgressBar.setStringPainted(true);
 		memoryProgressBar.setForeground(new Color(75, 140, 181));
 		memoryProgressBar.setString(Messages.getString("Empty"));
@@ -369,11 +373,11 @@ public class StatusTab {
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
 		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
 
-		bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
+		JLabel bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
-		currentBitrateLabel = new JLabel(Messages.getString("Current"));
+		JLabel currentBitrateLabel = new JLabel(Messages.getString("Current"));
 		currentBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
@@ -381,7 +385,7 @@ public class StatusTab {
 		currentBitrate.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
-		peakBitrateLabel = new JLabel(Messages.getString("Peak"));
+		JLabel peakBitrateLabel = new JLabel(Messages.getString("Peak"));
 		peakBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 
@@ -417,11 +421,11 @@ public class StatusTab {
 	}
 
 	public void setCurrentBitrate(int sizeinMb) {
-		currentBitrate.setText(formatter.format(sizeinMb));
+		currentBitrate.setText(FORMATTER.format(sizeinMb));
 	}
 
 	public void setPeakBitrate(int sizeinMb) {
-		peakBitrate.setText(formatter.format(sizeinMb));
+		peakBitrate.setText(FORMATTER.format(sizeinMb));
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {
@@ -505,12 +509,12 @@ public class StatusTab {
 
 				if (!f.isAbsolute() && f.getParent() == null) {
 					// filename, try profile renderers dir
-					f = new File(RendererConfiguration.getProfileRenderersDir(), icon);
+					f = new File(RendererConfigurations.getProfileRenderersDir(), icon);
 					if (f.isFile()) {
 						is = new FileInputStream(f);
 					} else {
 						//try renderers dir
-						f = new File(RendererConfiguration.getRenderersDir(), icon);
+						f = new File(RendererConfigurations.getRenderersDir(), icon);
 						if (f.isFile()) {
 							is = new FileInputStream(f);
 						}

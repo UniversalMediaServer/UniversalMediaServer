@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
@@ -25,7 +24,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the Cover Art Archive table. It
@@ -118,18 +116,31 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * A type class for returning results from Cover Art Archive database
 	 * lookup.
 	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	public static class CoverArtArchiveResult {
+		private final boolean found;
+		private final Timestamp modified;
+		private final byte[] cover;
 
-		public boolean found = false;
-		public Timestamp modified = null;
-		public byte[] cover = null;
-
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
 		public CoverArtArchiveResult(final boolean found, final Timestamp modified, final byte[] cover) {
 			this.found = found;
 			this.modified = modified;
 			this.cover = cover;
+		}
+
+		public boolean isFound() {
+			return found;
+		}
+
+		public long getModifiedTime() {
+			return modified.getTime();
+		}
+
+		public boolean hasCoverBytes() {
+			return cover != null;
+		}
+
+		public byte[] getCoverBytes() {
+			return cover;
 		}
 	}
 

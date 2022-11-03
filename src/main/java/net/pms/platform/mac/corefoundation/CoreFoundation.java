@@ -155,14 +155,14 @@ public interface CoreFoundation extends Library {
 	 * dependencies in your code on the content or format of the information
 	 * returned by this function.
 	 *
-	 * @param type_id an integer of type {@code CFTypeID} that uniquely
+	 * @param typeId an integer of type {@code CFTypeID} that uniquely
 	 *            identifies a Core Foundation opaque type.
 	 * @return A {@code CFString} containing a type description. Ownership
 	 *         follows the <a href=
 	 *         "https://developer.apple.com/library/content/documentation/CoreFoundation/Conceptual/CFMemoryMgmt/Concepts/Ownership.html#//apple_ref/doc/uid/20001148-103029"
 	 *         >The Create Rule</a>.
 	 */
-	CFStringRef CFCopyTypeIDDescription(long type_id);
+	CFStringRef CFCopyTypeIDDescription(long typeId);
 
 	/**
 	 * Retains a Core Foundation object.
