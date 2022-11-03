@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.ExternalProgramInfo;
@@ -136,7 +135,7 @@ public class VideoLanVideoStreaming extends Engine {
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());

@@ -40,7 +40,6 @@ import net.pms.gui.IRendererGuiListener;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -55,7 +54,6 @@ import net.pms.util.InvalidArgumentException;
 import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -63,7 +61,6 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 public class RendererConfiguration extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
@@ -235,18 +232,11 @@ public class RendererConfiguration extends Renderer {
 	private long buffer;
 	private int maximumBitrateTotal = 0;
 
-	public RendererConfiguration() throws ConfigurationException {
-		this(null, null);
+	protected RendererConfiguration() throws ConfigurationException {
 	}
 
 	public RendererConfiguration(String uuid) throws ConfigurationException {
 		this(null, uuid);
-	}
-
-	public RendererConfiguration(int ignored) {
-		// Just instantiate minimally, full initialization will happen later
-		configuration = createPropertiesConfiguration();
-		configurationReader = new ConfigurationReader(configuration, true); // true: log
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
@@ -406,6 +396,10 @@ public class RendererConfiguration extends Renderer {
 
 	public Configuration getConfiguration() {
 		return configuration;
+	}
+
+	public ConfigurationReader getConfigurationReader() {
+		return configurationReader;
 	}
 
 	public UmsConfiguration getUmsConfiguration() {
@@ -2390,46 +2384,6 @@ public class RendererConfiguration extends Renderer {
 
 	public boolean getHlsMultiVideoQuality() {
 		return getBoolean(KEY_HLS_MULTI_VIDEO_QUALITY, false);
-	}
-
-	/**
-	 * Note: This is not guaranteed to contain ALL settings,
-	 * only the ones the user has changed from defaults. To
-	 * get the whole picture it needs to be combined with
-	 * the defaults.
-	 *
-	 * Note: We do not save the configuration as JSON at
-	 * any point, this is just a convenience method for
-	 * our REST API.
-	 *
-	 * @return the user settings as a JSON string.
-	 */
-	public String getConfigurationAsJsonString() {
-		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
-
-		Map<String, String> propsAsStringMap = new HashMap<>();
-		configurationAsProperties.forEach((key, value) -> {
-				String strKey = Objects.toString(key);
-				if (SettingsApiServlet.haveKey(strKey)) {
-					String strValue = Objects.toString(value);
-					//do not add non acceptable empty key then it back to default
-					if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
-						//escape "\" char with "\\" otherwise json will fail
-						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
-					}
-				}
-			}
-		);
-
-		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
-	}
-
-	public Configuration getRawConfiguration() {
-		return configuration;
-	}
-
-	public ConfigurationReader getConfigurationReader() {
-		return configurationReader;
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {

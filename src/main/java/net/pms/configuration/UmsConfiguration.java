@@ -70,6 +70,7 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -86,7 +87,7 @@ import org.slf4j.LoggerFactory;
  * return a default value. Setters only store a value, they do not permanently save it to
  * file.
  */
-public class UmsConfiguration extends RendererConfiguration {
+public class UmsConfiguration extends BaseConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsConfiguration.class);
 
 	/*
@@ -687,8 +688,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @throws InterruptedException
 	 */
 	public UmsConfiguration(boolean loadFile) throws ConfigurationException, InterruptedException {
-		super(0);
-
+		super(true);
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
@@ -754,24 +754,18 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	protected UmsConfiguration(int ignored) {
 		// Just instantiate
-		super(0);
+		super(true);
 		tempFolder = null;
 		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
 	}
 
-	protected UmsConfiguration(File f, String uuid) throws ConfigurationException {
-		// Just initialize super
-		super(f, uuid);
+	protected UmsConfiguration(Configuration configuration, ConfigurationReader configurationReader) {
+		// Just instantiate
+		super(configuration, configurationReader);
 		tempFolder = null;
-		programPaths = new ConfigurableProgramPaths(configuration);
 		filter = null;
-	}
-
-	@Override
-	public void reset() {
-		// This is just to prevent super.reset() from being invoked. Actual resetting would
-		// require rebooting here, since all of the application settings are implicated.
+		programPaths = new ConfigurableProgramPaths(configuration);
 	}
 
 	private static String verifyLogFolder(File folder, String fallbackTo) {

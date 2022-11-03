@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +45,7 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +117,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
 
-				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
+				String configurationAsJsonString = getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 
 				//select need string, not number
@@ -156,7 +158,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/" -> {
-					Configuration configuration = CONFIGURATION.getRawConfiguration();
+					Configuration configuration = CONFIGURATION.getConfiguration();
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
 						WebGuiServletHelper.respondUnauthorized(req, resp);
@@ -329,7 +331,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		if (haveKey(key)) {
 			JsonObject datas = new JsonObject();
 			datas.addProperty("action", "set_configuration_changed");
-			Configuration configuration = CONFIGURATION.getRawConfiguration();
+			Configuration configuration = CONFIGURATION.getConfiguration();
 			JsonObject userConfiguration = new JsonObject();
 			if (configuration.containsKey(key)) {
 				String strValue = Objects.toString(configuration.getProperty(key));
@@ -359,4 +361,37 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		}
 		return "";
 	}
+
+	/**
+	 * Note: This is not guaranteed to contain ALL settings,
+	 * only the ones the user has changed from defaults. To
+	 * get the whole picture it needs to be combined with
+	 * the defaults.
+	 *
+	 * Note: We do not save the configuration as JSON at
+	 * any point, this is just a convenience method for
+	 * our REST API.
+	 *
+	 * @return the user settings as a JSON string.
+	 */
+	public String getConfigurationAsJsonString() {
+		Properties configurationAsProperties = ConfigurationConverter.getProperties(CONFIGURATION.getConfiguration());
+
+		Map<String, String> propsAsStringMap = new HashMap<>();
+		configurationAsProperties.forEach((key, value) -> {
+				String strKey = Objects.toString(key);
+				if (SettingsApiServlet.haveKey(strKey)) {
+					String strValue = Objects.toString(value);
+					//do not add non acceptable empty key then it back to default
+					if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
+						//escape "\" char with "\\" otherwise json will fail
+						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
+					}
+				}
+			}
+		);
+
+		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
+	}
+
 }

@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceConfiguration extends UmsConfiguration {
+public class DeviceConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
 
 	private static final int DEVICE = 0;
@@ -38,23 +38,19 @@ public class DeviceConfiguration extends UmsConfiguration {
 	private PropertiesConfiguration deviceConf = null;
 	private RendererConfiguration ref = null;
 
-	public DeviceConfiguration() throws InterruptedException {
-		super(0);
-	}
-
 	public DeviceConfiguration(File f, String uuid) throws ConfigurationException, InterruptedException {
 		super(f, uuid);
+		initDeviceConfiguration(null);
 		inherit(null);
 	}
 
 	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
-		super(0);
+		initDeviceConfiguration(null);
 		inherit(ref);
 	}
 
 	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
-		super(0);
-		deviceConf = initConfiguration(ia);
+		initDeviceConfiguration(ia);
 		inherit(ref);
 	}
 
@@ -72,7 +68,7 @@ public class DeviceConfiguration extends UmsConfiguration {
 		// Add the component configurations in order of lookup priority:
 
 		// 1. The device configuration, marked as "in memory" (i.e. writeable)
-		cconf.addConfiguration(deviceConf != null ? deviceConf : initConfiguration(null), true);
+		cconf.addConfiguration(deviceConf, true);
 		// 2. The reference renderer configuration (read-only)
 		if (ref == null) {
 			cconf.addConfiguration(getConfiguration());
@@ -85,14 +81,14 @@ public class DeviceConfiguration extends UmsConfiguration {
 
 		// Handle all queries (external and internal) via the composite configuration
 		configuration = cconf;
-		umsConfiguration = this;
-
 		configurationReader = new ConfigurationReader(configuration, true);
+
+		umsConfiguration = new UmsConfiguration(configuration, configurationReader);
 
 		// Sync our internal UmsConfiguration vars
 		// TODO: create new objects here instead?
-		tempFolder = baseConf.tempFolder;
-		filter = baseConf.filter;
+		//tempFolder = baseConf.tempFolder;
+		//filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars
 		if (ref != null) {
@@ -137,13 +133,13 @@ public class DeviceConfiguration extends UmsConfiguration {
 			this.uuid = uuid;
 			// Switch to the custom device conf for this new uuid, if any
 			if (DeviceConfigurations.isDeviceConfigurationChanged(uuid, deviceConf)) {
-				deviceConf = initConfiguration(null);
+				initDeviceConfiguration(null);
 				reset();
 			}
 		}
 	}
 
-	public final PropertiesConfiguration initConfiguration(InetAddress ia) {
+	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia) {
 		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
 		if (id != null && DeviceConfigurations.hasDeviceConfiguration(id)) {
 			deviceConf = DeviceConfigurations.getDeviceConfiguration(id);

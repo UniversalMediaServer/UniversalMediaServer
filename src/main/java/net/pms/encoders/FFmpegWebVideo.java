@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FFmpegWebFilters;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
@@ -86,7 +85,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// TODO: stop doing that
 		UmsConfiguration existingConfiguration = configuration;
 
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		RendererConfiguration renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);

@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -119,7 +118,7 @@ public class TsMuxeRVideo extends Engine {
 	) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 

@@ -246,9 +246,8 @@ public class RendererConfigurations {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
 			ENABLED_RENDERERS_CONFS.clear();
 			try {
-				defaultConf = new RendererConfiguration();
-				streamingConf = new DeviceConfiguration();
-				streamingConf.inherit(defaultConf);
+				defaultConf = new RendererConfiguration(null, null);
+				streamingConf = new DeviceConfiguration(defaultConf);
 			} catch (ConfigurationException | InterruptedException e) {
 				LOGGER.debug("Caught exception", e);
 			}

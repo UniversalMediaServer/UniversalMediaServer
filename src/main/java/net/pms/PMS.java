@@ -114,7 +114,7 @@ public class PMS {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PMS.class);
 
 	// TODO(tcox):  This shouldn't be static
-	private static UmsConfiguration configuration;
+	private static UmsConfiguration umsConfiguration;
 
 	/**
 	 * Universally Unique Identifier used in the UPnP mediaServer.
@@ -275,7 +275,7 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: {}", cwd);
 
-		LOGGER.info("Temporary directory: {}", configuration.getTempFolder());
+		LOGGER.info("Temporary directory: {}", umsConfiguration.getTempFolder());
 
 		/**
 		 * Verify the java.io.tmpdir is writable; JNA requires it.
@@ -314,8 +314,8 @@ public class PMS {
 			}
 		}
 
-		String profilePath = configuration.getProfilePath();
-		String profileDirectoryPath = configuration.getProfileDirectory();
+		String profilePath = umsConfiguration.getProfilePath();
+		String profileDirectoryPath = umsConfiguration.getProfileDirectory();
 
 		LOGGER.info("");
 		LOGGER.info("Profile directory: {}", profileDirectoryPath);
@@ -332,16 +332,16 @@ public class PMS {
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Profile configuration file not found: {}", e.getMessage());
 		}
-		LOGGER.info("Profile name: {}", configuration.getProfileName());
+		LOGGER.info("Profile name: {}", umsConfiguration.getProfileName());
 		LOGGER.info("");
 
 		/**
 		 * Ensure the data directory is created. On Windows this is
 		 * usually done by the installer
 		 */
-		File dDir = new File(configuration.getDataDir());
+		File dDir = new File(umsConfiguration.getDataDir());
 		if (!dDir.exists() && !dDir.mkdirs()) {
-			LOGGER.error("Failed to create profile folder \"{}\"", configuration.getDataDir());
+			LOGGER.error("Failed to create profile folder \"{}\"", umsConfiguration.getDataDir());
 		}
 
 		dbgPack = new DbgPacker();
@@ -361,7 +361,7 @@ public class PMS {
 	 */
 	private boolean init() throws Exception {
 		// Gather and log system information from a separate thread
-		LogSystemInformationMode logSystemInfo = configuration.getLogSystemInformation();
+		LogSystemInformationMode logSystemInfo = umsConfiguration.getLogSystemInformation();
 		if (
 			logSystemInfo == LogSystemInformationMode.ALWAYS ||
 			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
@@ -373,8 +373,8 @@ public class PMS {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
-			(configuration.getLanguageRawString() == null ||
-			!Languages.isValid(configuration.getLanguageRawString()))
+			(umsConfiguration.getLanguageRawString() == null ||
+			!Languages.isValid(umsConfiguration.getLanguageRawString()))
 		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
@@ -388,9 +388,9 @@ public class PMS {
 		Splash splash = null;
 		if (!isHeadless()) {
 			windowConfiguration = new WindowPropertiesConfiguration(
-				Paths.get(configuration.getProfileDirectory()).resolve("UMS.dat")
+				Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat")
 			);
-			splash = new Splash(configuration, windowConfiguration.getGraphicsConfiguration());
+			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
 		}
 
 		// Call this as early as possible
@@ -429,14 +429,14 @@ public class PMS {
 		}
 
 		// Wizard
-		if (configuration.isRunWizard() && !isHeadless()) {
+		if (umsConfiguration.isRunWizard() && !isHeadless()) {
 			// Hide splash screen
 			if (splash != null) {
 				splash.setVisible(false);
 			}
 
 			// Run wizard
-			Wizard.run(configuration);
+			Wizard.run(umsConfiguration);
 
 			// Unhide splash screen
 			if (splash != null) {
@@ -455,35 +455,35 @@ public class PMS {
 
 		// Show info that video automatic setting was improved and was not set in the wizard.
 		// This must be done before the frame is initialized to accept changes.
-		if (!isHeadless() && configuration.showInfoAboutVideoAutomaticSetting()) {
-			if (!configuration.isAutomaticMaximumBitrate()) {
+		if (!isHeadless() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
+			if (!umsConfiguration.isAutomaticMaximumBitrate()) {
 				// Ask if user wants to use automatic maximum bitrate
 				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
-				configuration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
+				umsConfiguration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
 			// It will be shown only once
-			configuration.setShowInfoAboutVideoAutomaticSetting(false);
+			umsConfiguration.setShowInfoAboutVideoAutomaticSetting(false);
 		}
 
 		// Actions that happen only the first time UMS runs
-		if (!configuration.hasRunOnce()) {
+		if (!umsConfiguration.hasRunOnce()) {
 			/*
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
 			 */
 			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
-				configuration.setEngineEnabled(YoutubeDl.ID, true);
-				configuration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
+				umsConfiguration.setEngineEnabled(YoutubeDl.ID, true);
+				umsConfiguration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
 			}
 
 			// Ensure this only happens once
-			configuration.setHasRunOnce();
+			umsConfiguration.setHasRunOnce();
 		}
 
-		GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
+		GuiManager.setScanLibraryStatus(umsConfiguration.getUseCache(), false);
 		if (!isHeadless()) {
-			GuiManager.addGui(new LooksFrame(autoUpdater, configuration, windowConfiguration));
+			GuiManager.addGui(new LooksFrame(autoUpdater, umsConfiguration, windowConfiguration));
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
@@ -494,7 +494,7 @@ public class PMS {
 			splash.dispose();
 		}
 
-		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+		umsConfiguration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
 				if (UmsConfiguration.NEED_MEDIA_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					GuiManager.setReloadable(true);
@@ -519,7 +519,7 @@ public class PMS {
 		resetWebPlayerServer();
 
 		// init Credentials
-		credMgr = new CredMgr(configuration.getCredFile());
+		credMgr = new CredMgr(umsConfiguration.getCredFile());
 
 		// init dbs
 		codes = new CodeDb();
@@ -528,11 +528,11 @@ public class PMS {
 		RendererConfigurations.loadRendererConfigurations();
 
 		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
-		if (!configuration.isDisableSubtitles()) {
+		if (!umsConfiguration.isDisableSubtitles()) {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
 			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, configuration.getMPlayerPath(), "dummy");
+			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getMPlayerPath(), "dummy");
 
 			/**
 			 * Note: Different versions of fontconfig and bitness require
@@ -540,12 +540,11 @@ public class PMS {
 			 * if possible) to create a cache.
 			 * This should result in all of the necessary caches being built.
 			 */
-			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && configuration.getFFmpegPath() != null) {
-				ThreadedProcessWrapper.runProcessNullOutput(
-					5,
+			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && umsConfiguration.getFFmpegPath() != null) {
+				ThreadedProcessWrapper.runProcessNullOutput(5,
 					TimeUnit.MINUTES,
 					2000,
-					configuration.getFFmpegPath(),
+					umsConfiguration.getFFmpegPath(),
 					"-y",
 					"-f",
 					"lavfi",
@@ -561,7 +560,7 @@ public class PMS {
 		}
 
 		// Check available GPU HW decoding acceleration methods used in FFmpeg
-		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(configuration);
+		UMSUtils.checkGPUDecodingAccelerationMethodsForFFmpeg(umsConfiguration);
 
 		GuiManager.setConnectionState(EConnectionState.SEARCHING);
 
@@ -628,14 +627,14 @@ public class PMS {
 		getRootFolder(RendererConfigurations.getDefaultConf());
 
 		// Ensure up-to-date API metadata versions
-		if (configuration.getExternalNetwork() && configuration.isUseInfoFromIMDb()) {
+		if (umsConfiguration.getExternalNetwork() && umsConfiguration.isUseInfoFromIMDb()) {
 			APIUtils.setApiMetadataVersions();
 			APIUtils.setApiImageBaseURL();
 		}
 
 		GuiManager.serverReady();
 		ready = true;
-		if (configuration.isWebGuiOnStart() && !isRunningTests()) {
+		if (umsConfiguration.isWebGuiOnStart() && !isRunningTests()) {
 			new Thread("Web GUI browser") {
 				@Override
 				public void run() {
@@ -656,10 +655,10 @@ public class PMS {
 			}
 		});
 
-		configuration.setAutoSave();
+		umsConfiguration.setAutoSave();
 
 		// Initiate a library scan in case files were added to folders while UMS was closed.
-		if (configuration.getUseCache() && configuration.isScanSharedFoldersOnStartup()) {
+		if (umsConfiguration.getUseCache() && umsConfiguration.isScanSharedFoldersOnStartup()) {
 			LibraryScanner.scanLibrary();
 		}
 
@@ -749,10 +748,10 @@ public class PMS {
 			webGuiServer.stop();
 		}
 		try {
-			webGuiServer = WebGuiServer.createServer(configuration.getWebGuiServerPort());
+			webGuiServer = WebGuiServer.createServer(umsConfiguration.getWebGuiServerPort());
 		} catch (BindException b) {
 			try {
-				LOGGER.info("Unable to bind web interface on port: " + configuration.getWebGuiServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Unable to bind web interface on port: " + umsConfiguration.getWebGuiServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Falling back to random port.");
 				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
@@ -776,12 +775,12 @@ public class PMS {
 		if (webPlayerServer != null) {
 			webPlayerServer.stop();
 		}
-		if (configuration.useWebPlayerServer()) {
+		if (umsConfiguration.useWebPlayerServer()) {
 			try {
-				webPlayerServer = WebPlayerServer.createServer(configuration.getWebPlayerServerPort());
+				webPlayerServer = WebPlayerServer.createServer(umsConfiguration.getWebPlayerServerPort());
 				GuiManager.updateServerStatus();
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + configuration.getWebPlayerServerPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + umsConfiguration.getWebPlayerServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
@@ -802,14 +801,14 @@ public class PMS {
 	public synchronized String udn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
-			uuid = configuration.getUuid();
+			uuid = umsConfiguration.getUuid();
 
 			if (uuid == null) {
 				uuid = UUID.randomUUID().toString();
 				LOGGER.info("Generated new random UUID: {}", uuid);
 
 				// save the newly-generated UUID
-				configuration.setUuid(uuid);
+				umsConfiguration.setUuid(uuid);
 				saveConfiguration();
 			}
 
@@ -956,8 +955,8 @@ public class PMS {
 		}
 
 		try {
-			configuration = new UmsConfiguration();
-			assert configuration != null;
+			umsConfiguration = new UmsConfiguration();
+			assert umsConfiguration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
 			if (PlatformUtils.isWindows()) {
@@ -974,7 +973,7 @@ public class PMS {
 			 */
 
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
-			LoggingConfig.setRootLevel(Level.toLevel(configuration.getRootLogLevel()));
+			LoggingConfig.setRootLevel(Level.toLevel(umsConfiguration.getRootLogLevel()));
 
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new UmsConfiguration'
@@ -990,11 +989,11 @@ public class PMS {
 			}
 
 			// Configure syslog unless in forced trace mode
-			if (traceMode != 2 && configuration.getLoggingUseSyslog()) {
+			if (traceMode != 2 && umsConfiguration.getLoggingUseSyslog()) {
 				LoggingConfig.setSyslog();
 			}
 			// Configure log buffering
-			if (traceMode != 2 && configuration.getLoggingBuffered()) {
+			if (traceMode != 2 && umsConfiguration.getLoggingBuffered()) {
 				LoggingConfig.setBuffered(true);
 			} else if (traceMode == 2) {
 				// force unbuffered regardless of logback.xml if in forced trace mode
@@ -1012,12 +1011,12 @@ public class PMS {
 			LOGGER.debug(new Date().toString());
 
 			try {
-				configuration.initCred();
+				umsConfiguration.initCred();
 			} catch (IOException e) {
 				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
-			if (configuration.isRunSingleInstance()) {
+			if (umsConfiguration.isRunSingleInstance()) {
 				killOld();
 			}
 
@@ -1058,7 +1057,7 @@ public class PMS {
 	 */
 	public void saveConfiguration() {
 		try {
-			configuration.save();
+			umsConfiguration.save();
 		} catch (ConfigurationException e) {
 			LOGGER.error("Could not save configuration", e);
 		}
@@ -1072,7 +1071,7 @@ public class PMS {
 	 * @return The configuration object
 	 */
 	public static UmsConfiguration getConfiguration() {
-		return configuration;
+		return umsConfiguration;
 	}
 
 	/**
@@ -1086,7 +1085,7 @@ public class PMS {
 	 * @return          The DeviceConfiguration object, if any, or the global UmsConfiguration.
 	 */
 	public static UmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer instanceof DeviceConfiguration) ? (DeviceConfiguration) renderer : configuration;
+		return (renderer instanceof DeviceConfiguration deviceConf) ? deviceConf.getUmsConfiguration() : umsConfiguration;
 	}
 
 	public static UmsConfiguration getConfiguration(OutputParams params) {
@@ -1106,7 +1105,7 @@ public class PMS {
 	 * @param conf The configuration object.
 	 */
 	public static void setConfiguration(UmsConfiguration conf) {
-		configuration = conf;
+		umsConfiguration = conf;
 	}
 
 	/**
@@ -1263,7 +1262,7 @@ public class PMS {
 	}
 
 	private static String pidFile() {
-		return configuration.getDataFile("UMS.pid");
+		return umsConfiguration.getDataFile("UMS.pid");
 	}
 
 	private static void killProc() throws SecurityException, IOException {
@@ -1512,8 +1511,8 @@ public class PMS {
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
-				configuration.getDynamicPlsSavePath(),
-				(configuration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+				umsConfiguration.getDynamicPlsSavePath(),
+				(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}

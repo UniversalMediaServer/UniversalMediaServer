@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -785,7 +784,7 @@ public class FFMpegVideo extends Engine {
 		newInput.setPush(params.getStdIn());
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -1313,7 +1312,7 @@ public class FFMpegVideo extends Engine {
 		params.setWaitBeforeStart(1000);
 		// Use device-specific conf
 		UmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		HlsHelper.HlsConfiguration hlsConfiguration = params.getHlsConfiguration();
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
 		boolean needAudio = hlsConfiguration.audioStream > -1;

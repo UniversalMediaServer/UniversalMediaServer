@@ -57,20 +57,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebRender extends DeviceConfiguration implements OutputOverride {
-	private final String user;
-	private final String defaultMime;
-	private final Gson gson;
-	private String ip;
-	@SuppressWarnings("unused")
-	private int port;
-	private String ua;
-	private int browser = 0;
-	private int screenWidth = 0;
-	private int screenHeight = 0;
-	private boolean isTouchDevice = false;
-	private String subLang;
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
 	private static final Format[] SUPPORTED_FORMATS = {
 		new GIF(),
 		new JPG(),
@@ -94,6 +83,18 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	protected static final int CHROMIUM = 9;
 	protected static final int VIVALDI = 10;
 
+	private final String user;
+	private final String defaultMime;
+	private final Gson gson;
+	private String ip;
+	@SuppressWarnings("unused")
+	private int port;
+	private String ua;
+	private int browser = 0;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
+	private boolean isTouchDevice = false;
+	private String subLang;
 	private StartStopListenerDelegate startStop;
 
 	public WebRender(String user) throws ConfigurationException, InterruptedException {
@@ -527,7 +528,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 
 	@Override
 	public String getSubLanguage() {
-		if (!useWebPlayerSubLang() || StringUtils.isEmpty(subLang)) {
+		if (!CONFIGURATION.useWebPlayerSubLang() || StringUtils.isEmpty(subLang)) {
 			return super.getSubLanguage();
 		}
 		return subLang;

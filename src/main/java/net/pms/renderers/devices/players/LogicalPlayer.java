@@ -47,8 +47,8 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 		playlist = new Playlist(this);
 		lastPlayback = PlayerState.STOPPED;
 		maxVol = renderer.getMaxVolume();
-		autoContinue = renderer.isAutoContinue();
-		addAllSiblings = renderer.isAutoAddAll();
+		autoContinue = renderer.getUmsConfiguration().isAutoContinue();
+		addAllSiblings = renderer.getUmsConfiguration().isAutoAddAll();
 		forceStop = false;
 		alert();
 		initAutoPlay(this);
@@ -186,7 +186,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	private static void initAutoPlay(final LogicalPlayer player) {
-		String auto = player.renderer.getAutoPlay();
+		String auto = player.renderer.getUmsConfiguration().getAutoPlay();
 		if (StringUtils.isEmpty(auto)) {
 			return;
 		}
