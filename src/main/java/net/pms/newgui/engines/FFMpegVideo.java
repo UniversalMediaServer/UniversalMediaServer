@@ -75,7 +75,7 @@ public class FFMpegVideo {
 
 		y += 2;
 		builder.addLabel(Messages.getString("LogLevel"), cc.xy(1, y));
-		JComboBox<String> fFmpegLoggingLevel = new JComboBox<>(FFmpegLogLevels.getLabels());
+		fFmpegLoggingLevel = new JComboBox<>(FFmpegLogLevels.getLabels());
 		fFmpegLoggingLevel.setSelectedItem(CONFIGURATION.getFFmpegLoggingLevel());
 		fFmpegLoggingLevel.setToolTipText(Messages.getString("SetFfmpegLoggingLevelDecides"));
 		fFmpegLoggingLevel.addItemListener((ItemEvent e) -> {
