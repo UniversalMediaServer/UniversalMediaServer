@@ -76,7 +76,7 @@ public class SharedContentTab implements SharedContentListener {
 	private static final AnimatedIcon SCAN_BUSY_PRESSED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-cancel_pressed.png");
 	private static final AnimatedIcon SCAN_BUSY_DISABLED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-scan-busy_disabled.png");
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
-	private static final String PANEL_ROW_SPEC = "fill:default:grow, 9dlu, fill:default:grow";
+	private static final String PANEL_ROW_SPEC = "fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), fill:default:grow";
 
@@ -184,7 +184,7 @@ public class SharedContentTab implements SharedContentListener {
 		// Load WEB.conf after we are sure the GUI has initialized
 		SharedContentConfiguration.addListener(this);
 
-		builder.add(sharedContentPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
+		builder.add(sharedContentPanel, FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
