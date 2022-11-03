@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform;
 
@@ -35,7 +34,7 @@ public class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
 	private static final String DEFAULT_TEMP_FOLDER_NAME = "UMS";
 	private final String userSpecifiedFolder;
-	private File tempFolder;
+	private File folder;
 
 	/**
 	 * @param userSpecifiedFolder may be null
@@ -45,14 +44,14 @@ public class TempFolder {
 	}
 
 	public synchronized File getTempFolder() throws IOException {
-		if (tempFolder == null) {
-			tempFolder = getTempFolder(userSpecifiedFolder);
+		if (folder == null) {
+			folder = getTempFolder(userSpecifiedFolder);
 		}
 
-		return tempFolder;
+		return folder;
 	}
 
-	private File getTempFolder(String userSpecifiedFolder) throws IOException {
+	private static File getTempFolder(String userSpecifiedFolder) throws IOException {
 		if (userSpecifiedFolder == null) {
 			return getSystemTempFolder();
 		}
@@ -65,7 +64,7 @@ public class TempFolder {
 		}
 	}
 
-	private File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
+	private static File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
 		if (userSpecifiedFolder == null || userSpecifiedFolder.length() == 0) {
 			throw new IOException("Temporary directory path must not be null or empty if specified");
 		}

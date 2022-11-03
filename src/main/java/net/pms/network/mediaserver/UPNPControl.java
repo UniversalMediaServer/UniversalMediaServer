@@ -1,26 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver;
 
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,7 +38,6 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererMap;
-import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
@@ -83,8 +80,8 @@ public class UPNPControl {
 	public static final int ACTIVE = 0;
 	public static final int CONTROLS = 1;
 	public static final int RENEW = 2;
-	public static final int AVT = BasicPlayer.PLAYCONTROL;
-	public static final int RC = BasicPlayer.VOLUMECONTROL;
+	public static final int AVT = Renderer.PLAYCONTROL;
+	public static final int RC = Renderer.VOLUMECONTROL;
 	public static final int ANY = 0xff;
 
 	private static final boolean DEBUG = true; // log upnp state vars
@@ -274,14 +271,14 @@ public class UPNPControl {
 
 	public static boolean isActive(String uuid, String id) {
 		if (rendererMap.containsKey(uuid, id)) {
-			return rendererMap.get(uuid, id).active;
+			return rendererMap.get(uuid, id).isActive();
 		}
 		return false;
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
 		if (rendererMap.containsKey(uuid)) {
-			return rendererMap.get(uuid, "0").controls != 0;
+			return rendererMap.get(uuid, "0").isControllable();
 		}
 		return false;
 	}
@@ -355,8 +352,8 @@ public class UPNPControl {
 	}
 
 	public static String getDeviceIcon(Renderer r, int maxHeight) {
-		if (isUpnpDevice(r.uuid)) {
-			return getDeviceIcon(getDevice(r.uuid), maxHeight);
+		if (isUpnpDevice(r.getUUID())) {
+			return getDeviceIcon(getDevice(r.getUUID()), maxHeight);
 		}
 		return null;
 	}
@@ -365,7 +362,8 @@ public class UPNPControl {
 		URL base = getURL(d);
 		Icon icon = null;
 		String url = null;
-		int maxH = maxHeight == 0 ? 99999 : maxHeight, height = 0;
+		int maxH = maxHeight == 0 ? 99999 : maxHeight;
+		int height = 0;
 		for (Icon i : d.getIcons()) {
 			int h = i.getHeight();
 			if (h < maxH && h > height) {
@@ -790,8 +788,8 @@ public class UPNPControl {
 		}
 	}
 
-	public static String unescape(String s) throws UnsupportedEncodingException {
-		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, "UTF-8")));
+	public static String unescape(String s) throws IllegalArgumentException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, StandardCharsets.UTF_8)));
 	}
 
 	public static InetAddress getAddress(String uuid) {
@@ -808,7 +806,7 @@ public class UPNPControl {
 	public static boolean hasRenderer(int type) {
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
-			if ((r.controls & type) != 0) {
+			if (r.isControllable(type)) {
 				return true;
 			}
 		}

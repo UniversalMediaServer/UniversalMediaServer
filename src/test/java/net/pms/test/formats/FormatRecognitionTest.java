@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.test.formats;
 
@@ -24,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RealFile;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
@@ -44,6 +43,7 @@ import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.network.HTTPResource;
+import net.pms.parsers.MediaInfoParser;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -56,21 +56,21 @@ import org.slf4j.LoggerFactory;
  */
 public class FormatRecognitionTest {
 	private static boolean mediaInfoParserIsValid;
-	private static PmsConfiguration configuration;
+	private static UmsConfiguration configuration;
 
 	@BeforeAll
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration(false));
+		PMS.setConfiguration(new UmsConfiguration(false));
 		PMS.configureJNA();
-		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
-		// Silence all log messages from the DMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 
 		// Initialize the RendererConfiguration
-		configuration = new PmsConfiguration(false);
+		configuration = new UmsConfiguration(false);
 	}
 
     /**
@@ -80,7 +80,7 @@ public class FormatRecognitionTest {
     public void testRendererConfigurationBasics() {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 		assertFalse(conf.isCompatible(null, null, configuration),
 			"With nothing provided isCompatible() should return false");
@@ -94,7 +94,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		// Construct regular two channel MP3 information
@@ -127,7 +127,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -161,7 +161,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -191,7 +191,7 @@ public class FormatRecognitionTest {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
-		RendererConfiguration conf = RendererConfiguration.getRendererConfigurationByName("Playstation 3");
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
@@ -268,7 +268,7 @@ public class FormatRecognitionTest {
 	}
 
 	/**
-	 * When DMS is in the process of starting up, something particular happens.
+	 * When UMS is in the process of starting up, something particular happens.
 	 * The RootFolder is initialized and several VirtualVideoActions are added
 	 * as children. VirtualVideoActions use the MPG format and at the time of
 	 * initialization getDefaultRenderer() is used to determine whether or not
@@ -286,9 +286,9 @@ public class FormatRecognitionTest {
 		boolean configurationLoaded = false;
 
 		try {
-			// Initialize DMS configuration like at initialization time, this
+			// Initialize UMS configuration like at initialization time, this
 			// is relevant for RendererConfiguration.isCompatible().
-			PMS.setConfiguration(new PmsConfiguration());
+			PMS.setConfiguration(new UmsConfiguration());
 			configurationLoaded = true;
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
@@ -298,7 +298,7 @@ public class FormatRecognitionTest {
 		assumeTrue(configurationLoaded);
 
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
-		assumeTrue(LibMediaInfoParser.isValid());
+		assumeTrue(MediaInfoParser.isValid());
 
 		DLNAResource dlna = new RealFile(new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does
@@ -331,7 +331,7 @@ public class FormatRecognitionTest {
 	public void testSubtitlesRecognition() throws FileNotFoundException {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationByName("Panasonic TX-L32V10E");
+		RendererConfiguration renderer = RendererConfigurations.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull(renderer, "Renderer named \"Panasonic TX-L32V10E\" not found.");
 		
 		DLNAResource dlna = new RealFile(new File("test.avi"));

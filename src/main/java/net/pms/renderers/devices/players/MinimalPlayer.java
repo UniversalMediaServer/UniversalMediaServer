@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.renderers.devices.players;
 
@@ -21,19 +20,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import javax.swing.DefaultComboBoxModel;
 import net.pms.configuration.DeviceConfiguration;
 
 /**
  * An empty implementation with some basic funtionalities defined.
  */
-public class MinimalPlayer implements BasicPlayer {
-	public DeviceConfiguration renderer;
+public abstract class MinimalPlayer implements BasicPlayer {
+	protected DeviceConfiguration renderer;
 	protected PlayerState state;
 	protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 	protected final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 
-	public MinimalPlayer(DeviceConfiguration renderer) {
+	protected MinimalPlayer(DeviceConfiguration renderer) {
 		this.renderer = renderer;
 		state = new PlayerState();
 		reset();
@@ -45,11 +43,7 @@ public class MinimalPlayer implements BasicPlayer {
 
 	@Override
 	public final void reset() {
-		state.playback = STOPPED;
-		state.position = "";
-		state.duration = "";
-		state.name = " ";
-		state.buffer = 0;
+		state.reset();
 		alert();
 	}
 
@@ -110,7 +104,7 @@ public class MinimalPlayer implements BasicPlayer {
 
 	@Override
 	public void setBuffer(long mb) {
-		state.buffer = mb;
+		state.setBuffer(mb);
 		alert();
 	}
 
@@ -176,12 +170,16 @@ public class MinimalPlayer implements BasicPlayer {
 	}
 
 	@Override
-	public DefaultComboBoxModel getPlaylist() {
+	public Playlist getPlaylist() {
 		return null;
 	}
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
+	}
+
+	public DeviceConfiguration getRenderer() {
+		return renderer;
 	}
 }
 

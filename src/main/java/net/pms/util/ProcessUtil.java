@@ -14,7 +14,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.util;
 
 import com.sun.jna.Platform;
@@ -71,7 +70,15 @@ public class ProcessUtil {
 		return exit;
 	}
 
-	// get the process ID on Unix (returns null otherwise)
+	/**
+	 * Get the process ID on Unix.
+	 *
+	 * @param p the process
+	 * @return the process ID, null otherwise
+	 *
+	 * @deprecated use {@link ProcessManager.getProcessId} instead
+	 */
+	@Deprecated
 	public static Integer getProcessID(Process p) {
 		Integer pid = null;
 

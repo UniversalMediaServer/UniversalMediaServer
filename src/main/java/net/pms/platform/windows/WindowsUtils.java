@@ -1,23 +1,21 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform.windows;
 
-import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Advapi32Util;
@@ -36,20 +34,24 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.pms.PMS;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
@@ -68,41 +70,6 @@ import org.slf4j.LoggerFactory;
 public class WindowsUtils extends PlatformUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsUtils.class);
 	private final Charset consoleCharset;
-
-	@SuppressWarnings({
-		"checkstyle:ConstantName",
-		"checkstyle:MethodName",
-		"checkstyle:ParameterName"
-	})
-	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
-		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
-
-		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
-
-		int GetWindowsDirectoryW(char[] lpdzShortPath, int uSize);
-
-		boolean GetVolumeInformationW(
-			char[] lpRootPathName,
-			CharBuffer lpVolumeNameBuffer,
-			int nVolumeNameSize,
-			LongByReference lpVolumeSerialNumber,
-			LongByReference lpMaximumComponentLength,
-			LongByReference lpFileSystemFlags,
-			CharBuffer lpFileSystemNameBuffer,
-			int nFileSystemNameSize
-		);
-
-		int SetThreadExecutionState(int EXECUTION_STATE);
-		int ES_CONTINUOUS        = 0x80000000;
-		int ES_SYSTEM_REQUIRED   = 0x00000001;
-		int ES_DISPLAY_REQUIRED  = 0x00000002;
-		int ES_AWAYMODE_REQUIRED = 0x00000040;
-
-		int GetACP();
-		int GetOEMCP();
-		int GetConsoleOutputCP();
-	}
 
 	private final boolean kerio;
 	protected final Path psPing;
@@ -172,8 +139,7 @@ public class WindowsUtils extends PlatformUtils {
 		return longPathName;
 	}
 
-	@Override
-	public String getWindowsDirectory() {
+	private static String getWindowsDirectory() {
 		char[] test = new char[2 + 256 * 2];
 		int r = Kernel32.INSTANCE.GetWindowsDirectoryW(test, 256);
 		if (r > 0) {
@@ -340,29 +306,12 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	@Nullable
-	public Double getWindowsVersion() {
-		try {
-			return Double.valueOf(System.getProperty("os.version"));
-		} catch (NullPointerException | NumberFormatException e) {
-			return null;
-		}
-	}
-
-	@Override
 	public boolean isAdmin() {
 		synchronized (IS_ADMIN_LOCK) {
 			if (isAdmin != null) {
 				return isAdmin;
 			}
-			Double version = getWindowsVersion();
-			if (version == null) {
-				LOGGER.error(
-					"Could not determine Windows version from {}. Administrator privileges is undetermined.",
-					System.getProperty("os.version")
-				);
-				isAdmin = false;
-			} else if (version >= 5.1) {
+			if (OS_VERSION.isGreaterThanOrEqualTo("5.1.0")) {
 				try {
 					String command = "reg query \"HKU\\S-1-5-19\"";
 					Process p = Runtime.getRuntime().exec(command);
@@ -389,13 +338,12 @@ public class WindowsUtils extends PlatformUtils {
 	@Override
 	public List<Path> getDefaultFolders() {
 		List<Path> result = new ArrayList<>();
-		Double version = getWindowsVersion();
-		if (version != null && version >= 6d) {
-			ArrayList<GUID> knownFolders = new ArrayList<>(Arrays.asList(new GUID[]{
+		if (OS_VERSION.isGreaterThanOrEqualTo("6.0.0")) {
+			List<GUID> knownFolders = List.of(
 				KnownFolders.FOLDERID_MUSIC,
 				KnownFolders.FOLDERID_PICTURES,
-				KnownFolders.FOLDERID_VIDEOS,
-			}));
+				KnownFolders.FOLDERID_VIDEOS
+			);
 			for (GUID guid : knownFolders) {
 				Path folder = getWindowsKnownFolder(guid);
 				if (folder != null) {
@@ -444,7 +392,7 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	public Charset getConsoleCharset() {
+	public Charset getDefaultCharset() {
 		return consoleCharset;
 	}
 
@@ -479,7 +427,7 @@ public class WindowsUtils extends PlatformUtils {
 			font = getAbsolutePath("D:\\Windows\\Fonts", "Arial.ttf");
 		}
 		if (font == null) {
-			font = getAbsolutePath(".\\win32\\mplayer\\", "subfont.ttf");
+			font = getAbsolutePath(".\\bin\\mplayer\\", "subfont.ttf");
 		}
 		return font;
 	}
@@ -492,6 +440,29 @@ public class WindowsUtils extends PlatformUtils {
 	@Override
 	public AbstractSleepWorker getSleepWorker(SleepManager owner, PreventSleepMode mode) {
 		return new WindowsSleepWorker(owner, mode);
+	}
+
+	@Override
+	public AbstractProcessTerminator getProcessTerminator(ProcessManager processManager) {
+		return new WindowsProcessTerminator(processManager);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras) {
+		return new WindowsPipeProcess(pipeName, params, extras);
+	}
+
+	@Override
+	public void appendErrorString(StringBuilder sb, int exitCode) {
+		NTStatus ntStatus = null;
+		if (exitCode > 10) {
+			ntStatus = NTStatus.typeOf(exitCode);
+		}
+		if (ntStatus != null) {
+			sb.append("Process exited with error ").append(ntStatus).append("\n");
+		} else {
+			sb.append("Process exited with code ").append(exitCode).append(":\n");
+		}
 	}
 
 	@Override
@@ -647,7 +618,11 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean installWin32Service() {
-		String[] cmdArray = new String[] {"win32/service/wrapper.exe", "-i", "wrapper.conf"};
+		Path wrapper = PlatformProgramPaths.resolve("service/wrapper.exe");
+		if (wrapper == null || !Files.exists(wrapper)) {
+			return false;
+		}
+		String[] cmdArray = new String[] {wrapper.toFile().getAbsolutePath(), "-i", "wrapper.conf"};
 		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, true, new OutputParams(PMS.getConfiguration()));
 		pwinstall.runInSameThread();
 		return pwinstall.isSuccess();
@@ -663,7 +638,11 @@ public class WindowsUtils extends PlatformUtils {
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public static boolean uninstallWin32Service() {
-		String[] cmdArray = new String[] {"win32/service/wrapper.exe", "-r", "wrapper.conf"};
+		Path wrapper = PlatformProgramPaths.resolve("service/wrapper.exe");
+		if (wrapper == null || !Files.exists(wrapper)) {
+			return false;
+		}
+		String[] cmdArray = new String[] {wrapper.toFile().getAbsolutePath(), "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(PMS.getConfiguration());
 		output.setNoExitCheck(true);
 		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, true, output);

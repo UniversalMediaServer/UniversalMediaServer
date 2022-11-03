@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -99,31 +98,33 @@ public class XMLRPCUtil {
 		while (reader.hasNext()) {
 			int eventType = reader.next();
 			switch (eventType) {
-				case XMLStreamConstants.START_ELEMENT:
+				case XMLStreamConstants.START_ELEMENT -> {
 					String elementName = reader.getLocalName();
 					switch (elementName) {
-						case "methodResponse":
+						case "methodResponse" -> {
 							if (reader.isStartElement()) {
 								methodResponse = true;
 							}
-							break;
-						case "params":
+						}
+						case "params" -> {
 							if (!methodResponse) {
 								throw new XMLRPCException("XML-RPC: XML document isn't a <methodResponse>");
 							}
 							result = Params.read(reader);
-							break;
-						default:
-							throw new XMLRPCException("XML-RPC: Unexpected <methodResponse> property \"" + elementName + "\"");
+						}
+						default -> throw new XMLRPCException("XML-RPC: Unexpected <methodResponse> property \"" + elementName + "\"");
 					}
-					break;
-				case XMLStreamConstants.END_ELEMENT:
+				}
+
+				case XMLStreamConstants.END_ELEMENT -> {
 					if (!"methodResponse".equals(reader.getLocalName())) {
 						throw new XMLRPCException("XML-RPC: Invalid <methodResponse>");
 					}
 					return result;
-				default:
+				}
+				default -> {
 					// Ignore
+				}
 			}
 		}
 		throw new XMLRPCException("XML-RPC: Premature end of stream");
@@ -296,7 +297,7 @@ public class XMLRPCUtil {
 	 */
 	public static void writeBooleanValue(XMLStreamWriter writer, Boolean value) throws XMLStreamException {
 		writer.writeStartElement("boolean");
-		writer.writeCharacters(value != null && value.booleanValue() ? "1" : "0");
+		writer.writeCharacters(value != null && value ? "1" : "0");
 		writer.writeEndElement();
 	}
 
@@ -1091,29 +1092,13 @@ public class XMLRPCUtil {
 			}
 			writer.writeStartElement("value");
 			switch (type) {
-				case ARRAY:
-					((Array) value).write(writer);
-					break;
-				case BASE64:
-					((Base64) value).write(writer);
-					break;
-				case BOOLEAN:
-					writeBooleanValue(writer, (Boolean) value);
-					break;
-				case DATETIME_ISO8601:
-					((DateTime) value).write(writer);
-					break;
-				case DOUBLE:
-				case INT:
-				case STRING:
-					writeTextElement(writer, type.toString(), value.toString());
-					break;
-				case STRUCT:
-					((Struct) value).write(writer);
-					break;
-				default:
-					throw new AssertionError("Unimplemented <value> type " + type.name());
-
+				case ARRAY -> ((Array) value).write(writer);
+				case BASE64 -> ((Base64) value).write(writer);
+				case BOOLEAN -> writeBooleanValue(writer, (Boolean) value);
+				case DATETIME_ISO8601 -> ((DateTime) value).write(writer);
+				case DOUBLE, INT, STRING -> writeTextElement(writer, type.toString(), value.toString());
+				case STRUCT -> ((Struct) value).write(writer);
+				default -> throw new AssertionError("Unimplemented <value> type " + type.name());
 			}
 			writer.writeEndElement();
 		}
@@ -1125,32 +1110,15 @@ public class XMLRPCUtil {
 				sb.append(getClass().getSimpleName()).append("[");
 			} else if (type != null) {
 				switch (type) {
-					case ARRAY:
-						sb.append("Array value[");
-						break;
-					case BASE64:
-						sb.append("Base64 value[");
-						break;
-					case BOOLEAN:
-						sb.append("Boolean value[");
-						break;
-					case DATETIME_ISO8601:
-						sb.append("Date value[");
-						break;
-					case DOUBLE:
-						sb.append("Double value[");
-						break;
-					case INT:
-						sb.append("Int value[");
-						break;
-					case STRING:
-						sb.append("String value[");
-						break;
-					case STRUCT:
-						sb.append("Struct value[");
-						break;
-					default:
-						sb.append(getClass().getSimpleName()).append("[");
+					case ARRAY -> sb.append("Array value[");
+					case BASE64 -> sb.append("Base64 value[");
+					case BOOLEAN -> sb.append("Boolean value[");
+					case DATETIME_ISO8601 -> sb.append("Date value[");
+					case DOUBLE -> sb.append("Double value[");
+					case INT -> sb.append("Int value[");
+					case STRING -> sb.append("String value[");
+					case STRUCT -> sb.append("Struct value[");
+					default -> sb.append(getClass().getSimpleName()).append("[");
 				}
 			} else {
 				sb.append("Untyped value[");
@@ -1159,11 +1127,11 @@ public class XMLRPCUtil {
 			if (type == XMLRPCTypes.BASE64) {
 				if (value == null) {
 					sb.append("null");
-				} else if (value instanceof Base64) {
-					if (((Base64) value).getSize() > 30) {
-						sb.append(((Base64) value).getSize()).append(" bytes");
+				} else if (value instanceof Base64 base64) {
+					if (base64.getSize() > 30) {
+						sb.append(base64.getSize()).append(" bytes");
 					} else {
-						sb.append("\"").append(new String(((Base64) value).getBytes(), StandardCharsets.ISO_8859_1)).append("\"");
+						sb.append("\"").append(new String(base64.getBytes(), StandardCharsets.ISO_8859_1)).append("\"");
 					}
 				} else {
 					sb.append("Invalid Base64 value");
@@ -1460,7 +1428,7 @@ public class XMLRPCUtil {
 		 * @param value the {@link Number}.
 		 */
 		public ValueDouble(Number value) {
-			super(XMLRPCTypes.DOUBLE, value == null ? null : Double.valueOf(value.doubleValue()));
+			super(XMLRPCTypes.DOUBLE, value == null ? null : value.doubleValue());
 		}
 	}
 
@@ -1494,7 +1462,7 @@ public class XMLRPCUtil {
 		 * @param value the {@link Number}.
 		 */
 		public ValueInt(Number value) {
-			super(XMLRPCTypes.INT, value == null ? null : Integer.valueOf(value.intValue()));
+			super(XMLRPCTypes.INT, value == null ? null : value.intValue());
 		}
 	}
 
@@ -2185,25 +2153,31 @@ public class XMLRPCUtil {
 				throw new XMLRPCException("XML-RPC: Blank type");
 			}
 			switch (value.toLowerCase(Locale.ROOT)) {
-				case "array":
+				case "array" -> {
 					return ARRAY;
-				case "base64":
+				}
+				case "base64" -> {
 					return BASE64;
-				case "boolean":
+				}
+				case "boolean" -> {
 					return BOOLEAN;
-				case "dateTime.iso8601":
+				}
+				case "dateTime.iso8601" -> {
 					return DATETIME_ISO8601;
-				case "double":
+				}
+				case "double" -> {
 					return DOUBLE;
-				case "i4":
-				case "int":
+				}
+				case "i4", "int" -> {
 					return INT;
-				case "string":
+				}
+				case "string" -> {
 					return STRING;
-				case "struct":
+				}
+				case "struct" -> {
 					return STRUCT;
-				default:
-					throw new XMLRPCException("XML-RPC: Unknown type \"" + value + "\"");
+				}
+				default -> throw new XMLRPCException("XML-RPC: Unknown type \"" + value + "\"");
 			}
 		}
 	}

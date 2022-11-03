@@ -1,42 +1,47 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Content;
-import org.jdom2.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.pms.network.HTTPResource;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Content;
+import org.jdom2.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Feed extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Feed.class);
 	private static final int REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
+	private static final Map<String, String> FEED_TITLES_CACHE = Collections.synchronizedMap(new HashMap<>());
+
 	private String name;
 	private String url;
 	private String tempItemTitle;
@@ -82,8 +87,8 @@ public class Feed extends DLNAResource {
 					if ("group".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())) {
 						List<Content> subElts = elt.getContent();
 						for (Content subelt : subElts) {
-							if (subelt instanceof Element) {
-								parseElement((Element) subelt, false);
+							if (subelt instanceof Element element) {
+								parseElement(element, false);
 							}
 						}
 					}
@@ -108,8 +113,8 @@ public class Feed extends DLNAResource {
 			}
 			List<Content> subElts = elt.getContent();
 			for (Content subelt : subElts) {
-				if (subelt instanceof Element) {
-					parseElement((Element) subelt, false);
+				if (subelt instanceof Element element) {
+					parseElement(element, false);
 				}
 			}
 		}
@@ -276,4 +281,36 @@ public class Feed extends DLNAResource {
 	protected void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * @param url feed URL
+	 * @return a feed title from its URL
+	 * @throws Exception
+	 */
+	public static String getFeedTitle(String url) throws Exception {
+		// Convert YouTube channel URIs to their feed URIs
+		if (url.contains("youtube.com/channel/")) {
+			url = url.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+		}
+
+		// Check cache first
+		String feedTitle = FEED_TITLES_CACHE.get(url);
+		if (feedTitle != null) {
+			return feedTitle;
+		}
+
+		SyndFeedInput input = new SyndFeedInput();
+		byte[] b = HTTPResource.downloadAndSendBinary(url);
+		if (b != null) {
+			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
+			feedTitle = feed.getTitle();
+			if (StringUtils.isNotBlank(feedTitle)) {
+				FEED_TITLES_CACHE.put(url, feedTitle);
+				return feedTitle;
+			}
+		}
+
+		return null;
+	}
+
 }

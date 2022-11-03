@@ -1,6 +1,21 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna.virtual;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -13,6 +28,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideoMetadataActors;
 import net.pms.database.MediaTableVideoMetadataCountries;
 import net.pms.database.MediaTableVideoMetadataDirectors;
@@ -20,10 +36,10 @@ import net.pms.database.MediaTableVideoMetadataGenres;
 import net.pms.database.MediaTableVideoMetadataIMDbRating;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataReleased;
-import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.*;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +83,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private String[] sqls;
 	private int[] expectedOutputs;
 	private String displayNameOverride;
-	private ArrayList<String> populatedVirtualFoldersListFromDb;
-	private ArrayList<String> populatedFilesListFromDb;
+	private List<String> populatedVirtualFoldersListFromDb;
+	private List<String> populatedFilesListFromDb;
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
 	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
@@ -225,8 +241,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 	 */
 	@Override
 	public void doRefreshChildren() {
-		ArrayList<File> filesListFromDb = null;
-		ArrayList<String> virtualFoldersListFromDb = null;
+		List<File> filesListFromDb = null;
+		List<String> virtualFoldersListFromDb = null;
 
 		List<String> unwatchedSqls = new ArrayList<>();
 		List<String> watchedSqls = new ArrayList<>();
@@ -252,17 +268,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 					if (firstSql != null) {
 						firstSql = transformSQL(firstSql);
 						switch (expectedOutput) {
-							// Output is files
-							case FILES:
-							case FILES_NOSORT:
-							case PLAYLISTS:
-							case ISOS:
-							case EPISODES_WITHIN_SEASON:
+							case FILES, FILES_NOSORT, PLAYLISTS, ISOS, EPISODES_WITHIN_SEASON -> {
 								firstSql = firstSql.replaceAll(SELECT_DISTINCT_TVSEASON, "SELECT * " + FROM_FILES_VIDEOMETA);
 								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
 								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
-								break;
-							case FILES_NOSORT_DEDUPED:
+							}
+							case FILES_NOSORT_DEDUPED -> {
 								populatedFilesListFromDb = new ArrayList<>();
 								filesListFromDb = new ArrayList<>();
 								for (File item : MediaTableFiles.getFiles(connection, firstSql)) {
@@ -271,16 +282,17 @@ public class MediaLibraryFolder extends VirtualFolder {
 										populatedFilesListFromDb.add(item.getAbsolutePath());
 									}
 								}
-								break;
-							case EPISODES:
+							}
+							case EPISODES -> {
 								filesListFromDb = MediaTableFiles.getFiles(connection, firstSql);
 								populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 
 								// Build the season filter folders
 								String orderByString = "ORDER BY ";
 								int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
-								if (firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) > 0) {
-									indexAfterFromInFirstQuery = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA) + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
+								int indexAtJointure = firstSql.indexOf(MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA);
+								if (indexAtJointure > 0) {
+									indexAfterFromInFirstQuery = indexAtJointure + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA.length();
 								}
 								String orderBySection = "ORDER BY " + MediaTableVideoMetadata.TABLE_COL_TVSEASON;
 
@@ -291,23 +303,12 @@ public class MediaLibraryFolder extends VirtualFolder {
 								seasonsQuery.replace(indexBeforeOrderByInFirstQuery, seasonsQuery.length(), orderBySection);
 								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, seasonsQuery.toString());
 								populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
-								break;
-							// Output is folders
-							case TEXTS:
-							case TEXTS_NOSORT:
-							case SEASONS:
-							case TVSERIES:
-							case TVSERIES_NOSORT:
-							case MOVIE_FOLDERS:
+							}
+							case TEXTS, TEXTS_NOSORT, SEASONS, TVSERIES, TVSERIES_NOSORT, MOVIE_FOLDERS -> {
 								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 								populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
-								break;
-							// Output is both
-							case FILES_WITH_FILTERS:
-							case ISOS_WITH_FILTERS:
-							case TEXTS_NOSORT_WITH_FILTERS:
-							case TEXTS_WITH_FILTERS:
-							case TVSERIES_WITH_FILTERS:
+							}
+							case FILES_WITH_FILTERS, ISOS_WITH_FILTERS, TEXTS_NOSORT_WITH_FILTERS, TEXTS_WITH_FILTERS, TVSERIES_WITH_FILTERS -> {
 								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
@@ -328,9 +329,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 								// This block adds the first SQL query for non-TV series, and all queries for TV series
 								if (configuration.isUseInfoFromIMDb()) {
 									/*
-									 * With TV series we manually add the SQL statements, otherwise we
-									 * attempt to modify the incoming statements to make filtering versions.
-									 */
+									* With TV series we manually add the SQL statements, otherwise we
+									* attempt to modify the incoming statements to make filtering versions.
+									*/
 									if (expectedOutput == TVSERIES_WITH_FILTERS) {
 										actorsSqls = getTVSeriesQueries(MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR);
 										countriesSqls = getTVSeriesQueries(MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY);
@@ -389,30 +390,30 @@ public class MediaLibraryFolder extends VirtualFolder {
 									}
 									i++;
 								}
-
-								break;
-							default:
-								break;
+							}
+							default -> {
+							}
 						}
-					}
+						// Output is files
+						// Output is folders
+						// Output is both
+											}
 				}
 			} finally {
 				MediaDatabase.close(connection);
 			}
 		}
-		ArrayList<File> newFiles = new ArrayList<>();
-		ArrayList<String> newVirtualFolders = new ArrayList<>();
-		ArrayList<DLNAResource> oldFiles = new ArrayList<>();
-		ArrayList<DLNAResource> oldVirtualFolders = new ArrayList<>();
+		List<File> newFiles = new ArrayList<>();
+		List<String> newVirtualFolders = new ArrayList<>();
+		List<DLNAResource> oldFiles = new ArrayList<>();
+		List<DLNAResource> oldVirtualFolders = new ArrayList<>();
 
 		if (filesListFromDb != null) {
 			if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED) {
-				UMSUtils.sort(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
+				UMSUtils.sortFiles(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
 			}
 
-			getChildren().forEach(child -> {
-				oldFiles.add(child);
-			});
+			getChildren().forEach(oldFiles::add);
 
 			for (File file : filesListFromDb) {
 				newFiles.add(file);
@@ -421,12 +422,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		if (virtualFoldersListFromDb != null) {
 			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT) {
-				UMSUtils.sort(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
+				UMSUtils.sortStrings(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
 			}
 
-			getChildren().forEach(child -> {
-				oldVirtualFolders.add(child);
-			});
+			getChildren().forEach(oldVirtualFolders::add);
 
 			for (String f : virtualFoldersListFromDb) {
 				newVirtualFolders.add(f);
@@ -716,7 +715,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	@Override
 	protected String getDisplayNameBase() {
-		if (isNotBlank(displayNameOverride)) {
+		if (StringUtils.isNotBlank(displayNameOverride)) {
 			return displayNameOverride;
 		}
 

@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
@@ -123,30 +122,30 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		UpnpRequest requestOperation = requestMessage.getOperation();
 		HttpRequestBase request;
 		switch (requestOperation.getMethod()) {
-			case GET:
+			case GET -> {
 				request = new HttpGet(requestOperation.getURI());
-				break;
-			case SUBSCRIBE:
+			}
+			case SUBSCRIBE -> {
 				request = new HttpGet(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
 						return UpnpRequest.Method.SUBSCRIBE.getHttpName();
 					}
 				};
-				break;
-			case UNSUBSCRIBE:
+			}
+			case UNSUBSCRIBE -> {
 				request = new HttpGet(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
 						return UpnpRequest.Method.UNSUBSCRIBE.getHttpName();
 					}
 				};
-				break;
-			case POST:
+			}
+			case POST -> {
 				request = new HttpPost(requestOperation.getURI());
 				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
-				break;
-			case NOTIFY:
+			}
+			case NOTIFY -> {
 				request = new HttpPost(requestOperation.getURI()) {
 					@Override
 					public String getMethod() {
@@ -154,9 +153,8 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 					}
 				};
 				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
-				break;
-			default:
-				throw new RuntimeException("Unknown HTTP method: " + requestOperation.getHttpMethodName());
+			}
+			default -> throw new RuntimeException("Unknown HTTP method: " + requestOperation.getHttpMethodName());
 		}
 
 		// Headers

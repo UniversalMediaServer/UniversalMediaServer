@@ -1,28 +1,31 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.sharedcontent.SharedContentArray;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.parsers.MediaInfoParser;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -77,13 +80,13 @@ public class DLNAMediaInfoTest {
 		PMS.configureJNA();
 		PMS.forceHeadless();
 		try {
-			PMS.setConfiguration(new PmsConfiguration(false));
+			PMS.setConfiguration(new UmsConfiguration(false));
 		} catch (Exception ex) {
 			throw new AssertionError(ex);
 		}
 		assert PMS.getConfiguration() != null;
 		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		PMS.getConfiguration().setSharedFolders(null);
+		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), false);
 		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
 		PMS.getConfiguration().setUseCache(false);
 
@@ -103,13 +106,13 @@ public class DLNAMediaInfoTest {
 	public void testContainerProperties() throws Exception {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
-		assertTrue(LibMediaInfoParser.isValid() ,
+		assertTrue(MediaInfoParser.isValid() ,
 			"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n");
 
 		// Create handles to the test content
 		// This comes from RequestV2::answer()
 		DLNAResource parent = new VirtualFolder("test", "test");
-		parent.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		parent.setDefaultRenderer(RendererConfigurations.getDefaultConf());
 		PMS.getGlobalRepo().add(parent);
 
 		for (int i = 0; i < test_files.length; ++i) {

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.io.IOException;
@@ -6,8 +22,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public abstract class FlowParserOutputStream extends OutputStream {
-	private ByteBuffer buffer;
-	private OutputStream out;
+	private final ByteBuffer buffer;
+	private final OutputStream out;
 	protected int neededByteNumber;
 	protected int streamableByteNumber;
 	protected boolean discard;
@@ -25,7 +41,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 	@Override
 	public void write(int b) throws IOException {
 	}
-	public int count;
+	private int count;
 
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
@@ -109,7 +125,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 	protected void writePayload(byte[] payload) throws IOException {
 		out.write(payload, 0, payload.length);
 	}
-	private byte[] zerobuffer;
+	private final byte[] zerobuffer;
 
 	protected void padWithZeros(int numberOfZeros) throws IOException {
 		if (numberOfZeros > 0) {
@@ -125,11 +141,12 @@ public abstract class FlowParserOutputStream extends OutputStream {
 
 	@Override
 	public void close() throws IOException {
-		int finalPos = buffer.position();
-		if (finalPos > 0 && streamableByteNumber > finalPos) {
-			out.write(buffer.array(), 0, finalPos);
-			padWithZeros(streamableByteNumber - finalPos);
+		try (out) {
+			int finalPos = buffer.position();
+			if (finalPos > 0 && streamableByteNumber > finalPos) {
+				out.write(buffer.array(), 0, finalPos);
+				padWithZeros(streamableByteNumber - finalPos);
+			}
 		}
-		out.close();
 	}
 }

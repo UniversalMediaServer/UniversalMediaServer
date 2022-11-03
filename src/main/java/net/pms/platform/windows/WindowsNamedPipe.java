@@ -1,26 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform.windows;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.sun.jna.*;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.win32.StdCallLibrary;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.io.BufferedOutputFile;
@@ -28,6 +26,7 @@ import net.pms.io.BufferedOutputFileImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +35,8 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private String path;
 	private boolean in;
 	private boolean forceReconnect;
-	private Pointer handle1;
-	private Pointer handle2;
+	private HANDLE handle1;
+	private HANDLE handle2;
 	private OutputStream writable;
 	private InputStream readable;
 	private Thread forced;
@@ -52,48 +51,6 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	 * {@link net.pms.io.BufferedOutputFile BufferedOutputFile}.
 	 */
 	private static final int BUFSIZE = 500000;
-
-	@SuppressWarnings({
-		"checkstyle:ConstantName",
-		"checkstyle:MethodName",
-		"checkstyle:ParameterName",
-		"checkstyle:TypeName"
-	})
-	public interface Kernel32 extends StdCallLibrary {
-		Kernel32 INSTANCE = Native.load("kernel32",
-			Kernel32.class
-		);
-
-		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
-
-		abstract class SECURITY_ATTRIBUTES extends Structure {
-			public int nLength = size();
-			public Pointer lpSecurityDescriptor;
-			public boolean bInheritHandle;
-		}
-
-		public abstract static class LPOVERLAPPED extends Structure { }
-
-		Pointer CreateNamedPipeA(String lpName, int dwOpenMode, int dwPipeMode,
-			int nMaxInstances, int nOutBufferSize, int nInBufferSize,
-			int nDefaultTimeOut, SECURITY_ATTRIBUTES lpSecurityAttributes
-		);
-
-		boolean ConnectNamedPipe(Pointer handle, LPOVERLAPPED overlapped);
-		boolean DisconnectNamedPipe(Pointer handle);
-		boolean FlushFileBuffers(Pointer handle);
-		boolean CloseHandle(Pointer handle);
-
-		boolean ReadFile(Pointer hFile, Pointer lpBuffer,
-			int nNumberOfBytesToRead, IntByReference lpNumberOfBytesRead,
-			LPOVERLAPPED lpOverlapped
-		);
-
-		boolean WriteFile(Pointer hFile, Pointer lpBuffer,
-			int nNumberOfBytesToRead, IntByReference lpNumberOfBytesRead,
-			LPOVERLAPPED lpOverlapped
-		);
-	}
 
 	public String getPipeName() {
 		return path;
@@ -166,8 +123,19 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 		LOGGER.debug("Creating pipe " + this.path);
 
 		try {
-			if (Platform.isWindows()) {
-				handle1 = Kernel32.INSTANCE.CreateNamedPipeA(
+			handle1 = Kernel32.INSTANCE.CreateNamedPipe(
+				this.path,
+				3,
+				0,
+				255,
+				BUFSIZE,
+				BUFSIZE,
+				0,
+				null
+			);
+
+			if (forceReconnect) {
+				handle2 = Kernel32.INSTANCE.CreateNamedPipe(
 					this.path,
 					3,
 					0,
@@ -177,36 +145,21 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 					0,
 					null
 				);
+			}
 
-				if (forceReconnect) {
-					handle2 = Kernel32.INSTANCE.CreateNamedPipeA(
-						this.path,
-						3,
-						0,
-						255,
-						BUFSIZE,
-						BUFSIZE,
-						0,
-						null
-					);
-				}
+			if (params != null) {
+				directBuffer = new BufferedOutputFileImpl(params);
+			} else {
+				writable = new PipedOutputStream();
+				readable = new PipedInputStream((PipedOutputStream) writable, BUFSIZE);
+			}
 
-				if (params != null) {
-					directBuffer = new BufferedOutputFileImpl(params);
-				} else {
-					writable = new PipedOutputStream();
-					readable = new PipedInputStream((PipedOutputStream) writable, BUFSIZE);
-				}
+			start();
 
-				start();
+			if (forceReconnect) {
+				forced = new Thread(() -> b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null), "Forced Reconnector");
 
-				if (forceReconnect) {
-					forced = new Thread(() -> {
-						b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
-					}, "Forced Reconnector");
-
-					forced.start();
-				}
+				forced.start();
 			}
 		} catch (Exception e1) {
 			LOGGER.warn("Error creating Windows named pipe: {}", e1.getMessage());
@@ -234,7 +187,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 			if (b1) {
 				if (in) {
 					IntByReference intRef = new IntByReference();
-					Memory buffer = new Memory(BUFSIZE);
+					byte[] buffer = new byte[BUFSIZE];
 
 					while (loop) {
 						boolean fSuccess = Kernel32.INSTANCE.ReadFile(
@@ -264,15 +217,15 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 						}
 
 						if (directBuffer != null) {
-							directBuffer.write(buffer.getByteArray(0, cbBytesRead));
+							directBuffer.write(buffer, 0, cbBytesRead);
 						}
 
 						if (writable != null) {
-							writable.write(buffer.getByteArray(0, cbBytesRead));
+							writable.write(buffer, 0, cbBytesRead);
 						}
 
 						if (debug != null) {
-							debug.write(buffer.getByteArray(0, cbBytesRead));
+							debug.write(buffer, 0, cbBytesRead);
 						}
 
 						if (!fSuccess || cbBytesRead == 0) {
@@ -292,12 +245,11 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 						}
 					}
 				} else {
-					byte[] b = new byte[BUFSIZE];
+					byte[] buffer = new byte[BUFSIZE];
 					IntByReference intRef = new IntByReference();
-					Memory buffer = new Memory(BUFSIZE);
 
 					while (loop) {
-						int cbBytesRead = readable.read(b);
+						int cbBytesRead = readable.read(buffer);
 
 						if (cbBytesRead == -1) {
 							readable.close();
@@ -308,8 +260,6 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 							break;
 						}
-
-						buffer.write(0, b, 0, cbBytesRead);
 
 						boolean fSuccess = Kernel32.INSTANCE.WriteFile(
 							handle1,
@@ -322,7 +272,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 						int cbWritten = intRef.getValue();
 
 						if (debug != null) {
-							debug.write(buffer.getByteArray(0, cbBytesRead));
+							debug.write(buffer, 0, cbBytesRead);
 						}
 
 						if (!fSuccess || cbWritten == 0) {
@@ -339,7 +289,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 			}
 		} catch (InterruptedIOException e) {
 			if (LOGGER.isDebugEnabled()) {
-				if (isNotBlank(e.getMessage())) {
+				if (StringUtils.isNotBlank(e.getMessage())) {
 					LOGGER.debug("Windows named pipe interrupted after writing {} bytes, shutting down: {}", e.bytesTransferred, e.getMessage());
 				} else {
 					LOGGER.debug("Windows named pipe interrupted after writing {} bytes, shutting down...", e.bytesTransferred);

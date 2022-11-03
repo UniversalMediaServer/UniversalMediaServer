@@ -1,24 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform;
 
 import com.sun.jna.Platform;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -132,7 +132,7 @@ public abstract class PlatformProgramPaths {
 	static {
 		String subPath;
 		if (Platform.isWindows()) {
-			subPath = "win32";
+			subPath = "bin";
 		} else if (Platform.isMac()) {
 			subPath = "osx";
 		} else {
@@ -165,7 +165,7 @@ public abstract class PlatformProgramPaths {
 	 * Returns a platform dependent {@link PlatformProgramPaths} instance.
 	 * <p>
 	 * <b>Note:</b> The returned instance does not support customizable program
-	 * paths. Use {@link PmsConfiguration} to retrieve customizable
+	 * paths. Use {@link UmsConfiguration} to retrieve customizable
 	 * {@link ExternalProgramInfo} instances.
 	 *
 	 * @return The platform dependent {@link PlatformProgramPaths} instance.
@@ -195,4 +195,23 @@ public abstract class PlatformProgramPaths {
 		return Paths.get("");
 	}
 
+	/**
+	 * Converts a given path string to a {@code Path} and resolves it against
+	 * platform dev binaries folder, then against platform binaries folder.
+	 *
+	 * @param   other
+	 *          the path string to resolve against this binaries folders
+	 *
+	 * @return  the resulting path
+	 */
+	public static Path resolve(String other) {
+		Path otherPath = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			otherPath = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve(other);
+		}
+		if (otherPath == null || !Files.exists(otherPath)) {
+			otherPath = PLATFORM_BINARIES_FOLDER.resolve(other);
+		}
+		return otherPath;
+	}
 }

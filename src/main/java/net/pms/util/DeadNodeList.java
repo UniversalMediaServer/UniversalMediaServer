@@ -64,22 +64,22 @@ public class DeadNodeList extends ArrayList<Node> implements NodeList {
 	 */
 	public DeadNodeList(Object nodeList) {
 		super();
-		if (nodeList instanceof Collection<?>) {
-			for (Object object : ((Collection<?>) nodeList)) {
-				if (object instanceof Node) {
-					add((Node) object);
+		if (nodeList instanceof Collection<?> collection) {
+			for (Object object : collection) {
+				if (object instanceof Node node) {
+					add(node);
 				} else {
 					LOGGER.error(
 						"Can't add \"{}\" to DeadNodeList since {} doesn't implement Node - skipping",
 						object,
-						object.getClass().getSimpleName()
+						object != null ? object.getClass().getSimpleName() : "null"
 					);
 				}
 			}
 		} else if (nodeList instanceof NodeList || nodeList instanceof Node) {
 			Node node;
-			if (nodeList instanceof Node) {
-				node = (Node) nodeList;
+			if (nodeList instanceof Node newNnode) {
+				node = newNnode;
 			} else {
 				node = ((NodeList) nodeList).item(0);
 			}

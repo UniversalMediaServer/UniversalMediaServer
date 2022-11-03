@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -27,9 +26,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.dlna.ByteRange;
 import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.ImageEngine;
 import net.pms.image.Image;
@@ -39,16 +38,16 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RawHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public RawHandler(WebInterfaceServerHttpServer parent) {
+	public RawHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 
@@ -79,12 +78,11 @@ public class RawHandler implements HttpHandler {
 			long len;
 			String mime;
 			InputStream in;
-			Range.Byte range;
+			ByteRange range;
 			if (dlna.getMedia() != null && dlna.getMedia().isImage() && dlna.getMedia().getImageInfo() != null) {
 				boolean supported = false;
 				ImageInfo imageInfo = dlna.getMedia().getImageInfo();
-				if (root.getDefaultRenderer() instanceof WebRender) {
-					WebRender renderer = (WebRender) root.getDefaultRenderer();
+				if (root.getDefaultRenderer() instanceof WebRender renderer) {
 					supported = renderer.isImageFormatSupported(imageInfo.getFormat());
 				}
 				mime = dlna.getFormat() != null ?
@@ -92,7 +90,7 @@ public class RawHandler implements HttpHandler {
 					root.getDefaultRenderer().getMimeType(dlna);
 
 				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : dlna.length();
-				range = new Range.Byte(0L, len);
+				range = new ByteRange(0L, len);
 				if (supported) {
 					in = dlna.getInputStream();
 				} else {

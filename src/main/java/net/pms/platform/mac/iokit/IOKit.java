@@ -1,22 +1,30 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform.mac.iokit;
 
+import com.sun.jna.DefaultTypeMapper;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.ptr.NativeLongByReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,15 +55,6 @@ import net.pms.platform.mac.types.IOStringT;
 import net.pms.platform.mac.types.MachPortT;
 import net.pms.platform.mac.types.MachPortTRef;
 import net.pms.platform.mac.types.TaskPortT;
-import com.sun.jna.DefaultTypeMapper;
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLong;
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.ptr.LongByReference;
-import com.sun.jna.ptr.NativeLongByReference;
 
 /**
  * Partial mapping of IOKit:
@@ -1325,7 +1324,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		LongByReference input, // In
@@ -1377,7 +1376,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncStructMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		Structure inputStruct, // In
@@ -1425,7 +1424,7 @@ public interface IOKit extends Library {
 	 */
 	KernReturnT IOConnectCallAsyncScalarMethod(MachPortT connection, // In
 		int selector, // In
-		MachPortT wake_port, // In
+		MachPortT wakePort, // In
 		LongByReference reference, // In
 		int referenceCnt, // In
 		LongByReference input, // In

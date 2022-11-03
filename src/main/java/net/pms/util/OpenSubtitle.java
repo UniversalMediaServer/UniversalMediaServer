@@ -100,7 +100,7 @@ public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
 	private static final String UA = "Universal Media Server v1";
-	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
+	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000L; // 10 minutes
 
 	/** The minimum Jaro–Winkler title distance for IMDB guesses to be valid */
 	private static final double MIN_IMDB_GUESS_JW_DISTANCE = 0.65;
@@ -286,10 +286,10 @@ public class OpenSubtitle {
 			String username = "";
 			if (credentials != null) {
 				// if we got credentials use them
-				if (isNotBlank(credentials.password)) {
-					pword = DigestUtils.md5Hex(credentials.password);
+				if (isNotBlank(credentials.getPassword())) {
+					pword = DigestUtils.md5Hex(credentials.getPassword());
 				}
-				username = credentials.username;
+				username = credentials.getUsername();
 			}
 
 			// Setup connection
@@ -540,8 +540,8 @@ public class OpenSubtitle {
 	 * @return The {@link List} of found {@link SubtitleItem}. If none are
 	 *         found, an empty {@link List} is returned.
 	 */
-	public static ArrayList<SubtitleItem> findSubtitles(DLNAResource resource, RendererConfiguration renderer) {
-		ArrayList<SubtitleItem> result = new ArrayList<>();
+	public static List<SubtitleItem> findSubtitles(DLNAResource resource, RendererConfiguration renderer) {
+		List<SubtitleItem> result = new ArrayList<>();
 		if (resource == null) {
 			return new ArrayList<>();
 		}
@@ -642,7 +642,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByFileHash(
+	protected static List<SubtitleItem> findSubtitlesByFileHash(
 		DLNAResource resource,
 		String fileHash,
 		long fileSize,
@@ -681,7 +681,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByImdbId(
+	protected static List<SubtitleItem> findSubtitlesByImdbId(
 		DLNAResource resource,
 		String imdbId,
 		String languageCodes,
@@ -723,7 +723,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> searchSubtitles(
+	protected static List<SubtitleItem> searchSubtitles(
 		Array queryArray,
 		DLNAResource resource,
 		FileNamePrettifier prettifier,
@@ -830,7 +830,7 @@ public class OpenSubtitle {
 				// No data
 				return new ArrayList<>();
 			}
-			ArrayList<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
+			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
 
 			if (LOGGER.isDebugEnabled()) {
 				if (results.isEmpty()) {
@@ -931,7 +931,7 @@ public class OpenSubtitle {
 			);
 			return null;
 		}
-		ArrayList<GuessCandidate> candidates = new ArrayList<>();
+		List<GuessCandidate> candidates = new ArrayList<>();
 		addGuesses(candidates, items, prettifier, prettifier.getClassification(), PMS.getLocale());
 		if (candidates.isEmpty()) {
 			LOGGER.debug(
@@ -1133,7 +1133,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByName(
+	protected static List<SubtitleItem> findSubtitlesByName(
 		DLNAResource resource,
 		String languageCodes,
 		FileNamePrettifier prettifier
@@ -1395,7 +1395,7 @@ public class OpenSubtitle {
 				}
 
 				Locale locale = PMS.getLocale();
-				ArrayList<GuessCandidate> candidates = new ArrayList<>();
+				List<GuessCandidate> candidates = new ArrayList<>();
 				if (!movieGuess.getGuessesFromString().isEmpty()) {
 					addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, locale);
 				}
@@ -1616,7 +1616,7 @@ public class OpenSubtitle {
 		if (isBlank(languages)) {
 			return null;
 		}
-		ArrayList<String> languagesList = new ArrayList<>();
+		List<String> languagesList = new ArrayList<>();
 		String[] languagesArray = languages.trim().split("\\s*,\\s*");
 		for (String language : languagesArray) {
 			if (isNotBlank(language)) {
@@ -3347,17 +3347,14 @@ public class OpenSubtitle {
 			this.openSubtitlesScore = openSubtitlesScore;
 			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
-				switch (matchedBy.toLowerCase(Locale.ROOT)) {
-					case "moviehash" -> {
-						tmpScore += 200d;
+				tmpScore += (
+					switch (matchedBy.toLowerCase(Locale.ROOT)) {
+						case "moviehash" -> 200d;
+						case "imdbid" -> 100d;
+						case "tag" -> 10d;
+						default -> 0d;
 					}
-					case "imdbid" -> {
-						tmpScore += 100d;
-					}
-					case "tag" -> {
-						tmpScore += 10d;
-					}
-				}
+				);
 			}
 			if (prettifier != null) {
 				Locale locale = PMS.getLocale();
