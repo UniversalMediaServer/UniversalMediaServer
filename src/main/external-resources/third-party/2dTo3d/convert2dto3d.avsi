@@ -40,6 +40,23 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 			resize = false
 		""") 
 
+	outputFormat == 3 ? Eval("""
+
+	## If HSBS format is requested then half the width of the input video for processing efficiency. 
+	## This halves the horizontal resolution for each eye for target devices that stretch Half SBS horizontally by a factor of two.
+
+		videoW = videoW / 2
+		resize = true
+	""") : \
+	outputFormat == 4 ? Eval("""
+
+	## If HTB/HOU format is requested then half the height of the input video for processing efficiency. 
+	## This halves the vertical resolution for each eye for target devices that stretch HTB/HOU vertically by a factor of two.
+
+		videoH = videoH / 2
+		resize = true
+	""") : ""
+
 	(algorithm == 2 && resize == true) ? Eval("""
 		video2d = Lanczos4Resize(video2d, videoW, videoH)
 		""") : ""
@@ -61,22 +78,6 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 
 	## If SBS or TB/OU full format is requested then no need to resize (outputFormat == 1 or 2)
 
-	outputFormat == 3 ? Eval("""
-
-	## If HSBS format is requested then half the width of the video. 
-	## This halves the horizontal resolution for each eye for target devices that stretch Half SBS horizontally by a factor of two.
-
-		videoW = videoW / 2
-		resize = true
-	""") : \
-	outputFormat == 4 ? Eval("""
-
-	## If HTB/HOU format is requested then half the height of the video. 
-	## This halves the vertical resolution for each eye for target devices that stretch HTB/HOU vertically by a factor of two.
-
-		videoH = videoH / 2
-		resize = true
-	""") : \
 	outputFormat == 5 ? Eval("""
 
 	## If HSBS Upscaled format is requested then double the height of the video. 
