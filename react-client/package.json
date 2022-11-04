@@ -5,7 +5,7 @@
   "proxy": "http://localhost:9002",
   "dependencies": {
     "@emotion/react": "11.10.5",
-    "@mantine/core": "5.6.3",
+    "@mantine/core": "5.7.0",
     "@mantine/dropzone": "5.6.3",
     "@mantine/form": "5.6.3",
     "@mantine/hooks": "5.6.3",

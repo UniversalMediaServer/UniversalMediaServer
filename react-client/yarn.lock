@@ -2280,20 +2280,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:5.6.3":
-  version: 5.6.3
-  resolution: "@mantine/core@npm:5.6.3"
+"@mantine/core@npm:5.7.0":
+  version: 5.7.0
+  resolution: "@mantine/core@npm:5.7.0"
   dependencies:
     "@floating-ui/react-dom-interactions": ^0.10.1
-    "@mantine/styles": 5.6.3
-    "@mantine/utils": 5.6.3
+    "@mantine/styles": 5.7.0
+    "@mantine/utils": 5.7.0
     "@radix-ui/react-scroll-area": 1.0.0
     react-textarea-autosize: 8.3.4
   peerDependencies:
-    "@mantine/hooks": 5.6.3
+    "@mantine/hooks": 5.7.0
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 58badc6009d389d9bbc0e3614cebc4ec31c97b6e43ed65d6f0918e96e8e4d40d45fe13d0f2b7d1970657b6eb6e18b2d29006325bd0b15d6e2423b872ee1e8718
+  checksum: 6341e69f0ee6ff256a44fdcf583e370ff05b4089f4cbfaa392b0b628edfceb0ef0d2fd4cbdc834e7b28b5fe7db3ce5aafc5ce1f59c138f19f609853037e558d3
   languageName: node
   linkType: hard
 
@@ -2377,9 +2377,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/styles@npm:5.6.3":
-  version: 5.6.3
-  resolution: "@mantine/styles@npm:5.6.3"
+"@mantine/styles@npm:5.7.0":
+  version: 5.7.0
+  resolution: "@mantine/styles@npm:5.7.0"
   dependencies:
     clsx: 1.1.1
     csstype: 3.0.9
@@ -2387,7 +2387,7 @@ __metadata:
     "@emotion/react": ">=11.9.0"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 4a205cbc4a363ff829f375563d0275247003b4362daa074cde4e87507d8f031b0e98baed4ef3449c91d653bfb2deb4de22841d02196ef1c6050b95ad8da1dec1
+  checksum: 3b7b83486445177d89860768d4219ac262d048bec3350efcca90c45f1957e141d10b0c0c59be6d5e9a10d87de28516e9b4c8fc28fdc0291a72cab212ef5e3686
   languageName: node
   linkType: hard
 
@@ -2397,6 +2397,15 @@ __metadata:
   peerDependencies:
     react: ">=16.8.0"
   checksum: 233e3a9f8a29d542a18e114a726c3559fee638e19f05e21d2fbabe476386668f13bbe56119be6efd1ccf94e4f47d431804ff83ce168821027cccd228cdb1af55
+  languageName: node
+  linkType: hard
+
+"@mantine/utils@npm:5.7.0":
+  version: 5.7.0
+  resolution: "@mantine/utils@npm:5.7.0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: a61d909a2e8d1853e1fbc9c715342aafa3bb84580f4d223c4a2aa4ae0aa21910e5861dcaee5dabbd13867769fd43228843b7dbcbea3b7712c16f4ff1c2a92f93
   languageName: node
   linkType: hard
 
@@ -13274,7 +13283,7 @@ __metadata:
   resolution: "ums gui@workspace:."
   dependencies:
     "@emotion/react": 11.10.5
-    "@mantine/core": 5.6.3
+    "@mantine/core": 5.7.0
     "@mantine/dropzone": 5.6.3
     "@mantine/form": 5.6.3
     "@mantine/hooks": 5.6.3
