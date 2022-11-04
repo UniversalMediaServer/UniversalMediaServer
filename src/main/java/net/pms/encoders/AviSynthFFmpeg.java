@@ -248,8 +248,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				"LoadPlugin(PluginPath+\"\\mvtools2.dll\")\n" +
 				"Import(PluginPath+\"\\convert2dto3d.avsi\")\n\n");
 
-				double frameStretchFactor = 1.05;
-				double lightOffsetFactor = 0.003;
+				String frameStretchFactor = configuration.getFfmpegAvisynthFrameStretchFactor();
+				String lightOffsetFactor = configuration.getFfmpegAvisynthLightOffsetFactor();
 
 				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + configuration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + configuration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
 

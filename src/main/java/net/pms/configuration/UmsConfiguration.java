@@ -459,14 +459,12 @@ public class UmsConfiguration extends RendererConfiguration {
 	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
-	private static final String KEY_AVISYNTH_USE_FFMS2 = "avisynth_use_FFMS2_instead_of_directshowsource";
-	private static final String KEY_AVISYNTH_ENABLE_PLUS_MODE = "avisynth_enable_plus_mode";
-	private static final String KEY_AVISYNTH_2D_TO_3D = "avisynth_2d_to_3d_conversion";
-
 	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource";
 	private static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
 	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
@@ -2768,63 +2766,6 @@ public class UmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Whether we should use FFMS2 instead of DirectShowSource in AviSynth.
-	 *
-	 * @param value True if we should use FFMS2 instead of DirectShowSource
-	 *              in AviSynth.
-	 */
-	public void setAvisynthUseFFMS2(boolean value) {
-		configuration.setProperty(KEY_AVISYNTH_USE_FFMS2, value);
-	}
-
-	/**
-	 * Returns true if we should use FFMS2 instead of DirectShowSource in
-	 * AviSynth.
-	 *
-	 * @return True if we should use FFMS2 instead of DirectShowSource in
-	 *         AviSynth.
-	 */
-	public boolean isAvisynthUseFFMS2() {
-		return getBoolean(KEY_AVISYNTH_USE_FFMS2, false);
-	}
-
-	/**
-	 * Whether we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @param value True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public void setAviSynthPlusMode(boolean value) {
-		configuration.setProperty(KEY_AVISYNTH_ENABLE_PLUS_MODE, value);
-	}
-
-	/**
-	 * Returns true if we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @return True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public boolean isAviSynthPlusMode() {
-		return getBoolean(KEY_AVISYNTH_ENABLE_PLUS_MODE, false);
-	}
-
-	/**
-	 * Whether we should convert 2D video to 3D in AviSynth.
-	 *
-	 * @param value True if we should pass the flag.
-	 */
-	public void setAvisynth2Dto3D(boolean value) {
-		configuration.setProperty(KEY_AVISYNTH_2D_TO_3D, value);
-	}
-
-	/**
-	 * Returns true if we should convert 2D video to 3D in AviSynth.
-	 *
-	 * @return True if we should convert 2D video to 3D in AviSynth.
-	 */
-	public boolean isAvisynth2Dto3D() {
-		return getBoolean(KEY_AVISYNTH_2D_TO_3D, false);
-	}
-
-	/**
 	 * Returns the template for the AviSynth script. The script string can
 	 * contain the character "\u0001", which should be treated as the newline
 	 * separator character.
@@ -3100,6 +3041,46 @@ public class UmsConfiguration extends RendererConfiguration {
 	 */
 	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns the frame stretch factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The frame stretch factor.
+	 */
+	public String getFfmpegAvisynthFrameStretchFactor() {
+		return getString(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");
+	}
+
+	/**
+	 * Sets the frame stretch factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthFrameStretchFactor(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns the light offset factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The light offset factor.
+	 */
+	public String getFfmpegAvisynthLightOffsetFactor() {
+		return getString(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, "3");
+	}
+
+	/**
+	 * Sets the light offset factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthLightOffsetFactor(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, value);
 	}
 
 	/**

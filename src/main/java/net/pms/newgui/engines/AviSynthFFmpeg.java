@@ -59,6 +59,8 @@ public class AviSynthFFmpeg {
 	private static JComboBox<String> formats3D;
 	private static JCheckBox horizontalResize;
 	private static JComboBox<String> horizontalResizeResolution;
+	private static JComboBox<String> frameStretchFactor;
+	private static JComboBox<String> lightOffsetFactor;
 
 	private static final String COMMON_COL_SPEC = "left:pref, 0:grow";
 
@@ -134,7 +136,7 @@ public class AviSynthFFmpeg {
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
 
-		setupTabbedPanel.addTab(Messages.getString("Avisynth2Dto3DSettings"), build2dTo3dSetupPanel());
+		setupTabbedPanel.addTab(Messages.getString("2Dto3DConversionSettings"), build2dTo3dSetupPanel());
 
 
 		if (!CONFIGURATION.isHideAdvancedOptions()) {
@@ -146,12 +148,12 @@ public class AviSynthFFmpeg {
 
 	private static JComponent build2dTo3dSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, 2*(pref, 3dlu)");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, 2*(pref, 3dlu)");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		convert2dTo3d = new JCheckBox(Messages.getString("EnableAvisynth2Dto3DConversion"), CONFIGURATION.isFfmpegAvisynth2Dto3D());
+		convert2dTo3d = new JCheckBox(Messages.getString("Enable2Dto3DVideoConversion"), CONFIGURATION.isFfmpegAvisynth2Dto3D());
 		convert2dTo3d.setContentAreaFilled(false);
 		convert2dTo3d.addItemListener(new ItemListener() {
 			@Override
@@ -161,12 +163,12 @@ public class AviSynthFFmpeg {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(convert2dTo3d), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("AlgorithmForConverting2Dto3D"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		Integer[] keys = new Integer[] {1, 2};
 		String[] values = new String[] {
-			Messages.getString("PulfrichBase2Dto3DAlgorithm"),
-			Messages.getString("PulfrichLighting2Dto3DAlgorithm")
+			Messages.getString("PulfrichBase"),
+			Messages.getString("PulfrichandLighting")
 		};
 
 		final KeyedComboBoxModel<Integer, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
@@ -181,16 +183,45 @@ public class AviSynthFFmpeg {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(algorithms), FormLayoutUtil.flip(cc.xy(3, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("OutputFormat3D"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.addLabel(Messages.getString("FrameStretchFactor"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+
+		String[] frameStretchFactors = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
+
+		frameStretchFactor = new JComboBox<>(frameStretchFactors);
+		frameStretchFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthFrameStretchFactor());
+		frameStretchFactor.setToolTipText(Messages.getString("SelectOrEnterFrameStretchFactorInPercent"));
+
+		frameStretchFactor.addItemListener((ItemEvent e) -> {
+			CONFIGURATION.setFfmpegAvisynthFrameStretchFactor((String) e.getItem());
+		});
+		frameStretchFactor.setEditable(true);
+		builder.add(GuiUtil.getPreferredSizeComponent(frameStretchFactor), cc.xy(3, 6));
+
+		builder.addLabel(Messages.getString("LightingDepthOffsetFactor"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+
+		String[] lightOffsetFactors = new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
+
+		lightOffsetFactor = new JComboBox<>(lightOffsetFactors);
+		lightOffsetFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthLightOffsetFactor());
+		lightOffsetFactor.setToolTipText(Messages.getString("SelectOrEnterLightingDepthOffsetFactor"));
+
+		lightOffsetFactor.addItemListener((ItemEvent e) -> {
+			CONFIGURATION.setFfmpegAvisynthLightOffsetFactor((String) e.getItem());
+		});
+		lightOffsetFactor.setEditable(true);
+
+		builder.add(GuiUtil.getPreferredSizeComponent(lightOffsetFactor), cc.xy(3, 8));
+
+		builder.addLabel(Messages.getString("3DOutputFormat"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 
 		keys = new Integer[] {1, 2, 3, 4, 5, 6};
 		values = new String[] {
-			Messages.getString("FullSBS3dFormat"),
-			Messages.getString("FullTB3dFormat"),
-			Messages.getString("HalfSBS3dFormat"),
-			Messages.getString("HalfTB3dFormat"),
-			Messages.getString("HalfUpSBS3dFormat"),
-			Messages.getString("HalfUpTB3dFormat")
+			Messages.getString("SBSFullSideBySide"),
+			Messages.getString("TBOUFullTopBottom"),
+			Messages.getString("HSBSHalfSideBySide"),
+			Messages.getString("HTBHOUHalfTopBottom"),
+			Messages.getString("HSBSUpscaledHalfSideBySide"),
+			Messages.getString("HTBHOUUpscaledHalfTopBottom")
 		};
 
 		final KeyedComboBoxModel<Integer, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
@@ -203,9 +234,9 @@ public class AviSynthFFmpeg {
 				CONFIGURATION.setFfmpegAvisynthOutputFormat3D(outputFormat3D.getSelectedKey());
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(formats3D), FormLayoutUtil.flip(cc.xy(3, 6), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(formats3D), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		horizontalResize = new JCheckBox(Messages.getString("HorizontalResize"), CONFIGURATION.isFfmpegAvisynthHorizontalResize());
+		horizontalResize = new JCheckBox(Messages.getString("ResizeVideoIfWidthLargerThan"), CONFIGURATION.isFfmpegAvisynthHorizontalResize());
 		horizontalResize.setContentAreaFilled(false);
 		horizontalResize.addItemListener(new ItemListener() {
 			@Override
@@ -213,35 +244,35 @@ public class AviSynthFFmpeg {
 				CONFIGURATION.setFfmpegAvisynthHorizontalResize((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 
 
 		String[] resolutions = new String[] {"7680", "3840", "1920", "1280", "852", "768", "720", "704", "640", "544", "480", "352", "120" };
 
 		horizontalResizeResolution = new JComboBox<>(resolutions);
 		horizontalResizeResolution.setSelectedItem(CONFIGURATION.getFfmpegAvisynthHorizontalResizeResolution());
-		horizontalResizeResolution.setToolTipText(Messages.getString("TheNumberGpuThreads"));
+		horizontalResizeResolution.setToolTipText(Messages.getString("SelectOrEnterTheMaximumWidthOfTheInputVideo"));
 
 		horizontalResizeResolution.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAvisynthHorizontalResizeResolution((String) e.getItem());
 		});
 		horizontalResizeResolution.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 8));
+		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 12));
 
-		avisynthplusmode = new JCheckBox(Messages.getString("EnableAvisynthPlusMode"), CONFIGURATION.isFfmpegAviSynthPlusMode());
+		avisynthplusmode = new JCheckBox(Messages.getString("EnableAvisynthPlusMultithreading"), CONFIGURATION.isFfmpegAviSynthPlusMode());
 		avisynthplusmode.setContentAreaFilled(false);
 		avisynthplusmode.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAviSynthPlusMode(e.getStateChange() == ItemEvent.SELECTED);
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 
 
-		useFFMS2 = new JCheckBox(Messages.getString("EnableAvisynthUseFFMS2"), CONFIGURATION.getFfmpegAvisynthUseFFMS2());
+		useFFMS2 = new JCheckBox(Messages.getString("UseFFMS2InsteadOfDirectShowSource"), CONFIGURATION.getFfmpegAvisynthUseFFMS2());
 		useFFMS2.setContentAreaFilled(false);
 		useFFMS2.addItemListener((ItemEvent e) -> {
 			CONFIGURATION.setFfmpegAvisynthUseFFMS2(e.getStateChange() == ItemEvent.SELECTED);
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);

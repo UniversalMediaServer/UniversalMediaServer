@@ -11,8 +11,8 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	outputFormat  		= default(outputFormat       , 1     )
 	resize        		= default(resize      	     , true  )
 	hzTargetSize  		= default(hzTargetSize       , 1920  )
-	frameStretchFactor  	= default(frameStretchFactor , 1.05  )
-	lightOffsetFactor   	= default(lightOffsetFactor  , 0.003 )
+	frameStretchFactor  	= default(frameStretchFactor , 5.0  )
+	lightOffsetFactor   	= default(lightOffsetFactor  , 3.0  )
 
 	## Convert to RGB32 to avoid width restrictions
 	video2d = ConvertToRGB32(video2d)
@@ -141,7 +141,7 @@ function PulfrichAndLight(clip video2d, int "outputFormat", int "videoW", int "v
 	fR = DeleteFrame(video2d, 0)
 
 	## Adjusted dW calculation to be factor based (TJ)
-	dW = Round(videoW * lightOffsetFactor)
+	dW = Round(videoW * ( lightOffsetFactor / 1000.0 ) )
 
 	## Set minimum dW value 
 	dw < 2 ? Eval("""
@@ -184,7 +184,7 @@ function PulfrichAndLight(clip video2d, int "outputFormat", int "videoW", int "v
 function StretchAndStackFrames(clip fL, clip fR, int "outputFormat", int "videoW", int "videoH",  float "frameStretchFactor") {
 
 	## Set the frame stretch factor
-	ResW  = Round(videoW * frameStretchFactor)
+	ResW  = Round(videoW * (1.0 + ( frameStretchFactor / 100.0 ) ))
 	CropW = (ResW - videoW) / 2
 
 	## Stretch the right frame to further the depth effect

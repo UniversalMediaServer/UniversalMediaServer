@@ -160,7 +160,7 @@ public class FFMpegVideo {
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationThreadNumber), cc.xy(3, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("GPUH264EncodingAccelerationMethod")), cc.xy(1, y));
+		builder.add(new JLabel(Messages.getString("AVCH264GPUEncodingAccelerationMethod")), cc.xy(1, y));
 
 		String[] keysH264 = CONFIGURATION.getFFmpegAvailableGPUH264EncodingAccelerationMethods();
 
@@ -176,7 +176,7 @@ public class FFMpegVideo {
 		builder.add(GuiUtil.getPreferredSizeComponent(fFmpegGPUH264EncodingAccelerationMethod), cc.xy(3, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("GPUH265EncodingAccelerationMethod")), cc.xy(1, y));
+		builder.add(new JLabel(Messages.getString("HEVCH265GPUEncodingAccelerationMethod")), cc.xy(1, y));
 
 		String[] keysH265 = CONFIGURATION.getFFmpegAvailableGPUH265EncodingAccelerationMethods();
 
