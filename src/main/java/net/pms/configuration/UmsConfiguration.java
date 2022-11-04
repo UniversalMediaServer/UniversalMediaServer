@@ -2784,7 +2784,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 * @return True if we should use FFMS2 instead of DirectShowSource in
 	 *         AviSynth.
 	 */
-	public boolean getAvisynthUseFFMS2() {
+	public boolean isAvisynthUseFFMS2() {
 		return getBoolean(KEY_AVISYNTH_USE_FFMS2, false);
 	}
 
@@ -2820,7 +2820,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 *
 	 * @return True if we should convert 2D video to 3D in AviSynth.
 	 */
-	public boolean getAvisynth2Dto3D() {
+	public boolean isAvisynth2Dto3D() {
 		return getBoolean(KEY_AVISYNTH_2D_TO_3D, false);
 	}
 
@@ -3058,7 +3058,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 *
 	 * @return True if we should convert 2D video to 3D in AviSynth.
 	 */
-	public boolean getFfmpegAvisynth2Dto3D() {
+	public boolean isFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 	}
 
@@ -3116,7 +3116,7 @@ public class UmsConfiguration extends RendererConfiguration {
 	 *
 	 * @return True if we should resize.
 	 */
-	public boolean getFfmpegAvisynthHorizontalResize() {
+	public boolean isFfmpegAvisynthHorizontalResize() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
 	}
 

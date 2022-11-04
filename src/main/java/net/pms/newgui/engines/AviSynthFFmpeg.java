@@ -151,7 +151,7 @@ public class AviSynthFFmpeg {
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		convert2dTo3d = new JCheckBox(Messages.getString("EnableAvisynth2Dto3DConversion"), CONFIGURATION.getFfmpegAvisynth2Dto3D());
+		convert2dTo3d = new JCheckBox(Messages.getString("EnableAvisynth2Dto3DConversion"), CONFIGURATION.isFfmpegAvisynth2Dto3D());
 		convert2dTo3d.setContentAreaFilled(false);
 		convert2dTo3d.addItemListener(new ItemListener() {
 			@Override
@@ -205,7 +205,7 @@ public class AviSynthFFmpeg {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(formats3D), FormLayoutUtil.flip(cc.xy(3, 6), colSpec, orientation));
 
-		horizontalResize = new JCheckBox(Messages.getString("HorizontalResize"), CONFIGURATION.getFfmpegAvisynthHorizontalResize());
+		horizontalResize = new JCheckBox(Messages.getString("HorizontalResize"), CONFIGURATION.isFfmpegAvisynthHorizontalResize());
 		horizontalResize.setContentAreaFilled(false);
 		horizontalResize.addItemListener(new ItemListener() {
 			@Override
