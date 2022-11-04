@@ -1269,7 +1269,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>									
+									<target>
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
