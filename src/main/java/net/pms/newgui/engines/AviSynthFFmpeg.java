@@ -215,7 +215,6 @@ public class AviSynthFFmpeg {
 		});
 		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
-		// builder.addLabel(Messages.getString("HorizontalResizeResolution"), cc.xy(1, 8));
 
 		String[] resolutions = new String[] {"7680", "3840", "1920", "1280", "852", "768", "720", "704", "640", "544", "480", "352", "120" };
 
