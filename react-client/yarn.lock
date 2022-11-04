@@ -2324,12 +2324,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:5.6.3":
-  version: 5.6.3
-  resolution: "@mantine/hooks@npm:5.6.3"
+"@mantine/hooks@npm:5.7.0":
+  version: 5.7.0
+  resolution: "@mantine/hooks@npm:5.7.0"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: d09a661e543d724e61efa22ad38b938e13b09583c9746bb799a53fcc9421b781ec2fda7651208cbf1662032146d5dcf8bcfbaafe9db1ff8f9758790624e95e94
+  checksum: b7cc3a880b2dd8709ac8a348a4043bd075b55c248e661f22752b09bd916c46322544b0a6e4b678b7d5bdbdd48fc2ce512efade86cf07e3fa0b0235ee8bfb11a9
   languageName: node
   linkType: hard
 
@@ -13277,7 +13277,7 @@ __metadata:
     "@mantine/core": 5.6.3
     "@mantine/dropzone": 5.6.3
     "@mantine/form": 5.6.3
-    "@mantine/hooks": 5.6.3
+    "@mantine/hooks": 5.7.0
     "@mantine/modals": 5.6.3
     "@mantine/notifications": 5.6.3
     "@mantine/prism": 5.6.3
