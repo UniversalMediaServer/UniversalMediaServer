@@ -38,8 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handle all renderers and devices founded.
- * TODO : Add UPNPHelper devices founded, DeviceConfigurations devices founded
+ * This class handle all renderers and devices found.
+ * TODO : Add UPNPHelper devices founded, DeviceConfigurations devices found
  */
 public class ConnectedRenderers {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
