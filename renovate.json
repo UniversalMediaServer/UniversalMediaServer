@@ -2,5 +2,11 @@
   "extends": [
     "config:base",
     ":dependencyDashboard"
+  ],
+  "packageRules": [
+    {
+      "matchSourceUrlPrefixes": ["https://github.com/mantinedev/mantine"],
+      "groupName": "Mantine monorepo packages"
+    }
   ]
 }
