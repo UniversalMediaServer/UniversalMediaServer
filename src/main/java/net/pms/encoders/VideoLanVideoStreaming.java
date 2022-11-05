@@ -32,7 +32,6 @@ import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -43,6 +42,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
@@ -218,7 +218,7 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(Renderer renderer) {
 		return true;
 	}
 

@@ -28,8 +28,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.GuiManager;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private static final int CHECK_END_OF_PROCESS = 2500; // must be superior to CHECK_INTERVAL
 
 	private final UmsConfiguration configuration;
-	private final RendererConfiguration renderer;
+	private final Renderer renderer;
 	private final int minMemorySize;
 	private final int maxMemorySize;
 	private final boolean forcefirst;

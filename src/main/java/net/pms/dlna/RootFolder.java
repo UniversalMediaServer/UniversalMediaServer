@@ -69,14 +69,12 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private final ArrayList<DLNAResource> webFolders;
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
 
 	public RootFolder() {
 		setIndexId(0);
-		webFolders = new ArrayList<>();
 		addVirtualMyMusicFolder();
 	}
 
@@ -258,7 +256,7 @@ public class RootFolder extends DLNAResource {
 			discoverChildren(false);
 		}
 
-		setDefaultRenderer(RendererConfigurations.getDefaultConf());
+		setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 		LOGGER.debug("Starting scan of: {}", this.getName());
 		if (running) {
 			Connection connection = null;
@@ -1303,7 +1301,7 @@ public class RootFolder extends DLNAResource {
 		// TODO: Can this use UnattachedFolder and add instead?
 		RealFile rf = new RealFile(file);
 		rf.setParent(rf);
-		rf.getParent().setDefaultRenderer(RendererConfigurations.getDefaultConf());
+		rf.getParent().setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 		rf.resolveFormat();
 		rf.syncResolve();
 
@@ -1348,7 +1346,7 @@ public class RootFolder extends DLNAResource {
 						file = file.getParentFile();
 					}
 					DLNAResource dir = new RealFile(file);
-					dir.setDefaultRenderer(RendererConfigurations.getDefaultConf());
+					dir.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 					dir.doRefreshChildren();
 					PMS.get().getRootFolder(null).scan(dir);
 				};

@@ -18,7 +18,6 @@ package net.pms.renderers.devices;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -48,6 +46,7 @@ import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.renderers.OutputOverride;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.service.StartStopListenerDelegate;
@@ -56,7 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebRender extends DeviceConfiguration implements OutputOverride {
+public class WebRender extends Renderer implements OutputOverride {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -98,7 +97,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	private StartStopListenerDelegate startStop;
 
 	public WebRender(String user) throws ConfigurationException, InterruptedException {
-		super(NOFILE, null);
+		super((String) null);
 		this.user = user;
 		ip = "";
 		port = 0;
@@ -113,10 +112,10 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		}
 		gson = new Gson();
 		pushList = new ArrayList<>();
+		setProperties();
 	}
 
-	@Override
-	public boolean load(File f) {
+	public final void setProperties() {
 		// FIXME: These are just preliminary
 		configuration.addProperty(KEY_MEDIAPARSERV2, true);
 		configuration.addProperty(KEY_MEDIAPARSERV2_THUMB, true);
@@ -129,7 +128,6 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		configuration.addProperty(KEY_TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
 		configuration.addProperty(KEY_HLS_MULTI_VIDEO_QUALITY, true);
 		configuration.addProperty(KEY_HLS_VERSION, 6);
-		return true;
 	}
 
 	@Override

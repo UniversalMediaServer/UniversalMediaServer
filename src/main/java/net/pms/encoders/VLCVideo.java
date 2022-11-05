@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
@@ -34,6 +33,7 @@ import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.*;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -128,10 +128,10 @@ public class VLCVideo extends Engine {
 	/**
 	 * Pick codecs for VLC based on formats the renderer supports;
 	 *
-	 * @param renderer The {@link RendererConfiguration}.
+	 * @param renderer The {@link Renderer}.
 	 * @return The codec configuration
 	 */
-	protected CodecConfig genConfig(RendererConfiguration renderer) {
+	protected CodecConfig genConfig(Renderer renderer) {
 		CodecConfig codecConfig = new CodecConfig();
 		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
@@ -643,7 +643,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(Renderer renderer) {
 		return true;
 	}
 

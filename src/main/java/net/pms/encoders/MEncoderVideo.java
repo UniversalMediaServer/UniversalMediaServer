@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -40,6 +39,7 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
+import net.pms.renderers.Renderer;
 import net.pms.util.*;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -295,22 +295,21 @@ public class MEncoderVideo extends Engine {
 	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
-	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
+	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, Renderer renderer, String audioType) {
 		// Use device-specific UMS conf
-		UmsConfiguration dConfiguration = PMS.getConfiguration(mediaRenderer);
+		UmsConfiguration dConfiguration = PMS.getConfiguration(renderer);
 		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (mediaRenderer.getMaxVideoBitrate() > 0) {
-			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(mediaRenderer.getMaxVideoBitrate()));
+		if (renderer.getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(renderer.getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			LOGGER.trace(
-				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
+			LOGGER.trace("Using video bitrate limit from {} configuration ({} Mb/s) because " +
 				"it is lower than the general configuration bitrate limit ({} Mb/s)",
-				mediaRenderer.getRendererName(),
+				renderer.getRendererName(),
 				rendererMaxBitrates[0],
 				defaultMaxBitrates[0]
 			);
@@ -322,18 +321,18 @@ public class MEncoderVideo extends Engine {
 			);
 		}
 
-		if (mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
+		if (renderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
-			if (mediaRenderer.isHalveBitrate() && !dConfiguration.isAutomaticMaximumBitrate()) {
+			if (renderer.isHalveBitrate() && !dConfiguration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
-			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
+			boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -343,9 +342,9 @@ public class MEncoderVideo extends Engine {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if ((mediaRenderer.isTranscodeToH264() || mediaRenderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
+			if ((renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
-					mediaRenderer.isH264Level41Limited() &&
+					renderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -366,7 +365,7 @@ public class MEncoderVideo extends Engine {
 					bufSize = defaultMaxBitrates[1];
 				}
 
-				if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+				if (renderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 					bufSize = 1835;
 				}
 			}
@@ -397,7 +396,7 @@ public class MEncoderVideo extends Engine {
 				);
 			}
 
-			if (mediaRenderer.isTranscodeToH264()) {
+			if (renderer.isTranscodeToH264()) {
 				encodeSettings += ":vbv_maxrate=" + defaultMaxBitrates[0] + ":vbv_bufsize=" + bufSize;
 			} else {
 				encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
@@ -2265,7 +2264,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(Renderer renderer) {
 		return true;
 	}
 

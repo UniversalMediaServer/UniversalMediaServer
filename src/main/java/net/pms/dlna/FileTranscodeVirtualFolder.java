@@ -23,10 +23,10 @@ import java.util.Comparator;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +185,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				originalResource.registerExternalSubtitles(true);
 			}
 
-			RendererConfiguration renderer = null;
+			Renderer renderer = null;
 			if (this.getParent() != null) {
 				renderer = this.getParent().getDefaultRenderer();
 			}

@@ -90,17 +90,6 @@ public abstract class BaseConfiguration {
 		configuration.setProperty(key, result.toString());
 	}
 
-
-
-
-
-
-
-
-
-
-
-
 	public static PropertiesConfiguration createPropertiesConfiguration() {
 		PropertiesConfiguration conf = new PropertiesConfiguration();
 		conf.setListDelimiter((char) 0);

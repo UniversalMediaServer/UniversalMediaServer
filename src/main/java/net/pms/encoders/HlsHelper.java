@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.TimeRange;
+import net.pms.renderers.Renderer;
 
 /**
  * HlsConfiguration Helper.
@@ -114,7 +114,7 @@ public class HlsHelper {
 	    You must use at least protocol version 8 if you use variable substitution.
 	*/
 
-	public static String getHLSm3u8(DLNAResource dlna, RendererConfiguration renderer, String baseUrl) {
+	public static String getHLSm3u8(DLNAResource dlna, Renderer renderer, String baseUrl) {
 		if (dlna.getMedia() != null) {
 			int hlsVersion = renderer.getHlsVersion();
 			DLNAMediaInfo mediaVideo = dlna.getMedia();
@@ -268,7 +268,7 @@ public class HlsHelper {
 	*/
 	public static final double DEFAULT_TARGETDURATION = 6;
 
-	public static String getHLSm3u8ForRendition(DLNAResource dlna, RendererConfiguration renderer, String baseUrl, String rendition) {
+	public static String getHLSm3u8ForRendition(DLNAResource dlna, Renderer renderer, String baseUrl, String rendition) {
 		if (dlna.getMedia() != null) {
 			int hlsVersion = renderer.getHlsVersion();
 			Double duration = dlna.getMedia().getDuration();
@@ -326,7 +326,7 @@ public class HlsHelper {
 		return new TimeRange(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
 	}
 
-	public static InputStream getInputStream(String url, DLNAResource resource, RendererConfiguration renderer) throws IOException {
+	public static InputStream getInputStream(String url, DLNAResource resource, Renderer renderer) throws IOException {
 		if (!url.contains("/hls/")) {
 			return null;
 		}

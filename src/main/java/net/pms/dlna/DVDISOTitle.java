@@ -26,7 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
@@ -35,6 +34,7 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
@@ -317,7 +317,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	// Ditlew
 	@Override
-	public long length(RendererConfiguration mediaRenderer) {
+	public long length(Renderer renderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
 		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
@@ -485,7 +485,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	@Override
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(Renderer renderer, UmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
 		if (
 			getMedia() != null &&

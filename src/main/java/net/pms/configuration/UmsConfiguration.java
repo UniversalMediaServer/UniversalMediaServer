@@ -2287,7 +2287,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean setSelectedRenderers(String value) {
 		if (value.isEmpty()) {
-			value = RendererConfigurations.NO_RENDERERS_KEY;
+			value = EMPTY_LIST_VALUE;
 		}
 
 		if (!value.equals(configuration.getString(KEY_SELECTED_RENDERERS, null))) {

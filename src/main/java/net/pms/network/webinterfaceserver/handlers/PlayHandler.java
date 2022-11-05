@@ -26,15 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.renderers.devices.WebRender;
-import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
@@ -45,11 +42,14 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
-import net.pms.util.SubtitleUtils;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.WebPlayer;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -403,7 +403,7 @@ public class PlayHandler implements HttpHandler {
 					// Get the resource url
 					boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
 					// If the resource is not a transcode folder item, tag its url for forced streaming
-					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
+					url = dlna.getURL(isTranscodeFolderItem  ? "" : Renderer.NOTRANSCODE, true, false);
 
 				} else {
 					// It's a WEB.conf item

@@ -28,13 +28,13 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
+import net.pms.renderers.Renderer;
 import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -707,8 +707,8 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(RendererConfiguration mediaRenderer) {
-		return mediaRenderer != null && mediaRenderer.isMuxH264MpegTS();
+	public boolean isEngineCompatible(Renderer renderer) {
+		return renderer != null && renderer.isMuxH264MpegTS();
 	}
 
 	@Override

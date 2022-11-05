@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public abstract class WebInterfaceServer implements WebInterfaceServerInterface 
 	public void resetAllRenderers() {
 		synchronized (roots) {
 			for (String cookie : roots.keySet()) {
-				RendererConfiguration conf = roots.get(cookie).getDefaultRenderer();
+				Renderer conf = roots.get(cookie).getDefaultRenderer();
 				RootFolder root = new RootFolder();
 				root.setDefaultRenderer(conf);
 				roots.put(cookie, root);

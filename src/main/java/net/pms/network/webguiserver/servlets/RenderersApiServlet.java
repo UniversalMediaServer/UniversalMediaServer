@@ -159,21 +159,10 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				 */
 
 				if (is == null) {
-					File f = new File(icon);
-					if (!f.isAbsolute() && f.getParent() == null) {
-						// filename, try profile renderers dir
-						f = new File(RendererConfigurations.getProfileRenderersDir(), icon);
-						if (f.isFile() && f.exists()) {
-							is = new FileInputStream(f);
-							mime = WebGuiServletHelper.getMimeType(f.getName());
-						} else {
-							//try renderers dir
-							f = new File(RendererConfigurations.getRenderersDir(), icon);
-							if (f.isFile() && f.exists()) {
-								is = new FileInputStream(f);
-								mime = WebGuiServletHelper.getMimeType(f.getName());
-							}
-						}
+					File f = RendererConfigurations.getRenderersIconFile(icon);
+					if (f.isFile() && f.exists()) {
+						is = new FileInputStream(f);
+						mime = WebGuiServletHelper.getMimeType(f.getName());
 					}
 				}
 

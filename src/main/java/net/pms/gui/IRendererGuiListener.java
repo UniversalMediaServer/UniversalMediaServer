@@ -16,11 +16,11 @@
  */
 package net.pms.gui;
 
-import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
 
 public interface IRendererGuiListener {
-	public void updateRenderer(final RendererConfiguration renderer);
+	public void updateRenderer(final Renderer renderer);
 	public void setActive(final boolean active);
 	public void delete();
 	public void refreshPlayerState(PlayerState state);

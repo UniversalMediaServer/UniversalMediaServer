@@ -39,9 +39,7 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import net.pms.configuration.Build;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
@@ -78,6 +76,7 @@ import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -143,15 +142,15 @@ public class PMS {
 	 * Returns the root folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
 	 *
-	 * @param renderer {@link net.pms.configuration.RendererConfiguration}
+	 * @param renderer {@link Renderer}
 	 * is the renderer for which to get the RootFolder structure. If <code>null</code>,
 	 * then the default renderer is used.
 	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
 	 */
-	public RootFolder getRootFolder(RendererConfiguration renderer) {
+	public RootFolder getRootFolder(Renderer renderer) {
 		// something to do here for multiple directories views for each renderer
 		if (renderer == null) {
-			renderer = RendererConfigurations.getDefaultConf();
+			renderer = RendererConfigurations.getDefaultRenderer();
 		}
 
 		if (renderer == null) {
@@ -167,13 +166,13 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * An array of {@link RendererConfiguration}s that have been found by UMS.
+	 * An array of {@link Renderer}s that have been found by UMS.
 	 * <p>
 	 * Important! If iteration is done on this list it's not thread safe unless
 	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
 	 * {@link List} itself</b>.
 	 */
-	private final List<RendererConfiguration> foundRenderers = Collections.synchronizedList(new ArrayList<>());
+	private final List<Renderer> foundRenderers = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The returned <code>List</code> itself is thread safe, but the objects
@@ -186,19 +185,19 @@ public class PMS {
 	 * </code></pre>
 	 * @return {@link #foundRenderers}
 	 */
-	public List<RendererConfiguration> getFoundRenderers() {
+	public List<Renderer> getFoundRenderers() {
 		return foundRenderers;
 	}
 
 	/**
-	 * Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found.
+	 * Adds a {@link Renderer} to the list of media renderers found.
 	 * The list is being used, for example, to give the user a graphical representation of the found
 	 * media renderers.
 	 *
-	 * @param renderer {@link net.pms.configuration.RendererConfiguration}
+	 * @param renderer {@link Renderer}
 	 * @since 1.82.0
 	 */
-	public void setRendererFound(RendererConfiguration renderer) {
+	public void setRendererFound(Renderer renderer) {
 		synchronized (foundRenderers) {
 			if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
 				LOGGER.debug("Adding status button for {}", renderer.getRendererName());
@@ -624,7 +623,7 @@ public class PMS {
 		mediaLibrary = new MediaLibrary();
 
 		// XXX: this must be called *after* mediaLibrary is initialized, if enabled (above)
-		getRootFolder(RendererConfigurations.getDefaultConf());
+		getRootFolder(null);
 
 		// Ensure up-to-date API metadata versions
 		if (umsConfiguration.getExternalNetwork() && umsConfiguration.isUseInfoFromIMDb()) {
@@ -1075,24 +1074,24 @@ public class PMS {
 	}
 
 	/**
-	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
+	 * Retrieves the composite {@link net.pms.configuration.RendererDeviceConfiguration DeviceConfiguration} object
 	 * that applies to this device, which acts as its {@link net.pms.configuration.UmsConfiguration UmsConfiguration}.
 	 *
 	 * This function should be used to resolve the relevant UmsConfiguration wherever the renderer
 	 * is known or can be determined.
 	 *
-	 * @param  renderer The renderer configuration.
-	 * @return          The DeviceConfiguration object, if any, or the global UmsConfiguration.
+	 * @param  renderer The renderer.
+	 * @return          The UmsConfiguration from object, if any, or the global UmsConfiguration.
 	 */
-	public static UmsConfiguration getConfiguration(RendererConfiguration renderer) {
-		return (renderer instanceof DeviceConfiguration deviceConf) ? deviceConf.getUmsConfiguration() : umsConfiguration;
+	public static UmsConfiguration getConfiguration(Renderer renderer) {
+		return renderer != null ? renderer.getUmsConfiguration() : umsConfiguration;
 	}
 
 	public static UmsConfiguration getConfiguration(OutputParams params) {
 		return getConfiguration(params != null ? params.getMediaRenderer() : null);
 	}
 
-	// Note: this should be used only when no RendererConfiguration or OutputParams is available
+	// Note: this should be used only when no Renderer or OutputParams is available
 	public static UmsConfiguration getConfiguration(DLNAResource dlna) {
 		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}

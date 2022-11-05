@@ -19,11 +19,11 @@ package net.pms.network.webguiserver;
 import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void addRenderer(Renderer renderer) {
 		RendererItem.addRenderer(renderer);
 	}
 

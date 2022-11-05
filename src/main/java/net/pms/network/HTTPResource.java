@@ -29,10 +29,10 @@ import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.renderers.Renderer;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -258,7 +258,7 @@ public abstract class HTTPResource {
 	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public static String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
+	public static String getRendererMimeType(Renderer renderer, DLNAResource resource) {
 		return renderer.getMimeType(resource);
 	}
 
@@ -274,7 +274,7 @@ public abstract class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -297,7 +297,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
 		orgPN += (
@@ -315,7 +315,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || "high".equals(media.getH264Profile())) {
@@ -333,7 +333,7 @@ public abstract class HTTPResource {
 					media.getFirstAudioTrack().isAACLC()
 				) || (
 					!isStreaming &&
-					mediaRenderer.isTranscodeToAAC()
+					renderer.isTranscodeToAAC()
 				)
 			) {
 				orgPN += "_AAC_MULT5";
@@ -343,7 +343,7 @@ public abstract class HTTPResource {
 					media.getFirstAudioTrack().isAC3()
 				) || (
 					!isStreaming &&
-					mediaRenderer.isTranscodeToAC3()
+					renderer.isTranscodeToAC3()
 				)
 			) {
 				orgPN += "_AC3";
@@ -368,7 +368,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
+	public static final String getWmvOrgPN(DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "WMV";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HIGH";
@@ -383,7 +383,7 @@ public abstract class HTTPResource {
 					media.getFirstAudioTrack().isWMA()
 				) || (
 					!isStreaming &&
-					mediaRenderer.isTranscodeToWMV()
+					renderer.isTranscodeToWMV()
 				)
 			) {
 				orgPN += "_FULL";

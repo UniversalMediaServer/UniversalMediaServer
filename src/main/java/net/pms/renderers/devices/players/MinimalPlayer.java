@@ -20,18 +20,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.configuration.DeviceConfiguration;
+import net.pms.renderers.Renderer;
 
 /**
  * An empty implementation with some basic funtionalities defined.
  */
 public abstract class MinimalPlayer implements BasicPlayer {
-	protected DeviceConfiguration renderer;
+	protected Renderer renderer;
 	protected PlayerState state;
 	protected final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 	protected final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 
-	protected MinimalPlayer(DeviceConfiguration renderer) {
+	protected MinimalPlayer(Renderer renderer) {
 		this.renderer = renderer;
 		state = new PlayerState();
 		reset();
@@ -178,7 +178,7 @@ public abstract class MinimalPlayer implements BasicPlayer {
 	public void actionPerformed(final ActionEvent e) {
 	}
 
-	public DeviceConfiguration getRenderer() {
+	public Renderer getRenderer() {
 		return renderer;
 	}
 }
