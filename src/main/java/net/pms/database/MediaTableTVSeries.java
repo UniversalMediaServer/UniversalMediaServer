@@ -436,7 +436,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		String sql;
 		String latestVersion = null;
 		if (CONFIGURATION.getExternalNetwork()) {
-			latestVersion = APIUtils.getApiDataVideoVersion();
+			latestVersion = APIUtils.getApiDataSeriesVersion();
 		}
 		if (latestVersion != null) {
 			sql = SQL_GET_TITLE_BY_IMDBID_API_VERSION;
@@ -453,6 +453,8 @@ public final class MediaTableTVSeries extends MediaTable {
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
 						return resultSet.getString(COL_TITLE);
+					} else {
+						LOGGER.trace("Did not find title by IMDb ID using query: {}", statement.toString());
 					}
 				}
 			}

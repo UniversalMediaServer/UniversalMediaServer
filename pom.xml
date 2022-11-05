@@ -2788,7 +2788,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
+													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2805,7 +2805,7 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
@@ -2828,7 +2828,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files (x86)/Universal Media Server/UMS.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
