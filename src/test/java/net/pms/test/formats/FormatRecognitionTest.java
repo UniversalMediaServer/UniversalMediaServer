@@ -68,7 +68,6 @@ public class FormatRecognitionTest {
 			throw new AssertionError(ex);
 		}
 		RendererConfigurations.loadRendererConfigurations();
-		//RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
 		// Silence all log messages from the UMS code that is being tested
@@ -311,11 +310,9 @@ public class FormatRecognitionTest {
 		// Test without rendererConfiguration, as can happen when plugins
 		// create virtual video actions under a folder.
 
-		boolean re = format.isCompatible(dlna, null);
 		assertTrue(format.isCompatible(dlna, null),
 			"VirtualVideoAction is initialized as compatible with null configuration");
 	}
-
 
 	/**
 	 * Test the compatibility of the subtitles in
