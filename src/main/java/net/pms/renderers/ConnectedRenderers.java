@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class handle all renderers and devices found.
- * TODO : Add UPNPHelper devices founded, DeviceConfigurations devices found
+ * TODO : Add UPNPHelper devices found
  */
 public class ConnectedRenderers {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
