@@ -25,11 +25,10 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.logging.LoggingConfig;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +64,10 @@ public class DbgPacker {
 		}
 
 		// add confs of connected renderers
-		for (RendererConfiguration r : ConnectedRenderers.getConnectedRenderersConfigurations()) {
-			add(r.getFile());
-			if (((DeviceConfiguration) r).isCustomized()) {
-				add(((DeviceConfiguration) r).getParentFile());
+		for (Renderer renderer : ConnectedRenderers.getConnectedRenderers()) {
+			add(renderer.getFile());
+			if (renderer.isCustomized()) {
+				add(renderer.getParentFile());
 			}
 		}
 

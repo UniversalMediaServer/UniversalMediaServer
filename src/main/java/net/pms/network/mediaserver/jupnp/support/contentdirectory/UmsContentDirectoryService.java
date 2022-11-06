@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAResource;
@@ -30,6 +29,7 @@ import net.pms.dlna.PlaylistFolder;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
@@ -320,7 +320,7 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		RendererConfiguration renderer = info.renderer;
+		Renderer renderer = info.renderer;
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
@@ -415,7 +415,7 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		RendererConfiguration renderer = info.renderer;
+		Renderer renderer = info.renderer;
 		try {
 			SearchRequestHandler handler = new SearchRequestHandler();
 			return handler.createSearchResponse(
@@ -448,7 +448,7 @@ public class UmsContentDirectoryService {
 		long startingIndex,
 		long requestedCount,
 		SortCriterion[] orderBy,
-		RendererConfiguration renderer
+		Renderer renderer
 	) throws ContentDirectoryException {
 		boolean xbox360 = renderer.isXbox360();
 		String xboxId = null;
@@ -578,7 +578,7 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		RendererConfiguration renderer = info.renderer;
+		Renderer renderer = info.renderer;
 		if (posSecond == 0) {
 			// Sometimes when Samsung device is starting to play the video
 			// it sends X_SetBookmark message immediatelly with the position=0.
@@ -607,7 +607,7 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		RendererConfiguration renderer = info.renderer;
+		Renderer renderer = info.renderer;
 		StringBuilder features = new StringBuilder();
 		String rootFolderId = PMS.get().getRootFolder(renderer).getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");

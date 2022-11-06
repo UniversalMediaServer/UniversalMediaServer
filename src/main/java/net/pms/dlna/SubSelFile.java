@@ -22,8 +22,8 @@ import java.io.Serializable;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.OpenSubtitle.SubtitleItem;
 import net.pms.util.UMSUtils;
@@ -177,7 +177,7 @@ public class SubSelFile extends VirtualFolder {
 		private static final long serialVersionUID = 1L;
 		private final List<String> configuredLanguages;
 
-		SubSort(RendererConfiguration renderer) {
+		SubSort(Renderer renderer) {
 			configuredLanguages = Arrays.asList(UMSUtils.getLangList(renderer, true).split(","));
 		}
 
@@ -259,7 +259,7 @@ public class SubSelFile extends VirtualFolder {
 	}
 
 	@Override
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, UmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(Renderer renderer, UmsConfiguration configuration) {
 		return "{" + Messages.getString("LiveSubtitles") + "}";
 	}
 

@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.protocolinfo.PanasonicComProfileName.KnownPanasonicComProfileName;
+import net.pms.renderers.Renderer;
 import net.pms.util.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.Protocol;
@@ -357,12 +357,12 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *
 	 * @param dmpProfilesString the {@code X-PANASONIC-DMP-Profile} string to
 	 *            parse.
-	 * @param renderer the {@link RendererConfiguration} for which to apply the
+	 * @param renderer the {@link Renderer} for which to apply the
 	 *            parsing results.
 	 * @throws IllegalStateException If {@code renderer}'s
 	 *             {@code deviceProtocolInfo} is {@code null}.
 	 */
-	public static void parsePanasonicDmpProfiles(String dmpProfilesString, RendererConfiguration renderer) {
+	public static void parsePanasonicDmpProfiles(String dmpProfilesString, Renderer renderer) {
 		if (renderer == null) {
 			return;
 		}

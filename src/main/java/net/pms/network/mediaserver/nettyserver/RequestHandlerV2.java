@@ -32,11 +32,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +87,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
 		RequestV2 request;
-		RendererConfiguration renderer = null;
+		Renderer renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
@@ -121,14 +121,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Attempt 1: If the reguested url contains the no-transcode tag, force
 		// the default streaming-only conf.
-		if (request.getUri().contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfigurations.getStreamingConf();
+		if (request.getUri().contains(Renderer.NOTRANSCODE)) {
+			renderer = RendererConfigurations.getDefaultRenderer();
 			LOGGER.debug("Forcing streaming.");
 		}
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(ia);
+			renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
@@ -284,7 +284,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return uri;
 	}
 
-	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
+	private static void logMessageReceived(MessageEvent event, String content, Renderer renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
 		if (event.getMessage() instanceof HttpRequest httpRequest) {

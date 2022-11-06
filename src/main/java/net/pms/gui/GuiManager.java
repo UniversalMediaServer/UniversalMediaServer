@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.newgui.LooksFrame;
+import net.pms.renderers.Renderer;
 
 public class GuiManager {
 	private static final List<String> LOG_BUFFER = Collections.synchronizedList(new ArrayList<>());
@@ -70,9 +70,9 @@ public class GuiManager {
 			if (serverReady) {
 				gui.serverReady();
 			}
-			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			List<Renderer> foundRenderers = PMS.get().getFoundRenderers();
 			synchronized (foundRenderers) {
-				for (RendererConfiguration renderer : foundRenderers) {
+				for (Renderer renderer : foundRenderers) {
 					gui.addRenderer(renderer);
 				}
 			}
@@ -138,7 +138,7 @@ public class GuiManager {
 		}
 	}
 
-	public static void addRenderer(RendererConfiguration renderer) {
+	public static void addRenderer(Renderer renderer) {
 		if (swingFrame != null) {
 			swingFrame.addRenderer(renderer);
 		}
@@ -258,9 +258,9 @@ public class GuiManager {
 
 	public static void updateBuffer() {
 		long buf = 0;
-		List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+		List<Renderer> foundRenderers = PMS.get().getFoundRenderers();
 		synchronized (foundRenderers) {
-			for (RendererConfiguration r : foundRenderers) {
+			for (Renderer r : foundRenderers) {
 				buf += r.getBuffer();
 			}
 		}
@@ -308,9 +308,9 @@ public class GuiManager {
 			maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1048576);
 			usedMemory = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576);
 			long buf = 0;
-			List<RendererConfiguration> foundRenderers = PMS.get().getFoundRenderers();
+			List<Renderer> foundRenderers = PMS.get().getFoundRenderers();
 			synchronized (foundRenderers) {
-				for (RendererConfiguration r : foundRenderers) {
+				for (Renderer r : foundRenderers) {
 					buf += (r.getBuffer());
 				}
 			}

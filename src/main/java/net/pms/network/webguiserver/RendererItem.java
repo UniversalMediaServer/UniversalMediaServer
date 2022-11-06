@@ -27,23 +27,23 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class RendererItem implements IRendererGuiListener {
-	private static final HashMap<RendererConfiguration, RendererItem> RENDERERS = new HashMap<>();
+	private static final HashMap<Renderer, RendererItem> RENDERERS = new HashMap<>();
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
 	private static final Gson GSON = new Gson();
 	private final int id;
-	private final RendererConfiguration renderer;
+	private final Renderer renderer;
 	private String name;
 	private String address;
 	private String icon;
@@ -55,14 +55,14 @@ public class RendererItem implements IRendererGuiListener {
 	private int controls;
 	private PlayerState state;
 
-	public RendererItem(RendererConfiguration value) {
+	public RendererItem(Renderer value) {
 		id = RENDERER_ID.getAndIncrement();
 		renderer = value;
 		init();
 	}
 
 	@Override
-	public void updateRenderer(RendererConfiguration value) {
+	public void updateRenderer(Renderer value) {
 		//we can use renderer itself as it's a pointer to real renderer object
 		updateRendererValues();
 		sendRendererAction("renderer_update");
@@ -333,7 +333,7 @@ public class RendererItem implements IRendererGuiListener {
 		return null;
 	}
 
-	public static void addRenderer(RendererConfiguration renderer) {
+	public static void addRenderer(Renderer renderer) {
 		synchronized (RENDERERS) {
 			if (!RENDERERS.containsKey(renderer)) {
 				RENDERERS.put(renderer, new RendererItem(renderer));

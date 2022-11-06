@@ -19,8 +19,6 @@ package net.pms.network.mediaserver;
 import java.net.*;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.DeviceConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
@@ -45,12 +43,12 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new RendererMap<>(DeviceConfiguration.class);
+		rendererMap = new RendererMap<>(Renderer.class);
 	}
 
 	@Override
 	protected void rendererReady(String uuid) {
-		RendererConfiguration r = ConnectedRenderers.getRendererConfigurationByUUID(uuid);
+		Renderer r = ConnectedRenderers.getRendererByUUID(uuid);
 		if (r != null) {
 			r.getPlayer();
 		}
@@ -58,28 +56,28 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected boolean isBlocked(String uuid) {
-		int mode = DeviceConfigurations.getDeviceUpnpMode(uuid, true);
-		if (mode != RendererConfiguration.UPNP_ALLOW) {
-			LOGGER.debug("Upnp service is {} for {}", RendererConfiguration.getUpnpModeString(mode), uuid);
+		if (uuid.startsWith("uuid:")) {
+			ConnectedRenderers.addUuidAssociation(getAddress(uuid), uuid);
+		}
+		int mode = RendererConfigurations.getDeviceUpnpMode(uuid);
+		if (mode != Renderer.UPNP_ALLOW) {
+			LOGGER.debug("Upnp service is {} for {}", Renderer.getUpnpModeString(mode), uuid);
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	protected Renderer rendererFound(Device d, String uuid) {
+	protected Renderer rendererFound(Device device, String uuid) {
 		// Create or retrieve an instance
 		try {
-			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			DeviceConfiguration r = (DeviceConfiguration) ConnectedRenderers.getRendererConfigurationBySocketAddress(socket);
+			InetAddress socket = InetAddress.getByName(getURL(device).getHost());
+			Renderer renderer = ConnectedRenderers.getRendererBySocketAddress(socket);
 			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
-				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(device));
 
-			if (r != null && !r.isUpnpAllowed()) {
-				LOGGER.debug("Upnp service is {} for \"{}\"", r.getUpnpModeString(), r);
-				return null;
-			} else if (r == null && ref != null && !ref.isUpnpAllowed()) {
-				LOGGER.debug("Upnp service is {} for {} devices", ref.getUpnpModeString(), ref);
+			if (renderer != null && !renderer.isUpnpAllowed()) {
+				LOGGER.debug("Upnp service is {} for \"{}\"", renderer.getUpnpModeString(), renderer);
 				return null;
 			}
 
@@ -87,14 +85,14 @@ public class UPNPHelper extends UPNPControl {
 			// upnp-advertising
 			// renderer could register twice if the http server sees it first
 
-			boolean distinct = r != null && StringUtils.isNotBlank(r.getUUID()) && !uuid.equals(r.getUUID());
+			boolean distinct = renderer != null && StringUtils.isNotBlank(renderer.getUUID()) && !uuid.equals(renderer.getUUID());
 
-			if (!distinct && r != null && (r.matchUPNPDetails(getDeviceDetailsString(d)) || !r.isLoaded())) {
+			if (!distinct && renderer != null && (renderer.matchUPNPDetails(getDeviceDetailsString(device)) || !renderer.isLoaded())) {
 				// Already seen by the http server
 				if (
 					ref != null &&
-					!ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
-					ref.getLoadingPriority() >= r.getLoadingPriority()
+					!ref.getUpnpDetailsString().equals(renderer.getUpnpDetailsString()) &&
+					ref.getLoadingPriority() >= renderer.getLoadingPriority()
 				) {
 					/*
 					 * The upnp-matched reference conf is different from the
@@ -102,24 +100,24 @@ public class UPNPHelper extends UPNPControl {
 					 * priority, so update.
 					 */
 					LOGGER.debug("Switching to preferred renderer: " + ref);
-					r.inherit(ref);
+					renderer.inherit(ref);
 				}
 
 				// Update if we have a custom configuration for this uuid
-				r.setUUID(uuid);
+				renderer.setUUID(uuid);
 
 				// Make sure it's mapped
-				rendererMap.put(uuid, "0", r);
-				Map<String, String> details = getDeviceDetails(d);
-				r.setDetails(details);
+				rendererMap.put(uuid, "0", renderer);
+				Map<String, String> details = getDeviceDetails(device);
+				renderer.setDetails(details);
 				// Update gui
-				r.updateRendererGui();
-				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", r, details);
+				renderer.updateRendererGui();
+				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", renderer, details);
 			} else {
 				// It's brand new
-				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
+				renderer = rendererMap.get(uuid, "0");
 				if (ref != null) {
-					r.inherit(ref);
+					renderer.inherit(ref);
 				} else {
 					// It's unrecognized: temporarily assign the default
 					// renderer but mark it as unloaded
@@ -127,31 +125,31 @@ public class UPNPHelper extends UPNPControl {
 					// server receives a request.
 					// This is to allow initiation of upnp playback before http
 					// recognition has occurred.
-					r.inheritDefault();
-					LOGGER.debug("Marking upnp renderer \"{}\" at {} as unrecognized", r, socket);
+					renderer.inheritDefault();
+					LOGGER.debug("Marking upnp renderer \"{}\" at {} as unrecognized", renderer, socket);
 				}
-				if (r.associateIP(socket)) {
-					Map<String, String> details = getDeviceDetails(d);
-					r.setDetails(details);
-					PMS.get().setRendererFound(r);
-					LOGGER.debug("New renderer found: \"{}\" with dlna details: {}", r, details);
+				if (renderer.associateIP(socket)) {
+					Map<String, String> details = getDeviceDetails(device);
+					renderer.setDetails(details);
+					PMS.get().setRendererFound(renderer);
+					LOGGER.debug("New renderer found: \"{}\" with dlna details: {}", renderer, details);
 				}
 			}
-			return r;
+			return renderer;
 		} catch (UnknownHostException | ConfigurationException e) {
-			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
+			LOGGER.debug("Error initializing device " + getFriendlyName(device) + ": " + e);
 		}
 		return null;
 	}
 
 	//seems to be unused
-	public void addRenderer(DeviceConfiguration d) {
-		if (d.getUUID() != null) {
-			rendererMap.put(d.getUUID(), "0", d);
+	public void addRenderer(Renderer renderer) {
+		if (renderer.getUUID() != null) {
+			rendererMap.put(renderer.getUUID(), "0", renderer);
 		}
 	}
 
-	public void removeRenderer(RendererConfiguration d) {
+	public void removeRenderer(Renderer d) {
 		if (d.getUUID() != null) {
 			rendererMap.remove(d.getUUID());
 		}
@@ -170,32 +168,32 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 
-	public static List<RendererConfiguration> getRenderers(int type) {
-		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+	public static List<Renderer> getRenderers(int type) {
+		ArrayList<Renderer> renderers = new ArrayList<>();
 		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
 			if (r.isActive() && r.isControllable(type)) {
-				renderers.add((RendererConfiguration) r);
+				renderers.add(r);
 			}
 		}
 		return renderers;
 	}
 
 	//seems to be unused
-	public static void play(String uri, String name, DeviceConfiguration r) {
-		DLNAResource d = DLNAResource.getValidResource(uri, name, r);
+	public static void play(String uri, String name, Renderer renderer) {
+		DLNAResource d = DLNAResource.getValidResource(uri, name, renderer);
 		if (d != null) {
-			play(d, r);
+			play(d, renderer);
 		}
 	}
 
 	//seems to be unused
-	public static void play(DLNAResource d, DeviceConfiguration r) {
+	public static void play(DLNAResource d, Renderer renderer) {
 		DLNAResource d1 = d.getParent() == null ? DLNAResource.TEMP.add(d) : d;
 		if (d1 != null) {
-			Device dev = getDevice(r.getUUID());
-			String id = r.getInstanceID();
-			setAVTransportURI(dev, id, d1.getURL(""), r.isPushMetadata() ? d1.getDidlString(r) : null);
+			Device dev = getDevice(renderer.getUUID());
+			String id = renderer.getInstanceID();
+			setAVTransportURI(dev, id, d1.getURL(""), renderer.isPushMetadata() ? d1.getDidlString(renderer) : null);
 			play(dev, id);
 		}
 	}

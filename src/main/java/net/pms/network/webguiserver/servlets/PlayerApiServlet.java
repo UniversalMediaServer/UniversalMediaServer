@@ -39,7 +39,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
@@ -80,6 +79,7 @@ import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.network.webguiserver.WebPlayerRootFolder;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.WebPlayer;
 import net.pms.util.APIUtils;
@@ -346,7 +346,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			render.setActive(true);
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException | InterruptedException e) {
-			root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
+			root.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 		}
 		root.discoverChildren();
 		synchronized (ROOTS) {
@@ -1015,7 +1015,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (root == null || !root.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 			return false;
 		}
-		RendererConfiguration renderer = root.getDefaultRenderer();
+		Renderer renderer = root.getDefaultRenderer();
 		DLNAResource resource = root.getDLNAResource(resourceId, renderer);
 		if (resource == null) {
 			// another error
@@ -1155,7 +1155,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	public static void resetAllRenderers() {
 		synchronized (ROOTS) {
 			for (String token : ROOTS.keySet()) {
-				RendererConfiguration conf = ROOTS.get(token).getDefaultRenderer();
+				Renderer conf = ROOTS.get(token).getDefaultRenderer();
 				int userId = ROOTS.get(token).getUserId();
 				WebPlayerRootFolder root = new WebPlayerRootFolder(userId);
 				root.setDefaultRenderer(conf);

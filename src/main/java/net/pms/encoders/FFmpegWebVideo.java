@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.FFmpegWebFilters;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -35,6 +33,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.OutputOverride;
+import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.FFmpegExecutableInfo;
 import net.pms.util.PlayerUtil;
@@ -86,8 +85,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// TODO: stop doing that
 		UmsConfiguration existingConfiguration = configuration;
 
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
-		RendererConfiguration renderer = params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
+		Renderer renderer = params.getMediaRenderer();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 

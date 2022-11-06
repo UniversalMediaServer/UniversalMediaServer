@@ -20,11 +20,11 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,7 +86,7 @@ public class SearchRequestHandlerTest {
 	public void testVideoFileUpnpSearch() {
 		SearchRequestHandler srh = new SearchRequestHandler();
 		SearchRequest sr = new SearchRequest();
-		RendererConfiguration rc = RendererConfigurations.getDefaultConf();
+		Renderer renderer = RendererConfigurations.getDefaultRenderer();
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
 		sr.setContainerId("0");
@@ -94,7 +94,7 @@ public class SearchRequestHandlerTest {
 		sr.setFilter(
 			"dc:title,av:mediaClass,dc:date,@childCount,av:chapterInfo,res,upnp:rating,upnp:rating@type,upnp:class,av:soundPhoto,res@resolution,res@av:mpfEntries,upnp:album,upnp:genre,upnp:albumArtURI,upnp:albumArtURI@dlna:profileID,dc:creator,res@size,res@duration,res@bitrate,res@protocolInfo");
 		sr.setSortCriteria("");
-		StringBuilder response = srh.createSearchResponse(sr, rc);
+		StringBuilder response = srh.createSearchResponse(sr, renderer);
 		LOG.info("");
 		LOG.info("testVideoFileUpnpSearch");
 		LOG.info("===================================================================");

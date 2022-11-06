@@ -41,11 +41,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.renderers.devices.players.BasicPlayer;
-import net.pms.renderers.devices.players.PlayerState;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
@@ -54,6 +52,9 @@ import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.ServerBindMouseListener;
 import net.pms.newgui.util.FormLayoutUtil;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +79,7 @@ public class StatusTab {
 		private String name = " ";
 		private JPanel panel = null;
 
-		public RendererItem(RendererConfiguration renderer) {
+		public RendererItem(Renderer renderer) {
 			icon = addRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays());
 			icon.enableRollover();
 			label = new JLabel(renderer.getRendererName());
@@ -175,7 +176,7 @@ public class StatusTab {
 		}
 
 		@Override
-		public void updateRenderer(final RendererConfiguration renderer) {
+		public void updateRenderer(final Renderer renderer) {
 			SwingUtilities.invokeLater(() -> {
 				icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
 				label.setText(renderer.getRendererName());
@@ -428,7 +429,7 @@ public class StatusTab {
 		peakBitrate.setText(FORMATTER.format(sizeinMb));
 	}
 
-	public void addRenderer(final RendererConfiguration renderer) {
+	public void addRenderer(final Renderer renderer) {
 		final RendererItem r = new RendererItem(renderer);
 		r.addTo(renderers);
 		renderer.addGuiListener(r);
@@ -505,20 +506,9 @@ public class StatusTab {
 				 * RendererIcon = /path/to/foo.png
 				 */
 
-				File f = new File(icon);
-
-				if (!f.isAbsolute() && f.getParent() == null) {
-					// filename, try profile renderers dir
-					f = new File(RendererConfigurations.getProfileRenderersDir(), icon);
-					if (f.isFile()) {
-						is = new FileInputStream(f);
-					} else {
-						//try renderers dir
-						f = new File(RendererConfigurations.getRenderersDir(), icon);
-						if (f.isFile()) {
-							is = new FileInputStream(f);
-						}
-					}
+				File f = RendererConfigurations.getRenderersIconFile(icon);
+				if (f.isFile() && f.exists()) {
+					is = new FileInputStream(f);
 				}
 
 				if (is == null) {

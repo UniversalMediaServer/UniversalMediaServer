@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.profile.RemoteClientInfo;
 import org.slf4j.Logger;
@@ -48,16 +48,16 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 		"user-agent"
 	};
 
-	public final RendererConfiguration renderer;
+	public final Renderer renderer;
 
 	public UmsRemoteClientInfo(RemoteClientInfo info) {
 		super(info.getConnection(), info.getRequestHeaders());
-		renderer = toRendererConfiguration(info);
+		renderer = toRenderer(info);
 	}
 
-	public static RendererConfiguration toRendererConfiguration(RemoteClientInfo info) {
+	public static Renderer toRenderer(RemoteClientInfo info) {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		RendererConfiguration renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(info.getRemoteAddress());
+		Renderer renderer = ConnectedRenderers.getRendererBySocketAddress(info.getRemoteAddress());
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
