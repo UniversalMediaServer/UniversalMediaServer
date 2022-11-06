@@ -17,7 +17,6 @@
 package net.pms.renderers.devices.players;
 
 import java.io.IOException;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
@@ -32,8 +31,8 @@ public class ChromecastPlayer extends LogicalPlayer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastPlayer.class);
 	private final ChromeCast api;
 
-	public ChromecastPlayer(DeviceConfiguration d, ChromeCast api) {
-		super(d);
+	public ChromecastPlayer(Renderer renderer, ChromeCast api) {
+		super(renderer);
 		this.api = api;
 	}
 

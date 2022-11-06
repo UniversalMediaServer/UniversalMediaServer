@@ -230,7 +230,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
+				root.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 			}
 
 			root.discoverChildren();

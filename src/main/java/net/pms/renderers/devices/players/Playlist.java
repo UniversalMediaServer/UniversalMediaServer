@@ -19,8 +19,8 @@ package net.pms.renderers.devices.players;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +133,7 @@ public class Playlist extends DefaultComboBoxModel {
 		super.fireIntervalRemoved(source, index0, index1);
 	}
 
-	public static boolean isValid(PlaylistItem item, DeviceConfiguration renderer) {
+	public static boolean isValid(PlaylistItem item, Renderer renderer) {
 		if (DLNAResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
 			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.getUri()))) {

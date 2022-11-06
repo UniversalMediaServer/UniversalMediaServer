@@ -16,9 +16,9 @@
  */
 package net.pms.service;
 
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.renderers.Renderer;
 
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
 public class StartStopListenerDelegate {
@@ -26,18 +26,18 @@ public class StartStopListenerDelegate {
 	private DLNAResource dlna;
 	private boolean started = false;
 	private boolean stopped = false;
-	private RendererConfiguration renderer;
+	private Renderer renderer;
 
 	public StartStopListenerDelegate(String rendererId) {
 		this.rendererId = rendererId;
 		renderer = null;
 	}
 
-	public void setRenderer(RendererConfiguration r) {
+	public void setRenderer(Renderer r) {
 		renderer = r;
 	}
 
-	public RendererConfiguration getRenderer() {
+	public Renderer getRenderer() {
 		return renderer;
 	}
 

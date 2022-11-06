@@ -20,7 +20,6 @@ import com.sun.jna.Platform;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -74,7 +73,7 @@ public class YoutubeDl extends FFMpegVideo {
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
 		UmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 

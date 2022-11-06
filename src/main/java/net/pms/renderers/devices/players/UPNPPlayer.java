@@ -18,9 +18,9 @@ package net.pms.renderers.devices.players;
 
 import java.awt.event.ActionEvent;
 import java.util.Map;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.network.mediaserver.UPNPControl;
+import net.pms.renderers.Renderer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.meta.Device;
@@ -39,7 +39,7 @@ public class UPNPPlayer extends LogicalPlayer {
 	protected String lastUri;
 	private boolean ignoreUpnpDuration;
 
-	public UPNPPlayer(DeviceConfiguration renderer) {
+	public UPNPPlayer(Renderer renderer) {
 		super(renderer);
 		uuid = renderer.getUUID();
 		instanceID = renderer.getInstanceID();

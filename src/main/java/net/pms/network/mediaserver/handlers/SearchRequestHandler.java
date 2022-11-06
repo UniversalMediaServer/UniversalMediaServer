@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
@@ -40,6 +39,7 @@ import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.formats.Format;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.BrowseResult;
@@ -93,7 +93,7 @@ public class SearchRequestHandler {
 		throw new RuntimeException("Unknown type : " + (searchCriteria != null ? searchCriteria : "NULL"));
 	}
 
-	public StringBuilder createSearchResponse(SearchRequest requestMessage, RendererConfiguration mediaRenderer) {
+	public StringBuilder createSearchResponse(SearchRequest requestMessage, Renderer renderer) {
 		int numberReturned = 0;
 		StringBuilder dlnaItems = new StringBuilder();
 		DbIdMediaType requestType = getRequestType(requestMessage.getSearchCriteria());
@@ -111,7 +111,7 @@ public class SearchRequestHandler {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
-			dlnaItems.append(uf.getDidlString(mediaRenderer));
+			dlnaItems.append(uf.getDidlString(renderer));
 		}
 
 		// Build response message
@@ -126,7 +126,7 @@ public class SearchRequestHandler {
 		long startingIndex,
 		long requestedCount,
 		SortCriterion[] orderBy,
-		RendererConfiguration mediaRenderer
+		Renderer renderer
 	) {
 		int numberReturned = 0;
 		StringBuilder dlnaItems = new StringBuilder();
@@ -145,7 +145,7 @@ public class SearchRequestHandler {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
-			dlnaItems.append(uf.getDidlString(mediaRenderer));
+			dlnaItems.append(uf.getDidlString(renderer));
 		}
 
 		return new BrowseResult(dlnaItems.toString(), numberReturned, totalMatches, updateID.getAndIncrement());

@@ -20,11 +20,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.IPushOutput;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
+import net.pms.renderers.Renderer;
 
 public final class OutputParams {
 
@@ -51,7 +51,7 @@ public final class OutputParams {
 	private boolean noVideoEncode;
 	private String forceFps;
 	private String forceType;
-	private RendererConfiguration mediaRenderer;
+	private Renderer mediaRenderer;
 	private boolean hidebuffer;
 	private byte[] header;
 	private IPushOutput stdin;
@@ -310,11 +310,11 @@ public final class OutputParams {
 		this.forceType = forceType;
 	}
 
-	public RendererConfiguration getMediaRenderer() {
+	public Renderer getMediaRenderer() {
 		return mediaRenderer;
 	}
 
-	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
+	public void setMediaRenderer(Renderer mediaRenderer) {
 		this.mediaRenderer = mediaRenderer;
 	}
 

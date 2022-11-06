@@ -38,12 +38,12 @@ import su.litvak.chromecast.api.v2.ChromeCast;
 public class ChromecastServiceListener implements ServiceListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastServiceListener.class);
 
-	private final RendererConfiguration renderer;
+	private final RendererConfiguration rendererConf;
 
 	private ArrayList<ChromecastDevice> chromeCasts;
 
 	public ChromecastServiceListener() throws IOException {
-		renderer = RendererConfigurations.getRendererConfigurationByName("Chromecast");
+		rendererConf = RendererConfigurations.getRendererConfigurationByName("Chromecast");
 		chromeCasts = new ArrayList<>();
 		if (!PMS.getConfiguration().isChromecastDbg()) {
 			ch.qos.logback.classic.Logger logger =
@@ -68,7 +68,7 @@ public class ChromecastServiceListener implements ServiceListener {
 
 		try {
 			chromeCast.connect();
-			ChromecastDevice chromecastDevice = new ChromecastDevice(chromeCast, renderer, InetAddress.getByName(chromeCast.getAddress()));
+			ChromecastDevice chromecastDevice = new ChromecastDevice(chromeCast, rendererConf, InetAddress.getByName(chromeCast.getAddress()));
 			PMS.get().setRendererFound(chromecastDevice);
 			chromeCasts.add(chromecastDevice);
 		} catch (IOException | GeneralSecurityException | ConfigurationException e) {
@@ -87,7 +87,7 @@ public class ChromecastServiceListener implements ServiceListener {
 		}
 		String name = event.getInfo().getName();
 		if (StringUtils.isEmpty(name)) {
-			name = renderer.getConfName();
+			name = rendererConf.getConfName();
 		}
 		ArrayList<ChromecastDevice> devices = new ArrayList<>();
 		for (ChromecastDevice device : chromeCasts) {

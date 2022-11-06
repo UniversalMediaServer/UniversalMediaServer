@@ -16,8 +16,8 @@
  */
 package net.pms.formats;
 
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 
 public class WEB extends Format {
@@ -61,7 +61,7 @@ public class WEB extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAResource dlna, RendererConfiguration renderer) {
+	public boolean isCompatible(DLNAResource dlna, Renderer renderer) {
 		return type == IMAGE;
 	}
 

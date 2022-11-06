@@ -16,8 +16,8 @@
  */
 package net.pms.renderers.devices.players;
 
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public class PlaybackTimer extends MinimalPlayer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaybackTimer.class);
 
-	public PlaybackTimer(DeviceConfiguration renderer) {
+	public PlaybackTimer(Renderer renderer) {
 		super(renderer);
 		LOGGER.debug("Created playback timer for " + renderer.getRendererName());
 	}

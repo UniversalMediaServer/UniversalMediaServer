@@ -31,6 +31,7 @@ import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.io.OutputParams;
 import net.pms.parsers.MediaInfoParser;
+import net.pms.renderers.Renderer;
 import net.pms.util.AudioUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -565,7 +566,7 @@ public class FormatConfiguration {
 	/**
 	 * Chooses which parsing method to parse the file with.
 	 */
-	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
+	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, Renderer renderer) {
 		if (file.getFile() != null) {
 			if (ext.getIdentifier() == Identifier.RA) {
 				// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
