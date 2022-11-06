@@ -113,8 +113,8 @@ const Logs = () => {
         showNotification({
           id: 'logs-data-loading',
           color: 'red',
-          title: i18n.get["Error"],
-          message: i18n.get["DataNotReceived"],
+          title: i18n.get['Error'],
+          message: i18n.get['DataNotReceived'],
           autoClose: 3000,
         });
       });
