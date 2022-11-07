@@ -43,12 +43,12 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 	private HttpServer server;
 
 	public WebGuiServerHttpServer() throws IOException {
-		this(DEFAULT_PORT);
+		this(-1);
 	}
 
 	public WebGuiServerHttpServer(int port) throws IOException {
 		if (port < 0) {
-			port = DEFAULT_PORT;
+			port = CONFIGURATION.getWebGuiServerPort();
 		}
 
 		// Setup the socket address

@@ -19,7 +19,6 @@ package net.pms.encoders;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -92,7 +91,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	) throws IOException {
 		UmsConfiguration prev = configuration;
 		// Use device-specific pms conf
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = dlna.getFileName();
 		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
 		params.setWaitBeforeStart(2000);

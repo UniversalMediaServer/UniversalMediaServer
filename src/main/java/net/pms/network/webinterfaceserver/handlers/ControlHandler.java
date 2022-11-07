@@ -26,19 +26,19 @@ import java.net.UnknownHostException;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebRender;
 import net.pms.renderers.devices.players.LogicalPlayer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.renderers.devices.players.Playlist;
 import net.pms.renderers.devices.players.PlaylistItem;
-import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.util.StringUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
-import net.pms.renderers.ConnectedRenderers;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -58,7 +58,7 @@ public class ControlHandler implements HttpHandler {
 	private final File bumpjs;
 	private final File skindir;
 
-	private RendererConfiguration defaultRenderer;
+	private Renderer defaultRenderer;
 
 	public ControlHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
@@ -173,7 +173,7 @@ public class ControlHandler implements HttpHandler {
 		LogicalPlayer player = players.get(uuid);
 		if (player == null) {
 			try {
-				RendererConfiguration renderer = ConnectedRenderers.getRendererConfigurationByUUID(uuid);
+				Renderer renderer = ConnectedRenderers.getRendererByUUID(uuid);
 				if (renderer != null) {
 					player = (LogicalPlayer) renderer.getPlayer();
 					players.put(uuid, player);
@@ -194,11 +194,11 @@ public class ControlHandler implements HttpHandler {
 		return "";
 	}
 
-	public RendererConfiguration getDefaultRenderer() {
+	public Renderer getDefaultRenderer() {
 		if (defaultRenderer == null && bumpAddress != null) {
 			try {
 				InetAddress ia = InetAddress.getByName(bumpAddress);
-				defaultRenderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(ia);
+				defaultRenderer = ConnectedRenderers.getRendererBySocketAddress(ia);
 			} catch (UnknownHostException e) {
 				//do nothing
 			}
@@ -216,9 +216,9 @@ public class ControlHandler implements HttpHandler {
 	@Deprecated
 	public String getRenderers(InetAddress client) {
 		LogicalPlayer player = selectedPlayers.get(client);
-		RendererConfiguration selected = player != null ? player.getRenderer() : getDefaultRenderer();
+		Renderer selected = player != null ? player.getRenderer() : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList<>();
-		for (RendererConfiguration r : ConnectedRenderers.getConnectedControlPlayers()) {
+		for (Renderer r : ConnectedRenderers.getConnectedControlPlayers()) {
 			json.add(String.format("[\"%s\",%d,\"%s\"]", (r instanceof WebRender) ? r.getUUID() : r, r == selected ? 1 : 0, r.getUUID()));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";

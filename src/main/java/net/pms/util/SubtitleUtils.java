@@ -35,7 +35,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaLang;
@@ -48,6 +47,7 @@ import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -1141,7 +1141,7 @@ public class SubtitleUtils {
 	 */
 	public static DLNAMediaSubtitle findPrioritizedSubtitles(
 		Collection<DLNAMediaSubtitle> candidates,
-		RendererConfiguration renderer,
+		Renderer renderer,
 		boolean returnNotPrioritized
 	) {
 		if (candidates == null || candidates.isEmpty()) {

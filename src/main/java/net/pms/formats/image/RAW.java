@@ -16,6 +16,10 @@
  */
 package net.pms.formats.image;
 
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,23 +27,19 @@ import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.DCRaw;
+import net.pms.encoders.EngineFactory;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.renderers.Renderer;
 import net.pms.util.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.imaging.FileType;
-import com.drew.imaging.FileTypeDetector;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
 
 public class RAW extends ImageBase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
@@ -105,7 +105,7 @@ public class RAW extends ImageBase {
 	}
 
 	@Override
-	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
+	public void parse(DLNAMediaInfo media, InputFile file, int type, Renderer renderer) {
 		boolean trace = LOGGER.isTraceEnabled();
 		if (media == null || file == null || file.getFile() == null) {
 			// Parsing is impossible

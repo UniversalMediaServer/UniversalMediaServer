@@ -60,9 +60,14 @@ public class FormatRecognitionTest {
 
 	@BeforeAll
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
-		PMS.get();
-		PMS.setConfiguration(new UmsConfiguration(false));
 		PMS.configureJNA();
+		PMS.forceHeadless();
+		try {
+			PMS.setConfiguration(new UmsConfiguration(false));
+		} catch (Exception ex) {
+			throw new AssertionError(ex);
+		}
+		RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
 		// Silence all log messages from the UMS code that is being tested
@@ -283,19 +288,8 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testVirtualVideoActionInitializationCompatibility() throws InterruptedException {
-		boolean configurationLoaded = false;
-
-		try {
-			// Initialize UMS configuration like at initialization time, this
-			// is relevant for RendererConfiguration.isCompatible().
-			PMS.setConfiguration(new UmsConfiguration());
-			configurationLoaded = true;
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		}
-
 		// Continue the test if the configuration loaded, otherwise skip it.
-		assumeTrue(configurationLoaded);
+		assumeTrue(RendererConfigurations.getDefaultConf() != null);
 
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
 		assumeTrue(MediaInfoParser.isValid());
@@ -319,7 +313,6 @@ public class FormatRecognitionTest {
 		assertTrue(format.isCompatible(dlna, null),
 			"VirtualVideoAction is initialized as compatible with null configuration");
 	}
-
 
 	/**
 	 * Test the compatibility of the subtitles in

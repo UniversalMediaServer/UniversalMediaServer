@@ -40,7 +40,7 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 		if (!m.containsKey(id)) {
 			try {
 				T newitem = tClass.getDeclaredConstructor().newInstance();
-				newitem.uuid = uuid;
+				newitem.setUUID(uuid);
 				m.put(id, newitem);
 			} catch (Exception e) {
 				LOGGER.error("Error instantiating item {}[{}]: {}", uuid, id, e.getMessage());
@@ -66,7 +66,7 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 	}
 
 	public T put(String uuid, String id, T item) {
-		item.uuid = uuid;
+		item.setUUID(uuid);
 		if (!containsKey(uuid)) {
 			get(uuid, "0");
 		}
@@ -82,17 +82,12 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 		if (m != null) {
 			for (T i : m.values()) {
 				switch (property) {
-					case UPNPControl.ACTIVE:
-						i.setActive((boolean) value);
-						break;
-					case UPNPControl.RENEW:
-						i.setRenew((boolean) value);
-						break;
-					case UPNPControl.CONTROLS:
-						i.setControls((int) value);
-						break;
-					default:
-						break;
+					case UPNPControl.ACTIVE -> i.setActive((boolean) value);
+					case UPNPControl.RENEW -> i.setRenew((boolean) value);
+					case UPNPControl.CONTROLS -> i.setControls((int) value);
+					default -> {
+						//not handled
+					}
 				}
 			}
 		}

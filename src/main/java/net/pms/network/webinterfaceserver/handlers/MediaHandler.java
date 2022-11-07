@@ -24,17 +24,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.*;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.WebRender;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ public class MediaHandler implements HttpHandler {
 
 	private final WebInterfaceServerHttpServerInterface parent;
 	private final String path;
-	private final RendererConfiguration renderer;
+	private final Renderer renderer;
 	private final boolean flash;
 
 	public MediaHandler(WebInterfaceServerHttpServerInterface parent) {
@@ -54,11 +54,11 @@ public class MediaHandler implements HttpHandler {
 		this(parent, "fmedia/", null, flash);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, RendererConfiguration renderer) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, Renderer renderer) {
 		this(parent, path, renderer, false);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, RendererConfiguration renderer, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, Renderer renderer, boolean flash) {
 		this.parent = parent;
 		this.path = path;
 		this.renderer = renderer;
@@ -91,7 +91,7 @@ public class MediaHandler implements HttpHandler {
 				//clean for chapters
 				id = id.substring(0, id.lastIndexOf("/chapters"));
 			}
-			RendererConfiguration defaultRenderer = renderer;
+			Renderer defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
 			}

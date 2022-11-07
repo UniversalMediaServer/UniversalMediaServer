@@ -27,34 +27,38 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handle all renderers and devices founded.
- * TODO : Add UPNPHelper devices founded, DeviceConfigurations devices founded
+ * This class handle all renderers and devices found.
+ * TODO : Add UPNPHelper devices found
  */
 public class ConnectedRenderers {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
-	private static final Map<InetAddress, RendererConfiguration> ADDRESS_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 
 	/**
 	 * Returns the list of all connected renderer devices.
 	 *
 	 * @return The list of connected renderers.
 	 */
-	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
+	public static Collection<Renderer> getConnectedRenderers() {
 		// We need to check both UPnP and http sides to ensure a complete list
-		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
-		renderers.addAll(ADDRESS_ASSOCIATION.values());
+		HashSet<Renderer> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
+		renderers.addAll(ADDRESS_RENDERER_ASSOCIATION.values());
+		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
@@ -68,15 +72,15 @@ public class ConnectedRenderers {
 	 * @param ia The request's origin address.
 	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers, InetAddress ia) {
+	public static Renderer getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers, InetAddress ia) {
 		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers), ia);
 	}
 
-	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
-		RendererConfiguration r = null;
+	public static Renderer getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
+		Renderer r = null;
 		RendererConfiguration ref = RendererConfigurations.getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
-			boolean isNew = !ConnectedRenderers.hasRendererConfigurationForInetAddress(ia);
+			boolean isNew = !ADDRESS_RENDERER_ASSOCIATION.containsKey(ia);
 			r = ConnectedRenderers.resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
@@ -90,18 +94,18 @@ public class ConnectedRenderers {
 		return r;
 	}
 
-	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		RendererConfiguration r = ADDRESS_ASSOCIATION.get(sa);
+	public static Renderer getRendererBySocketAddress(InetAddress sa) {
+		Renderer r = ADDRESS_RENDERER_ASSOCIATION.get(sa);
 		if (r != null) {
 			LOGGER.trace("Matched media renderer \"{}\" based on address {}", r.getRendererName(), sa.getHostAddress());
 		}
 		return r;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
-		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
-			if (uuid.equals(conf.getUUID())) {
-				return conf;
+	public static Renderer getRendererByUUID(String uuid) {
+		for (Renderer renderer : getConnectedRenderers()) {
+			if (uuid.equals(renderer.getUUID())) {
+				return renderer;
 			}
 		}
 		return null;
@@ -111,7 +115,7 @@ public class ConnectedRenderers {
 		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
 	}
 
-	public static List<RendererConfiguration> getConnectedAVTransportPlayers() {
+	public static List<Renderer> getConnectedAVTransportPlayers() {
 		return UPNPHelper.getRenderers(UPNPHelper.AVT);
 	}
 
@@ -119,12 +123,12 @@ public class ConnectedRenderers {
 		return hasConnectedRenderer(UPNPHelper.ANY);
 	}
 
-	public static List<RendererConfiguration> getConnectedControlPlayers() {
-		return getConnectedRenderers(UPNPHelper.ANY);
+	public static List<Renderer> getConnectedControlPlayers() {
+		return ConnectedRenderers.getConnectedRenderers(UPNPHelper.ANY);
 	}
 
 	public static boolean hasConnectedRenderer(int type) {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+		for (Renderer r : getConnectedRenderers()) {
 			if (r.isControllable(type)) {
 				return true;
 			}
@@ -132,9 +136,9 @@ public class ConnectedRenderers {
 		return false;
 	}
 
-	public static List<RendererConfiguration> getConnectedRenderers(int type) {
-		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+	public static List<Renderer> getConnectedRenderers(int type) {
+		ArrayList<Renderer> renderers = new ArrayList<>();
+		for (Renderer r : getConnectedRenderers()) {
 			if (r.isActive() && r.isControllable(type)) {
 				renderers.add(r);
 			}
@@ -149,7 +153,7 @@ public class ConnectedRenderers {
 	 * @param ia the address.
 	 * @return the matching renderer or null.
 	 */
-	public static RendererConfiguration find(RendererConfiguration r, InetAddress ia) {
+	public static Renderer find(Renderer r, InetAddress ia) {
 		return find(r.getConfName(), ia);
 	}
 
@@ -160,8 +164,8 @@ public class ConnectedRenderers {
 	 * @param ia the address.
 	 * @return the matching renderer or null.
 	 */
-	public static RendererConfiguration find(String name, InetAddress ia) {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+	public static Renderer find(String name, InetAddress ia) {
+		for (Renderer r : getConnectedRenderers()) {
 			if (ia.equals(r.getAddress()) && name.equals(r.getConfName())) {
 				return r;
 			}
@@ -169,35 +173,35 @@ public class ConnectedRenderers {
 		return null;
 	}
 
-	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
-		DeviceConfiguration r = null;
+	public static Renderer resolve(InetAddress ia, RendererConfiguration ref) {
+		Renderer renderer = null;
 		boolean recognized = ref != null;
 		if (!recognized) {
 			ref = RendererConfigurations.getDefaultConf();
 		}
 		try {
-			if (ADDRESS_ASSOCIATION.containsKey(ia)) {
+			if (ADDRESS_RENDERER_ASSOCIATION.containsKey(ia)) {
 				// Already seen, finish configuration if required
-				r = (DeviceConfiguration) ADDRESS_ASSOCIATION.get(ia);
-				boolean higher = ref != null && ref.getLoadingPriority() > r.getLoadingPriority() && recognized;
-				if (!r.isLoaded() || higher) {
-					LOGGER.debug("Finishing configuration for {}", r);
+				renderer = ADDRESS_RENDERER_ASSOCIATION.get(ia);
+				boolean higher = ref != null && ref.getLoadingPriority() > renderer.getLoadingPriority() && recognized;
+				if (!renderer.isLoaded() || higher) {
+					LOGGER.debug("Finishing configuration for {}", renderer);
 					if (higher) {
 						LOGGER.debug("Switching to higher priority renderer: {}", ref);
 					}
-					r.inherit(ref);
+					renderer.inherit(ref);
 					// update gui
-					r.updateRendererGui();
+					renderer.updateRendererGui();
 				}
 			} else if (!UPNPHelper.isNonRenderer(ia)) {
 				// It's brand new
-				r = new DeviceConfiguration(ref, ia);
-				if (r.associateIP(ia)) {
-					PMS.get().setRendererFound(r);
+				renderer = new Renderer(ref, ia);
+				if (renderer.associateIP(ia)) {
+					PMS.get().setRendererFound(renderer);
 				}
-				r.setActive(true);
-				if (r.isUpnpPostponed()) {
-					r.setUpnpMode(RendererConfiguration.UPNP_ALLOW);
+				renderer.setActive(true);
+				if (renderer.isUpnpPostponed()) {
+					renderer.setUpnpMode(Renderer.UPNP_ALLOW);
 				}
 			}
 		} catch (ConfigurationException e) {
@@ -209,39 +213,48 @@ public class ConnectedRenderers {
 		}
 		if (!recognized) {
 			// Mark it as unloaded so actual recognition can happen later if UPnP sees it.
-			LOGGER.trace("Marking renderer \"{}\" at {} as unrecognized", r, ia.getHostAddress());
-			if (r != null) {
-				r.resetLoaded();
+			LOGGER.trace("Marking renderer \"{}\" at {} as unrecognized", renderer, ia.getHostAddress());
+			if (renderer != null) {
+				renderer.resetLoaded();
 			}
 		}
-		return r;
+		return renderer;
 	}
 
-	public static void verify(RendererConfiguration r) {
+	public static void verify(Renderer r) {
 		// FIXME: this is a very fallible, incomplete validity test for use only until
 		// we find something better. The assumption is that renderers unable determine
 		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
 		// address association to a newer renderer at the same ip) are "invalid".
-		if (r.getUpnpMode() != RendererConfiguration.UPNP_BLOCK && r.getAddress() == null) {
+		if (r.getUpnpMode() != Renderer.UPNP_BLOCK && r.getAddress() == null) {
 			LOGGER.debug("Purging renderer {} as invalid", r);
 			r.delete(0);
 		}
 	}
 
-	public static void delete(final RendererConfiguration r, long delay) {
-		r.setActive(false);
+	public static void delete(final Renderer renderer, long delay) {
+		renderer.setActive(false);
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
 				// Make sure we haven't been reactivated while asleep
-				if (!r.isActive()) {
-					LOGGER.debug("Deleting renderer " + r);
-					r.deleteGuis();
-					PMS.get().getFoundRenderers().remove(r);
-					UPNPHelper.getInstance().removeRenderer(r);
-					InetAddress ia = r.getAddress();
-					if (ADDRESS_ASSOCIATION.get(ia) == r) {
-						ADDRESS_ASSOCIATION.remove(ia);
+				if (!renderer.isActive()) {
+					LOGGER.debug("Deleting renderer " + renderer);
+					renderer.deleteGuis();
+					PMS.get().getFoundRenderers().remove(renderer);
+					UPNPHelper.getInstance().removeRenderer(renderer);
+					InetAddress ia = renderer.getAddress();
+					if (ADDRESS_RENDERER_ASSOCIATION.get(ia) == renderer) {
+						ADDRESS_RENDERER_ASSOCIATION.remove(ia);
+					}
+					String uuid = renderer.getUUID();
+					if (uuid != null) {
+						if (REACT_CLIENT_RENDERERS.get(uuid) == renderer) {
+							REACT_CLIENT_RENDERERS.remove(uuid);
+						}
+						if (uuid.equals(getUuidOf(ia))) {
+							removeUuidOf(ia);
+						}
 					}
 					// TODO: actually delete rootfolder, etc.
 				}
@@ -254,20 +267,31 @@ public class ConnectedRenderers {
 	 * Delete connected renderers devices.
 	 */
 	public static void deleteAllConnectedRenderers() {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+		for (Renderer r : getConnectedRenderers()) {
 			delete(r, 0);
 		}
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+		for (Renderer r : getConnectedRenderers()) {
 			r.setRootFolder(null);
 		}
 	}
 
-	public static void addRendererConfigurationAssociation(InetAddress sa, RendererConfiguration r) {
+	public static List<Renderer> getInheritors(Renderer renderer) {
+		ArrayList<Renderer> renderers = new ArrayList<>();
+		RendererConfiguration ref = renderer.getRef();
+		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+			if (connectedRenderer.getRef() == ref) {
+				renderers.add(connectedRenderer);
+			}
+		}
+		return renderers;
+	}
+
+	public static void addRendererAssociation(InetAddress sa, Renderer r) {
 		// FIXME: handle multiple clients with same ip properly, now newer overwrites older
-		RendererConfiguration prev = ADDRESS_ASSOCIATION.put(sa, r);
+		Renderer prev = ADDRESS_RENDERER_ASSOCIATION.put(sa, r);
 		if (prev != null) {
 			// We've displaced a previous renderer at this address, so
 			// check  if it's a ghost instance that should be deleted.
@@ -275,16 +299,12 @@ public class ConnectedRenderers {
 		}
 	}
 
-	public static boolean hasRendererConfigurationForInetAddress(InetAddress r) {
-		return ADDRESS_ASSOCIATION.containsKey(r);
+	public static boolean hasInetAddressForRenderer(Renderer r) {
+		return ADDRESS_RENDERER_ASSOCIATION.containsValue(r);
 	}
 
-	public static boolean hasInetAddressForRendererConfiguration(RendererConfiguration r) {
-		return ADDRESS_ASSOCIATION.containsValue(r);
-	}
-
-	public static InetAddress getRendererConfigurationInetAddress(RendererConfiguration r) {
-		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
+	public static InetAddress getRendererInetAddress(Renderer r) {
+		for (Entry<InetAddress, Renderer> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
 			if (entry.getValue() == r) {
 				return entry.getKey();
 			}
@@ -292,14 +312,32 @@ public class ConnectedRenderers {
 		return null;
 	}
 
+	public static void addUuidAssociation(InetAddress ia, String id) {
+		if (ia != null && id.startsWith("uuid:")) {
+			// FIXME: this assumes one uuid per address
+			ADDRESS_UUID_ASSOCIATION.put(ia, id);
+		}
+	}
+
+	public static String getUuidOf(InetAddress ia) {
+		// FIXME: this assumes one uuid per address
+		return ia != null ? ADDRESS_UUID_ASSOCIATION.get(ia) : null;
+	}
+
+	private static void removeUuidOf(InetAddress ia) {
+		if (ia != null) {
+			ADDRESS_UUID_ASSOCIATION.remove(ia);
+		}
+	}
+
 	public static void calculateAllSpeeds() {
 		Map<InetAddress, String> values = new HashMap<>();
-		for (Entry<InetAddress, RendererConfiguration> entry : ADDRESS_ASSOCIATION.entrySet()) {
+		for (Entry<InetAddress, Renderer> entry : ADDRESS_RENDERER_ASSOCIATION.entrySet()) {
 			InetAddress sa = entry.getKey();
 			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
-			RendererConfiguration r = entry.getValue();
+			Renderer r = entry.getValue();
 			if (!r.isOffline()) {
 				values.put(sa, r.getRendererName());
 			}
@@ -309,4 +347,40 @@ public class ConnectedRenderers {
 		}
 	}
 
+	public static void addWebPlayerRenderer(WebGuiRenderer renderer) {
+		REACT_CLIENT_RENDERERS.put(renderer.getUUID(), renderer);
+		PMS.get().setRendererFound(renderer);
+	}
+
+	public static WebGuiRenderer getWebPlayerRenderer(String uuid) {
+		return REACT_CLIENT_RENDERERS.get(uuid);
+	}
+
+	public static boolean hasWebPlayerRenderer(String uuid) {
+		return REACT_CLIENT_RENDERERS.containsKey(uuid);
+	}
+
+	public static void removeWebPlayerRenderer(String uuid) {
+		Renderer renderer = REACT_CLIENT_RENDERERS.remove(uuid);
+		if (renderer != null) {
+			renderer.delete(0);
+		}
+	}
+
+	public static boolean isValidUUID(String token) {
+		try {
+			UUID.fromString(token);
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+	public static String getRandomUUID() {
+		String uuid = UUID.randomUUID().toString();
+		while (getRendererByUUID(uuid) != null) {
+			uuid = UUID.randomUUID().toString();
+		}
+		return uuid;
+	}
 }

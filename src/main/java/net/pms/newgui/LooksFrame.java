@@ -20,9 +20,9 @@ import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
-import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,24 +39,24 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
-import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.WindowProperties;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang3.StringUtils;
 
 public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
@@ -720,7 +720,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void addRenderer(Renderer renderer) {
 		st.addRenderer(renderer);
 	}
 

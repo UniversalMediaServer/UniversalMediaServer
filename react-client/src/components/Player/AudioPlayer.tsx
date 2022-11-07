@@ -31,8 +31,8 @@ export const AudioPlayer = (apOptions: AudioPlayerOption) => {
     const options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
-    options.sources=[{src:playerApiUrl + "media/" + apOptions.token + "/"  + apOptions.media.id, type: apOptions.media.mime}];
-    options.poster = playerApiUrl + "thumb/" + apOptions.token + "/"  + apOptions.media.id;
+    options.sources=[{src:playerApiUrl + "media/" + apOptions.uuid + "/"  + apOptions.media.id, type: apOptions.media.mime}];
+    options.poster = playerApiUrl + "thumb/" + apOptions.uuid + "/"  + apOptions.media.id;
     const videoPlayer = videojs(videoRef.current, options);
     return () => videoPlayer.dispose();
   }, [apOptions, videoRef]);
@@ -46,5 +46,5 @@ export const AudioPlayer = (apOptions: AudioPlayerOption) => {
 
 interface AudioPlayerOption {
   media:AudioMedia,
-  token:string,
+  uuid:string,
 }

@@ -17,12 +17,6 @@
 
 package net.pms.util;
 
-import static net.pms.util.XMLRPCUtil.createReader;
-import static net.pms.util.XMLRPCUtil.createWriter;
-import static net.pms.util.XMLRPCUtil.readMethodResponse;
-import static net.pms.util.XMLRPCUtil.writeMethod;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,14 +64,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
@@ -85,6 +72,7 @@ import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.renderers.Renderer;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
 import net.pms.util.XMLRPCUtil.MemberInt;
@@ -95,6 +83,18 @@ import net.pms.util.XMLRPCUtil.Value;
 import net.pms.util.XMLRPCUtil.ValueArray;
 import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
+import static net.pms.util.XMLRPCUtil.createReader;
+import static net.pms.util.XMLRPCUtil.createWriter;
+import static net.pms.util.XMLRPCUtil.readMethodResponse;
+import static net.pms.util.XMLRPCUtil.writeMethod;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -536,11 +536,11 @@ public class OpenSubtitle {
 	 *
 	 * @param resource the {@link DLNAResource} for which to find OpenSubtitles
 	 *            subtitles.
-	 * @param renderer the {@link RendererConfiguration} or {@code null}.
+	 * @param renderer the {@link Renderer} or {@code null}.
 	 * @return The {@link List} of found {@link SubtitleItem}. If none are
 	 *         found, an empty {@link List} is returned.
 	 */
-	public static List<SubtitleItem> findSubtitles(DLNAResource resource, RendererConfiguration renderer) {
+	public static List<SubtitleItem> findSubtitles(DLNAResource resource, Renderer renderer) {
 		List<SubtitleItem> result = new ArrayList<>();
 		if (resource == null) {
 			return new ArrayList<>();
@@ -1607,11 +1607,11 @@ public class OpenSubtitle {
 	 * Generates the ISO 639-2 (3 letter) language code query string for the
 	 * configured subtitle languages.
 	 *
-	 * @param renderer the {@link RendererConfiguration} for which to the
+	 * @param renderer the {@link Renderer} for which to the
 	 *            generate language codes query.
 	 * @return The comma separated list of ISO 639-2 codes or {@code null}.
 	 */
-	public static String getLanguageCodes(RendererConfiguration renderer) {
+	public static String getLanguageCodes(Renderer renderer) {
 		String languages = UMSUtils.getLangList(renderer, false);
 		if (isBlank(languages)) {
 			return null;

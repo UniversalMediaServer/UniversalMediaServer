@@ -18,9 +18,9 @@ package net.pms.renderers.devices;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.mediaserver.UPNPControl;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.ChromecastPlayer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import org.apache.commons.configuration.ConfigurationException;
@@ -29,16 +29,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
 
-public final class ChromecastDevice extends DeviceConfiguration {
+public final class ChromecastDevice extends Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromecastDevice.class);
 	public final ChromeCast chromeCast;
 
 	public ChromecastDevice(
 		ChromeCast chromeCast,
-		RendererConfiguration renderer,
+		RendererConfiguration rendererConf,
 		InetAddress inetAddress
 	) throws ConfigurationException, InterruptedException {
-		super(renderer, inetAddress);
+		super(rendererConf, inetAddress);
 		this.chromeCast = chromeCast;
 		uuid = chromeCast.getAddress();
 		setControls(UPNPControl.ANY);

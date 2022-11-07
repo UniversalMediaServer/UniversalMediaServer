@@ -50,7 +50,7 @@ public final class RealFileDbId extends RealFile {
 	public DLNAResource getParent() {
 		DLNAResource parent = super.getParent();
 		if (parent == null) {
-			parent = RendererConfigurations.getDefaultConf().getRootFolder();
+			parent = RendererConfigurations.getDefaultRenderer().getRootFolder();
 			setParent(parent);
 		}
 		return parent;

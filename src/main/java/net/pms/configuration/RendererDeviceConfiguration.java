@@ -17,50 +17,54 @@
 package net.pms.configuration;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import net.pms.PMS;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceConfiguration extends UmsConfiguration {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
+/**
+ * Container for all {@link Renderer} settings.
+ * This class create a CompositeConfiguration that will be used by Renderer.
+ * <pre>
+ * Querying properties is ordered :
+ *		- Device specific configuration if any.
+ *		- Renderer model configuration.
+ *		- UMS main configuration.
+ * </pre>
+ */
+public class RendererDeviceConfiguration extends RendererConfiguration {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RendererDeviceConfiguration.class);
 
 	private static final int DEVICE = 0;
 	private static final int RENDERER = 1;
 
 	private PropertiesConfiguration deviceConf = null;
 	private RendererConfiguration ref = null;
+	protected String uuid;
 
-	public DeviceConfiguration() throws InterruptedException {
-		super(0);
-	}
-
-	public DeviceConfiguration(File f, String uuid) throws ConfigurationException, InterruptedException {
-		super(f, uuid);
+	public RendererDeviceConfiguration(String uuid) throws ConfigurationException, InterruptedException {
+		this.uuid = uuid;
+		initDeviceConfiguration(null);
 		inherit(null);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
-		super(0);
+	public RendererDeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
+		initDeviceConfiguration(null);
 		inherit(ref);
 	}
 
-	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
-		super(0);
-		deviceConf = initConfiguration(ia);
+	public RendererDeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
+		initDeviceConfiguration(ia);
 		inherit(ref);
 	}
 
 	/**
 	 * Creates a composite configuration for this device consisting of a dedicated device
-	 * configuration plus the given reference renderer configuration and the default pms
+	 * configuration plus the given reference renderer configuration and the default UMS
 	 * configuration for fallback lookup.
 	 *
 	 * @param ref The reference renderer configuration.
@@ -72,7 +76,7 @@ public class DeviceConfiguration extends UmsConfiguration {
 		// Add the component configurations in order of lookup priority:
 
 		// 1. The device configuration, marked as "in memory" (i.e. writeable)
-		cconf.addConfiguration(deviceConf != null ? deviceConf : initConfiguration(null), true);
+		cconf.addConfiguration(deviceConf, true);
 		// 2. The reference renderer configuration (read-only)
 		if (ref == null) {
 			cconf.addConfiguration(getConfiguration());
@@ -85,14 +89,9 @@ public class DeviceConfiguration extends UmsConfiguration {
 
 		// Handle all queries (external and internal) via the composite configuration
 		configuration = cconf;
-		umsConfiguration = this;
-
 		configurationReader = new ConfigurationReader(configuration, true);
 
-		// Sync our internal UmsConfiguration vars
-		// TODO: create new objects here instead?
-		tempFolder = baseConf.tempFolder;
-		filter = baseConf.filter;
+		umsConfiguration = new UmsConfiguration(configuration, configurationReader);
 
 		// Initialize our internal RendererConfiguration vars
 		if (ref != null) {
@@ -125,28 +124,35 @@ public class DeviceConfiguration extends UmsConfiguration {
 	public void reset() {
 		try {
 			inherit(ref);
-			updateRendererGui();
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading device configuration {}: {}", this, e);
 		}
 	}
 
-	@Override
 	public void setUUID(String uuid) {
 		if (uuid != null && !uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			// Switch to the custom device conf for this new uuid, if any
-			if (DeviceConfigurations.isDeviceConfigurationChanged(uuid, deviceConf)) {
-				deviceConf = initConfiguration(null);
+			if (RendererConfigurations.isDeviceConfigurationChanged(uuid, deviceConf)) {
+				initDeviceConfiguration(null);
 				reset();
 			}
 		}
 	}
 
-	public final PropertiesConfiguration initConfiguration(InetAddress ia) {
-		String id = uuid != null ? uuid : ia != null ? ia.toString().substring(1) : null;
-		if (id != null && DeviceConfigurations.hasDeviceConfiguration(id)) {
-			deviceConf = DeviceConfigurations.getDeviceConfiguration(id);
+	/**
+	 * Returns the uuid of this renderer, if known. Default value is null.
+	 *
+	 * @return The uuid.
+	 */
+	public String getUUID() {
+		return uuid;
+	}
+
+	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia) {
+		String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(ia);
+		if (id != null && RendererConfigurations.hasDeviceConfiguration(id)) {
+			deviceConf = RendererConfigurations.getDeviceConfiguration(id);
 			LOGGER.info("Using custom device configuration {} for {}", deviceConf.getFile().getName(), id);
 		} else {
 			deviceConf = createPropertiesConfiguration();
@@ -157,6 +163,10 @@ public class DeviceConfiguration extends UmsConfiguration {
 	public PropertiesConfiguration getConfiguration(int index) {
 		CompositeConfiguration c = (CompositeConfiguration) configuration;
 		return (PropertiesConfiguration) c.getConfiguration(index);
+	}
+
+	public PropertiesConfiguration getDeviceConfiguration() {
+		return getConfiguration(DEVICE);
 	}
 
 	@Override
@@ -183,7 +193,7 @@ public class DeviceConfiguration extends UmsConfiguration {
 				// Reset
 				getConfiguration(DEVICE).setFile(NOFILE);
 				getConfiguration(DEVICE).clear();
-				DeviceConfigurations.removeDeviceConfiguration(getId());
+				RendererConfigurations.removeDeviceConfiguration(getUUID());
 				return false;
 			}
 			return true;
@@ -197,39 +207,6 @@ public class DeviceConfiguration extends UmsConfiguration {
 			return f != null && !f.equals(NOFILE);
 		}
 		return false;
-	}
-
-	public static File createDeviceFile(DeviceConfiguration r, String filename, boolean load) {
-		File file = null;
-		try {
-			if (StringUtils.isBlank(filename)) {
-				filename = getDefaultFilename(r);
-			} else if (!filename.endsWith(".conf")) {
-				filename += ".conf";
-			}
-			file = new File(DeviceConfigurations.getDeviceDir(), filename);
-			ArrayList<String> conf = new ArrayList<>();
-
-			// Add the header and device id
-			conf.add("#----------------------------------------------------------------------------");
-			conf.add("# Custom Device profile");
-			conf.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
-			conf.add("# and UMS.conf for program options.");
-			conf.add("");
-			conf.add("# Options in this file override the default settings for the specific " + getSimpleName(r) + " device(s) listed below.");
-			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
-			conf.add("");
-			conf.add(KEY_DEVICE_ID + " = " + r.getId());
-
-			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
-
-			if (load) {
-				DeviceConfigurations.loadDeviceFile(file, r.getConfiguration(DEVICE));
-			}
-		} catch (IOException ie) {
-			LOGGER.debug("Error creating device configuration file: " + ie);
-		}
-		return file;
 	}
 
 }

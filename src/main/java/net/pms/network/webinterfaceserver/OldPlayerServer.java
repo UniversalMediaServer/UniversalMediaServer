@@ -137,7 +137,7 @@ public class OldPlayerServer extends WebInterfaceServer implements WebInterfaceS
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfigurations.getDefaultConf());
+				root.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 			}
 
 			root.discoverChildren();

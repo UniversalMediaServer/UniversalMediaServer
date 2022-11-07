@@ -16,7 +16,7 @@
  */
 package net.pms.gui;
 
-import net.pms.configuration.RendererConfiguration;
+import net.pms.renderers.Renderer;
 
 public interface IGui {
 	public void appendLog(String msg);
@@ -24,7 +24,7 @@ public interface IGui {
 	public void setPeakBitrate(int sizeinMb);
 	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory);
 	public void setConnectionState(EConnectionState connectionState);
-	public void addRenderer(RendererConfiguration renderer);
+	public void addRenderer(Renderer renderer);
 	public void setReloadable(boolean reload);
 	public void addEngines();
 	public void setStatusLine(String line);

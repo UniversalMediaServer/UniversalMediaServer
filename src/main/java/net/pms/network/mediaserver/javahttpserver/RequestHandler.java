@@ -53,7 +53,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
@@ -92,6 +91,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.service.sleep.SleepManager;
@@ -128,7 +128,7 @@ public class RequestHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange exchange) throws IOException {
-		RendererConfiguration renderer = null;
+		Renderer renderer = null;
 		try {
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
 			String userAgentString = exchange.getRequestHeaders().getFirst("User-Agent");
@@ -235,7 +235,7 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, String message, String contentType) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, String message, String contentType) throws IOException {
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		exchange.getResponseHeaders().set("Content-Type", contentType);
 		if (message == null || message.length() == 0) {
@@ -263,11 +263,11 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, InputStream inputStream) throws IOException {
 		sendResponse(exchange, renderer, code, inputStream, -2, true);
 	}
 
-	private static void sendResponse(final HttpExchange exchange, final RendererConfiguration renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
 		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 		if (inputStream == null) {
@@ -338,7 +338,7 @@ public class RequestHandler implements HttpHandler {
 		exchange.close();
 	}
 
-	private static void sendGetResponse(final HttpExchange exchange, final RendererConfiguration renderer, String uri) throws IOException {
+	private static void sendGetResponse(final HttpExchange exchange, final Renderer renderer, String uri) throws IOException {
 		// Request to retrieve a file
 		TimeRange timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
@@ -875,7 +875,7 @@ public class RequestHandler implements HttpHandler {
 		return createResponse(payload.toString()).toString();
 	}
 
-	private static String samsungSetBookmarkHandler(String requestBody, RendererConfiguration renderer) {
+	private static String samsungSetBookmarkHandler(String requestBody, Renderer renderer) {
 		LOGGER.debug("Setting bookmark");
 		SamsungBookmark payload = getPayload(SamsungBookmark.class, requestBody);
 		if (payload.getPosSecond() == 0) {
@@ -915,7 +915,7 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static String samsungGetFeaturesListHandler(RendererConfiguration renderer) {
+	private static String samsungGetFeaturesListHandler(Renderer renderer) {
 		StringBuilder features = new StringBuilder();
 		String rootFolderId = PMS.get().getRootFolder(renderer).getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
@@ -944,7 +944,7 @@ public class RequestHandler implements HttpHandler {
 		return createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE).toString();
 	}
 
-	private static String getSearchCapabilitiesHandler(RendererConfiguration mediaRenderer) {
+	private static String getSearchCapabilitiesHandler(Renderer mediaRenderer) {
 		if (mediaRenderer.isUpnpSearchCapsEnabled()) {
 			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
 		} else {
@@ -952,12 +952,12 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static String browseHandler(String requestBody, RendererConfiguration renderer) {
+	private static String browseHandler(String requestBody, Renderer renderer) {
 		BrowseRequest requestMessage = getPayload(BrowseRequest.class, requestBody);
 		return browseSearchHandler(requestMessage, requestBody, renderer).toString();
 	}
 
-	private static String searchHandler(String requestBody, RendererConfiguration renderer) {
+	private static String searchHandler(String requestBody, Renderer renderer) {
 		SearchRequest requestMessage = getPayload(SearchRequest.class, requestBody);
 		try {
 			return new SearchRequestHandler().createSearchResponse(requestMessage, renderer).toString();
@@ -973,7 +973,7 @@ public class RequestHandler implements HttpHandler {
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string
 	 */
-	private static StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage, String requestBody, RendererConfiguration renderer) {
+	private static StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage, String requestBody, Renderer renderer) {
 		int startingIndex = 0;
 		int requestCount = 0;
 		boolean xbox360 = renderer.isXbox360();
@@ -1290,18 +1290,18 @@ public class RequestHandler implements HttpHandler {
 		"user-agent"
 	};
 
-	private static RendererConfiguration getRenderer(String uri, InetAddress ia, String userAgentString, Collection<Map.Entry<String, String>> headers) {
-		RendererConfiguration renderer = null;
+	private static Renderer getRenderer(String uri, InetAddress ia, String userAgentString, Collection<Map.Entry<String, String>> headers) {
+		Renderer renderer = null;
 		// Attempt 1: If the reguested url contains the no-transcode tag, force
 		// the default streaming-only conf.
-		if (uri.contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfigurations.getStreamingConf();
+		if (uri.contains(Renderer.NOTRANSCODE)) {
+			renderer = RendererConfigurations.getDefaultRenderer();
 			LOGGER.debug("Forcing streaming.");
 		}
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = ConnectedRenderers.getRendererConfigurationBySocketAddress(ia);
+			renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
@@ -1371,7 +1371,7 @@ public class RequestHandler implements HttpHandler {
 		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
-	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, RendererConfiguration renderer) {
+	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, Renderer renderer) {
 		StringBuilder header = new StringBuilder();
 		for (Map.Entry<String, List<String>> headers : exchange.getResponseHeaders().entrySet()) {
 			String name = headers.getKey();
@@ -1453,7 +1453,7 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static void logMessageReceived(HttpExchange exchange, String content, RendererConfiguration renderer) {
+	private static void logMessageReceived(HttpExchange exchange, String content, Renderer renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
 		header.append(exchange.getRequestMethod());
@@ -1528,7 +1528,7 @@ public class RequestHandler implements HttpHandler {
 				exchange.getResponseHeaders().getFirst("Transfer-Encoding").equalsIgnoreCase("chunked");
 	}
 
-	private static String getRendererName(HttpExchange exchange, RendererConfiguration renderer) {
+	private static String getRendererName(HttpExchange exchange, Renderer renderer) {
 		String rendererName;
 		if (renderer != null) {
 			if (StringUtils.isNotBlank(renderer.getRendererName())) {

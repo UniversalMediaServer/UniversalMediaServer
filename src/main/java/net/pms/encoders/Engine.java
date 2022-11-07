@@ -31,7 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
@@ -41,6 +40,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
@@ -250,7 +250,7 @@ public abstract class Engine {
 
 	public abstract boolean excludeFormat(Format extension);
 
-	public abstract boolean isEngineCompatible(RendererConfiguration renderer);
+	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public boolean isInternalSubtitlesSupported() {
 		return true;

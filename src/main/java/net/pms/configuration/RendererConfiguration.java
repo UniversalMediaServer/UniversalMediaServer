@@ -16,17 +16,11 @@
  */
 package net.pms.configuration;
 
-import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -36,26 +30,13 @@ import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.formats.v2.AudioProperties;
-import net.pms.gui.IRendererGuiListener;
 import net.pms.network.HTTPResource;
-import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.UPNPHelper;
-import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
-import net.pms.renderers.ConnectedRenderers;
-import net.pms.renderers.devices.players.BasicPlayer;
-import net.pms.renderers.devices.players.PlaybackTimer;
-import net.pms.renderers.devices.players.PlayerState;
-import net.pms.renderers.devices.players.UPNPPlayer;
 import net.pms.util.FileWatcher;
-import net.pms.util.FormattableColor;
-import net.pms.util.InvalidArgumentException;
 import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -63,11 +44,12 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
-public class RendererConfiguration extends Renderer {
+/**
+ * Container for settings specific to a Renderer model.
+ */
+public class RendererConfiguration extends BaseConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static final StringUtil.LaxUnicodeUnescaper LAX_UNICODE_UNESCAPER = new StringUtil.LaxUnicodeUnescaper();
 
 	/**
 	 * renderer configuration property keys.
@@ -187,36 +169,19 @@ public class RendererConfiguration extends Renderer {
 	//private static final String HLSMPEG4H264MP3 = "HLS-MPEG4-H264-MP3";
 	//private static final String HLSMPEG4H264EAC3 = "HLS-MPEG4-H264-EAC3";
 
-	public static final String NOTRANSCODE = "_NOTRANSCODE_";
 	public static final File NOFILE = new File("NOFILE");
 	public static final String UNKNOWN_ICON = "unknown.png";
 
-	/**
-	 * Upnp service startup management
-	 */
-	public static final int UPNP_BLOCK = -2;
-	private static final int UPNP_POSTPONE = -1;
-	private static final int UPNP_NONE = 0;
-	public static final int UPNP_ALLOW = 1;
-
-	private final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
-	private final LinkedHashSet<IRendererGuiListener> guiListeners = new LinkedHashSet<>();
-
 	protected Matcher sortedHeaderMatcher;
-	protected BasicPlayer player;
-	protected ConfigurationReader configurationReader;
-	protected Configuration configuration;
+
 	protected UmsConfiguration umsConfiguration = PMS.getConfiguration();
 	protected boolean loaded = false;
 
 	private boolean fileless = false;
-	private volatile int upnpMode = UPNP_NONE;
-	private volatile RootFolder rootFolder;
+
 	private File file;
 	private FormatConfiguration formatConfiguration;
 	private List<String> identifiers = null;
-	private int rank;
-	private String automaticVideoQuality;
 
 	// Holds MIME type aliases
 	private Map<String, String> mimes;
@@ -231,169 +196,21 @@ public class RendererConfiguration extends Renderer {
 	private String inset;
 	private String dots;
 
-	private DLNAResource playingRes;
-	private long buffer;
-	private int maximumBitrateTotal = 0;
-
-	public RendererConfiguration() throws ConfigurationException {
-		this(null, null);
-	}
-
-	public RendererConfiguration(String uuid) throws ConfigurationException {
-		this(null, uuid);
-	}
-
-	public RendererConfiguration(int ignored) {
-		// Just instantiate minimally, full initialization will happen later
-		configuration = createPropertiesConfiguration();
-		configurationReader = new ConfigurationReader(configuration, true); // true: log
+	public RendererConfiguration() {
+		super(false);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
-		this(f, null);
-	}
-
-	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
-		super(uuid);
-
-		configuration = createPropertiesConfiguration();
-
-		// false: don't log overrides (every renderer conf
-		// overrides multiple settings)
-		configurationReader = new ConfigurationReader(configuration, false);
+		// false: don't log overrides.
+		// (every renderer conf overrides multiple settings)
+		super(false);
 		umsConfiguration = PMS.getConfiguration();
-
-		player = null;
-		buffer = 0;
 
 		init(f);
 	}
 
-	public int getInt(String key, int def) {
-		return configurationReader.getInt(key, def);
-	}
-
 	public boolean isUpnpSearchCapsEnabled() {
 		return getBoolean(KEY_UPNP_ENABLE_SEARCHCAPS, true);
-	}
-
-	public long getLong(String key, long def) {
-		return configurationReader.getLong(key, def);
-	}
-
-	public double getDouble(String key, double def) {
-		return configurationReader.getDouble(key, def);
-	}
-
-	public boolean getBoolean(String key, boolean def) {
-		return configurationReader.getBoolean(key, def);
-	}
-
-	public String getString(String key, String def) {
-		return configurationReader.getNonBlankConfigurationString(key, def);
-	}
-
-	public List<String> getStringList(String key, String def) {
-		List<String> result = configurationReader.getStringList(key, def);
-		if (result.size() == 1 && result.get(0).equalsIgnoreCase("None")) {
-			return new ArrayList<>();
-		}
-		return result;
-	}
-
-	public void setStringList(String key, List<String> value) {
-		StringBuilder result = new StringBuilder();
-		for (String element : value) {
-			if (!result.toString().equals("")) {
-				result.append(", ");
-			}
-			result.append(element);
-		}
-		if (result.toString().equals("")) {
-			result.append("None");
-		}
-		configuration.setProperty(key, result.toString());
-	}
-
-	public Color getColor(String key, String defaultValue) {
-		String colorString = getString(key, defaultValue);
-		if (!StringUtils.isBlank(colorString)) {
-			try {
-				return new FormattableColor(colorString);
-			} catch (InvalidArgumentException e) {
-				LOGGER.error(e.getMessage());
-				LOGGER.trace("", e);
-			}
-		}
-		if (StringUtils.isBlank(defaultValue)) {
-			return null;
-		}
-		try {
-			return new FormattableColor(defaultValue);
-		} catch (InvalidArgumentException e) {
-			LOGGER.error("Invalid default value: {}", e.getMessage());
-			LOGGER.trace("", e);
-			return null;
-		}
-	}
-
-	public boolean nox264() {
-		return false;
-	}
-
-	public synchronized RootFolder getRootFolder() {
-		if (rootFolder == null) {
-			rootFolder = new RootFolder();
-			rootFolder.setDefaultRenderer(this);
-			if (umsConfiguration.getUseCache()) {
-				rootFolder.discoverChildren();
-			}
-		}
-
-		return rootFolder;
-	}
-
-	public void addFolderLimit(DLNAResource res) {
-		if (rootFolder != null) {
-			rootFolder.setFolderLim(res);
-		}
-	}
-
-	public synchronized void setRootFolder(RootFolder r) {
-		rootFolder = r;
-	}
-
-	/**
-	 * Associate an IP address with this renderer. The association will
-	 * persist between requests, allowing the renderer to be recognized
-	 * by its address in later requests.
-	 *
-	 * @param sa The IP address to associate.
-	 * @return whether the device at this address is a renderer.
-	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
-	 */
-	public boolean associateIP(InetAddress sa) {
-		if (UPNPHelper.isNonRenderer(sa)) {
-			// TODO: remove it if already added unknowingly
-			return false;
-		}
-
-		ConnectedRenderers.addRendererConfigurationAssociation(sa, this);
-		resetUpnpMode();
-
-		if (
-			(
-				umsConfiguration.isAutomaticMaximumBitrate() ||
-				umsConfiguration.isSpeedDbg()
-			) &&
-			!(
-				sa.isLoopbackAddress() ||
-				sa.isAnyLocalAddress()
-			)
-		) {
-			SpeedStats.getSpeedInMBits(sa, getRendererName());
-		}
-		return true;
 	}
 
 	public boolean isLoaded() {
@@ -404,10 +221,6 @@ public class RendererConfiguration extends Renderer {
 		return formatConfiguration;
 	}
 
-	public Configuration getConfiguration() {
-		return configuration;
-	}
-
 	public UmsConfiguration getUmsConfiguration() {
 		return umsConfiguration;
 	}
@@ -416,37 +229,12 @@ public class RendererConfiguration extends Renderer {
 		return file;
 	}
 
-	public String getId() {
-		return uuid != null ? uuid : getAddress().toString().substring(1);
-	}
-
-	public File getUsableFile() {
-		File f = getFile();
-		if (f == null || f.equals(NOFILE)) {
-			String name = getSimpleName(this);
-			if (name.equals(getSimpleName(RendererConfigurations.getDefaultConf()))) {
-				f = new File(RendererConfigurations.getRenderersDir(), getDefaultFilename(this));
-			} else {
-				f = new File(RendererConfigurations.getRenderersDir(), name.replace(" ", "") + ".conf");
-			}
-		}
-		return f;
-	}
-
 	public boolean isFileless() {
 		return fileless;
 	}
 
 	public final void setFileless(boolean b) {
 		fileless = b;
-	}
-
-	public void setRank(int value) {
-		rank = value;
-	}
-
-	public int getRank() {
-		return rank;
 	}
 
 	/**
@@ -528,17 +316,9 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	public final void init(File f) throws ConfigurationException {
-		setRootFolder(null);
 		if (!loaded) {
 			configuration.clear();
 			loaded = load(f);
-		}
-
-		if (isUpnpAllowed() && uuid == null) {
-			String id = getDeviceId();
-			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
-				uuid = id;
-			}
 		}
 
 		mimes = new HashMap<>();
@@ -626,10 +406,6 @@ public class RendererConfiguration extends Renderer {
 			LOGGER.info("Reloading renderer configuration: {}", f);
 			loaded = false;
 			init(f);
-			// update gui
-			for (RendererConfiguration d : DeviceConfigurations.getInheritors(this)) {
-				d.updateRendererGui();
-			}
 		} catch (ConfigurationException e) {
 			LOGGER.debug("Error reloading renderer configuration {}: {}", f, e);
 		}
@@ -988,241 +764,38 @@ public class RendererConfiguration extends Renderer {
 		return getString(KEY_UPNP_DETAILS, "");
 	}
 
+	public String getUpnpAllow() {
+		return getString(KEY_UPNP_ALLOW, "true");
+	}
+
+	public void setUpnpAllow(String value) {
+		configuration.setProperty(KEY_UPNP_ALLOW, value);
+	}
+
 	/**
-	 * Returns the UPnP details of this renderer as broadcast by itself, if known.
-	 * Default value is null.
+	 * Returns the maximum bitrate (in megabits-per-second) supported by the
+	 * media renderer as defined in the renderer configuration. The default
+	 * value is 0 (unlimited).
 	 *
-	 * @return The detail map.
+	 * @return The bitrate.
 	 */
-	public Map<String, String> getUpnpDetails() {
-		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
-	}
-
-	public boolean isUpnp() {
-		return uuid != null && UPNPHelper.isUpnpDevice(uuid);
-	}
-
-	public void setDetails(Map<String, String> value) {
-		details = value;
-	}
-
-	public Map<String, String> getDetails() {
-		if (details == null) {
-			if (isUpnp()) {
-				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
-			} else {
-				details = new LinkedHashMap<>();
-				details.put(Messages.getString("Name"), getRendererName());
-				if (getAddress() != null) {
-					details.put(Messages.getString("Address"), getAddress().getHostAddress());
-				}
-			}
-		}
-		return details;
+	public int getMaxVideoBitrate() {
+		return getInt(KEY_MAX_VIDEO_BITRATE, 0);
 	}
 
 	/**
-	 * Returns the current UPnP state variables of this renderer, if known. Default value is null.
-	 *
-	 * @return The data.
-	 */
-	public Map<String, String> getUPNPData() {
-		return UPNPHelper.getData(uuid, instanceID);
-	}
-
-	/**
-	 * Returns the UPnP services of this renderer.
-	 * Default value is null.
-	 *
-	 * @return The list of service names.
-	 */
-	public List<String> getUpnpServices() {
-		return isUpnp() ? UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid)) : null;
-	}
-
-	/**
-	 * Returns the UPnP instance id of this renderer, if known. Default value is null.
-	 *
-	 * @return The instance id.
-	 */
-	public String getInstanceID() {
-		return instanceID;
-	}
-
-	/**
-	 * Sets the UPnP instance id of this renderer.
-	 *
-	 * @param id The instance id.
-	 */
-	public void setInstanceID(String id) {
-		instanceID = id;
-	}
-
-	/**
-	 * Returns whether this renderer is known to be offline.
-	 *
-	 * @return Whether offline.
-	 */
-	public boolean isOffline() {
-		return !isActive();
-	}
-
-	/**
-	 * Returns whether this renderer is currently connected via UPnP.
-	 *
-	 * @return Whether connected.
-	 */
-	public boolean isUpnpConnected() {
-		return uuid != null && UPNPHelper.isActive(uuid, instanceID);
-	}
-
-	/**
-	 * Returns whether this renderer has an associated address.
-	 *
-	 * @return Has address.
-	 */
-	public boolean hasAssociatedAddress() {
-		return ConnectedRenderers.hasInetAddressForRendererConfiguration(this);
-	}
-
-	/**
-	 * Returns this renderer's associated address.
-	 *
-	 * @return The address.
-	 */
-	public InetAddress getAddress() {
-		// If we have a uuid look up the UPnP device address, which is always
-		// correct even if another device has overwritten our association
-		if (uuid != null) {
-			InetAddress address = UPNPHelper.getAddress(uuid);
-			if (address != null) {
-				return address;
-			}
-		}
-		// Otherwise check the address association
-		return ConnectedRenderers.getRendererConfigurationInetAddress(this);
-	}
-
-	/**
-	 * Returns whether this renderer provides UPnP control services.
-	 *
-	 * @return Whether controllable.
-	 */
-	public boolean isUpnpControllable() {
-		return UPNPHelper.isUpnpControllable(uuid);
-	}
-
-	/**
-	 * Returns a UPnP player for this renderer if UPnP control is supported.
-	 *
-	 * @return a player or null.
-	 */
-	public BasicPlayer getPlayer() {
-		if (player == null) {
-			player = isUpnpControllable() ? new UPNPPlayer((DeviceConfiguration) this) :
-				new PlaybackTimer((DeviceConfiguration) this);
-		} else if (player instanceof PlaybackTimer && isUpnpControllable()) {
-			player = new UPNPPlayer((DeviceConfiguration) this);
-		}
-		return player;
-	}
-
-	/**
-	 * Sets the UPnP player.
-	 *
-	 * @param player
-	 */
-	public void setPlayer(UPNPPlayer player) {
-		this.player = player;
-	}
-
-	@Override
-	public void setActive(boolean b) {
-		super.setActive(b);
-		refreshActiveGui(b);
-	}
-
-	public void addGuiListener(IRendererGuiListener gui) {
-		listenersLock.readLock().lock();
-		try {
-			guiListeners.add(gui);
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void removeGuiListener(IRendererGuiListener gui) {
-		listenersLock.readLock().lock();
-		try {
-			guiListeners.remove(gui);
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void updateRendererGui() {
-		LOGGER.debug("Updating status button for {}", getRendererName());
-		listenersLock.readLock().lock();
-		try {
-			for (IRendererGuiListener gui : guiListeners) {
-				gui.updateRenderer(this);
-			}
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void refreshActiveGui(boolean b) {
-		listenersLock.readLock().lock();
-		try {
-			for (IRendererGuiListener gui : guiListeners) {
-				gui.setActive(b);
-			}
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void refreshPlayerStateGui(PlayerState state) {
-		listenersLock.readLock().lock();
-		try {
-			for (IRendererGuiListener gui : guiListeners) {
-				gui.refreshPlayerState(state);
-			}
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void deleteGuis() {
-		listenersLock.readLock().lock();
-		try {
-			for (IRendererGuiListener gui : guiListeners) {
-				gui.delete();
-			}
-		} finally {
-			listenersLock.readLock().unlock();
-		}
-	}
-
-	public void delete(int delay) {
-		ConnectedRenderers.delete(this, delay);
-	}
-
-	/**
-	 * RendererName: Determines the name that is displayed in the PMS user
-	 * interface when this renderer connects. Default value is "Unknown
-	 * renderer".
+	 * RendererName: Determines the name that is displayed in the UMS user
+	 * interface when this renderer connects.
+	 * Default value is "Unknown renderer".
 	 *
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		if (details != null && details.containsKey("friendlyName")) {
-			return details.get("friendlyName");
-		} else if (isUpnp()) {
-			return UPNPHelper.getFriendlyName(uuid);
-		}
 		return getConfName();
+	}
+
+	public String getSimpleName() {
+		return StringUtils.substringBefore(getRendererName(), "(").trim();
 	}
 
 	public String getConfName() {
@@ -1231,17 +804,13 @@ public class RendererConfiguration extends Renderer {
 
 	/**
 	 * Returns the icon to use for displaying this renderer in PMS as defined
-	 * in the renderer configurations. Default value is UNKNOWN_ICON.
+	 * in the renderer configurations.
+	 * Default value is UNKNOWN_ICON.
 	 *
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		String icon = getString(KEY_RENDERER_ICON, UNKNOWN_ICON);
-		String deviceIcon = null;
-		if (icon.equals(UNKNOWN_ICON)) {
-			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
-		}
-		return deviceIcon == null ? icon : deviceIcon;
+		return getString(KEY_RENDERER_ICON, UNKNOWN_ICON);
 	}
 
 	/**
@@ -1412,35 +981,6 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
-	 * Returns the maximum bitrate (in megabits-per-second) supported by the
-	 * media renderer as defined in the renderer configuration. The default
-	 * value is 0 (unlimited).
-	 *
-	 * @return The bitrate.
-	 */
-	public int getMaxVideoBitrate() {
-		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
-			try {
-				int calculatedSpeed = calculatedSpeed();
-				if (calculatedSpeed >= 70) { // this should be a wired connection
-					setAutomaticVideoQuality("Automatic (Wired)");
-				} else {
-					setAutomaticVideoQuality("Automatic (Wireless)");
-				}
-
-				return calculatedSpeed;
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return 0;
-			} catch (ExecutionException e) {
-				LOGGER.debug("Automatic maximum bitrate calculation failed with: {}", e.getCause().getMessage());
-				LOGGER.trace("", e.getCause());
-			}
-		}
-		return getInt(KEY_MAX_VIDEO_BITRATE, 0);
-	}
-
-	/**
 	 * This was originally added for the PS3 after it was observed to need
 	 * a video whose maximum bitrate was under half of the network maximum.
 	 *
@@ -1448,45 +988,6 @@ public class RendererConfiguration extends Renderer {
 	 */
 	public boolean isHalveBitrate() {
 		return getBoolean(KEY_HALVE_BITRATE, false);
-	}
-
-	/**
-	 * Returns the maximum bitrate (in bits-per-second) as defined by
-	 * whichever is lower out of the renderer setting or user setting.
-	 *
-	 * @return The maximum bitrate in bits-per-second.
-	 */
-	public int getMaxBandwidth() {
-		if (maximumBitrateTotal > 0) {
-			return maximumBitrateTotal;
-		}
-
-		int[] defaultMaxBitrates = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
-		int[] rendererMaxBitrates = new int[2];
-
-		int maxVideoBitrate = getMaxVideoBitrate();
-		if (maxVideoBitrate > 0) {
-			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(maxVideoBitrate));
-		}
-
-		// Give priority to the renderer's maximum bitrate setting over the user's setting
-		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			LOGGER.trace(
-				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
-				"it is lower than the general configuration bitrate limit ({} Mb/s)",
-				getRendererName(),
-				rendererMaxBitrates[0],
-				defaultMaxBitrates[0]
-			);
-			defaultMaxBitrates = rendererMaxBitrates;
-		}
-
-		if (isHalveBitrate()) {
-			defaultMaxBitrates[0] /= 2;
-		}
-
-		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
-		return maximumBitrateTotal;
 	}
 
 	/**
@@ -1516,32 +1017,6 @@ public class RendererConfiguration extends Renderer {
 		}
 
 		return convertMencoderSettingToFFmpegFormat(mpegSettings);
-	}
-
-	/**
-	 * Converts the MEncoder's quality settings format to FFmpeg's.
-	 *
-	 * @param mpegSettings
-	 * @return The FFmpeg format.
-	 */
-	public String convertMencoderSettingToFFmpegFormat(String mpegSettings) {
-		String[] mpegSettingsArray = mpegSettings.split(":");
-		String[] pairArray;
-		StringBuilder returnString = new StringBuilder();
-		for (String pair : mpegSettingsArray) {
-			pairArray = pair.split("=");
-			switch (pairArray[0]) {
-				case "keyint" -> returnString.append("-g ").append(pairArray[1]).append(' ');
-				case "vqscale" -> returnString.append("-q:v ").append(pairArray[1]).append(' ');
-				case "vqmin" -> returnString.append("-qmin ").append(pairArray[1]).append(' ');
-				case "vqmax" -> returnString.append("-qmax ").append(pairArray[1]).append(' ');
-				default -> {
-					//setting not yet handled
-				}
-			}
-		}
-
-		return returnString.toString();
 	}
 
 	/**
@@ -1776,7 +1251,7 @@ public class RendererConfiguration extends Renderer {
 		}
 
 		if (configuration == null) {
-			configuration = PMS.getConfiguration(this);
+			configuration = umsConfiguration;
 		}
 
 		if (
@@ -2130,34 +1605,6 @@ public class RendererConfiguration extends Renderer {
 	}
 
 	/**
-	 * Returns the actual renderer network speed in Mbits/sec calculated from
-	 * the Ping response.
-	 *
-	 * @return the actual speed or the default MAX_VIDEO_BITRATE when the calculation fails.
-	 * @throws InterruptedException
-	 * @throws ExecutionException
-	 */
-	public int calculatedSpeed() throws InterruptedException, ExecutionException {
-		int max = getInt(KEY_MAX_VIDEO_BITRATE, 0);
-		InetAddress addr = ConnectedRenderers.getRendererConfigurationInetAddress(this);
-		if (addr != null) {
-			Future<Integer> speed = SpeedStats.getSpeedInMBitsStored(addr);
-			if (speed != null) {
-				if (max == 0) {
-					return speed.get();
-				}
-
-				if (speed.get() > max && max > 0) {
-					return max;
-				}
-
-				return speed.get();
-			}
-		}
-		return max;
-	}
-
-	/**
 	 * Pattern match our combined header matcher to the given collection of sorted request
 	 * headers as a whole.
 	 *
@@ -2190,37 +1637,8 @@ public class RendererConfiguration extends Renderer {
 		return getInt(KEY_LOADING_PRIORITY, 0);
 	}
 
-	public DLNAResource getPlayingRes() {
-		return playingRes;
-	}
-
-	public void setPlayingRes(DLNAResource dlna) {
-		playingRes = dlna;
-		getPlayer();
-		if (dlna != null) {
-			player.getState().setName(dlna.getDisplayName());
-			player.start();
-		} else {
-			player.reset();
-		}
-	}
-
-	public void setBuffer(long mb) {
-		buffer = mb < 0 ? 0 : mb;
-		getPlayer().setBuffer(mb);
-	}
-
-	public long getBuffer() {
-		return buffer;
-	}
-
 	public String getSubLanguage() {
 		return umsConfiguration.getSubtitlesLanguages();
-	}
-
-	@SuppressWarnings("unused")
-	public void notify(String type, String msg) {
-		// Implemented by subclasses
 	}
 
 	public int getMaxVolume() {
@@ -2247,42 +1665,6 @@ public class RendererConfiguration extends Renderer {
 		}
 		// Note: this might be a comma-separated list of ids
 		return d;
-	}
-
-	public int getUpnpMode() {
-		if (upnpMode == UPNP_NONE) {
-			upnpMode = getUpnpMode(getString(KEY_UPNP_ALLOW, "true"));
-		}
-		return upnpMode;
-	}
-
-	public String getUpnpModeString() {
-		return getUpnpModeString(upnpMode);
-	}
-
-	public void resetUpnpMode() {
-		setUpnpMode(getUpnpMode(getString(KEY_UPNP_ALLOW, "true")));
-	}
-
-	public void setUpnpMode(int mode) {
-		if (upnpMode != mode) {
-			upnpMode = mode;
-			if (upnpMode == UPNP_ALLOW) {
-				String id = uuid != null ? uuid : DeviceConfigurations.getUuidOf(getAddress());
-				if (id != null) {
-					configuration.setProperty(KEY_UPNP_ALLOW, "true");
-					UPNPHelper.activate(id);
-				}
-			}
-		}
-	}
-
-	public boolean isUpnpPostponed() {
-		return getUpnpMode() == UPNP_POSTPONE;
-	}
-
-	public boolean isUpnpAllowed() {
-		return getUpnpMode() > UPNP_NONE;
 	}
 
 	/**
@@ -2376,14 +1758,6 @@ public class RendererConfiguration extends Renderer {
 		return getBoolean(KEY_REMOVE_TAGS_FROM_SRT_SUBS, true);
 	}
 
-	private void setAutomaticVideoQuality(String value) {
-		automaticVideoQuality = value;
-	}
-
-	public String getAutomaticVideoQuality() {
-		return automaticVideoQuality;
-	}
-
 	public int getHlsVersion() {
 		return getInt(KEY_HLS_VERSION, 3);
 	}
@@ -2392,47 +1766,7 @@ public class RendererConfiguration extends Renderer {
 		return getBoolean(KEY_HLS_MULTI_VIDEO_QUALITY, false);
 	}
 
-	/**
-	 * Note: This is not guaranteed to contain ALL settings,
-	 * only the ones the user has changed from defaults. To
-	 * get the whole picture it needs to be combined with
-	 * the defaults.
-	 *
-	 * Note: We do not save the configuration as JSON at
-	 * any point, this is just a convenience method for
-	 * our REST API.
-	 *
-	 * @return the user settings as a JSON string.
-	 */
-	public String getConfigurationAsJsonString() {
-		Properties configurationAsProperties = ConfigurationConverter.getProperties(configuration);
-
-		Map<String, String> propsAsStringMap = new HashMap<>();
-		configurationAsProperties.forEach((key, value) -> {
-				String strKey = Objects.toString(key);
-				if (SettingsApiServlet.haveKey(strKey)) {
-					String strValue = Objects.toString(value);
-					//do not add non acceptable empty key then it back to default
-					if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
-						//escape "\" char with "\\" otherwise json will fail
-						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
-					}
-				}
-			}
-		);
-
-		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
-	}
-
-	public Configuration getRawConfiguration() {
-		return configuration;
-	}
-
-	public ConfigurationReader getConfigurationReader() {
-		return configurationReader;
-	}
-
-	private static int[] getVideoBitrateConfig(String bitrate) {
+	protected static int[] getVideoBitrateConfig(String bitrate) {
 		int[] bitrates = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
@@ -2474,79 +1808,50 @@ public class RendererConfiguration extends Renderer {
 		}
 	};
 
-	public static int getUpnpMode(String mode) {
-		if (mode != null) {
-			return switch (mode.trim().toLowerCase()) {
-				case "false" -> UPNP_BLOCK;
-				case "postpone" -> UPNP_POSTPONE;
-				default -> UPNP_ALLOW;
-			};
-		}
-		return UPNP_ALLOW;
-	}
-
-	public static String getUpnpModeString(int mode) {
-		return switch (mode) {
-			case UPNP_BLOCK -> "blocked";
-			case UPNP_POSTPONE -> "postponed";
-			case UPNP_NONE -> "unknown";
-			default -> "allowed";
-		};
-	}
-
-	public static String getSimpleName(RendererConfiguration r) {
-		return StringUtils.substringBefore(r.getRendererName(), "(").trim();
-	}
-
-	public static String getDefaultFilename(RendererConfiguration r) {
-		String id = r.getId();
-		return (getSimpleName(r) + "-" + (id.startsWith("uuid:") ? id.substring(5, 11) : id)).replace(" ", "") + ".conf";
-	}
-
-	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
+	public static List<String> getRendererLines(Renderer renderer, File refFile) {
+		List<String> lines = new ArrayList<>();
 		try {
-			ArrayList<String> conf = new ArrayList<>();
-			String name = getSimpleName(r);
-			Map<String, String> details = r.getUpnpDetails();
-			List<String> headers = r.getIdentifiers();
-			boolean hasRef = ref != null && ref != NOFILE;
+			String name = renderer.getSimpleName();
+			Map<String, String> details = renderer.getUpnpDetails();
+			List<String> headers = renderer.getIdentifiers();
+			boolean hasRef = refFile != null && refFile != NOFILE;
 
 			// Add the header and identifiers
-			conf.add("#----------------------------------------------------------------------------");
-			conf.add("# Auto-generated profile for " + name);
-			conf.add("#" + (ref != null && ref != NOFILE ? " Based on " + ref.getName() : ""));
-			conf.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
-			conf.add("#");
-			conf.add("");
-			conf.add(KEY_RENDERER_NAME + " = " + name);
+			lines.add("#----------------------------------------------------------------------------");
+			lines.add("# Auto-generated profile for " + name);
+			lines.add("#" + (refFile != null && refFile != NOFILE ? " Based on " + refFile.getName() : ""));
+			lines.add("# See DefaultRenderer.conf for a description of all possible configuration options.");
+			lines.add("#");
+			lines.add("");
+			lines.add(KEY_RENDERER_NAME + " = " + name);
 			if (headers != null || details != null) {
-				conf.add("");
-				conf.add("# ============================================================================");
-				conf.add("# This renderer has sent the following string/s:");
+				lines.add("");
+				lines.add("# ============================================================================");
+				lines.add("# This renderer has sent the following string/s:");
 				if (headers != null && !headers.isEmpty()) {
-					conf.add("#");
+					lines.add("#");
 					for (String h : headers) {
-						conf.add("# " + h);
+						lines.add("# " + h);
 					}
 				}
 				if (details != null) {
 					details.remove("address");
 					details.remove("udn");
-					conf.add("#");
-					conf.add("# " + details);
+					lines.add("#");
+					lines.add("# " + details);
 				}
-				conf.add("# ============================================================================");
-				conf.add("");
+				lines.add("# ============================================================================");
+				lines.add("");
 			}
-			conf.add(KEY_USER_AGENT + " = ");
+			lines.add(KEY_USER_AGENT + " = ");
 			if (headers != null && headers.size() > 1) {
-				conf.add(KEY_USER_AGENT_ADDITIONAL_HEADER + " = ");
-				conf.add(KEY_USER_AGENT_ADDITIONAL_SEARCH + " = ");
+				lines.add(KEY_USER_AGENT_ADDITIONAL_HEADER + " = ");
+				lines.add(KEY_USER_AGENT_ADDITIONAL_SEARCH + " = ");
 			}
 			if (details != null) {
-				conf.add(KEY_UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
+				lines.add(KEY_UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
 			}
-			conf.add("");
+			lines.add("");
 			// TODO: Set more properties automatically from UPNP info
 
 			if (hasRef) {
@@ -2555,7 +1860,7 @@ public class RendererConfiguration extends Renderer {
 					KEY_UPNP_DETAILS + "|" + KEY_USER_AGENT + "|" + KEY_USER_AGENT_ADDITIONAL_HEADER + "|" +
 					KEY_USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
-				for (String line : FileUtils.readLines(ref, StandardCharsets.UTF_8)) {
+				for (String line : FileUtils.readLines(refFile, StandardCharsets.UTF_8)) {
 					if (
 						skip.reset(line).matches() ||
 						(
@@ -2569,48 +1874,29 @@ public class RendererConfiguration extends Renderer {
 						continue;
 					}
 					header = false;
-					conf.add(line);
-				}
-			}
-
-			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
-
-			if (load) {
-				try {
-					RendererConfiguration renderer = new RendererConfiguration(file);
-					RendererConfigurations.addRendererConfiguration(renderer);
-					if (r instanceof DeviceConfiguration deviceConfiguration) {
-						deviceConfiguration.inherit(renderer);
-					}
-				} catch (ConfigurationException ce) {
-					LOGGER.debug("Error initializing renderer configuration: " + ce);
+					lines.add(line);
 				}
 			}
 		} catch (IOException ie) {
 			LOGGER.debug("Error creating renderer configuration file: " + ie);
 		}
+		return lines;
 	}
 
-	public static PropertiesConfiguration createPropertiesConfiguration() {
-		PropertiesConfiguration conf = new PropertiesConfiguration();
-		conf.setListDelimiter((char) 0);
-		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
-		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
-		conf.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
-			@Override
-			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
-				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
-					@Override
-					protected void parseProperty(final String line) {
-						// Decode any backslashed unicode escapes, e.g. '\u005c', from the
-						// ISO 8859-1 (aka Latin 1) encoded java Properties file, then
-						// unescape any double-backslashes, then escape all backslashes before parsing
-						super.parseProperty(LAX_UNICODE_UNESCAPER.translate(line).replace("\\\\", "\\").replace("\\", "\\\\"));
-					}
-				};
-			}
-		});
-		return conf;
+	public static List<String> getDeviceLines(Renderer renderer) {
+		List<String> lines = new ArrayList<>();
+
+		// Add the header and device id
+		lines.add("#----------------------------------------------------------------------------");
+		lines.add("# Custom Device profile");
+		lines.add("# See DefaultRenderer.conf for descriptions of all possible renderer options");
+		lines.add("# and UMS.conf for program options.");
+		lines.add("");
+		lines.add("# Options in this file override the default settings for the specific " + renderer.getSimpleName() + " device(s) listed below.");
+		lines.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");
+		lines.add("");
+		lines.add(KEY_DEVICE_ID + " = " + renderer.getId());
+		return lines;
 	}
 
 }

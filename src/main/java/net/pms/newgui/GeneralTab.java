@@ -206,10 +206,10 @@ public class GeneralTab {
 
 		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
-			for (RendererConfiguration renderer : allConfs) {
-				if (renderer != null) {
-					keyValues.add(renderer.getRendererName());
-					nameValues.add(renderer.getRendererName());
+			for (RendererConfiguration rendererConf : allConfs) {
+				if (rendererConf != null) {
+					keyValues.add(rendererConf.getRendererName());
+					nameValues.add(rendererConf.getRendererName());
 				}
 			}
 		}
@@ -569,10 +569,10 @@ public class GeneralTab {
 
 		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
-			for (RendererConfiguration renderer : allConfs) {
-				if (renderer != null) {
-					keyValues.add(renderer.getRendererName());
-					nameValues.add(renderer.getRendererName());
+			for (RendererConfiguration rendererConf : allConfs) {
+				if (rendererConf != null) {
+					keyValues.add(rendererConf.getRendererName());
+					nameValues.add(rendererConf.getRendererName());
 				}
 			}
 		}

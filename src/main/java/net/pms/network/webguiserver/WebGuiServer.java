@@ -19,19 +19,16 @@ package net.pms.network.webguiserver;
 import java.io.IOException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
-import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	//TODO :Should be CONFIGURATION.getGuiServerPort()
-	public static final int DEFAULT_PORT = 9002;
 
 	public abstract Object getServer();
 	public abstract int getPort();
@@ -63,7 +60,7 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void addRenderer(Renderer renderer) {
 		RendererItem.addRenderer(renderer);
 	}
 
@@ -108,14 +105,6 @@ public abstract class WebGuiServer implements IGui {
 	@Override
 	public void setConfigurationChanged(String key) {
 		SseApiServlet.setConfigurationChanged(key);
-	}
-
-	public static void resetAllRenderers() {
-		PlayerApiServlet.resetAllRenderers();
-	}
-
-	public static void deleteAllRenderers() {
-		PlayerApiServlet.deleteAllRenderers();
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
