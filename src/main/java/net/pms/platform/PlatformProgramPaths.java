@@ -16,22 +16,27 @@
  */
 package net.pms.platform;
 
-import com.sun.jna.Platform;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.sun.jna.Platform;
+
+
 import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.platform.mac.MacProgramPaths;
 import net.pms.platform.windows.WindowsProgramPaths;
 import net.pms.util.ExternalProgramInfo;
-import net.pms.util.FilePermissions;
 import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FilePermissions;
 import net.pms.util.PropertiesUtil;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of paths to external programs.
@@ -95,7 +100,19 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getInterFrame();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for InterFrame.
+	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getFFMS2();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getConvert2dTo3d();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for YoutubeDl.
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getYoutubeDl();

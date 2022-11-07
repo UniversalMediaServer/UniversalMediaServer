@@ -23,18 +23,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nonnull;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
+
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
-import net.pms.util.FilePermissions;
-import net.pms.util.FileUtil;
+import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
-import net.pms.platform.linux.LinuxProgramPaths;
-import net.pms.platform.PlatformProgramPaths;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of paths to external programs on Windows.
@@ -52,6 +57,8 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo interFrameInfo;
+	private final ExternalProgramInfo ffms2Info;
+	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
 	private final Path mediaInfo;
 	private final Path ctrlSender;
@@ -141,6 +148,34 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		interFrameInfo = new ExternalProgramInfo("InterFrame", ProgramExecutableType.BUNDLED);
 		interFrameInfo.setPath(ProgramExecutableType.BUNDLED, interframe);
 
+		// Convert 2dto3d
+		Path convert2dTo3d = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			convert2dTo3d = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("2dTo3d");
+		}
+		if (convert2dTo3d == null || !Files.exists(convert2dTo3d)) {
+			convert2dTo3d = PLATFORM_BINARIES_FOLDER.resolve("2dTo3d");
+		}
+		convert2dTo3dInfo = new ExternalProgramInfo("2dTo3d", ProgramExecutableType.BUNDLED);
+		convert2dTo3dInfo.setPath(ProgramExecutableType.BUNDLED, convert2dTo3d);
+
+		// FFMS2
+		Path tmpFFMS2 = null;
+		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
+			tmpFFMS2 = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("ffms2");
+		}
+		if (tmpFFMS2 == null || !Files.exists(tmpFFMS2)) {
+			tmpFFMS2 = PLATFORM_BINARIES_FOLDER.resolve("ffms2");
+		}
+
+		ffms2Info = new ExternalProgramInfo("ffms2", ProgramExecutableType.BUNDLED);
+
+		if (Platform.is64Bit()) {
+			ffms2Info.setPath(ProgramExecutableType.BUNDLED, tmpFFMS2.resolve("x64"));
+		} else {
+			ffms2Info.setPath(ProgramExecutableType.BUNDLED, tmpFFMS2.resolve("x86"));
+		}
+
 		// CtrlSender
 		Path tmpCtrlSender = resolve("ctrlsender.exe");
 		try {
@@ -211,6 +246,16 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getInterFrame() {
 		return interFrameInfo;
+	}
+
+	@Override
+	public ExternalProgramInfo getFFMS2() {
+		return ffms2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getConvert2dTo3d() {
+		return convert2dTo3dInfo;
 	}
 
 	@Override

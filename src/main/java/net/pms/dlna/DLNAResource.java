@@ -217,6 +217,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
 
+	private double lastTimeSeek = -1.0;
+
 	protected DLNAResource() {
 		this.specificType = Format.UNKNOWN;
 		// this.children = new ArrayList<DLNAResource>();
@@ -3271,23 +3273,35 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Time seek request => stop running transcode process and start a
 			// new one
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
-			params.setMinBufferSize(1);
-			Runnable r = () -> externalProcess.stopProcess();
 
-			new Thread(r, "External Process Stopper").start();
-			lastStartSystemTime = System.currentTimeMillis();
-			ProcessWrapper newExternalProcess = engine.launchTranscode(this, media, params);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				LOGGER.error(null, e);
+			if (lastTimeSeek == params.getTimeSeek()) {
+				LOGGER.debug("Duplicate time seek request: " + params.getTimeSeek() + " seconds, ignoring");
+			} else {
+				lastTimeSeek = params.getTimeSeek();
+
+				params.setMinBufferSize(1);
+
+				Runnable r = () -> {
+					externalProcess.stopProcess();
+				};
+
+				new Thread(r, "External Process Stopper").start();
+
+				lastStartSystemTime = System.currentTimeMillis();
+				ProcessWrapper newExternalProcess = engine.launchTranscode(this, media, params);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
+				}
+
+				if (newExternalProcess == null) {
+					LOGGER.trace("External process instance is null... sounds not good");
+				}
+
+				externalProcess = newExternalProcess;
 			}
-
-			if (newExternalProcess == null) {
-				LOGGER.trace("External process instance is null... sounds not good");
-			}
-
-			externalProcess = newExternalProcess;
 		}
 
 		if (externalProcess == null) {

@@ -1297,6 +1297,18 @@
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
 										<mkdir dir="${project.binaries}/windows/winxp" />
 										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
+										
+										<!-- Copy 2dTo3d to its destination -->
+										<mkdir dir="${project.binaries}/windows/2dTo3d" />
+										<copy todir="${project.binaries}/windows/2dTo3d" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/2dTo3d" />
+										</copy>									
+
+										<!-- Copy ffms2 to its destination -->
+										<mkdir dir="${project.binaries}/windows/ffms2" />
+										<copy todir="${project.binaries}/windows/ffms2" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/ffms2" />
+										</copy>																			
 									</target>
 								</configuration>
 							</execution>
