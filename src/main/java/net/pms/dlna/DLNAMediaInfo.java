@@ -26,7 +26,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
@@ -44,6 +43,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
+import net.pms.renderers.Renderer;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
@@ -302,11 +302,11 @@ public class DLNAMediaInfo implements Cloneable {
 	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
 	 *       function for that, or even better, re-think this whole approach.
 	 *
-	 * @param mediaRenderer The renderer we might mux to
+	 * @param renderer The renderer we might mux to
 	 *
 	 * @return
 	 */
-	public boolean isMuxable(RendererConfiguration mediaRenderer) {
+	public boolean isMuxable(Renderer renderer) {
 		// Make sure the file is H.264 video
 		if (isH264()) {
 			muxable = true;
@@ -315,14 +315,14 @@ public class DLNAMediaInfo implements Cloneable {
 		// Check if the renderer supports the resolution of the video
 		if (
 			(
-				mediaRenderer.isMaximumResolutionSpecified() &&
+				renderer.isMaximumResolutionSpecified() &&
 				(
-					width > mediaRenderer.getMaxVideoWidth() ||
-					height > mediaRenderer.getMaxVideoHeight()
+					width > renderer.getMaxVideoWidth() ||
+					height > renderer.getMaxVideoHeight()
 				)
 			) ||
 			(
-				!mediaRenderer.isMuxNonMod4Resolution() &&
+				!renderer.isMuxNonMod4Resolution() &&
 				!isMod4()
 			)
 		) {
@@ -330,7 +330,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Bravia does not support AVC video at less than 288px high
-		if (mediaRenderer.isBRAVIA() && height < 288) {
+		if (renderer.isBRAVIA() && height < 288) {
 			muxable = false;
 		}
 
@@ -397,7 +397,7 @@ public class DLNAMediaInfo implements Cloneable {
 		extras.put(key, value);
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, RendererConfiguration renderer) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume, Renderer renderer) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.setMediaparsed(mediaparsed);  // check if file was already parsed by MediaInfo
 		forThumbnail.setImageInfo(imageInfo);
@@ -559,7 +559,7 @@ public class DLNAMediaInfo implements Cloneable {
 	/**
 	 * Parse media without using MediaInfo.
 	 */
-	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume, RendererConfiguration renderer) {
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume, Renderer renderer) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -1489,10 +1489,10 @@ public class DLNAMediaInfo implements Cloneable {
 	 *
 	 * TODO move to PlayerUtil
 	 * @param f
-	 * @param mediaRenderer
+	 * @param renderer
 	 * @return
 	 */
-	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+	public boolean isVideoWithinH264LevelLimits(InputFile f, Renderer renderer) {
 		synchronized (videoWithinH264LevelLimitsLock) {
 			if (videoWithinH264LevelLimits == null) {
 				if (isH264()) {
@@ -1541,7 +1541,7 @@ public class DLNAMediaInfo implements Cloneable {
 											height > 0
 										) {
 											int maxref;
-											if (mediaRenderer == null || mediaRenderer.isPS3()) {
+											if (renderer == null || renderer.isPS3()) {
 												/**
 												 * 2013-01-25: Confirmed maximum reference frames on PS3:
 												 *    - 4 for 1920x1080

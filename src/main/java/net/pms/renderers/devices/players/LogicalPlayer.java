@@ -19,11 +19,11 @@ package net.pms.renderers.devices.players;
 import java.io.File;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,13 +42,13 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	protected int lastPlayback;
 	protected int maxVol;
 
-	protected LogicalPlayer(DeviceConfiguration renderer) {
+	protected LogicalPlayer(Renderer renderer) {
 		super(renderer);
 		playlist = new Playlist(this);
 		lastPlayback = PlayerState.STOPPED;
 		maxVol = renderer.getMaxVolume();
-		autoContinue = renderer.isAutoContinue();
-		addAllSiblings = renderer.isAutoAddAll();
+		autoContinue = renderer.getUmsConfiguration().isAutoContinue();
+		addAllSiblings = renderer.getUmsConfiguration().isAutoAddAll();
 		forceStop = false;
 		alert();
 		initAutoPlay(this);
@@ -186,7 +186,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	private static void initAutoPlay(final LogicalPlayer player) {
-		String auto = player.renderer.getAutoPlay();
+		String auto = player.renderer.getUmsConfiguration().getAutoPlay();
 		if (StringUtils.isEmpty(auto)) {
 			return;
 		}

@@ -32,7 +32,7 @@ import { AudioPlayer } from './AudioPlayer';
 import { VideoPlayer } from './VideoPlayer';
 
 export const Player = () => {
-  const [token, setToken] = useState('');
+  const [uuid, setUuid] = useState('');
   const [data, setData] = useState({goal:'',folders:[],breadcrumbs:[],medias:[],useWebControl:false} as BaseBrowse);
   const [loading, setLoading] = useState(false);
   const mainScroll = useRef<HTMLDivElement>(null);
@@ -47,15 +47,15 @@ export const Player = () => {
     defaultValue: false,
   });
 
-  const getToken = () => {
+  const getUuid = () => {
     if (sessionStorage.getItem('player')) {
-      setToken(sessionStorage.getItem('player') as string);
+      setUuid(sessionStorage.getItem('player') as string);
     } else {
       axios.get(playerApiUrl)
       .then(function (response: any) {
-        if (response.data.token) {
-          sessionStorage.setItem('player', response.data.token);
-          setToken(response.data.token);
+        if (response.data.uuid) {
+          sessionStorage.setItem('player', response.data.uuid);
+          setUuid(response.data.uuid);
         }
       })
       .catch(function () {
@@ -107,7 +107,7 @@ export const Player = () => {
   const getVideoMediaPlayer = (media: VideoMedia) => {
     return (<Paper>
       <VideoPlayer
-        {...{media:media, token:token, askPlayId:sse.askPlayId}}
+        {...{media:media, uuid:uuid, askPlayId:sse.askPlayId}}
       />
     </Paper>);
   }
@@ -115,7 +115,7 @@ export const Player = () => {
   const getAudioMediaPlayer = (media: AudioMedia) => {
     return (<Paper>
       <AudioPlayer
-        {...{media:media, token:token}}
+        {...{media:media, uuid:uuid}}
       />
     </Paper>);
   }
@@ -128,7 +128,7 @@ export const Player = () => {
       <Paper>
         <Image
           radius='md'
-          src={playerApiUrl + 'image/' + token + '/'  + media.id}
+          src={playerApiUrl + 'image/' + uuid + '/'  + media.id}
           alt={media.name}
         />
       </Paper>);
@@ -174,7 +174,7 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
     } else {
-      image = <img src={playerApiUrl + "thumb/" + token + "/"  + media.id} alt={media.name} className='thumbnail-image' />;
+      image = <img src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} alt={media.name} className='thumbnail-image' />;
     }
     return (
       <div
@@ -326,7 +326,7 @@ export const Player = () => {
         poster = (<img className="poster" src={metadata.poster} />);
       }
       if (!poster && media) {
-        poster = (<img className="poster" src={playerApiUrl + "thumb/" + token + "/"  + media.id} />);
+        poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
       }
     }
   
@@ -415,7 +415,7 @@ export const Player = () => {
           </Tooltip>
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get['Download']}>
-              <Button variant='default' compact onClick={() => window.open(playerApiUrl + 'download/' + token + '/' + data.medias[0].id ,'_blank')}><Download size={14} /></Button>
+              <Button variant='default' compact onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id ,'_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
@@ -459,7 +459,7 @@ export const Player = () => {
           <Grid.Col span={12}>
             <Grid columns={20} justify='center'>
               <Grid.Col span={6}>
-                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + token + "/"  + media.id} />
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
                 <Card shadow='sm' p='lg' radius='md' sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}>
@@ -493,13 +493,13 @@ export const Player = () => {
   }, [req, id]);
 
   useEffect(() => {
-    ((!session.authenticate || havePermission(session, Permissions.web_player_browse)) && getToken())
+    ((!session.authenticate || havePermission(session, Permissions.web_player_browse)) && getUuid())
   }, [session]);
 
   useEffect(() => {
-    if (token && sse.reqType) {
+    if (uuid && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, { token: token, id: sse.reqId })
+      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId })
         .then(function (response: any) {
           setData(response.data);
           const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
@@ -525,7 +525,7 @@ export const Player = () => {
           setLoading(false);
         });
     }
-  }, [token, sse.reqType, sse.reqId]);
+  }, [uuid, sse.reqType, sse.reqId]);
 
   useEffect(() => {
     const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {

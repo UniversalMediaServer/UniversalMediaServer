@@ -42,7 +42,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 		this.typeIdent = typeIdent;
 		String id = DbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
-		setDefaultRenderer(RendererConfigurations.getDefaultConf());
+		setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 	}
 
 	@Override

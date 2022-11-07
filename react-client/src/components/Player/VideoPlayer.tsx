@@ -46,8 +46,8 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
     const options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
-    options.sources=[{src:playerApiUrl + 'media/' + vpOptions.token + '/'  + vpOptions.media.id, type: vpOptions.media.mime}];
-    options.poster = playerApiUrl + 'thumb/' + vpOptions.token + '/'  + vpOptions.media.id;
+    options.sources=[{src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id, type: vpOptions.media.mime}];
+    options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/'  + vpOptions.media.id;
     if (vpOptions.media.sub) {
       if (!options.tracks) { options.tracks = [] }
       const sub = {kind:'captions', src:'/files/' + vpOptions.media.sub, default:true} as videojs.TextTrackOptions;
@@ -55,10 +55,10 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
     }
     if (vpOptions.media.isVideoWithChapters) {
       if (!options.tracks) { options.tracks = [] }
-      const sub = {kind:'chapters', src:playerApiUrl + 'media/' + vpOptions.token + '/'  + vpOptions.media.id + '/chapters.vtt', default:true} as videojs.TextTrackOptions;
+      const sub = {kind:'chapters', src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id + '/chapters.vtt', default:true} as videojs.TextTrackOptions;
       options.tracks.push(sub);
     }
-    const status = {'token':vpOptions.token,'id':vpOptions.media.id} as {[key: string]: string};
+    const status = {'uuid':vpOptions.uuid,'id':vpOptions.media.id} as {[key: string]: string};
     const setStatus = (key:string, value:any, wait:boolean) => {
       if (status[key] !== value) {
         status[key] = value;
@@ -85,7 +85,7 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
       if (vpOptions.media.isDownload) {
         const indexopt = videoPlayer.controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
         const nextButton = videoPlayer.controlBar.addChild('button',
-          {'controlText':'Download', 'className':'vjs-menu-button', 'clickHandler':() => {window.open(playerApiUrl + 'download/' + vpOptions.token + '/' + vpOptions.media.id ,'_blank'); }}
+          {'controlText':'Download', 'className':'vjs-menu-button', 'clickHandler':() => {window.open(playerApiUrl + 'download/' + vpOptions.uuid + '/' + vpOptions.media.id ,'_blank'); }}
           , indexopt);
         const placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
         if (placeholder) {
@@ -139,6 +139,6 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 
 export interface VideoPlayerOption {
   media:VideoMedia,
-  token:string,
+  uuid:string,
   askPlayId: (id:string) => void;
 }

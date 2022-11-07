@@ -47,7 +47,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
@@ -83,6 +82,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.util.FullyPlayed;
@@ -141,7 +141,7 @@ public class RequestV2 extends HTTPResource {
 	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
-	private RendererConfiguration mediaRenderer;
+	private Renderer mediaRenderer;
 	private String transferMode;
 	private String contentFeatures;
 	private final TimeRange range = new TimeRange();
@@ -151,14 +151,14 @@ public class RequestV2 extends HTTPResource {
 	 */
 	private long highRange;
 
-	public RendererConfiguration getMediaRenderer() {
+	public Renderer getMediaRenderer() {
 		return mediaRenderer;
 	}
 
-	public void setMediaRenderer(RendererConfiguration mediaRenderer) {
-		this.mediaRenderer = mediaRenderer;
+	public void setMediaRenderer(Renderer renderer) {
+		this.mediaRenderer = renderer;
 		// Use device-specific pms conf
-		configuration = PMS.getConfiguration(mediaRenderer);
+		configuration = PMS.getConfiguration(renderer);
 	}
 
 	/**
@@ -979,7 +979,7 @@ public class RequestV2 extends HTTPResource {
 		return createResponse(HTTPXMLHelper.SORTCAPS_RESPONSE).toString();
 	}
 
-	private static String getSearchCapabilitiesHandler(RendererConfiguration mediaRenderer) {
+	private static String getSearchCapabilitiesHandler(Renderer mediaRenderer) {
 		if (mediaRenderer.isUpnpSearchCapsEnabled()) {
 			return createResponse(HTTPXMLHelper.SEARCHCAPS_RESPONSE).toString();
 		} else {

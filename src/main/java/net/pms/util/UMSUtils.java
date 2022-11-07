@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.pms.renderers.Renderer;
 
 public class UMSUtils {
 
@@ -237,14 +237,14 @@ public class UMSUtils {
 		return s;
 	}
 
-	public static String getLangList(RendererConfiguration r) {
-		return getLangList(r, false);
+	public static String getLangList(Renderer renderer) {
+		return getLangList(renderer, false);
 	}
 
-	public static String getLangList(RendererConfiguration r, boolean three) {
+	public static String getLangList(Renderer renderer, boolean three) {
 		String res;
-		if (r != null) {
-			res = r.getSubLanguage();
+		if (renderer != null) {
+			res = renderer.getSubLanguage();
 		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
