@@ -16,12 +16,6 @@
  */
 package net.pms.network.webguiserver.servlets;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,9 +24,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
@@ -43,10 +51,6 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
@@ -68,6 +72,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonArray SUBTITLES_DEPTH = UmsConfiguration.getSubtitlesDepthArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = UmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = UmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonArray GPU_H264_ENCODING_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray();
+	private static final JsonArray GPU_H265_ENCODING_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -114,6 +120,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
+				jsonResponse.add("gpuH264EncodingAccelerationMethods", GPU_H264_ENCODING_ACCELERATION_METHODS );
+				jsonResponse.add("gpuH265EncodingAccelerationMethods", GPU_H265_ENCODING_ACCELERATION_METHODS );
 
 				String configurationAsJsonString = CONFIGURATION.getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
