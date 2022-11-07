@@ -379,17 +379,16 @@ public class SettingsApiServlet extends GuiHttpServlet {
 
 		Map<String, String> propsAsStringMap = new HashMap<>();
 		configurationAsProperties.forEach((key, value) -> {
-				String strKey = Objects.toString(key);
-				if (SettingsApiServlet.haveKey(strKey)) {
-					String strValue = Objects.toString(value);
-					//do not add non acceptable empty key then it back to default
-					if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
-						//escape "\" char with "\\" otherwise json will fail
-						propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
-					}
+			String strKey = Objects.toString(key);
+			if (SettingsApiServlet.haveKey(strKey)) {
+				String strValue = Objects.toString(value);
+				//do not add non acceptable empty key then it back to default
+				if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
+					//escape "\" char with "\\" otherwise json will fail
+					propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
 				}
 			}
-		);
+		});
 
 		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
 	}

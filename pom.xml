@@ -398,7 +398,7 @@
 			<groupId>com.github.junrar</groupId>
 			<artifactId>junrar</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>7.5.3</version>
+			<version>7.5.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -965,7 +965,7 @@
 							<goal>install-node-and-yarn</goal>
 						</goals>
 						<configuration>
-							<nodeVersion>v16.17.1</nodeVersion>
+							<nodeVersion>v18.12.1</nodeVersion>
 							<yarnVersion>v1.22.19</yarnVersion>
 						</configuration>
 					</execution>
@@ -1073,7 +1073,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.2.1</version>
+				<version>4.7.2.2</version>
 			</plugin>
 
 			<!-- Cobertura Test Coverage report -->

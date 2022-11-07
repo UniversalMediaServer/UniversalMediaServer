@@ -284,7 +284,7 @@ const Accounts = () => {
         />
         <Group position="right" mt="md">
           <Button type="submit">
-            {i18n.get['Update']}
+            {i18n.get['Update_verb']}
           </Button>
         </Group>
       </form>
@@ -323,7 +323,7 @@ const Accounts = () => {
         {group.id > 1 && (
           <Group position="right" mt="md">
             <Button type="submit">
-              {i18n.get['Update']}
+              {i18n.get['Update_verb']}
             </Button>
           </Group>
         )}
