@@ -1641,11 +1641,6 @@ public class RendererConfiguration extends BaseConfiguration {
 		return umsConfiguration.getSubtitlesLanguages();
 	}
 
-	@SuppressWarnings("unused")
-	public void notify(String type, String msg) {
-		// Implemented by subclasses
-	}
-
 	public int getMaxVolume() {
 		return getInt(KEY_MAX_VOLUME, 100);
 	}

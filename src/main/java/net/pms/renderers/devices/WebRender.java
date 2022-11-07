@@ -592,7 +592,6 @@ public class WebRender extends Renderer implements OutputOverride {
 		setActive(this.sse != null && this.sse.isOpened());
 	}
 
-	@Override
 	public void notify(String type, String msg) {
 		push("notify", type, msg);
 	}

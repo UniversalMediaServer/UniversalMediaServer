@@ -68,11 +68,12 @@ export const refreshToken = async () => {
   }
 }
 
-export const clearJwt = () => {
+export const clearJwt = async () => {
   localStorage.removeItem('tokenExpiry');
   localStorage.removeItem('user');
-  if (sessionStorage.getItem('player')) {
-	axios.post(playerApiUrl + 'logout', {token:sessionStorage.getItem('player')});
+  const uuid = sessionStorage.getItem('player');
+  if (uuid) {
+    await axios.post(playerApiUrl + 'logout', {token:uuid});
     sessionStorage.removeItem('player');
   }
 }
@@ -99,7 +100,7 @@ export const getJwt = () => {
   return localStorage.getItem('user');
 }
 
-export const redirectToLogin = () => {
-  clearJwt();
+export const redirectToLogin = async () => {
+  await clearJwt();
   window.location.reload();
 }
