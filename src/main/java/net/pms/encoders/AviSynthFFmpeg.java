@@ -22,10 +22,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -34,6 +30,8 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
