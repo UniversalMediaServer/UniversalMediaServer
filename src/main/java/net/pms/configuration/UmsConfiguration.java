@@ -37,10 +37,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -49,12 +47,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
-
 import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -5532,8 +5528,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);
-		jObj.addProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264" );
-		jObj.addProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265" );
+		jObj.addProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
+		jObj.addProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
 		jObj.addProperty(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
 		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
