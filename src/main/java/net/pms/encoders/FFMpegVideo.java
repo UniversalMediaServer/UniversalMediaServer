@@ -886,7 +886,7 @@ public class FFMpegVideo extends Engine {
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.getSid(), params.getTimeSeek(), frameRateRatio, frameRateNumber, configuration);
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {

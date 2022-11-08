@@ -28,6 +28,8 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.io.OutputParams;
+import net.pms.renderers.Renderer;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -77,9 +79,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, double timeSeek, String frameRateRatio, String frameRateNumber, UmsConfiguration configuration) throws IOException {
+	public static File getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber) throws IOException {
+		Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		double timeSeek = params.getTimeSeek();
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
-		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
+		File file = new File(configuration.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
 			String denominator;
@@ -202,6 +207,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			String subLine = null;
+			DLNAMediaSubtitle subTrack = params.getSid();
 			if (
 				subTrack != null &&
 				subTrack.isExternal() &&
@@ -234,8 +240,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-
-			if (configuration.isFfmpegAvisynth2Dto3D()) {
+			if (configuration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0) {
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
@@ -249,7 +254,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				String frameStretchFactor = configuration.getFfmpegAvisynthFrameStretchFactor();
 				String lightOffsetFactor = configuration.getFfmpegAvisynthLightOffsetFactor();
 
-				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + configuration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + configuration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
+				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + renderer.getAviSynth3DFormat() + ", resize=" + configuration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
 
 				// lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)");
 			}

@@ -457,13 +457,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
-	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource";
+	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
 	private static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
 	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
-	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
 
@@ -2992,26 +2991,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
-	}
-
-	/**
-	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
-	 * 2D to 3D conversion.
-	 *
-	 * @return The index of the format.
-	 */
-	public int getFfmpegAvisynthOutputFormat3D() {
-		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 4);
-	}
-
-	/**
-	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
-	 * 2D to 3D conversion.
-	 *
-	 * @param value The index of the format.
-	 */
-	public void setFfmpegAvisynthOutputFormat3D(int value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
 
 	/**
