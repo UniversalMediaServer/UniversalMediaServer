@@ -37,10 +37,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -49,12 +48,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
-
 import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -2885,11 +2882,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
 	}
 
-	public String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
+	public static String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
 		return new String[] {"libx264", "h264_nvenc", "h264_amf", "h264_qsv", "h264_mf", "libx264rgb"};
 	}
 
-	public String[] getFFmpegAvailableGPUH265EncodingAccelerationMethods() {
+	public  static  String[] getFFmpegAvailableGPUH265EncodingAccelerationMethods() {
 		return new String[] {"libx265", "hevc_nvenc", "hevc_amf", "hevc_qsv", "hevc_mf"};
 	}
 
@@ -5484,6 +5481,18 @@ public class UmsConfiguration extends BaseConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
+	public static synchronized JsonArray getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray() {
+		String[] values = getFFmpegAvailableGPUH264EncodingAccelerationMethods();
+		String[] labels = getFFmpegAvailableGPUH264EncodingAccelerationMethods();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public static synchronized JsonArray getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray() {
+		String[] values = getFFmpegAvailableGPUH265EncodingAccelerationMethods();
+		String[] labels = getFFmpegAvailableGPUH265EncodingAccelerationMethods();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public static JsonObject getWebSettingsWithDefaults() {
 		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
 		JsonObject jObj = new JsonObject();
@@ -5520,6 +5529,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);
+		jObj.addProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
+		jObj.addProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
 		jObj.addProperty(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
 		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
