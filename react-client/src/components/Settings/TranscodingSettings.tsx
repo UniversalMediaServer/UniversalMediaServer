@@ -844,6 +844,32 @@ export default function TranscodingSettings(
             min={0}
             {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
           />
+          <Tooltip label={allowHtml(i18n.get['NvidiaAndAmdEncoders'])} {...defaultTooltipSettings}>          
+          <Select
+              disabled={!canModify}
+              size="xs"
+              label={i18n.get['AVCH264GPUEncodingAccelerationMethod']}
+              data={selectionSettings.gpuH264EncodingAccelerationMethods}
+              {...form.getInputProps('ffmpeg_gpu_H264_encoding_acceleration_method')}
+              value={String(form.values['ffmpeg_gpu_H264_encoding_acceleration_method'])}
+              onChange={(val) => {
+                form.setFieldValue('ffmpeg_gpu_H264_encoding_acceleration_method', val);
+              }}
+            />
+          </Tooltip>
+          <Tooltip label={allowHtml(i18n.get['NvidiaAndAmdEncoders'])} {...defaultTooltipSettings}>          
+          <Select
+              disabled={!canModify}
+              size="xs"
+              label={i18n.get['HEVCH265GPUEncodingAccelerationMethod']}
+              data={selectionSettings.gpuH265EncodingAccelerationMethods}
+              {...form.getInputProps('ffmpeg_gpu_H265_encoding_acceleration_method')}
+              value={String(form.values['ffmpeg_gpu_H265_encoding_acceleration_method'])}
+              onChange={(val) => {
+                form.setFieldValue('ffmpeg_gpu_H265_encoding_acceleration_method', val);
+              }}
+            />
+          </Tooltip>          
         </Stack>
       </>
     )

@@ -43,6 +43,7 @@ import org.apache.commons.configuration.event.ConfigurationEvent;
 public class AviSynthFFmpeg {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String COMMON_COL_SPEC = "left:pref, 0:grow";
+	private static final ComponentOrientation ORIENTATION = ComponentOrientation.getOrientation(PMS.getLocale());
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -50,15 +51,13 @@ public class AviSynthFFmpeg {
 	private AviSynthFFmpeg() {
 	}
 
-	private static final ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-
 	public static JComponent config() {
 		return config("GeneralSettings");
 	}
 
 	protected static JComponent config(String languageLabel) {
 
-		String colSpec = FormLayoutUtil.getColSpec(COMMON_COL_SPEC, orientation);
+		String colSpec = FormLayoutUtil.getColSpec(COMMON_COL_SPEC, ORIENTATION);
 
 		FormLayout layout = new FormLayout(
 			colSpec,
@@ -116,7 +115,7 @@ public class AviSynthFFmpeg {
 		JCheckBox useFFMS2 = new JCheckBox(Messages.getString("UseFFMS2InsteadOfDirectShowSource"), CONFIGURATION.getFfmpegAvisynthUseFFMS2());
 		useFFMS2.setContentAreaFilled(false);
 		useFFMS2.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthUseFFMS2(e.getStateChange() == ItemEvent.SELECTED));
-		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), FormLayoutUtil.flip(cc.xy(2, 11), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), FormLayoutUtil.flip(cc.xy(2, 11), colSpec, ORIENTATION));
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
@@ -125,14 +124,14 @@ public class AviSynthFFmpeg {
 
 
 		if (!CONFIGURATION.isHideAdvancedOptions()) {
-			builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 13, 2, 3), colSpec, orientation));
+			builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 13, 2, 3), colSpec, ORIENTATION));
 		}
 
 		return builder.getPanel();
 	}
 
 	private static JComponent build2dTo3dSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", ORIENTATION);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, 2*(pref, 3dlu)");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
@@ -141,9 +140,9 @@ public class AviSynthFFmpeg {
 		JCheckBox convert2dTo3d = new JCheckBox(Messages.getString("Enable2Dto3DVideoConversion"), CONFIGURATION.isFfmpegAvisynth2Dto3D());
 		convert2dTo3d.setContentAreaFilled(false);
 		convert2dTo3d.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynth2Dto3D((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(convert2dTo3d), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(convert2dTo3d), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, ORIENTATION));
 
-		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, ORIENTATION));
 
 		Integer[] keys = new Integer[] {1, 2};
 		String[] values = new String[] {
@@ -156,9 +155,9 @@ public class AviSynthFFmpeg {
 		algorithms.setEditable(false);
 		algorithmForConverting2Dto3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthConversionAlgorithm2Dto3D());
 		algorithms.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthConversionAlgorithm2Dto3D(algorithmForConverting2Dto3D.getSelectedKey()));
-		builder.add(GuiUtil.getPreferredSizeComponent(algorithms), FormLayoutUtil.flip(cc.xy(3, 4), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(algorithms), FormLayoutUtil.flip(cc.xy(3, 4), colSpec, ORIENTATION));
 
-		builder.addLabel(Messages.getString("FrameStretchFactor"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.addLabel(Messages.getString("FrameStretchFactor"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, ORIENTATION));
 
 		String[] frameStretchFactors = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
 
@@ -170,7 +169,7 @@ public class AviSynthFFmpeg {
 		frameStretchFactor.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(frameStretchFactor), cc.xy(3, 6));
 
-		builder.addLabel(Messages.getString("LightingDepthOffsetFactor"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.addLabel(Messages.getString("LightingDepthOffsetFactor"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, ORIENTATION));
 
 		String[] lightOffsetFactors = new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
 
@@ -186,7 +185,7 @@ public class AviSynthFFmpeg {
 		JCheckBox horizontalResize = new JCheckBox(Messages.getString("ResizeVideoIfWidthLargerThan"), CONFIGURATION.isFfmpegAvisynthHorizontalResize());
 		horizontalResize.setContentAreaFilled(false);
 		horizontalResize.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResize((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, ORIENTATION));
 
 
 		String[] resolutions = new String[] {"7680", "3840", "1920", "1280", "852", "768", "720", "704", "640", "544", "480", "352", "120" };
@@ -202,10 +201,10 @@ public class AviSynthFFmpeg {
 		JCheckBox avisynthplusmode = new JCheckBox(Messages.getString("EnableAvisynthPlusMultithreading"), CONFIGURATION.isFfmpegAviSynthPlusMode());
 		avisynthplusmode.setContentAreaFilled(false);
 		avisynthplusmode.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAviSynthPlusMode(e.getStateChange() == ItemEvent.SELECTED));
-		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, ORIENTATION));
 
 		JPanel panel = builder.getPanel();
-		panel.applyComponentOrientation(orientation);
+		panel.applyComponentOrientation(ORIENTATION);
 
 		return panel;
 	}
