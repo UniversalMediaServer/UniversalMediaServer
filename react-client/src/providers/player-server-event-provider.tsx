@@ -22,6 +22,7 @@ import videojs from 'video.js';
 import I18nContext from '../contexts/i18n-context';
 import PlayerEventContext from '../contexts/player-server-event-context';
 import SessionContext from '../contexts/session-context';
+import { getJwt } from '../services/auth-service';
 import { playerApiUrl } from '../utils';
 
 interface Props {
@@ -55,7 +56,6 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   }
 
   const setPlayerVolume = (volume:number) => {
-    console.log('volume', volume);
     try {
       const player = videojs.getPlayer('player');
       player?.volume(volume/100);
@@ -169,24 +169,20 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
                   break;
               }
               break;
-            case 'control':
-              switch (datas.arg0) {
-                case 'play':
-                  playPlayer();
-                  break;
-                case 'setvolume':
-                  setPlayerVolume(datas.arg1);
-                  break;
-                case 'pause':
-                  pausePlayer();
-                  break;
-                case 'mute':
-                  mutePlayer();
-                  break;
-                case 'stop':
-                  stopPlayer();
-                  break;
-              }
+            case 'play':
+              playPlayer();
+              break;
+            case 'setvolume':
+              setPlayerVolume(datas.arg0);
+              break;
+            case 'pause':
+              pausePlayer();
+              break;
+            case 'mute':
+              mutePlayer();
+              break;
+            case 'stop':
+              stopPlayer();
               break;
           }
         }
@@ -208,6 +204,9 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     const startSse = () => {
       setConnectionStatus(0);
       fetchEventSource(playerApiUrl + 'sse/' + sessionStorage.getItem('player'), {
+        headers: {
+          'Authorization': 'Bearer ' + getJwt()
+        },
         async onopen(event: Response) { onOpen(event); },
         onmessage(event: EventSourceMessage) {
           onMessage(event);

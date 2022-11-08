@@ -711,7 +711,6 @@ public class PMS {
 		if (delete) {
 			ConnectedRenderers.deleteAllConnectedRenderers();
 			OldPlayerServer.deleteRenderers();
-			WebGuiServer.deleteAllRenderers();
 		}
 	}
 
@@ -733,7 +732,6 @@ public class PMS {
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
 		OldPlayerServer.resetRenderers();
-		WebGuiServer.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 

@@ -27,11 +27,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
 import net.pms.network.mediaserver.UPNPHelper;
+import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
@@ -45,6 +47,7 @@ public class ConnectedRenderers {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
 	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 
 	/**
 	 * Returns the list of all connected renderer devices.
@@ -55,6 +58,7 @@ public class ConnectedRenderers {
 		// We need to check both UPnP and http sides to ensure a complete list
 		HashSet<Renderer> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
 		renderers.addAll(ADDRESS_RENDERER_ASSOCIATION.values());
+		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
@@ -243,8 +247,14 @@ public class ConnectedRenderers {
 					if (ADDRESS_RENDERER_ASSOCIATION.get(ia) == renderer) {
 						ADDRESS_RENDERER_ASSOCIATION.remove(ia);
 					}
-					if (renderer.getUUID() != null && renderer.getUUID().equals(getUuidOf(ia))) {
-						removeUuidOf(ia);
+					String uuid = renderer.getUUID();
+					if (uuid != null) {
+						if (REACT_CLIENT_RENDERERS.get(uuid) == renderer) {
+							REACT_CLIENT_RENDERERS.remove(uuid);
+						}
+						if (uuid.equals(getUuidOf(ia))) {
+							removeUuidOf(ia);
+						}
 					}
 					// TODO: actually delete rootfolder, etc.
 				}
@@ -337,4 +347,40 @@ public class ConnectedRenderers {
 		}
 	}
 
+	public static void addWebPlayerRenderer(WebGuiRenderer renderer) {
+		REACT_CLIENT_RENDERERS.put(renderer.getUUID(), renderer);
+		PMS.get().setRendererFound(renderer);
+	}
+
+	public static WebGuiRenderer getWebPlayerRenderer(String uuid) {
+		return REACT_CLIENT_RENDERERS.get(uuid);
+	}
+
+	public static boolean hasWebPlayerRenderer(String uuid) {
+		return REACT_CLIENT_RENDERERS.containsKey(uuid);
+	}
+
+	public static void removeWebPlayerRenderer(String uuid) {
+		Renderer renderer = REACT_CLIENT_RENDERERS.remove(uuid);
+		if (renderer != null) {
+			renderer.delete(0);
+		}
+	}
+
+	public static boolean isValidUUID(String token) {
+		try {
+			UUID.fromString(token);
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+	public static String getRandomUUID() {
+		String uuid = UUID.randomUUID().toString();
+		while (getRendererByUUID(uuid) != null) {
+			uuid = UUID.randomUUID().toString();
+		}
+		return uuid;
+	}
 }
