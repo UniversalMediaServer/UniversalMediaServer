@@ -21,7 +21,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -29,14 +28,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-
 import org.apache.commons.configuration.event.ConfigurationEvent;
-
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -165,13 +161,13 @@ public class AviSynthFFmpeg {
 
 		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
-		Integer[] keys = new Integer[] {1, 2};
+		String[] keys = new String[] {"1", "2"};
 		String[] values = new String[] {
 			Messages.getString("PulfrichBase"),
 			Messages.getString("PulfrichandLighting")
 		};
 
-		final KeyedComboBoxModel<Integer, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<String, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
 		algorithms = new JComboBox<>(algorithmForConverting2Dto3D);
 		algorithms.setEditable(false);
 		algorithmForConverting2Dto3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthConversionAlgorithm2Dto3D());
@@ -214,7 +210,7 @@ public class AviSynthFFmpeg {
 
 		builder.addLabel(Messages.getString("3DOutputFormat"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 
-		keys = new Integer[] {1, 2, 3, 4, 5, 6};
+		keys = new String[] {"1", "2", "3", "4", "5", "6"};
 		values = new String[] {
 			Messages.getString("SBSFullSideBySide"),
 			Messages.getString("TBOUFullTopBottom"),
@@ -224,7 +220,7 @@ public class AviSynthFFmpeg {
 			Messages.getString("HTBHOUUpscaledHalfTopBottom")
 		};
 
-		final KeyedComboBoxModel<Integer, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<String, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
 		formats3D = new JComboBox<>(outputFormat3D);
 		formats3D.setEditable(false);
 		outputFormat3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthOutputFormat3D());
