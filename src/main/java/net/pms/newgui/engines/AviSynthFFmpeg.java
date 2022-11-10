@@ -144,7 +144,7 @@ public class AviSynthFFmpeg {
 
 		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, ORIENTATION));
 
-		Integer[] keys = new Integer[] {1, 2};
+		String[] keys = new String[] {"1", "2"};
 		String[] values = new String[] {
 			Messages.getString("PulfrichBase"),
 			Messages.getString("PulfrichandLighting")
