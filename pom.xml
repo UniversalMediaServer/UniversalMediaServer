@@ -1187,7 +1187,6 @@
 										<mkdir dir="${project.binaries}/windows" />
 										<mkdir dir="${project.binaries}/windows/avisynth" />
 										<mkdir dir="${project.binaries}/windows/codecs" />
-										<mkdir dir="${project.binaries}/windows/interframe" />
 										<mkdir dir="${project.binaries}/windows/fonts" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
@@ -1216,7 +1215,6 @@
 										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/avisynth.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
@@ -1243,9 +1241,9 @@
 										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/interframe/InterFrame2.avsi" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
@@ -1297,18 +1295,63 @@
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
 										<mkdir dir="${project.binaries}/windows/winxp" />
 										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
-										
-										<!-- Copy 2dTo3d to its destination -->
-										<mkdir dir="${project.binaries}/windows/2dTo3d" />
-										<copy todir="${project.binaries}/windows/2dTo3d" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/2dTo3d" />
-										</copy>									
+
+										<!-- Copy avisynth -->
+										<mkdir dir="${project.binaries}/windows/x86_64/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/windows/x86_64" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/windows/x86_64" />
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+										</copy>
+										<mkdir dir="${project.binaries}/bin/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/bin" />
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+										</copy>
+										<copy file="${project.external-resources}/windows/avisynth/x86/AviSynth.dll" todir="${project.binaries}/windows/x86" />
+										<copy file="${project.external-resources}/windows/avisynth/x86/system/DevIL.dll" todir="${project.binaries}/windows/x86" />
+										<mkdir dir="${project.binaries}/windows/x86/avisynth" />
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x86/plugins" />
+										</copy>
+
+										<!-- Copy convert2dto3d.avsi -->
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/bin/avisynth" />
+
+										<!-- Copy mvtools2 to its destination -->
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86" />
+										</copy>
 
 										<!-- Copy ffms2 to its destination -->
-										<mkdir dir="${project.binaries}/windows/ffms2" />
-										<copy todir="${project.binaries}/windows/ffms2" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/ffms2" />
-										</copy>																			
+										<copy todir="${project.binaries}/windows/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2">
+												<exclude name="x86/"/>
+												<exclude name="x64/"/>
+											</fileset>
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2">
+												<exclude name="x86/"/>
+												<exclude name="x64/"/>
+											</fileset>
+										</copy>
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x86" />
+										</copy>
 									</target>
 								</configuration>
 							</execution>

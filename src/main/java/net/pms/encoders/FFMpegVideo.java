@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -54,7 +53,6 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -101,6 +99,7 @@ public class FFMpegVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	FFMpegVideo() {
+		super(CONFIGURATION.getFFmpegPaths());
 	}
 
 	/**
@@ -783,11 +782,6 @@ public class FFMpegVideo extends Engine {
 	@Override
 	public String mimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getFFmpegPaths();
 	}
 
 	@Override
@@ -1774,7 +1768,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	@Nullable
 	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
 		executableInfo = testExecutableFile(executableInfo);
 		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
@@ -1844,7 +1837,7 @@ public class FFMpegVideo extends Engine {
 				result.available(Boolean.FALSE);
 			}
 		} catch (InterruptedException e) {
-			return null;
+			Thread.currentThread().interrupt();
 		}
 		return result.build();
 	}

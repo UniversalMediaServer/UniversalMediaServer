@@ -16,12 +16,14 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import javax.annotation.Nonnull;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -29,9 +31,14 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
+import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExternalProgramInfo;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +49,19 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
+	public static boolean isAviSynthPlus = false;
+	/** The final AviSynth {@link ExternalProgramInfo} instance set in the constructor */
+	@Nonnull
+	private final ExternalProgramInfo aviSynthInfo;
 
 	// Not to be instantiated by anything but PlayerFactory
 	AviSynthFFmpeg() {
+		aviSynthInfo = CONFIGURATION.getAviSynthPaths();
+		if (aviSynthInfo == null) {
+			throw new IllegalStateException(
+				"Can't instantiate " + this.getClass().getSimpleName() + "because executables() returns null"
+			);
+		}
 	}
 
 	@Override
@@ -74,6 +91,99 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	@Override
 	public boolean isGPUAccelerationReady() {
 		return true;
+	}
+
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		Format format = resource.getFormat();
+
+		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
+			return false;
+		}
+
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+
+		// Check whether the subtitle actually has a language defined,
+		// uninitialized DLNAMediaSubtitle objects have a null language.
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+			return false;
+		}
+
+		try {
+			String audioTrackName = resource.getMediaAudio().toString();
+			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+
+			if (!audioTrackName.equals(defaultAudioTrackName)) {
+				// This engine implementation only supports playback of the default audio track at this time
+				return false;
+			}
+		} catch (NullPointerException e) {
+			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
+		}
+
+		return PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.OGG);
+	}
+
+	@Override
+	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
+		//check FFMpeg
+		executableInfo = super.testExecutable(executableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		//TODO: adapt for linux/Mac, then remove this
+		if (!Platform.isWindows()) {
+			return executableInfo.modify()
+				.available(false)
+				.errorType(ExecutableErrorType.GENERAL)
+				.errorText(
+					String.format("Skipping transcoding engine %s as it's not compatible with this platform", this)
+				).build();
+		}
+		//check AviSynth
+		ExecutableInfo aviSynthExecutableInfo = aviSynthInfo.getExecutableInfo(aviSynthInfo.getDefault());
+		if (aviSynthExecutableInfo == null) {
+			return executableInfo.modify()
+				.available(false)
+				.errorType(ExecutableErrorType.GENERAL)
+				.errorText(
+					"Can't instantiate " + this.getClass().getSimpleName() + " because executables() returns null"
+				).build();
+		}
+		executableInfo = testExecutableFile(aviSynthExecutableInfo);
+		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
+			return executableInfo;
+		}
+		Version version = PlatformUtils.INSTANCE.getFileVersionInfo(executableInfo.getPath().toString());
+		if (version != null) {
+			LOGGER.debug(
+				"Founded AviSynth version {}",
+				version
+			);
+			if (version.getBuild() > 2) {
+				LOGGER.debug(
+					"Founded AviSynth+ version {}",
+					version
+				);
+			} else {
+				LOGGER.info(
+					"Founded AviSynth version {}",
+					version
+				);
+			}
+			executableInfo = executableInfo.modify()
+				.version(version)
+				.build();
+		}
+		executableInfo = executableInfo.modify()
+			.available(true)
+			.build();
+		return executableInfo;
 	}
 
 	/*
@@ -119,9 +229,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String interframePath  		= configuration.getInterFramePath();
 			String ffms2Path 	   		= configuration.getFFMS2Path();
 			String convert2dTo3DPath	= configuration.getConvert2dTo3dPath();
+			String aviSynthPath	    	= configuration.getAviSynthPath();
+			String mvtools2Path	    	= configuration.getMvtools2Path();
 
-			if (configuration.getFfmpegAvisynthUseFFMS2()) {
-
+			if (configuration.getFfmpegAvisynthUseFFMS2() && ffms2Path != null) {
 				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
 
 				String fpsNum   = "fpsnum=" + numerator;
@@ -170,7 +281,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 				cores = configuration.getNumberOfCpuCores();
 
-				if (configuration.isFfmpegAviSynthPlusMode()) {
+				if (PlatformUtils.INSTANCE.isAviSynthPlusAvailable()) {
 					// AviSynth+ multi-threading
 
 					// Goes at the start of the file to initiate multithreading
@@ -189,7 +300,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			// True Motion
-			if (configuration.getFfmpegAvisynthInterFrame()) {
+			if (configuration.getFfmpegAvisynthInterFrame() && interframePath != null) {
 				String gpu = "";
 				movieLine += ".ConvertToYV12()";
 
@@ -240,7 +351,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-			if (configuration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0) {
+			if (configuration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0 && convert2dTo3DPath != null) {
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
@@ -259,12 +370,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				// lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)");
 			}
 
-			if (configuration.getFfmpegAvisynthInterFrame()) {
+			if (configuration.getFfmpegAvisynthInterFrame() && interframePath != null) {
 				lines.add(mtLine2);
 				lines.add(interframeLines);
 			}
 
-			if (configuration.isFfmpegAviSynthMultithreading() && configuration.isFfmpegAviSynthPlusMode()) {
+			if (configuration.isFfmpegAviSynthMultithreading() && PlatformUtils.INSTANCE.isAviSynthPlusAvailable()) {
 				lines.add(mtPrefetchLine);
 			}
 
@@ -291,39 +402,4 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return file;
 	}
 
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
-		Format format = resource.getFormat();
-
-		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
-			return false;
-		}
-
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-
-		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
-		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
-			return false;
-		}
-
-		try {
-			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-
-			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// This engine implementation only supports playback of the default audio track at this time
-				return false;
-			}
-		} catch (NullPointerException e) {
-			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
-		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
-		}
-
-		return PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG);
-	}
 }

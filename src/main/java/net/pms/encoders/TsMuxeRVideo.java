@@ -39,7 +39,6 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
@@ -59,6 +58,7 @@ public class TsMuxeRVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	TsMuxeRVideo() {
+		super(CONFIGURATION.getTsMuxeRPaths());
 	}
 
 	@Override
@@ -103,11 +103,6 @@ public class TsMuxeRVideo extends Engine {
 	@Override
 	public boolean isTimeSeekable() {
 		return true;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getTsMuxeRPaths();
 	}
 
 	@Override

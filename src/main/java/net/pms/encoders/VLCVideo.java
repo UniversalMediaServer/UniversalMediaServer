@@ -67,6 +67,7 @@ public class VLCVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	VLCVideo() {
+		super(CONFIGURATION.getVLCPaths());
 	}
 
 	@Override
@@ -118,11 +119,6 @@ public class VLCVideo extends Engine {
 	public String mimeType() {
 		// I think?
 		return HTTPResource.VIDEO_TRANSCODE;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getVLCPaths();
 	}
 
 	/**

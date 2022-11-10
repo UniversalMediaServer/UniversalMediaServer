@@ -34,7 +34,6 @@ import net.pms.PMS;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -69,11 +68,7 @@ public class DCRaw extends ImageEngine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	DCRaw() {
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getDCRawPaths();
+		super(CONFIGURATION.getDCRawPaths());
 	}
 
 	@Override

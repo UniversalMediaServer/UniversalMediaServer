@@ -1304,6 +1304,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth.
+	 */
+	@Nullable
+	public ExternalProgramInfo getAviSynthPaths() {
+		return programPaths.getAviSynth();
+	}
+
+	/**
+	 * @return The configured path to the AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getAviSynthPath() {
+		Path executable = null;
+		ExternalProgramInfo aviSynthPaths = getAviSynthPaths();
+		if (aviSynthPaths != null) {
+			executable = aviSynthPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for Interframe.
 	 */
 	@Nullable
@@ -1363,6 +1385,28 @@ public class UmsConfiguration extends BaseConfiguration {
 			if (executable == null) {
 				executable = ffms2Paths.getDefaultPath();
 			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for mvtools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMvtools2Paths() {
+		return programPaths.getMvtools2();
+	}
+
+	/**
+	 * @return The configured path to the mvtools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMvtools2Path() {
+		Path executable = null;
+		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
+		if (mvtools2Paths != null) {
+			executable = mvtools2Paths.getDefaultPath();
 		}
 		return executable == null ? null : executable.toString();
 	}
@@ -2955,24 +2999,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean getFfmpegAvisynthUseFFMS2() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
-	}
-
-	/**
-	 * Whether we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @param value True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public void setFfmpegAviSynthPlusMode(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, value);
-	}
-
-	/**
-	 * Returns true if we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @return True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public boolean isFfmpegAviSynthPlusMode() {
-		return getBoolean(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
 	}
 
 	/**

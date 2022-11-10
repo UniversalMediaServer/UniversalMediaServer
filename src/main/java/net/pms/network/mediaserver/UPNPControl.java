@@ -112,7 +112,7 @@ public class UPNPControl {
 	 */
 	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<>();
 
-	protected static RendererMap rendererMap = new RendererMap<>(Renderer.class);
+	protected static RendererMap rendererMap = new RendererMap();
 
 	private static DocumentBuilder db;
 
@@ -804,7 +804,7 @@ public class UPNPControl {
 	}
 
 	public static boolean hasRenderer(int type) {
-		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+		for (Map<String, Renderer> item : (Collection<HashMap<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
 			if (r.isControllable(type)) {
 				return true;

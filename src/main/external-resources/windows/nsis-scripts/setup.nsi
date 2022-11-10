@@ -51,28 +51,6 @@ Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 
 ShowUninstDetails show
 
-; Offer to install AviSynth 2.6 MT unless installer is in silent mode
-Section -Prerequisites
-
-	IfSilent jump_if_silent jump_if_not_silent
-
-	jump_if_not_silent:
-		SetRegView 32
-		ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
-
-		${If} $0 != "2.6.0 MT"
-			SetOutPath "$INSTDIR\bin\avisynth"
-			MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
-			File "${PROJECT_BUILD_DIR}\bin\windows\avisynth\avisynth.exe"
-			ExecWait "$INSTDIR\bin\avisynth\avisynth.exe"
-		${EndIf}
-
-	jump_if_silent:
-
-	endAviSynthInstall:
-
-SectionEnd
-
 Function WelcomeLeave
 	StrCpy $R1 0
 FunctionEnd

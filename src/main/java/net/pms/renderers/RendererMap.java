@@ -22,25 +22,18 @@ import net.pms.network.mediaserver.UPNPControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
+public class RendererMap extends HashMap<String, HashMap<String, Renderer>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererMap.class);
 	private static final long serialVersionUID = 1510675619549915489L;
 
-	private final Class<T> tClass;
-
-	public RendererMap(Class<T> t) {
-		tClass = t;
-	}
-
-	public T get(String uuid, String id) {
+	public Renderer get(String uuid, String id) {
 		if (!containsKey(uuid)) {
 			put(uuid, new HashMap<>());
 		}
-		HashMap<String, T> m = get(uuid);
+		Map<String, Renderer> m = get(uuid);
 		if (!m.containsKey(id)) {
 			try {
-				T newitem = tClass.getDeclaredConstructor().newInstance();
-				newitem.setUUID(uuid);
+				Renderer newitem = new Renderer(uuid);
 				m.put(id, newitem);
 			} catch (Exception e) {
 				LOGGER.error("Error instantiating item {}[{}]: {}", uuid, id, e.getMessage());
@@ -65,7 +58,7 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 		return null;
 	}
 
-	public T put(String uuid, String id, T item) {
+	public Renderer put(String uuid, String id, Renderer item) {
 		item.setUUID(uuid);
 		if (!containsKey(uuid)) {
 			get(uuid, "0");
@@ -78,9 +71,9 @@ public class RendererMap<T extends Renderer> extends HashMap<String, HashMap<Str
 	}
 
 	public void mark(String uuid, int property, Object value) {
-		HashMap<String, T> m = get(uuid);
+		Map<String, Renderer> m = get(uuid);
 		if (m != null) {
-			for (T i : m.values()) {
+			for (Renderer i : m.values()) {
 				switch (property) {
 					case UPNPControl.ACTIVE -> i.setActive((boolean) value);
 					case UPNPControl.RENEW -> i.setRenew((boolean) value);

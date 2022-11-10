@@ -44,7 +44,6 @@ import net.pms.util.*;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.lang3.ArrayUtils;
@@ -116,6 +115,7 @@ public class MEncoderVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	MEncoderVideo() {
+		super(CONFIGURATION.getMEncoderPaths());
 	}
 
 	@Override
@@ -255,11 +255,6 @@ public class MEncoderVideo extends Engine {
 		}
 
 		return args;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getMEncoderPaths();
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {

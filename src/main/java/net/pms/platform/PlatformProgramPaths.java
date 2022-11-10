@@ -94,16 +94,28 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getDCRaw();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for InterFrame.
+	 * @return The {@link ExternalProgramInfo} for AviSynth.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getAviSynth();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth InterFrame plugin.
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getInterFrame();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 * @return The {@link ExternalProgramInfo} for AviSynth FFMS2 plugin.
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getFFMS2();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth mvtools2 plugin.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getMvtools2();
 
 	/**
 	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.

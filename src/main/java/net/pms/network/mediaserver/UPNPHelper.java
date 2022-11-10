@@ -43,7 +43,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new RendererMap<>(Renderer.class);
+		rendererMap = new RendererMap();
 	}
 
 	@Override
@@ -167,10 +167,9 @@ public class UPNPHelper extends UPNPControl {
 		return true;
 	}
 
-
 	public static List<Renderer> getRenderers(int type) {
 		ArrayList<Renderer> renderers = new ArrayList<>();
-		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+		for (Map<String, Renderer> item : (Collection<HashMap<String, Renderer>>) rendererMap.values()) {
 			Renderer r = item.get("0");
 			if (r.isActive() && r.isControllable(type)) {
 				renderers.add(r);

@@ -21,8 +21,14 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
 import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
+import net.pms.util.ExternalProgramInfo;
 
 public abstract class ImageEngine extends Engine {
+
+	protected ImageEngine(ExternalProgramInfo programInfo) {
+		super(programInfo);
+	}
+
 	@Override
 	public int type() {
 		return Format.IMAGE;

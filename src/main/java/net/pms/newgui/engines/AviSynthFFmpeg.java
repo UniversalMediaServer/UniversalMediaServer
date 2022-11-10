@@ -115,6 +115,7 @@ public class AviSynthFFmpeg {
 		JCheckBox useFFMS2 = new JCheckBox(Messages.getString("UseFFMS2InsteadOfDirectShowSource"), CONFIGURATION.getFfmpegAvisynthUseFFMS2());
 		useFFMS2.setContentAreaFilled(false);
 		useFFMS2.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthUseFFMS2(e.getStateChange() == ItemEvent.SELECTED));
+		useFFMS2.setEnabled(CONFIGURATION.getFFMS2Path() != null);
 		builder.add(GuiUtil.getPreferredSizeComponent(useFFMS2), FormLayoutUtil.flip(cc.xy(2, 11), colSpec, ORIENTATION));
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
@@ -198,13 +199,9 @@ public class AviSynthFFmpeg {
 		horizontalResizeResolution.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 10));
 
-		JCheckBox avisynthplusmode = new JCheckBox(Messages.getString("EnableAvisynthPlusMultithreading"), CONFIGURATION.isFfmpegAviSynthPlusMode());
-		avisynthplusmode.setContentAreaFilled(false);
-		avisynthplusmode.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAviSynthPlusMode(e.getStateChange() == ItemEvent.SELECTED));
-		builder.add(GuiUtil.getPreferredSizeComponent(avisynthplusmode), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, ORIENTATION));
-
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(ORIENTATION);
+		panel.setEnabled(CONFIGURATION.getMvtools2Path() != null && CONFIGURATION.getConvert2dTo3dPath() != null);
 
 		return panel;
 	}
