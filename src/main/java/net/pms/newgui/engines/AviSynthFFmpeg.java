@@ -16,10 +16,6 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -31,6 +27,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -38,7 +39,6 @@ import net.pms.newgui.CustomTabbedPaneUI;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.KeyedComboBoxModel;
-import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthFFmpeg {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -150,7 +150,7 @@ public class AviSynthFFmpeg {
 			Messages.getString("PulfrichandLighting")
 		};
 
-		final KeyedComboBoxModel<Integer, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<String, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
 		JComboBox<String> algorithms = new JComboBox<>(algorithmForConverting2Dto3D);
 		algorithms.setEditable(false);
 		algorithmForConverting2Dto3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthConversionAlgorithm2Dto3D());
