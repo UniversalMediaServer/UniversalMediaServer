@@ -16,6 +16,11 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.sun.jna.Platform;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,20 +44,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.sun.jna.Platform;
-import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -87,6 +78,15 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Container for all configurable UMS settings. Settings are typically defined by three things:
@@ -457,13 +457,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
-	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource";
+	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
 	private static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
 	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
-	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
 
@@ -2992,26 +2991,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
-	}
-
-	/**
-	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
-	 * 2D to 3D conversion.
-	 *
-	 * @return The index of the format.
-	 */
-	public String getFfmpegAvisynthOutputFormat3D() {
-		return getString(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
-	}
-
-	/**
-	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
-	 * 2D to 3D conversion.
-	 *
-	 * @param value The index of the format.
-	 */
-	public void setFfmpegAvisynthOutputFormat3D(String value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
 
 	/**

@@ -16,6 +16,7 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,10 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -64,7 +61,9 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.Version;
-
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * Pure FFmpeg video player.
@@ -887,7 +886,7 @@ public class FFMpegVideo extends Engine {
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.getSid(), params.getTimeSeek(), frameRateRatio, frameRateNumber, configuration);
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {

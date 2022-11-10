@@ -16,6 +16,12 @@
  */
 package net.pms.network.webguiserver.servlets;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,17 +34,6 @@ import java.util.Properties;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationConverter;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
@@ -49,6 +44,11 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationConverter;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
