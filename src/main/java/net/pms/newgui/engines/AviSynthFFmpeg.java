@@ -183,10 +183,29 @@ public class AviSynthFFmpeg {
 
 		builder.add(GuiUtil.getPreferredSizeComponent(lightOffsetFactor), cc.xy(3, 8));
 
+		builder.addLabel(Messages.getString("3DOutputFormat"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, ORIENTATION));
+
+		keys = new String[] {"1", "2", "3", "4", "5", "6"};
+		values = new String[] {
+			Messages.getString("SBSFullSideBySide"),
+			Messages.getString("TBOUFullTopBottom"),
+			Messages.getString("HSBSHalfSideBySide"),
+			Messages.getString("HTBHOUHalfTopBottom"),
+			Messages.getString("HSBSUpscaledHalfSideBySide"),
+			Messages.getString("HTBHOUUpscaledHalfTopBottom")
+		};
+
+		final KeyedComboBoxModel<String, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
+		JComboBox<String> formats3D = new JComboBox<>(outputFormat3D);
+		formats3D.setEditable(false);
+		outputFormat3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthOutputFormat3D());
+		formats3D.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthOutputFormat3D(outputFormat3D.getSelectedKey()));
+		builder.add(GuiUtil.getPreferredSizeComponent(formats3D), FormLayoutUtil.flip(cc.xy(3, 10), colSpec, ORIENTATION));
+
 		JCheckBox horizontalResize = new JCheckBox(Messages.getString("ResizeVideoIfWidthLargerThan"), CONFIGURATION.isFfmpegAvisynthHorizontalResize());
 		horizontalResize.setContentAreaFilled(false);
 		horizontalResize.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResize((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, ORIENTATION));
+		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResize), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, ORIENTATION));
 
 
 		String[] resolutions = new String[] {"7680", "3840", "1920", "1280", "852", "768", "720", "704", "640", "544", "480", "352", "120" };
@@ -197,7 +216,7 @@ public class AviSynthFFmpeg {
 
 		horizontalResizeResolution.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResizeResolution((String) e.getItem()));
 		horizontalResizeResolution.setEditable(true);
-		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 10));
+		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 12));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(ORIENTATION);

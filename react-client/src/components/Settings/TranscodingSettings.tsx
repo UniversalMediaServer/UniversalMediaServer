@@ -872,6 +872,13 @@ export default function TranscodingSettings(
 										{...form.getInputProps('ffmpeg_avisynth_light_offset_factor_2d_to_3d')}
 									/>
 								</Tooltip>
+								<Select
+									disabled={!canModify}
+									label={i18n.get['3DOutputFormat']}
+									data={[{ value: '1', label: i18n.get['SBSFullSideBySide'] }, { value: '2', label: i18n.get['TBOUFullTopBottom'] }, { value: '3', label: i18n.get['HSBSHalfSideBySide'] }, { value: '4', label: i18n.get['HTBHOUHalfTopBottom'] }, { value: '5', label: i18n.get['HSBSUpscaledHalfSideBySide'] }, { value: '6', label: i18n.get['HTBHOUUpscaledHalfTopBottom'] }]}
+									size="xs"
+									{...form.getInputProps('ffmpeg_avisynth_output_format_index_3d')}
+								/>
 								<Checkbox
 									mt="xs"
 									disabled={!canModify}

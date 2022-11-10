@@ -239,7 +239,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		UmsConfiguration customConfiguration = renderer.getUmsConfiguration();
 		double timeSeek = params.getTimeSeek();
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
-		File file = new File(customConfiguration.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
+		File file = new File(CONFIGURATION.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
 			String denominator;
@@ -391,7 +391,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0 && mvtools2Path != null && convert2dTo3dPath != null) {
+			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && convert2dTo3dPath != null) {
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
@@ -404,7 +404,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				String frameStretchFactor = customConfiguration.getFfmpegAvisynthFrameStretchFactor();
 				String lightOffsetFactor = customConfiguration.getFfmpegAvisynthLightOffsetFactor();
 
-				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + customConfiguration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + renderer.getAviSynth3DFormat() + ", resize=" + customConfiguration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + customConfiguration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
+				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + customConfiguration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + customConfiguration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + customConfiguration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + customConfiguration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
 			}
 
 			if (customConfiguration.getFfmpegAvisynthInterFrame() && interframePath != null) {

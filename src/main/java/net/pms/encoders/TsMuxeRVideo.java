@@ -484,7 +484,7 @@ public class TsMuxeRVideo extends Engine {
 			}
 		}
 
-		File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
+		File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 		params.setLog(false);
 		try (PrintWriter pw = new PrintWriter(f)) {
 			pw.print("MUXOPT --no-pcr-on-video-pid");

@@ -1170,7 +1170,7 @@ public class FFMpegVideo extends Engine {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-			File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
+			File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 

@@ -464,6 +464,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
+	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
 
 	private static final String KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H264_encoding_acceleration_method";
 	private static final String KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H265_encoding_acceleration_method";
@@ -782,7 +783,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	protected UmsConfiguration(Configuration configuration, ConfigurationReader configurationReader) {
 		// Just instantiate
 		super(configuration, configurationReader);
-		tempFolder = null;
+		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		filter = null;
 		programPaths = new ConfigurableProgramPaths(configuration);
 	}
@@ -3016,6 +3017,26 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+	}
+
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the format.
+	 */
+	public String getFfmpegAvisynthOutputFormat3D() {
+		return getString(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the format.
+	 */
+	public void setFfmpegAvisynthOutputFormat3D(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
 
 	/**
@@ -5548,6 +5569,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, "3");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
