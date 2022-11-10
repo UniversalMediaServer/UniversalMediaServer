@@ -19,7 +19,7 @@ package net.pms.renderers.devices.players;
 import java.awt.event.ActionEvent;
 import java.util.Map;
 import net.pms.dlna.DLNAResource;
-import net.pms.network.mediaserver.UPNPControl;
+import net.pms.renderers.JUPnPDeviceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +42,8 @@ public class UPNPPlayer extends LogicalPlayer {
 	public UPNPPlayer(Renderer renderer) {
 		super(renderer);
 		uuid = renderer.getUUID();
-		instanceID = renderer.getInstanceID();
-		dev = UPNPControl.getDevice(uuid);
-		data = UPNPControl.connect(uuid, instanceID, this);
+		dev = JUPnPDeviceHelper.getDevice(uuid);
+		data = renderer.connect(this);
 		lastUri = null;
 		ignoreUpnpDuration = false;
 		LOGGER.debug("Created upnp player for " + renderer.getRendererName());
@@ -58,43 +57,43 @@ public class UPNPPlayer extends LogicalPlayer {
 			if (item.getName() != null) {
 				state.setName(item.getName());
 			}
-			UPNPControl.setAVTransportURI(dev, instanceID, item.getUri(), renderer.isPushMetadata() ? item.getMetadata() : null);
+			JUPnPDeviceHelper.setAVTransportURI(dev, item.getUri(), renderer.isPushMetadata() ? item.getMetadata() : null);
 		}
 	}
 
 	@Override
 	public void play() {
-		UPNPControl.play(dev, instanceID);
+		JUPnPDeviceHelper.play(dev);
 	}
 
 	@Override
 	public void pause() {
-		UPNPControl.pause(dev, instanceID);
+		JUPnPDeviceHelper.pause(dev);
 	}
 
 	@Override
 	public void stop() {
-		UPNPControl.stop(dev, instanceID);
+		JUPnPDeviceHelper.stop(dev);
 	}
 
 	@Override
 	public void forward() {
-		UPNPControl.seek(dev, instanceID, UPNPControl.REL_TIME, jump(60));
+		JUPnPDeviceHelper.seek(dev, JUPnPDeviceHelper.REL_TIME, jump(60));
 	}
 
 	@Override
 	public void rewind() {
-		UPNPControl.seek(dev, instanceID, UPNPControl.REL_TIME, jump(-60));
+		JUPnPDeviceHelper.seek(dev, JUPnPDeviceHelper.REL_TIME, jump(-60));
 	}
 
 	@Override
 	public void mute() {
-		UPNPControl.setMute(dev, instanceID, !state.isMuted());
+		JUPnPDeviceHelper.setMute(dev, !state.isMuted());
 	}
 
 	@Override
 	public void setVolume(int volume) {
-		UPNPControl.setVolume(dev, instanceID, volume * maxVol / 100);
+		JUPnPDeviceHelper.setVolume(dev, volume * maxVol / 100);
 	}
 
 	@Override
@@ -149,7 +148,7 @@ public class UPNPPlayer extends LogicalPlayer {
 
 	@Override
 	public void close() {
-		UPNPControl.disconnect(uuid, instanceID, this);
+		renderer.disconnect(this);
 		super.close();
 	}
 

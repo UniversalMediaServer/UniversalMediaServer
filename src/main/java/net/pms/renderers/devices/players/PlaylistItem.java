@@ -19,7 +19,7 @@ package net.pms.renderers.devices.players;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.network.mediaserver.UPNPControl;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,9 @@ public class PlaylistItem extends PlayerItem {
 	public String toString() {
 		if (StringUtils.isBlank(name)) {
 			try {
-				name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(UPNPControl.unescape(metadata)).find()) ?
+				name = (!StringUtils.isEmpty(metadata) && DC_TITLE.reset(UMSUtils.unescape(metadata)).find()) ?
 					DC_TITLE.group(1) :
-					new File(StringUtils.substringBefore(UPNPControl.unescape(uri), "?")).getName();
+					new File(StringUtils.substringBefore(UMSUtils.unescape(uri), "?")).getName();
 			} catch (IllegalArgumentException e) {
 				LOGGER.error("URL decoding error ", e);
 			}

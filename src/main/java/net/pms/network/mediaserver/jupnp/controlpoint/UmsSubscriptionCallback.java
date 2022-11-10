@@ -16,7 +16,7 @@
  */
 package net.pms.network.mediaserver.jupnp.controlpoint;
 
-import net.pms.network.mediaserver.UPNPControl;
+import net.pms.renderers.JUPnPDeviceHelper;
 import org.jupnp.controlpoint.SubscriptionCallback;
 import org.jupnp.model.gena.CancelReason;
 import org.jupnp.model.gena.GENASubscription;
@@ -32,14 +32,14 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 
 	public UmsSubscriptionCallback(Service s) {
 		super(s);
-		uuid = UPNPControl.getUUID(s.getDevice());
+		uuid = s.getDevice().getIdentity().getUdn().toString();
 	}
 
 	@Override
 	public void eventReceived(GENASubscription subscription) {
-		UPNPControl.markRenderer(uuid, UPNPControl.ACTIVE, true);
+		JUPnPDeviceHelper.markRenderer(uuid, JUPnPDeviceHelper.ACTIVE, true);
 		if (subscription.getCurrentValues().containsKey("LastChange")) {
-			UPNPControl.xml2d(uuid, subscription.getCurrentValues().get("LastChange").toString(), null);
+			JUPnPDeviceHelper.xml2d(uuid, subscription.getCurrentValues().get("LastChange").toString(), null);
 		}
 	}
 
@@ -47,7 +47,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 	public void established(GENASubscription sub) {
 		LOGGER.debug("Subscription established: {} on {}",
 				sub.getService().getServiceId().getId(),
-				UPNPControl.getFriendlyName(uuid)
+				JUPnPDeviceHelper.getFriendlyName(uuid)
 		);
 	}
 
@@ -55,7 +55,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 	public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
 		LOGGER.debug("Subscription failed: {} on {}: {}",
 				sub.getService().getServiceId().getId(),
-				UPNPControl.getFriendlyName(uuid),
+				JUPnPDeviceHelper.getFriendlyName(uuid),
 				defaultMsg.split(": ", 2)[1]
 		);
 	}
@@ -64,7 +64,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 	public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
 		LOGGER.debug("Subscription failed: {} on {}: {}",
 				sub.getService().getServiceId().getId(),
-				UPNPControl.getFriendlyName(uuid),
+				JUPnPDeviceHelper.getFriendlyName(uuid),
 				SubscriptionCallback.createDefaultFailureMessage(response, ex).split(": ", 2)[1]
 		);
 	}
@@ -79,7 +79,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 					reason
 			);
 		}
-		UPNPControl.markRenderer(uuid, UPNPControl.RENEW, true);
+		JUPnPDeviceHelper.markRenderer(uuid, JUPnPDeviceHelper.RENEW, true);
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 		LOGGER.debug("Missed events: {} for subscription {} on {}",
 				numberOfMissedEvents,
 				sub.getService().getServiceId().getId(),
-				UPNPControl.getFriendlyName(uuid)
+				JUPnPDeviceHelper.getFriendlyName(uuid)
 		);
 	}
 
