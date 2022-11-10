@@ -3025,8 +3025,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @return The index of the algorithm.
 	 */
-	public int getFfmpegAvisynthConversionAlgorithm2Dto3D() {
-		return getInt(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, 1);
+	public String getFfmpegAvisynthConversionAlgorithm2Dto3D() {
+		return getString(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
 	}
 
 	/**
@@ -3035,7 +3035,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @param value The index of the algorithm.
 	 */
-	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
+	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(String value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
 	}
 
@@ -5541,6 +5541,19 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 		jObj.addProperty(KEY_FFMPEG_SOX, true);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, "");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, "3");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
 		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
