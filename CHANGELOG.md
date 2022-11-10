@@ -1,5 +1,56 @@
 # Changelog
 
+## Unreleased
+
+### General:
+- Added a new web settings interface, which is now the supported way to add content and change settings
+- Added a new web player interface, for a faster, more responsive and accessible web player
+- Added shutdown computer option to the Server Settings folder
+- Added user auth to web interface
+- Added user groups to web interface
+- Unified the Shared Content area in both Java and web interfaces
+- Local database speed improvements
+- Improved UPnP/DLNA support
+- Consolidated configuration files, with automatic migration to the new format
+- Fixed TV series never being found locally by IMDb ID
+- Hundreds of bugfixes and performance tweaks
+
+### Renderers:
+- Support Sony Network Speakers (thanks, scanf!)
+
+### Translation updates via Crowdin
+- Afrikaans (14%) (thanks, Eugene Trumpelmann!)
+- Bulgarian (83%) (thanks, ruraru!)
+- Catalan (88%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Danish (99%) (thanks, GurliGebis and NCAA!)
+- German (89%) (thanks, pipin!)
+- Finnish (99%) (thanks, Esko Gardner!)
+- Italian (96%) (thanks, Oscar Zambotti!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (99%) (thanks, mariopinto!)
+- Russian (82%) (thanks, Максим Мухачев!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Bump Java to 17.0.5
+- Bump logback-version from 1.4.3 to 1.4.4
+- Update Apache Commons Collections to 4.4
+- Update com.sun.xml.messaging.saaj to 3.0.0
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.13.4.2
+- Update dependency com.github.junrar:junrar to v7.5.4
+- Update dependency com.github.oshi:oshi-core to v6.3.1
+- Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.3.0
+- Update dependency com.google.code.gson:gson to v2.10
+- Update dependency com.ibm.icu:icu4j to v72
+- Update dependency com.puppycrawl.tools:checkstyle to v10.4
+- Update dependency net.coobird:thumbnailator to v0.4.18
+- Update dependency pako to v2.1.0
+- Update MediaInfo to 22.09
+- Update twelvemonkeys-imageio-version to v3.9.3
+- Removed assertj-core
+
 ## [11.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.5.0...11.6.0) (2022-10-05)
 
 ### General:
