@@ -170,7 +170,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 						.build();
 					Version version = PlatformUtils.INSTANCE.getFileVersionInfo(aviSynthPath.toString());
 					if (version != null) {
-						if (version.getBuild() > 2) {
+						if (version.getMajor() > 2) {
 							isAviSynthPlus = true;
 							LOGGER.debug(
 								"Founded AviSynth+ version {}",
