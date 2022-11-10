@@ -151,7 +151,7 @@ public class AviSynthFFmpeg {
 			Messages.getString("PulfrichandLighting")
 		};
 
-		final KeyedComboBoxModel<Integer, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<String, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
 		JComboBox<String> algorithms = new JComboBox<>(algorithmForConverting2Dto3D);
 		algorithms.setEditable(false);
 		algorithmForConverting2Dto3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthConversionAlgorithm2Dto3D());
