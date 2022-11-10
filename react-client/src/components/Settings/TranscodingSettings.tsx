@@ -825,6 +825,13 @@ export default function TranscodingSettings(
 						label={i18n.get['EnableAvisynthVariableFramerate']}
 						{...form.getInputProps('ffmpeg_avisynth_convertfps', { type: 'checkbox' })}
 					/>
+					<Checkbox
+						mt="xs"
+						disabled={!canModify}
+						size="xs"
+						label={i18n.get['UseFFMS2InsteadOfDirectShowSource']}
+						{...form.getInputProps('ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource', { type: 'checkbox' })}
+					/>
 					<Tabs defaultValue="2Dto3DConversionSettings">
 						<Tabs.List>
 							<Tabs.Tab value='2Dto3DConversionSettings'>{i18n.get['2Dto3DConversionSettings']}</Tabs.Tab>
@@ -865,13 +872,6 @@ export default function TranscodingSettings(
 										{...form.getInputProps('ffmpeg_avisynth_light_offset_factor_2d_to_3d')}
 									/>
 								</Tooltip>
-								<Select
-									disabled={!canModify}
-									label={i18n.get['3DOutputFormat']}
-									data={[{ value: '1', label: i18n.get['SBSFullSideBySide'] }, { value: '2', label: i18n.get['TBOUFullTopBottom'] }, { value: '3', label: i18n.get['HSBSHalfSideBySide'] }, { value: '4', label: i18n.get['HTBHOUHalfTopBottom'] }, { value: '5', label: i18n.get['HSBSUpscaledHalfSideBySide'] }, { value: '6', label: i18n.get['HTBHOUUpscaledHalfTopBottom'] }]}
-									size="xs"
-									{...form.getInputProps('ffmpeg_avisynth_output_format_index_3d')}
-								/>
 								<Checkbox
 									mt="xs"
 									disabled={!canModify}
@@ -889,20 +889,6 @@ export default function TranscodingSettings(
 										{...form.getInputProps('ffmpeg_avisynth_horizontal_resize_resolution')}
 									/>
 								</Tooltip>
-								<Checkbox
-									mt="xs"
-									disabled={!canModify}
-									size="xs"
-									label={i18n.get['EnableAvisynthPlusMultithreading']}
-									{...form.getInputProps('ffmpeg_avisynth_enable_plus_mode', { type: 'checkbox' })}
-								/>
-								<Checkbox
-									mt="xs"
-									disabled={!canModify}
-									size="xs"
-									label={i18n.get['UseFFMS2InsteadOfDirectShowSource']}
-									{...form.getInputProps('ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource', { type: 'checkbox' })}
-								/>
 							</Stack>
 						</Tabs.Panel>
 					</Tabs>

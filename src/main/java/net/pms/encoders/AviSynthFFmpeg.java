@@ -21,9 +21,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.annotation.Nonnull;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -38,6 +41,7 @@ import net.pms.util.ExecutableInfo;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.ProgramExecutableType;
 import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +53,24 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
-	public static boolean isAviSynthPlus = false;
+
 	/** The final AviSynth {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull
 	private final ExternalProgramInfo aviSynthInfo;
+	private final ExternalProgramInfo ffms2Info;
+	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo convert2dTo3dInfo;
+	private boolean isAviSynthPlus = false;
+	private Path ffms2Path;
+	private Path mvtools2Path;
+	private Path convert2dTo3dPath;
 
 	// Not to be instantiated by anything but PlayerFactory
 	AviSynthFFmpeg() {
 		aviSynthInfo = CONFIGURATION.getAviSynthPaths();
+		ffms2Info = CONFIGURATION.getFFMS2Paths();
+		mvtools2Info = CONFIGURATION.getMvtools2Paths();
+		convert2dTo3dInfo = CONFIGURATION.getConvert2dTo3dPaths();
 		if (aviSynthInfo == null) {
 			throw new IllegalStateException(
 				"Can't instantiate " + this.getClass().getSimpleName() + "because executables() returns null"
@@ -146,55 +160,86 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				).build();
 		}
 		//check AviSynth
-		ExecutableInfo aviSynthExecutableInfo = aviSynthInfo.getExecutableInfo(aviSynthInfo.getDefault());
-		if (aviSynthExecutableInfo == null) {
-			return executableInfo.modify()
-				.available(false)
+		if (aviSynthInfo != null) {
+			for (ProgramExecutableType executableType : aviSynthInfo.getExecutableTypes()) {
+				Path aviSynthPath = aviSynthInfo.getPath(executableType);
+				if (aviSynthPath != null && Files.exists(aviSynthPath)) {
+					//here we know that avisynth is available
+					executableInfo = executableInfo.modify()
+						.available(true)
+						.build();
+					Version version = PlatformUtils.INSTANCE.getFileVersionInfo(aviSynthPath.toString());
+					if (version != null) {
+						if (version.getBuild() > 2) {
+							isAviSynthPlus = true;
+							LOGGER.debug(
+								"Founded AviSynth+ version {}",
+								version
+							);
+						} else {
+							LOGGER.info(
+								"Founded AviSynth version {}",
+								version
+							);
+						}
+					}
+					break;
+				}
+			}
+		}
+		if (!Boolean.TRUE.equals(executableInfo.getAvailable())) {
+			executableInfo = executableInfo.modify()
+				.available(Boolean.FALSE)
 				.errorType(ExecutableErrorType.GENERAL)
 				.errorText(
-					"Can't instantiate " + this.getClass().getSimpleName() + " because executables() returns null"
+					String.format(Messages.getString("ExecutableXTranscodingEngineNotFound"), executableInfo.getPath(), this)
 				).build();
-		}
-		executableInfo = testExecutableFile(aviSynthExecutableInfo);
-		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
 			return executableInfo;
 		}
-		Version version = PlatformUtils.INSTANCE.getFileVersionInfo(executableInfo.getPath().toString());
-		if (version != null) {
-			LOGGER.debug(
-				"Founded AviSynth version {}",
-				version
-			);
-			if (version.getBuild() > 2) {
-				LOGGER.debug(
-					"Founded AviSynth+ version {}",
-					version
-				);
-			} else {
-				LOGGER.info(
-					"Founded AviSynth version {}",
-					version
-				);
+		//check optionals libraries
+		if (ffms2Info != null) {
+			for (ProgramExecutableType executableType : ffms2Info.getExecutableTypes()) {
+				Path ffms2TestPath = ffms2Info.getPath(executableType);
+				if (Files.exists(ffms2TestPath)) {
+					ffms2Path = ffms2TestPath;
+					LOGGER.info("Founded ffms2");
+					break;
+				}
 			}
-			executableInfo = executableInfo.modify()
-				.version(version)
-				.build();
 		}
-		executableInfo = executableInfo.modify()
-			.available(true)
-			.build();
+		if (mvtools2Info != null) {
+			for (ProgramExecutableType executableType : mvtools2Info.getExecutableTypes()) {
+				Path mvtools2TestPath = mvtools2Info.getPath(executableType);
+				if (Files.exists(mvtools2TestPath)) {
+					mvtools2Path = mvtools2TestPath;
+					LOGGER.info("Founded mvtools2");
+					break;
+				}
+			}
+		}
+		if (convert2dTo3dInfo != null) {
+			for (ProgramExecutableType executableType : convert2dTo3dInfo.getExecutableTypes()) {
+				Path convert2dTo3dTestPath = convert2dTo3dInfo.getPath(executableType);
+				if (Files.exists(convert2dTo3dTestPath)) {
+					convert2dTo3dPath = convert2dTo3dTestPath;
+					LOGGER.info("Founded convert2dTo3d script");
+					break;
+				}
+			}
+		}
+
 		return executableInfo;
 	}
 
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber) throws IOException {
+	public File getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber) throws IOException {
 		Renderer renderer = params.getMediaRenderer();
-		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		UmsConfiguration customConfiguration = renderer.getUmsConfiguration();
 		double timeSeek = params.getTimeSeek();
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
-		File file = new File(configuration.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
+		File file = new File(customConfiguration.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
 			String denominator;
@@ -226,13 +271,9 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String mtLine2		   		= "";
 			String mtPrefetchLine  		= "";
 			String interframeLines 		= null;
-			String interframePath  		= configuration.getInterFramePath();
-			String ffms2Path 	   		= configuration.getFFMS2Path();
-			String convert2dTo3DPath	= configuration.getConvert2dTo3dPath();
-			String aviSynthPath	    	= configuration.getAviSynthPath();
-			String mvtools2Path	    	= configuration.getMvtools2Path();
+			String interframePath  		= customConfiguration.getInterFramePath();
 
-			if (configuration.getFfmpegAvisynthUseFFMS2() && ffms2Path != null) {
+			if (customConfiguration.getFfmpegAvisynthUseFFMS2() && ffms2Path != null) {
 				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
 
 				String fpsNum   = "fpsnum=" + numerator;
@@ -240,7 +281,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 				String convertfps = "";
 
-				if (configuration.getFfmpegAvisynthConvertFps()) {
+				if (customConfiguration.getFfmpegAvisynthConvertFps()) {
 					convertfps = ", " + fpsNum + ", " + fpsDen;
 				}
 
@@ -255,9 +296,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 				int seekMode   = 2;
 
-				movieLine += "\n" +
-				"PluginPath = \"" + ffms2Path + "\"\n" +
-				"LoadPlugin(PluginPath+\"\\ffms2.dll\")\n";
+				movieLine += "\n";
+				movieLine += "LoadPlugin(\"" + ffms2Path + "\")\n";
 
 				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
 			} else {
@@ -269,7 +309,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 
 				String convertfps = "";
-				if (configuration.getFfmpegAvisynthConvertFps()) {
+				if (customConfiguration.getFfmpegAvisynthConvertFps()) {
 					convertfps = ", convertfps=true";
 				}
 
@@ -277,11 +317,11 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			int cores = 1;
-			if (configuration.isFfmpegAviSynthMultithreading()) {
+			if (customConfiguration.isFfmpegAviSynthMultithreading()) {
 
-				cores = configuration.getNumberOfCpuCores();
+				cores = customConfiguration.getNumberOfCpuCores();
 
-				if (PlatformUtils.INSTANCE.isAviSynthPlusAvailable()) {
+				if (isAviSynthPlus) {
 					// AviSynth+ multi-threading
 
 					// Goes at the start of the file to initiate multithreading
@@ -300,12 +340,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			// True Motion
-			if (configuration.getFfmpegAvisynthInterFrame() && interframePath != null) {
+			if (customConfiguration.getFfmpegAvisynthInterFrame() && interframePath != null) {
 				String gpu = "";
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU() && configuration.isGPUAcceleration()) {
+				if (customConfiguration.getFfmpegAvisynthInterFrameGPU() && customConfiguration.isGPUAcceleration()) {
 					gpu = ", GPU=true";
 				}
 
@@ -322,8 +362,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			if (
 				subTrack != null &&
 				subTrack.isExternal() &&
-				configuration.isAutoloadExternalSubtitles() &&
-				!configuration.isDisableSubtitles()
+				customConfiguration.isAutoloadExternalSubtitles() &&
+				!customConfiguration.isDisableSubtitles()
 			) {
 				if (subTrack.getExternalFile() != null) {
 					LOGGER.info("AviSynth script: Using subtitle track: {}", subTrack);
@@ -351,31 +391,28 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-			if (configuration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0 && convert2dTo3DPath != null) {
+			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth3DFormat() > 0 && mvtools2Path != null && convert2dTo3dPath != null) {
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
 				lines.add("video2dFromSeekPoint=Trim(video2d,seekFrame,0)");
 
 				lines.add("\n" +
-				"PluginPath = \"" + convert2dTo3DPath + "\"\n" +
-				"LoadPlugin(PluginPath+\"\\mvtools2.dll\")\n" +
-				"Import(PluginPath+\"\\convert2dto3d.avsi\")\n\n");
+				"LoadPlugin(\"" + mvtools2Path + "\")\n" +
+				"Import(\"" + convert2dTo3dPath + "\")\n\n");
 
-				String frameStretchFactor = configuration.getFfmpegAvisynthFrameStretchFactor();
-				String lightOffsetFactor = configuration.getFfmpegAvisynthLightOffsetFactor();
+				String frameStretchFactor = customConfiguration.getFfmpegAvisynthFrameStretchFactor();
+				String lightOffsetFactor = customConfiguration.getFfmpegAvisynthLightOffsetFactor();
 
-				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + configuration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + renderer.getAviSynth3DFormat() + ", resize=" + configuration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + configuration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
-
-				// lines.add("subtitle( \"Time Seek (Seconds)=" + timeSeek + ", Frame Rate=\"+String(video2d.FrameRate)+\", Seek Frame=\"+String(seekFrame), align=5, size=64)");
+				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + customConfiguration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + renderer.getAviSynth3DFormat() + ", resize=" + customConfiguration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + customConfiguration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
 			}
 
-			if (configuration.getFfmpegAvisynthInterFrame() && interframePath != null) {
+			if (customConfiguration.getFfmpegAvisynthInterFrame() && interframePath != null) {
 				lines.add(mtLine2);
 				lines.add(interframeLines);
 			}
 
-			if (configuration.isFfmpegAviSynthMultithreading() && PlatformUtils.INSTANCE.isAviSynthPlusAvailable()) {
+			if (customConfiguration.isFfmpegAviSynthMultithreading() && isAviSynthPlus) {
 				lines.add(mtPrefetchLine);
 			}
 

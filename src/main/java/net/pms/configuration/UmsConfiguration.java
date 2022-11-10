@@ -458,7 +458,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
-	private static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
 	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
@@ -5545,7 +5544,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, "");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");

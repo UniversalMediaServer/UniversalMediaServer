@@ -821,7 +821,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		List<String> cmdList = new ArrayList<>();
-		boolean avisynth = isAviSynthEngine();
+		boolean avisynth = this instanceof AviSynthFFmpeg;
 		if (params.getTimeSeek() > 0) {
 			params.setWaitBeforeStart(1);
 		} else if (renderer.isTranscodeFastStart()) {
@@ -869,18 +869,16 @@ public class FFMpegVideo extends Engine {
 		String frameRateRatio = media.getValidFps(true);
 		String frameRateNumber = media.getValidFps(false);
 
-		boolean delegateSeekToAVSScript = avisynth;
-
 		// Set seeks
-		if (params.getTimeSeek() > 0 && !delegateSeekToAVSScript) {
+		if (params.getTimeSeek() > 0 && !avisynth) {
 			cmdList.add("-ss");
 			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Input filename
 		cmdList.add("-i");
-		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso") && this instanceof AviSynthFFmpeg aviSynthFFmpeg) {
+			File avsFile = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {
