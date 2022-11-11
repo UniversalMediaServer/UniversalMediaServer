@@ -633,7 +633,7 @@ public class PMS {
 
 		GuiManager.serverReady();
 		ready = true;
-		if (umsConfiguration.isWebGuiOnStart() && !isRunningTests()) {
+		if (!isHeadless() && umsConfiguration.isWebGuiOnStart() && !isRunningTests()) {
 			new Thread("Web GUI browser") {
 				@Override
 				public void run() {
