@@ -19,6 +19,7 @@ package net.pms;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
+import java.awt.GraphicsEnvironment;
 import java.io.*;
 import java.net.BindException;
 import java.nio.charset.Charset;
@@ -633,7 +634,7 @@ public class PMS {
 
 		GuiManager.serverReady();
 		ready = true;
-		if (umsConfiguration.isWebGuiOnStart() && !isRunningTests()) {
+		if (!GraphicsEnvironment.isHeadless() && umsConfiguration.isWebGuiOnStart() && !isRunningTests()) {
 			new Thread("Web GUI browser") {
 				@Override
 				public void run() {
