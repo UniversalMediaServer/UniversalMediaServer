@@ -830,7 +830,7 @@ export default function TranscodingSettings(
 						disabled={!canModify}
 						size="xs"
 						label={i18n.get['UseFFMS2InsteadOfDirectShowSource']}
-						{...form.getInputProps('ffmpeg_avisynth_use_FFMS2_instead_of_directshowsource', { type: 'checkbox' })}
+						{...form.getInputProps('ffmpeg_avisynth_use_ffms2', { type: 'checkbox' })}
 					/>
 					<Tabs defaultValue="2Dto3DConversionSettings">
 						<Tabs.List>
@@ -848,7 +848,10 @@ export default function TranscodingSettings(
 								<Select
 									disabled={!canModify}
 									label={i18n.get['ConversionAlgorithm']}
-									data={[{ value: '1', label: i18n.get['PulfrichBase'] }, { value: '2', label: i18n.get['PulfrichandLighting'] }]}
+									data={[
+										{ value: '1', label: i18n.get['PulfrichBase'] },
+										{ value: '2', label: i18n.get['PulfrichandLighting'] }
+									]}
 									size="xs"
 									{...form.getInputProps('ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d')}
 								/>
@@ -875,7 +878,14 @@ export default function TranscodingSettings(
 								<Select
 									disabled={!canModify}
 									label={i18n.get['3DOutputFormat']}
-									data={[{ value: '1', label: i18n.get['SBSFullSideBySide'] }, { value: '2', label: i18n.get['TBOUFullTopBottom'] }, { value: '3', label: i18n.get['HSBSHalfSideBySide'] }, { value: '4', label: i18n.get['HTBHOUHalfTopBottom'] }, { value: '5', label: i18n.get['HSBSUpscaledHalfSideBySide'] }, { value: '6', label: i18n.get['HTBHOUUpscaledHalfTopBottom'] }]}
+									data={[
+										{ value: '1', label: i18n.get['SBSFullSideBySide'] },
+										{ value: '2', label: i18n.get['TBOUFullTopBottom'] },
+										{ value: '3', label: i18n.get['HSBSHalfSideBySide'] },
+										{ value: '4', label: i18n.get['HTBHOUHalfTopBottom'] },
+										{ value: '5', label: i18n.get['HSBSUpscaledHalfSideBySide'] },
+										{ value: '6', label: i18n.get['HTBHOUUpscaledHalfTopBottom'] }
+									]}
 									size="xs"
 									{...form.getInputProps('ffmpeg_avisynth_output_format_index_3d')}
 								/>
@@ -887,12 +897,25 @@ export default function TranscodingSettings(
 									{...form.getInputProps('ffmpeg_avisynth_horizontal_resize', { type: 'checkbox' })}
 								/>
 								<Tooltip label={allowHtml(i18n.get['SelectOrEnterTheMaximumWidthOfTheInputVideo'])} {...defaultTooltipSettings}>
-									<NumberInput
-										label={''}
-										size="xs"
-										max={7680}
-										min={1}
+									<Select
 										disabled={!canModify}
+										label={''}
+										data={[
+											{ value: '7680', label: '7680' },
+											{ value: '3840', label: '3840' },
+											{ value: '1920', label: '1920' },
+											{ value: '1280', label: '1280' },
+											{ value: '852', label: '852' },
+											{ value: '768', label: '768' },
+											{ value: '720', label: '720' },
+											{ value: '704', label: '704' },
+											{ value: '640', label: '640' },
+											{ value: '544', label: '544' },
+											{ value: '480', label: '480' },
+											{ value: '352', label: '352' },
+											{ value: '120', label: '120' }
+										]}
+										size="xs"
 										{...form.getInputProps('ffmpeg_avisynth_horizontal_resize_resolution')}
 									/>
 								</Tooltip>
@@ -963,12 +986,8 @@ export default function TranscodingSettings(
 							disabled={!canModify}
 							size="xs"
 							label={i18n.get['AVCH264GPUEncodingAccelerationMethod']}
-							data={selectionSettings.gpuH264EncodingAccelerationMethods}
-							{...form.getInputProps('ffmpeg_gpu_H264_encoding_acceleration_method')}
-							value={String(form.values['ffmpeg_gpu_H264_encoding_acceleration_method'])}
-							onChange={(val) => {
-								form.setFieldValue('ffmpeg_gpu_H264_encoding_acceleration_method', val);
-							}}
+							data={selectionSettings.gpuEncodingH264AccelerationMethods}
+							{...form.getInputProps('ffmpeg_gpu_encoding_H264_acceleration_method')}
 						/>
 					</Tooltip>
 					<Tooltip label={allowHtml(i18n.get['NvidiaAndAmdEncoders'])} {...defaultTooltipSettings}>
@@ -976,12 +995,8 @@ export default function TranscodingSettings(
 							disabled={!canModify}
 							size="xs"
 							label={i18n.get['HEVCH265GPUEncodingAccelerationMethod']}
-							data={selectionSettings.gpuH265EncodingAccelerationMethods}
-							{...form.getInputProps('ffmpeg_gpu_H265_encoding_acceleration_method')}
-							value={String(form.values['ffmpeg_gpu_H265_encoding_acceleration_method'])}
-							onChange={(val) => {
-								form.setFieldValue('ffmpeg_gpu_H265_encoding_acceleration_method', val);
-							}}
+							data={selectionSettings.gpuEncodingH265AccelerationMethods}
+							{...form.getInputProps('ffmpeg_gpu_encoding_H265_acceleration_method')}
 						/>
 					</Tooltip>
 				</Stack>

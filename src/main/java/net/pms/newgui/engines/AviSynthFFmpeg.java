@@ -145,13 +145,13 @@ public class AviSynthFFmpeg {
 
 		builder.addLabel(Messages.getString("ConversionAlgorithm"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, ORIENTATION));
 
-		String[] keys = new String[] {"1", "2"};
+		Integer[] keys = new Integer[] {1, 2};
 		String[] values = new String[] {
 			Messages.getString("PulfrichBase"),
 			Messages.getString("PulfrichandLighting")
 		};
 
-		final KeyedComboBoxModel<String, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<Integer, String> algorithmForConverting2Dto3D = new KeyedComboBoxModel<>(keys, values);
 		JComboBox<String> algorithms = new JComboBox<>(algorithmForConverting2Dto3D);
 		algorithms.setEditable(false);
 		algorithmForConverting2Dto3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthConversionAlgorithm2Dto3D());
@@ -166,7 +166,7 @@ public class AviSynthFFmpeg {
 		frameStretchFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthFrameStretchFactor());
 		frameStretchFactor.setToolTipText(Messages.getString("SelectOrEnterFrameStretchFactorInPercent"));
 
-		frameStretchFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthFrameStretchFactor((String) e.getItem()));
+		frameStretchFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthFrameStretchFactor(Integer.parseInt((String) e.getItem())));
 		frameStretchFactor.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(frameStretchFactor), cc.xy(3, 6));
 
@@ -178,14 +178,14 @@ public class AviSynthFFmpeg {
 		lightOffsetFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthLightOffsetFactor());
 		lightOffsetFactor.setToolTipText(Messages.getString("SelectOrEnterLightingDepthOffsetFactor"));
 
-		lightOffsetFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthLightOffsetFactor((String) e.getItem()));
+		lightOffsetFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthLightOffsetFactor(Integer.parseInt((String) e.getItem())));
 		lightOffsetFactor.setEditable(true);
 
 		builder.add(GuiUtil.getPreferredSizeComponent(lightOffsetFactor), cc.xy(3, 8));
 
 		builder.addLabel(Messages.getString("3DOutputFormat"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, ORIENTATION));
 
-		keys = new String[] {"1", "2", "3", "4", "5", "6"};
+		keys = new Integer[] {1, 2, 3, 4, 5, 6};
 		values = new String[] {
 			Messages.getString("SBSFullSideBySide"),
 			Messages.getString("TBOUFullTopBottom"),
@@ -195,7 +195,7 @@ public class AviSynthFFmpeg {
 			Messages.getString("HTBHOUUpscaledHalfTopBottom")
 		};
 
-		final KeyedComboBoxModel<String, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
+		final KeyedComboBoxModel<Integer, String> outputFormat3D = new KeyedComboBoxModel<>(keys, values);
 		JComboBox<String> formats3D = new JComboBox<>(outputFormat3D);
 		formats3D.setEditable(false);
 		outputFormat3D.setSelectedKey(CONFIGURATION.getFfmpegAvisynthOutputFormat3D());
@@ -214,7 +214,7 @@ public class AviSynthFFmpeg {
 		horizontalResizeResolution.setSelectedItem(CONFIGURATION.getFfmpegAvisynthHorizontalResizeResolution());
 		horizontalResizeResolution.setToolTipText(Messages.getString("SelectOrEnterTheMaximumWidthOfTheInputVideo"));
 
-		horizontalResizeResolution.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResizeResolution((String) e.getItem()));
+		horizontalResizeResolution.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResizeResolution(Integer.parseInt((String) e.getItem())));
 		horizontalResizeResolution.setEditable(true);
 		builder.add(GuiUtil.getPreferredSizeComponent(horizontalResizeResolution), cc.xy(3, 12));
 

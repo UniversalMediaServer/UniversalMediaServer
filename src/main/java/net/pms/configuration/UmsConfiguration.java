@@ -267,13 +267,23 @@ public class UmsConfiguration extends BaseConfiguration {
 	/* Start without external network (increase startup speed) */
 	private static final String KEY_EXTERNAL_NETWORK = "external_network";
 	private static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
+	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
+	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
+	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
 	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
 	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
+	private static final String KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD = "ffmpeg_gpu_encoding_H264_acceleration_method";
+	private static final String KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD = "ffmpeg_gpu_encoding_H265_acceleration_method";
 	private static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
 	private static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
@@ -456,18 +466,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-
-	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
-	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
-	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
-	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
-	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
-	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
-	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
-	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
-
-	private static final String KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H264_encoding_acceleration_method";
-	private static final String KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H265_encoding_acceleration_method";
 
 	/**
 	 * Old Web interface stuff
@@ -2510,12 +2508,16 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The number of CPU cores.
 	 */
 	public int getNumberOfCpuCores() {
-		int nbcores = Runtime.getRuntime().availableProcessors();
-		if (nbcores < 1) {
-			nbcores = 1;
-		}
+		return getInt(KEY_NUMBER_OF_CPU_CORES, getNumberOfSystemCpuCores());
+	}
 
-		return getInt(KEY_NUMBER_OF_CPU_CORES, nbcores);
+	/**
+	 * Returns the number of CPU cores on the system.
+	 *
+	 * @return The number of CPU cores.
+	 */
+	public static int getNumberOfSystemCpuCores() {
+		return Math.max(1, Runtime.getRuntime().availableProcessors());
 	}
 
 	/**
@@ -2877,8 +2879,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isFfmpegMultithreading() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
+		return getBoolean(KEY_FFMPEG_MULTITHREADING, getNumberOfCpuCores() > 1);
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
@@ -2886,11 +2887,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public String getFFmpegGPUH264EncodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
+		return getString(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, "libx264");
 	}
 
 	public String getFFmpegGPUH265EncodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
+		return getString(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, "libx265");
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2902,11 +2903,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public void setFFmpegGPUH264EncodingAccelerationMethod(String value) {
-		configuration.setProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, value);
+		configuration.setProperty(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, value);
 	}
 
 	public void setFFmpegGPUH265EncodingAccelerationMethod(String value) {
-		configuration.setProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, value);
+		configuration.setProperty(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, value);
 	}
 
 	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
@@ -2934,8 +2935,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isFfmpegAviSynthMultithreading() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
+		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfCpuCores() > 1);
 	}
 
 	/**
@@ -3017,8 +3017,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @return The index of the format.
 	 */
-	public String getFfmpegAvisynthOutputFormat3D() {
-		return getString(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
+	public int getFfmpegAvisynthOutputFormat3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 4);
 	}
 
 	/**
@@ -3027,7 +3027,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @param value The index of the format.
 	 */
-	public void setFfmpegAvisynthOutputFormat3D(String value) {
+	public void setFfmpegAvisynthOutputFormat3D(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
 
@@ -3037,8 +3037,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @return The index of the algorithm.
 	 */
-	public String getFfmpegAvisynthConversionAlgorithm2Dto3D() {
-		return getString(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
+	public int getFfmpegAvisynthConversionAlgorithm2Dto3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, 1);
 	}
 
 	/**
@@ -3047,7 +3047,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @param value The index of the algorithm.
 	 */
-	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(String value) {
+	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
 	}
 
@@ -3057,8 +3057,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @return The frame stretch factor.
 	 */
-	public String getFfmpegAvisynthFrameStretchFactor() {
-		return getString(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");
+	public int getFfmpegAvisynthFrameStretchFactor() {
+		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 5);
 	}
 
 	/**
@@ -3067,7 +3067,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @param value The index of the algorithm.
 	 */
-	public void setFfmpegAvisynthFrameStretchFactor(String value) {
+	public void setFfmpegAvisynthFrameStretchFactor(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, value);
 	}
 
@@ -3077,8 +3077,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @return The light offset factor.
 	 */
-	public String getFfmpegAvisynthLightOffsetFactor() {
-		return getString(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, "3");
+	public int getFfmpegAvisynthLightOffsetFactor() {
+		return getInt(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, 3);
 	}
 
 	/**
@@ -3087,7 +3087,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *
 	 * @param value The index of the algorithm.
 	 */
-	public void setFfmpegAvisynthLightOffsetFactor(String value) {
+	public void setFfmpegAvisynthLightOffsetFactor(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, value);
 	}
 
@@ -3109,11 +3109,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
 	}
 
-	public String getFfmpegAvisynthHorizontalResizeResolution() {
-		return getString(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
+	public int getFfmpegAvisynthHorizontalResizeResolution() {
+		return getInt(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, 1920);
 	}
 
-	public void setFfmpegAvisynthHorizontalResizeResolution(String value) {
+	public void setFfmpegAvisynthHorizontalResizeResolution(int value) {
 		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, value);
 	}
 
@@ -3823,8 +3823,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean getMencoderMT() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_MENCODER_MT, isMultiCore);
+		return getBoolean(KEY_MENCODER_MT, getNumberOfCpuCores() > 1);
 	}
 
 	public void setAudioRemuxAC3(boolean value) {
@@ -5546,23 +5545,23 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);
-		jObj.addProperty(KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD, "libx264");
-		jObj.addProperty(KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD, "libx265");
+		jObj.addProperty(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, "libx264");
+		jObj.addProperty(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, "libx265");
 		jObj.addProperty(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
 		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
-		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
+		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 		jObj.addProperty(KEY_FFMPEG_SOX, true);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, "");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, "3");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 5);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, 3);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
 		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
@@ -5584,7 +5583,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_MENCODER_FONT_CONFIG, true);
 		jObj.addProperty(KEY_MENCODER_FORCE_FPS, false);
 		jObj.addProperty(KEY_MENCODER_INTELLIGENT_SYNC, true);
-		jObj.addProperty(KEY_MENCODER_MT, "");
+		jObj.addProperty(KEY_MENCODER_MT, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_MENCODER_MUX_COMPATIBLE, false);
 		jObj.addProperty(KEY_MENCODER_NOASS_OUTLINE, 1);
 		jObj.addProperty(KEY_MENCODER_NO_OUT_OF_SYNC, false);
