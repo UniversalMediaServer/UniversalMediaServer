@@ -57,7 +57,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String KEY_AUDIO = "Audio";
 	private static final String KEY_AUTO_PLAY_TMO = "AutoPlayTmo";
-	private static final String KEY_AVISYNTH_3D_FORMAT = "AviSynth3DFormat";
+	private static final String KEY_AVISYNTH_2D_TO_3D = "AviSynth2Dto3D";
 	private static final String KEY_BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds";
 	private static final String KEY_CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	private static final String KEY_CHARMAP = "CharMap";
@@ -1602,12 +1602,12 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Get the renderer setting of the output video 3D format to which the video should be converted.
+	 * Whether to use AviSynth 2D to 3D conversion script.
 	 *
-	 * @return 0 if no conversion should be done, the AviSynth script conversion mode if any.
+	 * @return true if 2D to 3D conversion should be done.
 	 */
-	public int getAviSynth3DFormat() {
-		return getInt(KEY_AVISYNTH_3D_FORMAT, 0);
+	public boolean getAviSynth2Dto3D() {
+		return getBoolean(KEY_AVISYNTH_2D_TO_3D, false);
 	}
 
 	public boolean ignoreTranscodeByteRangeRequests() {

@@ -18,6 +18,7 @@ package net.pms.encoders;
 
 import com.google.gson.JsonArray;
 import com.sun.jna.Platform;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,7 +40,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -124,8 +124,8 @@ public abstract class Engine {
 	/**
 	 * Abstract constructor that sets the final {@code programInfo} variable.
 	 */
-	protected Engine() {
-		programInfo = programInfo();
+	protected Engine(ExternalProgramInfo programInfo) {
+		this.programInfo = programInfo;
 		if (programInfo == null) {
 			throw new IllegalStateException(
 				"Can't instantiate " + this.getClass().getSimpleName() + "because executables() returns null"
@@ -211,16 +211,6 @@ public abstract class Engine {
 	}
 
 	public abstract String mimeType();
-
-	/**
-	 * Used to retrieve the {@link ExternalProgramInfo} for the {@link Engine}
-	 * during construction.
-	 *
-	 * @return The platform and configuration dependent {@link ExecutableInfo}
-	 *         for this {@link Engine}.
-	 */
-	@Nullable
-	protected abstract ExternalProgramInfo programInfo();
 
 	/**
 	 * @return The {@link ExternalProgramInfo} instance.
@@ -901,6 +891,7 @@ public abstract class Engine {
 				return false;
 			}
 			if (isAviSynthEngine()) {
+				//TODO: adapt for linux/Mac, then remove this
 				if (!Platform.isWindows()) {
 					LOGGER.debug(
 						"Skipping transcoding engine {} ({}) as it's not compatible with this platform",
@@ -914,8 +905,8 @@ public abstract class Engine {
 					);
 					return true;
 				}
-
-				if (!PlatformUtils.INSTANCE.isAviSynthAvailable()) {
+				String aviSynthPath = configuration.getAviSynthPath();
+				if (aviSynthPath == null || !new File(aviSynthPath).exists()) {
 					LOGGER.debug(
 						"Transcoding engine {} ({}) is unavailable since AviSynth couldn't be found",
 						this,

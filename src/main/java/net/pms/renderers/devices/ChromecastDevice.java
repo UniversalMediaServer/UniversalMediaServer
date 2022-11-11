@@ -19,7 +19,6 @@ package net.pms.renderers.devices;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.network.mediaserver.UPNPControl;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.ChromecastPlayer;
 import net.pms.renderers.devices.players.BasicPlayer;
@@ -41,7 +40,7 @@ public final class ChromecastDevice extends Renderer {
 		super(rendererConf, inetAddress);
 		this.chromeCast = chromeCast;
 		uuid = chromeCast.getAddress();
-		setControls(UPNPControl.ANY);
+		setControls(PLAYCONTROL | VOLUMECONTROL);
 		setActive(true);
 		associateIP(inetAddress);
 	}

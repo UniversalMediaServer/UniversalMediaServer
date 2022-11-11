@@ -106,17 +106,17 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public FFmpegProgramInfo getFFmpeg() {
+	public final FFmpegProgramInfo getFFmpeg() {
 		return platformPaths.getFFmpeg();
 	}
 
 	@Override
-	public ExternalProgramInfo getMPlayer() {
+	public final ExternalProgramInfo getMPlayer() {
 		return platformPaths.getMPlayer();
 	}
 
 	@Override
-	public ExternalProgramInfo getVLC() {
+	public final ExternalProgramInfo getVLC() {
 		return platformPaths.getVLC();
 	}
 
@@ -126,42 +126,57 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeR() {
+	public final ExternalProgramInfo getTsMuxeR() {
 		return platformPaths.getTsMuxeR();
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
+	public final ExternalProgramInfo getTsMuxeRNew() {
 		return platformPaths.getTsMuxeRNew();
 	}
 
 	@Override
-	public ExternalProgramInfo getFLAC() {
+	public final ExternalProgramInfo getFLAC() {
 		return platformPaths.getFLAC();
 	}
 
 	@Override
-	public ExternalProgramInfo getDCRaw() {
+	public final ExternalProgramInfo getDCRaw() {
 		return platformPaths.getDCRaw();
 	}
 
 	@Override
-	public ExternalProgramInfo getInterFrame() {
+	public final ExternalProgramInfo getAviSynth() {
+		return platformPaths.getAviSynth();
+	}
+
+	@Override
+	public final ExternalProgramInfo getInterFrame() {
 		return platformPaths.getInterFrame();
 	}
 
 	@Override
-	public ExternalProgramInfo getFFMS2() {
+	public final ExternalProgramInfo getFFMS2() {
 		return platformPaths.getFFMS2();
 	}
 
 	@Override
-	public ExternalProgramInfo getConvert2dTo3d() {
+	public final ExternalProgramInfo getDirectShowSource() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getMvtools2() {
+		return platformPaths.getMvtools2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getConvert2dTo3d() {
 		return platformPaths.getConvert2dTo3d();
 	}
 
 	@Override
-	public ExternalProgramInfo getYoutubeDl() {
+	public final ExternalProgramInfo getYoutubeDl() {
 		return platformPaths.getYoutubeDl();
 	}
 
@@ -295,7 +310,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 *            the {@link ProgramExecutableType#CUSTOM} {@link Path}.
 	 * @param configurationKey the {@link Configuration} key to read.
 	 */
-	protected void setCustomPathFromConfiguration(
+	private void setCustomPathFromConfiguration(
 		@Nullable ExternalProgramInfo programInfo,
 		@Nullable String configurationKey
 	) {

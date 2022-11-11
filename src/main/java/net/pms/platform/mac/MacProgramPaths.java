@@ -219,12 +219,27 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getAviSynth() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getInterFrame() {
 		return null;
 	}
 
 	@Override
 	public ExternalProgramInfo getFFMS2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getDirectShowSource() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getMvtools2() {
 		return null;
 	}
 

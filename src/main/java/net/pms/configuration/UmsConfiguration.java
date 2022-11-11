@@ -458,13 +458,13 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
-	private static final String KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE = "ffmpeg_avisynth_enable_plus_mode";
 	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
 	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
+	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
 
 	private static final String KEY_FFMPEG_GPU_H264_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H264_encoding_acceleration_method";
 	private static final String KEY_FFMPEG_GPU_H265_ENCODING_ACCELERATION_METHOD = "ffmpeg_gpu_H265_encoding_acceleration_method";
@@ -764,26 +764,10 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 	}
 
-	/**
-	 * The following 2 constructors are for minimal instantiation in the context
-	 * of subclasses (i.e.DeviceConfiguration) that use our getters and setters
-	 * on another Configuration object.
-	 * Here our main purpose is to initialize RendererConfiguration as required.
-	 *
-	 * @param ignored this integer is ignored
-	 */
-	protected UmsConfiguration(int ignored) {
-		// Just instantiate
-		super(true);
-		tempFolder = null;
-		programPaths = new ConfigurableProgramPaths(configuration);
-		filter = null;
-	}
-
 	protected UmsConfiguration(Configuration configuration, ConfigurationReader configurationReader) {
 		// Just instantiate
 		super(configuration, configurationReader);
-		tempFolder = null;
+		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		filter = null;
 		programPaths = new ConfigurableProgramPaths(configuration);
 	}
@@ -1304,6 +1288,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth.
+	 */
+	@Nullable
+	public ExternalProgramInfo getAviSynthPaths() {
+		return programPaths.getAviSynth();
+	}
+
+	/**
+	 * @return The configured path to the AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getAviSynthPath() {
+		Path executable = null;
+		ExternalProgramInfo aviSynthPaths = getAviSynthPaths();
+		if (aviSynthPaths != null) {
+			executable = aviSynthPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for Interframe.
 	 */
 	@Nullable
@@ -1336,7 +1342,15 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 * @return The {@link ExternalProgramInfo} for AviSynth DirectShowSource library.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDirectShowSourcePaths() {
+		return programPaths.getDirectShowSource();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth FFMS2 library.
 	 */
 	@Nullable
 	public ExternalProgramInfo getFFMS2Paths() {
@@ -1363,6 +1377,28 @@ public class UmsConfiguration extends BaseConfiguration {
 			if (executable == null) {
 				executable = ffms2Paths.getDefaultPath();
 			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for mvtools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMvtools2Paths() {
+		return programPaths.getMvtools2();
+	}
+
+	/**
+	 * @return The configured path to the mvtools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMvtools2Path() {
+		Path executable = null;
+		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
+		if (mvtools2Paths != null) {
+			executable = mvtools2Paths.getDefaultPath();
 		}
 		return executable == null ? null : executable.toString();
 	}
@@ -2958,24 +2994,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Whether we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @param value True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public void setFfmpegAviSynthPlusMode(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, value);
-	}
-
-	/**
-	 * Returns true if we should generate AviSynth+ compatible AVS scripts.
-	 *
-	 * @return True if we should generate AviSynth+ compatible AVS scripts.
-	 */
-	public boolean isFfmpegAviSynthPlusMode() {
-		return getBoolean(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
-	}
-
-	/**
 	 * Whether we should convert 2D video to 3D in AviSynth.
 	 *
 	 * @param value True if we should pass the flag.
@@ -2991,6 +3009,26 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public boolean isFfmpegAvisynth2Dto3D() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+	}
+
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the format.
+	 */
+	public String getFfmpegAvisynthOutputFormat3D() {
+		return getString(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the format.
+	 */
+	public void setFfmpegAvisynthOutputFormat3D(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
 	}
 
 	/**
@@ -5519,7 +5557,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, "");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_ENABLE_PLUS_MODE, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, "5");

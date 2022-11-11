@@ -39,8 +39,6 @@ import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.UPNPControl;
-import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -49,7 +47,6 @@ import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.action.ActionArgumentValue;
-import org.jupnp.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,9 +81,6 @@ public class Renderer extends RendererDeviceConfiguration {
 	private int controls;
 	protected ActionEvent event;
 
-	// FIXME: unclear in what precise context a media renderer's instanceID != 0
-	// BTW, setInstanceID is never used, so it's always 0.
-	protected String instanceID = "0";
 	protected Map<String, String> details;
 	private Thread monitorThread;
 	private volatile boolean active;
@@ -136,7 +130,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	/**
-	 * RendererName: Determines the name that is displayed in the PMS user
+	 * RendererName: Determines the name that is displayed in the UMS user
 	 * interface when this renderer connects. Default value is "Unknown
 	 * renderer".
 	 *
@@ -147,7 +141,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (details != null && details.containsKey("friendlyName")) {
 			return details.get("friendlyName");
 		} else if (isUpnp()) {
-			return UPNPHelper.getFriendlyName(uuid);
+			return JUPnPDeviceHelper.getFriendlyName(uuid);
 		}
 		return getConfName();
 	}
@@ -207,7 +201,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
 	public boolean associateIP(InetAddress sa) {
-		if (UPNPHelper.isNonRenderer(sa)) {
+		if (JUPnPDeviceHelper.isNonRenderer(sa)) {
 			// TODO: remove it if already added unknowingly
 			return false;
 		}
@@ -237,11 +231,11 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return The detail map.
 	 */
 	public Map<String, String> getUpnpDetails() {
-		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+		return JUPnPDeviceHelper.getDeviceDetails(uuid);
 	}
 
 	public boolean isUpnp() {
-		return uuid != null && UPNPHelper.isUpnpDevice(uuid);
+		return JUPnPDeviceHelper.isUpnpDevice(uuid);
 	}
 
 	public void setDetails(Map<String, String> value) {
@@ -251,7 +245,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	public Map<String, String> getDetails() {
 		if (details == null) {
 			if (isUpnp()) {
-				details = UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+				details = getUpnpDetails();
 			} else {
 				details = new LinkedHashMap<>();
 				details.put(Messages.getString("Name"), getRendererName());
@@ -264,7 +258,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	/**
-	 * Returns the icon to use for displaying this renderer in PMS as defined
+	 * Returns the icon to use for displaying this renderer in UMS as defined
 	 * in the renderer configurations.
 	 * Default value is UNKNOWN_ICON.
 	 *
@@ -274,8 +268,8 @@ public class Renderer extends RendererDeviceConfiguration {
 	public String getRendererIcon() {
 		String icon = super.getRendererIcon();
 		String deviceIcon = null;
-		if (icon.equals(UNKNOWN_ICON)) {
-			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
+		if (icon.equals(UNKNOWN_ICON) && uuid != null) {
+			deviceIcon = JUPnPDeviceHelper.getDeviceIcon(uuid, 140);
 		}
 		return deviceIcon == null ? icon : deviceIcon;
 	}
@@ -286,25 +280,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return The data.
 	 */
 	public Map<String, String> getUPNPData() {
-		return UPNPHelper.getData(uuid, instanceID);
-	}
-
-	/**
-	 * Returns the UPnP instance id of this renderer, if known. Default value is null.
-	 *
-	 * @return The instance id.
-	 */
-	public String getInstanceID() {
-		return instanceID;
-	}
-
-	/**
-	 * Sets the UPnP instance id of this renderer.
-	 *
-	 * @param id The instance id.
-	 */
-	public void setInstanceID(String id) {
-		instanceID = id;
+		return data;
 	}
 
 	/**
@@ -314,7 +290,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return The list of service names.
 	 */
 	public List<String> getUpnpServices() {
-		return isUpnp() ? UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid)) : null;
+		return isUpnp() ? JUPnPDeviceHelper.getServiceNames(uuid) : null;
 	}
 
 	/**
@@ -332,7 +308,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return Whether connected.
 	 */
 	public boolean isUpnpConnected() {
-		return uuid != null && UPNPHelper.isActive(uuid, instanceID);
+		return uuid != null && JUPnPDeviceHelper.isActive(uuid);
 	}
 
 	/**
@@ -353,7 +329,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		// If we have a uuid look up the UPnP device address, which is always
 		// correct even if another device has overwritten our association
 		if (uuid != null) {
-			InetAddress address = UPNPHelper.getAddress(uuid);
+			InetAddress address = JUPnPDeviceHelper.getAddress(uuid);
 			if (address != null) {
 				return address;
 			}
@@ -368,11 +344,11 @@ public class Renderer extends RendererDeviceConfiguration {
 	 * @return Whether controllable.
 	 */
 	public boolean isUpnpControllable() {
-		return UPNPHelper.isUpnpControllable(uuid);
+		return JUPnPDeviceHelper.isUpnpControllable(uuid);
 	}
 
 	/**
-	 * Returns a UPnP player for this renderer if UPnP control is supported.
+	 * Returns a player for this renderer if control is supported.
 	 *
 	 * @return a player or null.
 	 */
@@ -387,11 +363,11 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	/**
-	 * Sets the UPnP player.
+	 * Sets the player.
 	 *
 	 * @param player
 	 */
-	public void setPlayer(UPNPPlayer player) {
+	public void setPlayer(BasicPlayer player) {
 		this.player = player;
 	}
 
@@ -528,7 +504,7 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void alert() {
 		String transportState = data.get(TRANSPORT_STATE);
-		if (UPNPControl.isUpnpDevice(uuid) &&
+		if (JUPnPDeviceHelper.isUpnpDevice(uuid) &&
 				(monitorThread == null || !monitorThread.isAlive()) &&
 				(PLAYING.equals(transportState) ||
 				RECORDING.equals(transportState) ||
@@ -550,22 +526,17 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	public void monitor() {
-		final Device d = UPNPControl.getDevice(uuid);
 		monitorThread = new Thread(() -> {
-			String id = data.get(INSTANCE_ID);
 			String transportState = data.get(TRANSPORT_STATE);
 			while (active &&
 					(PLAYING.equals(transportState) ||
 					RECORDING.equals(transportState) ||
 					TRANSITIONING.equals(transportState))) {
 				UMSUtils.sleep(1000);
-				// if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				// Send the GetPositionRequest only when renderer supports it
 				if (isGetPositionInfoImplemented) {
-					for (ActionArgumentValue o : UPNPControl.getPositionInfo(d, id, this)) {
+					for (ActionArgumentValue o : JUPnPDeviceHelper.getPositionInfo(this)) {
 						data.put(o.getArgument().getName(), o.toString());
-						// if (DEBUG) LOGGER.debug(o.getArgument().getName() +
-						// ": " + o.toString());
 					}
 					alert();
 				}
@@ -574,7 +545,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				data.put(TRANSPORT_STATE, STOPPED);
 				alert();
 			}
-		}, "UPNP-" + d.getDetails().getFriendlyName());
+		}, "UPNP-" + getRendererName());
 		monitorThread.start();
 	}
 
@@ -726,7 +697,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(getAddress());
 				if (id != null) {
 					setUpnpAllow("true");
-					UPNPHelper.activate(id);
+					JUPnPDeviceHelper.activate(id);
 				}
 			}
 		}

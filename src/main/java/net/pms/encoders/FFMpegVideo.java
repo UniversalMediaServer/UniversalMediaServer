@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -54,7 +53,6 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -101,6 +99,7 @@ public class FFMpegVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	FFMpegVideo() {
+		super(CONFIGURATION.getFFmpegPaths());
 	}
 
 	/**
@@ -786,11 +785,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getFFmpegPaths();
-	}
-
-	@Override
 	public boolean isGPUAccelerationReady() {
 		return true;
 	}
@@ -827,7 +821,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		List<String> cmdList = new ArrayList<>();
-		boolean avisynth = isAviSynthEngine();
+		boolean avisynth = this instanceof AviSynthFFmpeg;
 		if (params.getTimeSeek() > 0) {
 			params.setWaitBeforeStart(1);
 		} else if (renderer.isTranscodeFastStart()) {
@@ -875,18 +869,16 @@ public class FFMpegVideo extends Engine {
 		String frameRateRatio = media.getValidFps(true);
 		String frameRateNumber = media.getValidFps(false);
 
-		boolean delegateSeekToAVSScript = avisynth;
-
 		// Set seeks
-		if (params.getTimeSeek() > 0 && !delegateSeekToAVSScript) {
+		if (params.getTimeSeek() > 0 && !avisynth) {
 			cmdList.add("-ss");
 			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Input filename
 		cmdList.add("-i");
-		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso") && this instanceof AviSynthFFmpeg aviSynthFFmpeg) {
+			File avsFile = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {
@@ -1178,7 +1170,7 @@ public class FFMpegVideo extends Engine {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-			File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
+			File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -1774,7 +1766,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	@Nullable
 	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
 		executableInfo = testExecutableFile(executableInfo);
 		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
@@ -1844,7 +1835,7 @@ public class FFMpegVideo extends Engine {
 				result.available(Boolean.FALSE);
 			}
 		} catch (InterruptedException e) {
-			return null;
+			Thread.currentThread().interrupt();
 		}
 		return result.build();
 	}

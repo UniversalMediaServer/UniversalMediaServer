@@ -71,6 +71,7 @@ public class PlatformUtils implements IPlatformUtils {
 	protected Path vlcPath;
 	protected Version vlcVersion;
 	protected boolean aviSynth;
+	protected boolean aviSynthPlus;
 
 	/** Only to be instantiated by {@link PlatformUtils#createInstance()}. */
 	protected PlatformUtils() {
@@ -114,6 +115,11 @@ public class PlatformUtils implements IPlatformUtils {
 	@Override
 	public boolean isAviSynthAvailable() {
 		return aviSynth;
+	}
+
+	@Override
+	public boolean isAviSynthPlusAvailable() {
+		return aviSynthPlus;
 	}
 
 	@Override
@@ -287,6 +293,11 @@ public class PlatformUtils implements IPlatformUtils {
 		// xdg-user-dir PICTURES
 		// xdg-user-dir VIDEOS
 		return result;
+	}
+
+	@Override
+	public Version getFileVersionInfo(String filePath) {
+		return null;
 	}
 
 	@Override
