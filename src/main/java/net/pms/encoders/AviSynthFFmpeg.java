@@ -299,7 +299,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine += "\n";
 				movieLine += "LoadPlugin(\"" + ffms2Path + "\")\n";
 
-				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
+				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", cache=false, atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
 			} else {
 				String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
 
