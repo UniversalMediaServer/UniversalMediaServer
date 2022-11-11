@@ -16,10 +16,13 @@
  */
 package net.pms.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.*;
-import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.*;
@@ -29,14 +32,12 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.pms.renderers.Renderer;
 
 public class UMSUtils {
 
@@ -221,6 +222,10 @@ public class UMSUtils {
 		String pos = StringUtil.shortTime(current, 4);
 		String dur = StringUtil.shortTime(duration, 4);
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
+	}
+
+	public static String unescape(String s) throws IllegalArgumentException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, StandardCharsets.UTF_8)));
 	}
 
 	private static String iso639(String s) {
