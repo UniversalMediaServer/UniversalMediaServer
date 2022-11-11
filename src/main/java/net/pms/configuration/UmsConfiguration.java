@@ -1342,7 +1342,15 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for FFMS2.
+	 * @return The {@link ExternalProgramInfo} for AviSynth DirectShowSource library.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDirectShowSourcePaths() {
+		return programPaths.getDirectShowSource();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth FFMS2 library.
 	 */
 	@Nullable
 	public ExternalProgramInfo getFFMS2Paths() {

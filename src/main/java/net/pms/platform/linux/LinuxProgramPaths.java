@@ -217,6 +217,11 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getDirectShowSource() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getMvtools2() {
 		return null;
 	}

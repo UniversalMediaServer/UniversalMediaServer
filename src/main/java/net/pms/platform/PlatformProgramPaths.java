@@ -112,6 +112,12 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getFFMS2();
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth DirectShowSource plugin.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getDirectShowSource();
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for AviSynth mvtools2 plugin.
 	 */
 	@Nullable

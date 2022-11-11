@@ -161,6 +161,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public final ExternalProgramInfo getDirectShowSource() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
 	public final ExternalProgramInfo getMvtools2() {
 		return platformPaths.getMvtools2();
 	}

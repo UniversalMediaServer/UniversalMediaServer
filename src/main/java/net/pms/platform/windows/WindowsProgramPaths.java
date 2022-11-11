@@ -53,6 +53,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo aviSynthInfo;
 	private final ExternalProgramInfo interFrameInfo;
 	private final ExternalProgramInfo ffms2Info;
+	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
@@ -159,7 +160,12 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		ffms2Info = new ExternalProgramInfo("ffms2", ProgramExecutableType.BUNDLED);
 		ffms2Info.setPath(ProgramExecutableType.BUNDLED, ffms2);
 
-		// FFMS2
+		// DirectShowSource
+		Path directShowSource = resolve("avisynth/DirectShowSource.dll");
+		directShowSourceInfo = new ExternalProgramInfo("DirectShowSource", ProgramExecutableType.BUNDLED);
+		directShowSourceInfo.setPath(ProgramExecutableType.BUNDLED, directShowSource);
+
+		// mvtools2
 		Path mvtools2 = resolve("avisynth/mvtools2.dll");
 		mvtools2Info = new ExternalProgramInfo("mvtools2", ProgramExecutableType.BUNDLED);
 		mvtools2Info.setPath(ProgramExecutableType.BUNDLED, mvtools2);
@@ -243,6 +249,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 
 	@Override
 	public ExternalProgramInfo getFFMS2() {
+		return ffms2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getDirectShowSource() {
 		return ffms2Info;
 	}
 

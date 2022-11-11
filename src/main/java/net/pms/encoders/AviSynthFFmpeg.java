@@ -58,10 +58,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	@Nonnull
 	private final ExternalProgramInfo aviSynthInfo;
 	private final ExternalProgramInfo ffms2Info;
+	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private boolean isAviSynthPlus = false;
 	private Path ffms2Path;
+	private Path directShowSourcePath;
 	private Path mvtools2Path;
 	private Path convert2dTo3dPath;
 
@@ -69,6 +71,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	AviSynthFFmpeg() {
 		aviSynthInfo = CONFIGURATION.getAviSynthPaths();
 		ffms2Info = CONFIGURATION.getFFMS2Paths();
+		directShowSourceInfo = CONFIGURATION.getDirectShowSourcePaths();
 		mvtools2Info = CONFIGURATION.getMvtools2Paths();
 		convert2dTo3dInfo = CONFIGURATION.getConvert2dTo3dPaths();
 		if (aviSynthInfo == null) {
@@ -202,17 +205,36 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path ffms2TestPath = ffms2Info.getPath(executableType);
 				if (Files.exists(ffms2TestPath)) {
 					ffms2Path = ffms2TestPath;
-					LOGGER.info("Founded ffms2");
+					LOGGER.info("Founded AviSynth FFmpegSource2 library");
 					break;
 				}
 			}
+		}
+		if (directShowSourceInfo != null) {
+			for (ProgramExecutableType executableType : directShowSourceInfo.getExecutableTypes()) {
+				Path directShowSourceTestPath = directShowSourceInfo.getPath(executableType);
+				if (Files.exists(directShowSourceTestPath)) {
+					directShowSourcePath = directShowSourceTestPath;
+					LOGGER.info("Founded AviSynth DirectShowSource library");
+					break;
+				}
+			}
+		}
+		if (ffms2Path == null && directShowSourcePath == null) {
+			executableInfo = executableInfo.modify()
+				.available(Boolean.FALSE)
+				.errorType(ExecutableErrorType.GENERAL)
+				.errorText(
+					String.format(Messages.getString("ExecutableXTranscodingEngineNotFound"), executableInfo.getPath(), this)
+				).build();
+			return executableInfo;
 		}
 		if (mvtools2Info != null) {
 			for (ProgramExecutableType executableType : mvtools2Info.getExecutableTypes()) {
 				Path mvtools2TestPath = mvtools2Info.getPath(executableType);
 				if (Files.exists(mvtools2TestPath)) {
 					mvtools2Path = mvtools2TestPath;
-					LOGGER.info("Founded mvtools2");
+					LOGGER.info("Founded AviSynth mvtools2 library");
 					break;
 				}
 			}
@@ -222,7 +244,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path convert2dTo3dTestPath = convert2dTo3dInfo.getPath(executableType);
 				if (Files.exists(convert2dTo3dTestPath)) {
 					convert2dTo3dPath = convert2dTo3dTestPath;
-					LOGGER.info("Founded convert2dTo3d script");
+					LOGGER.info("Founded AviSynth convert2dTo3d script");
 					break;
 				}
 			}
@@ -274,7 +296,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String interframeLines 		= null;
 			String interframePath  		= customConfiguration.getInterFramePath();
 
-			if (customConfiguration.getFfmpegAvisynthUseFFMS2() && ffms2Path != null) {
+			//fallback to FFMS2 if DirectShowSource not founded
+			if ((directShowSourcePath == null || customConfiguration.getFfmpegAvisynthUseFFMS2()) && ffms2Path != null) {
 				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
 
 				String fpsNum   = "fpsnum=" + numerator;
@@ -320,6 +343,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					convertfps = ", convertfps=true";
 				}
 
+				movieLine += "\n";
+				movieLine += "LoadPlugin(\"" + directShowSourcePath + "\")\n";
 				movieLine       += "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 			}
 
