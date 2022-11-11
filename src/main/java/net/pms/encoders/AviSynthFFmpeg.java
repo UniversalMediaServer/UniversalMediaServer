@@ -240,6 +240,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		double timeSeek = params.getTimeSeek();
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(CONFIGURATION.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
+
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
 			String denominator;
@@ -285,6 +286,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					convertfps = ", " + fpsNum + ", " + fpsDen;
 				}
 
+				// cachefile:
+				// The filename of the index file (where the indexing data is saved).
+				// Defaults to sourcefilename.ffindex, what we don't want as it mess up media folder.
+				File cachefile = new File(CONFIGURATION.getTempFolder(), "ums-avs-" + onlyFileName + ".ffindex");
+				cachefile.deleteOnExit();
+
 				// atrack:
 				// A value of -1 means select the first available audio track. Default (-2) means audio is disabled.
 
@@ -299,7 +306,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine += "\n";
 				movieLine += "LoadPlugin(\"" + ffms2Path + "\")\n";
 
-				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", cache=false, atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
+				movieLine += "FFMS2(\"" + filename + "\"" + convertfps + ", cachefile=\"" + cachefile.getAbsolutePath() + "\", atrack=" + audioTrack + ", seekmode=" + seekMode + ")";
 			} else {
 				String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
 
