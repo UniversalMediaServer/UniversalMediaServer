@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui;
 
 import java.awt.*;
@@ -10,6 +26,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.LogicalPlayer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -42,13 +59,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		this.player = (LogicalPlayer) player;
 		player.connect(this);
 		int controls = player.getControls();
-		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
-		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		playControl = (controls & Renderer.PLAYCONTROL) != 0;
+		volumeControl = (controls & Renderer.VOLUMECONTROL) != 0;
 		expanded = true;
 		sliding = 0;
 
 		try {
-			pwd = new File(player.getState().uri).getParentFile();
+			pwd = new File(player.getState().getUri()).getParentFile();
 		} catch (Exception e) {
 			pwd = new File("");
 		}
@@ -324,34 +341,34 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	public void refreshPlayerState(PlayerState state) {
 		if (playControl) {
-			playing = state.playback != BasicPlayer.STOPPED;
+			playing = !state.isStopped();
 			// update playback status
-			play.putValue(Action.SMALL_ICON, state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
+			play.putValue(Action.SMALL_ICON, state.isPlaying() ? pauseIcon : playIcon);
 			stop.setEnabled(playing);
 			forward.setEnabled(playing);
 			rewind.setEnabled(playing);
 			// update position
-			position.setText(UMSUtils.playedDurationStr(state.position, state.duration));
+			position.setText(UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
 			// update uris only if meaningfully new
-			boolean isNew = !StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi);
-			lasturi = state.uri;
+			boolean isNew = !StringUtils.isBlank(state.getUri()) && !state.getUri().equals(lasturi);
+			lasturi = state.getUri();
 			if (isNew) {
 				if (edited) {
 					player.add(-1, uri.getText(), null, null, false);
 					setEdited(false);
 				}
-				uri.setText(state.name);
+				uri.setText(state.getName());
 			}
 			play.setEnabled(playing || !StringUtils.isBlank(uri.getText()));
 			updatePlaylist();
 		}
 		if (volumeControl) {
 			// update rendering status
-			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
-			volumeSlider.setEnabled(!state.mute);
+			mute.putValue(Action.SMALL_ICON, state.isMuted() ? muteIcon : volumeIcon);
+			volumeSlider.setEnabled(!state.isMuted());
 			// ignore volume during slider motion
 			if (--sliding < 0) {
-				volumeSlider.setValue(state.volume);
+				volumeSlider.setValue(state.getVolume());
 			}
 		}
 	}

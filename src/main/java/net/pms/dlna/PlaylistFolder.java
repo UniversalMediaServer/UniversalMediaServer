@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna;
 
 import java.io.*;
@@ -273,8 +289,8 @@ public final class PlaylistFolder extends DLNAResource {
 
 	private static class Entry {
 
-		public String fileName;
-		public String title;
+		private String fileName;
+		private String title;
 
 		@Override
 		public String toString() {
@@ -286,16 +302,18 @@ public final class PlaylistFolder extends DLNAResource {
 		Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(uri));
 		if (f != null && f.getType() == Format.PLAYLIST) {
 			switch (f.getMatchedExtension()) {
-				case "m3u":
-				case "m3u8":
-				case "pls":
+				case "m3u", "m3u8", "pls" -> {
 					return new PlaylistFolder(name, uri, type);
-				case "cue":
+				}
+				case "cue" -> {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
-				case "ups":
+				}
+				case "ups" -> {
 					return new Playlist(name, uri);
-				default:
-					break;
+				}
+				default -> {
+					//nothing to do
+				}
 			}
 		}
 		return null;

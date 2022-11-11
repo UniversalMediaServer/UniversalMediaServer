@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
@@ -28,9 +27,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -39,8 +36,10 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.OutputOverride;
+import net.pms.renderers.Renderer;
 import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -53,8 +52,6 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +110,7 @@ public class FFMpegVideo extends Engine {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
-		final RendererConfiguration renderer = params.getMediaRenderer();
+		final Renderer renderer = params.getMediaRenderer();
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
 		boolean isResolutionTooHighForRenderer = isMediaValid && !params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
@@ -222,7 +219,7 @@ public class FFMpegVideo extends Engine {
 
 					// Set the input subtitles character encoding if not UTF-8
 					if (!params.getSid().isSubsUtf8()) {
-						if (isNotBlank(configuration.getSubtitlesCodepage())) {
+						if (StringUtils.isNotBlank(configuration.getSubtitlesCodepage())) {
 							subsFilter.append(":charenc=").append(configuration.getSubtitlesCodepage());
 						} else if (params.getSid().getSubCharacterSet() != null) {
 							subsFilter.append(":charenc=").append(params.getSid().getSubCharacterSet());
@@ -234,7 +231,7 @@ public class FFMpegVideo extends Engine {
 						subsFilter.append(":force_style=");
 						subsFilter.append("'");
 						String fontName = configuration.getFont();
-						if (isNotBlank(fontName)) {
+						if (StringUtils.isNotBlank(fontName)) {
 							String font = CodecUtil.isFontRegisteredInOS(fontName);
 							if (font != null) {
 								subsFilter.append("Fontname=").append(font);
@@ -265,7 +262,7 @@ public class FFMpegVideo extends Engine {
 				filterChain.add(0, subsPictureFilter.toString());
 			}
 
-			if (isNotBlank(subsFilter)) {
+			if (StringUtils.isNotBlank(subsFilter)) {
 				if (params.getTimeSeek() > 0 && isSubsManualTiming) {
 					filterChain.add("setpts=PTS+" + params.getTimeSeek() + "/TB"); // based on https://trac.ffmpeg.org/ticket/2067
 				}
@@ -293,7 +290,7 @@ public class FFMpegVideo extends Engine {
 		if (
 			is3D &&
 			stereoLayout != null &&
-			isNotBlank(renderer3DOutputFormat) &&
+			StringUtils.isNotBlank(renderer3DOutputFormat) &&
 			!stereoLayout.equals(renderer3DOutputFormat)
 		) {
 			filterChain.add("stereo3d=" + stereoLayout + ":" + renderer3DOutputFormat);
@@ -324,7 +321,7 @@ public class FFMpegVideo extends Engine {
 	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = dlna.getFileName();
-		final RendererConfiguration renderer = params.getMediaRenderer();
+		final Renderer renderer = params.getMediaRenderer();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 		if (
 			(
@@ -354,7 +351,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioEmbedDtsInPcm() &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				renderer.isDTSPlayable();
 
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
@@ -363,7 +360,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioRemuxAC3() &&
 				params.getAid() != null &&
 				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek
 			) {
 				// AC-3 and AAC remux
@@ -388,7 +385,7 @@ public class FFMpegVideo extends Engine {
 				}
 			}
 
-			InputFile newInput = null;
+			InputFile newInput;
 			if (filename != null) {
 				newInput = new InputFile();
 				newInput.setFilename(filename);
@@ -589,7 +586,7 @@ public class FFMpegVideo extends Engine {
 			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
 
 			// Renderer settings take priority over user settings
-			if (isNotBlank(mpeg2OptionsRenderer)) {
+			if (StringUtils.isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else if (configuration.isAutomaticMaximumBitrate()) {
 				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
@@ -648,7 +645,7 @@ public class FFMpegVideo extends Engine {
 					}
 				}
 			}
-			if (isNotBlank(x264CRF) && !params.getMediaRenderer().nox264()) {
+			if (StringUtils.isNotBlank(x264CRF) && !params.getMediaRenderer().nox264()) {
 				videoBitrateOptions.add("-crf");
 				videoBitrateOptions.add(x264CRF);
 			}
@@ -687,7 +684,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public EngineId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -707,7 +704,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
@@ -724,7 +721,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -744,7 +741,7 @@ public class FFMpegVideo extends Engine {
 			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
-		if (isBlank(bitrate)) {
+		if (StringUtils.isBlank(bitrate)) {
 			bitrate = "0";
 		}
 
@@ -778,14 +775,14 @@ public class FFMpegVideo extends Engine {
 			LOGGER.trace("Switching from FFmpeg to Hls FFmpeg to transcode.");
 			return launchHlsTranscode(dlna, media, params);
 		}
-		RendererConfiguration renderer = params.getMediaRenderer();
+		Renderer renderer = params.getMediaRenderer();
 		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -800,7 +797,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		List<String> cmdList = new ArrayList<>();
-		boolean avisynth = avisynth();
+		boolean avisynth = isAviSynthEngine();
 		if (params.getTimeSeek() > 0) {
 			params.setWaitBeforeStart(1);
 		} else if (renderer.isTranscodeFastStart()) {
@@ -828,7 +825,7 @@ public class FFMpegVideo extends Engine {
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
 			params.getAid().isAC3() &&
-			!avisynth() &&
+			!isAviSynthEngine() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
 			params.getAid().getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
@@ -841,7 +838,7 @@ public class FFMpegVideo extends Engine {
 				configuration.isAudioEmbedDtsInPcm() &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
-				!avisynth() &&
+				!isAviSynthEngine() &&
 				params.getMediaRenderer().isDTSPlayable();
 		}
 
@@ -904,7 +901,7 @@ public class FFMpegVideo extends Engine {
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-			} else if (avisynth()) {
+			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -935,7 +932,7 @@ public class FFMpegVideo extends Engine {
 			} else if (params.getSid() != null) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-			} else if (avisynth()) {
+			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
@@ -1032,7 +1029,7 @@ public class FFMpegVideo extends Engine {
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
 			// Audio bitrate
-			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
+			if (!ac3Remux && !dtsRemux && (type() != Format.AUDIO)) {
 				int channels = 0;
 				if (
 					(
@@ -1099,7 +1096,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		// Set up the process
-		PipeProcess pipe = null;
+		IPipeProcess pipe = null;
 
 		if (!dtsRemux) {
 			// cmdList.add("pipe:");
@@ -1112,7 +1109,7 @@ public class FFMpegVideo extends Engine {
 			);
 
 			// This process wraps the command that creates the named pipe
-			pipe = new PipeProcess(fifoName);
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 
 			params.getInputPipes()[0] = pipe;
@@ -1146,10 +1143,10 @@ public class FFMpegVideo extends Engine {
 				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 			}
 		} else {
-			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-			File f = new File(configuration.getTempFolder(), "dms-tsmuxer.meta");
+			File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -1312,8 +1309,8 @@ public class FFMpegVideo extends Engine {
 		params.setSecondReadMinSize(100000);
 		params.setWaitBeforeStart(1000);
 		// Use device-specific conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		HlsHelper.HlsConfiguration hlsConfiguration = params.getHlsConfiguration();
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
 		boolean needAudio = hlsConfiguration.audioStream > -1;
@@ -1496,7 +1493,7 @@ public class FFMpegVideo extends Engine {
 		return pw;
 	}
 
-	public static void setLogLevel(List<String> cmdList, PmsConfiguration configuration) {
+	public static void setLogLevel(List<String> cmdList, UmsConfiguration configuration) {
 		cmdList.add("-loglevel");
 		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
 		if (LOGGER.isTraceEnabled()) {
@@ -1516,7 +1513,7 @@ public class FFMpegVideo extends Engine {
 		}
 	}
 
-	public static void setDecodingOptions(List<String> cmdList, PmsConfiguration configuration, boolean avisynth) {
+	public static void setDecodingOptions(List<String> cmdList, UmsConfiguration configuration, boolean avisynth) {
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -1567,7 +1564,7 @@ public class FFMpegVideo extends Engine {
 		}
 	}
 
-	public static void setEncodingThreads(List<String> cmdList, PmsConfiguration configuration) {
+	public static void setEncodingThreads(List<String> cmdList, UmsConfiguration configuration) {
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -1599,7 +1596,7 @@ public class FFMpegVideo extends Engine {
 		);
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
+		IPipeProcess pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
@@ -1644,7 +1641,7 @@ public class FFMpegVideo extends Engine {
 	/**
 	 * A simple arg parser with basic quote comprehension
 	 */
-	protected static List<String> parseOptions(String str) {
+	public static List<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<>());
 	}
 
@@ -1692,7 +1689,7 @@ public class FFMpegVideo extends Engine {
 	 * @return
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isDisableSubtitles() || (params.getSid() == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.getSid() == null) || isAviSynthEngine();
 	}
 
 	@Override
@@ -1740,7 +1737,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(Renderer renderer) {
 		return true;
 	}
 
@@ -1768,18 +1765,18 @@ public class FFMpegVideo extends Engine {
 				return result.build();
 			}
 			if (output.getExitCode() == 0) {
-				if (output.getOutput() != null && output.getOutput().size() > 0) {
+				if (!output.getOutput().isEmpty()) {
 					Pattern pattern = Pattern.compile("^ffmpeg version\\s+(.*?)\\s+Copyright", Pattern.CASE_INSENSITIVE);
 					Matcher matcher = pattern.matcher(output.getOutput().get(0));
-					if (matcher.find() && isNotBlank(matcher.group(1))) {
+					if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
 						result.version(new Version(matcher.group(1)));
 					}
 				}
 				result.available(Boolean.TRUE);
 
-				if (result instanceof FFmpegExecutableInfoBuilder) {
+				if (result instanceof FFmpegExecutableInfoBuilder fFmpegExecutableInfoBuilder) {
 					List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
-					((FFmpegExecutableInfoBuilder) result).protocols(protocols);
+					fFmpegExecutableInfoBuilder.protocols(protocols);
 					if (!protocols.isEmpty()) {
 						LOGGER.warn("Couldn't parse any supported protocols for \"{}\"", executableInfo.getPath());
 					} else {

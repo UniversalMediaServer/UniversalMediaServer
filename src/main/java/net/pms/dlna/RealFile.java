@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -27,8 +26,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Locale;
+import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
@@ -44,43 +42,43 @@ import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RealFile extends MapFile {
+public class RealFile extends VirtualFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	public RealFile(File file) {
-		addFileToConfFiles(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
-		addFileToConfFiles(file);
-		getConf().setName(name);
+		addFileToFiles(file);
+		this.name = name;
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
-		addFileToConfFiles(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
-		getConf().getFiles().add(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 		setIsEpisodeWithinTVSeriesFolder(isEpisodeWithinTVSeriesFolder);
 	}
 
 	/**
-	 * Add the file to MapFileConfiguration->Files.
+	 * Add the file to Files.
 	 *
 	 * @param file The file to add.
 	 */
-	private void addFileToConfFiles(File file) {
+	private void addFileToFiles(File file) {
 		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
-			getConf().getFiles().add(FileUtil.getRealFile(file));
+			getFiles().add(FileUtil.getRealFile(file));
 		} else {
-			getConf().getFiles().add(file);
+			getFiles().add(file);
 		}
 	}
 
@@ -94,7 +92,7 @@ public class RealFile extends MapFile {
 
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
-			getConf().getFiles().remove(file);
+			getFiles().remove(file);
 			return false;
 		}
 
@@ -125,7 +123,7 @@ public class RealFile extends MapFile {
 				}
 
 				if (!valid) {
-					getConf().getFiles().remove(file);
+					getFiles().remove(file);
 				}
 			}
 
@@ -134,7 +132,7 @@ public class RealFile extends MapFile {
 				checkThumbnail();
 			}
 		} else if (this.getType() == Format.UNKNOWN && !this.isFolder()) {
-			getConf().getFiles().remove(file);
+			getFiles().remove(file);
 			return false;
 		}
 
@@ -168,17 +166,16 @@ public class RealFile extends MapFile {
 	}
 
 	public File getFile() {
-		if (getConf().getFiles().isEmpty()) {
+		if (getFiles().isEmpty()) {
 			return null;
 		}
 
-		return getConf().getFiles().get(0);
+		return getFiles().get(0);
 	}
 
 	@Override
 	public String getName() {
-		if (this.getConf().getName() == null) {
-			String name = null;
+		if (name == null) {
 			File file = getFile();
 
 			// this probably happened because the file was removed after it could not be parsed by isValid()
@@ -198,9 +195,8 @@ public class RealFile extends MapFile {
 			} else {
 				name = file.getName();
 			}
-			this.getConf().setName(name);
 		}
-		return this.getConf().getName().replaceAll("_imdb([^_]+)_", "");
+		return name.replaceAll("_imdb([^_]+)_", "");
 	}
 
 	@Override
@@ -269,7 +265,7 @@ public class RealFile extends MapFile {
 						getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
 					}
 
-					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
+					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {
 						try {
 							/*
 							 * Even though subtitles will be resolved later in
@@ -302,7 +298,7 @@ public class RealFile extends MapFile {
 				if (getMedia() != null && getMedia().isSLS()) {
 					setFormat(getMedia().getAudioVariantFormat());
 				}
-			} catch (Exception e) {
+			} catch (SQLException e) {
 				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
 				LOGGER.trace("", e);
 			} finally {
@@ -341,20 +337,20 @@ public class RealFile extends MapFile {
 
 			for (File folder : folders) {
 				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
-				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				Set<File> potentials = VirtualFile.getPotentialFileThumbnails(audioVideoFile, true);
 				if (!potentials.isEmpty()) {
 					// We have no rules for how to pick a particular one if there's multiple candidates
 					cachedThumbnail = potentials.iterator().next();
 					break;
 				}
 			}
-			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof MapFile) {
-				cachedThumbnail = ((MapFile) getParent()).getPotentialCover();
+			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() instanceof VirtualFile virtualFile) {
+				cachedThumbnail = virtualFile.getPotentialCover();
 			}
 		}
 
 		if (file.isDirectory()) {
-			cachedThumbnail = MapFile.getFolderThumbnail(file);
+			cachedThumbnail = VirtualFile.getFolderThumbnail(file);
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
@@ -453,7 +449,7 @@ public class RealFile extends MapFile {
 				try {
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
 						AudioFile af;
-						if ("mp2".equals(FileUtil.getExtension(getFile()).toLowerCase(Locale.ROOT))) {
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(getFile()))) {
 							af = AudioFileIO.readAs(getFile(), "mp3");
 						} else {
 							af = AudioFileIO.read(getFile());

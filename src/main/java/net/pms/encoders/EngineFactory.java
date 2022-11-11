@@ -1,18 +1,17 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA  02110-1301, USA.
  */
@@ -32,7 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
 import net.pms.util.ExecutableErrorType;
@@ -62,7 +61,7 @@ public final class EngineFactory {
 	 */
 	private static final ArrayList<Engine> ENGINES = new ArrayList<>();
 
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static UmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * This sorts {@link Engine}s according to their configured priorities.
@@ -144,7 +143,7 @@ public final class EngineFactory {
 		configuration.capitalizeEngineId(engine);
 		ENGINES_LOCK.writeLock().lock();
 		try {
-			if (isEngineRegistered(engine.id())) {
+			if (isEngineRegistered(engine.getEngineId())) {
 				LOGGER.debug("Transcoding engine {} already exists, skipping registration...", engine);
 				return;
 			}
@@ -214,7 +213,7 @@ public final class EngineFactory {
 
 	/**
 	 * Used to (re)sort {@link #ENGINES} every time either {@link #ENGINES} or
-	 * {@link PmsConfiguration#enginesPriority} has changed so that
+	 * {@link UmsConfiguration#enginesPriority} has changed so that
 	 * {@link #ENGINES} are always sorted according to priority.
 	 */
 	public static void sortEngines() {
@@ -283,7 +282,7 @@ public final class EngineFactory {
 		if (engine == null) {
 			return false;
 		}
-		return isEngineRegistered(engine.id());
+		return isEngineRegistered(engine.getEngineId());
 	}
 
 	/**
@@ -300,7 +299,7 @@ public final class EngineFactory {
 		ENGINES_LOCK.readLock().lock();
 		try {
 			for (Engine engine : ENGINES) {
-				if (id.equals(engine.id())) {
+				if (id.equals(engine.getEngineId())) {
 					return true;
 				}
 			}
@@ -325,7 +324,7 @@ public final class EngineFactory {
 		ENGINES_LOCK.readLock().lock();
 		try {
 			for (Engine engine : ENGINES) {
-				if (id.equals(engine.id())) {
+				if (id.equals(engine.getEngineId())) {
 					return engine.isActive();
 				}
 			}
@@ -349,7 +348,7 @@ public final class EngineFactory {
 		ENGINES_LOCK.readLock().lock();
 		try {
 			for (Engine engine : ENGINES) {
-				if (id.equals(engine.id())) {
+				if (id.equals(engine.getEngineId())) {
 					return engine.isAvailable();
 				}
 			}
@@ -389,7 +388,7 @@ public final class EngineFactory {
 		ENGINES_LOCK.readLock().lock();
 		try {
 			for (Engine engine : ENGINES) {
-				if (id.equals(engine.id())) {
+				if (id.equals(engine.getEngineId())) {
 					if ((!onlyAvailable || engine.isAvailable()) && (!onlyEnabled || engine.isEnabled())) {
 						return engine;
 					}
@@ -432,18 +431,18 @@ public final class EngineFactory {
 					boolean compatible = engine.isCompatible(resource);
 					if (compatible) {
 						// Engine is enabled and compatible
-						LOGGER.trace("Returning compatible engine \"{}\"", engine.name());
+						LOGGER.trace("Returning compatible engine \"{}\"", engine.getName());
 						return engine;
 					} else if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Engine \"{}\" is incompatible", engine.name());
+						LOGGER.trace("Engine \"{}\" is incompatible", engine.getName());
 					}
 				} else if (LOGGER.isTraceEnabled()) {
 					if (available) {
-						LOGGER.trace("Engine \"{}\" is disabled", engine.name());
+						LOGGER.trace("Engine \"{}\" is disabled", engine.getName());
 					} else if (enabled) {
-						LOGGER.trace("Engine \"{}\" isn't available", engine.name());
+						LOGGER.trace("Engine \"{}\" isn't available", engine.getName());
 					} else {
-						LOGGER.trace("Engine \"{}\" is neither available nor enabled", engine.name());
+						LOGGER.trace("Engine \"{}\" is neither available nor enabled", engine.getName());
 					}
 				}
 			}
@@ -471,7 +470,7 @@ public final class EngineFactory {
 		ENGINES_LOCK.readLock().lock();
 		try {
 			for (Engine engine : ENGINES) {
-				if (id.equals(engine.id())) {
+				if (id.equals(engine.getEngineId())) {
 					return engine.getExecutable();
 				}
 			}
@@ -502,7 +501,7 @@ public final class EngineFactory {
 			for (Engine engine : ENGINES) {
 				if (engine.isEnabled() && engine.isAvailable() && engine.isCompatible(resource)) {
 					// Engine is enabled, available and compatible
-					LOGGER.trace("Engine {} is compatible with resource \"{}\"", engine.name(), resource.getName());
+					LOGGER.trace("Engine {} is compatible with resource \"{}\"", engine.getName(), resource.getName());
 					compatibleEngines.add(engine);
 				}
 			}

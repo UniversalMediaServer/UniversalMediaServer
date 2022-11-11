@@ -1,27 +1,26 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.renderers.devices.players;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +49,7 @@ public class Playlist extends DefaultComboBoxModel {
 		try {
 			Object selected = getSelectedItem();
 			PlaylistItem selectedItem = selected instanceof PlaylistItem ? (PlaylistItem) selected : null;
-			String selectedName = selectedItem != null ? selectedItem.name : null;
+			String selectedName = selectedItem != null ? selectedItem.getName() : null;
 			// See if we have a matching item for the "uri", which could be:
 			if (StringUtils.isBlank(uri) || uri.equals(selectedName)) {
 				// An alias for the currently selected item
@@ -66,12 +65,12 @@ public class Playlist extends DefaultComboBoxModel {
 			LOGGER.error("An error occurred while resolving the item for URI \"{}\": {}", uri, e.getMessage());
 			LOGGER.trace("", e);
 		}
-		return (item != null && isValid(item, player.renderer)) ? item : null;
+		return (item != null && isValid(item, player.getRenderer())) ? item : null;
 	}
 
 	public void validate() {
 		for (int i = getSize() - 1; i > -1; i--) {
-			if (!isValid((PlaylistItem) getElementAt(i), player.renderer)) {
+			if (!isValid((PlaylistItem) getElementAt(i), player.getRenderer())) {
 				removeElementAt(i);
 			}
 		}
@@ -134,17 +133,17 @@ public class Playlist extends DefaultComboBoxModel {
 		super.fireIntervalRemoved(source, index0, index1);
 	}
 
-	public static boolean isValid(PlaylistItem item, DeviceConfiguration renderer) {
-		if (DLNAResource.isResourceUrl(item.uri)) {
+	public static boolean isValid(PlaylistItem item, Renderer renderer) {
+		if (DLNAResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
-			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.getUri()))) {
 				return true;
 			}
 			// Repair the item if possible
-			DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
+			DLNAResource d = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (d != null) {
-				item.uri = d.getURL("", true);
-				item.metadata = d.getDidlString(renderer);
+				item.setUri(d.getURL("", true));
+				item.setMetadata(d.getDidlString(renderer));
 				return true;
 			}
 			return false;

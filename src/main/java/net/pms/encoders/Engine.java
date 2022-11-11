@@ -1,22 +1,22 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
+import com.google.gson.JsonArray;
 import com.sun.jna.Platform;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,8 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
@@ -41,6 +40,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
@@ -72,7 +72,7 @@ public abstract class Engine {
 
 	public abstract int purpose();
 
-	public abstract EngineId id();
+	public abstract EngineId getEngineId();
 
 	/**
 	 * @return The {@link Configuration} key for this {@link Engine}'s custom
@@ -80,7 +80,7 @@ public abstract class Engine {
 	 */
 	public abstract String getConfigurablePathKey();
 
-	public abstract String name();
+	public abstract String getName();
 
 	public abstract int type();
 
@@ -241,16 +241,16 @@ public abstract class Engine {
 		return executable == null ? null : executable.toString();
 	}
 
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected PmsConfiguration configuration = CONFIGURATION;
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	protected UmsConfiguration configuration = CONFIGURATION;
 
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return false;
 	}
 
 	public abstract boolean excludeFormat(Format extension);
 
-	public abstract boolean isEngineCompatible(RendererConfiguration renderer);
+	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public boolean isInternalSubtitlesSupported() {
 		return true;
@@ -291,8 +291,8 @@ public abstract class Engine {
 		if (executableInfo == null) {
 			return false;
 		}
-		Boolean result = programInfo.getExecutableInfo(executableType).getAvailable();
-		if (result == null || !result.booleanValue()) {
+		Boolean result = executableInfo.getAvailable();
+		if (result == null || !result) {
 			return false;
 		}
 		specificErrorsLock.readLock().lock();
@@ -339,36 +339,100 @@ public abstract class Engine {
 		}
 		ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
 		if (executableInfo == null) {
-			return String.format(Messages.getString("TheXExecutableNotDefined"), name());
+			return String.format(Messages.getString("TheXExecutableNotDefined"), getName());
 		}
-		if (executableInfo.getAvailable() == null || executableInfo.getAvailable().booleanValue()) {
+		if (executableInfo.getAvailable() == null || executableInfo.getAvailable()) {
 			// Generally available or unknown, check for Engine specific failures
 			specificErrorsLock.readLock().lock();
 			try {
 				String specificError = specificErrors.get(executableType);
 				if (specificError != null) {
-					return fullText ? specificError : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), name());
+					return fullText ? specificError : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), getName());
 				}
 			} finally {
 				specificErrorsLock.readLock().unlock();
 			}
 			if (executableInfo.getAvailable() == null) {
-				return String.format(Messages.getString("StatusTranscodingEngineXUnknown"), name());
+				return String.format(Messages.getString("StatusTranscodingEngineXUnknown"), getName());
 			}
 		}
-		if (executableInfo.getAvailable().booleanValue()) {
+		if (executableInfo.getAvailable()) {
 			if (isEnabled()) {
 				if (executableInfo.getVersion() != null) {
-					return String.format(Messages.getString("TranscodingEngineXYEnabled"), name(), executableInfo.getVersion());
+					return String.format(Messages.getString("TranscodingEngineXYEnabled"), getName(), executableInfo.getVersion());
 				}
-				return String.format(Messages.getString("TranscodingEngineXEnabled"), name());
+				return String.format(Messages.getString("TranscodingEngineXEnabled"), getName());
 			}
-			return String.format(Messages.getString("TranscodingEngineXDisabled"), name());
+			return String.format(Messages.getString("TranscodingEngineXDisabled"), getName());
 		}
 		if (executableInfo.getErrorText() == null) {
 			return Messages.getString("UnknownError");
 		}
-		return fullText ? executableInfo.getErrorText() : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), name());
+		return fullText ? executableInfo.getErrorText() : String.format(Messages.getString("ThereIsProblemTranscodingEngineX"), getName());
+	}
+
+	public JsonArray getStatusTextAsJsonArray(ProgramExecutableType executableType, boolean fullText) {
+		if (executableType == null) {
+			return null;
+		}
+		JsonArray array = new JsonArray();
+		ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
+		if (executableInfo == null) {
+			array.add("i18n@TheXExecutableNotDefined");
+			array.add(getName());
+			return array;
+		}
+		if (executableInfo.getAvailable() == null || executableInfo.getAvailable()) {
+			// Generally available or unknown, check for Player specific failures
+			specificErrorsLock.readLock().lock();
+			try {
+				String specificError = specificErrors.get(executableType);
+				if (specificError != null) {
+					if (fullText) {
+						array.add(specificError);
+					} else {
+						array.add("i18n@ThereIsProblemTranscodingEngineX");
+						array.add(getName());
+					}
+					return array;
+				}
+			} finally {
+				specificErrorsLock.readLock().unlock();
+			}
+			if (executableInfo.getAvailable() == null) {
+				array.add("i18n@StatusTranscodingEngineXUnknown");
+				array.add(getName());
+				return array;
+			}
+		}
+		if (executableInfo.getAvailable()) {
+			if (isEnabled()) {
+				Version version = executableInfo.getVersion();
+				if (version != null) {
+					array.add("i18n@TranscodingEngineXYEnabled");
+					array.add(getName());
+					array.add(version.toString());
+					return array;
+				}
+				array.add("i18n@TranscodingEngineXEnabled");
+				array.add(getName());
+				return array;
+			}
+			array.add("i18n@TranscodingEngineXDisabled");
+			array.add(getName());
+			return array;
+		}
+		if (executableInfo.getErrorText() == null) {
+			array.add("i18n@UnknownError");
+			return array;
+		}
+		if (fullText) {
+			array.add(executableInfo.getErrorText());
+			return array;
+		}
+		array.add("i18n@ThereIsProblemTranscodingEngineX");
+		array.add(getName());
+		return array;
 	}
 
 	/**
@@ -393,6 +457,10 @@ public abstract class Engine {
 	 */
 	public String getStatusTextFull() {
 		return getStatusText(currentExecutableType, true);
+	}
+
+	public JsonArray getStatusTextFullAsJsonArray() {
+		return getStatusTextAsJsonArray(currentExecutableType, true);
 	}
 
 	/**
@@ -484,11 +552,11 @@ public abstract class Engine {
 			ExecutableInfo executableInfo = programInfo.getExecutableInfo(executableType);
 			if (executableInfo == null) {
 				throw new IllegalStateException(
-					"Cannot set availability for " + executableType + " " + name() + " because it is undefined"
+					"Cannot set availability for " + executableType + " " + getName() + " because it is undefined"
 				);
 			}
 			ExecutableInfoBuilder builder = executableInfo.modify();
-			builder.available(Boolean.valueOf(available));
+			builder.available(available);
 			if (version != null) {
 				builder.version(version);
 			}
@@ -534,7 +602,7 @@ public abstract class Engine {
 	 *
 	 * @param customPath the new custom {@link Path} or {@code null} to clear.
 	 * @param setConfiguration whether or not the {@link Path} should also be
-	 *            stored in {@link PmsConfiguration}.
+	 *            stored in {@link UmsConfiguration}.
 	 * @return {@code true} if any changes were made as a result of this call,
 	 *         {@code false} otherwise.
 	 */
@@ -545,7 +613,7 @@ public abstract class Engine {
 				configurationChanged = configuration.setEngineCustomPath(this, customPath);
 			} catch (IllegalStateException e) {
 				configurationChanged = false;
-				LOGGER.warn("Failed to set custom executable path for {}: {}", name(), e.getMessage());
+				LOGGER.warn("Failed to set custom executable path for {}: {}", getName(), e.getMessage());
 				LOGGER.trace("", e);
 			}
 		}
@@ -614,7 +682,7 @@ public abstract class Engine {
 		try {
 			this.enabled = enabled;
 			if (setConfiguration) {
-				CONFIGURATION.setEngineEnabled(id(), enabled);
+				CONFIGURATION.setEngineEnabled(getEngineId(), enabled);
 			}
 		} finally {
 			enabledLock.writeLock().unlock();
@@ -629,7 +697,7 @@ public abstract class Engine {
 		try {
 			enabled = !enabled;
 			if (setConfiguration) {
-				CONFIGURATION.setEngineEnabled(id(), enabled);
+				CONFIGURATION.setEngineEnabled(getEngineId(), enabled);
 			}
 		} finally {
 			enabledLock.writeLock().unlock();
@@ -682,7 +750,7 @@ public abstract class Engine {
 
 	@Override
 	public String toString() {
-		return name();
+		return getName();
 	}
 
 	/**
@@ -707,10 +775,10 @@ public abstract class Engine {
 		if (params.getSid() != null && params.getSid().getId() == DLNAMediaLang.DUMMY_ID) {
 			LOGGER.trace("Don't want subtitles!");
 			params.setSid(null);
-		} else if (params.getSid() instanceof DLNAMediaOnDemandSubtitle) {
+		} else if (params.getSid() instanceof DLNAMediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
 			// Download/fetch live subtitles
 			if (params.getSid().getExternalFile() == null) {
-				if (!((DLNAMediaOnDemandSubtitle) params.getSid()).fetch()) {
+				if (!dLNAMediaOnDemandSubtitle.fetch()) {
 					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.getSid().getName());
 				}
 				if (params.getSid().getExternalFile() == null) {
@@ -832,7 +900,7 @@ public abstract class Engine {
 			if (executableInfo == null) {
 				return false;
 			}
-			if (avisynth()) {
+			if (isAviSynthEngine()) {
 				if (!Platform.isWindows()) {
 					LOGGER.debug(
 						"Skipping transcoding engine {} ({}) as it's not compatible with this platform",
@@ -885,7 +953,7 @@ public abstract class Engine {
 					return false;
 				}
 				if (result.getAvailable() == null) {
-					throw new AssertionError("Engine test for " + name() + " failed to return availability");
+					throw new AssertionError("Engine test for " + getName() + " failed to return availability");
 				}
 				if (!result.equals(executableInfo)) {
 					// The test resulted in a change
@@ -908,7 +976,7 @@ public abstract class Engine {
 
 	/**
 	 * Checks if {@code object} is a {@link Engine} and has the same
-	 * {@link #id()} as this.
+	 * {@link #getEngineId()} as this.
 	 *
      * @param object the reference object with which to compare.
 	 * @return {@code true} if {@code object} is a {@link Engine} and the IDs
@@ -918,8 +986,8 @@ public abstract class Engine {
 	public boolean equals(Object object) {
 		if (object instanceof Engine other) {
 			return (this == object ||
-				(id() == null && other.id() == null) ||
-				(id() != null && id().equals(other.id()))
+				(getEngineId() == null && other.getEngineId() == null) ||
+				(getEngineId() != null && getEngineId().equals(other.getEngineId()))
 			);
 		}
 		return false;
@@ -929,7 +997,7 @@ public abstract class Engine {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id() == null) ? 0 : id().hashCode());
+		result = prime * result + ((getEngineId() == null) ? 0 : getEngineId().hashCode());
 		return result;
 	}
 }

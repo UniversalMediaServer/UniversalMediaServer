@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform;
 
@@ -25,11 +24,14 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
-import javax.annotation.Nullable;
+import net.pms.io.IPipeProcess;
+import net.pms.io.OutputParams;
 import net.pms.newgui.LooksFrame;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.Version;
 
 public interface IPlatformUtils {
@@ -39,8 +41,6 @@ public interface IPlatformUtils {
 	public abstract File getKLiteFiltersDir();
 
 	public abstract String getShortPathNameW(String longPathName);
-
-	public abstract String getWindowsDirectory();
 
 	public abstract String getDiskLabel(File f);
 
@@ -97,13 +97,6 @@ public interface IPlatformUtils {
 	 */
 	int getPingPacketFragments(int packetSize);
 
-	/**
-	 * @return The Windows (internal) version or {@code null} if the platform
-	 *         isn't Windows or the value could not be parsed.
-	 */
-	@Nullable
-	public Double getWindowsVersion();
-
 	/** Move the given file to the system trash, if one is available.
 	 * @param file file to move
 	 * @throws IOException on failure.
@@ -137,7 +130,7 @@ public interface IPlatformUtils {
 	 * The default {@link Charset} for console
 	 * @return Charset
 	 */
-	public abstract Charset getConsoleCharset();
+	public abstract Charset getDefaultCharset();
 
 	public abstract String getDefaultFontPath();
 
@@ -160,4 +153,12 @@ public interface IPlatformUtils {
 	 *             implementation is available for this {@link Platform}.
 	 */
 	public abstract AbstractSleepWorker getSleepWorker(SleepManager owner, PreventSleepMode mode);
+
+	public abstract AbstractProcessTerminator getProcessTerminator(ProcessManager processManager);
+
+	public abstract IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras);
+
+	public abstract IPipeProcess getPipeProcess(String pipeName, String... extras);
+
+	public abstract void appendErrorString(StringBuilder sb, int exitCode);
 }

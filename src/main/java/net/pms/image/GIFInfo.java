@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
 import java.awt.color.ColorSpace;
@@ -128,31 +144,31 @@ public class GIFInfo extends ImageInfo {
 		}
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof GifHeaderDirectory) {
+			if (directory instanceof GifHeaderDirectory gifHeaderDirectory) {
 				parsedInfo.format = ImageFormat.GIF;
 				parsedInfo.numComponents = 3;
 				if (
-					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
+					gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
-				if (((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL)) {
+				if (gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_BITS_PER_PIXEL)) {
 					parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-					Integer i = ((GifHeaderDirectory) directory).getInteger(GifHeaderDirectory.TAG_BITS_PER_PIXEL);
+					Integer i = gifHeaderDirectory.getInteger(GifHeaderDirectory.TAG_BITS_PER_PIXEL);
 					if (i != null) {
-						parsedInfo.bitDepth = i.intValue();
+						parsedInfo.bitDepth = i;
 					}
 				}
-				if (((GifHeaderDirectory) directory).containsTag(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION)) {
-					String s = ((GifHeaderDirectory) directory).getString(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION, "US-ASCII");
+				if (gifHeaderDirectory.containsTag(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION)) {
+					String s = gifHeaderDirectory.getString(GifHeaderDirectory.TAG_GIF_FORMAT_VERSION, "US-ASCII");
 					if (s != null) {
 						((GIFParseInfo) parsedInfo).formatVersion = s;
 					}
 				}
-			} else if (directory instanceof GifControlDirectory) {
-				boolean isTransparent = ((GifControlDirectory) directory).isTransparent();
+			} else if (directory instanceof GifControlDirectory gifControlDirectory) {
+				boolean isTransparent = gifControlDirectory.isTransparent();
 				((GIFParseInfo) parsedInfo).hasTransparency = isTransparent;
 				if (isTransparent) {
 					if (parsedInfo.numComponents == null) {

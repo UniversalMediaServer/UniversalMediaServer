@@ -16,13 +16,15 @@
  */
 package net.pms.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.*;
-import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.*;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
@@ -30,8 +32,10 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +47,12 @@ public class UMSUtils {
 	static {
 		COLLATOR = Collator.getInstance();
 		COLLATOR.setStrength(Collator.PRIMARY);
+	}
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private UMSUtils() {
 	}
 
 	/**
@@ -119,8 +129,8 @@ public class UMSUtils {
 	 * @param method
 	 * @see #sort(java.util.ArrayList, int)
 	 */
-	public static void sort(List<File> files, int method) {
-		sort(files, method, false);
+	public static void sortFiles(List<File> files, int method) {
+		UMSUtils.sortFiles(files, method, false);
 	}
 
 	/**
@@ -131,7 +141,7 @@ public class UMSUtils {
 	 * @param isEpisodeWithinTVSeriesFolder
 	 * @see #sort(java.util.ArrayList, int)
 	 */
-	public static void sort(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
+	public static void sortFiles(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -174,9 +184,9 @@ public class UMSUtils {
 	 *
 	 * @param inputStrings
 	 * @param method
-	 * @see #sort(java.util.List, int)
+	 * @see #sortFiles(java.util.List, int)
 	 */
-	public static void sort(ArrayList<String> inputStrings, int method) {
+	public static void sortStrings(List<String> inputStrings, int method) {
 		switch (method) {
 			case SORT_NO_SORT: // no sorting
 				break;
@@ -214,6 +224,10 @@ public class UMSUtils {
 		return pos + (pos.equals("0:00") ? "" : dur.equals("0:00") ? "" : (" / " + dur));
 	}
 
+	public static String unescape(String s) throws IllegalArgumentException {
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s, StandardCharsets.UTF_8)));
+	}
+
 	private static String iso639(String s) {
 		String[] tmp = s.split(",");
 		StringBuilder res = new StringBuilder();
@@ -228,14 +242,14 @@ public class UMSUtils {
 		return s;
 	}
 
-	public static String getLangList(RendererConfiguration r) {
-		return getLangList(r, false);
+	public static String getLangList(Renderer renderer) {
+		return getLangList(renderer, false);
 	}
 
-	public static String getLangList(RendererConfiguration r, boolean three) {
+	public static String getLangList(Renderer renderer, boolean three) {
 		String res;
-		if (r != null) {
-			res = r.getSubLanguage();
+		if (renderer != null) {
+			res = renderer.getSubLanguage();
 		} else {
 			res = PMS.getConfiguration().getSubtitlesLanguages();
 		}
@@ -393,7 +407,7 @@ public class UMSUtils {
 
 		private static Engine findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
 			for (Engine player : EngineFactory.getEngines(onlyEnabled, onlyAvailable)) {
-				if (playerName.equals(player.name())) {
+				if (playerName.equals(player.getName())) {
 					return player;
 				}
 			}
@@ -542,7 +556,7 @@ public class UMSUtils {
 	 *            be stored
 	 * @throws ConfigurationException
 	 */
-	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(PmsConfiguration configuration) throws ConfigurationException {
+	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(UmsConfiguration configuration) throws ConfigurationException {
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
@@ -586,7 +600,7 @@ public class UMSUtils {
 	 * @param b second list to compare
 	 * @return whether the lists are equal
 	 */
-	public static boolean isListsEqual(ArrayList<String> a, ArrayList<String> b) {
+	public static boolean isListsEqual(List<String> a, List<String> b) {
 		// Check for sizes and nulls
 		if (a == null && b == null) {
 			return true;
@@ -614,5 +628,73 @@ public class UMSUtils {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 		}
+	}
+
+	/**
+	 * The keys are in the format Mantine expects, which can
+	 * be confusing - "value" in Mantine is what is usually
+	 * referred to as the "key".
+	 *
+	 * @param values
+	 * @param labels
+	 * @param jsonArray optional array to add to
+	 * @return an array of objects in the format:
+	 * [
+	 *   {
+	 *     "value": "bar",
+	 *     "label": "foo"
+	 *   },
+	 *   ...
+	 * ]
+	 */
+	public static JsonArray getArraysAsJsonArrayOfObjects(String[] values, String[] labels, JsonArray jsonArray) {
+		if (jsonArray == null) {
+			jsonArray = new JsonArray();
+		}
+
+		for (int i = 0; i < values.length; i++) {
+			JsonObject objectGroup = new JsonObject();
+			String value = values[i];
+			String label = labels[i];
+			objectGroup.addProperty("value", value);
+			objectGroup.addProperty("label", label);
+			jsonArray.add(objectGroup);
+		}
+
+		return jsonArray;
+	}
+
+	/**
+	 * The keys are in the format Mantine expects, which can
+	 * be confusing - "value" in Mantine is what is usually
+	 * referred to as the "key".
+	 *
+	 * @param values
+	 * @param labels
+	 * @param jsonArray optional array to add to
+	 * @return an array of objects in the format:
+	 * [
+	 *   {
+	 *     "value": "bar",
+	 *     "label": "foo"
+	 *   },
+	 *   ...
+	 * ]
+	 */
+	public static synchronized JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
+		if (jsonArray == null) {
+			jsonArray = new JsonArray();
+		}
+
+		for (int i = 0; i < values.size(); i++) {
+			JsonObject objectGroup = new JsonObject();
+			String value = values.get(i);
+			String label = labels.get(i);
+			objectGroup.addProperty("label", label);
+			objectGroup.addProperty("value", value);
+			jsonArray.add(objectGroup);
+		}
+
+		return jsonArray;
 	}
 }

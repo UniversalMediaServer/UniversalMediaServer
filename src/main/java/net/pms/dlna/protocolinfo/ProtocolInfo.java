@@ -1,26 +1,22 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -32,6 +28,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jupnp.support.model.Protocol;
 import org.jupnp.support.model.dlna.DLNAAttribute;
 import org.jupnp.support.model.dlna.DLNAProfiles;
@@ -426,7 +424,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link String} representation.
 	 */
-	protected String generateAttributesString() {
+	private String generateAttributesString() {
 		if (attributes == null || attributes.isEmpty()) {
 			return "";
 		}
@@ -462,7 +460,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *            parse.
 	 * @return A new {@link MimeType} instance.
 	 */
-	protected MimeType createMimeType(String contentFormat) {
+	private MimeType createMimeType(String contentFormat) {
 		try {
 			return MimeType.valueOf(contentFormat);
 		} catch (ParseException e) {
@@ -492,11 +490,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link SortedMap} of parsed {@link ProtocolInfoAttribute}s.
 	 */
-	protected SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
+	private SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
 		if (isBlank(additionalInfo) || WILDCARD.equals(additionalInfo.trim())) {
 			return EMPTYMAP;
 		}
-		TreeMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
+		SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
 		String[] attributeStrings = additionalInfo.trim().toUpperCase(Locale.ROOT).split("\\s*;\\s*");
 		for (String attributeString : attributeStrings) {
 			if (isBlank(attributeString)) {
@@ -609,7 +607,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The string representation.
 	 */
-	protected String generateStringValue() {
+	private String generateStringValue() {
 		StringBuilder sb = new StringBuilder();
 		sb	.append(protocol == null ? WILDCARD : protocol).append(":")
 			.append(isBlank(network) ? WILDCARD : network).append(":")
@@ -738,8 +736,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 		/** Defines the sort order for known attributes */
-		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER =
-			Collections.unmodifiableList(Arrays.asList(new ProtocolInfoAttributeName[] {
+		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER = List.of(
 			KnownProtocolInfoAttributeName.DLNA_ORG_PN,
 			KnownProtocolInfoAttributeName.DLNA_ORG_OP,
 			KnownProtocolInfoAttributeName.DLNA_ORG_PS,
@@ -751,7 +748,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 			KnownProtocolInfoAttributeName.MICROSOFT_COM_PN,
 			KnownProtocolInfoAttributeName.SHARP_COM_PN,
 			KnownProtocolInfoAttributeName.SONY_COM_PN
-		}));
+		);
 
 		@Override
 		public int compare(ProtocolInfoAttributeName o1, ProtocolInfoAttributeName o2) {

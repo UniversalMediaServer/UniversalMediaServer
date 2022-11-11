@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
@@ -28,9 +27,9 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BufferedOutputFileImpl extends OutputStream implements BufferedOutputFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BufferedOutputFileImpl.class);
-	private PmsConfiguration configuration;
+	private static final NumberFormat FORMATTER = NumberFormat.getInstance(Locale.US);
 
 	/**
 	 * Initial size for the buffer in bytes.
@@ -66,27 +65,29 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private static final int MARGIN_SMALL = 600000;
 	private static final int CHECK_INTERVAL = 500;
 	private static final int CHECK_END_OF_PROCESS = 2500; // must be superior to CHECK_INTERVAL
-	private int minMemorySize;
-	private int maxMemorySize;
+
+	private final UmsConfiguration configuration;
+	private final Renderer renderer;
+	private final int minMemorySize;
+	private final int maxMemorySize;
+	private final boolean forcefirst;
+	private final double timeseek;
+	private final double timeend;
+	private final boolean hidebuffer;
+	private final boolean cleanup;
+	private final boolean shiftScr;
+	private final int secondReadMinSize;
+	private final FileOutputStream debugOutput = null;
+
 	private int bufferOverflowWarning;
 	private boolean eof;
 	private long writeCount;
 	private byte[] buffer;
-	private boolean forcefirst;
 	private ArrayList<WaitBufferedInputStream> inputStreams;
 	private ProcessWrapper attachedThread;
-	private int secondReadMinSize;
 	private Timer timer;
-	private boolean hidebuffer;
-	private boolean cleanup;
-	private boolean shiftScr;
-	private FileOutputStream debugOutput = null;
 	private boolean buffered = false;
-	private NumberFormat formatter = NumberFormat.getInstance(Locale.US);
-	private double timeseek;
-	private double timeend;
 	private long packetpos = 0;
-	private final RendererConfiguration renderer;
 
 	/**
 	 * Try to increase the size of a memory buffer, while retaining its
@@ -121,9 +122,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			copy = new byte[newSize];
 		} catch (OutOfMemoryError e) {
 			if (buffer.length == 0) {
-				LOGGER.trace("Cannot initialize buffer to " + formatter.format(newSize) + " bytes.");
+				LOGGER.trace("Cannot initialize buffer to " + FORMATTER.format(newSize) + " bytes.");
 			} else {
-				LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to " + formatter.format(newSize) + " bytes.");
+				LOGGER.debug("Cannot grow buffer size from " + FORMATTER.format(buffer.length) + " bytes to " + FORMATTER.format(newSize) + " bytes.");
 				LOGGER.debug("Error given: " + e);
 
 			}
@@ -145,10 +146,10 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					// Try to allocate the realistic alternative size
 					copy = new byte[(int) realisticSize];
 				} catch (OutOfMemoryError e2) {
-					LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to " + formatter.format(realisticSize) + " bytes either.");
-					LOGGER.trace("freeMemory: " + formatter.format(Runtime.getRuntime().freeMemory()));
-					LOGGER.trace("totalMemory: " + formatter.format(Runtime.getRuntime().totalMemory()));
-					LOGGER.trace("maxMemory: " + formatter.format(Runtime.getRuntime().maxMemory()));
+					LOGGER.debug("Cannot grow buffer size from " + FORMATTER.format(buffer.length) + " bytes to " + FORMATTER.format(realisticSize) + " bytes either.");
+					LOGGER.trace("freeMemory: " + FORMATTER.format(Runtime.getRuntime().freeMemory()));
+					LOGGER.trace("totalMemory: " + FORMATTER.format(Runtime.getRuntime().totalMemory()));
+					LOGGER.trace("maxMemory: " + FORMATTER.format(Runtime.getRuntime().maxMemory()));
 					LOGGER.debug("Error given: " + e2);
 
 					// Cannot allocate memory, no other option than to return the original.
@@ -158,11 +159,11 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		if (buffer.length == 0) {
-			LOGGER.trace("Successfully initialized buffer to " + formatter.format(copy.length) + " bytes.");
+			LOGGER.trace("Successfully initialized buffer to " + FORMATTER.format(copy.length) + " bytes.");
 		} else {
 			try {
 				System.arraycopy(buffer, 0, copy, 0, buffer.length);
-				LOGGER.trace("Successfully grown buffer from " + formatter.format(buffer.length) + " bytes to " + formatter.format(copy.length) + " bytes.");
+				LOGGER.trace("Successfully grown buffer from " + FORMATTER.format(buffer.length) + " bytes to " + FORMATTER.format(copy.length) + " bytes.");
 			} catch (NullPointerException npe) {
 				LOGGER.trace("Cannot grow buffer size, error copying buffer contents.");
 			}
@@ -285,7 +286,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		if (newReadPosition > 0) {
-			LOGGER.debug("Setting InputStream new position to: " + formatter.format(newReadPosition));
+			LOGGER.debug("Setting InputStream new position to: " + FORMATTER.format(newReadPosition));
 			atominputStream.setReadCount(newReadPosition);
 		}
 
@@ -444,7 +445,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			buffer[m7] == 1 &&
 			buffer[m6] == -70 && // 0xBA - Java/PMS wants -70
 			// control bits
-			!((buffer[m5] & 128) == 128) &&
+			((buffer[m5] & 128) != 128) &&
 			((buffer[m5] & 64) == 64) &&
 			((buffer[m5] & 4) == 4) &&
 			((buffer[m3] & 4) == 4) &&
@@ -500,8 +501,8 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			((buffer[m2] & 0x08) == 0x08) &&
 			((buffer[m0] & 31) == 0) &&
 			// of interest
-			!((buffer[m3] & 128) == 128) && // not drop frm
-			!((buffer[m0] & 16) == 16) // not broken
+			((buffer[m3] & 128) != 128) && // not drop frm
+			((buffer[m0] & 16) != 16) // not broken
 			) {
 			// org timecode
 			byte h = (byte) ((buffer[m3] & 124) >> 2);
@@ -799,7 +800,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					}
 
 					long space = (writeCount - rc);
-					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
+					LOGGER.trace("buffered: " + FORMATTER.format(space) + " bytes / inputs: " + inputStreams.size());
 
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;

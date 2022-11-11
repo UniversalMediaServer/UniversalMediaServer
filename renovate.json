@@ -3,8 +3,10 @@
     "config:base",
     ":dependencyDashboard"
   ],
-  "baseBranches": [
-    "main",
-    "3004-web-settings"
+  "packageRules": [
+    {
+      "matchSourceUrlPrefixes": ["https://github.com/mantinedev/mantine"],
+      "groupName": "Mantine monorepo packages"
+    }
   ]
 }

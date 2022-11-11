@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -27,15 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.renderers.devices.WebRender;
-import net.pms.renderers.devices.players.WebPlayer;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.Playlist;
@@ -46,11 +42,14 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
-import net.pms.util.SubtitleUtils;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.WebRender;
+import net.pms.renderers.devices.players.WebPlayer;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.SubtitleUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,12 +58,14 @@ import org.slf4j.LoggerFactory;
 
 public class PlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String RETURN_PAGE = "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+	private static final String NOTIFY_INFO = "info";
+	private static final String NOTIFY_OK = "okay";
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public PlayHandler(WebInterfaceServerHttpServer parent) {
+	public PlayHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 
@@ -115,12 +116,12 @@ public class PlayHandler implements HttpHandler {
 					if (op.equals("add")) {
 						PMS.get().getDynamicPls().add(r);
 						synchronized (renderer) {
-							renderer.notify(RendererConfiguration.OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
+							renderer.notify(NOTIFY_OK, "Added '" + r.getDisplayName() + "' to dynamic playlist");
 						}
 					} else if (op.equals("del") && (r.getParent() instanceof Playlist)) {
 						((Playlist) r.getParent()).remove(r);
 						synchronized (renderer) {
-							renderer.notify(RendererConfiguration.INFO, "Removed '" + r.getDisplayName() + "' from playlist");
+							renderer.notify(NOTIFY_INFO, "Removed '" + r.getDisplayName() + "' from playlist");
 						}
 					}
 				}
@@ -146,7 +147,7 @@ public class PlayHandler implements HttpHandler {
 
 	private static void addNextByType(DLNAResource d, HashMap<String, Object> mustacheVars) {
 		List<DLNAResource> children = d.getParent().getChildren();
-		boolean looping = CONFIGURATION.getWebAutoLoop(d.getFormat());
+		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(d.getFormat());
 		int type = d.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
@@ -203,9 +204,9 @@ public class PlayHandler implements HttpHandler {
 				// waste of resource to play dummy video
 				synchronized (renderer) {
 					if (((VirtualVideoAction) rootResource).enable()) {
-						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " enabled");
+						renderer.notify(NOTIFY_INFO, rootResource.getName() + " enabled");
 					} else {
-						renderer.notify(RendererConfiguration.INFO, rootResource.getName() + " disabled");
+						renderer.notify(NOTIFY_INFO, rootResource.getName() + " disabled");
 					}
 				}
 				return RETURN_PAGE;
@@ -307,7 +308,7 @@ public class PlayHandler implements HttpHandler {
 
 			mustacheVars.put("name", name);
 			mustacheVars.put("id1", id1);
-			mustacheVars.put("autoContinue", CONFIGURATION.getWebAutoCont(format));
+			mustacheVars.put("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			if (CONFIGURATION.isDynamicPls()) {
 				if (rootResource.getParent() instanceof Playlist) {
 					mustacheVars.put("plsOp", "del");
@@ -323,8 +324,8 @@ public class PlayHandler implements HttpHandler {
 			if (isImage) {
 				// do this like this to simplify the code
 				// skip all player crap since img tag works well
-				int delay = CONFIGURATION.getWebImgSlideDelay() * 1000;
-				if (delay > 0 && CONFIGURATION.getWebAutoCont(format)) {
+				int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
+				if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
 					mustacheVars.put("delay", delay);
 				}
 			} else {
@@ -345,11 +346,11 @@ public class PlayHandler implements HttpHandler {
 					mustacheVars.put("height", renderer.getVideoHeight());
 				}
 			}
-			if (CONFIGURATION.useWebControl()) {
+			if (CONFIGURATION.isWebPlayerControllable()) {
 				mustacheVars.put("push", true);
 			}
 
-			if (isVideo && CONFIGURATION.getWebSubs()) {
+			if (isVideo && CONFIGURATION.getWebPlayerSubs()) {
 				// only if subs are requested as <track> tags
 				// otherwise we'll transcode them in
 				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
@@ -402,7 +403,7 @@ public class PlayHandler implements HttpHandler {
 					// Get the resource url
 					boolean isTranscodeFolderItem = dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder);
 					// If the resource is not a transcode folder item, tag its url for forced streaming
-					url = dlna.getURL(isTranscodeFolderItem  ? "" : RendererConfiguration.NOTRANSCODE, true, false);
+					url = dlna.getURL(isTranscodeFolderItem  ? "" : Renderer.NOTRANSCODE, true, false);
 
 				} else {
 					// It's a WEB.conf item

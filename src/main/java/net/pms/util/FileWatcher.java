@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import com.sun.jna.Platform;
@@ -45,9 +61,9 @@ public class FileWatcher {
 	 * @param w The watch object.
 	 */
 	public static void add(Watch w) {
-		LOGGER.trace("FileWatcher: Adding " + w.fspec);
+		LOGGER.trace("FileWatcher: Adding " + w.getFileSpec());
 		try {
-			Path dir = Paths.get(FilenameUtils.getFullPath(w.fspec));
+			Path dir = Paths.get(FilenameUtils.getFullPath(w.getFileSpec()));
 			LOGGER.trace("FileWatcher: path " + dir);
 			w.init(dir);
 			if (keys.contains(w)) {
@@ -60,7 +76,7 @@ public class FileWatcher {
 				add(w, dir);
 			}
 		} catch (NullPointerException e) {
-			LOGGER.info("Not watching invalid path {} for changes", w.fspec);
+			LOGGER.info("Not watching invalid path {} for changes", w.getFileSpec());
 		}
 	}
 
@@ -110,7 +126,7 @@ public class FileWatcher {
 				key = dir.register(watchService, events);
 			}
 			keys.put(key, w);
-			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
+			LOGGER.debug("Added file watch at {}: {}", dir, w.getFileSpec());
 		} catch (IOException e) {
 			LOGGER.debug("Register error: " + e, e);
 		}
@@ -205,7 +221,7 @@ public class FileWatcher {
 							for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
 								final Watch w = iterator.next();
 								if (!Watch.isValid(w)) {
-									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.fspec);
+									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.getFileSpec());
 									iterator.remove();
 									continue;
 								}
@@ -256,10 +272,10 @@ public class FileWatcher {
 	 * A file watchpoint.
 	 */
 	public static class Watch {
-		public String fspec;
+		private final String fspec;
+		private final int flag;
 		private WeakReference<Listener> listener;
 		private WeakReference<Object> item;
-		public int flag;
 		private PathMatcher matcher;
 
 		// Convenience constructors
@@ -308,6 +324,14 @@ public class FileWatcher {
 			// Assume glob pattern if no prefix
 			String match = (fspec.startsWith("glob:") || fspec.startsWith("regex:")) ? fspec : ("glob:" + fspec);
 			matcher = dir.getFileSystem().getPathMatcher(match);
+		}
+
+		public String getFileSpec() {
+			return fspec;
+		}
+
+		public boolean isFlag(int value) {
+			return flag == value;
 		}
 
 		public Object getItem() {
@@ -377,7 +401,8 @@ public class FileWatcher {
 	 * A runnable self-removing file event notice.
 	 */
 	static class Notice implements Runnable {
-		String filename, kind;
+		String filename;
+		String kind;
 		Watch watch;
 		boolean isDir;
 		HashMap notifierQueue = null;
@@ -397,11 +422,10 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || !(o instanceof Notice)) {
-				return false;
+			if (o instanceof Notice other) {
+				return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
 			}
-			Notice other = (Notice) o;
-			return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
+			return false;
 		}
 
 		@Override

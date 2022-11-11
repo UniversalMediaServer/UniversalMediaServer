@@ -1,21 +1,19 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.util;
 
 import java.io.BufferedReader;
@@ -40,7 +38,7 @@ public class TempFileMgr {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFileMgr.class);
 	private static final int DEFAULT_CLEAN_TIME = 14 * 24 * 3600 * 1000;
 	private static final int INTERVAL = 24 * 3600 * 1000;
-	private HashMap<File, Integer> files;
+	private final HashMap<File, Integer> files;
 
 	public TempFileMgr() {
 		files = new HashMap<>();
@@ -54,7 +52,7 @@ public class TempFileMgr {
 	public void add(File f, String str) {
 		try {
 			add(f, Integer.parseInt(str));
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			add(f);
 		}
 	}
