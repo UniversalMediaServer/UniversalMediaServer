@@ -764,22 +764,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 	}
 
-	/**
-	 * The following 2 constructors are for minimal instantiation in the context
-	 * of subclasses (i.e.DeviceConfiguration) that use our getters and setters
-	 * on another Configuration object.
-	 * Here our main purpose is to initialize RendererConfiguration as required.
-	 *
-	 * @param ignored this integer is ignored
-	 */
-	protected UmsConfiguration(int ignored) {
-		// Just instantiate
-		super(true);
-		tempFolder = null;
-		programPaths = new ConfigurableProgramPaths(configuration);
-		filter = null;
-	}
-
 	protected UmsConfiguration(Configuration configuration, ConfigurationReader configurationReader) {
 		// Just instantiate
 		super(configuration, configurationReader);

@@ -32,7 +32,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
@@ -41,13 +40,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class handle all renderers and devices found.
- * TODO : Add UPNPHelper devices found
  */
 public class ConnectedRenderers {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
 	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 
 	/**
 	 * Returns the list of all connected renderer devices.
@@ -56,7 +55,7 @@ public class ConnectedRenderers {
 	 */
 	public static Collection<Renderer> getConnectedRenderers() {
 		// We need to check both UPnP and http sides to ensure a complete list
-		HashSet<Renderer> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
+		HashSet<Renderer> renderers = new HashSet<>(UUID_RENDERER_ASSOCIATION.values());
 		renderers.addAll(ADDRESS_RENDERER_ASSOCIATION.values());
 		renderers.addAll(REACT_CLIENT_RENDERERS.values());
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
@@ -111,41 +110,6 @@ public class ConnectedRenderers {
 		return null;
 	}
 
-	public static boolean hasConnectedAVTransportPlayers() {
-		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
-	}
-
-	public static List<Renderer> getConnectedAVTransportPlayers() {
-		return UPNPHelper.getRenderers(UPNPHelper.AVT);
-	}
-
-	public static boolean hasConnectedControlPlayers() {
-		return hasConnectedRenderer(UPNPHelper.ANY);
-	}
-
-	public static List<Renderer> getConnectedControlPlayers() {
-		return ConnectedRenderers.getConnectedRenderers(UPNPHelper.ANY);
-	}
-
-	public static boolean hasConnectedRenderer(int type) {
-		for (Renderer r : getConnectedRenderers()) {
-			if (r.isControllable(type)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static List<Renderer> getConnectedRenderers(int type) {
-		ArrayList<Renderer> renderers = new ArrayList<>();
-		for (Renderer r : getConnectedRenderers()) {
-			if (r.isActive() && r.isControllable(type)) {
-				renderers.add(r);
-			}
-		}
-		return renderers;
-	}
-
 	/**
 	 * Searches for an instance of this renderer connected at the given address.
 	 *
@@ -193,7 +157,7 @@ public class ConnectedRenderers {
 					// update gui
 					renderer.updateRendererGui();
 				}
-			} else if (!UPNPHelper.isNonRenderer(ia)) {
+			} else if (!JUPnPDeviceHelper.isNonRenderer(ia)) {
 				// It's brand new
 				renderer = new Renderer(ref, ia);
 				if (renderer.associateIP(ia)) {
@@ -242,13 +206,15 @@ public class ConnectedRenderers {
 					LOGGER.debug("Deleting renderer " + renderer);
 					renderer.deleteGuis();
 					PMS.get().getFoundRenderers().remove(renderer);
-					UPNPHelper.getInstance().removeRenderer(renderer);
 					InetAddress ia = renderer.getAddress();
 					if (ADDRESS_RENDERER_ASSOCIATION.get(ia) == renderer) {
 						ADDRESS_RENDERER_ASSOCIATION.remove(ia);
 					}
 					String uuid = renderer.getUUID();
 					if (uuid != null) {
+						if (UUID_RENDERER_ASSOCIATION.get(uuid) == renderer) {
+							UUID_RENDERER_ASSOCIATION.remove(uuid);
+						}
 						if (REACT_CLIENT_RENDERERS.get(uuid) == renderer) {
 							REACT_CLIENT_RENDERERS.remove(uuid);
 						}
@@ -383,4 +349,105 @@ public class ConnectedRenderers {
 		}
 		return uuid;
 	}
+
+	/**
+	 * RendererMap was marking renderer via uuid.
+	 * @param uuid
+	 * @return Renderer
+	 */
+	public static void markRenderer(String uuid, int property, Object value) {
+		Renderer renderer = UUID_RENDERER_ASSOCIATION.get(uuid);
+		switch (property) {
+			case JUPnPDeviceHelper.ACTIVE -> renderer.setActive((boolean) value);
+			case JUPnPDeviceHelper.RENEW -> renderer.setRenew((boolean) value);
+			case JUPnPDeviceHelper.CONTROLS -> renderer.setControls((int) value);
+			default -> {
+				//not handled
+			}
+		}
+	}
+
+	public static boolean hasUpNPRenderer(String uuid) {
+		return (UUID_RENDERER_ASSOCIATION.containsKey(uuid));
+	}
+
+	public static Renderer addUpNPRenderer(String uuid, Renderer renderer) {
+		return UUID_RENDERER_ASSOCIATION.put(uuid, renderer);
+	}
+
+	public static Renderer getUpNPRenderer(String uuid) {
+		return UUID_RENDERER_ASSOCIATION.get(uuid);
+	}
+
+	/**
+	 * RendererMap was creating renderer on the fly if not found.
+	 * @param uuid
+	 * @return Renderer
+	 */
+	public static Renderer getOrCreateUpNPRenderer(String uuid) {
+		if (!hasUpNPRenderer(uuid)) {
+			try {
+				addUpNPRenderer(uuid, new Renderer(uuid));
+			} catch (InterruptedException | ConfigurationException e) {
+				LOGGER.error("Error instantiating item {}: {}", uuid, e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		return getUpNPRenderer(uuid);
+	}
+
+	public static List<Renderer> getUpNPRenderers(int type) {
+		ArrayList<Renderer> renderers = new ArrayList<>();
+		for (Renderer r : UUID_RENDERER_ASSOCIATION.values()) {
+			if (r.isActive() && r.isControllable(type)) {
+				renderers.add(r);
+			}
+		}
+		return renderers;
+	}
+
+	public static boolean hasUpNPRenderer(int type) {
+		for (Renderer r : UUID_RENDERER_ASSOCIATION.values()) {
+			if (r.isControllable(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean hasConnectedAVTransportPlayers() {
+		return hasUpNPRenderer(JUPnPDeviceHelper.AVT);
+	}
+
+	public static List<Renderer> getConnectedAVTransportPlayers() {
+		return getUpNPRenderers(JUPnPDeviceHelper.AVT);
+	}
+
+	public static List<Renderer> getConnectedControlPlayers() {
+		return ConnectedRenderers.getConnectedRenderers(JUPnPDeviceHelper.ANY);
+	}
+
+	public static boolean hasConnectedControlPlayers() {
+		return hasConnectedRenderer(JUPnPDeviceHelper.ANY);
+	}
+
+	public static boolean hasConnectedRenderer(int type) {
+		for (Renderer r : getConnectedRenderers()) {
+			if (r.isControllable(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<Renderer> getConnectedRenderers(int type) {
+		ArrayList<Renderer> renderers = new ArrayList<>();
+		for (Renderer r : getConnectedRenderers()) {
+			if (r.isActive() && r.isControllable(type)) {
+				renderers.add(r);
+			}
+		}
+		return renderers;
+	}
+
 }

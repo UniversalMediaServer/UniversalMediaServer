@@ -27,7 +27,6 @@ import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.UPNPHelper;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import net.pms.renderers.ConnectedRenderers;
@@ -160,7 +159,7 @@ public class ControlHandler implements HttpHandler {
 			try {
 				String[] q = raw.split("&|=");
 				for (int i = 0; i < q.length; i += 2) {
-					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i + 1], "UTF-8")));
+					vars.put(URLDecoder.decode(q[i], "UTF-8"), UMSUtils.unescape(URLDecoder.decode(q[i + 1], "UTF-8")));
 				}
 			} catch (UnsupportedEncodingException e) {
 				LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
