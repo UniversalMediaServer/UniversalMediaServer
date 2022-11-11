@@ -1305,7 +1305,7 @@
 										</copy>
 										<mkdir dir="${project.binaries}/bin/avisynth" />
 										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/bin" />
-										<copy file="${project.external-resources}/windows/avisynth/x64/DevIL.dll" todir="${project.binaries}/bin" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/bin" />
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
 										</copy>
