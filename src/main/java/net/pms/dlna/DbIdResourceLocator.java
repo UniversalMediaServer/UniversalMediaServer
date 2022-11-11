@@ -51,8 +51,8 @@ public class DbIdResourceLocator {
 	private DbIdResourceLocator() {
 	}
 
-	public static DLNAResource locateResource(String id, Renderer config) {
-		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id), config);
+	public static DLNAResource locateResource(String id, Renderer renderer) {
+		DLNAResource resource = getDLNAResourceByDBID(DbIdMediaType.getTypeIdentByDbid(id), renderer);
 		return resource;
 	}
 
@@ -74,7 +74,7 @@ public class DbIdResourceLocator {
 	 *         and resolved. In case of a container, the container will be
 	 *         created and populated.
 	 */
-	public static DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent typeAndIdent, Renderer config) {
+	public static DLNAResource getDLNAResourceByDBID(DbIdTypeAndIdent typeAndIdent, Renderer renderer) {
 		DLNAResource res = null;
 		Connection connection = null;
 		try {
@@ -91,7 +91,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new RealFileDbId(new File(resultSet.getString("FILENAME")));
-									res.setDefaultRenderer(config);
+									res.setDefaultRenderer(renderer);
 									res.resolve();
 								}
 							}
@@ -104,7 +104,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
 									res = new PlaylistFolder(new File(resultSet.getString("FILENAME")));
-									res.setDefaultRenderer(config);
+									res.setDefaultRenderer(renderer);
 									res.setId(String.format("$DBID$PLAYLIST$%s", typeAndIdent.ident));
 									res.resolve();
 									res.refreshChildren();
@@ -122,7 +122,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
-								res.setDefaultRenderer(config);
+								res.setDefaultRenderer(renderer);
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
 											new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
@@ -144,7 +144,7 @@ public class DbIdResourceLocator {
 								if (resultSet.next()) {
 									res = new VirtualFolderDbId(resultSet.getString("ALBUM"),
 										new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
-									res.setDefaultRenderer(config);
+									res.setDefaultRenderer(renderer);
 									res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums"))));
 									// Find "best track" logic should be optimized !!
 									String lastUuidTrack = "";
@@ -172,7 +172,7 @@ public class DbIdResourceLocator {
 								Messages.getString("MyAlbums"),
 								new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums")),
 								"");
-							res.setDefaultRenderer(config);
+							res.setDefaultRenderer(renderer);
 							if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 								res.setFakeParentId("0");
 							} else if (PMS.get().getLibrary().isEnabled()) {
@@ -209,7 +209,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(typeAndIdent.ident,
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
-								res.setDefaultRenderer(config);
+								res.setDefaultRenderer(renderer);
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
 											new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
@@ -223,7 +223,7 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON -> {
 							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident),
 								"");
-							res.setDefaultRenderer(config);
+							res.setDefaultRenderer(renderer);
 							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
@@ -239,7 +239,7 @@ public class DbIdResourceLocator {
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident),
 									""
 							);
-							res.setDefaultRenderer(config);
+							res.setDefaultRenderer(renderer);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									String album = resultSet.getString(1);
@@ -258,7 +258,7 @@ public class DbIdResourceLocator {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
-								res.setDefaultRenderer(config);
+								res.setDefaultRenderer(renderer);
 								while (resultSet.next()) {
 									DLNAResource item = new RealFileDbId(
 											new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
