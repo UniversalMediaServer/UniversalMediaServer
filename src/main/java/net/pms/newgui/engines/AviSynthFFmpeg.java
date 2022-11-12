@@ -163,7 +163,7 @@ public class AviSynthFFmpeg {
 		String[] frameStretchFactors = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
 
 		JComboBox<String> frameStretchFactor = new JComboBox<>(frameStretchFactors);
-		frameStretchFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthFrameStretchFactor());
+		frameStretchFactor.setSelectedItem(Integer.toString(CONFIGURATION.getFfmpegAvisynthFrameStretchFactor()));
 		frameStretchFactor.setToolTipText(Messages.getString("SelectOrEnterFrameStretchFactorInPercent"));
 
 		frameStretchFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthFrameStretchFactor(Integer.parseInt((String) e.getItem())));
@@ -175,7 +175,7 @@ public class AviSynthFFmpeg {
 		String[] lightOffsetFactors = new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
 
 		JComboBox<String> lightOffsetFactor = new JComboBox<>(lightOffsetFactors);
-		lightOffsetFactor.setSelectedItem(CONFIGURATION.getFfmpegAvisynthLightOffsetFactor());
+		lightOffsetFactor.setSelectedItem(Integer.toString(CONFIGURATION.getFfmpegAvisynthLightOffsetFactor()));
 		lightOffsetFactor.setToolTipText(Messages.getString("SelectOrEnterLightingDepthOffsetFactor"));
 
 		lightOffsetFactor.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthLightOffsetFactor(Integer.parseInt((String) e.getItem())));
@@ -211,7 +211,7 @@ public class AviSynthFFmpeg {
 		String[] resolutions = new String[] {"7680", "3840", "1920", "1280", "852", "768", "720", "704", "640", "544", "480", "352", "120" };
 
 		JComboBox<String> horizontalResizeResolution = new JComboBox<>(resolutions);
-		horizontalResizeResolution.setSelectedItem(CONFIGURATION.getFfmpegAvisynthHorizontalResizeResolution());
+		horizontalResizeResolution.setSelectedItem(Integer.toString(CONFIGURATION.getFfmpegAvisynthHorizontalResizeResolution()));
 		horizontalResizeResolution.setToolTipText(Messages.getString("SelectOrEnterTheMaximumWidthOfTheInputVideo"));
 
 		horizontalResizeResolution.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegAvisynthHorizontalResizeResolution(Integer.parseInt((String) e.getItem())));
