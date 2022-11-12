@@ -1,13 +1,12 @@
 name: Universal Media Server CI
 
-on:
-  pull_request:
-  push:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
   macos:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
     runs-on: macos-12
     strategy:
       matrix:
@@ -34,6 +33,10 @@ jobs:
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows-latest:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
+    name: Windows and lint
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -56,6 +59,9 @@ jobs:
         run: mvn verify -P linter
 
   linux-focal:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -84,6 +90,9 @@ jobs:
           mvn verify -P testing
 
   linux-jammy:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
