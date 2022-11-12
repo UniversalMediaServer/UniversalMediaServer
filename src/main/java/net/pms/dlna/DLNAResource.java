@@ -1080,7 +1080,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(objectId);
+					dlna = DbIdResourceLocator.locateResource(objectId, renderer);
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

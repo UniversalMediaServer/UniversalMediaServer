@@ -386,7 +386,7 @@ public class BrowseHandler implements HttpHandler {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id, root.getDefaultRenderer()); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

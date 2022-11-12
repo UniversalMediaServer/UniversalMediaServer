@@ -509,7 +509,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id, renderer); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
