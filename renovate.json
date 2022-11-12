@@ -3,10 +3,21 @@
     "config:base",
     ":dependencyDashboard"
   ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "branch"
+  },
   "packageRules": [
     {
       "matchSourceUrlPrefixes": ["https://github.com/mantinedev/mantine"],
       "groupName": "Mantine monorepo packages"
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "branch"
     }
   ]
 }
