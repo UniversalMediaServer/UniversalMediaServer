@@ -5552,7 +5552,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 		jObj.addProperty(KEY_FFMPEG_SOX, true);
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, true);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfSystemCpuCores() > 1);

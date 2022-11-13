@@ -16,7 +16,6 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +25,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -43,8 +45,6 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.ProgramExecutableType;
 import net.pms.util.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
@@ -176,12 +176,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 						if (version.getMajor() > 2) {
 							isAviSynthPlus = true;
 							LOGGER.debug(
-								"Founded AviSynth+ version {}",
+								"Found AviSynth+ version {}",
 								version
 							);
 						} else {
 							LOGGER.info(
-								"Founded AviSynth version {}",
+								"Found AviSynth version {}",
 								version
 							);
 						}
@@ -205,7 +205,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path ffms2TestPath = ffms2Info.getPath(executableType);
 				if (Files.exists(ffms2TestPath)) {
 					ffms2Path = ffms2TestPath;
-					LOGGER.info("Founded AviSynth FFmpegSource2 library");
+					LOGGER.info("Found AviSynth FFmpegSource2 library");
 					break;
 				}
 			}
@@ -215,7 +215,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path directShowSourceTestPath = directShowSourceInfo.getPath(executableType);
 				if (Files.exists(directShowSourceTestPath)) {
 					directShowSourcePath = directShowSourceTestPath;
-					LOGGER.info("Founded AviSynth DirectShowSource library");
+					LOGGER.info("Found AviSynth DirectShowSource library");
 					break;
 				}
 			}
@@ -234,7 +234,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path mvtools2TestPath = mvtools2Info.getPath(executableType);
 				if (Files.exists(mvtools2TestPath)) {
 					mvtools2Path = mvtools2TestPath;
-					LOGGER.info("Founded AviSynth mvtools2 library");
+					LOGGER.info("Found AviSynth mvtools2 library");
 					break;
 				}
 			}
@@ -244,7 +244,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				Path convert2dTo3dTestPath = convert2dTo3dInfo.getPath(executableType);
 				if (Files.exists(convert2dTo3dTestPath)) {
 					convert2dTo3dPath = convert2dTo3dTestPath;
-					LOGGER.info("Founded AviSynth convert2dTo3d script");
+					LOGGER.info("Found AviSynth convert2dTo3d script");
 					break;
 				}
 			}
@@ -296,7 +296,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			String interframeLines 		= null;
 			String interframePath  		= customConfiguration.getInterFramePath();
 
-			//fallback to FFMS2 if DirectShowSource not founded
+			//fallback to FFMS2 if DirectShowSource not found
 			if ((directShowSourcePath == null || customConfiguration.getFfmpegAvisynthUseFFMS2()) && ffms2Path != null) {
 				// See documentation for FFMS2 here: http://avisynth.nl/index.php/FFmpegSource
 
