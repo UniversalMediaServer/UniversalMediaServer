@@ -1,32 +1,26 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
-import net.pms.newgui.util.ShortcutFileSystemView;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
 import com.sun.jna.Platform;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -35,61 +29,45 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.PmsConfiguration.SharedFolder;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.FeedAudioContent;
+import net.pms.configuration.sharedcontent.FeedContent;
+import net.pms.configuration.sharedcontent.FeedImageContent;
+import net.pms.configuration.sharedcontent.FeedVideoContent;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.VirtualFolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentArray;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentListener;
+import net.pms.configuration.sharedcontent.StreamContent;
+import net.pms.configuration.sharedcontent.StreamAudioContent;
+import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
-import net.pms.service.LibraryScanner;
-import net.pms.network.HTTPResource;
-import static net.pms.dlna.RootFolder.parseFeedKey;
-import static net.pms.dlna.RootFolder.parseFeedValue;
+import net.pms.dlna.Feed;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.util.FormLayoutUtil;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import net.pms.newgui.util.ShortcutFileSystemView;
+import net.pms.service.LibraryScanner;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SharedContentTab {
-	private static final Vector<String> FOLDERS_COLUMN_NAMES = new Vector<>(
-		Arrays.asList(new String[] {Messages.getString("Folder"), Messages.getString("MonitorPlayedStatusFiles")})
-	);
+public class SharedContentTab implements SharedContentListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
-
-	private JPanel sharedPanel;
-	private JPanel sharedFoldersPanel;
-	private JPanel sharedWebContentPanel;
-	private JTable sharedFolders;
-	public static JTable webContentList;
-	private SharedFoldersTableModel folderTableModel;
-	public static WebContentTableModel webContentTableModel;
-	public static JCheckBox itunes;
 	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
 	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
 	private static final AnimatedIcon SCAN_NORMAL_ICON = (AnimatedIcon) SCAN_BUTTON.getIcon();
@@ -100,12 +78,14 @@ public class SharedContentTab {
 	private static final AnimatedIcon SCAN_BUSY_ROLLOVER_ICON = new AnimatedIcon(SCAN_BUTTON, "button-cancel.png");
 	private static final AnimatedIcon SCAN_BUSY_PRESSED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-cancel_pressed.png");
 	private static final AnimatedIcon SCAN_BUSY_DISABLED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-scan-busy_disabled.png");
-	private static final JImageButton ADD_BUTTON = new JImageButton("button-add-folder.png");
-	private static final JImageButton REMOVE_BUTTON = new JImageButton("button-remove-folder.png");
-	private static final JImageButton ARROW_DOWN_BUTTON = new JImageButton("button-arrow-down.png");
-	private static final JImageButton ARROW_UP_BUTTON = new JImageButton("button-arrow-up.png");
+	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
+	private static final String PANEL_ROW_SPEC = "fill:default:grow";
+	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
+	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), fill:default:grow";
 
 	private static final String[] TYPES_READABLE = new String[]{
+		Messages.getString("Folder"),
+		Messages.getString("VirtualFolders"),
 		Messages.getString("Podcast"),
 		Messages.getString("VideoFeed"),
 		Messages.getString("ImageFeed"),
@@ -113,81 +93,32 @@ public class SharedContentTab {
 		Messages.getString("VideoStream"),
 	};
 
-	private static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[2];
-	private static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[1];
-	private static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[0];
-	private static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[3];
-	private static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[4];
+	private static final String[] TYPES_WEB_CONTENT = new String[] {
+		TYPES_READABLE[2],
+		TYPES_READABLE[3],
+		TYPES_READABLE[4],
+		TYPES_READABLE[5],
+		TYPES_READABLE[6],
+	};
 
-	public SharedFoldersTableModel getDf() {
-		return folderTableModel;
-	}
+	private static final String READABLE_TYPE_FOLDER       = TYPES_READABLE[0];
+	private static final String READABLE_TYPE_FOLDERS      = TYPES_READABLE[1];
+	private static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[2];
+	private static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[3];
+	private static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[4];
+	private static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[5];
+	private static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[6];
 
-	private final PmsConfiguration configuration;
+	private static JTable sharedContentList;
+	private static SharedContentTableModel sharedContentTableModel;
+	private static SharedContentArray sharedContentArray;
+	private final UmsConfiguration configuration;
 	private final LooksFrame looksFrame;
 
-	SharedContentTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	SharedContentTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}
-
-	public static long lastWebContentUpdate = 1L;
-
-	private void updateWebContentModel() {
-		List<String> entries = new ArrayList<>();
-
-		for (int i = 0; i < webContentTableModel.getRowCount(); i++) {
-			String readableType = (String) webContentTableModel.getValueAt(i, 1);
-			String folders = (String) webContentTableModel.getValueAt(i, 2);
-			String configType;
-
-			if (readableType.equals(READABLE_TYPE_IMAGE_FEED)) {
-				configType = "imagefeed";
-			} else if (readableType.equals(READABLE_TYPE_VIDEO_FEED)) {
-				configType = "videofeed";
-			} else if (readableType.equals(READABLE_TYPE_AUDIO_FEED)) {
-				configType = "audiofeed";
-			} else if (readableType.equals(READABLE_TYPE_AUDIO_STREAM)) {
-				configType = "audiostream";
-			} else if (readableType.equals(READABLE_TYPE_VIDEO_STREAM)) {
-				configType = "videostream";
-			} else {
-				// Skip the whole row if another value was used
-				continue;
-			}
-
-			String source = (String) webContentTableModel.getValueAt(i, 3);
-			String resourceName = (String) webContentTableModel.getValueAt(i, 0);
-
-			StringBuilder entryToAdd = new StringBuilder();
-			entryToAdd.append(configType).append(".").append(folders).append("=");
-
-			switch (configType) {
-				case "imagefeed", "videofeed", "audiofeed" -> {
-					entryToAdd.append(source);
-
-					if (resourceName != null) {
-						entryToAdd.append(",,,").append(resourceName);
-					}
-				}
-				default -> {
-					if (resourceName != null) {
-						entryToAdd.append(resourceName).append(",").append(source);
-					}
-				}
-			}
-
-			entries.add(entryToAdd.toString());
-		}
-
-		configuration.writeWebConfigurationFile(entries);
-		lastWebContentUpdate = System.currentTimeMillis();
-	}
-
-	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
-	private static final String PANEL_ROW_SPEC = "fill:default:grow, 9dlu, fill:default:grow";
-	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
-	private static final String SHARED_FOLDER_ROW_SPEC = "2*(p, 3dlu), fill:default:grow";
 
 	public JComponent build() {
 		// Apply the orientation for the locale
@@ -203,21 +134,12 @@ public class SharedContentTab {
 		CellConstraints cc = new CellConstraints();
 
 		// Init all gui components
-		sharedFoldersPanel = initSharedFoldersGuiComponents(cc).build();
-		sharedWebContentPanel = initWebContentGuiComponents(cc).build();
+		JPanel sharedContentPanel = initSharedContentGuiComponents(cc).build();
 
 		// Load WEB.conf after we are sure the GUI has initialized
-		String webConfPath = configuration.getWebConfPath();
-		File webConf = new File(webConfPath);
-		if (!webConf.exists()) {
-			configuration.writeWebConfigurationFile();
-		}
-		if (webConf.exists() && configuration.getExternalNetwork()) {
-			setWebContentGUIFromWebConfFile(webConf, webContentList.getSelectedRow());
-		}
+		SharedContentConfiguration.addListener(this);
 
-		builder.add(sharedFoldersPanel,    FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
-		builder.add(sharedWebContentPanel, FormLayoutUtil.flip(cc.xyw(1, 3, 12), colSpec, orientation));
+		builder.add(sharedContentPanel, FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -234,7 +156,16 @@ public class SharedContentTab {
 		return scrollPane;
 	}
 
-	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
+	/**
+	 * This parses the web sources config and populates the shared section of this tab.
+	 */
+	@Override
+	public synchronized void updateSharedContent() {
+		sharedContentArray = SharedContentConfiguration.getSharedContentArray();
+		refreshSharedContent();
+	}
+
+	private PanelBuilder initSharedContentGuiComponents(CellConstraints cc) {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(SHARED_FOLDER_COL_SPEC, orientation);
@@ -243,60 +174,31 @@ public class SharedContentTab {
 		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
 		builderFolder.opaque(true);
 
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("SharedFolders"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
+		JComponent cmp = builderFolder.addSeparator(Messages.getString("SharedContent"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		folderTableModel = new SharedFoldersTableModel();
-		sharedFolders = new JTable(folderTableModel);
+		sharedContentTableModel = new SharedContentTableModel();
+		sharedContentList = new JTable(sharedContentTableModel);
+		TableColumn column = sharedContentList.getColumnModel().getColumn(3);
+		column.setMinWidth(500);
 
-		JPopupMenu popupMenu = new JPopupMenu();
-		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("MarkContentsFullyPlayed"));
-		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("MarkContentsUnplayed"));
+		sharedContentList.addMouseListener(new TableMouseListener(sharedContentList));
+		addContentsFullyPlayedPopupMenu(sharedContentList);
 
-		menuItemMarkPlayed.addActionListener((ActionEvent e) -> {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-					MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, true);
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		});
-
-		menuItemMarkUnplayed.addActionListener((ActionEvent e) -> {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					String path = (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0);
-					MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, false);
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		});
-
-		popupMenu.add(menuItemMarkPlayed);
-		popupMenu.add(menuItemMarkUnplayed);
-
-		sharedFolders.setComponentPopupMenu(popupMenu);
-
-		/* An attempt to set the correct row height adjusted for font scaling.
+		/*
+		 * An attempt to set the correct row height adjusted for font scaling.
 		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
-		 * to allow 2 pixels above and below the text. */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedFolders.getCellRenderer(0, 0);
+		 * to allow 2 pixels above and below the text.
+		 */
+		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) sharedContentList.getCellRenderer(0, 0);
 		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		sharedFolders.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		sharedFolders.setIntercellSpacing(new Dimension(8, 2));
+		sharedContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
+		sharedContentList.setIntercellSpacing(new Dimension(8, 2));
 
-		final JPanel tmpsharedPanel = sharedPanel;
-
-		ADD_BUTTON.setToolTipText(Messages.getString("AddFolder"));
-		ADD_BUTTON.addActionListener((ActionEvent e) -> {
+		JImageButton addFolderButton = new JImageButton("button-add-folder.png");
+		addFolderButton.setToolTipText(Messages.getString("AddFolder"));
+		addFolderButton.addActionListener((ActionEvent e) -> {
 			JFileChooser chooser;
 			try {
 				chooser = new JFileChooser();
@@ -308,94 +210,194 @@ public class SharedContentTab {
 				LOGGER.debug("Using RestrictedFileSystemView because {}", ee.getMessage());
 			}
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			int returnVal = chooser.showOpenDialog((Component) e.getSource());
+			int returnVal = chooser.showOpenDialog((java.awt.Component) e.getSource());
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				int firstSelectedRow = sharedFolders.getSelectedRow();
+				int firstSelectedRow = sharedContentList.getSelectedRow();
 				if (firstSelectedRow >= 0) {
-					((SharedFoldersTableModel) sharedFolders.getModel()).insertRow(
-						firstSelectedRow,
-						new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
-					);
+					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile()));
 				} else {
-					((SharedFoldersTableModel) sharedFolders.getModel()).addRow(
-						new Object[]{chooser.getSelectedFile().getAbsolutePath(), true}
-					);
+					sharedContentArray.add(new FolderContent(chooser.getSelectedFile()));
 				}
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
 			}
 		});
-		builderFolder.add(ADD_BUTTON, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builderFolder.add(addFolderButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		REMOVE_BUTTON.setToolTipText(Messages.getString("RemoveSelectedFolders"));
-		REMOVE_BUTTON.addActionListener((ActionEvent e) -> {
-			int[] rows = sharedFolders.getSelectedRows();
-			if (rows.length > 0) {
-				if (rows.length > 1) {
-					if (
-						JOptionPane.showConfirmDialog(
-							tmpsharedPanel,
-							String.format(Messages.getString("SharedFolders.ConfirmRemove"), rows.length),
-							Messages.getString("Confirm"),
-							JOptionPane.YES_NO_OPTION,
-							JOptionPane.WARNING_MESSAGE
-						) != JOptionPane.YES_OPTION
-						) {
-						return;
-					}
+		JImageButton addWebContentButton = new JImageButton("button-add-webcontent.png");
+		addWebContentButton.setToolTipText(Messages.getString("AddNewWebContent"));
+		addWebContentButton.addActionListener((ActionEvent e) -> {
+			JLabel labelType = new JLabel(Messages.getString("TypeColon"));
+			JLabel labelFolders = new JLabel(Messages.getString("FoldersSlashDelimited"));
+			JLabel labelName = new JLabel(Messages.getString("NameColon"));
+			JLabel labelSource = new JLabel(Messages.getString("SourceURLColon"));
+
+			JTextField newEntryFolders = new JTextField(25);
+			newEntryFolders.setText("Web/");
+
+			JTextField newEntrySource = new JTextField(50);
+
+			JTextField newEntryName = new JTextField(25);
+			newEntryName.setEnabled(false);
+			newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+
+			JComboBox<String> newEntryType = new JComboBox<>(TYPES_WEB_CONTENT);
+			newEntryType.setEditable(false);
+			newEntryType.addItemListener((ItemEvent e1) -> {
+				if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
+					READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
+					READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())
+				) {
+					newEntryName.setEnabled(false);
+					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+				} else if (READABLE_TYPE_AUDIO_STREAM.equals(e1.getItem().toString()) ||
+						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())
+				) {
+					newEntryName.setEnabled(true);
+					newEntryName.setText("");
 				}
-				Connection connection = null;
+			});
+
+			JPanel addNewWebContentPanel = new JPanel();
+
+			labelType.setLabelFor(newEntryType);
+			labelFolders.setLabelFor(newEntryFolders);
+			labelName.setLabelFor(newEntryName);
+			labelSource.setLabelFor(newEntrySource);
+
+			GroupLayout layout = new GroupLayout(addNewWebContentPanel);
+			addNewWebContentPanel.setLayout(layout);
+
+			layout.setHorizontalGroup(
+				layout
+					.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(
+						layout
+							.createSequentialGroup()
+							.addContainerGap()
+							.addGroup(
+								layout
+									.createParallelGroup()
+									.addComponent(labelType)
+									.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(labelFolders)
+									.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(labelName)
+									.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(labelSource)
+									.addComponent(newEntrySource)
+							)
+							.addContainerGap()
+					)
+			);
+
+			layout.setVerticalGroup(
+				layout
+					.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(
+						layout
+							.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(labelType)
+							.addComponent(newEntryType)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+							.addComponent(labelFolders)
+							.addComponent(newEntryFolders)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+							.addComponent(labelName)
+							.addComponent(newEntryName)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+							.addComponent(labelSource)
+							.addComponent(newEntrySource)
+							.addContainerGap()
+					)
+			);
+
+			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
+			if (result == JOptionPane.OK_OPTION) {
+				sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				sharedContentList.setEnabled(false);
 				try {
-					connection = MediaDatabase.getConnectionIfAvailable();
-					for (int i = rows.length - 1; i >= 0; i--) {
-						if (connection != null) {
-							MediaTableFiles.removeMediaEntriesInFolder(connection, (String) sharedFolders.getValueAt(sharedFolders.getSelectedRow(), 0));
+					String resourceName = null;
+					if (!StringUtils.isBlank(newEntrySource.getText())) {
+						try {
+							if (
+								READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_AUDIO_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_VIDEO_FEED.equals(newEntryType.getSelectedItem().toString())
+							) {
+								resourceName = Feed.getFeedTitle(newEntrySource.getText());
+							} else if (
+								READABLE_TYPE_VIDEO_STREAM.equals(newEntryType.getSelectedItem().toString()) ||
+								READABLE_TYPE_AUDIO_STREAM.equals(newEntryType.getSelectedItem().toString())
+							) {
+								resourceName = newEntryName.getText();
+							}
+						} catch (Exception e2) {
+							LOGGER.debug("Error while getting feed title on add: " + e);
 						}
-						((SharedFoldersTableModel) sharedFolders.getModel()).removeRow(rows[i]);
 					}
+					String selectedItem = newEntryType.getSelectedItem().toString();
+					if (selectedItem.equals(READABLE_TYPE_AUDIO_FEED)) {
+						sharedContentArray.add(new FeedAudioContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+					} else if (selectedItem.equals(READABLE_TYPE_IMAGE_FEED)) {
+						sharedContentArray.add(new FeedImageContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+					} else if (selectedItem.equals(READABLE_TYPE_VIDEO_FEED)) {
+						sharedContentArray.add(new FeedVideoContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+					} else if (selectedItem.equals(READABLE_TYPE_AUDIO_STREAM)) {
+						sharedContentArray.add(new StreamAudioContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+					} else if (selectedItem.equals(READABLE_TYPE_VIDEO_STREAM)) {
+						sharedContentArray.add(new StreamVideoContent(newEntryFolders.getText(), resourceName, newEntrySource.getText()));
+					}
+					refreshSharedContent();
+					sharedContentList.changeSelection(((SharedContentTableModel) sharedContentList.getModel()).getRowCount() - 1, 1, false, false);
+					SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 				} finally {
-					MediaDatabase.close(connection);
+					SharedContentTab.sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					SharedContentTab.sharedContentList.setEnabled(true);
 				}
 			}
 		});
-		builderFolder.add(REMOVE_BUTTON, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+		builderFolder.add(addWebContentButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		ARROW_DOWN_BUTTON.setToolTipText(Messages.getString("MoveSelectedFolderDown"));
-		ARROW_DOWN_BUTTON.addActionListener((ActionEvent e) -> {
-			for (int i = 0; i < sharedFolders.getRowCount() - 1; i++) {
-				if (sharedFolders.isRowSelected(i)) {
-					Object  value1 = sharedFolders.getValueAt(i, 0);
-					boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
-
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 0), i, 0);
-					sharedFolders.setValueAt(value1, i + 1, 0);
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i + 1, 1), i, 1);
-					sharedFolders.setValueAt(value2, i + 1, 1);
-					sharedFolders.changeSelection(i + 1, 1, false, false);
-
-					break;
+		JImageButton removeButton = new JImageButton("button-remove-folder.png");
+		removeButton.setToolTipText(Messages.getString("RemoveSelectedSharedContent"));
+		removeButton.addActionListener((ActionEvent e) -> {
+			int currentlySelectedRow = sharedContentList.getSelectedRow();
+			if (currentlySelectedRow > -1) {
+				if (currentlySelectedRow > 0) {
+					sharedContentList.changeSelection(currentlySelectedRow - 1, 1, false, false);
 				}
+				sharedContentArray.remove(currentlySelectedRow);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(ARROW_DOWN_BUTTON, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		ARROW_UP_BUTTON.setToolTipText(Messages.getString("MoveSelectedFolderUp"));
-		ARROW_UP_BUTTON.addActionListener((ActionEvent e) -> {
-			for (int i = 1; i < sharedFolders.getRowCount(); i++) {
-				if (sharedFolders.isRowSelected(i)) {
-					Object  value1 = sharedFolders.getValueAt(i, 0);
-					boolean value2 = (boolean) sharedFolders.getValueAt(i, 1);
-
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 0), i, 0);
-					sharedFolders.setValueAt(value1, i - 1, 0);
-					sharedFolders.setValueAt(sharedFolders.getValueAt(i - 1, 1), i, 1);
-					sharedFolders.setValueAt(value2, i - 1, 1);
-					sharedFolders.changeSelection(i - 1, 1, false, false);
-
-					break;
-
-				}
+		JImageButton arrowDownButton = new JImageButton("button-arrow-down.png");
+		arrowDownButton.setToolTipText(Messages.getString("MoveSelectedContentDown"));
+		arrowDownButton.addActionListener((ActionEvent e) -> {
+			int index = sharedContentList.getSelectedRow();
+			if (index < sharedContentArray.size()) {
+				SharedContent sharedContent = sharedContentArray.remove(index);
+				sharedContentArray.add(index + 1, sharedContent);
+				sharedContentList.changeSelection(index + 1, 1, false, false);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(ARROW_UP_BUTTON, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+
+		JImageButton arrowUpButton = new JImageButton("button-arrow-up.png");
+		arrowUpButton.setToolTipText(Messages.getString("MoveSelectedContentUp"));
+		arrowUpButton.addActionListener((ActionEvent e) -> {
+			int index = sharedContentList.getSelectedRow();
+			if (index > 0) {
+				SharedContent sharedContent = sharedContentArray.remove(index);
+				sharedContentArray.add(index - 1, sharedContent);
+				sharedContentList.changeSelection(index - 1, 1, false, false);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+			}
+		});
+		builderFolder.add(arrowUpButton, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 
 		SCAN_BUTTON.setToolTipText(Messages.getString("ScanAllSharedFolders"));
 		SCAN_BUSY_ICON.start();
@@ -424,7 +426,6 @@ public class SharedContentTab {
 				}
 			}
 		});
-
 		/*
 		 * Hide the scan button in basic mode since it's better to let it be done in
 		 * realtime.
@@ -432,284 +433,112 @@ public class SharedContentTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			builderFolder.add(SCAN_BUTTON, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 		}
-
 		SCAN_BUTTON.setEnabled(configuration.getUseCache());
-
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setSelected(configuration.isScanSharedFoldersOnStartup());
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setContentAreaFilled(false);
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.addItemListener((ItemEvent e) -> {
 			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
 		});
-
 		setScanLibraryEnabled(configuration.getUseCache(), false);
-
 		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-		updateSharedFolders();
-
-		JScrollPane pane = new JScrollPane(sharedFolders);
-		Dimension d = sharedFolders.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, sharedFolders.getRowHeight() * 2));
-		builderFolder.add(pane, FormLayoutUtil.flip(
-			cc.xyw(1, 5, 7, CellConstraints.DEFAULT, CellConstraints.FILL),
-			colSpec,
-			orientation
-		));
-
-		return builderFolder;
-	}
-
-	private PanelBuilder initWebContentGuiComponents(CellConstraints cc) {
-		// Apply the orientation for the locale
-		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
-		String colSpec = FormLayoutUtil.getColSpec(SHARED_FOLDER_COL_SPEC, orientation);
-
-		FormLayout layoutFolders = new FormLayout(colSpec, SHARED_FOLDER_ROW_SPEC);
-		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
-		builderFolder.opaque(true);
-
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("WebContent"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		webContentTableModel = new WebContentTableModel();
-		webContentList = new JTable(webContentTableModel);
-		TableColumn column = webContentList.getColumnModel().getColumn(3);
-		column.setMinWidth(500);
-
-		webContentList.addMouseListener(new TableMouseListener(webContentList));
-
-		/*
-		 * An attempt to set the correct row height adjusted for font scaling.
-		 * It sets all rows based on the font size of cell (0, 0). The + 4 is
-		 * to allow 2 pixels above and below the text.
-		 */
-		DefaultTableCellRenderer cellRenderer = (DefaultTableCellRenderer) webContentList.getCellRenderer(0, 0);
-		FontMetrics metrics = cellRenderer.getFontMetrics(cellRenderer.getFont());
-		webContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
-		webContentList.setIntercellSpacing(new Dimension(8, 2));
-
-		JImageButton but = new JImageButton("button-add-webcontent.png");
-		but.setToolTipText(Messages.getString("AddNewWebContent"));
-		but.addActionListener((ActionEvent e) -> {
-			JTextField newEntryName = new JTextField(25);
-			newEntryName.setEnabled(false);
-			newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
-
-			JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
-			newEntryType.setEditable(false);
-			newEntryType.addItemListener((ItemEvent e1) -> {
-				if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
-					READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
-					READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())
-				) {
-					newEntryName.setEnabled(false);
-					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
-				} else if (READABLE_TYPE_AUDIO_STREAM.equals(e1.getItem().toString()) ||
-						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())
-				) {
-					newEntryName.setEnabled(true);
-					newEntryName.setText("");
-				}
-			});
-
-			JTextField newEntryFolders = new JTextField(25);
-			newEntryFolders.setText("Web,");
-
-			JTextField newEntrySource = new JTextField(50);
-
-			JPanel addNewWebContentPanel = new JPanel();
-
-			JLabel labelName = new JLabel(Messages.getString("NameColon"));
-			JLabel labelType = new JLabel(Messages.getString("TypeColon"));
-			JLabel labelFolders = new JLabel(Messages.getString("FoldersCommaDelimited"));
-			JLabel labelSource = new JLabel(Messages.getString("SourceURLColon"));
-
-			labelName.setLabelFor(newEntryName);
-			labelType.setLabelFor(newEntryType);
-			labelFolders.setLabelFor(newEntryFolders);
-			labelSource.setLabelFor(newEntrySource);
-
-			GroupLayout layout = new GroupLayout(addNewWebContentPanel);
-			addNewWebContentPanel.setLayout(layout);
-
-			layout.setHorizontalGroup(
-				layout
-					.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(
-						layout
-							.createSequentialGroup()
-							.addContainerGap()
-							.addGroup(
-								layout
-									.createParallelGroup()
-									.addComponent(labelName)
-									.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelType)
-									.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelFolders)
-									.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelSource)
-									.addComponent(newEntrySource)
-							)
-							.addContainerGap()
-					)
-			);
-
-			layout.setVerticalGroup(
-				layout
-					.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(
-						layout
-							.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(labelName)
-							.addComponent(newEntryName)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelType)
-							.addComponent(newEntryType)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelFolders)
-							.addComponent(newEntryFolders)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelSource)
-							.addComponent(newEntrySource)
-							.addContainerGap()
-					)
-			);
-
-			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
-			if (result == JOptionPane.OK_OPTION) {
-				SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-				SharedContentTab.webContentList.setEnabled(false);
-
-				try {
-					String resourceName = null;
-					if (!isBlank(newEntrySource.getText())) {
-						try {
-							if (
-								READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_AUDIO_FEED.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_VIDEO_FEED.equals(newEntryType.getSelectedItem().toString())
-							) {
-								String temporarySource = newEntrySource.getText();
-								// Convert YouTube channel URIs to their feed URIs
-								if (temporarySource.contains("youtube.com/channel/")) {
-									temporarySource = temporarySource.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-								}
-
-								resourceName = getFeedTitle(temporarySource);
-							} else if (
-								READABLE_TYPE_VIDEO_STREAM.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_AUDIO_STREAM.equals(newEntryType.getSelectedItem().toString())
-							) {
-								resourceName = newEntryName.getText();
-							}
-						} catch (Exception e2) {
-							LOGGER.debug("Error while getting feed title on add: " + e);
-						}
-					}
-					((WebContentTableModel) webContentList.getModel()).addRow(new Object[]{resourceName, newEntryType.getSelectedItem(), newEntryFolders.getText(), newEntrySource.getText()});
-					webContentList.changeSelection(((WebContentTableModel) webContentList.getModel()).getRowCount() - 1, 1, false, false);
-					updateWebContentModel();
-				} finally {
-					SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-					SharedContentTab.webContentList.setEnabled(true);
-				}
-			}
-		});
-		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
-		JImageButton but2 = new JImageButton("button-remove-folder.png");
-		but2.setToolTipText(Messages.getString("RemoveSelectedWebContent"));
-		but2.addActionListener((ActionEvent e) -> {
-			int currentlySelectedRow = webContentList.getSelectedRow();
-			if (currentlySelectedRow > -1) {
-				if (currentlySelectedRow > 0) {
-					webContentList.changeSelection(currentlySelectedRow - 1, 1, false, false);
-				}
-				((WebContentTableModel) webContentList.getModel()).removeRow(currentlySelectedRow);
-				updateWebContentModel();
-			}
-		});
-		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
-
-		JImageButton but3 = new JImageButton("button-arrow-down.png");
-		but3.setToolTipText(Messages.getString("MoveSelectedWebContentDown"));
-		but3.addActionListener((ActionEvent e) -> {
-			for (int i = 0; i < webContentList.getRowCount() - 1; i++) {
-				if (webContentList.isRowSelected(i)) {
-					Object name   = webContentList.getValueAt(i, 0);
-					Object type   = webContentList.getValueAt(i, 1);
-					Object folder = webContentList.getValueAt(i, 2);
-					Object source = webContentList.getValueAt(i, 3);
-
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 0), i, 0);
-					webContentList.setValueAt(name, i + 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 1), i, 1);
-					webContentList.setValueAt(type, i + 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 2), i, 2);
-					webContentList.setValueAt(folder, i + 1, 2);
-					webContentList.setValueAt(webContentList.getValueAt(i + 1, 3), i, 3);
-					webContentList.setValueAt(source, i + 1, 3);
-					webContentList.changeSelection(i + 1, 1, false, false);
-
-					break;
-				}
-			}
-		});
-		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
-
-		JImageButton but4 = new JImageButton("button-arrow-up.png");
-		but4.setToolTipText(Messages.getString("MoveSelectedWebContentUp"));
-		but4.addActionListener((ActionEvent e) -> {
-			for (int i = 1; i < webContentList.getRowCount(); i++) {
-				if (webContentList.isRowSelected(i)) {
-					Object name   = webContentList.getValueAt(i, 0);
-					Object type   = webContentList.getValueAt(i, 1);
-					Object folder = webContentList.getValueAt(i, 2);
-					Object source = webContentList.getValueAt(i, 3);
-
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 0), i, 0);
-					webContentList.setValueAt(name, i - 1, 0);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 1), i, 1);
-					webContentList.setValueAt(type, i - 1, 1);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 2), i, 2);
-					webContentList.setValueAt(folder, i - 1, 2);
-					webContentList.setValueAt(webContentList.getValueAt(i - 1, 3), i, 3);
-					webContentList.setValueAt(source, i - 1, 3);
-					webContentList.changeSelection(i - 1, 1, false, false);
-
-					break;
-				}
-			}
-		});
-		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
-
-		JScrollPane pane = new JScrollPane(webContentList);
-		Dimension d = webContentList.getPreferredSize();
-		pane.setPreferredSize(new Dimension(d.width, webContentList.getRowHeight() * 2));
+		JScrollPane pane = new JScrollPane(sharedContentList);
+		Dimension d = sharedContentList.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, sharedContentList.getRowHeight() * 2));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void updateSharedFolders() {
-		List<Path> folders = configuration.getSharedFolders();
-		Vector<Vector<?>> newDataVector = new Vector<>();
-		if (!folders.isEmpty()) {
-			List<Path> foldersMonitored = configuration.getMonitoredFolders();
-			for (Path folder : folders) {
-				Vector rowVector = new Vector();
-				rowVector.add(folder.toString());
-				rowVector.add(foldersMonitored.contains(folder));
-				newDataVector.add(rowVector);
-			}
+	private static synchronized void refreshSharedContent() {
+		if (sharedContentList == null) {
+			return;
 		}
-		folderTableModel.setDataVector(newDataVector, FOLDERS_COLUMN_NAMES);
-		TableColumn column = sharedFolders.getColumnModel().getColumn(0);
-		column.setMinWidth(600);
+		int previouslySelectedRow = sharedContentList.getSelectedRow();
+		sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		sharedContentList.setEnabled(false);
+
+		try {
+			// Remove any existing rows
+			((SharedContentTableModel) sharedContentList.getModel()).setRowCount(0);
+			for (SharedContent sharedContent : sharedContentArray) {
+				if (sharedContent instanceof FolderContent folder) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDER, null, null, folder.getFile().getPath(), folder.isMonitored(), folder.isActive()});
+				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+					List<String> childs = new ArrayList<>();
+					for (SharedContent child : virtualFolder.getChilds()) {
+						if (child != null) {
+							childs.add(child.toString());
+						}
+					}
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDERS, virtualFolder.getParent(), virtualFolder.getName(), String.join(", ", childs), null, virtualFolder.isActive()});
+				} else if (sharedContent instanceof StreamAudioContent streamAudio) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_AUDIO_STREAM, streamAudio.getParent(), streamAudio.getName(), streamAudio.getUri(), null, streamAudio.isActive()});
+				} else if (sharedContent instanceof StreamVideoContent streamVideo) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_VIDEO_STREAM, streamVideo.getParent(), streamVideo.getName(), streamVideo.getUri(), null, streamVideo.isActive()});
+				} else if (sharedContent instanceof FeedAudioContent feedAudio) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_AUDIO_FEED, feedAudio.getParent(), feedAudio.getName(), feedAudio.getUri(), null, feedAudio.isActive()});
+				} else if (sharedContent instanceof FeedImageContent feedImage) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_IMAGE_FEED, feedImage.getParent(), feedImage.getName(), feedImage.getUri(), null, feedImage.isActive()});
+				} else if (sharedContent instanceof FeedVideoContent feedVideo) {
+					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_VIDEO_FEED, feedVideo.getParent(), feedVideo.getName(), feedVideo.getUri(), false, feedVideo.isActive()});
+				}
+			}
+			// Re-select any row that was selected before we (re)parsed the config
+			if (previouslySelectedRow != -1) {
+				sharedContentList.changeSelection(previouslySelectedRow, 1, false, false);
+				Rectangle selectionToScrollTo = sharedContentList.getCellRect(previouslySelectedRow, 1, true);
+				if (!selectionToScrollTo.isEmpty()) {
+					sharedContentList.scrollRectToVisible(selectionToScrollTo);
+				}
+			}
+		} finally {
+			sharedContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			sharedContentList.setEnabled(true);
+		}
+	}
+
+	private static void addContentsFullyPlayedPopupMenu(JComponent component) {
+		JPopupMenu popupMenu = new JPopupMenu();
+		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("MarkContentsFullyPlayed"));
+		JMenuItem menuItemMarkUnplayed = new JMenuItem(Messages.getString("MarkContentsUnplayed"));
+
+		menuItemMarkPlayed.addActionListener((ActionEvent e) -> {
+			int selectedIndex = sharedContentList.getSelectedRow();
+			if (sharedContentArray.get(selectedIndex) instanceof FolderContent folderContent) {
+				String path = folderContent.getFile().getAbsolutePath();
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, true);
+					}
+				} finally {
+					MediaDatabase.close(connection);
+				}
+			}
+		});
+
+		menuItemMarkUnplayed.addActionListener((ActionEvent e) -> {
+			int selectedIndex = sharedContentList.getSelectedRow();
+			if (sharedContentArray.get(selectedIndex) instanceof FolderContent folderContent) {
+				String path = folderContent.getFile().getAbsolutePath();
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, false);
+					}
+				} finally {
+					MediaDatabase.close(connection);
+				}
+			}
+		});
+
+		popupMenu.add(menuItemMarkPlayed);
+		popupMenu.add(menuItemMarkUnplayed);
+
+		component.setComponentPopupMenu(popupMenu);
 	}
 
 	public static void setScanLibraryEnabled(boolean enabled, boolean running) {
@@ -732,82 +561,33 @@ public class SharedContentTab {
 		}
 	}
 
-	public class SharedFoldersTableModel extends DefaultTableModel {
+	private class SharedContentTableModel extends DefaultTableModel {
 		private static final long serialVersionUID = -4247839506937958655L;
 
-		public SharedFoldersTableModel() {
-			super(FOLDERS_COLUMN_NAMES, 0);
-		}
-
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			return columnIndex == 1 ? Boolean.class : String.class;
-		}
-
-		@Override
-		public boolean isCellEditable(int row, int column) {
-			return column == 1;
-		}
-
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		@Override
-		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
-			if (aValue instanceof Boolean && column == 1) {
-				rowVector.setElementAt(aValue, 1);
-			} else {
-				rowVector.setElementAt(aValue, column);
-			}
-			fireTableCellUpdated(row, column);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
-		}
-
-		@Override
-		public void insertRow(int row, Vector rowData) {
-			super.insertRow(row, rowData);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
-		}
-
-		@Override
-		public void removeRow(int row) {
-			super.removeRow(row);
-			configuration.setSharedFolders(getFolders((Vector) folderTableModel.getDataVector()));
-		}
-	}
-
-	public class WebContentTableModel extends DefaultTableModel {
-		private static final long serialVersionUID = -4247839506937958655L;
-
-		public WebContentTableModel() {
+		public SharedContentTableModel() {
 			// Column headings
 			super(new String[]{
-				Messages.getString("Name"),
 				Messages.getString("Type"),
-				Messages.getString("VirtualFolders"),
+				Messages.getString("Path"),
+				Messages.getString("Name"),
 				Messages.getString("Source"),
+				Messages.getString("Status"),
+				Messages.getString("Enable"),
 			}, 0);
 		}
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
-			return String.class;
+			return columnIndex == 4 || columnIndex == 5 ? Boolean.class : String.class;
 		}
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return false;
-		}
-
-		@Override
-		public void setValueAt(Object aValue, int row, int column) {
-			Vector rowVector = (Vector) dataVector.elementAt(row);
-			rowVector.setElementAt(aValue, column);
-			fireTableCellUpdated(row, column);
-			updateWebContentModel();
+			return column == 4 || column == 5;
 		}
 	}
 
-	public class TableMouseListener extends MouseAdapter {
+	private class TableMouseListener extends MouseAdapter {
 		private final JTable table;
 
 		public TableMouseListener(JTable table) {
@@ -821,12 +601,39 @@ public class SharedContentTab {
 			int currentRow = table.rowAtPoint(point);
 			table.setRowSelectionInterval(currentRow, currentRow);
 
+			//let check the checkbox
+			int currentColumn = table.columnAtPoint(point);
+			if (currentColumn == 4 || currentColumn == 5) {
+				return;
+			}
 			// more than one click in the same event triggers edit mode
 			if (event.getClickCount() == 2) {
-				String currentName    = (String) webContentList.getValueAt(currentRow, 0);
-				String currentType    = (String) webContentList.getValueAt(currentRow, 1);
-				String currentFolders = (String) webContentList.getValueAt(currentRow, 2);
-				String currentSource  = (String) webContentList.getValueAt(currentRow, 3);
+				SharedContent sharedContent = sharedContentArray.get(currentRow);
+				String currentType    = (String) sharedContentList.getValueAt(currentRow, 0);
+				String currentFolders = (String) sharedContentList.getValueAt(currentRow, 1);
+				String currentName    = (String) sharedContentList.getValueAt(currentRow, 2);
+				String currentSource  = (String) sharedContentList.getValueAt(currentRow, 3);
+
+				if (sharedContent instanceof FolderContent folder) {
+					JFileChooser chooser;
+					try {
+						chooser = new JFileChooser();
+						chooser.setSelectedFile(folder.getFile());
+						if (Platform.isWindows()) {
+							chooser.setFileSystemView(new ShortcutFileSystemView());
+						}
+					} catch (Exception ee) {
+						chooser = new JFileChooser(new RestrictedFileSystemView());
+						LOGGER.debug("Using RestrictedFileSystemView because {}", ee.getMessage());
+					}
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+					int returnVal = chooser.showOpenDialog((java.awt.Component) event.getSource());
+					if (returnVal == JFileChooser.APPROVE_OPTION) {
+						folder.setFile(chooser.getSelectedFile());
+						SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+					}
+					return;
+				}
 
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
@@ -837,43 +644,37 @@ public class SharedContentTab {
 					READABLE_TYPE_IMAGE_FEED.equals(currentType)
 				) {
 					newEntryName.setEnabled(false);
-					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					if (!StringUtils.isBlank(currentName)) {
+						newEntryName.setText(currentName);
+					} else {
+						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
+					}
 				} else {
 					newEntryName.setEnabled(true);
 					newEntryName.setText(currentName);
 				}
-
-				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
-				newEntryType.setEditable(false);
-				newEntryType.setSelectedIndex(currentTypeIndex);
-				newEntryType.addItemListener((ItemEvent e) -> {
-					if (
-						READABLE_TYPE_AUDIO_FEED.equals(e.getItem().toString()) ||
-						READABLE_TYPE_VIDEO_FEED.equals(e.getItem().toString()) ||
-						READABLE_TYPE_IMAGE_FEED.equals(e.getItem().toString())
-					) {
-						newEntryName.setEnabled(false);
-						newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
-					} else if (
-						READABLE_TYPE_AUDIO_STREAM.equals(e.getItem().toString()) ||
-						READABLE_TYPE_VIDEO_STREAM.equals(e.getItem().toString())
-					) {
-						newEntryName.setEnabled(true);
-						newEntryName.setText("");
-					}
-				});
 
 				JTextField newEntryFolders = new JTextField(25);
 				newEntryFolders.setText(currentFolders);
 
 				JTextField newEntrySource = new JTextField(50);
 				newEntrySource.setText(currentSource);
+				if (
+					READABLE_TYPE_FOLDERS.equals(currentType)
+				) {
+					newEntrySource.setEnabled(false);
+				}
 
-				JPanel addNewWebContentPanel = new JPanel();
+				JComboBox<String> newEntryType = new JComboBox<>(TYPES_READABLE);
+				newEntryType.setEditable(false);
+				newEntryType.setSelectedIndex(currentTypeIndex);
+				newEntryType.setEnabled(false);
 
-				JLabel labelName = new JLabel(Messages.getString("NameColon"));
+				JPanel addNewSharedContentPanel = new JPanel();
+
 				JLabel labelType = new JLabel(Messages.getString("TypeColon"));
-				JLabel labelFolders = new JLabel(Messages.getString("FoldersCommaDelimited"));
+				JLabel labelFolders = new JLabel(Messages.getString("FoldersSlashDelimited"));
+				JLabel labelName = new JLabel(Messages.getString("NameColon"));
 				JLabel labelSource = new JLabel(Messages.getString("SourceURLColon"));
 
 				labelName.setLabelFor(newEntryName);
@@ -881,8 +682,8 @@ public class SharedContentTab {
 				labelFolders.setLabelFor(newEntryFolders);
 				labelSource.setLabelFor(newEntrySource);
 
-				GroupLayout layout = new GroupLayout(addNewWebContentPanel);
-				addNewWebContentPanel.setLayout(layout);
+				GroupLayout layout = new GroupLayout(addNewSharedContentPanel);
+				addNewSharedContentPanel.setLayout(layout);
 
 				layout.setHorizontalGroup(
 					layout
@@ -894,12 +695,12 @@ public class SharedContentTab {
 								.addGroup(
 									layout
 										.createParallelGroup()
-										.addComponent(labelName)
-										.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelType)
 										.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelFolders)
 										.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(labelName)
+										.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(labelSource)
 										.addComponent(newEntrySource)
 								)
@@ -914,14 +715,14 @@ public class SharedContentTab {
 							layout
 								.createSequentialGroup()
 								.addContainerGap()
-								.addComponent(labelName)
-								.addComponent(newEntryName)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelType)
 								.addComponent(newEntryType)
 								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelFolders)
 								.addComponent(newEntryFolders)
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+								.addComponent(labelName)
+								.addComponent(newEntryName)
 								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 								.addComponent(labelSource)
 								.addComponent(newEntrySource)
@@ -929,164 +730,24 @@ public class SharedContentTab {
 						)
 				);
 
-				int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
+				int result = JOptionPane.showConfirmDialog(null, addNewSharedContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
-					webContentList.setValueAt(newEntryName.getText(),         currentRow, 0);
-					webContentList.setValueAt(newEntryType.getSelectedItem(), currentRow, 1);
-					webContentList.setValueAt(newEntryFolders.getText(),      currentRow, 2);
-					webContentList.setValueAt(newEntrySource.getText(),       currentRow, 3);
-					updateWebContentModel();
-				}
-			}
-		}
-	}
-
-	/**
-	 * This parses the web config and populates the web section of this tab.
-	 *
-	 * @param webConf
-	 * @param previouslySelectedRow the row that was selected before this parsing
-	 */
-	public static synchronized void setWebContentGUIFromWebConfFile(File webConf, Integer previouslySelectedRow) {
-		SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		SharedContentTab.webContentList.setEnabled(false);
-
-		try {
-			// Remove any existing rows
-			((WebContentTableModel) webContentList.getModel()).setRowCount(0);
-
-			try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), StandardCharsets.UTF_8))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
-
-					if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
-						String key = line.substring(0, line.indexOf('='));
-						String value = line.substring(line.indexOf('=') + 1);
-						String[] keys = parseFeedKey(key);
-						String sourceType = keys[0];
-						String folderName = keys[1] == null ? null : keys[1];
-
-						try {
-							if (
-								sourceType.equals("imagefeed") ||
-								sourceType.equals("audiofeed") ||
-								sourceType.equals("videofeed") ||
-								sourceType.equals("audiostream") ||
-								sourceType.equals("videostream")
-							) {
-								String[] values = parseFeedValue(value);
-								String uri = values[0];
-
-								String readableType = switch (sourceType) {
-									case "imagefeed" -> READABLE_TYPE_IMAGE_FEED;
-									case "videofeed" -> READABLE_TYPE_VIDEO_FEED;
-									case "audiofeed" -> READABLE_TYPE_AUDIO_FEED;
-									case "audiostream" -> READABLE_TYPE_AUDIO_STREAM;
-									case "videostream" -> READABLE_TYPE_VIDEO_STREAM;
-									default -> "";
-								};
-
-								// If the resource does not yet have a name, attempt to get one now
-								String resourceName = values.length > 3 && values[3] != null ? values[3] : null;
-								if (isBlank(resourceName)) {
-									try {
-										switch (sourceType) {
-											case "imagefeed":
-											case "videofeed":
-											case "audiofeed":
-												resourceName = values.length > 3 && values[3] != null ? values[3] : null;
-
-												// Convert YouTube channel URIs to their feed URIs
-												if (uri.contains("youtube.com/channel/")) {
-													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-												}
-												resourceName = getFeedTitle(uri);
-												break;
-											case "videostream":
-											case "audiostream":
-												resourceName = values.length > -1 && values[0] != null ? values[0] : null;
-												uri = values.length > 1 && values[1] != null ? values[1] : null;
-												break;
-											default:
-												break;
-										}
-									} catch (Exception e) {
-										LOGGER.debug("Error while getting feed title: " + e);
-									}
-								}
-
-								webContentTableModel.addRow(new Object[]{resourceName, readableType, folderName, uri});
-							}
-						} catch (ArrayIndexOutOfBoundsException e) {
-							// catch exception here and go with parsing
-							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-							LOGGER.debug(null, e);
-						}
+					if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+						virtualFolder.setName(newEntryName.getText());
+						virtualFolder.setParent(newEntryFolders.getText());
+					} else if (sharedContent instanceof StreamContent stream) {
+						stream.setName(newEntryName.getText());
+						stream.setParent(newEntryFolders.getText());
+						stream.setUri(newEntrySource.getText());
+					} else if (sharedContent instanceof FeedContent feed) {
+						feed.setName(newEntryName.getText());
+						feed.setParent(newEntryFolders.getText());
+						feed.setUri(newEntrySource.getText());
 					}
-				}
-			}
-
-			// Re-select any row that was selected before we (re)parsed the config
-			if (previouslySelectedRow != null) {
-				webContentList.changeSelection(previouslySelectedRow, 1, false, false);
-				Rectangle selectionToScrollTo = webContentList.getCellRect(previouslySelectedRow, 1, true);
-				if (!selectionToScrollTo.isEmpty()) {
-					webContentList.scrollRectToVisible(selectionToScrollTo);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.debug("Can't read web configuration file {}", e.getMessage());
-		} catch (IOException e) {
-			LOGGER.warn("Unexpected error in WEB.conf: " + e.getMessage());
-			LOGGER.debug("", e);
-		} finally {
-			SharedContentTab.webContentList.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			SharedContentTab.webContentList.setEnabled(true);
-		}
-	}
-
-	private static Map<String, String> feedTitlesCache = Collections.synchronizedMap(new HashMap<>());
-
-	/**
-	 * @param url feed URL
-	 * @return a feed title from its URL
-	 * @throws Exception
-	 */
-	public static String getFeedTitle(String url) throws Exception {
-		// Check cache first
-		String feedTitle = feedTitlesCache.get(url);
-		if (feedTitle != null) {
-			return feedTitle;
-		}
-
-		SyndFeedInput input = new SyndFeedInput();
-		byte[] b = HTTPResource.downloadAndSendBinary(url);
-		if (b != null) {
-			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			feedTitle = feed.getTitle();
-			if (StringUtils.isNotBlank(feedTitle)) {
-				feedTitlesCache.put(url, feedTitle);
-				return feedTitle;
-			}
-		}
-
-		return null;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private List<SharedFolder> getFolders(Vector<Vector<?>> tableVector) {
-		List<SharedFolder> result = new ArrayList<>();
-		if (tableVector != null) {
-			for (Vector rowVector : tableVector) {
-				if (rowVector != null && rowVector.size() == 2 && rowVector.get(0) instanceof String) {
-					SharedFolder sharedFolder = new SharedFolder();
-					sharedFolder.path = (String) rowVector.get(0);
-					sharedFolder.monitored = (boolean) rowVector.get(1);
-					result.add(sharedFolder);
+					SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 				}
 			}
 		}
-		return result;
 	}
+
 }

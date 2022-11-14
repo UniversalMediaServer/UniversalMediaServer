@@ -1,24 +1,21 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
@@ -30,17 +27,20 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
-import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.io.OutputParams;
+import net.pms.parsers.MediaInfoParser;
+import net.pms.renderers.Renderer;
 import net.pms.util.AudioUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FormatConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
-	private ArrayList<SupportSpec> supportSpecs;
+	private final ArrayList<SupportSpec> supportSpecs;
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -566,7 +566,7 @@ public class FormatConfiguration {
 	/**
 	 * Chooses which parsing method to parse the file with.
 	 */
-	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, RendererConfiguration renderer) {
+	public void parse(DLNAMediaInfo media, InputFile file, Format ext, int type, Renderer renderer) {
 		if (file.getFile() != null) {
 			if (ext.getIdentifier() == Identifier.RA) {
 				// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
@@ -592,7 +592,7 @@ public class FormatConfiguration {
 				ext.getIdentifier() != Identifier.DSF &&
 				ext.getIdentifier() != Identifier.PNM
 			) {
-				LibMediaInfoParser.parse(media, file, type, renderer);
+				MediaInfoParser.parse(media, file, type, renderer);
 			} else {
 				media.parse(file, ext, type, false, false, renderer);
 			}

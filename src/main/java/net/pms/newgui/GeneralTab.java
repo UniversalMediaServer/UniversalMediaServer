@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
@@ -32,16 +31,17 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.KeyedComboBoxModel;
 import net.pms.platform.windows.WindowsUtils;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,32 +52,19 @@ public class GeneralTab {
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
-	public JCheckBox smcheckBox;
-	private JCheckBox autoStart;
-	private JCheckBox autoUpdateCheckBox;
-	private JCheckBox hideAdvancedOptions;
+	private final LooksFrame looksFrame;
+	private final JTextField currentLanguage = new JTextField();
+
 	private JComboBox<String> renderers;
-	private JComboBox<String> preventSleep;
 	private JTextField host;
 	private JTextField port;
 	private JTextField serverName;
-	private JComboBox<String> networkinterfacesCBX;
 	private JTextField ipFilter;
-	public JTextField maxbitrate;
-	private JCheckBox adaptBitrate;
-	private JComboBox<String> serverEngine;
-	private final PmsConfiguration configuration;
-	private JCheckBox forceDefaultRenderer;
-	private JCheckBox extNetBox;
-	private JCheckBox appendProfileName;
-	private JCheckBox runWizardOnProgramStartup;
-	private LooksFrame looksFrame;
-	private JCheckBox singleInstance;
+	private JTextField maxbitrate;
+	private final UmsConfiguration configuration;
 	private CustomJButton installService;
-	private JCheckBox showSplashScreen;
-	private JTextField currentLanguage = new JTextField();
 
-	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	GeneralTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}
@@ -96,11 +83,9 @@ public class GeneralTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		smcheckBox = new JCheckBox(Messages.getString("StartMinimizedSystemTray"), configuration.isMinimized());
+		JCheckBox smcheckBox = new JCheckBox(Messages.getString("StartMinimizedSystemTray"), configuration.isMinimized());
 		smcheckBox.setContentAreaFilled(false);
-		smcheckBox.addItemListener((ItemEvent e) -> {
-			configuration.setMinimized((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		smcheckBox.addItemListener((ItemEvent e) -> configuration.setMinimized((e.getStateChange() == ItemEvent.SELECTED)));
 
 		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -116,11 +101,9 @@ public class GeneralTab {
 		CustomJButton selectLanguage = new CustomJButton("    ...    ");
 		selectLanguage.addActionListener((ActionEvent e) -> {
 			LanguageSelection selectionDialog = new LanguageSelection(looksFrame, configuration.getLanguageLocale(), true);
-			if (selectionDialog != null) {
-				selectionDialog.show();
-				if (!selectionDialog.isAborted()) {
-					currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
-				}
+			selectionDialog.show();
+			if (!selectionDialog.isAborted()) {
+				currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
 			}
 		});
 		languagePanel.add(selectLanguage);
@@ -138,12 +121,10 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("ServerName"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			appendProfileName = new JCheckBox(Messages.getString("AppendProfileName"), configuration.isAppendProfileName());
+			JCheckBox appendProfileName = new JCheckBox(Messages.getString("AppendProfileName"), configuration.isAppendProfileName());
 			appendProfileName.setToolTipText(Messages.getString("WhenEnabledUmsProfileName"));
 			appendProfileName.setContentAreaFilled(false);
-			appendProfileName.addItemListener((ItemEvent e) -> {
-				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			appendProfileName.addItemListener((ItemEvent e) -> configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(GuiUtil.getPreferredSizeComponent(appendProfileName), FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 		}
@@ -153,20 +134,16 @@ public class GeneralTab {
 		xpos += 2;
 
 		if (Platform.isWindows()) {
-			autoStart = new JCheckBox(Messages.getString("StartWithWindows"), configuration.isAutoStart());
+			JCheckBox autoStart = new JCheckBox(Messages.getString("StartWithWindows"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
-			autoStart.addItemListener((ItemEvent e) -> {
-				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			autoStart.addItemListener((ItemEvent e) -> configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(GuiUtil.getPreferredSizeComponent(autoStart), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 			xpos += 2;
 		}
 
-		showSplashScreen = new JCheckBox(Messages.getString("EnableSplashScreen"), configuration.isShowSplashScreen());
+		JCheckBox showSplashScreen = new JCheckBox(Messages.getString("EnableSplashScreen"), configuration.isShowSplashScreen());
 		showSplashScreen.setContentAreaFilled(false);
-		showSplashScreen.addItemListener((ItemEvent e) -> {
-			configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		showSplashScreen.addItemListener((ItemEvent e) -> configuration.setShowSplashScreen((e.getStateChange() == ItemEvent.SELECTED)));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(showSplashScreen), FormLayoutUtil.flip(cc.xy(xpos, ypos), colSpec, orientation));
 		ypos += 2;
@@ -180,16 +157,12 @@ public class GeneralTab {
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("CheckForUpdates"));
-		checkForUpdates.addActionListener((ActionEvent e) -> {
-			looksFrame.checkForUpdates(false);
-		});
+		checkForUpdates.addActionListener((ActionEvent e) -> looksFrame.checkForUpdates(false));
 		builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
-		autoUpdateCheckBox = new JCheckBox(Messages.getString("CheckAutomaticallyForUpdates"), configuration.isAutoUpdate());
+		JCheckBox autoUpdateCheckBox = new JCheckBox(Messages.getString("CheckAutomaticallyForUpdates"), configuration.isAutoUpdate());
 		autoUpdateCheckBox.setContentAreaFilled(false);
-		autoUpdateCheckBox.addItemListener((ItemEvent e) -> {
-			configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		autoUpdateCheckBox.addItemListener((ItemEvent e) -> configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(autoUpdateCheckBox), FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		ypos += 2;
 		if (!Build.isUpdatable()) {
@@ -197,7 +170,7 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		hideAdvancedOptions = new JCheckBox(Messages.getString("HideAdvancedOptions"), configuration.isHideAdvancedOptions());
+		JCheckBox hideAdvancedOptions = new JCheckBox(Messages.getString("HideAdvancedOptions"), configuration.isHideAdvancedOptions());
 		hideAdvancedOptions.setContentAreaFilled(false);
 		hideAdvancedOptions.addActionListener((ActionEvent e) -> {
 			configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
@@ -210,44 +183,40 @@ public class GeneralTab {
 		builder.add(GuiUtil.getPreferredSizeComponent(hideAdvancedOptions), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
-		runWizardOnProgramStartup = new JCheckBox(Messages.getString("RunTheConfigurationWizard"), configuration.isRunWizard());
+		JCheckBox runWizardOnProgramStartup = new JCheckBox(Messages.getString("RunTheConfigurationWizard"), configuration.isRunWizard());
 		runWizardOnProgramStartup.setContentAreaFilled(false);
-		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> {
-			configuration.setRunWizard(runWizardOnProgramStartup.isSelected());
-		});
+		runWizardOnProgramStartup.addActionListener((ActionEvent e) -> configuration.setRunWizard(runWizardOnProgramStartup.isSelected()));
 		builder.add(GuiUtil.getPreferredSizeComponent(runWizardOnProgramStartup), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			singleInstance = new JCheckBox(Messages.getString("OnlyRunSingleInstance"), configuration.isRunSingleInstance());
+			JCheckBox singleInstance = new JCheckBox(Messages.getString("OnlyRunSingleInstance"), configuration.isRunSingleInstance());
 			singleInstance.setContentAreaFilled(false);
 			singleInstance.setToolTipText(Messages.getString("UmsRunAdministratorSingleInstance"));
-			singleInstance.addActionListener((ActionEvent e) -> {
-				configuration.setRunSingleInstance(singleInstance.isSelected());
-			});
+			singleInstance.addActionListener((ActionEvent e) -> configuration.setRunSingleInstance(singleInstance.isSelected()));
 			builder.add(GuiUtil.getPreferredSizeComponent(singleInstance), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 			ypos += 2;
 		}
 
-		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
-		ArrayList<Object> keyValues = new ArrayList<>();
-		ArrayList<Object> nameValues = new ArrayList<>();
+		List<RendererConfiguration> allConfs = RendererConfigurations.getEnabledRenderersConfigurations();
+		List<Object> keyValues = new ArrayList<>();
+		List<Object> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
-			for (RendererConfiguration renderer : allConfs) {
-				if (renderer != null) {
-					keyValues.add(renderer.getRendererName());
-					nameValues.add(renderer.getRendererName());
+			for (RendererConfiguration rendererConf : allConfs) {
+				if (rendererConf != null) {
+					keyValues.add(rendererConf.getRendererName());
+					nameValues.add(rendererConf.getRendererName());
 				}
 			}
 		}
 
 		final KeyedComboBoxModel<String, String> renderersKcbm = new KeyedComboBoxModel<>(
-			keyValues.toArray(new String[keyValues.size()]),
-			nameValues.toArray(new String[nameValues.size()]));
+			keyValues.toArray(String[]::new),
+			nameValues.toArray(String[]::new));
 		renderers = new JComboBox<>(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
@@ -299,7 +268,7 @@ public class GeneralTab {
 							fos.flush();
 						}
 						configuration.reload();
-					} catch (Exception e1) {
+					} catch (IOException e1) {
 						JOptionPane.showMessageDialog(looksFrame, Messages.getString("ErrorSavingConfigFile") + e1.toString());
 					}
 				}
@@ -315,7 +284,7 @@ public class GeneralTab {
 				}
 			});
 
-			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
+			port = new JTextField(configuration.getMediaServerPort() != 5001 ? "" + configuration.getMediaServerPort() : "");
 			port.setToolTipText(Messages.getString("IfServerCantFindRenderer"));
 			port.addKeyListener(new KeyAdapter() {
 				@Override
@@ -326,7 +295,7 @@ public class GeneralTab {
 							p = "5001";
 						}
 						int ab = Integer.parseInt(p);
-						configuration.setServerPort(ab);
+						configuration.setMediaServerPort(ab);
 					} catch (NumberFormatException nfe) {
 						LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
 					}
@@ -340,7 +309,7 @@ public class GeneralTab {
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 			final KeyedComboBoxModel<String, String> networkInterfaces = createNetworkInterfacesModel();
-			networkinterfacesCBX = new JComboBox<>(networkInterfaces);
+			JComboBox<String> networkinterfacesCBX = new JComboBox<>(networkInterfaces);
 			String savedNetworkInterface = configuration.getNetworkInterface();
 			// for backwards-compatibility check if the short network interface name is used
 			savedNetworkInterface = NetworkConfiguration.replaceShortInterfaceNameByDisplayName(savedNetworkInterface);
@@ -369,7 +338,7 @@ public class GeneralTab {
 			});
 			maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
 
-			adaptBitrate = new JCheckBox(Messages.getString("UseAutomaticMaximumBandwidth"), configuration.isAutomaticMaximumBitrate());
+			JCheckBox adaptBitrate = new JCheckBox(Messages.getString("UseAutomaticMaximumBandwidth"), configuration.isAutomaticMaximumBitrate());
 			adaptBitrate.setToolTipText(Messages.getString("ItSetsOptimalBandwidth"));
 			adaptBitrate.setContentAreaFilled(false);
 			adaptBitrate.addActionListener((ActionEvent e) -> {
@@ -406,7 +375,7 @@ public class GeneralTab {
 			for (Entry<Integer, String> upnpEngineVersion : MediaServer.VERSIONS.entrySet()) {
 				mediaServerEngineKcbm.add(upnpEngineVersion.getKey(), upnpEngineVersion.getValue());
 			}
-			serverEngine = new JComboBox<>(mediaServerEngineKcbm);
+			JComboBox<String> serverEngine = new JComboBox<>(mediaServerEngineKcbm);
 			serverEngine.setToolTipText(Messages.getString("DefaultOptionIsHighlyRecommended"));
 			serverEngine.setEditable(false);
 			mediaServerEngineKcbm.setSelectedKey(configuration.getServerEngine());
@@ -429,7 +398,7 @@ public class GeneralTab {
 			if (preventSleepSupported) {
 				builder.addLabel(Messages.getString("PreventSleep"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 				final KeyedComboBoxModel<PreventSleepMode, String> preventSleepModel = createPreventSleepModel();
-				preventSleep = new JComboBox<>(preventSleepModel);
+				JComboBox<String> preventSleep = new JComboBox<>(preventSleepModel);
 				preventSleep.setToolTipText(Messages.getString("DuringPlaybackPreventOperating"));
 				preventSleepModel.setSelectedKey(configuration.getPreventSleep());
 				preventSleep.addItemListener((ItemEvent e) -> {
@@ -456,25 +425,20 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
 
-			forceDefaultRenderer = new JCheckBox(Messages.getString("ForceDefaultRenderer"), configuration.isRendererForceDefault());
+			JCheckBox forceDefaultRenderer = new JCheckBox(Messages.getString("ForceDefaultRenderer"), configuration.isRendererForceDefault());
 			forceDefaultRenderer.setToolTipText(Messages.getString("DisablesAutomaticDetection"));
 			forceDefaultRenderer.setContentAreaFilled(false);
-			forceDefaultRenderer.addItemListener((ItemEvent e) -> {
-				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			forceDefaultRenderer.addItemListener((ItemEvent e) -> configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(forceDefaultRenderer, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 
 			ypos += 2;
 
 			// External network box
-			extNetBox = new JCheckBox(Messages.getString("EnableExternalNetwork"), configuration.getExternalNetwork());
+			JCheckBox extNetBox = new JCheckBox(Messages.getString("EnableExternalNetwork"), configuration.getExternalNetwork());
 			extNetBox.setToolTipText(Messages.getString("ThisControlsWhetherUmsTry"));
 			extNetBox.setContentAreaFilled(false);
-			extNetBox.addItemListener((ItemEvent e) -> {
-				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
-			});
+			extNetBox.addItemListener((ItemEvent e) -> configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			ypos += 2;
 		}
 
 		JPanel panel = builder.getPanel();
@@ -575,8 +539,8 @@ public class GeneralTab {
 		keys.add(0, "");
 		names.add(0, "");
 		return new KeyedComboBoxModel<>(
-			keys.toArray(new String[keys.size()]),
-			names.toArray(new String[names.size()])
+			keys.toArray(String[]::new),
+			names.toArray(String[]::new)
 		);
 	}
 
@@ -597,25 +561,25 @@ public class GeneralTab {
 	 * initialized.
 	 */
 	public void addRenderers() {
-		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
-		ArrayList<String> keyValues = new ArrayList<>();
-		ArrayList<String> nameValues = new ArrayList<>();
+		List<RendererConfiguration> allConfs = RendererConfigurations.getEnabledRenderersConfigurations();
+		List<String> keyValues = new ArrayList<>();
+		List<String> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("UnknownRenderer"));
 
-		if (allConfs != null) {
+		if (!allConfs.isEmpty()) {
 			sortRendererConfigurationsByName(allConfs);
-			for (RendererConfiguration renderer : allConfs) {
-				if (renderer != null) {
-					keyValues.add(renderer.getRendererName());
-					nameValues.add(renderer.getRendererName());
+			for (RendererConfiguration rendererConf : allConfs) {
+				if (rendererConf != null) {
+					keyValues.add(rendererConf.getRendererName());
+					nameValues.add(rendererConf.getRendererName());
 				}
 			}
 		}
 
 		final KeyedComboBoxModel<String, String> renderersKcbm = new KeyedComboBoxModel<>(
-			keyValues.toArray(new String[keyValues.size()]),
-			nameValues.toArray(new String[nameValues.size()])
+			keyValues.toArray(String[]::new),
+			nameValues.toArray(String[]::new)
 		);
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
@@ -638,7 +602,7 @@ public class GeneralTab {
 		});
 	}
 
-	private void sortRendererConfigurationsByName(ArrayList<RendererConfiguration> rendererConfigurations) {
+	public static void sortRendererConfigurationsByName(List<RendererConfiguration> rendererConfigurations) {
 		Collections.sort(rendererConfigurations, (RendererConfiguration o1, RendererConfiguration o2) -> {
 			if (o1 == null && o2 == null) {
 				return 0;

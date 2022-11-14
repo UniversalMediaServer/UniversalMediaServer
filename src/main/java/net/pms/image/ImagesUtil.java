@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -15,7 +31,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -110,7 +125,7 @@ public class ImagesUtil {
 		long size = file.length();
 		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
 		try  {
-			Metadata metadata = null;
+			Metadata metadata;
 			FileType fileType = null;
 			try {
 				fileType = FileTypeDetector.detectFileType(inputStream);
@@ -123,7 +138,7 @@ public class ImagesUtil {
 				metadata = new Metadata();
 				LOGGER.debug(
 					"Error parsing {} metadata for \"{}\": {}",
-					fileType.toString().toUpperCase(Locale.ROOT),
+					fileType != null ? fileType.toString().toUpperCase(Locale.ROOT) : "null",
 					file.getAbsolutePath(),
 					e.getMessage()
 				);
@@ -175,9 +190,9 @@ public class ImagesUtil {
 				throw new ParseException("Parsing of \"" + file.getAbsolutePath() + "\" failed");
 			}
 
-			if (format == null) {
+			if (format == null && imageInfo != null) {
 				format = imageInfo.getFormat();
-			} else if (imageInfo != null && imageInfo.getFormat() != null && format != imageInfo.getFormat()) {
+			} else if (imageInfo != null && imageInfo.getFormat() != null && format != null && format != imageInfo.getFormat()) {
 				if (imageInfo.getFormat() == ImageFormat.TIFF && format.isRaw()) {
 					if (format == ImageFormat.ARW && !isARW(metadata)) {
 						// XXX Remove this if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
@@ -326,10 +341,10 @@ public class ImagesUtil {
 		}
 		try {
 			for (Directory directory : metadata.getDirectories()) {
-				if (directory instanceof ExifIFD0Directory) {
-					if (((ExifIFD0Directory) directory).containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
-						return ExifOrientation.typeOf(((ExifIFD0Directory) directory).getInt(ExifIFD0Directory.TAG_ORIENTATION));
-					}
+				if (directory instanceof ExifIFD0Directory exifIFD0Directory &&
+					exifIFD0Directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)
+				) {
+					return ExifOrientation.typeOf(exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION));
 				}
 			}
 		} catch (MetadataException e) {
@@ -363,15 +378,10 @@ public class ImagesUtil {
 		if (orientation == null) {
 			return false;
 		}
-		switch (orientation) {
-			case LEFT_TOP:
-			case RIGHT_TOP:
-			case RIGHT_BOTTOM:
-			case LEFT_BOTTOM:
-				return true;
-			default:
-				return false;
-		}
+		return switch (orientation) {
+			case LEFT_TOP, RIGHT_TOP, RIGHT_BOTTOM, LEFT_BOTTOM -> true;
+			default -> false;
+		};
 	}
 
 	/**
@@ -458,7 +468,7 @@ public class ImagesUtil {
 			f = ByteArrayInputStream.class.getDeclaredField("buf");
 			f.setAccessible(true);
 			return (byte[]) f.get(inputStream);
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+		} catch (RuntimeException | NoSuchFieldException | IllegalAccessException e) {
 			LOGGER.debug("Unexpected reflection failure in retrieveByteArray(): {}", e.getMessage());
 			LOGGER.trace("", e);
 			return null;
@@ -479,21 +489,19 @@ public class ImagesUtil {
 	 */
 	public static byte[] toByteArray(InputStream inputStream) throws IOException {
 		if (inputStream == null) {
-			return null;
+			return IOUtils.EMPTY_BYTE_ARRAY;
 		}
 
 		// Avoid copying the data if it's already a byte array
-		if (inputStream instanceof ByteArrayInputStream) {
-			byte[] bytes = retrieveByteArray((ByteArrayInputStream) inputStream);
-			if (bytes != null) {
-				return bytes;
+		try (inputStream) {
+			if (inputStream instanceof ByteArrayInputStream byteArrayInputStream) {
+				byte[] bytes = retrieveByteArray(byteArrayInputStream);
+				if (bytes != null) {
+					return bytes;
+				}
+				// Reflection failed, use IOUtils to read the stream instead
 			}
-			// Reflection failed, use IOUtils to read the stream instead
-		}
-		try {
 			return IOUtils.toByteArray(inputStream);
-		} finally {
-			inputStream.close();
 		}
 	}
 
@@ -1349,20 +1357,21 @@ public class ImagesUtil {
 			// Override output format to one valid for DLNA, defaulting to PNG
 			// if the source image has alpha and JPEG if not.
 			switch (outputFormat) {
-				case GIF:
+				case GIF -> {
 					if (dlnaThumbnail) {
 						outputFormat = ImageFormat.JPEG;
 					}
-					break;
-				case JPEG:
-				case PNG:
-					break;
-				default:
+				}
+				case JPEG, PNG -> {
+					//nothing to do
+				}
+				default -> {
 					if (bufferedImage.getColorModel().hasAlpha()) {
 						outputFormat = ImageFormat.PNG;
 					} else {
 						outputFormat = ImageFormat.JPEG;
 					}
+				}
 			}
 		}
 
@@ -1448,28 +1457,26 @@ public class ImagesUtil {
 		if (!reencode && outputFormat == inputResult.imageFormat && outputProfile != null) {
 			DLNAComplianceResult complianceResult;
 			switch (outputFormat) {
-				case GIF:
-				case JPEG:
-				case PNG:
+				case GIF, JPEG, PNG -> {
 					ImageInfo imageInfo;
 					// metadata is only null at this stage if inputImage != null and no rotation was necessary
 					if (metadata == null) {
+						// TODO: why imageInfo is assign and reassing just after
 						imageInfo = inputImage.getImageInfo();
 					}
 					imageInfo = ImageInfo.create(
-						bufferedImage.getWidth(),
-						bufferedImage.getHeight(),
-						inputResult.imageFormat,
-						ImageInfo.SIZE_UNKNOWN,
-						bufferedImage.getColorModel(),
-						metadata,
-						false,
-						true
+							bufferedImage.getWidth(),
+							bufferedImage.getHeight(),
+							inputResult.imageFormat,
+							ImageInfo.SIZE_UNKNOWN,
+							bufferedImage.getColorModel(),
+							metadata,
+							false,
+							true
 					);
 					complianceResult = DLNAImageProfile.checkCompliance(imageInfo, outputProfile);
-					break;
-				default:
-					throw new IllegalStateException("Unexpected image format: " + outputFormat);
+				}
+				default -> throw new IllegalStateException("Unexpected image format: " + outputFormat);
 			}
 			reencode = reencode || convertColors || !complianceResult.isFormatCorrect() || !complianceResult.isColorsCorrect();
 			if (!complianceResult.isResolutionCorrect()) {
@@ -1816,106 +1823,43 @@ public class ImagesUtil {
 			throw new IllegalArgumentException("Either format or fileType must be non-null");
 		}
 
-		Metadata metadata = null;
+		Metadata metadata;
 
 		if (fileType != null) {
-			switch (fileType) {
-				case Bmp:
-					metadata = BmpMetadataReader.readMetadata(inputStream);
-					break;
-				case Gif:
-					metadata = GifMetadataReader.readMetadata(inputStream);
-					break;
-				case Ico:
-					metadata = IcoMetadataReader.readMetadata(inputStream);
-					break;
-				case Jpeg:
-					metadata = JpegMetadataReader.readMetadata(inputStream);
-					break;
-				case Pcx:
-					metadata = PcxMetadataReader.readMetadata(inputStream);
-					break;
-				case Png:
-					metadata = PngMetadataReader.readMetadata(inputStream);
-					break;
-				case Psd:
-					metadata = PsdMetadataReader.readMetadata(inputStream);
-					break;
-				case Raf:
-					metadata = RafMetadataReader.readMetadata(inputStream);
-					break;
-				case Riff:
-				case WebP:
-					metadata = WebpMetadataReader.readMetadata(inputStream);
-					break;
-				case Tiff:
-				case Arw:
-				case Cr2:
-				case Nef:
-				case Orf:
-				case Rw2:
-					metadata = TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
+			metadata = switch (fileType) {
+				case Bmp -> BmpMetadataReader.readMetadata(inputStream);
+				case Gif -> GifMetadataReader.readMetadata(inputStream);
+				case Ico -> IcoMetadataReader.readMetadata(inputStream);
+				case Jpeg -> JpegMetadataReader.readMetadata(inputStream);
+				case Pcx -> PcxMetadataReader.readMetadata(inputStream);
+				case Png -> PngMetadataReader.readMetadata(inputStream);
+				case Psd -> PsdMetadataReader.readMetadata(inputStream);
+				case Raf -> RafMetadataReader.readMetadata(inputStream);
+				case Riff, WebP -> WebpMetadataReader.readMetadata(inputStream);
+				case Tiff, Arw, Cr2, Nef, Orf, Rw2 -> TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
 						inputStream, RandomAccessStreamReader.DEFAULT_CHUNK_LENGTH, -1
 					));
-					break;
-				case Crw:
-				case Unknown:
-				default:
-					// Return an empty Metadata instance for unsupported formats
-					metadata = new Metadata();
-			}
-		} else {
-			switch (format) {
-				case BMP:
-					metadata = BmpMetadataReader.readMetadata(inputStream);
-					break;
-				case GIF:
-					metadata = GifMetadataReader.readMetadata(inputStream);
-					break;
-				case ICO:
-					metadata = IcoMetadataReader.readMetadata(inputStream);
-					break;
-				case JPEG:
-					metadata = JpegMetadataReader.readMetadata(inputStream);
-					break;
-				case DCX:
-				case PCX:
-					metadata = PcxMetadataReader.readMetadata(inputStream);
-					break;
-				case PNG:
-					metadata = PngMetadataReader.readMetadata(inputStream);
-					break;
-				case PSD:
-					metadata = PsdMetadataReader.readMetadata(inputStream);
-					break;
-				case RAF:
-					metadata = RafMetadataReader.readMetadata(inputStream);
-					break;
-				case TIFF:
-				case ARW:
-				case CR2:
-				case NEF:
-				case ORF:
-				case RW2:
-					metadata = TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
-						inputStream, RandomAccessStreamReader.DEFAULT_CHUNK_LENGTH, -1
-					));
-					break;
-				case WEBP:
-					metadata = WebpMetadataReader.readMetadata(inputStream);
-					break;
-				case SOURCE:
-					metadata = ImageMetadataReader.readMetadata(inputStream);
-					break;
 				// Return an empty Metadata instance for unsupported formats
-				case CRW:
-				case CUR:
-				case ICNS:
-				case PNM:
-				case WBMP:
-				default:
-					metadata = new Metadata();
-			}
+				default -> new Metadata();
+			};
+		} else {
+			metadata = switch (format) {
+				case BMP -> BmpMetadataReader.readMetadata(inputStream);
+				case GIF -> GifMetadataReader.readMetadata(inputStream);
+				case ICO -> IcoMetadataReader.readMetadata(inputStream);
+				case JPEG -> JpegMetadataReader.readMetadata(inputStream);
+				case DCX, PCX -> PcxMetadataReader.readMetadata(inputStream);
+				case PNG -> PngMetadataReader.readMetadata(inputStream);
+				case PSD -> PsdMetadataReader.readMetadata(inputStream);
+				case RAF -> RafMetadataReader.readMetadata(inputStream);
+				case TIFF, ARW, CR2, NEF, ORF, RW2 -> TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
+						inputStream, RandomAccessStreamReader.DEFAULT_CHUNK_LENGTH, -1
+					));
+				case WEBP -> WebpMetadataReader.readMetadata(inputStream);
+				case SOURCE -> ImageMetadataReader.readMetadata(inputStream);
+				// Return an empty Metadata instance for unsupported formats
+				default ->  new Metadata();
+			};
 		}
 		return metadata;
 	}
@@ -2041,14 +1985,14 @@ public class ImagesUtil {
 		Integer result = null;
 		for (int i : intArray) {
 			if (result == null) {
-				result = Integer.valueOf(i);
+				result = i;
 			} else {
-				if (result.intValue() != i) {
+				if (result != i) {
 					throw new InvalidStateException("The array doesn't have a constant value: " + Arrays.toString(intArray));
 				}
 			}
 		}
-		return result.intValue();
+		return result;
 	}
 
 	/**
@@ -2075,14 +2019,14 @@ public class ImagesUtil {
 		Byte result = null;
 		for (byte b : byteArray) {
 			if (result == null) {
-				result = Byte.valueOf(b);
+				result = b;
 			} else {
-				if (result.byteValue() != b) {
+				if (result != b) {
 					throw new InvalidStateException("The array doesn't have a constant value: " + Arrays.toString(byteArray));
 				}
 			}
 		}
-		return result.byteValue();
+		return result;
 	}
 
 	/**
@@ -2143,12 +2087,12 @@ public class ImagesUtil {
 		short byteOrderIdentifier = reader.getInt16(pos);
 		pos += 4; // Skip TIFF marker
 
-		if (byteOrderIdentifier == 0x4d4d) { // "MM"
-			reader.setMotorolaByteOrder(true);
-		} else if (byteOrderIdentifier == 0x4949) { // "II"
-			reader.setMotorolaByteOrder(false);
-		} else {
-			throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
+		switch (byteOrderIdentifier) {
+			// "MM"
+			case 0x4d4d -> reader.setMotorolaByteOrder(true);
+			// "II"
+			case 0x4949 -> reader.setMotorolaByteOrder(false);
+			default -> throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
 		}
 
 		pos = reader.getInt32(pos) + exifHeaderOffset;
@@ -2184,11 +2128,11 @@ public class ImagesUtil {
 
 		byte jpegSegmentIdentifier = (byte) 0xFF;
 		byte markerEOI = (byte) 0xD9;
-		Set<Byte> sofs = new HashSet<>(Arrays.asList(
+		Set<Byte> sofs = Set.of(
 			(byte) 0xC0, (byte) 0xC1, (byte) 0xC2, (byte) 0xC3, (byte) 0xC5,
 			(byte) 0xC6, (byte) 0xC7, (byte) 0xC8, (byte) 0xC9, (byte) 0xCA,
 			(byte) 0xCB, (byte) 0xCD, (byte) 0xCE, (byte) 0xCF
-		));
+		);
 
 		byte segmentIdentifier = reader.getInt8(2);
 		byte segmentType = reader.getInt8(3);

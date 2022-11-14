@@ -1,25 +1,23 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.renderers.devices;
 
 import com.google.gson.Gson;
-import java.io.File;
+import com.google.gson.JsonObject;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -29,13 +27,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Engine;
 import net.pms.encoders.FFMpegVideo;
-import net.pms.service.StartStopListenerDelegate;
 import net.pms.formats.*;
 import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;
@@ -47,32 +43,22 @@ import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
+import net.pms.network.IServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.ServerSentEvents;
 import net.pms.renderers.OutputOverride;
+import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebPlayer;
+import net.pms.service.StartStopListenerDelegate;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebRender extends DeviceConfiguration implements OutputOverride {
-	private final String user;
-	private final String defaultMime;
-	private final Gson gson;
-	private String ip;
-	@SuppressWarnings("unused")
-	private int port;
-	private String ua;
-	private int browser = 0;
-	private String platform = null;
-	private int screenWidth = 0;
-	private int screenHeight = 0;
-	private boolean isTouchDevice = false;
-	private String subLang;
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+public class WebRender extends Renderer implements OutputOverride {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
 	private static final Format[] SUPPORTED_FORMATS = {
 		new GIF(),
 		new JPG(),
@@ -96,41 +82,52 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 	protected static final int CHROMIUM = 9;
 	protected static final int VIVALDI = 10;
 
+	private final String user;
+	private final String defaultMime;
+	private final Gson gson;
+	private String ip;
+	@SuppressWarnings("unused")
+	private int port;
+	private String ua;
+	private int browser = 0;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
+	private boolean isTouchDevice = false;
+	private String subLang;
 	private StartStopListenerDelegate startStop;
 
 	public WebRender(String user) throws ConfigurationException, InterruptedException {
-		super(NOFILE, null);
+		super((String) null);
 		this.user = user;
 		ip = "";
 		port = 0;
 		ua = "";
-		fileless = true;
+		setFileless(true);
 		String userFmt = CONFIGURATION.getWebTranscode();
 		defaultMime = userFmt != null ? ("video/" + userFmt) : WebInterfaceServerUtil.transMime();
 		startStop = null;
 		subLang = "";
-		if (CONFIGURATION.useWebControl()) {
-			controls = BasicPlayer.PLAYCONTROL | BasicPlayer.VOLUMECONTROL;
+		if (CONFIGURATION.isWebPlayerControllable()) {
+			setControls(PLAYCONTROL | VOLUMECONTROL);
 		}
 		gson = new Gson();
 		pushList = new ArrayList<>();
+		setProperties();
 	}
 
-	@Override
-	public boolean load(File f) {
-		// TODO: These are just preliminary
-		configuration.addProperty(MEDIAPARSERV2, true);
-		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
-		configuration.addProperty(SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
-		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
-		configuration.addProperty(SUPPORTED, "f:m4a m:audio/mp4");
-		configuration.addProperty(SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
-		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
-		configuration.addProperty(TRANSCODE_AUDIO, MP3);
-		configuration.addProperty(TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
-		configuration.addProperty(HLS_MULTI_VIDEO_QUALITY, true);
-		configuration.addProperty(HLS_VERSION, 6);
-		return true;
+	public final void setProperties() {
+		// FIXME: These are just preliminary
+		configuration.addProperty(KEY_MEDIAPARSERV2, true);
+		configuration.addProperty(KEY_MEDIAPARSERV2_THUMB, true);
+		configuration.addProperty(KEY_SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
+		configuration.addProperty(KEY_SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
+		configuration.addProperty(KEY_SUPPORTED, "f:m4a m:audio/mp4");
+		configuration.addProperty(KEY_SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
+		configuration.addProperty(KEY_SUPPORTED, "f:wav n:2 m:audio/wav");
+		configuration.addProperty(KEY_TRANSCODE_AUDIO, TRANSCODE_TO_MP3);
+		configuration.addProperty(KEY_TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
+		configuration.addProperty(KEY_HLS_MULTI_VIDEO_QUALITY, true);
+		configuration.addProperty(KEY_HLS_VERSION, 6);
 	}
 
 	@Override
@@ -195,7 +192,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		browser = getBrowser(userAgent);
 
 		if (info != null && UMS_INFO.reset(info).find()) {
-			platform = UMS_INFO.group(1).toLowerCase();
+			String platform = UMS_INFO.group(1).toLowerCase();
 			screenWidth = Integer.parseInt(UMS_INFO.group(2));
 			screenHeight = Integer.parseInt(UMS_INFO.group(3));
 			isTouchDevice = Boolean.parseBoolean(UMS_INFO.group(4));
@@ -203,8 +200,8 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
 		}
-		active = true;
 		uuid = getConfName() + ":" + ip;
+		setActive(true);
 	}
 
 	@Override
@@ -299,15 +296,15 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		try {
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
-			slow = calculatedSpeed() < pmsConfiguration.getWebLowSpeed();
+			slow = calculatedSpeed() < umsConfiguration.getWebLowSpeed();
 		} catch (InterruptedException | ExecutionException e) {
 		}
 		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
 
 	@Override
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Engine player, OutputParams params) {
-		if (player instanceof FFMpegVideo fFMpegVideo) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Engine engine, OutputParams params) {
+		if (engine instanceof FFMpegVideo fFMpegVideo) {
 			if (resource.getFormat().isVideo()) {
 				DLNAMediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
@@ -321,6 +318,9 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 						case HTTPResource.WEBM_TYPEMIME -> ffWebmCmd(cmdList);
 						case HTTPResource.HLS_TYPEMIME -> {
 							return false;
+						}
+						default -> {
+							//do nothing
 						}
 					}
 				}
@@ -526,7 +526,7 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 
 	@Override
 	public String getSubLanguage() {
-		if (!useWebSubLang() || StringUtils.isEmpty(subLang)) {
+		if (!CONFIGURATION.useWebPlayerSubLang() || StringUtils.isEmpty(subLang)) {
 			return super.getSubLanguage();
 		}
 		return subLang;
@@ -536,12 +536,26 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		subLang = s;
 	}
 
-	private final ArrayList<String[]> pushList;
+	private final ArrayList<JsonObject> pushList;
 
 	public void push(String... args) {
-		if (sse == null || !sse.isOpened() || !sse.sendMessage(gson.toJson(args))) {
+		JsonObject jObject = new JsonObject();
+		jObject.addProperty("action", "player");
+		if (args.length > 0) {
+			jObject.addProperty("request", args[0]);
+			if (args.length > 1) {
+				jObject.addProperty("arg0", args[1]);
+				if (args.length > 2) {
+					jObject.addProperty("arg1", args[2]);
+					if (args.length > 3) {
+						jObject.addProperty("arg2", args[3]);
+					}
+				}
+			}
+		}
+		if (sse == null || !sse.isOpened() || !sse.sendMessage(jObject.toString())) {
 			synchronized (pushList) {
-				pushList.add(args);
+				pushList.add(jObject);
 			}
 		}
 	}
@@ -557,24 +571,27 @@ public class WebRender extends DeviceConfiguration implements OutputOverride {
 		return json;
 	}
 
-	private ServerSentEvents sse;
-	public void addServerSentEvents(ServerSentEvents sse) {
+	private IServerSentEvents sse;
+	public void addServerSentEvents(IServerSentEvents sse) {
 		if (this.sse != null && this.sse.isOpened()) {
-			this.sse.sendMessage(gson.toJson(new String[] {"close", "warn", "", ""}));
+			this.sse.sendMessage(gson.toJson(new String[] {"close"}));
 			this.sse.close();
 		}
 		synchronized (pushList) {
 			this.sse = sse;
 			//empty current push datas
 			while (!pushList.isEmpty() && this.sse != null && this.sse.isOpened()) {
-				if (this.sse.sendMessage(gson.toJson(pushList.get(0)))) {
+				if (this.sse.sendMessage(pushList.get(0).toString())) {
 					pushList.remove(0);
 				}
 			}
 		}
 	}
 
-	@Override
+	public void updateServerSentEventsActive() {
+		setActive(this.sse != null && this.sse.isOpened());
+	}
+
 	public void notify(String type, String msg) {
 		push("notify", type, msg);
 	}

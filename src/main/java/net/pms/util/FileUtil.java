@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -21,19 +20,16 @@ import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 import com.sun.jna.Platform;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFileAttributes;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -48,7 +44,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.PMS;
 import static net.pms.PMS.getConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
@@ -66,7 +62,6 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-	private static final int S_ISVTX = 512; // Unix sticky bit mask
 
 	/**
 	 * An array of chars that qualifies as file path separators. For Windows
@@ -211,45 +206,6 @@ public class FileUtil {
 	}
 
 	/**
-	 * A simple type holding mount point information for Unix file systems.
-	 *
-	 * @author Nadahar
-	 */
-	public static final class UnixMountPoint {
-		public String device;
-		public String folder;
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == null) {
-				return false;
-			}
-
-			if (this == obj) {
-				return true;
-			}
-
-			if (!(obj instanceof UnixMountPoint)) {
-				return false;
-			}
-
-			return
-				device.equals(((UnixMountPoint) obj).device) &&
-				folder.equals(((UnixMountPoint) obj).folder);
-		}
-
-		@Override
-		public int hashCode() {
-			return device.hashCode() + folder.hashCode();
-		}
-
-		@Override
-		public String toString() {
-			return String.format("Device: \"%s\", folder: \"%s\"", device, folder);
-		}
-	}
-
-	/**
 	 * Checks if the specified {@link String} is the file path separator. On
 	 * Windows filesystems both {@code "\"} and {@code "/"} is considered as
 	 * such by this method.
@@ -350,6 +306,10 @@ public class FileUtil {
 	 */
 	@Nullable
 	public static String getExtension(@Nullable File file) {
+		if (file == null || file.getName() == null) {
+			return null;
+		}
+
 		return getExtension(file.getName(), null, null);
 	}
 
@@ -519,12 +479,20 @@ public class FileUtil {
 	}
 
 	private static final class FormattedNameAndEdition {
-		public String formattedName;
-		public String edition;
+		private final String formattedName;
+		private final String edition;
 
 		public FormattedNameAndEdition(String formattedName, String edition) {
 			this.formattedName = formattedName;
 			this.edition = edition;
+		}
+
+		public String getEdition() {
+			return edition;
+		}
+
+		public String getFormattedName() {
+			return formattedName;
 		}
 	}
 
@@ -948,9 +916,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION + "\\s", " S" + tvSeason + "E$2-$3 - ");
 			formattedName = formattedName.replaceAll("\\s" + SCENE_MULTI_EPISODE_CONVENTION, " S" + tvSeason + "E$2-$3");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = removeFilenameEndMetadata(formattedName);
@@ -969,9 +937,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -994,9 +962,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1019,9 +987,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1044,9 +1012,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1070,9 +1038,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1099,9 +1067,9 @@ public class FileUtil {
 			}
 
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -1135,9 +1103,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			formattedName = formattedName.replaceAll("\\s(19|20)(\\d{2})\\s([0-1]\\d)\\s([0-3]\\d)", " $1$2/$3/$4");
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = removeFilenameEndMetadata(formattedName);
@@ -1149,9 +1117,9 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\s(19|20)(\\d{2})", " ($1$2)");
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
@@ -1226,9 +1194,9 @@ public class FileUtil {
 			isMovieWithoutYear = true;
 			formattedName = removeFilenameEndMetadata(formattedName);
 			FormattedNameAndEdition result = removeAndSaveEditionToBeAddedLater(formattedName);
-			formattedName = result.formattedName;
-			if (result.edition != null) {
-				edition = result.edition;
+			formattedName = result.getFormattedName();
+			if (result.getEdition() != null) {
+				edition = result.getEdition();
 			}
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
@@ -1339,21 +1307,8 @@ public class FileUtil {
 		for (String word : value.split("\\s+")) {
 			if (loopedOnce) {
 				switch (word) {
-					case "a":
-					case "an":
-					case "and":
-					case "in":
-					case "it":
-					case "for":
-					case "of":
-					case "on":
-					case "the":
-					case "to":
-					case "vs":
-						convertedValue.append(' ').append(word);
-						break;
-					default:
-						convertedValue.append(' ').append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
+					case "a", "an", "and", "in", "it", "for", "of", "on", "the", "to", "vs" -> convertedValue.append(' ').append(word);
+					default -> convertedValue.append(' ').append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
 				}
 			} else {
 				// Always capitalize the first letter of the string
@@ -1955,7 +1910,7 @@ public class FileUtil {
 				 * @author Nadahar
 				 */
 				try (BufferedReader reader =
-					charset.equals(StandardCharsets.UTF_16LE) ?
+					StandardCharsets.UTF_16LE.equals(charset) ?
 						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), StandardCharsets.UTF_16)) :
 						new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), charset))
 				) {
@@ -2074,7 +2029,7 @@ public class FileUtil {
 		return null;
 	}
 
-	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
+	public static boolean isFileRelevant(File f, UmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
 		return (
 			(
@@ -2095,11 +2050,11 @@ public class FileUtil {
 		);
 	}
 
-	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+	public static boolean isFolderRelevant(File f, UmsConfiguration configuration) {
 		return isFolderRelevant(f, configuration, Collections.<String>emptySet());
 	}
 
-	public static boolean isFolderRelevant(File f, PmsConfiguration configuration, Set<String> ignoreFiles) {
+	public static boolean isFolderRelevant(File f, UmsConfiguration configuration, Set<String> ignoreFiles) {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
@@ -2286,116 +2241,6 @@ public class FileUtil {
 	}
 
 	/**
-	 * Finds the {@link UnixMountPoint} for a {@link java.nio.file.Path} given
-	 * that the file resides on a Unix file system.
-	 *
-	 * @param path the {@link java.nio.file.Path} for which to find the Unix
-	 *            mount point.
-	 * @return The {@link UnixMountPoint} for the given path.
-	 *
-	 * @throws InvalidFileSystemException
-	 */
-	public static UnixMountPoint getMountPoint(Path path) throws InvalidFileSystemException {
-		UnixMountPoint mountPoint = new UnixMountPoint();
-		FileStore store;
-		try {
-			store = Files.getFileStore(path);
-		} catch (IOException e) {
-			throw new InvalidFileSystemException(
-				String.format("Could not get Unix mount point for file \"%s\": %s", path.toAbsolutePath(), e.getMessage()),
-				e
-			);
-		}
-
-		try {
-			Field entryField = store.getClass().getSuperclass().getDeclaredField("entry");
-			Field nameField = entryField.getType().getDeclaredField("name");
-			Field dirField = entryField.getType().getDeclaredField("dir");
-			entryField.setAccessible(true);
-			nameField.setAccessible(true);
-			dirField.setAccessible(true);
-			mountPoint.device = new String((byte[]) nameField.get(entryField.get(store)), StandardCharsets.UTF_8);
-			mountPoint.folder = new String((byte[]) dirField.get(entryField.get(store)), StandardCharsets.UTF_8);
-			return mountPoint;
-		} catch (NoSuchFieldException e) {
-			throw new InvalidFileSystemException(String.format("File \"%s\" is not on a Unix file system", path.isAbsolute()), e);
-		} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			throw new InvalidFileSystemException(
-				String.format(
-					"An error occurred while trying to find mount point for file \"%s\": %s",
-					path.toAbsolutePath(),
-					e.getMessage()
-				),
-				e
-			);
-		}
-	}
-
-	/**
-	 * Finds the {@link UnixMountPoint} for a {@link java.io.File} given that
-	 * the file resides on a Unix file system.
-	 *
-	 * @param file the {@link java.io.File} for which to find the Unix mount
-	 *            point.
-	 * @return The {@link UnixMountPoint} for the given path.
-	 *
-	 * @throws InvalidFileSystemException
-	 */
-	public static UnixMountPoint getMountPoint(File file) throws InvalidFileSystemException {
-		return getMountPoint(file.toPath());
-	}
-
-	public static boolean isUnixStickyBit(Path path) throws IOException, InvalidFileSystemException {
-		PosixFileAttributes attr = Files.readAttributes(path, PosixFileAttributes.class);
-		try {
-			Field stModeField = attr.getClass().getDeclaredField("st_mode");
-			stModeField.setAccessible(true);
-			int stMode = stModeField.getInt(attr);
-			return (stMode & S_ISVTX) > 0;
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			throw new InvalidFileSystemException("File is not on a Unix file system: " + e.getMessage(), e);
-		}
-	}
-
-	private static int unixUID = Integer.MIN_VALUE;
-	private static final Object UNIX_UID_LOCK = new Object();
-
-	/**
-	 * Gets the user ID on Unix based systems. This should not change during a
-	 * session and the lookup is expensive, so we cache the result.
-	 *
-	 * @return The Unix user ID
-	 * @throws IOException
-	 */
-	public static int getUnixUID() throws IOException {
-		if (
-			Platform.isAIX() || Platform.isFreeBSD() || Platform.isGNU() || Platform.iskFreeBSD() ||
-			Platform.isLinux() || Platform.isMac() || Platform.isNetBSD() || Platform.isOpenBSD() ||
-			Platform.isSolaris()
-		) {
-			synchronized (UNIX_UID_LOCK) {
-				if (unixUID < 0) {
-					String response;
-					Process id;
-					id = Runtime.getRuntime().exec("id -u");
-					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
-						response = reader.readLine();
-					}
-
-					try {
-						unixUID = Integer.parseInt(response);
-					} catch (NumberFormatException e) {
-						throw new UnsupportedOperationException("Unexpected response from OS: " + response, e);
-					}
-				}
-
-				return unixUID;
-			}
-		}
-		throw new UnsupportedOperationException("getUnixUID can only be called on Unix based OS'es");
-	}
-
-	/**
 	 * @return The OS {@code PATH} environment variable as a {@link List} of
 	 *         {@link Path}s.
 	 */
@@ -2470,7 +2315,7 @@ public class FileUtil {
 		List<Path> osPath = new ArrayList<>();
 		osPath.add(null);
 		osPath.addAll(getOSPath());
-		Path result = null;
+		Path result;
 		List<String> extensions = new ArrayList<>();
 		extensions.add(null);
 		if (Platform.isWindows() && getExtension(relativePath) == null) {
@@ -2525,7 +2370,7 @@ public class FileUtil {
 							}
 						}
 					} catch (FileNotFoundException e) {
-						continue;
+						//will continue;
 					}
 				}
 			}

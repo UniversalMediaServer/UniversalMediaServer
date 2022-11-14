@@ -1,23 +1,21 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,8 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.ISOVOB;
 import net.pms.formats.v2.SubtitleType;
@@ -37,6 +34,7 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
@@ -45,6 +43,7 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -239,7 +238,7 @@ public class DVDISOTitle extends DLNAResource {
 		// No point in trying to re-parse the thumbnail later
 		getMedia().setThumbready(true);
 
-		length = nbsectors * 2048;
+		length = nbsectors * 2048L;
 
 		double d = 0;
 		if (duration != null) {
@@ -318,7 +317,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	// Ditlew
 	@Override
-	public long length(RendererConfiguration mediaRenderer) {
+	public long length(Renderer renderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
 		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
@@ -366,11 +365,9 @@ public class DVDISOTitle extends DLNAResource {
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			DLNAThumbnailInputStream inputStream = getMedia().getThumbnailInputStream();
-			return inputStream;
+			return getMedia().getThumbnailInputStream();
 		} else {
-			DLNAThumbnailInputStream inputStream = getGenericThumbnailInputStream(null);
-			return inputStream;
+			return getGenericThumbnailInputStream(null);
 		}
 	}
 
@@ -488,7 +485,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	@Override
-	protected String getDisplayNameSuffix(RendererConfiguration renderer, PmsConfiguration configuration) {
+	protected String getDisplayNameSuffix(Renderer renderer, UmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
 		if (
 			getMedia() != null &&

@@ -1,17 +1,34 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.logging.LoggingConfig;
-import org.apache.commons.lang3.StringUtils;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +41,7 @@ public class DbgPacker {
 	public DbgPacker() {
 		items = new LinkedHashMap<>();
 
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
 		if (!logFilePaths.isEmpty()) {
 			defaultLogFile = LoggingConfig.getLogFilePaths().get("default.log");
 			if (defaultLogFile == null) {
@@ -37,7 +54,7 @@ public class DbgPacker {
 
 	protected void poll() {
 		// call the client callbacks
-		PmsConfiguration configuration = PMS.getConfiguration();
+		UmsConfiguration configuration = PMS.getConfiguration();
 
 		// check dbgpack property in UMS.conf
 		LOGGER.debug("Checking dbgpack property in UMS.conf");
@@ -47,10 +64,10 @@ public class DbgPacker {
 		}
 
 		// add confs of connected renderers
-		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
-			add(r.getFile());
-			if (((DeviceConfiguration) r).isCustomized()) {
-				add(((DeviceConfiguration) r).getParentFile());
+		for (Renderer renderer : ConnectedRenderers.getConnectedRenderers()) {
+			add(renderer.getFile());
+			if (renderer.isCustomized()) {
+				add(renderer.getParentFile());
 			}
 		}
 
@@ -58,13 +75,7 @@ public class DbgPacker {
 		// insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
 
-		// add virtual folders file if it exists
-		String vfolders = configuration.getVirtualFoldersFile();
-		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(profileDirectory, vfolders));
-		}
-
-		add(new File(profileDirectory, "WEB.conf"));
+		add(new File(profileDirectory, "SHARED.conf"));
 		add(new File(configuration.getProfilePath()));
 		if (defaultLogFile != null && !defaultLogFile.isEmpty()) {
 			add(new File(defaultLogFile + ".prev.zip"));
@@ -92,6 +103,22 @@ public class DbgPacker {
 	public Set<File> getItems() {
 		poll();
 		return items.keySet();
+	}
+
+	public static void writeToZip(ZipOutputStream out, File f) throws Exception {
+		byte[] buf = new byte[1024];
+		int len;
+		if (!f.exists()) {
+			LOGGER.debug("DbgPack file {} does not exist - ignoring", f.getAbsolutePath());
+			return;
+		}
+		try (FileInputStream in = new FileInputStream(f)) {
+			out.putNextEntry(new ZipEntry(f.getName()));
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			out.closeEntry();
+		}
 	}
 
 }

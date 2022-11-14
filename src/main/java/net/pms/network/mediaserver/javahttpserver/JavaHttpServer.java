@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.javahttpserver;
 
@@ -33,7 +32,6 @@ public class JavaHttpServer extends HttpMediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHttpServer.class);
 
 	private HttpServer server;
-	private ExecutorService executorService;
 
 	public JavaHttpServer(InetAddress inetAddress, int port) {
 		super(inetAddress, port);
@@ -49,8 +47,7 @@ public class JavaHttpServer extends HttpMediaServer {
 			localPort = server.getAddress().getPort();
 			server.createContext("/", new RequestHandler());
 			server.createContext("/api", new ApiHandler());
-			server.createContext("/console", new ConsoleHandler());
-			executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
+			ExecutorService executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
 			server.setExecutor(executorService);
 			server.start();
 			LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.network.mediaserver.handlers.api;
 
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -19,16 +35,12 @@ public class FolderScanner implements ApiResponseHandler {
 		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
 		output.setStatus(HttpResponseStatus.NO_CONTENT);
 		switch (uri) {
-			case "rescan":
-				rescanLibrary();
-				break;
-			case "rescanFileOrFolder":
-				RootFolder.rescanLibraryFileOrFolder(content);
-				break;
-			default:
+			case "rescan" -> rescanLibrary();
+			case "rescanFileOrFolder" -> RootFolder.rescanLibraryFileOrFolder(content);
+			default -> {
 				LOGGER.warn("Invalid API call. Unknown path : " + uri);
 				output.setStatus(HttpResponseStatus.NOT_FOUND);
-				break;
+			}
 		}
 		return null;
 	}

@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
@@ -21,9 +20,9 @@ import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
-import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,25 +38,25 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
-import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.WindowProperties;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang3.StringUtils;
 
 public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
@@ -68,7 +67,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	public static final String START_SERVICE = "start.service";
 
 	private final AutoUpdater autoUpdater;
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private final WindowProperties windowProperties;
 
 	/**
@@ -94,7 +93,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
-	private HelpTab ht;
 	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
@@ -155,7 +153,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void enableWebUiButton() {
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface.setEnabled(true);
 		}
 	}
@@ -263,7 +261,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull UmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
 		super(windowConfiguration.getGraphicsConfiguration());
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration can't be null");
@@ -386,27 +384,21 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		 * 3) otherwise (default): don't display them
 		 */
 		switch (showScrollbars) {
-			case "true":
-				setContentPane(
+			case "true" -> setContentPane(
 					new JScrollPane(
 						jp,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 					)
 				);
-				break;
-			case "optional":
-				setContentPane(
+			case "optional" -> setContentPane(
 					new JScrollPane(
 						jp,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 					)
 				);
-				break;
-			default:
-				setContentPane(jp);
-				break;
+			default -> setContentPane(jp);
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
@@ -466,21 +458,21 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 		toolBar.add(new JPanel());
 
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
-				if (PMS.get().getWebInterfaceServer() != null && StringUtils.isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
+				if (PMS.get().getGuiServer() != null && StringUtils.isNotBlank(PMS.get().getGuiServer().getUrl())) {
 					try {
-						URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
+						URI uri = new URI(PMS.get().getGuiServer().getUrl());
 						if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
 							error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 						}
 					} catch (URISyntaxException se) {
 						LOGGER.error(
-								"Could not form a valid web player server URI from \"{}\": {}",
-								PMS.get().getWebInterfaceServer().getUrl(),
+								"Could not form a valid web gui server URI from \"{}\": {}",
+								PMS.get().getGuiServer().getUrl(),
 								se.getMessage()
 						);
 						LOGGER.trace("", se);
@@ -505,14 +497,14 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			reload.setEnabled(false);
 			PMS.get().resetMediaServer();
 		});
-		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+		reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		quit.addActionListener((ActionEvent e) -> quit());
+		quit.addActionListener((ActionEvent e) -> PMS.quit());
 		toolBar.add(quit);
 		if (System.getProperty(START_SERVICE) != null) {
 			quit.setEnabled(false);
@@ -549,7 +541,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		navigationSettingsTab = new NavigationShareTab(configuration, this);
 		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
-		ht = new HelpTab();
+		HelpTab ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("Status"), st.build());
 		tabbedPane.addTab(Messages.getString("Logs"), tt.build());
@@ -606,17 +598,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		return button;
 	}
 
-	public void quit() {
-		windowProperties.dispose();
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			LOGGER.error("Interrupted during shutdown: {}", e);
-		}
-
-		PMS.quit();
-	}
-
 	@Override
 	public void dispose() {
 		windowProperties.dispose();
@@ -653,7 +634,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	 * to restart the server.<br>
 	 * Currently the icon as well as the tool tip text of the restart button is being
 	 * changed.<br>
-	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
+	 * The actions requiring a server restart are defined by {@link UmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
 	 * @param required true if the server has to be restarted, false otherwise
 	 */
@@ -668,7 +649,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			} else {
 				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
-					reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
@@ -739,7 +720,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void addRenderer(Renderer renderer) {
 		st.addRenderer(renderer);
 	}
 
@@ -755,8 +736,8 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		} else {
 			st.setMediaServerBind("-");
 		}
-		if (PMS.get().getWebInterfaceServer() != null) {
-			st.setInterfaceServerBind(PMS.get().getWebInterfaceServer().getAddress());
+		if (PMS.get().getWebPlayerServer() != null) {
+			st.setInterfaceServerBind(PMS.get().getWebPlayerServer().getAddress());
 		} else {
 			st.setInterfaceServerBind("-");
 		}

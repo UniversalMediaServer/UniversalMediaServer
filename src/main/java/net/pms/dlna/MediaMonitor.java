@@ -1,26 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
@@ -32,7 +30,8 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
@@ -49,7 +48,7 @@ public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
 	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private final File[] dirs;
-	private final PmsConfiguration config;
+	private final UmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
@@ -106,7 +105,7 @@ public class MediaMonitor extends VirtualFolder {
 	public void scanDir(File[] files, final DLNAResource res) {
 		if (files != null) {
 			final DLNAResource mm = this;
-			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true, null) {
 				@Override
 				public boolean enable() {
 					for (DLNAResource r : res.getChildren()) {
@@ -179,10 +178,10 @@ public class MediaMonitor extends VirtualFolder {
 		String fullPathToFile = realFile.getFile().getAbsolutePath();
 
 		boolean isMonitored = false;
-		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 		if (!foldersMonitored.isEmpty()) {
-			for (Path folderMonitored : foldersMonitored) {
-				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
+			for (File folderMonitored : foldersMonitored) {
+				if (fullPathToFile.contains(folderMonitored.getAbsolutePath())) {
 					isMonitored = true;
 					break;
 				}

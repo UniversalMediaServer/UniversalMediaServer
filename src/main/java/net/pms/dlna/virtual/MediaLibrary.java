@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna.virtual;
 
 import net.pms.Messages;
@@ -32,7 +48,6 @@ public class MediaLibrary extends VirtualFolder {
 	private MediaLibraryFolder artistFolder;
 	private MediaLibraryFolder genreFolder;
 	private MediaLibraryFolder playlistFolder;
-	private MediaLibraryFolder tvShowsFolder;
 	private VirtualFolder vfAudio = null;
 
 	public boolean isEnabled() {
@@ -96,7 +111,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(Messages.getString("DvdImages"), SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 32" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.ISOS);
 
 		// The following block contains all videos regardless of fully played status
-		tvShowsFolder = new MediaLibraryFolder(
+		MediaLibraryFolder tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("TvShows"),
 			new String[]{
 				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + "                              ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",

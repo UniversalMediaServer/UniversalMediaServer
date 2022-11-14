@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.virtual;
 
@@ -21,12 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.DbIdTypeAndIdent2;
+import net.pms.dlna.DbIdTypeAndIdent;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
 
@@ -36,14 +35,14 @@ import net.pms.dlna.DbIdMediaType;
 public class VirtualFolderDbId extends VirtualFolder {
 	private static final Logger LOG = LoggerFactory.getLogger(VirtualFolderDbId.class.getName());
 
-	private final DbIdTypeAndIdent2 typeIdent;
+	private final DbIdTypeAndIdent typeIdent;
 
-	public VirtualFolderDbId(String folderName, DbIdTypeAndIdent2 typeIdent, String thumbnailIcon) {
+	public VirtualFolderDbId(String folderName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
 		super(folderName, thumbnailIcon);
 		this.typeIdent = typeIdent;
 		String id = DbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
-		setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 	}
 
 	@Override
@@ -54,14 +53,14 @@ public class VirtualFolderDbId extends VirtualFolder {
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		CoverArtArchiveResult res = MediaTableCoverArtArchive.findMBID(typeIdent.ident);
-		if (!res.found) {
+		if (!res.isFound()) {
 			try {
 				return super.getThumbnailInputStream();
 			} catch (IOException e) {
 				return null;
 			}
 		}
-		return DLNAThumbnailInputStream.toThumbnailInputStream(res.cover);
+		return DLNAThumbnailInputStream.toThumbnailInputStream(res.getCoverBytes());
 	}
 
 	@Override

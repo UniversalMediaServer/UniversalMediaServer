@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -25,41 +24,41 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.*;
+import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.WebRender;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 	private final String path;
-	private final RendererConfiguration renderer;
+	private final Renderer renderer;
 	private final boolean flash;
 
-	public MediaHandler(WebInterfaceServerHttpServer parent) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent) {
 		this(parent, "media/", null, false);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, boolean flash) {
 		this(parent, "fmedia/", null, flash);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, Renderer renderer) {
 		this(parent, path, renderer, false);
 	}
 
-	public MediaHandler(WebInterfaceServerHttpServer parent, String path, RendererConfiguration renderer, boolean flash) {
+	public MediaHandler(WebInterfaceServerHttpServerInterface parent, String path, Renderer renderer, boolean flash) {
 		this.parent = parent;
 		this.path = path;
 		this.renderer = renderer;
@@ -92,7 +91,7 @@ public class MediaHandler implements HttpHandler {
 				//clean for chapters
 				id = id.substring(0, id.lastIndexOf("/chapters"));
 			}
-			RendererConfiguration defaultRenderer = renderer;
+			Renderer defaultRenderer = renderer;
 			if (renderer == null) {
 				defaultRenderer = root.getDefaultRenderer();
 			}
@@ -138,7 +137,7 @@ public class MediaHandler implements HttpHandler {
 					//code = 206;
 				}
 				if (
-					PMS.getConfiguration().getWebSubs() &&
+					PMS.getConfiguration().getWebPlayerSubs() &&
 					resource.getMediaSubtitle() != null &&
 					resource.getMediaSubtitle().isExternal()
 				) {
@@ -196,7 +195,7 @@ public class MediaHandler implements HttpHandler {
 				return;
 			}
 			media.setMimeType(mimeType);
-			Range.Byte range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
+			ByteRange range = WebInterfaceServerUtil.parseRange(httpExchange.getRequestHeaders(), resource.length());
 			LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 			InputStream in = resource.getInputStream(range, root.getDefaultRenderer());
 			if (range.getEnd() == 0) {

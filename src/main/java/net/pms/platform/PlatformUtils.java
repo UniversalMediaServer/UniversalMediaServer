@@ -1,24 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform;
 
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
+import com.vdurmont.semver4j.Semver;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -28,21 +28,26 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.io.IPipeProcess;
+import net.pms.io.OutputParams;
 import net.pms.newgui.LooksFrame;
+import net.pms.platform.linux.LinuxPipeProcess;
 import net.pms.platform.linux.LinuxUtils;
 import net.pms.platform.mac.MacUtils;
+import net.pms.platform.posix.POSIXProcessTerminator;
 import net.pms.platform.solaris.SolarisUtils;
 import net.pms.platform.windows.WindowsUtils;
-import net.pms.service.AbstractSleepWorker;
-import net.pms.service.PreventSleepMode;
-import net.pms.service.SleepManager;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.sleep.AbstractSleepWorker;
+import net.pms.service.sleep.PreventSleepMode;
+import net.pms.service.sleep.SleepManager;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +65,7 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
+	protected static final Semver OS_VERSION = createOsVersion();
 	protected static Boolean isAdmin = null;
 
 	protected Path vlcPath;
@@ -83,11 +89,6 @@ public class PlatformUtils implements IPlatformUtils {
 	@Override
 	public String getShortPathNameW(String longPathName) {
 		return longPathName;
-	}
-
-	@Override
-	public String getWindowsDirectory() {
-		return null;
 	}
 
 	@Override
@@ -126,8 +127,8 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public Charset getConsoleCharset() {
-		return StandardCharsets.UTF_8;
+	public Charset getDefaultCharset() {
+		return Charset.defaultCharset();
 	}
 
 	@Override
@@ -171,15 +172,19 @@ public class PlatformUtils implements IPlatformUtils {
 			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
 			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
 
-			defaultItem.addActionListener((ActionEvent e) -> frame.quit());
+			defaultItem.addActionListener((ActionEvent e) -> PMS.quit());
 
 			traceItem.addActionListener((ActionEvent e) -> frame.setVisible(true));
 
-			if (PMS.getConfiguration().useWebInterfaceServer()) {
-				MenuItem webInterfaceItem = new MenuItem(Messages.getString("WebInterface"));
-				webInterfaceItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getWebInterfaceServer().getUrl()));
-				popup.add(webInterfaceItem);
+			if (PMS.getConfiguration().useWebPlayerServer()) {
+				MenuItem webPlayerItem = new MenuItem(Messages.getString("WebPlayer"));
+				webPlayerItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getWebPlayerServer().getUrl()));
+				popup.add(webPlayerItem);
 			}
+
+			MenuItem webGuiItem = new MenuItem(Messages.getString("WebInterface"));
+			webGuiItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
+			popup.add(webGuiItem);
 			popup.add(traceItem);
 			popup.add(defaultItem);
 
@@ -262,11 +267,6 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public Double getWindowsVersion() {
-		return null;
-	}
-
-	@Override
 	public void moveToTrash(File file) throws IOException {
 		FileUtils.getInstance().moveToTrash(new File[]{file});
 	}
@@ -309,6 +309,26 @@ public class PlatformUtils implements IPlatformUtils {
 		throw new IllegalStateException("Missing SleepWorker implementation for current platform");
 	}
 
+	@Override
+	public AbstractProcessTerminator getProcessTerminator(ProcessManager processManager) {
+		return new POSIXProcessTerminator(processManager);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, String... extras) {
+		return getPipeProcess(pipeName, null, extras);
+	}
+
+	@Override
+	public IPipeProcess getPipeProcess(String pipeName, OutputParams params, String... extras) {
+		return new LinuxPipeProcess(pipeName, params, extras);
+	}
+
+	@Override
+	public void appendErrorString(StringBuilder sb, int exitCode) {
+		sb.append("Process exited with code ").append(exitCode).append(":\n");
+	}
+
 	private static PlatformUtils createInstance() {
 		if (Platform.isWindows()) {
 			return new WindowsUtils();
@@ -325,11 +345,70 @@ public class PlatformUtils implements IPlatformUtils {
 		return new PlatformUtils();
 	}
 
+	private static Semver createOsVersion() {
+		int dotCount = 0;
+		String ver = System.getProperty("os.version");
+		for (int i = 0; i < ver.length(); i++) {
+			if (ver.charAt(i) == '.') {
+				dotCount++;
+			}
+		}
+		if (dotCount == 1) {
+			ver += ".0";
+		}
+		return new Semver(ver);
+	}
+
 	protected static String getAbsolutePath(String path, String name) {
 		File f = new File(path, name);
 		if (f.exists()) {
 			return f.getAbsolutePath();
 		}
 		return null;
+	}
+
+	/**
+	 * Get the operating system version.
+	 *
+	 * @return The operating system version.
+	 */
+	public static Semver getOSVersion() {
+		return OS_VERSION;
+	}
+
+	/**
+	 * Determines whether the operating system is 64-bit or 32-bit.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static int getOSBitness() {
+		return Platform.is64Bit() ? 64 : 32;
+	}
+
+	/**
+	 * Determines whether the operating system is 64-bit or not.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static boolean is64Bit() {
+		return Platform.is64Bit();
+	}
+
+	/**
+	 * Determines whether the operating system is Windows.
+	 *
+	 * @return true when the operating system is Windows.
+	 */
+	public static boolean isWindows() {
+		return Platform.isWindows();
+	}
+
+	/**
+	 * Determines whether the operating system is MacOs.
+	 *
+	 * @return true when the operating system is MacOs.
+	 */
+	public static boolean isMac() {
+		return Platform.isMac();
 	}
 }

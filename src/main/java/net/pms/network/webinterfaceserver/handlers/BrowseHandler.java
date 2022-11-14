@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -29,8 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
@@ -42,7 +40,8 @@ import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
+import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,11 +49,11 @@ import org.slf4j.LoggerFactory;
 
 public class BrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowseHandler.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public BrowseHandler(WebInterfaceServerHttpServer parent) {
+	public BrowseHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 
@@ -152,20 +151,12 @@ public class BrowseHandler implements HttpHandler {
 						StringBuilder thumbHTML = new StringBuilder();
 						String name = StringEscapeUtils.escapeHtml4(resource.resumeName());
 						HashMap<String, String> item = new HashMap<>();
-						String faIcon;
-						switch (name) {
-							case "Video":
-								faIcon = "fa-video";
-								break;
-							case "Audio":
-								faIcon = "fa-music";
-								break;
-							case "Photo":
-								faIcon = "fa-images";
-								break;
-							default:
-								faIcon = "fa-folder";
-							}
+						String faIcon = switch (name) {
+							case "Video" -> "fa-video";
+							case "Audio" -> "fa-music";
+							case "Photo" -> "fa-images";
+							default -> "fa-folder";
+						};
 						thumbHTML.append("<a href=\"/browse/").append(idForWeb);
 						thumbHTML.append("\" title=\"").append(name).append("\">");
 						thumbHTML.append("<i class=\"fas ").append(faIcon).append(" fa-5x\"></i>");
@@ -344,8 +335,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 
-			if (rootResource != null && rootResource instanceof MediaLibraryFolder) {
-				MediaLibraryFolder folder = (MediaLibraryFolder) rootResource;
+			if (rootResource instanceof MediaLibraryFolder folder) {
 				if (
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
@@ -385,7 +375,7 @@ public class BrowseHandler implements HttpHandler {
 				}
 			}
 
-			if (CONFIGURATION.useWebControl()) {
+			if (CONFIGURATION.isWebPlayerControllable()) {
 				mustacheVars.put("push", true);
 			}
 			if (hasFile) {
@@ -396,7 +386,7 @@ public class BrowseHandler implements HttpHandler {
 			DLNAResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(id, root.getDefaultRenderer()); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
@@ -427,7 +417,7 @@ public class BrowseHandler implements HttpHandler {
 	 */
 	private HashMap<String, String> getMediaHTML(DLNAResource resource, String idForWeb, String name, String thumb, HttpExchange t) {
 		boolean upnpAllowed = WebInterfaceServerUtil.bumpAllowed(t);
-		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
+		boolean upnpControl = ConnectedRenderers.hasConnectedControlPlayers();
 		String pageTypeUri = "/play/";
 		if (resource.isFolder()) {
 			pageTypeUri = "/browse/";

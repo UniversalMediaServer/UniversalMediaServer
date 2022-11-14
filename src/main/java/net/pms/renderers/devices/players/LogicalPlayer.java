@@ -1,31 +1,29 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.renderers.devices.players;
 
 import java.io.File;
 import java.util.List;
-import javax.swing.DefaultComboBoxModel;
 import net.pms.PMS;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,20 +35,20 @@ import org.apache.commons.lang3.StringUtils;
  */
 public abstract class LogicalPlayer extends MinimalPlayer {
 
-	public Playlist playlist;
+	protected Playlist playlist;
 	protected boolean autoContinue;
 	protected boolean addAllSiblings;
 	protected boolean forceStop;
 	protected int lastPlayback;
 	protected int maxVol;
 
-	protected LogicalPlayer(DeviceConfiguration renderer) {
+	protected LogicalPlayer(Renderer renderer) {
 		super(renderer);
 		playlist = new Playlist(this);
-		lastPlayback = STOPPED;
+		lastPlayback = PlayerState.STOPPED;
 		maxVol = renderer.getMaxVolume();
-		autoContinue = renderer.isAutoContinue();
-		addAllSiblings = renderer.isAutoAddAll();
+		autoContinue = renderer.getUmsConfiguration().isAutoContinue();
+		addAllSiblings = renderer.getUmsConfiguration().isAutoAddAll();
 		forceStop = false;
 		alert();
 		initAutoPlay(this);
@@ -83,21 +81,21 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void pressPlay(String uri, String metadata) {
 		forceStop = false;
-		if (state.playback == -1) {
+		if (state.isUnknown()) {
 			// unknown state, we assume it's stopped
-			state.playback = STOPPED;
+			state.setPlayback(PlayerState.STOPPED);
 		}
-		if (state.playback == PLAYING) {
+		if (state.isPlaying()) {
 			pause();
 		} else {
-			if (state.playback == STOPPED) {
+			if (state.isStopped()) {
 				PlaylistItem item = playlist.resolve(uri);
 				if (item != null) {
-					uri = item.uri;
-					metadata = item.metadata;
-					state.name = item.name;
+					uri = item.getUri();
+					metadata = item.getMetadata();
+					state.setName(item.getName());
 				}
-				if (uri != null && !uri.equals(state.uri)) {
+				if (uri != null && !uri.equals(state.getUri())) {
 					setURI(uri, metadata);
 				}
 			}
@@ -122,18 +120,18 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	public void step(int n) {
-		if (state.playback != STOPPED) {
+		if (!state.isStopped()) {
 			stop();
 		}
-		state.playback = STOPPED;
+		state.setPlayback(PlayerState.STOPPED);
 		playlist.step(n);
 		pressPlay(null, null);
 	}
 
 	@Override
 	public void alert() {
-		boolean stopping = state.playback == STOPPED && lastPlayback != -1 && lastPlayback != STOPPED;
-		lastPlayback = state.playback;
+		boolean stopping = state.isStopped() && lastPlayback != -1 && lastPlayback != PlayerState.STOPPED;
+		lastPlayback = state.getPlayback();
 		super.alert();
 		if (stopping && autoContinue && !forceStop) {
 			next();
@@ -142,11 +140,11 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 
 	@Override
 	public int getControls() {
-		return renderer.controls;
+		return renderer.getControls();
 	}
 
 	@Override
-	public DefaultComboBoxModel getPlaylist() {
+	public Playlist getPlaylist() {
 		return playlist;
 	}
 
@@ -188,7 +186,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	}
 
 	private static void initAutoPlay(final LogicalPlayer player) {
-		String auto = player.renderer.getAutoPlay();
+		String auto = player.renderer.getUmsConfiguration().getAutoPlay();
 		if (StringUtils.isEmpty(auto)) {
 			return;
 		}

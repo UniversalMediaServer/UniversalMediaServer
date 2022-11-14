@@ -1,13 +1,12 @@
 name: Universal Media Server CI
 
-on:
-  pull_request:
-  push:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
   macos:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
     runs-on: macos-12
     strategy:
       matrix:
@@ -21,17 +20,23 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows-latest:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
+    name: Windows and lint
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -41,18 +46,23 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run linter and tests
         run: mvn verify -P linter
 
-  linux-bionic:
-    runs-on: ubuntu-18.04
+  linux-focal:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK
@@ -61,23 +71,28 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache local Maven repository
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_18.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_18.04.deb
-          sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_18.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_20.04.deb
           mvn verify -P testing
 
   linux-jammy:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -87,17 +102,20 @@ jobs:
           distribution: 'liberica'
           java-version: 17
           cache: 'maven'
-      - name: Cache Maven packages
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.39-1_amd64.xUbuntu_22.04.deb
-          wget https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/22.09/libmediainfo0v5_22.09-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libmediainfo0v5_22.09-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing

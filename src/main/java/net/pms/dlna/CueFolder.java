@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.dlna.Range.Time;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
@@ -37,13 +35,13 @@ import org.slf4j.LoggerFactory;
 
 public class CueFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
-	private File playlistfile;
+	private final File playlistfile;
 
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
 
-	private boolean valid = true;
+	private final boolean valid = true;
 
 	public CueFolder(File f) {
 		playlistfile = f;
@@ -179,7 +177,7 @@ public class CueFolder extends DLNAResource {
 
 					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						DLNAResource lastTrack = addedResources.get(addedResources.size() - 1);
-						Time lastTrackSplitRange = lastTrack.getSplitRange();
+						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
 						DLNAMediaInfo lastTrackMedia = lastTrack.getMedia();
 
 						if (lastTrackSplitRange != null && lastTrackMedia != null) {
