@@ -1797,7 +1797,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
-		String uri = useSystemName ? getSystemName() : getName();
+		String uri = useSystemName ? getSystemName() : getName() == null ? "" : getName();
 		StringBuilder sb = new StringBuilder();
 		sb.append(MediaServer.getURL());
 		sb.append("/get/");
