@@ -740,15 +740,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param renderer The target renderer
 	 * @return An engine if transcoding or null if streaming
 	 */
-<<<<<<< HEAD
-	public Engine resolveEngine(RendererConfiguration renderer) {
+	public Engine resolveEngine(Renderer renderer) {
 		if (renderer == null) {
 			return null;
 		}
 
-=======
-	public Engine resolveEngine(Renderer renderer) {
->>>>>>> main_(UMS)
 		// Use device-specific conf, if any
 		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
 		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
