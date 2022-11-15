@@ -484,7 +484,7 @@ public class SearchRequestHandler {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
 										filesList.add(new RealFileDbId(new DbIdTypeAndIdent(type, resultSet.getString("FID")),
-											new File(resultSet.getString("FILENAME"))));
+											new File(realFileName)));
 									}
 								}
 							}
