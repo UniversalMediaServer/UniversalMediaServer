@@ -646,7 +646,11 @@ public class VirtualFile extends DLNAResource {
 	 *         otherwise.
 	 */
 	public static boolean isPotentialMediaFile(String fileName) {
-		return !EXTENSIONS_DENYLIST.contains(FileUtil.getExtension(fileName));
+		String ext = FileUtil.getExtension(fileName);
+		if (ext == null) {
+			return false;
+		}
+		return !EXTENSIONS_DENYLIST.contains(ext);
 	}
 
 }

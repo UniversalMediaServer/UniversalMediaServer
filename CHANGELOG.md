@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [12.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.6.0...12.0.0) (2022-11-15)
 
 ### General:
 - Added a new web settings interface, which is now the supported way to add content and change settings
@@ -13,6 +13,7 @@
 - Improved UPnP/DLNA support
 - Consolidated configuration files, with automatic migration to the new format
 - Fixed TV series never being found locally by IMDb ID
+- Fixed duplicate API requests
 - Hundreds of bugfixes and performance tweaks
 
 ### Renderers:
@@ -24,12 +25,13 @@
 - Catalan (88%) (thanks, Toni Grau i Quellos!)
 - Czech (100%)
 - Danish (99%) (thanks, GurliGebis and NCAA!)
-- German (89%) (thanks, pipin!)
+- German (93%) (thanks, pipin!)
 - Finnish (99%) (thanks, Esko Gardner!)
 - Italian (96%) (thanks, Oscar Zambotti!)
 - Korean (100%) (thanks, VenusGirl!)
 - Polish (100%) (thanks, Karol Szastok!)
 - Portuguese (99%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (99%) (thanks, Mauro.A!)
 - Russian (82%) (thanks, Максим Мухачев!)
 - Turkish (100%) (thanks, Burak Yavuz!)
 

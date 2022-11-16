@@ -75,7 +75,7 @@ public class ThumbHandler implements HttpHandler {
 			DLNAResource r = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					r = DbIdResourceLocator.locateResource(id); // id.substring(0, id.indexOf('/'))
+					r = DbIdResourceLocator.locateResource(id, root.getDefaultRenderer()); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}

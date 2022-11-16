@@ -316,7 +316,7 @@ public class RequestV2 extends HTTPResource {
 				// Retrieve the DLNAresource itself.
 				if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 					try {
-						dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')));
+						dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')), mediaRenderer);
 					} catch (Exception e) {
 						LOGGER.error("", e);
 					}

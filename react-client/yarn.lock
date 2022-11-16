@@ -2280,106 +2280,106 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/core@npm:5.7.1"
+"@mantine/core@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/core@npm:5.7.2"
   dependencies:
     "@floating-ui/react-dom-interactions": ^0.10.1
-    "@mantine/styles": 5.7.1
-    "@mantine/utils": 5.7.1
+    "@mantine/styles": 5.7.2
+    "@mantine/utils": 5.7.2
     "@radix-ui/react-scroll-area": 1.0.0
     react-textarea-autosize: 8.3.4
   peerDependencies:
-    "@mantine/hooks": 5.7.1
+    "@mantine/hooks": 5.7.2
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 73bb591927e2081aacf3ef5eb259b250b8d6c3ee0ced1a451ba54ba0c2cbb026af5592a04ac64a627dc55d97a730b25b3c27e2dee41322b4e7ea2586666b349c
+  checksum: 54a5460d4367179d4016068e6cdfdd6d6776921ff8e0c24926881564655ec0255588a842e166fb754685bf31fb485160a1759d07e0435a5620307b771dce65c3
   languageName: node
   linkType: hard
 
-"@mantine/dropzone@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/dropzone@npm:5.7.1"
+"@mantine/dropzone@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/dropzone@npm:5.7.2"
   dependencies:
-    "@mantine/utils": 5.7.1
+    "@mantine/utils": 5.7.2
     react-dropzone: 14.2.3
   peerDependencies:
-    "@mantine/core": 5.7.1
-    "@mantine/hooks": 5.7.1
+    "@mantine/core": 5.7.2
+    "@mantine/hooks": 5.7.2
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 085f12b43840983da8df7862188fee616fd921ed3ebf17427b40f158f4fe09207b2009609842bf067f891be8c5dc7105fdedacb2b06dd70f0c57a4f12167fdf0
+  checksum: 604c0adb49ee4939c739f19ec86ff1dbc27d59b46fc13f3ab2ff5cebd7cd6eae39936f54760db362d95a70a0b9b2c89af558a2acbd26ef1fa36b20a67803be5f
   languageName: node
   linkType: hard
 
-"@mantine/form@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/form@npm:5.7.1"
+"@mantine/form@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/form@npm:5.7.2"
   dependencies:
     fast-deep-equal: ^3.1.3
     klona: ^2.0.5
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 29dae5a099dde78b431f91218f187afeeda68edf0967b29f71b7be259ce4a1f9dc13482d908a241ce10c1e942aafa0a7ce07a00527da122525bd301c645fe779
+  checksum: 34d236411a0fbe32c194a2f5157246854446380b41e970f341703137d1422a6c43ae307175dd4c0d2c0512541e42aa1636ecd56d5550d6714c51f1f4890a592c
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/hooks@npm:5.7.1"
+"@mantine/hooks@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/hooks@npm:5.7.2"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 2f59c541b0704d75bf43cda8817049baaa29bdb17e8ff04665784939696144fc8600294a0d5d54ae727318b308973f4fdf6f3245a27b48fd878eb4159936fdb4
+  checksum: 85977a0f3968be3ab5556e79cd378f210be3ffa0b4b3c59e995848ec05d8a8c9c340d2bfcbd1900fe05495a8c2a977653233f793a304984f5dc1f626d4d6b386
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/modals@npm:5.7.1"
+"@mantine/modals@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/modals@npm:5.7.2"
   dependencies:
-    "@mantine/utils": 5.7.1
+    "@mantine/utils": 5.7.2
   peerDependencies:
-    "@mantine/core": 5.7.1
-    "@mantine/hooks": 5.7.1
+    "@mantine/core": 5.7.2
+    "@mantine/hooks": 5.7.2
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: e2ed320f4d21b5aea388ee97b59a7c148056f9603d05206f30888a77271377ac509f634ada2401292d72f5bf1708fd7faa83c61146fdfe68ee1f8125c989e7c6
+  checksum: f233d6aa976e519bde789534801395c1f9d3e84c14893b992ffef4e3ebcde5aa4b2b0360d4b33b98681992a72ce13fdc0f7591afd80bb58accb3c63260a07fa8
   languageName: node
   linkType: hard
 
-"@mantine/notifications@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/notifications@npm:5.7.1"
+"@mantine/notifications@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/notifications@npm:5.7.2"
   dependencies:
-    "@mantine/utils": 5.7.1
+    "@mantine/utils": 5.7.2
     react-transition-group: 4.4.2
   peerDependencies:
-    "@mantine/core": 5.7.1
-    "@mantine/hooks": 5.7.1
+    "@mantine/core": 5.7.2
+    "@mantine/hooks": 5.7.2
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: c3b4a9f9f0079ef6fbfa0d4730d1f45a8a33bacf6b12f744d35d65932f8124d63ed1d9c592670ff62ecc1f64b95ea2fa0f71d488c917c0f862d4d7da1229e00c
+  checksum: db1a8e343bda01dec80a9eb336daaa183ea73b8a8eed20cf80a5ef15b620f79488041dd492a68bd7460c0d9b2432a2f71ccc049bc44894c4c8837c5c078a5c3e
   languageName: node
   linkType: hard
 
-"@mantine/prism@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/prism@npm:5.7.1"
+"@mantine/prism@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/prism@npm:5.7.2"
   dependencies:
-    "@mantine/utils": 5.7.1
+    "@mantine/utils": 5.7.2
     prism-react-renderer: ^1.2.1
   peerDependencies:
-    "@mantine/core": 5.7.1
-    "@mantine/hooks": 5.7.1
+    "@mantine/core": 5.7.2
+    "@mantine/hooks": 5.7.2
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 564a151eb2c2ed9ba5bb1dd0bd3a5ecfbc933eccfd2e3be6c7d5d85bdb8b89755f8008eb8ea7d339b7ba850ab287ec8754f67f037961f0d51d95b78218f886c0
+  checksum: d4e7bb37dcb47c396d2e0c2303ccf75f11569c3449894a0036a06c41494f12cffdfa136cdf6ba0436e25aa3fcf80808986c2ef7d05c2d34d3a59d0e29ae5d146
   languageName: node
   linkType: hard
 
-"@mantine/styles@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/styles@npm:5.7.1"
+"@mantine/styles@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/styles@npm:5.7.2"
   dependencies:
     clsx: 1.1.1
     csstype: 3.0.9
@@ -2387,16 +2387,16 @@ __metadata:
     "@emotion/react": ">=11.9.0"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 9f9b2e4a150e94b6a791494319a5f80d7fcd0530c36d5b0affdab868b8068eccc8816651cb56082b915c6b43011d36738dc3c6b339088a89d882e198d878d466
+  checksum: d440f92b830e232b4826e0ff8002f4821d5eee0f379d8e9e5cea9346ca550719b89aa850d5d06f0feebd6150172a398136391285d57e7174180bfa8294bbba65
   languageName: node
   linkType: hard
 
-"@mantine/utils@npm:5.7.1":
-  version: 5.7.1
-  resolution: "@mantine/utils@npm:5.7.1"
+"@mantine/utils@npm:5.7.2":
+  version: 5.7.2
+  resolution: "@mantine/utils@npm:5.7.2"
   peerDependencies:
     react: ">=16.8.0"
-  checksum: 9b04e7d82bf4b4368bf90a0311df46e3e735714534e62780b5919e616c5cdf720827e7d252912c1373d7e02a0774800e3b91de827e0d90bfca94bf903923056f
+  checksum: 35ce46a03a24f8f2b649b833b725120e50e639a66a3a9b399a10f5c4083446a4338ececd8b1d6f0897743cb1bc6d6757c7a530c515f032c0ab23b4f8e9d04b2a
   languageName: node
   linkType: hard
 
@@ -3455,13 +3455,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/eslint-plugin@npm:5.42.1"
+"@typescript-eslint/eslint-plugin@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/eslint-plugin@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/scope-manager": 5.42.1
-    "@typescript-eslint/type-utils": 5.42.1
-    "@typescript-eslint/utils": 5.42.1
+    "@typescript-eslint/scope-manager": 5.43.0
+    "@typescript-eslint/type-utils": 5.43.0
+    "@typescript-eslint/utils": 5.43.0
     debug: ^4.3.4
     ignore: ^5.2.0
     natural-compare-lite: ^1.4.0
@@ -3474,7 +3474,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 6e80b15df7e655964ddd3041d5f7c0bf564e9901f9e3a9cdaf8d056301841fad8d40cd253d83669f01e0ddc62521af9286a27f098df43e304cf932d768995e98
+  checksum: aa0e9bcd9982e9601ada2088f46c1e9389abd31ceaf6cd1d492684fd711a67d595d4c95d97ba14081c2ea7eb3b98a9ebb33f91ef008e7450ce2f70b2a8ec4309
   languageName: node
   linkType: hard
 
@@ -3511,20 +3511,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/parser@npm:5.42.1"
+"@typescript-eslint/parser@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/parser@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/scope-manager": 5.42.1
-    "@typescript-eslint/types": 5.42.1
-    "@typescript-eslint/typescript-estree": 5.42.1
+    "@typescript-eslint/scope-manager": 5.43.0
+    "@typescript-eslint/types": 5.43.0
+    "@typescript-eslint/typescript-estree": 5.43.0
     debug: ^4.3.4
   peerDependencies:
     eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 7208a085102be5c569ac2be5799d05e080a9c0b9157ed3efa5d7eadb675185bddfa05f2f27e20c235910193a2bd835e5375fb9fc13561a6e20d110e444f37caa
+  checksum: a28e0ef2807f1c3381c6dc1d9ddfd83ea8db657d3f808511adf13023b469ed64fc09619e05d7f68746b05ea68770a0882883c77ce908682965ba266f95e168c9
   languageName: node
   linkType: hard
 
@@ -3555,13 +3555,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/scope-manager@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/scope-manager@npm:5.42.1"
+"@typescript-eslint/scope-manager@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/scope-manager@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/types": 5.42.1
-    "@typescript-eslint/visitor-keys": 5.42.1
-  checksum: cfad5f04328fae4bb6d965a94c980ac2f6fa0eee6183e9bed6d7ebdb067f01a0a9a3b5500fc3638d5e287f46f4412aa462e238c610c1fb96b794b83c575c7fb4
+    "@typescript-eslint/types": 5.43.0
+    "@typescript-eslint/visitor-keys": 5.43.0
+  checksum: e594c7a32c3fa29e46dd0b0bc62f97f154bd864682ae7da87a14b6f4336f4cb02f6ed0602bbdb15783e4230ecdf8a0ccc6f7c5820850e8f11240c9e4fb0e388d
   languageName: node
   linkType: hard
 
@@ -3582,12 +3582,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/type-utils@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/type-utils@npm:5.42.1"
+"@typescript-eslint/type-utils@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/type-utils@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/typescript-estree": 5.42.1
-    "@typescript-eslint/utils": 5.42.1
+    "@typescript-eslint/typescript-estree": 5.43.0
+    "@typescript-eslint/utils": 5.43.0
     debug: ^4.3.4
     tsutils: ^3.21.0
   peerDependencies:
@@ -3595,7 +3595,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 7ac3180aeb966351e54055440f42b723aa864fd39c74be5a41aae97401e6424df94d9f96ae945f1c3a6023860ffd7ba424ff6506c21bd373a6cd878466d9ba62
+  checksum: 08dbc0b194d0ef1454a95d76c082503e04d9957e89a056068002e233f8d98113f50b2707f7c4b9b44f428e223d5b4485ee2b4df4e0cde354827c5edc92ede973
   languageName: node
   linkType: hard
 
@@ -3606,10 +3606,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/types@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/types@npm:5.42.1"
-  checksum: b0eb3df3792dd0e447abcf2b4fd79b2eaa6f944242d00afa8ef2d9f892ea63e52f200e7cb1758ddbc46154aa6764cec8bc796ed96f7554457a20db976f9f2089
+"@typescript-eslint/types@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/types@npm:5.43.0"
+  checksum: fc5e5431c305feee4a3faae84f34df482e08d74b910a6f9376b01326c682ceefeeb0e270d03d7778787bc94ef05b3b85ee6d3c9d732290fbdb4a67ae1b110226
   languageName: node
   linkType: hard
 
@@ -3631,12 +3631,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/typescript-estree@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/typescript-estree@npm:5.42.1"
+"@typescript-eslint/typescript-estree@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/typescript-estree@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/types": 5.42.1
-    "@typescript-eslint/visitor-keys": 5.42.1
+    "@typescript-eslint/types": 5.43.0
+    "@typescript-eslint/visitor-keys": 5.43.0
     debug: ^4.3.4
     globby: ^11.1.0
     is-glob: ^4.0.3
@@ -3645,7 +3645,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: dfd3e20d41ba4b574a52d82cc40b38708b8c2c4277d6304a8d914fe2a4a9ce8779f4d79fdac140e77a3afd3c6a2a7e3f31620dc427cabd04e4e906bb0ca3a468
+  checksum: 3479f9413d73369ab3d574580c90a72f74d2ae1ec4afe485eebfad054c3d15c89f23a137bb9d6197dfdae33e444a76a99f6832688787feabbb064e09d39a3f55
   languageName: node
   linkType: hard
 
@@ -3667,21 +3667,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/utils@npm:5.42.1"
+"@typescript-eslint/utils@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/utils@npm:5.43.0"
   dependencies:
     "@types/json-schema": ^7.0.9
     "@types/semver": ^7.3.12
-    "@typescript-eslint/scope-manager": 5.42.1
-    "@typescript-eslint/types": 5.42.1
-    "@typescript-eslint/typescript-estree": 5.42.1
+    "@typescript-eslint/scope-manager": 5.43.0
+    "@typescript-eslint/types": 5.43.0
+    "@typescript-eslint/typescript-estree": 5.43.0
     eslint-scope: ^5.1.1
     eslint-utils: ^3.0.0
     semver: ^7.3.7
   peerDependencies:
     eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
-  checksum: 9f1c429a602dad4ba7a52df00924aab6033854234a1e1bf699a3e5b48455b5fdc1a41de459a7f11a3ccfed1528831ecb95fc7e54d30be7d8cccbb689f885fdac
+  checksum: 4c6b383b51506b57230f2624f883ae21e5d8411d138587c04fe3145f915bf8c289cc2a9f7b0b3faba98345ba230504e5014922bcc578aa0badd594d9eaa8f9ef
   languageName: node
   linkType: hard
 
@@ -3695,13 +3695,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/visitor-keys@npm:5.42.1":
-  version: 5.42.1
-  resolution: "@typescript-eslint/visitor-keys@npm:5.42.1"
+"@typescript-eslint/visitor-keys@npm:5.43.0":
+  version: 5.43.0
+  resolution: "@typescript-eslint/visitor-keys@npm:5.43.0"
   dependencies:
-    "@typescript-eslint/types": 5.42.1
+    "@typescript-eslint/types": 5.43.0
     eslint-visitor-keys: ^3.3.0
-  checksum: d36c59da7bf3b3c150c12cbe4b0331edc15253f59599ec3d8b873b2a3d9fc7a4fea11490c1b20d972afcdc9c842deb5ada527ea9c538aa7e87555699d9a59f24
+  checksum: 4820679e50096dcdaadc7c95d32e5dca3ba8510acf1a865e283822bae3940a2faec02ad8abe793f8a25f75b600f1e7215e1fd3b3ba73779eff737fa90d092550
   languageName: node
   linkType: hard
 
@@ -7478,10 +7478,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:1.2.5":
-  version: 1.2.5
-  resolution: "hls.js@npm:1.2.5"
-  checksum: f143d854fd2eba3814f2fb3b7aefc1fe5e3faedce07884a52f079e65bf86e5fd99544ba76abd9fe33779c81f42b68e630eb95912e090af18cc061942ef1a4868
+"hls.js@npm:1.2.7":
+  version: 1.2.7
+  resolution: "hls.js@npm:1.2.7"
+  checksum: b36221f523a7c530b399227f6f1708c2c57b4ea4936fdf5bb48230388b3aa5fe0284b35b1d9fea110d61b5a090516a37e49a8d5000fe3831e3e250610ac76957
   languageName: node
   linkType: hard
 
@@ -13323,13 +13323,13 @@ __metadata:
   resolution: "ums gui@workspace:."
   dependencies:
     "@emotion/react": 11.10.5
-    "@mantine/core": 5.7.1
-    "@mantine/dropzone": 5.7.1
-    "@mantine/form": 5.7.1
-    "@mantine/hooks": 5.7.1
-    "@mantine/modals": 5.7.1
-    "@mantine/notifications": 5.7.1
-    "@mantine/prism": 5.7.1
+    "@mantine/core": 5.7.2
+    "@mantine/dropzone": 5.7.2
+    "@mantine/form": 5.7.2
+    "@mantine/hooks": 5.7.2
+    "@mantine/modals": 5.7.2
+    "@mantine/notifications": 5.7.2
+    "@mantine/prism": 5.7.2
     "@microsoft/fetch-event-source": 2.0.1
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.4.0
@@ -13343,12 +13343,12 @@ __metadata:
     "@types/video.js": 7.3.49
     "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
-    "@typescript-eslint/eslint-plugin": 5.42.1
-    "@typescript-eslint/parser": 5.42.1
+    "@typescript-eslint/eslint-plugin": 5.43.0
+    "@typescript-eslint/parser": 5.43.0
     axios: 1.1.3
     eslint: 8.27.0
     eslint-plugin-react: 7.31.10
-    hls.js: 1.2.5
+    hls.js: 1.2.7
     jwt-decode: 3.1.2
     lodash: 4.17.21
     react: 18.2.0
