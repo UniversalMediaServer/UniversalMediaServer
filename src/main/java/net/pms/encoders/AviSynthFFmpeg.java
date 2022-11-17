@@ -425,6 +425,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && convert2dTo3dPath != null) {
 
+				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + " seconds");
+
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
 				lines.add("video2dFromSeekPoint=Trim(video2d,seekFrame,0)");
