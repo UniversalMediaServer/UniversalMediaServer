@@ -3259,11 +3259,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 			lastStartSystemTime = System.currentTimeMillis();
 
-			if ( params.getTimeSeek() > 0 )
-			{
-				// This must be a resume - so need to set lastTimeSeek
-				// to avoid a restart of the process from a new seek request to the same resume point
-				LOGGER.debug("Setting last time seek for resume to: " + params.getTimeSeek() + " seconds");
+			if (params.getTimeSeek() > 0) {
+				// This must be a resume - so need to set lastTimeSeek to avoid a restart of the process
+				// from a new seek request to the same resume point
+				LOGGER.debug("Setting last time seek (from resume) to: " + params.getTimeSeek() + " seconds");
 				lastTimeSeek = params.getTimeSeek();
 			}
 
@@ -3281,10 +3280,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else if (params.getTimeSeek() > 0 && media != null && media.isMediaparsed() && media.getDurationInSeconds() > 0) {
 
 			// Time seek request => stop running transcode process and start a new one
-
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
 
-			if ( lastTimeSeek == params.getTimeSeek()) {
+			if (lastTimeSeek == params.getTimeSeek()) {
 				LOGGER.debug("Duplicate time seek request: " + params.getTimeSeek() + " seconds, ignoring");
 			} else {
 
