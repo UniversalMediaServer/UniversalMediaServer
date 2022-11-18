@@ -213,7 +213,7 @@ public class LanguageSelection {
 		dialog.setLocale(locale);
 		dialog.applyComponentOrientation(ComponentOrientation.getOrientation(locale));
 
-		selectionPanelBorder.setTitle(buildString("LanguageSelection.1"));
+		selectionPanelBorder.setTitle(buildString("SelectLanguage"));
 
 		selectionPanel.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createEmptyBorder(5, 5, 5, 5),
@@ -223,7 +223,7 @@ public class LanguageSelection {
 			)
 		));
 
-		String descriptionMessage = parentComponent != null ? "LanguageSelection.7" : "LanguageSelection.2";
+		String descriptionMessage = parentComponent != null ? "PleaseSelectLanguageForX" : "PleaseSelectLanguageX";
 		if (Messages.getString(descriptionMessage, locale).equals(Messages.getRootString(descriptionMessage))) {
 			if (parentComponent != null) {
 				descriptionText.setText(String.format(
@@ -294,7 +294,7 @@ public class LanguageSelection {
 
 		if (keyedModel.getSelectedKey() != null && Languages.warnCoverage(keyedModel.getSelectedKey())) {
 			String localizedLanguageName = Messages.getString("Language." + keyedModel.getSelectedKey(), locale);
-			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
+			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("XIsOnlyPercentTranslated"))) {
 				warningText.setText(String.format(
 					Messages.getString("XIsOnlyPercentTranslated", locale),
 					localizedLanguageName,
@@ -305,7 +305,7 @@ public class LanguageSelection {
 				int coverage = Languages.getLanguageCoverage(keyedModel.getSelectedKey());
 				String rootLanguageName = Messages.getRootString("Language." + keyedModel.getSelectedKey());
 				warningText.setText(String.format(
-					buildString("LanguageSelection.3", true),
+					buildString("XIsOnlyPercentTranslated", true),
 					localizedLanguageName,
 					coverage,
 					localizedLanguageName,
@@ -319,9 +319,9 @@ public class LanguageSelection {
 		}
 		warningText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(warningText, textWidth));
 
-		infoTextBorder.setTitle(buildString("LanguageSelection.4"));
+		infoTextBorder.setTitle(buildString("AboutTranslations"));
 
-		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
+		infoText.setText(String.format(buildString("IfYourLanguageMissingIncomplete", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
 		infoText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(infoText, textWidth, StringUtil.stripHTML(infoText.getText())));
 
 		selectButton.setText(buildString("Select"));
@@ -402,7 +402,7 @@ public class LanguageSelection {
 				if (error) {
 					JOptionPane.showOptionDialog(
 							dialog,
-							String.format(buildString("LanguageSelection.6", true), PMS.CROWDIN_LINK),
+							String.format(buildString("CouldNotOpenHyperlink", true), PMS.CROWDIN_LINK),
 							buildString("Error"),
 							JOptionPane.DEFAULT_OPTION,
 							JOptionPane.ERROR_MESSAGE,
