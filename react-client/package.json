@@ -67,7 +67,7 @@
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-color": "3.0.6",
-    "@types/react-dom": "18.0.8",
+    "@types/react-dom": "18.0.9",
     "@types/video.js": "7.3.49",
     "@types/videojs-contrib-quality-levels": "2.0.1",
     "@types/videojs-hls-quality-selector": "1.1.0",
