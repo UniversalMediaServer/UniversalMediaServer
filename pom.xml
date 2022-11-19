@@ -1933,95 +1933,6 @@
 		</profile>
 
 		<!--
-			Testing profile: For running our automated tests - does not download binaries
-		-->
-		<profile>
-			<id>testing</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-pms-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>copy-jar-with-dependencies-test</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
 			macOS 10.15 (Catalina) onwards
 			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
 		-->
@@ -2729,7 +2640,7 @@
 
 		<!--
 			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory.
-			For extra quickness, run with the skipTests flag, like mvn -P quickrun-windows package -DskipTests
+			For extra quickness, run with the skipTests and offline flags: mvn -P quickrun-windows package -DskipTests -Doffline
 		-->
 		<profile>
 			<id>quickrun-windows-x86</id>
@@ -3049,33 +2960,82 @@
 			Testing profiles below
 		-->
 		<profile>
-			<id>testing-windows</id>
+			<id>testing</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
 			<build>
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-						</configuration>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the distribution file. -->
+							<execution>
+								<id>build-ums-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
 					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
-								<phase>process-resources</phase>
+								<id>copy-jar-with-dependencies-test</id>
+								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target unless="offline">
-										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
