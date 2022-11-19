@@ -75,6 +75,9 @@ public class RealFile extends VirtualFile {
 	 * @param file The file to add.
 	 */
 	private void addFileToFiles(File file) {
+		if (file == null) {
+			throw new NullPointerException("file shall not be empty");
+		}
 		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
 			getFiles().add(FileUtil.getRealFile(file));
 		} else {
@@ -216,6 +219,10 @@ public class RealFile extends VirtualFile {
 	@Override
 	public synchronized void resolve() {
 		File file = getFile();
+		if (file == null) {
+			LOGGER.error("RealFile points to no physical file. ");
+			return;
+		}
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
 			InputFile input = new InputFile();

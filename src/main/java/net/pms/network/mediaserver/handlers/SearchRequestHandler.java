@@ -480,8 +480,13 @@ public class SearchRequestHandler {
 								}
 								case TYPE_PERSON -> filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
 								case TYPE_PLAYLIST -> filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
-								default -> filesList.add(new RealFileDbId(new DbIdTypeAndIdent(type, resultSet.getString("FID")),
-										new File(resultSet.getString("FILENAME"))));
+								default -> {
+									String realFileName = resultSet.getString("FILENAME");
+									if (realFileName != null) {
+										filesList.add(new RealFileDbId(new DbIdTypeAndIdent(type, resultSet.getString("FID")),
+											new File(realFileName)));
+									}
+								}
 							}
 						}
 					}

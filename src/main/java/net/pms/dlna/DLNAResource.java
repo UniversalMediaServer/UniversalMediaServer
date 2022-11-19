@@ -1832,6 +1832,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected static String encode(String s) {
 		try {
+			if (s == null) {
+				return "";
+			}
 			return URLEncoder.encode(s, StandardCharsets.UTF_8);
 		} catch (IllegalArgumentException e) {
 			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());
