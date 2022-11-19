@@ -1,4 +1,4 @@
-name: Universal Media Server CI
+name: CI
 
 on: [push, pull_request]
 
@@ -7,6 +7,7 @@ jobs:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
+    name: macOS
     runs-on: macos-12
     strategy:
       matrix:
@@ -62,6 +63,7 @@ jobs:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
+    name: Linux 20.04
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -93,6 +95,7 @@ jobs:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
+    name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
