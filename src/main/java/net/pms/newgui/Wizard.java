@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.newgui;
@@ -26,7 +25,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 
 /**
  * Wizard to ask users to make the UMS initial setting
@@ -34,7 +34,13 @@ import net.pms.configuration.PmsConfiguration;
 public class Wizard {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Wizard.class);
 
-	public static void run(final PmsConfiguration configuration) {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Wizard() {
+	}
+
+	public static void run(final UmsConfiguration configuration) {
 		// Total number of questions
 		int numberOfQuestions = 5;
 
@@ -167,7 +173,7 @@ public class Wizard {
 					chooser.setDialogTitle(Messages.getString("FinallyChooseFolderShare"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-						configuration.setOnlySharedDirectory(chooser.getSelectedFile().getAbsolutePath());
+						SharedContentConfiguration.addFolderShared(chooser.getSelectedFile());
 						// } else {
 						// If the user cancels this option, the default directories
 						// will be used.

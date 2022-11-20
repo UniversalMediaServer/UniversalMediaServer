@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008-2012 A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
@@ -22,25 +20,22 @@ import com.sun.jna.Platform;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.JComponent;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class YoutubeDl extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeDl.class);
-	public static final PlayerId ID = StandardPlayerId.YOUTUBE_DL;
 
+	public static final EngineId ID = StandardEngineId.YOUTUBE_DL;
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
 	public static final String NAME = "youtube-dl";
 
@@ -49,12 +44,7 @@ public class YoutubeDl extends FFMpegVideo {
 	}
 
 	@Override
-	public JComponent config() {
-		return null;
-	}
-
-	@Override
-	public PlayerId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -65,7 +55,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
@@ -82,8 +72,8 @@ public class YoutubeDl extends FFMpegVideo {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 
@@ -101,13 +91,13 @@ public class YoutubeDl extends FFMpegVideo {
 		cmdList.add("--hls-use-mpegts");
 
 		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = null;
+		IPipeProcess pipe = null;
 
 		boolean directPipe = Platform.isWindows();
 		if (directPipe) {
 			cmdList.add("-o");
 			cmdList.add("-");
-			params.setInputPipes(new PipeProcess[2]);
+			params.setInputPipes(new IPipeProcess[2]);
 		} else {
 			// basename of the named pipe:
 			String fifoName = String.format(
@@ -115,7 +105,7 @@ public class YoutubeDl extends FFMpegVideo {
 				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
-			pipe = new PipeProcess(fifoName);
+			pipe = PlatformUtils.INSTANCE.getPipeProcess(fifoName);
 			params.getInputPipes()[0] = pipe;
 			cmdList.add("-o");
 			cmdList.add(pipe.getInputPipe());
@@ -165,7 +155,7 @@ public class YoutubeDl extends FFMpegVideo {
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -177,5 +167,4 @@ public class YoutubeDl extends FFMpegVideo {
 		return PlayerUtil.isWebVideo(resource);
 	}
 
-	static final Matcher END_OF_HEADER = Pattern.compile("Press \\[q\\]|A-V:|At least|Invalid").matcher("");
 }

@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -87,20 +86,20 @@ public class CollectionUtils {
 	 */
 	public static <E> DiffResult<List<E>> diff(Collection<E> first, Collection<E> second) {
 		if ((first == null || first.isEmpty()) && (second == null || second.isEmpty())) {
-			return new DiffResult<List<E>>(new ArrayList<E>(), new ArrayList<E>());
+			return new DiffResult<>(new ArrayList<>(), new ArrayList<>());
 		}
 		if (first == null || first.isEmpty()) {
-			return new DiffResult<List<E>>(new ArrayList<E>(), new ArrayList<E>(second));
+			return new DiffResult<>(new ArrayList<>(), new ArrayList<>(second));
 		}
 		if (second == null || second.isEmpty()) {
-			return new DiffResult<List<E>>(new ArrayList<E>(first), new ArrayList<E>());
+			return new DiffResult<>(new ArrayList<>(first), new ArrayList<>());
 		}
 
-		ArrayList<E> firstArray = new ArrayList<E>(first);
+		ArrayList<E> firstArray = new ArrayList<>(first);
 		firstArray.removeAll(second);
-		ArrayList<E> secondArray = new ArrayList<E>(second);
+		ArrayList<E> secondArray = new ArrayList<>(second);
 		secondArray.removeAll(first);
-		return new DiffResult<List<E>>(firstArray, secondArray);
+		return new DiffResult<>(firstArray, secondArray);
 	}
 
 	/**
@@ -116,19 +115,19 @@ public class CollectionUtils {
 	 */
 	public static <E> DiffResult<List<E>> diff(E[] first, E[] second) {
 		if ((first == null || first.length == 0) && (second == null || second.length == 0)) {
-			return new DiffResult<List<E>>(new ArrayList<E>(), new ArrayList<E>());
+			return new DiffResult<>(new ArrayList<>(), new ArrayList<>());
 		}
 		if (first == null || first.length == 0) {
-			return new DiffResult<List<E>>(new ArrayList<E>(), Arrays.asList(second));
+			return new DiffResult<>(new ArrayList<>(), Arrays.asList(second));
 		}
 		if (second == null || second.length == 0) {
-			return new DiffResult<List<E>>(Arrays.asList(first), new ArrayList<E>());
+			return new DiffResult<>(Arrays.asList(first), new ArrayList<>());
 		}
 
-		ArrayList<E> firstArray = new ArrayList<E>(Arrays.asList(first));
+		ArrayList<E> firstArray = new ArrayList<>(Arrays.asList(first));
 		firstArray.removeAll(Arrays.asList(second));
-		ArrayList<E> secondArray = new ArrayList<E>(Arrays.asList(second));
+		ArrayList<E> secondArray = new ArrayList<>(Arrays.asList(second));
 		secondArray.removeAll(Arrays.asList(first));
-		return new DiffResult<List<E>>(firstArray, secondArray);
+		return new DiffResult<>(firstArray, secondArray);
 	}
 }

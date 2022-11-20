@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.network.mediaserver.handlers.api.starrating;
 
 import java.io.File;
@@ -9,6 +25,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -18,6 +37,7 @@ import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.flac.FlacTag;
@@ -29,9 +49,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 /**
  * <pre>
@@ -63,8 +80,8 @@ import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 public class StarRating implements ApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(StarRating.class.getName());
-	private MediaDatabase db = PMS.get().getMediaDatabase();
 	public static final String PATH_MATCH = "rating";
+	private final MediaDatabase db = PMS.get().getMediaDatabase();
 
 	@Override
 	public String handleRequest(String uri, String content, HttpResponse output) {
@@ -75,60 +92,61 @@ public class StarRating implements ApiResponseHandler {
 			}
 
 			String uriLower = uri.toLowerCase();
-			String sql = null;
+			String sql;
 			switch (uriLower) {
-				case "setrating":
+				case "setrating" -> {
 					RequestVO request = parseSetRatingRequest(content);
-					setDatabaseRatingByMusicbrainzId(connection, request.stars, request.trackID);
-					List<FilenameIdVO> dbSongs = getFilenameIdList(connection, request.trackID);
+					setDatabaseRatingByMusicbrainzId(connection, request.getStars(), request.getTrackID());
+					List<FilenameIdVO> dbSongs = getFilenameIdList(connection, request.getTrackID());
 					if (PMS.getConfiguration().isAudioUpdateTag()) {
 						for (FilenameIdVO dbSong : dbSongs) {
-							setRatingInFile(request.stars, dbSong);
+							setRatingInFile(request.getStars(), dbSong);
 						}
 					}
-					break;
-				case "getrating":
+				}
+				case "getrating" -> {
 					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.MBID_TRACK = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
-						ResultSet rs = ps.executeQuery();
-						if (rs.next()) {
-							int ratingVal = rs.getInt(1);
-							return Integer.toString(ratingVal);
+						try (ResultSet rs = ps.executeQuery()) {
+							if (rs.next()) {
+								int ratingVal = rs.getInt(1);
+								return Integer.toString(ratingVal);
+							}
 						}
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
 					}
-					break;
-				case "setratingbyaudiotrackid":
-					request = parseSetRatingRequest(content);
-					if (NumberUtils.isParsable(request.trackID)) {
-						Integer audiotrackId = Integer.parseInt(request.trackID);
-						setDatabaseRatingByAudiotracksId(connection, request.stars, audiotrackId);
+				}
+				case "setratingbyaudiotrackid" -> {
+					RequestVO request = parseSetRatingRequest(content);
+					if (NumberUtils.isParsable(request.getTrackID())) {
+						Integer audiotrackId = Integer.valueOf(request.getTrackID());
+						setDatabaseRatingByAudiotracksId(connection, request.getStars(), audiotrackId);
 						if (PMS.getConfiguration().isAudioUpdateTag()) {
 							FilenameIdVO dbSong = getFilenameIdForAudiotrackId(connection, audiotrackId);
-							setRatingInFile(request.stars, dbSong);
+							setRatingInFile(request.getStars(), dbSong);
 						}
 					}
-					break;
-				case "getratingbyaudiotrackid":
+				}
+				case "getratingbyaudiotrackid" -> {
 					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?";
-					try {
-						PreparedStatement ps = connection.prepareStatement(sql);
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
-						ResultSet rs = ps.executeQuery();
-						if (rs.next()) {
-							int ratingVal = rs.getInt(1);
-							return Integer.toString(ratingVal);
+						try (ResultSet rs = ps.executeQuery()) {
+							if (rs.next()) {
+								int ratingVal = rs.getInt(1);
+								return Integer.toString(ratingVal);
+							}
 						}
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
 					}
-					break;
-				default:
+				}
+				default -> {
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 					return "unknown api path : " + uri;
+				}
 			}
 
 			output.setStatus(HttpResponseStatus.OK);
@@ -154,10 +172,10 @@ public class StarRating implements ApiResponseHandler {
 
 		String[] contentArray = content.split("/");
 		RequestVO request = new RequestVO(contentArray[0], Integer.parseInt(contentArray[1]));
-		if (request.stars < 0 || request.stars > 5) {
+		if (!request.isStarsValid()) {
 			throw new NumberFormatException("Rating value must be between 0 and 5 (including).");
 		}
-		if (StringUtils.isBlank(request.trackID)) {
+		if (StringUtils.isBlank(request.getTrackID())) {
 			throw new NumberFormatException("musicBraintID shall not be null.");
 		}
 		return request;
@@ -166,7 +184,7 @@ public class StarRating implements ApiResponseHandler {
 	public void setRatingInFile(int ratingInStars, FilenameIdVO dbSong) {
 		AudioFile audioFile;
 		try {
-			audioFile = AudioFileIO.read(new File(dbSong.filename));
+			audioFile = AudioFileIO.read(new File(dbSong.getFilename()));
 			Tag tag = audioFile.getTag();
 			tag.setField(FieldKey.RATING, getRatingValue(tag, ratingInStars));
 			audioFile.commit();
@@ -178,25 +196,27 @@ public class StarRating implements ApiResponseHandler {
 	public void setDatabaseRatingByMusicbrainzId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		String sql;
 		sql = "UPDATE AUDIOTRACKS set rating = ? where MBID_TRACK = ?";
-		PreparedStatement ps = connection.prepareStatement(sql);
-		ps.setInt(1, ratingInStars);
-		ps.setString(2, musicBrainzTrackId);
-		ps.executeUpdate();
-		connection.commit();
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			ps.setString(2, musicBrainzTrackId);
+			ps.executeUpdate();
+			connection.commit();
+		}
 	}
 
 	public void setDatabaseRatingByAudiotracksId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
 		String sql;
 		sql = "UPDATE AUDIOTRACKS set rating = ? where AUDIOTRACK_ID = ?";
-		PreparedStatement ps = connection.prepareStatement(sql);
-		ps.setInt(1, ratingInStars);
-		if (audiotracksId == null) {
-			ps.setNull(2, Types.INTEGER);
-		} else {
-			ps.setInt(2, audiotracksId);
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			if (audiotracksId == null) {
+				ps.setNull(2, Types.INTEGER);
+			} else {
+				ps.setInt(2, audiotracksId);
+			}
+			ps.executeUpdate();
+			connection.commit();
 		}
-		ps.executeUpdate();
-		connection.commit();
 	}
 
 	private List<FilenameIdVO> getFilenameIdList(Connection connection, String trackId) {
@@ -249,7 +269,7 @@ public class StarRating implements ApiResponseHandler {
 	 * @return
 	 */
 	public String getRatingValue(Tag tag, int stars) {
-		int num = 0;
+		int num;
 		if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
 			num = convertStarsToVorbis(stars);
 		} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
@@ -269,19 +289,14 @@ public class StarRating implements ApiResponseHandler {
 	 * @return
 	 */
 	public int convertStarsToID3(int rating) {
-		if (rating == 0) {
-			return 0;
-		} else if (rating == 1) {
-			return 1;
-		} else if (rating == 2) {
-			return 64;
-		} else if (rating == 3) {
-			return 128;
-		} else if (rating == 4) {
-			return 196;
-		} else {
-			return 255;
-		}
+		return switch (rating) {
+			case 0 -> 0;
+			case 1 -> 1;
+			case 2 -> 64;
+			case 3 -> 128;
+			case 4 -> 196;
+			default -> 255;
+		};
 	}
 
 	/**
@@ -317,7 +332,7 @@ public class StarRating implements ApiResponseHandler {
 					return convertVorbisToStars(num);
 				}
 			}
-		} catch (Exception e) {
+		} catch (NumberFormatException | KeyNotFoundException e) {
 			// Value couldn't be read.
 			LOG.trace("conversion error", e);
 		}

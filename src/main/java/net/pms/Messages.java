@@ -1,23 +1,24 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms;
 
+import com.google.gson.JsonObject;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -25,6 +26,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class Messages provides a mechanism to localize the text messages found in
@@ -37,6 +40,7 @@ public class Messages {
 	private static ReadWriteLock resourceBundleLock = new ReentrantReadWriteLock();
 	private static ResourceBundle resourceBundle;
 	private static final ResourceBundle ROOT_RESOURCE_BUNDLE;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Messages.class);
 
 	static {
 		/*
@@ -108,6 +112,47 @@ public class Messages {
 		}
 	}
 
+	public static String getStringsAsJson() {
+		resourceBundleLock.readLock().lock();
+		try {
+			Enumeration<String> i18nKeys = resourceBundle.getKeys();
+			JsonObject jsonObject = new JsonObject();
+			while (i18nKeys.hasMoreElements()) {
+				String key = i18nKeys.nextElement();
+				String value = resourceBundle.getString(key);
+				jsonObject.addProperty(key, value);
+			}
+			return jsonObject.toString();
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
+		} finally {
+			resourceBundleLock.readLock().unlock();
+		}
+		return null;
+	}
+
+	public static JsonObject getStringsAsJsonObject(Locale locale) {
+		ResourceBundle rb = null;
+		if (locale != null && !isRootEnglish(locale)) {
+			rb = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		}
+		if (rb == null) {
+			rb = ROOT_RESOURCE_BUNDLE;
+		}
+		JsonObject jsonObject = new JsonObject();
+		try {
+			Enumeration<String> i18nKeys = rb.getKeys();
+			while (i18nKeys.hasMoreElements()) {
+				String key = i18nKeys.nextElement();
+				String value = rb.getString(key);
+				jsonObject.addProperty(key, value);
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Failed to parse translations to JSON: {} ", e);
+		}
+		return jsonObject;
+	}
+
 	@Nonnull
 	public static String getString(String key, Locale locale) {
 		if (locale == null) {
@@ -135,7 +180,8 @@ public class Messages {
 	 * ResourceBundle default behavior</a> for more information about the
 	 * selection process.<br><br>
 	 *
-	 * For parameter and return value see {@link #getString(String)}
+	 * @param key the key for the desired string
+	 * @return the string for the given key from root (neutral)
 	 */
 	@Nonnull
 	public static String getRootString(String key) {

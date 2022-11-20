@@ -86,12 +86,8 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 	 */
 	public boolean validate(DLNAOrgFlags flags) {
 		// Assuming that "null" means no FLAGS parameter
-		if (flags != null && state > 0) {
-			if (flags.isS0Increasing() || flags.isLimitedOperationsTimeBasedSeek() || flags.isLimitedOperationsByteBasedSeek()) {
-				return false;
-			}
-		}
-		return true;
+		return !(flags != null && state > 0 &&
+			(flags.isS0Increasing() || flags.isLimitedOperationsTimeBasedSeek() || flags.isLimitedOperationsByteBasedSeek()));
 	}
 
 	/**
@@ -227,23 +223,17 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 		 */
 		public DLNAOrgOperations getOperations(Protocol protocol, boolean flagA, boolean flagB) {
 			if (protocol == Protocol.HTTP_GET) {
-				switch (packFlags(flagA, flagB)) {
-					case 1:
-						return DLNAOrgOperationsHTTP.HTTP_HEADER;
-					case 2:
-						return DLNAOrgOperationsHTTP.HTTP_TIME_SEEK;
-					case 3:
-						return DLNAOrgOperationsHTTP.HTTP_BOTH;
-					default:
-						return DLNAOrgOperationsHTTP.NONE;
-				}
+				return switch (packFlags(flagA, flagB)) {
+					case 1 -> DLNAOrgOperationsHTTP.HTTP_HEADER;
+					case 2 -> DLNAOrgOperationsHTTP.HTTP_TIME_SEEK;
+					case 3 -> DLNAOrgOperationsHTTP.HTTP_BOTH;
+					default -> DLNAOrgOperationsHTTP.NONE;
+				};
 			} else if (protocol == Protocol.RTSP_RTP_UDP) {
-				switch (packFlags(flagA, flagB)) {
-					case 2:
-						return DLNAOrgOperationsRTP.RTP_HEADER;
-					default:
-						return DLNAOrgOperationsRTP.NONE;
-				}
+				return switch (packFlags(flagA, flagB)) {
+					case 2 -> DLNAOrgOperationsRTP.RTP_HEADER;
+					default -> DLNAOrgOperationsRTP.NONE;
+				};
 			}
 			return null;
 		}

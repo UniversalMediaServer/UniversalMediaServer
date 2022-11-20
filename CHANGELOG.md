@@ -1,6 +1,140 @@
 # Changelog
 
-### [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
+## [12.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.6.0...12.0.0) (2022-11-15)
+
+### General:
+- Added a new web settings interface, which is now the supported way to add content and change settings
+- Added a new web player interface, for a faster, more responsive and accessible web player
+- Added shutdown computer option to the Server Settings folder
+- Added user auth to web interface
+- Added user groups to web interface
+- Unified the Shared Content area in both Java and web interfaces
+- Local database speed improvements
+- Improved UPnP/DLNA support
+- Consolidated configuration files, with automatic migration to the new format
+- Fixed TV series never being found locally by IMDb ID
+- Fixed duplicate API requests
+- Fixed profile support on Docker
+- Hundreds of bugfixes and performance tweaks
+
+### Renderers:
+- Support Sony Network Speakers (thanks, scanf!)
+
+### Translation updates via Crowdin
+- Afrikaans (14%) (thanks, Eugene Trumpelmann!)
+- Bulgarian (83%) (thanks, ruraru!)
+- Catalan (88%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Danish (99%) (thanks, GurliGebis and NCAA!)
+- German (93%) (thanks, pipin!)
+- Finnish (99%) (thanks, Esko Gardner!)
+- Italian (96%) (thanks, Oscar Zambotti!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (99%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (99%) (thanks, Mauro.A!)
+- Russian (82%) (thanks, Максим Мухачев!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies
+- Bump Java to 17.0.5
+- Bump logback-version from 1.4.3 to 1.4.4
+- Update Apache Commons Collections to 4.4
+- Update com.sun.xml.messaging.saaj to 3.0.0
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.13.4.2
+- Update dependency com.github.junrar:junrar to v7.5.4
+- Update dependency com.github.oshi:oshi-core to v6.3.1
+- Update dependency com.github.spotbugs:spotbugs-maven-plugin to v4.7.3.0
+- Update dependency com.google.code.gson:gson to v2.10
+- Update dependency com.ibm.icu:icu4j to v72
+- Update dependency com.puppycrawl.tools:checkstyle to v10.4
+- Update dependency net.coobird:thumbnailator to v0.4.18
+- Update dependency pako to v2.1.0
+- Update MediaInfo to 22.09
+- Update twelvemonkeys-imageio-version to v3.9.3
+- Removed assertj-core
+
+## [11.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.5.0...11.6.0) (2022-10-05)
+
+### General:
+- Added support for reparsing modified files
+- Improved filename prettifying/matching
+- Improved performance
+- Fixed failed parsing of files being moved/copied
+- Fixed restart program reliability
+- Fixed security hole
+- Stop extracting metadata or doing API lookups for Live Photos in iPhone backups on macOS
+- Updated all tests to junit 5
+
+### Translation updates via Crowdin
+- Spanish (97%) (thanks, Sergio Varela!)
+
+### Dependencies
+- Bump commons-text from 1.9 to 1.10.0
+- Bump junit5.version from 5.9.0 to 5.9.1
+- Bump logback-version from 1.4.1 to 1.4.3
+- Update com.sun.xml.bind-version to v4.0.1
+- Update dependency com.puppycrawl.tools:checkstyle to v10.3.4
+- Update dependency org.slf4j:slf4j-api to v2.0.3
+
+## [11.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.1...11.5.0) (2022-09-17)
+
+### General:
+- Improved video quality on Wi-Fi networks
+- Persist max memory setting in Windows installer
+- Fixed web player status communication
+- Fixed resource leaks
+
+### Renderers:
+- Added support for Caliber radio devices (thanks, Bart Jourquin!)
+- Allow seeking while transcoding on Roku devices
+- Fixed sound cutting out on Panasonic TVs when transcoding
+
+### Translation updates via Crowdin
+- German (100%) (thanks, pipin!)
+- Japanese (100%) (thanks, KEINOS!)
+- Persian (100%) (thanks, Sadra Imam!)
+- Spanish (97%) (thanks, Luis Alberto García Díaz!)
+- Ukrainian (31%) (thanks, Alexandr Opara!)
+
+### Dependencies
+- Updated checkstyle to v10.3.3
+- Bump FFmpeg to latest
+- Bump jackson-databind from 2.13.3 to 2.13.4
+- Bump logback-version from 1.2.11 to 1.4.1
+- Bump maven-pmd-plugin from 3.18.0 to 3.19.0
+- Bump slf4j-api from 1.7.36 to 2.0.1
+- Bump spotbugs-maven-plugin from 4.7.1.1 to 4.7.2.0
+
+### [11.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.4.0...11.4.1) (2022-08-26)
+
+### General:
+- Improved support for split episodes (e.g. S01E02a, S01E02.5)
+- Improved anime episode matching
+- Fixed dc:date not sending to renderers for videos (#3215)
+- Fixed shutdown consistency
+- Performance and stability improvements
+- Improved local build speed during development
+- Improved GitHub Actions build speed
+
+### Translation updates via Crowdin
+- French (100%) (thanks, Archaos!)
+- Persian (84%) (thanks, Sadra Imam!)
+- Ukrainian (30%) (thanks, Василь «CVI» Чефранов!)
+
+### Dependencies
+- Updated checkstyle to v10.3.2
+- Updated gson to v2.9.1
+- Updated JRE to 17.0.4.1`
+- Updated junrar to v7.5.3
+- Updated maven-checkstyle-plugin to 3.2.0
+- Updated maven-javadoc-plugin to v3.4.1
+- Updated maven-pmd-plugin from 3.17.0 to 3.18.0
+- Updated maven-project-info-reports-plugin to v3.4.1
+- Updated maven-site-plugin to v3.12.1
+- Updated twelvemonkeys-imageio-version to v3.8.3
+
+## [11.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.3.0...11.4.0) (2022-07-29)
 
 ### General:
 - Enabled UPnP searching, with the ability to disable for problematic renderers
@@ -36,7 +170,7 @@
 - Updated oshi-core to 6.2.2
 - Updated spotbugs-maven-plugin to 4.7.1.1
 
-### [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
+## [11.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.2.0...11.3.0) (2022-07-17)
 
 ### General
 - Sign and notarize macOS releases, for easier installation
@@ -80,7 +214,7 @@
 - Updated moment.js to v2.29.4
 - Updated spotbugs-maven-plugin to v4.7.1.0
 
-### [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
+## [11.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.1.1...11.2.0) (2022-07-03)
 
 ### General
 - Added a release for Apple ARM (Apple Silicon, M1/M2) processors, for 3x faster transcoding
@@ -102,7 +236,7 @@
 - Update oshi to v6.2.1
 - Update pako to v2
 
-### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
+#### [11.1.1.1 - since 11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.1.0...11.1.1.1) (2022-06-15)
 
 ### General
 - Fixed failed database update for some users (#3051) (thanks, vrtlspd!)
@@ -116,7 +250,7 @@
 - Update dependency maven-enforcer-plugin to v3.1.0
 
 
-### [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0) (2022-06-10)
+## [11.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.0.0...11.1.0) (2022-06-10)
 ### General
 - Improved caching of web interface files
 - Added getServerPlaylists to playlist API

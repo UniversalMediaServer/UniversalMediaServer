@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.logging;
 
@@ -112,10 +111,7 @@ public class UmsCompressor extends Compressor {
 		addInfo("ZIP compressing [" + file2zip + "] as [" + zippedFile + "]");
 		createMissingTargetDirsIfNecessary(zippedFile);
 
-		BufferedInputStream bis = null;
-		ZipOutputStream zos = null;
-		try {
-			zos = new ZipOutputStream(new FileOutputStream(nameOfZippedFile));
+		try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(nameOfZippedFile))) {
 			byte[] inbuf = new byte[BUFFER_SIZE];
 			int n;
 
@@ -140,27 +136,24 @@ public class UmsCompressor extends Compressor {
 				FileUtils.deleteQuietly(appendZippedFile);
 			}
 			//add askef file
-			bis = new BufferedInputStream(new FileInputStream(nameOfFile2zip));
-			//try to keep the extention
-			String innerEntryExt = "";
-			if (innerEntryName.contains(".")) {
-				int dotIndex = innerEntryName.lastIndexOf(".");
-				innerEntryExt = innerEntryName.substring(dotIndex);
-				innerEntryName = innerEntryName.substring(0, dotIndex);
-			}
-			//let say we will have no more than 9999 files in the zip
-			innerEntryName += "." + String.format("%04d", index) + innerEntryExt;
-			ZipEntry zipEntry = computeZipEntry(innerEntryName);
-			zos.putNextEntry(zipEntry);
+			try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(nameOfFile2zip))) {
+				//try to keep the extention
+				String innerEntryExt = "";
+				if (innerEntryName.contains(".")) {
+					int dotIndex = innerEntryName.lastIndexOf(".");
+					innerEntryExt = innerEntryName.substring(dotIndex);
+					innerEntryName = innerEntryName.substring(0, dotIndex);
+				}
+				//let say we will have no more than 9999 files in the zip
+				innerEntryName += "." + String.format("%04d", index) + innerEntryExt;
+				ZipEntry zipEntry = computeZipEntry(innerEntryName);
+				zos.putNextEntry(zipEntry);
 
-			while ((n = bis.read(inbuf)) != -1) {
-				zos.write(inbuf, 0, n);
+				while ((n = bis.read(inbuf)) != -1) {
+					zos.write(inbuf, 0, n);
+				}
 			}
 
-			bis.close();
-			bis = null;
-			zos.close();
-			zos = null;
 			if (!file2zip.delete()) {
 				addWarn("Could not delete [" + nameOfFile2zip + "].");
 			}
@@ -169,20 +162,6 @@ public class UmsCompressor extends Compressor {
 		} catch (IOException e) {
 			addError("Error occurred while compressing [" + nameOfFile2zip + "] into [" + nameOfZippedFile + "].", e);
 		} finally {
-			if (bis != null) {
-				try {
-					bis.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
-			if (zos != null) {
-				try {
-					zos.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
 			lock.unlock();
 		}
 	}

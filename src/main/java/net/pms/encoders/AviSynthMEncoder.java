@@ -1,212 +1,64 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import javax.swing.*;
-import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.newgui.GuiUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.configuration.event.ConfigurationEvent;
-import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
-	public static final PlayerId ID = StandardPlayerId.AVI_SYNTH_MENCODER;
+	public static final EngineId ID = StandardEngineId.AVI_SYNTH_MENCODER;
 	public static final String NAME = "AviSynth/MEncoder";
 
 	// Not to be instantiated by anything but PlayerFactory
 	AviSynthMEncoder() {
 	}
 
-	private JTextArea textArea;
-	private JCheckBox convertfps;
-	private JCheckBox interframe;
-	private static JCheckBox interframegpu;
-	private JCheckBox multithreading;
-
-	@Override
-	public JComponent config() {
-		FormLayout layout = new FormLayout(
-			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
-		);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
-		builder.opaque(false);
-
-		CellConstraints cc = new CellConstraints();
-
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), cc.xyw(2, 1, 1));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), configuration.getAvisynthMultiThreading());
-		multithreading.setContentAreaFilled(false);
-		multithreading.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
-
-		interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), configuration.getAvisynthInterFrame());
-		interframe.setContentAreaFilled(false);
-		interframe.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setAvisynthInterFrame(interframe.isSelected());
-				if (configuration.getAvisynthInterFrame()) {
-					JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-						Messages.getString("ThisFeatureVeryCpuintensive"),
-						Messages.getString("Information"),
-						JOptionPane.INFORMATION_MESSAGE
-					);
-				}
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
-
-		interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), configuration.getAvisynthInterFrameGPU());
-		interframegpu.setContentAreaFilled(false);
-		interframegpu.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
-
-		convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), configuration.getAvisynthConvertFps());
-		convertfps.setContentAreaFilled(false);
-		convertfps.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
-
-		String aviSynthScriptInstructions = Messages.getString("AvisynthScriptFullyCustomizable") +
-			Messages.getString("TheFollowingVariablesAvailable") +
-			Messages.getString("MovieCompleteDirectshowsource") +
-			Messages.getString("SubCompleteSubtitlesInstruction") +
-			Messages.getString("MoviefilenameVideoFilename");
-		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
-		aviSynthScriptInstructionsContainer.setEditable(false);
-		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
-		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
-		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
-
-		String clip = configuration.getAvisynthScript();
-		if (clip == null) {
-			clip = "";
-		}
-		StringBuilder sb = new StringBuilder();
-		StringTokenizer st = new StringTokenizer(clip, PMS.AVS_SEPARATOR);
-		int i = 0;
-		while (st.hasMoreTokens()) {
-			if (i > 0) {
-				sb.append("\n");
-			}
-			sb.append(st.nextToken());
-			i++;
-		}
-		textArea = new JTextArea(sb.toString());
-		textArea.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				StringBuilder sb = new StringBuilder();
-				StringTokenizer st = new StringTokenizer(textArea.getText(), "\n");
-				int i = 0;
-				while (st.hasMoreTokens()) {
-					if (i > 0) {
-						sb.append(PMS.AVS_SEPARATOR);
-					}
-					sb.append(st.nextToken());
-					i++;
-				}
-				configuration.setAvisynthScript(sb.toString());
-			}
-		});
-
-		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 13));
-
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getPropertyName() == null) {
-					return;
-				}
-				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
-					interframegpu.setEnabled(configuration.isGPUAcceleration());
-				}
-			}
-		});
-
-		return builder.getPanel();
-	}
-
 	@Override
 	public int purpose() {
-		return VIDEO_SIMPLEFILE_PLAYER;
+		return VIDEO_SIMPLEFILE_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
 	@Override
-	public boolean avisynth() {
+	public boolean isAviSynthEngine() {
 		return true;
 	}
 
 	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -218,7 +70,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, PmsConfiguration configuration) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, UmsConfiguration configuration) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
@@ -286,7 +138,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()) {
+				if (configuration.getAvisynthInterFrameGPU() && configuration.isGPUAcceleration()) {
 					gpu = ", GPU=true";
 				}
 
@@ -367,10 +219,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public boolean isCompatible(DLNAResource resource) {
 		Format format = resource.getFormat();
 
-		if (format != null) {
-			if (format.getIdentifier() == Format.Identifier.WEB) {
-				return false;
-			}
+		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
+			return false;
 		}
 
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
@@ -379,11 +229,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
-			if (subtitle.isExternal()) {
-				return true;
-			}
-
-			return false;
+			return subtitle.isExternal();
 		}
 
 		try {
@@ -400,14 +246,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		if (
+		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
-		) {
-			return true;
-		}
-
-		return false;
+		);
 	}
 }

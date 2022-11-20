@@ -1,31 +1,27 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.nettyserver;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -36,10 +32,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.external.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.Renderer;
+import net.pms.service.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -70,7 +68,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
+	private static final String[] KNOWN_HEADERS = {
 		"accept",
 		"accept-language",
 		"accept-encoding",
@@ -88,8 +86,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-		RequestV2 request = null;
-		RendererConfiguration renderer = null;
+		RequestV2 request;
+		Renderer renderer = null;
 		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
@@ -123,21 +121,21 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// Attempt 1: If the reguested url contains the no-transcode tag, force
 		// the default streaming-only conf.
-		if (request.getUri().contains(RendererConfiguration.NOTRANSCODE)) {
-			renderer = RendererConfiguration.getStreamingConf();
+		if (request.getUri().contains(Renderer.NOTRANSCODE)) {
+			renderer = RendererConfigurations.getDefaultRenderer();
 			LOGGER.debug("Forcing streaming.");
 		}
 
 		if (renderer == null) {
 			// Attempt 2: try to recognize the renderer by its socket address from previous requests
-			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
 		}
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || !renderer.loaded) {
+		if (renderer == null || !renderer.isLoaded()) {
 			// Attempt 3: try to recognize the renderer by matching headers
-			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
+			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
 
 		if (renderer != null) {
@@ -145,9 +143,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		Set<String> headerNames = headers.names();
-		Iterator<String> iterator = headerNames.iterator();
-		while (iterator.hasNext()) {
-			String name = iterator.next();
+		for (String name : headerNames) {
 			String headerLine = name + ": " + headers.get(name);
 
 			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
@@ -159,14 +155,12 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			try {
 				StringTokenizer s = new StringTokenizer(headerLine);
 				String temp = s.nextToken();
-				if (temp.toUpperCase().equals("SOAPACTION:")) {
+				if (temp.equalsIgnoreCase("SOAPACTION:")) {
 					request.setSoapaction(s.nextToken());
-				} else if (temp.toUpperCase().equals("CALLBACK:")) {
+				} else if (temp.equalsIgnoreCase("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
-					String nums = headerLine.substring(
-						headerLine.toUpperCase().indexOf(
-						"RANGE: BYTES=") + 13).trim();
+					String nums = headerLine.substring(headerLine.toUpperCase().indexOf("RANGE: BYTES=") + 13).trim();
 					StringTokenizer st = new StringTokenizer(nums, "-");
 					if (!nums.startsWith("-")) {
 						request.setLowRange(Long.parseLong(st.nextToken()));
@@ -221,7 +215,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 						}
 					}
 				}
-			} catch (Exception ee) {
+			} catch (NumberFormatException ee) {
 				LOGGER.error("Error parsing HTTP headers: {}", ee.getMessage());
 				LOGGER.trace("", ee);
 			}
@@ -233,7 +227,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			renderer = RendererConfiguration.resolve(ia, null);
+			renderer = ConnectedRenderers.resolve(ia, null);
 			request.setMediaRenderer(renderer);
 			if (renderer != null) {
 				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
@@ -290,21 +284,21 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		return uri;
 	}
 
-	private static void logMessageReceived(MessageEvent event, String content, RendererConfiguration renderer) {
+	private static void logMessageReceived(MessageEvent event, String content, Renderer renderer) {
 		StringBuilder header = new StringBuilder();
 		String soapAction = null;
-		if (event.getMessage() instanceof HttpRequest) {
-			header.append(((HttpRequest) event.getMessage()).getMethod());
-			header.append(" ").append(((HttpRequest) event.getMessage()).getUri());
+		if (event.getMessage() instanceof HttpRequest httpRequest) {
+			header.append(httpRequest.getMethod());
+			header.append(" ").append(httpRequest.getUri());
 		}
-		if (event.getMessage() instanceof HttpMessage) {
+		if (event.getMessage() instanceof HttpMessage httpMessage) {
 			if (header.length() > 0) {
 				header.append(" ");
 			}
-			header.append(((HttpMessage) event.getMessage()).getProtocolVersion().getText());
+			header.append(httpMessage.getProtocolVersion().getText());
 			header.append("\n\n");
 			header.append("HEADER:\n");
-			for (Entry<String, String> entry : ((HttpMessage) event.getMessage()).headers().entries()) {
+			for (Entry<String, String> entry : httpMessage.headers().entries()) {
 				if (StringUtils.isNotBlank(entry.getKey())) {
 					header.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
 					if ("SOAPACTION".equalsIgnoreCase(entry.getKey())) {
@@ -339,13 +333,13 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 		String rendererName;
 		if (renderer != null) {
-			if (isNotBlank(renderer.getRendererName())) {
-				if (isBlank(renderer.getConfName()) || renderer.getRendererName().equals(renderer.getConfName())) {
+			if (StringUtils.isNotBlank(renderer.getRendererName())) {
+				if (StringUtils.isBlank(renderer.getConfName()) || renderer.getRendererName().equals(renderer.getConfName())) {
 					rendererName = renderer.getRendererName();
 				} else {
 					rendererName = renderer.getRendererName() + " [" + renderer.getConfName() + "]";
 				}
-			} else if (isNotBlank(renderer.getConfName())) {
+			} else if (StringUtils.isNotBlank(renderer.getConfName())) {
 				rendererName = renderer.getConfName();
 			} else {
 				rendererName = "Unnamed";
@@ -353,14 +347,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		} else {
 			rendererName = "Unknown";
 		}
-		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress) {
+		if (event.getChannel().getRemoteAddress() instanceof InetSocketAddress inetSocketAddress) {
 			rendererName +=
-				" (" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getAddress().getHostAddress() +
-				":" + ((InetSocketAddress) event.getChannel().getRemoteAddress()).getPort() + ")";
+				" (" + inetSocketAddress.getAddress().getHostAddress() +
+				":" + inetSocketAddress.getPort() + ")";
 		}
 
 		formattedContent = StringUtils.isNotBlank(formattedContent) ? "\nCONTENT:\n" + formattedContent : "";
-		if (isNotBlank(requestType)) {
+		if (StringUtils.isNotBlank(requestType)) {
 			LOGGER.trace(
 				"Received a {}request from {}:\n{}\n{}{}{}",
 				requestType,
@@ -379,7 +373,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				header,
 				formattedContent,
 				HTTPSERVER_REQUEST_END,
-				renderer != null ? renderer.uuid : "null"
+				renderer != null ? renderer.getUUID() : "null"
 				);
 		}
 	}

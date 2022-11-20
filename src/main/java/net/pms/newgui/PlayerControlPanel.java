@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui;
 
 import java.awt.*;
@@ -6,19 +22,21 @@ import java.io.File;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
-import net.pms.util.BasicPlayer;
+import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.LogicalPlayer;
+import net.pms.renderers.devices.players.PlayerState;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 8972730138916895247L;
 
-	private BasicPlayer.Logical player;
+	private LogicalPlayer player;
 	@SuppressWarnings("unused")
 	private AbstractAction add, remove, clear, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private Button position;
@@ -38,16 +56,16 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		if (playIcon == null) {
 			loadIcons();
 		}
-		this.player = (BasicPlayer.Logical) player;
+		this.player = (LogicalPlayer) player;
 		player.connect(this);
 		int controls = player.getControls();
-		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
-		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		playControl = (controls & Renderer.PLAYCONTROL) != 0;
+		volumeControl = (controls & Renderer.VOLUMECONTROL) != 0;
 		expanded = true;
 		sliding = 0;
 
 		try {
-			pwd = new File(player.getState().uri).getParentFile();
+			pwd = new File(player.getState().getUri()).getParentFile();
 		} catch (Exception e) {
 			pwd = new File("");
 		}
@@ -96,10 +114,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				player.disconnect(self);
 			}
 		});
-
 	}
 
-	public void addPlayControls(Container parent) {
+	public final void addPlayControls(Container parent) {
 		prev = new AbstractAction("", prevIcon) {
 			private static final long serialVersionUID = 1L;
 
@@ -157,7 +174,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(new Button(36, next));
 	}
 
-	public void addStatus(final Container parent) {
+	public final void addStatus(final Container parent) {
 		position = new Button(new AbstractAction("") {
 			private static final long serialVersionUID = 1L;
 
@@ -171,7 +188,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		position.setToolTipText(Messages.getString("ShowHideDetails"));
 	}
 
-	public void addVolumeControls(Container parent) {
+	public final void addVolumeControls(Container parent) {
 		UIDefaults defaults = UIManager.getDefaults();
 		Object hti = defaults.put("Slider.horizontalThumbIcon", sliderIcon);
 		Object tb = defaults.put("Slider.trackBorder", BorderFactory.createEmptyBorder());
@@ -181,16 +198,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		volumeSlider.setPreferredSize(d);
 		volumeSlider.setSize(d);
 		volumeSlider.setMaximumSize(d);
-		volumeSlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// Fire only when the slider is in motion, i.e. not during external updates
-				if (((JSlider) e.getSource()).getValueIsAdjusting()) {
-					player.setVolume(volumeSlider.getValue());
-					// For smoothness ignore external volume data until
-					// the 3rd update after sliding has finished
-					sliding = 3;
-				}
+		volumeSlider.addChangeListener((ChangeEvent e) -> {
+			// Fire only when the slider is in motion, i.e. not during external updates
+			if (((JSlider) e.getSource()).getValueIsAdjusting()) {
+				player.setVolume(volumeSlider.getValue());
+				// For smoothness ignore external volume data until
+				// the 3rd update after sliding has finished
+				sliding = 3;
 			}
 		});
 		volumeSlider.setFocusable(false);
@@ -216,7 +230,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		parent.add(muteButton);
 	}
 
-	public void addUriControls(Container parent) {
+	public final void addUriControls(Container parent) {
 		uris = new JComboBox(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
@@ -224,10 +238,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uris.setPrototypeDisplayValue("");
 		uri = (JTextField) uris.getEditor().getEditorComponent();
 		uri.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
 			public void focusGained(java.awt.event.FocusEvent evt) {
-				SwingUtilities.invokeLater(() -> {
-					uri.select(0, 0);
-				});
+				SwingUtilities.invokeLater(() -> uri.select(0, 0));
 			}
 		});
 		uri.getDocument().addDocumentListener(new DocumentListener() {
@@ -326,36 +339,36 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		edited = false;
 	}
 
-	public void refresh(BasicPlayer.State state) {
+	public void refreshPlayerState(PlayerState state) {
 		if (playControl) {
-			playing = state.playback != BasicPlayer.STOPPED;
+			playing = !state.isStopped();
 			// update playback status
-			play.putValue(Action.SMALL_ICON, state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
+			play.putValue(Action.SMALL_ICON, state.isPlaying() ? pauseIcon : playIcon);
 			stop.setEnabled(playing);
 			forward.setEnabled(playing);
 			rewind.setEnabled(playing);
 			// update position
-			position.setText(UMSUtils.playedDurationStr(state.position, state.duration));
+			position.setText(UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
 			// update uris only if meaningfully new
-			boolean isNew = !StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi);
-			lasturi = state.uri;
+			boolean isNew = !StringUtils.isBlank(state.getUri()) && !state.getUri().equals(lasturi);
+			lasturi = state.getUri();
 			if (isNew) {
 				if (edited) {
 					player.add(-1, uri.getText(), null, null, false);
 					setEdited(false);
 				}
-				uri.setText(state.name);
+				uri.setText(state.getName());
 			}
 			play.setEnabled(playing || !StringUtils.isBlank(uri.getText()));
 			updatePlaylist();
 		}
 		if (volumeControl) {
 			// update rendering status
-			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
-			volumeSlider.setEnabled(!state.mute);
+			mute.putValue(Action.SMALL_ICON, state.isMuted() ? muteIcon : volumeIcon);
+			volumeSlider.setEnabled(!state.isMuted());
 			// ignore volume during slider motion
 			if (--sliding < 0) {
-				volumeSlider.setValue(state.volume);
+				volumeSlider.setValue(state.getVolume());
 			}
 		}
 	}
@@ -363,7 +376,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		SwingUtilities.invokeLater(() -> {
-			refresh(((BasicPlayer) e.getSource()).getState());
+			refreshPlayerState(((BasicPlayer) e.getSource()).getState());
 		});
 	}
 

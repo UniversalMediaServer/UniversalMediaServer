@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.newgui;
@@ -31,7 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import net.pms.Messages;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class Splash extends JFrame implements MouseListener {
 	private static final long serialVersionUID = 2357524127613134620L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
-	private PmsConfiguration configuration;
+	private UmsConfiguration configuration;
 	private final Object optionLock = new Object();
 	private JLabel imageLabel;
 
@@ -49,10 +48,10 @@ public class Splash extends JFrame implements MouseListener {
 	 * Use {@link #dispose()} to remove the {@link Splash} when the GUI is
 	 * initialized.
 	 *
-	 * @param configuration the {@link PmsConfiguration} to use.
+	 * @param configuration the {@link UmsConfiguration} to use.
 	 * @param graphicsConfiguration the {@link GraphicsConfiguration} to use.
 	 */
-	public Splash(@Nonnull PmsConfiguration configuration, @Nullable GraphicsConfiguration graphicsConfiguration) {
+	public Splash(@Nonnull UmsConfiguration configuration, @Nullable GraphicsConfiguration graphicsConfiguration) {
 		super(graphicsConfiguration);
 		this.configuration = configuration;
 		if (!configuration.isShowSplashScreen() || System.getProperty("console") != null) {

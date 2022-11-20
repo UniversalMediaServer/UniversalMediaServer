@@ -1,12 +1,9 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -14,13 +11,13 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -142,14 +139,13 @@ public class UniqueList<E> extends ArrayList<E> {
 	 *         the call.
 	 */
 	@Override
-	public boolean addAll(Collection<? extends E> c) {
+	public final boolean addAll(Collection<? extends E> c) {
 		if (c == null || c.isEmpty()) {
 			return false;
 		}
 
 		int oldSize = size();
-		for (Iterator<? extends E> iterator = c.iterator(); iterator.hasNext();) {
-			E e = iterator.next();
+		for (E e : c) {
 			if (!contains(e)) {
 				super.add(e);
 			}
@@ -187,13 +183,12 @@ public class UniqueList<E> extends ArrayList<E> {
 
 		// Make a copy before removing items
 		ArrayList<E> tmpList = new ArrayList<>();
-		for (Iterator<? extends E> iterator = c.iterator(); iterator.hasNext();) {
-			E e = iterator.next();
+		for (E e : c) {
 			if (!contains(e)) {
 				tmpList.add(e);
 			}
 		}
-		return tmpList.isEmpty() ? false : super.addAll(index, tmpList);
+		return !tmpList.isEmpty() && super.addAll(index, tmpList);
 	}
 
 	/**

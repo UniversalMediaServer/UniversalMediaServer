@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -2229,7 +2228,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         value, {@code false} otherwise.
 	 */
 	public static boolean isInteger(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInteger();
+		return rational != null && rational.isInteger();
 	}
 
 	/**
@@ -2241,7 +2240,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         otherwise.
 	 */
 	public static boolean isNaN(@Nullable Rational rational) {
-		return rational == null ? false : rational.isNaN();
+		return rational != null && rational.isNaN();
 	}
 
 	/**
@@ -2253,7 +2252,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         negative infinity, {@code false} otherwise.
 	 */
 	public static boolean isInfinite(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfinite();
+		return rational != null && rational.isInfinite();
 	}
 
 	/**
@@ -2265,7 +2264,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean isInfinitePositive(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfinitePositive();
+		return rational != null && rational.isInfinitePositive();
 	}
 
 	/**
@@ -2277,7 +2276,7 @@ public class Rational extends Number implements Comparable<Rational> {
 	 *         otherwise.
 	 */
 	public static boolean isInfiniteNegative(@Nullable Rational rational) {
-		return rational == null ? false : rational.isInfiniteNegative();
+		return rational != null && rational.isInfiniteNegative();
 	}
 
 	/**

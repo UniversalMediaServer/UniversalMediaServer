@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.virtual;
 
@@ -25,6 +24,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.FormatFactory;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Implements a container that when browsed, an action will be performed.
@@ -34,12 +34,12 @@ import net.pms.formats.FormatFactory;
  * However this is just cosmetic. Any action can be performed.
  */
 public abstract class VirtualVideoAction extends DLNAResource {
+	private final String name;
+	private final String thumbnailIconOK;
+	private final String thumbnailIconKO;
+	private final String videoOk;
+	private final String videoKo;
 	private boolean enabled;
-	protected String name;
-	private String thumbnailIconOK;
-	private String thumbnailIconKO;
-	private String videoOk;
-	private String videoKo;
 	private long timer1;
 
 	/**
@@ -50,10 +50,15 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * @param enabled If true, a green tick mark is shown as thumbnail.
 	 *                If false, a red cross is shown. This initial value
 	 *                is usually changed via the {@link #enable()} function.
+	 * @param enabledIconOverride path to an icon to use for the enabled thumbnail
 	 */
-	public VirtualVideoAction(String name, boolean enabled) {
+	protected VirtualVideoAction(String name, boolean enabled, String enabledIconOverride) {
 		this.name = name;
-		thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+		if (StringUtils.isNotBlank(enabledIconOverride)) {
+			thumbnailIconOK = enabledIconOverride;
+		} else {
+			thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+		}
 		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";
 		this.videoOk = "videos/action_success-512.mpg";
 		this.videoKo = "videos/button_cancel-512.mpg";
@@ -85,11 +90,11 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	}
 
 	/**
-	 * This function is called as an action from the UPNP client when
+	 * This function is called as an action from the UPnP client when
 	 * the user tries to play this item. This function calls instead the enable()
 	 * function in order to execute an action.
 	 * As the client expects to play an item, a really short video (less than
-	 * 1s) is shown with  the results of the action.
+	 * 1s) is shown with the results of the action.
 	 *
 	 * @see #enable()
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
@@ -172,7 +177,6 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	}
 
 	/**
-	 * TODO: (botijo) Why is ext being set here?
 	 * @return True, as this kind of item is always valid.
 	 * @see net.pms.dlna.DLNAResource#isValid()
 	 */

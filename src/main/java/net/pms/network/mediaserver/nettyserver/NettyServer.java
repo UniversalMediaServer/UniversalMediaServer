@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.nettyserver;
 
@@ -23,8 +22,8 @@ import java.net.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.pms.PMS;
-import net.pms.newgui.StatusTab.ConnectionState;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.GuiManager;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
@@ -40,9 +39,8 @@ import org.slf4j.LoggerFactory;
 public class NettyServer extends HttpMediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
 
-	private static ChannelGroup allChannels;
+	private static final ChannelGroup ALL_CHANNELS = new DefaultChannelGroup("HTTPServer");
 
-	private ChannelFactory factory;
 	private Channel channel;
 	private ServerBootstrap bootstrap;
 
@@ -55,14 +53,13 @@ public class NettyServer extends HttpMediaServer {
 		LOGGER.info("Starting HTTP server (Netty {}) on host {} and port {}", Version.ID, hostname, port);
 		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 		ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
-		allChannels = new DefaultChannelGroup("HTTPServer");
-		factory = new NioServerSocketChannelFactory(
+		ChannelFactory factory = new NioServerSocketChannelFactory(
 			Executors.newCachedThreadPool(new NettyBossThreadFactory()),
 			Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
 		);
 
 		bootstrap = new ServerBootstrap(factory);
-		HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(allChannels);
+		HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(ALL_CHANNELS);
 		bootstrap.setPipelineFactory(pipeline);
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setOption("child.keepAlive", true);
@@ -77,12 +74,12 @@ public class NettyServer extends HttpMediaServer {
 			hostname = ((InetSocketAddress) channel.getLocalAddress()).getAddress().getHostAddress();
 			localPort = ((InetSocketAddress) channel.getLocalAddress()).getPort();
 
-			allChannels.add(channel);
+			ALL_CHANNELS.add(channel);
 		} catch (Exception e) {
 			LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 			LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 			LOGGER.trace("The error was: " + e);
-			PMS.get().getFrame().setConnectionState(ConnectionState.BLOCKED);
+			GuiManager.setConnectionState(EConnectionState.BLOCKED);
 		}
 
 		LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);
@@ -98,10 +95,8 @@ public class NettyServer extends HttpMediaServer {
 		 * @see https://netty.io/3.8/guide/#start.12
 		 */
 		if (channel != null) {
-			if (allChannels != null) {
-				allChannels.close().awaitUninterruptibly();
-			}
-			LOGGER.debug("Confirm allChannels is empty: " + allChannels.toString());
+			ALL_CHANNELS.close().awaitUninterruptibly();
+			LOGGER.debug("Confirm allChannels is empty: " + ALL_CHANNELS.toString());
 
 			bootstrap.releaseExternalResources();
 		}

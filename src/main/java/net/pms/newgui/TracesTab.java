@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
@@ -37,7 +36,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,23 +47,23 @@ import javax.swing.event.ChangeListener;
 import javax.swing.text.Document;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.logging.LoggingConfig;
 import net.pms.newgui.components.*;
-import net.pms.util.FormLayoutUtil;
+import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
-	private PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private JTextField jSearchBox, jSyslogHost;
 	private JComboBox<String> jTracesFilter, jSyslogFacility;
 	private JCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
 	private JSpinner jLineBuffer, jSyslogPort;
 	private Pattern searchPattern = null;
-	private JLabel jSearchOutput = new JLabel();
+	private final JLabel jSearchOutput = new JLabel();
 	private TextAreaFIFO jList;
 	private JPanel jOptionsPanel;
 	private JLabel jBufferLabel;
@@ -135,10 +133,9 @@ public class TracesTab {
 		}
 	}
 
-	private LooksFrame looksFrame;
-	private ViewLevel viewLevel;
+	private final LooksFrame looksFrame;
 
-	TracesTab(PmsConfiguration configuration, LooksFrame looksFrame) {
+	TracesTab(UmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
 		this.looksFrame = looksFrame;
 	}
@@ -147,7 +144,7 @@ public class TracesTab {
 	 * Set/update the visibility of all components affected by view level
 	 */
 	public void applyViewLevel() {
-		viewLevel = looksFrame.getViewLevel();
+		ViewLevel viewLevel = looksFrame.getViewLevel();
 
 		jCSSpace.setVisible(viewLevel.isGreaterOrEqual(ViewLevel.ADVANCED));
 		jCSSearch.setVisible(viewLevel.isGreaterOrEqual(ViewLevel.ADVANCED));
@@ -196,8 +193,8 @@ public class TracesTab {
 	}
 
 	private void searchTraces() {
-		boolean found = false;
-		Matcher match = null;
+		boolean found;
+		Matcher match;
 		Document document = jList.getDocument();
 		int flags = Pattern.UNICODE_CASE;
 		String find = jSearchBox.getText();
@@ -330,9 +327,9 @@ public class TracesTab {
 		jBufferLabel.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jLineBuffer = new CustomJSpinner(new SpinnerIntModel(
 			configuration.getLoggingLogsTabLinebuffer(),
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MIN,
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_MAX,
-			PmsConfiguration.LOGGING_LOGS_TAB_LINEBUFFER_STEP
+			UmsConfiguration.getLoggingLogsTabLinebufferMin(),
+			UmsConfiguration.getLoggingLogsTabLinebufferMax(),
+			UmsConfiguration.getLoggingLogsTabLinebufferStep()
 		), true);
 		jLineBuffer.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
 		jBufferLabel.setLabelFor(jLineBuffer);
@@ -421,7 +418,7 @@ public class TracesTab {
 			public void keyTyped(KeyEvent e) { }
 		});
 
-		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		jListPane = new JScrollPane(jList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
 		new SmartScroller(jListPane);
 		builder.add(jListPane, cc.xyw(1, 2, cols));
@@ -586,7 +583,7 @@ public class TracesTab {
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		HashMap<String, String> logFiles = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFiles = LoggingConfig.getLogFilePaths();
 		for (Map.Entry<String, String> logger : logFiles.entrySet()) {
 			String loggerNameDisplay = logger.getKey();
 			if (logger.getKey().toLowerCase().startsWith("default.log")) {

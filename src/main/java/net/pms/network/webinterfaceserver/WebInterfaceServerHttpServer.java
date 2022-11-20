@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver;
 
@@ -32,7 +31,7 @@ import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import javax.net.ssl.KeyManagerFactory;
@@ -41,8 +40,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.renderers.devices.WebRender;
 import net.pms.dlna.RootFolder;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webinterfaceserver.handlers.BrowseHandler;
@@ -64,14 +63,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("restriction")
-public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface {
+public class WebInterfaceServerHttpServer extends WebInterfaceServer implements WebInterfaceServerInterface, WebInterfaceServerHttpServerInterface {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebInterfaceServerHttpServer.class);
-	private KeyStore keyStore;
-	private KeyManagerFactory keyManagerFactory;
-	private TrustManagerFactory trustManagerFactory;
 	private HttpServer server;
-	private SSLContext sslContext;
 
 	public WebInterfaceServerHttpServer() throws IOException {
 		this(DEFAULT_PORT);
@@ -86,7 +81,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 		InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
 		// Initialize the HTTP(S) server
-		if (CONFIGURATION.getWebHttps()) {
+		if (CONFIGURATION.getWebPlayerHttps()) {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
@@ -115,7 +110,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 			addCtx("/browse", new BrowseHandler(this));
 			PlayHandler playHandler = new PlayHandler(this);
 			addCtx("/play", playHandler);
-			addCtx("/playstatus", playHandler);
+			addCtx("/playerstatus", playHandler);
 			addCtx("/playlist", playHandler);
 			addCtx("/m3u8", playHandler);
 			addCtx("/media", new MediaHandler(this));
@@ -137,21 +132,21 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 	private HttpServer httpsServer(InetSocketAddress address) throws IOException, GeneralSecurityException {
 		// Initialize the keystore
 		char[] password = "umsums".toCharArray();
-		keyStore = KeyStore.getInstance("JKS");
+		KeyStore keyStore = KeyStore.getInstance("JKS");
 		try (FileInputStream fis = new FileInputStream(FileUtil.appendPathSeparator(CONFIGURATION.getProfileDirectory()) + "UMS.jks")) {
 			keyStore.load(fis, password);
 		}
 
 		// Setup the key manager factory
-		keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 		keyManagerFactory.init(keyStore, password);
 
 		// Setup the trust manager factory
-		trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 		trustManagerFactory.init(keyStore);
 
 		HttpsServer httpsServer = HttpsServer.create(address, 0);
-		sslContext = SSLContext.getInstance("TLS");
+		SSLContext sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
 		httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
@@ -177,10 +172,12 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 		return httpsServer;
 	}
 
+	@Override
 	public RootFolder getRoot(String user, HttpExchange t) throws InterruptedException {
 		return getRoot(user, false, t);
 	}
 
+	@Override
 	public RootFolder getRoot(String user, boolean create, HttpExchange t) throws InterruptedException {
 		String cookie = WebInterfaceServerUtil.getCookie("UMS", t);
 		boolean setCookie = false;
@@ -198,7 +195,7 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 					// this ip but for some reason we didn't get a cookie match.
 					RootFolder validRoot = valid.getRootFolder();
 					// Do a reverse lookup to see if it's been registered
-					for (Map.Entry<String, RootFolder> entry : roots.entrySet()) {
+					for (Entry<String, RootFolder> entry : roots.entrySet()) {
 						if (entry.getValue() == validRoot) {
 							// Found
 							root = validRoot;
@@ -227,13 +224,13 @@ public class WebInterfaceServerHttpServer extends WebInterfaceServer implements 
 				render.setRootFolder(root);
 				render.associateIP(t.getRemoteAddress().getAddress());
 				render.associatePort(t.getRemoteAddress().getPort());
-				if (CONFIGURATION.useWebSubLang()) {
+				if (CONFIGURATION.useWebPlayerSubLang()) {
 					render.setSubLang(StringUtils.join(WebInterfaceServerUtil.getLangs(t), ","));
 				}
 				render.setBrowserInfo(WebInterfaceServerUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 				PMS.get().setRendererFound(render);
 			} catch (ConfigurationException e) {
-				root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+				root.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 			}
 
 			root.discoverChildren();

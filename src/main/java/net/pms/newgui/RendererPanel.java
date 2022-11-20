@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -6,7 +22,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -16,9 +31,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.newgui.components.CustomJButton;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
@@ -30,12 +46,12 @@ public class RendererPanel extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 	private static final RowSpec RSPEC = RowSpec.decode("center:pref");
 
-	private final RendererConfiguration renderer;
+	private final Renderer renderer;
 	private final CellConstraints cc = new CellConstraints();
 	private JPanel editBar;
 	private boolean ready = false;
 
-	public RendererPanel(final RendererConfiguration renderer) {
+	public RendererPanel(final Renderer renderer) {
 		this.renderer = renderer;
 	}
 
@@ -73,7 +89,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public void buildEditBar(boolean updateUI) {
-		boolean customized = ((DeviceConfiguration) renderer).isCustomized();
+		boolean customized = renderer.isCustomized();
 		boolean repack = ready && editBar.getComponentCount() == 0;
 		editBar.removeAll();
 		editBar.add(customized ? referenceButton() : editButton(true));
@@ -90,23 +106,19 @@ public class RendererPanel extends JPanel {
 
 	public JButton customizeButton() {
 		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
-		open.setHorizontalTextPosition(JButton.CENTER);
+		open.setHorizontalTextPosition(SwingConstants.CENTER);
 		open.setForeground(Color.lightGray);
 		open.setToolTipText(Messages.getString("CustomizeThisDevice"));
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				DeviceConfiguration d = (DeviceConfiguration) renderer;
-				File f = chooseConf(DeviceConfiguration.getDeviceDir(), DeviceConfiguration.getDefaultFilename(d));
-				if (f != null) {
-					File file = DeviceConfiguration.createDeviceFile(d, f.getName(), true);
-					buildEditBar(true);
-					try {
-						java.awt.Desktop.getDesktop().open(file);
-					} catch (IOException ioe) {
-						LOGGER.debug("Failed to open default desktop application: " + ioe);
-					}
+		open.addActionListener((final ActionEvent e) -> {
+			File f = chooseConf(RendererConfigurations.getWritableRenderersDir(), renderer.getDefaultFilename());
+			if (f != null) {
+				File file = RendererConfigurations.createDeviceFile(renderer, f.getName(), true);
+				buildEditBar(true);
+				try {
+					Desktop.getDesktop().open(file);
+				} catch (IOException ioe) {
+					LOGGER.debug("Failed to open default desktop application: " + ioe);
 				}
 			}
 		});
@@ -114,24 +126,21 @@ public class RendererPanel extends JPanel {
 	}
 
 	public JButton referenceButton() {
-		final File ref = ((DeviceConfiguration) renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
+		final File ref = renderer.getParentFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
 		open.setToolTipText(exists ? (Messages.getString("OpenParentConfiguration") + ": " + ref) : Messages.getString("NoParentConfiguration"));
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				try {
-					java.awt.Desktop.getDesktop().open(ref);
-				} catch (IOException ioe) {
-					LOGGER.debug("Failed to open default desktop application: " + ioe);
-				}
+		open.addActionListener((final ActionEvent e) -> {
+			try {
+				Desktop.getDesktop().open(ref);
+			} catch (IOException ioe) {
+				LOGGER.debug("Failed to open default desktop application: " + ioe);
 			}
 		});
 		if (!exists) {
 			open.setText("!");
-			open.setHorizontalTextPosition(JButton.CENTER);
+			open.setHorizontalTextPosition(SwingConstants.CENTER);
 			open.setForeground(Color.lightGray);
 			open.setEnabled(false);
 		}
@@ -140,37 +149,38 @@ public class RendererPanel extends JPanel {
 
 	public JButton editButton(final boolean create) {
 		final File file = create ? renderer.getUsableFile() : renderer.getFile();
-		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>" :
-			"<html><font color=blue>" + Messages.getString("StartNewConfigurationFile") + ":</font> ") + file.getName() + "</html>",
-			MetalIconFactory.getTreeLeafIcon());
+		final String buttonText;
+		if (file.exists() || !create) {
+			buttonText = "<html>" + file.getName() + "</html>";
+		} else {
+			buttonText = "<html><font color=blue>" + Messages.getString("StartNewConfigurationFile") + ":</font> " + file.getName() + "</html>";
+		}
+		final CustomJButton open = new CustomJButton(buttonText, MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);
-		open.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				boolean exists = file.isFile() && file.exists();
-				File f = file;
-				if (!exists && create) {
-					f =  chooseConf(file.getParentFile(), file.getName());
-					if (f != null) {
-						File ref = chooseReferenceConf();
-						if (ref != null) {
-							RendererConfiguration.createNewFile(renderer, f, true, ref);
-							open.setText(f.getName());
-							exists = true;
-						}
+		open.addActionListener((final ActionEvent e) -> {
+			boolean exists = file.isFile() && file.exists();
+			File f = file;
+			if (!exists && create) {
+				f =  chooseConf(RendererConfigurations.getWritableRenderersDir(), file.getName());
+				if (f != null) {
+					File ref = chooseReferenceConf();
+					if (ref != null) {
+						RendererConfigurations.createRendererFile(renderer, f, true, ref);
+						open.setText(f.getName());
+						exists = true;
 					}
 				}
-				if (exists) {
-					try {
-						java.awt.Desktop.getDesktop().open(f);
-					} catch (IOException ioe) {
-						LOGGER.debug("Failed to open default desktop application: " + ioe);
-					}
-				} else {
-					// Conf no longer exists, repair the edit bar
-					buildEditBar(true);
+			}
+			if (exists) {
+				try {
+					Desktop.getDesktop().open(f);
+				} catch (IOException ioe) {
+					LOGGER.debug("Failed to open default desktop application: " + ioe);
 				}
+			} else {
+				// Conf no longer exists, repair the edit bar
+				buildEditBar(true);
 			}
 		});
 		return open;
@@ -189,12 +199,16 @@ public class RendererPanel extends JPanel {
 			@Override
 			public void approveSelection() {
 				if (getSelectedFile().exists()) {
-					switch (JOptionPane.showConfirmDialog(this, Messages.getString("OverwriteExistingFile"), Messages.getString("FileExists"), JOptionPane.YES_NO_CANCEL_OPTION)) {
-						case JOptionPane.CANCEL_OPTION:
-						case JOptionPane.NO_OPTION:
-							setSelectedFile(file);
-						case JOptionPane.CLOSED_OPTION:
-							return;
+					int result = JOptionPane.showConfirmDialog(
+						this,
+						Messages.getString("OverwriteExistingFile"),
+						Messages.getString("FileExists"),
+						JOptionPane.YES_NO_CANCEL_OPTION
+					);
+					if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION) {
+						setSelectedFile(file);
+					} else if (result == JOptionPane.CLOSED_OPTION) {
+						return;
 					}
 				}
 				super.approveSelection();
@@ -216,23 +230,21 @@ public class RendererPanel extends JPanel {
 	}
 
 	public File chooseReferenceConf() {
-		JFileChooser fc = new JFileChooser(RendererConfiguration.getRenderersDir());
+		JFileChooser fc = new JFileChooser(RendererConfigurations.getRenderersDir());
 		fc.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
 		fc.addChoosableFileFilter(filter);
 		fc.setAcceptAllFileFilterUsed(true);
-		File defaultRef = new File(RendererConfiguration.getRenderersDir(), "DefaultRenderer.conf");
+		File defaultRef = new File(RendererConfigurations.getRenderersDir(), "DefaultRenderer.conf");
 		if (defaultRef.exists()) {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
-			case JFileChooser.APPROVE_OPTION:
-				return fc.getSelectedFile();
-			case JFileChooser.CANCEL_OPTION:
-				return RendererConfiguration.NOFILE;
-		}
-		return null;
+		return switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
+			case JFileChooser.APPROVE_OPTION -> fc.getSelectedFile();
+			case JFileChooser.CANCEL_OPTION -> RendererConfiguration.NOFILE;
+			default -> null;
+		};
 	}
 
 	public int addItem(String key, String value, PanelBuilder builder, int y) {

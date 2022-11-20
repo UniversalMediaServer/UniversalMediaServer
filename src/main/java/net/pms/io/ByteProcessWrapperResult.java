@@ -1,31 +1,26 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on PS3 Media Server and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import com.sun.jna.Platform;
-import net.pms.platform.windows.NTStatus;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
+import net.pms.platform.PlatformUtils;
 
 /**
  * A container for {@link Process} results with its output stored as an array of
@@ -79,12 +74,7 @@ public class ByteProcessWrapperResult implements ProcessWrapperResult<byte[]> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		NTStatus ntStatus = NTStatus.typeOf(exitCode);
-		if (exitCode > 10 && Platform.isWindows() && ntStatus != null) {
-			sb.append("Process exited with error ").append(ntStatus).append("\n");
-		} else {
-			sb.append("Process exited with code ").append(exitCode).append(":\n");
-		}
+		PlatformUtils.INSTANCE.appendErrorString(sb, exitCode);
 		sb.append("Captured {} bytes of output").append(output.length);
 		return sb.toString();
 	}

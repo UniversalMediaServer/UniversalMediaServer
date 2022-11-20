@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
@@ -26,33 +25,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.ExecutableInfo;
-import net.pms.configuration.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.configuration.ExternalProgramInfo;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.io.BasicSystemUtils;
+import net.pms.io.IPipeProcess;
+import net.pms.platform.PlatformUtils;
 import net.pms.io.ListProcessWrapperResult;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.renderers.Renderer;
+import net.pms.util.ExecutableErrorType;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.Version;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
-public class VideoLanVideoStreaming extends Player {
+public class VideoLanVideoStreaming extends Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VideoLanVideoStreaming.class);
-	public static final PlayerId ID = StandardPlayerId.VLC_VIDEO_STREAMING;
+	public static final EngineId ID = StandardEngineId.VLC_VIDEO_STREAMING;
 
 	/** The {@link Configuration} key for the custom VLC path. */
 	public static final String KEY_VLC_PATH = "vlc_path";
@@ -67,11 +66,11 @@ public class VideoLanVideoStreaming extends Player {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
-	public PlayerId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -86,12 +85,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public String[] args() {
-		return new String[]{};
-	}
-
-	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
@@ -140,11 +134,11 @@ public class VideoLanVideoStreaming extends Player {
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
-		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
+		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
 		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
 		// XXX it can take a long time for Windows to create a named pipe
@@ -206,19 +200,11 @@ public class VideoLanVideoStreaming extends Player {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipeProcess);
 
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-		}
+		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
 		configuration = prev;
 		return pw;
-	}
-
-	@Override
-	public JComponent config() {
-		return null;
 	}
 
 	@Override
@@ -232,7 +218,7 @@ public class VideoLanVideoStreaming extends Player {
 	}
 
 	@Override
-	public boolean isPlayerCompatible(RendererConfiguration renderer) {
+	public boolean isEngineCompatible(Renderer renderer) {
 		return true;
 	}
 
@@ -244,8 +230,8 @@ public class VideoLanVideoStreaming extends Player {
 		}
 		ExecutableInfoBuilder result = executableInfo.modify();
 		if (Platform.isWindows()) {
-			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(BasicSystemUtils.instance.getVlcPath())) {
-				result.version(BasicSystemUtils.instance.getVlcVersion());
+			if (executableInfo.getPath().isAbsolute() && executableInfo.getPath().equals(PlatformUtils.INSTANCE.getVlcPath())) {
+				result.version(PlatformUtils.INSTANCE.getVlcVersion());
 			}
 			result.available(Boolean.TRUE);
 		} else {

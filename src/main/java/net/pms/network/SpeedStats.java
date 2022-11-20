@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network;
 
@@ -28,12 +27,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import net.pms.io.BasicSystemUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.SystemUtils;
+import net.pms.platform.PlatformUtils;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.platform.IPlatformUtils;
 
 /**
  * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.
@@ -51,6 +51,12 @@ public class SpeedStats {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
 	private static final Map<String, Future<Integer>> SPEED_STATS = new HashMap<>();
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SpeedStats() {
+	}
 
 	/**
 	 * Returns the estimated networks throughput for the given IP address in
@@ -169,13 +175,10 @@ public class SpeedStats {
 			OutputParams op = new OutputParams(null);
 			op.setLog(true);
 			op.setMaxBufferSize(1);
-			SystemUtils sysUtil = BasicSystemUtils.instance;
+			IPlatformUtils sysUtil = PlatformUtils.INSTANCE;
 			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 5, size), op, true, false);
 			Runnable r = () -> {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
+				UMSUtils.sleep(3000);
 				pw.stopProcess();
 			};
 

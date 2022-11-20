@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import com.sun.jna.Platform;
@@ -15,7 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -29,10 +44,15 @@ import org.slf4j.LoggerFactory;
  */
 public class FileWatcher {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileWatcher.class);
-	static private Notifier notifier = new Notifier("File event");
+	private static Notifier notifier = new Notifier("File event");
 	private static WatchMap keys = new WatchMap();
 	private static WatchService watchService = null;
 	private static boolean running = false;
+
+	/**
+	 * This class should not be instantiated.
+	 */
+	private FileWatcher() {}
 
 	/**
 	 * Add a file watchpoint to the Watch Service. Will not
@@ -41,9 +61,9 @@ public class FileWatcher {
 	 * @param w The watch object.
 	 */
 	public static void add(Watch w) {
-		LOGGER.trace("FileWatcher: Adding " + w.fspec);
+		LOGGER.trace("FileWatcher: Adding " + w.getFileSpec());
 		try {
-			Path dir = Paths.get(FilenameUtils.getFullPath(w.fspec));
+			Path dir = Paths.get(FilenameUtils.getFullPath(w.getFileSpec()));
 			LOGGER.trace("FileWatcher: path " + dir);
 			w.init(dir);
 			if (keys.contains(w)) {
@@ -56,7 +76,7 @@ public class FileWatcher {
 				add(w, dir);
 			}
 		} catch (NullPointerException e) {
-			LOGGER.info("Not watching invalid path {} for changes", w.fspec);
+			LOGGER.info("Not watching invalid path {} for changes", w.getFileSpec());
 		}
 	}
 
@@ -99,13 +119,14 @@ public class FileWatcher {
 		WatchKey key;
 
 		try {
+			Kind[] events = new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE};
 			if (nativeRecursive) {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE}, ExtendedWatchEventModifier.FILE_TREE);
+				key = dir.register(watchService, events, ExtendedWatchEventModifier.FILE_TREE);
 			} else {
-				key = dir.register(watchService, new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE});
+				key = dir.register(watchService, events);
 			}
 			keys.put(key, w);
-			LOGGER.debug("Added file watch at {}: {}", dir, w.fspec);
+			LOGGER.debug("Added file watch at {}: {}", dir, w.getFileSpec());
 		} catch (IOException e) {
 			LOGGER.debug("Register error: " + e, e);
 		}
@@ -179,6 +200,7 @@ public class FileWatcher {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						LOGGER.debug("Sleep interrupted {}", e);
+						Thread.currentThread().interrupt();
 					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
@@ -192,15 +214,14 @@ public class FileWatcher {
 							if (!Files.exists(filename)) {
 								isDir = FileUtil.isDirectory(filename.toString());
 							} else {
-								isDir = Files
-									.isDirectory(filename/* , NOFOLLOW_LINKS */);
+								isDir = Files.isDirectory(filename/* , NOFOLLOW_LINKS */);
 							}
 
 							// See if we're watching for this specific file
 							for (Iterator<Watch> iterator = keys.get(key).iterator(); iterator.hasNext();) {
 								final Watch w = iterator.next();
 								if (!Watch.isValid(w)) {
-									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.fspec);
+									LOGGER.debug("Deleting expired file watch at {}: {}", path, w.getFileSpec());
 									iterator.remove();
 									continue;
 								}
@@ -208,15 +229,14 @@ public class FileWatcher {
 									// We have an event of interest
 									LOGGER.debug("{} (ct={}): {}", kind, event.count(), filename);
 									if (isDir && kind == ENTRY_CREATE && Watch.isRecursive(w)) {
-										// It's a new directory in a recursive
-										// scope,
-										// traverse it to include any subdirs
+										// Traverse subdirs within new directory in a recursive scope
 										addRecursive(w, filename);
 									} else {
-										// It's a regular event, schedule a
-										// notice
-										notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
-											kind == ENTRY_MODIFY ? 500 : 0);
+										// It's a regular event, schedule a notice
+										notifier.schedule(
+											new Notice(filename.toString(), kind.toString(), w, isDir),
+											kind == ENTRY_MODIFY ? 500 : 0
+										);
 									}
 								}
 							}
@@ -252,10 +272,10 @@ public class FileWatcher {
 	 * A file watchpoint.
 	 */
 	public static class Watch {
-		public String fspec;
+		private final String fspec;
+		private final int flag;
 		private WeakReference<Listener> listener;
 		private WeakReference<Object> item;
-		public int flag;
 		private PathMatcher matcher;
 
 		// Convenience constructors
@@ -306,20 +326,27 @@ public class FileWatcher {
 			matcher = dir.getFileSystem().getPathMatcher(match);
 		}
 
+		public String getFileSpec() {
+			return fspec;
+		}
+
+		public boolean isFlag(int value) {
+			return flag == value;
+		}
+
 		public Object getItem() {
 			return (item != null) ? item.get() : null;
 		}
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || !(o instanceof Watch)) {
-				return false;
-			}
-			Watch other = (Watch) o;
-			return listener.get() == other.listener.get() &&
-				(fspec == other.fspec || (fspec != null && fspec.equals(other.fspec))) &&
+			if (o instanceof Watch other) {
+				return listener.get() == other.listener.get() &&
+				(fspec != null && fspec.equals(other.fspec)) &&
 				(item == other.item || (item != null && other.item != null && (item.get() == other.item.get() || item.get().equals(other.item.get())))) &&
 				flag == other.flag;
+			}
+			return false;
 		}
 
 		@Override
@@ -374,7 +401,8 @@ public class FileWatcher {
 	 * A runnable self-removing file event notice.
 	 */
 	static class Notice implements Runnable {
-		String filename, kind;
+		String filename;
+		String kind;
 		Watch watch;
 		boolean isDir;
 		HashMap notifierQueue = null;
@@ -394,11 +422,10 @@ public class FileWatcher {
 
 		@Override
 		public boolean equals(Object o) {
-			if (o == null || !(o instanceof Notice)) {
-				return false;
+			if (o instanceof Notice other) {
+				return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
 			}
-			Notice other = (Notice) o;
-			return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
+			return false;
 		}
 
 		@Override
@@ -414,12 +441,7 @@ public class FileWatcher {
 		HashMap<Notice, ScheduledFuture<?>> queue = new HashMap<>();
 
 		public Notifier(final String name) {
-			super(5, new ThreadFactory() {
-				@Override
-				public Thread newThread(Runnable r) {
-					return new Thread(r, name);
-				}
-			});
+			super(5, (Runnable r) -> new Thread(r, name));
 			setRemoveOnCancelPolicy(true);
 		}
 

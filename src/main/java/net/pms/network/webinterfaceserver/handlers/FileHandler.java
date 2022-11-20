@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.webinterfaceserver.handlers;
 
@@ -37,10 +36,10 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import net.pms.PMS;
+import net.pms.gui.GuiManager;
 import net.pms.network.HTTPResource;
+import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
-import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +48,9 @@ public class FileHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThumbHandler.class);
 
-	private final WebInterfaceServerHttpServer parent;
+	private final WebInterfaceServerHttpServerInterface parent;
 
-	public FileHandler(WebInterfaceServerHttpServer parent) {
+	public FileHandler(WebInterfaceServerHttpServerInterface parent) {
 		this.parent = parent;
 	}
 
@@ -81,7 +80,8 @@ public class FileHandler implements HttpHandler {
 			} else if (path.startsWith("/files/log/")) {
 				String filename = path.substring(11);
 				if (filename.equals("info")) {
-					String log = PMS.get().getFrame().getLog();
+					String[] logLines = GuiManager.getLogLines();
+					String log = StringUtils.join(logLines, "\n");
 					log = log.replace("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
 					String x = fullLink + log;
@@ -107,6 +107,14 @@ public class FileHandler implements HttpHandler {
 				String url = t.getRequestURI().getQuery();
 				if (url != null) {
 					url = url.substring(2);
+					URL testUrl = new URL(url);
+					//do not allow system file or other protocol and block proxy for all websites other than required (opensubtitles)
+					if ((!"http".equals(testUrl.getProtocol()) && !"https".equals(testUrl.getProtocol())) ||
+						(!"www.opensubtitles.org".equals(testUrl.getHost()) || !"rest.opensubtitles.org".equals(testUrl.getHost()))
+						) {
+						WebInterfaceServerUtil.respond(t, response, status, mime);
+						return;
+					}
 				}
 
 				InputStream in;

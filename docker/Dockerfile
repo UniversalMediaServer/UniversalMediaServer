@@ -1,5 +1,7 @@
 FROM alpine
 
+LABEL org.opencontainers.image.authors="atamariya@gmail.com"
+
 RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk17-jre iputils mplayer
 
 WORKDIR /usr/src/ums/

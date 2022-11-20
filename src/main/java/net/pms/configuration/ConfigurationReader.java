@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any media to your PS3.
- * Copyright (C) 2008-2013 A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -30,11 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class that implements common getters for the various types stored in renderer confs and PMS.conf.
+ * Helper class that implements common getters for the various types stored in renderer confs and UMS.conf.
  */
 public class ConfigurationReader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
-	private Map<String, Object> logMap = new HashMap<>();
+	private final Map<String, Object> logMap = new HashMap<>();
 	private final Configuration configuration;
 	private boolean logOverrides;
 	private Configuration dConf;
@@ -55,8 +53,7 @@ public class ConfigurationReader {
 
 	// quote strings
 	private String quote(Object value) {
-		if ((value != null) && (value instanceof String)) {
-			String s = (String) value;
+		if (value instanceof String s) {
 			return String.format("\"%s\"", s.replace("\"", "\\\""));
 		} else {
 			return String.valueOf(value);

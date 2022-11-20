@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 package net.pms.newgui;
@@ -29,8 +28,9 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.gui.GuiManager;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
 import net.pms.newgui.components.CheckTreeManager;
@@ -40,12 +40,10 @@ import org.slf4j.LoggerFactory;
 public class SelectRenderers extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
-	private static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<String> savedSelectedRenderers = configuration.getSelectedRenderers();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private CheckTreeManager checkTreeManager;
 	private JTree srvTree;
 	private SearchableMutableTreeNode allRenderers;
-	private static final String ALL_RENDERERS_TREE_NAME = configuration.allRenderers;
 	private boolean init = false;
 
 	public SelectRenderers() {
@@ -59,7 +57,7 @@ public class SelectRenderers extends JPanel {
 		allRenderers = new SearchableMutableTreeNode(Messages.getString("SelectDeselectAllRenderers"));
 
 		Pattern pattern = Pattern.compile("^\\s*([^\\s]*) ?([^\\s].*?)?\\s*$");
-		for (String renderer : RendererConfiguration.getAllRenderersNames()) {
+		for (String renderer : RendererConfigurations.getAllRenderersNames()) {
 			Matcher match = pattern.matcher(renderer);
 			if (match.find()) {
 				// Find or create group or single name renderer
@@ -109,34 +107,34 @@ public class SelectRenderers extends JPanel {
 
 		srvTree.validate();
 		// Refresh setting if modified
-		savedSelectedRenderers = configuration.getSelectedRenderers();
+		List<String> savedSelectedRenderers = CONFIGURATION.getSelectedRenderers();
 		TreePath root = new TreePath(allRenderers);
 		if (savedSelectedRenderers.isEmpty() || (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0) == null)) {
 			checkTreeManager.getSelectionModel().clearSelection();
-		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(ALL_RENDERERS_TREE_NAME)) {
+		} else if (savedSelectedRenderers.size() == 1 && savedSelectedRenderers.get(0).equals(RendererConfigurations.ALL_RENDERERS_KEY)) {
 			checkTreeManager.getSelectionModel().setSelectionPath(root);
 		} else {
-			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode) {
-				SearchableMutableTreeNode rootNode = (SearchableMutableTreeNode) root.getLastPathComponent();
+			if (root.getLastPathComponent() instanceof SearchableMutableTreeNode rootNode) {
 				SearchableMutableTreeNode node = null;
 				List<TreePath> selectedRenderersPath = new ArrayList<>(savedSelectedRenderers.size());
 				for (String selectedRenderer : savedSelectedRenderers) {
 					try {
 						node = rootNode.findInBranch(selectedRenderer, true);
-					} catch (IllegalChildException e) {}
+					} catch (IllegalChildException e) {
+					}
 
 					if (node != null) {
 						selectedRenderersPath.add(new TreePath(node.getPath()));
 					}
 				}
-				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(new TreePath[selectedRenderersPath.size()]));
+				checkTreeManager.getSelectionModel().setSelectionPaths(selectedRenderersPath.toArray(TreePath[]::new));
 			} else {
 				LOGGER.error("Illegal node class in SelectRenderers.showDialog(): {}", root.getLastPathComponent().getClass().getSimpleName());
 			}
 		}
 
 		int selectRenderers = JOptionPane.showOptionDialog(
-			(Component) PMS.get().getFrame(),
+			this,
 			this,
 			Messages.getString("SelectRenderers"),
 			JOptionPane.OK_CANCEL_OPTION,
@@ -149,35 +147,35 @@ public class SelectRenderers extends JPanel {
 		if (selectRenderers == JOptionPane.OK_OPTION) {
 			TreePath[] selected = checkTreeManager.getSelectionModel().getSelectionPaths();
 			if (selected.length == 0) {
-				if (configuration.setSelectedRenderers("")) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers("")) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			} else if (
 				selected.length == 1 && selected[0].getLastPathComponent() instanceof SearchableMutableTreeNode &&
 				((SearchableMutableTreeNode) selected[0].getLastPathComponent()).getNodeName().equals(allRenderers.getNodeName())
 			) {
-				if (configuration.setSelectedRenderers(ALL_RENDERERS_TREE_NAME)) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers(RendererConfigurations.ALL_RENDERERS_KEY)) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			} else {
 				List<String> selectedRenderers = new ArrayList<>();
 				for (TreePath path : selected) {
-					String rendererName = "";
+					StringBuilder rendererName = new StringBuilder();
 					if (path.getPathComponent(0).equals(allRenderers)) {
 						for (int i = 1; i < path.getPathCount(); i++) {
-							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode) {
+							if (path.getPathComponent(i) instanceof SearchableMutableTreeNode searchableMutableTreeNode) {
 								if (!rendererName.isEmpty()) {
-									rendererName += " ";
+									rendererName.append(" ");
 								}
 
-								rendererName += ((SearchableMutableTreeNode) path.getPathComponent(i)).getNodeName();
+								rendererName.append(searchableMutableTreeNode.getNodeName());
 							} else {
 								LOGGER.error("Invalid tree node component class {}", path.getPathComponent(i).getClass().getSimpleName());
 							}
 						}
 
 						if (!rendererName.isEmpty()) {
-							selectedRenderers.add(rendererName);
+							selectedRenderers.add(rendererName.toString());
 						}
 					} else {
 						LOGGER.warn("Invalid renderer treepath encountered: {}", path.toString());
@@ -185,8 +183,8 @@ public class SelectRenderers extends JPanel {
 				}
 
 				Collections.sort(selectedRenderers);
-				if (configuration.setSelectedRenderers(selectedRenderers)) {
-					PMS.get().getFrame().setReloadable(true); // notify the user to restart the server
+				if (CONFIGURATION.setSelectedRenderers(selectedRenderers)) {
+					GuiManager.setReloadable(true); // notify the user to restart the server
 				}
 			}
 		}

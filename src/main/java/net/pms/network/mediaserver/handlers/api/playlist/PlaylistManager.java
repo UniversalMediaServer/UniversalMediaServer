@@ -1,7 +1,22 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.network.mediaserver.handlers.api.playlist;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -27,11 +42,11 @@ public class PlaylistManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistManager.class.getName());
 
-	private List<Path> availablePlaylists = new ArrayList<>();
-	private List<String> playlistsNames = new ArrayList<>();
-	private List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
+	private final List<Path> availablePlaylists = new ArrayList<>();
+	private final List<String> playlistsNames = new ArrayList<>();
+	private final List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
+	private final MediaDatabase db = PMS.get().getMediaDatabase();
 	private boolean serviceDisabled = true;
-	private MediaDatabase db = PMS.get().getMediaDatabase();
 
 	public PlaylistManager() {
 		checkPlaylistDirectoryConfiguration();
@@ -51,9 +66,10 @@ public class PlaylistManager {
 		try {
 			Path dir = Paths.get(PMS.getConfiguration().getManagedPlaylistFolder());
 			if (dir.toFile().isDirectory()) {
-				Files.newDirectoryStream(dir, path -> isValidPlaylist(path.toString())).forEach(p -> addPlaylist(p));
+				try (var dirStream = Files.newDirectoryStream(dir, path -> isValidPlaylist(path.toString()))) {
+					dirStream.forEach(this::addPlaylist);
+				}
 				serviceDisabled = false;
-				return;
 			} else {
 				LOGGER.debug("Invalid playlist directory. Playlist management is disabled.");
 			}
@@ -108,11 +124,13 @@ public class PlaylistManager {
 	private Integer getDatabaseId(String absolutePath) {
 		try (Connection connection = db.getConnection()) {
 			String sql = "select ID from FILES as F where (filename = ?)";
-			PreparedStatement ps = connection.prepareStatement(sql);
-			ps.setString(1, absolutePath);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getInt(1);
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setString(1, absolutePath);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						return rs.getInt(1);
+					}
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.debug("exception while reading playlist id", e);
@@ -154,11 +172,13 @@ public class PlaylistManager {
 	private String getFilenameFromId(Integer audiotrackId) throws SQLException {
 		try (Connection connection = db.getConnection()) {
 			String sql = "select FILENAME from FILES as F join AUDIOTRACKS as A on F.ID = A.FILEID where (audiotrack_id = ?)";
-			PreparedStatement ps = connection.prepareStatement(sql);
-			ps.setInt(1, audiotrackId);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getString(1);
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setInt(1, audiotrackId);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						return rs.getString(1);
+					}
+				}
 			}
 			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackId);
 		}
@@ -187,7 +207,7 @@ public class PlaylistManager {
 			throw new RuntimeException("Playlist does not exists: " + playlistFile.toString());
 		}
 
-		List<String> lines = new ArrayList<String>();
+		List<String> lines = new ArrayList<>();
 		try {
 			lines = Files.readAllLines(playlistFile, StandardCharsets.UTF_8);
 		} catch (IOException e) {
@@ -263,26 +283,21 @@ public class PlaylistManager {
 		RootFolder.rescanLibraryFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
 	}
 
-	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException, FileNotFoundException {
+	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {
 		if (!newPlaylist.createNewFile()) {
 			throw new RuntimeException(Messages.getString("PlaylistCanNotBeCreated"));
 		}
-		PrintWriter pw = new PrintWriter(newPlaylist);
-		pw.println("#EXTM3U");
-		pw.println();
-		pw.close();
+		try (PrintWriter pw = new PrintWriter(newPlaylist)) {
+			pw.println("#EXTM3U");
+			pw.println();
+		}
 	}
 
 	public boolean isValidPlaylist(String filename) {
-		if (filename.endsWith(".m3u")) {
-			return true;
-		}
-		if (filename.endsWith(".m3u8")) {
-			return true;
-		}
-		if (filename.endsWith(".pls")) {
-			return true;
-		}
-		return false;
+		return (
+			filename.endsWith(".m3u") ||
+			filename.endsWith(".m3u8") ||
+			filename.endsWith(".pls")
+		);
 	}
 }

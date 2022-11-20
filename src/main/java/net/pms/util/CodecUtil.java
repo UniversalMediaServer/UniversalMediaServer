@@ -1,44 +1,47 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.io.*;
 import java.util.ArrayList;
-import net.pms.configuration.PmsConfiguration;
+import java.util.List;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CodecUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CodecUtil.class);
-	private static final ArrayList<String> CODECS = new ArrayList<>();
+	private static final List<String> CODECS = new ArrayList<>();
 
 	static {
 		// Make sure the list of codecs is initialized before other threads start retrieving it
 		initCodecs();
+	}
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private CodecUtil() {
 	}
 
 	/**
@@ -48,7 +51,7 @@ public class CodecUtil {
 	private static void initCodecs() {
 		InputStream is = CodecUtil.class.getClassLoader().getResourceAsStream("resources/ffmpeg_formats.txt");
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line = null;
+		String line;
 
 		try {
 			while ((line = br.readLine()) != null) {
@@ -66,16 +69,15 @@ public class CodecUtil {
 		}
 	}
 
-
 	/**
 	 * Return the list of codec formats that will be recognized.
 	 * @return The list of codecs.
 	 */
-	public static ArrayList<String> getPossibleCodecs() {
+	public static List<String> getPossibleCodecs() {
 		return CODECS;
 	}
 
-	public static int getAC3Bitrate(PmsConfiguration configuration, DLNAMediaAudio media) {
+	public static int getAC3Bitrate(UmsConfiguration configuration, DLNAMediaAudio media) {
 		int defaultBitrate = configuration.getAudioBitrate();
 		if (media != null && defaultBitrate >= 384) {
 			if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
@@ -87,66 +89,8 @@ public class CodecUtil {
 		return defaultBitrate;
 	}
 
-	@SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
 	public static String getDefaultFontPath() {
-		String font = null;
-		if (Platform.isWindows()) {
-			// get Windows Arial
-			String winDir = BasicSystemUtils.instance.getWindowsDirectory();
-			if (winDir != null) {
-				File winDirFile = new File(winDir);
-				if (winDirFile.exists()) {
-					File fontsDir = new File(winDirFile, "Fonts");
-					if (fontsDir.exists()) {
-						File arialDir = new File(fontsDir, "Arial.ttf");
-						if (arialDir.exists()) {
-							font = arialDir.getAbsolutePath();
-						} else {
-							arialDir = new File(fontsDir, "arial.ttf");
-							if (arialDir.exists()) {
-								font = arialDir.getAbsolutePath();
-							}
-						}
-					}
-				}
-			}
-			if (font == null) {
-				font = getFont("C:\\Windows\\Fonts", "Arial.ttf");
-			}
-			if (font == null) {
-				font = getFont("C:\\WINNT\\Fonts", "Arial.ttf");
-			}
-			if (font == null) {
-				font = getFont("D:\\Windows\\Fonts", "Arial.ttf");
-			}
-			if (font == null) {
-				font = getFont(".\\win32\\mplayer\\", "subfont.ttf");
-			}
-			return font;
-		} else if (Platform.isLinux()) {
-			// get Linux default font
-			font = getFont("/usr/share/fonts/truetype/msttcorefonts/", "Arial.ttf");
-			if (font == null) {
-				font = getFont("/usr/share/fonts/truetype/ttf-bitstream-veras/", "Vera.ttf");
-			}
-			if (font == null) {
-				font = getFont("/usr/share/fonts/truetype/ttf-dejavu/", "DejaVuSans.ttf");
-			}
-			return font;
-		} else if (Platform.isMac()) {
-			// get default osx font
-			font = getFont("/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/", "LucidaSansRegular.ttf");
-			return font;
-		}
-		return null;
-	}
-
-	private static String getFont(String path, String name) {
-		File f = new File(path, name);
-		if (f.exists()) {
-			return f.getAbsolutePath();
-		}
-		return null;
+		return PlatformUtils.INSTANCE.getDefaultFontPath();
 	}
 
 	/**
@@ -157,7 +101,7 @@ public class CodecUtil {
 	 * @return the registered font name or null when not found
 	 */
 	public static String isFontRegisteredInOS(String fontName) {
-		if (isNotBlank(fontName)) {
+		if (StringUtils.isNotBlank(fontName)) {
 			File fontFile = new File(fontName);
 			if (fontFile.exists()) { // Test if the font is specified by the file.
 				try {

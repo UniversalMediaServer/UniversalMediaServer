@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
@@ -23,10 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -38,6 +37,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
 	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(1);
+	private static final List<Process> CURRENT_PROCESSES = Collections.synchronizedList(new ArrayList<>());
 
 	private Process process;
 	private OutputConsumer stdoutConsumer;
@@ -185,7 +185,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
-			PMS.get().currentProcesses.add(process);
+			CURRENT_PROCESSES.add(process);
 
 			if (stderrConsumer == null) {
 				stderrConsumer = keepStderr ?
@@ -290,7 +290,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
-			PMS.get().currentProcesses.remove(process);
+			CURRENT_PROCESSES.remove(process);
 		}
 	}
 
@@ -411,5 +411,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	public void setStderrConsumer(OutputConsumer consumer) {
 		this.stderrConsumer = consumer;
+	}
+
+	public static void destroyCurrentProcesses() {
+		for (Process p : CURRENT_PROCESSES) {
+			try {
+				p.exitValue();
+			} catch (IllegalThreadStateException ise) {
+				LOGGER.trace("Forcing shutdown of process: " + p);
+				ProcessUtil.destroy(p);
+			}
+		}
 	}
 }

@@ -1,20 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -55,7 +53,7 @@ public final class Iso639 {
 	 * {@link HashMap} that contains the lower-case English language name as the
 	 * key with the corresponding {@link Iso639Entry} as the value.
 	 */
-	private static HashMap<String, Iso639Entry> links = new HashMap<>();
+	private static final Map<String, Iso639Entry> LINKS = new HashMap<>();
 
 	/**
 	 * {@link List} that contains all known ISO language codes.
@@ -84,7 +82,7 @@ public final class Iso639 {
 	 * @return {@code true} if the code is known, {@code false} otherwise.
 	 */
 	public static boolean codeIsValid(String code) {
-		return isBlank(code) ? false : CODES.contains(code.trim().toLowerCase(Locale.ROOT));
+		return isNotBlank(code) && CODES.contains(code.trim().toLowerCase(Locale.ROOT));
 	}
 
 	/**
@@ -99,7 +97,7 @@ public final class Iso639 {
 			return false;
 		}
 		code = code.trim().toLowerCase(Locale.ROOT);
-		return CODES.contains(code) || links.containsKey(code);
+		return CODES.contains(code) || LINKS.containsKey(code);
 	}
 
 	/**
@@ -138,7 +136,7 @@ public final class Iso639 {
 			}
 		}
 
-		for (Iso639Entry entry : links.values()) {
+		for (Iso639Entry entry : LINKS.values()) {
 			if (entry.matches(code)) {
 				return entry;
 			}
@@ -149,7 +147,7 @@ public final class Iso639 {
 			code = tmpCode;
 		}
 
-		Iso639Entry result = links.get(code);
+		Iso639Entry result = LINKS.get(code);
 		if (result != null) {
 			return result;
 		}
@@ -162,7 +160,7 @@ public final class Iso639 {
 				}
 			}
 
-			for (Entry<String, Iso639Entry> entry : links.entrySet()) {
+			for (Entry<String, Iso639Entry> entry : LINKS.entrySet()) {
 				if (code.contains(entry.getKey())) {
 					return entry.getValue();
 				}
@@ -331,7 +329,7 @@ public final class Iso639 {
 		}
 
 		code = normalize(code.trim().toLowerCase(Locale.ROOT));
-		Iso639Entry entry = links.get(language.trim().toLowerCase(Locale.ROOT));
+		Iso639Entry entry = LINKS.get(language.trim().toLowerCase(Locale.ROOT));
 		if (entry == null) {
 			return false;
 		}
@@ -357,7 +355,7 @@ public final class Iso639 {
 		code1 = normalize(code1.trim().toLowerCase(Locale.ROOT));
 		code2 = normalize(code2.trim().toLowerCase(Locale.ROOT));
 
-		for (Iso639Entry entry : links.values()) {
+		for (Iso639Entry entry : LINKS.values()) {
 			if (entry.matches(code1) && entry.matches(code2)) {
 				return true;
 			}
@@ -399,8 +397,8 @@ public final class Iso639 {
 			keys[i] = names[i].replaceAll("\\s*\\([^\\)]*\\)\\s*", "").toLowerCase(Locale.ROOT);
 		}
 		Iso639Entry entry = new Iso639Entry(names, iso639_1, iso639_2, altIso639_2);
-		for (int i = 0; i < keys.length; i++) {
-			links.put(keys[i], entry);
+		for (String key : keys) {
+			LINKS.put(key, entry);
 		}
 	}
 
@@ -409,7 +407,7 @@ public final class Iso639 {
 	 */
 	private static ArrayList<String> initCodes() {
 		ArrayList<String> result = new ArrayList<>();
-		for (Iso639Entry entry : links.values()) {
+		for (Iso639Entry entry : LINKS.values()) {
 			if (isNotBlank(entry.iso639_1)) {
 				result.add(entry.iso639_1);
 			}
@@ -915,7 +913,7 @@ public final class Iso639 {
 	}
 
 	private static HashMap<String, String> buildMisspellings() {
-		HashMap<String, String> misspellings = new HashMap<String, String>();
+		HashMap<String, String> misspellings = new HashMap<>();
 		misspellings.put("ameircan", "american");
 		misspellings.put("artifical", "artificial");
 		misspellings.put("brasillian", "brazilian");
@@ -1090,10 +1088,7 @@ public final class Iso639 {
 			} else if (!iso639_2.equals(other.iso639_2)) {
 				return false;
 			}
-			if (!Arrays.equals(names, other.names)) {
-				return false;
-			}
-			return true;
+			return (Arrays.equals(names, other.names));
 		}
 	}
 }

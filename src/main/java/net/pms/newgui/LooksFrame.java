@@ -1,31 +1,28 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
 import java.awt.*;
-import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
-import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,32 +33,32 @@ import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.io.BasicSystemUtils;
-import net.pms.io.WindowsNamedPipe;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.gui.EConnectionState;
+import net.pms.gui.IGui;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.newgui.StatusTab.ConnectionState;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
-import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.components.WindowProperties;
+import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.update.AutoUpdateDialog;
+import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.update.AutoUpdater;
 import net.pms.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LooksFrame extends JFrame implements IFrame, Observer {
+public class LooksFrame extends JFrame implements IGui, Observer {
 	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
 	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
@@ -70,7 +67,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public static final String START_SERVICE = "start.service";
 
 	private final AutoUpdater autoUpdater;
-	private final PmsConfiguration configuration;
+	private final UmsConfiguration configuration;
 	private final WindowProperties windowProperties;
 
 	/**
@@ -96,8 +93,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
-	private HelpTab ht;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");;
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
 	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);
@@ -157,7 +153,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void enableWebUiButton() {
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface.setEnabled(true);
 		}
 	}
@@ -265,7 +261,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * Constructs a <code>DemoFrame</code>, configures the UI,
 	 * and builds the content.
 	 */
-	public LooksFrame(AutoUpdater autoUpdater, @Nonnull PmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
+	public LooksFrame(AutoUpdater autoUpdater, @Nonnull UmsConfiguration configuration, @Nonnull WindowPropertiesConfiguration windowConfiguration) {
 		super(windowConfiguration.getGraphicsConfiguration());
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration can't be null");
@@ -301,37 +297,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		// Shared Fonts
-		final Integer twelve = Integer.valueOf(12);
-		final Integer fontPlain = Integer.valueOf(Font.PLAIN);
-		final Integer fontBold = Integer.valueOf(Font.BOLD);
+		final Integer twelve = 12;
+		final Integer fontPlain = Font.PLAIN;
+		final Integer fontBold = Font.BOLD;
 
-		LazyValue dialogPlain12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.DIALOG, fontPlain, twelve);
-			}
-		};
+		LazyValue dialogPlain12 = (UIDefaults t) -> new FontUIResource(Font.DIALOG, fontPlain, twelve);
 
-		LazyValue sansSerifPlain12 =  new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
-			}
-		};
+		LazyValue sansSerifPlain12 =  (UIDefaults t) -> new FontUIResource(Font.SANS_SERIF, fontPlain, twelve);
 
-		LazyValue monospacedPlain12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
-			}
-		};
+		LazyValue monospacedPlain12 = (UIDefaults t) -> new FontUIResource(Font.MONOSPACED, fontPlain, twelve);
 
-		LazyValue dialogBold12 = new LazyValue() {
-			@Override
-			public Object createValue(UIDefaults t) {
-				return new FontUIResource(Font.DIALOG, fontBold, twelve);
-			}
-		};
+		LazyValue dialogBold12 = (UIDefaults t) -> new FontUIResource(Font.DIALOG, fontBold, twelve);
 
 		Object menuFont = dialogPlain12;
 		Object fixedControlFont = monospacedPlain12;
@@ -408,27 +384,21 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		 * 3) otherwise (default): don't display them
 		 */
 		switch (showScrollbars) {
-			case "true":
-				setContentPane(
+			case "true" -> setContentPane(
 					new JScrollPane(
 						jp,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 					)
 				);
-				break;
-			case "optional":
-				setContentPane(
+			case "optional" -> setContentPane(
 					new JScrollPane(
 						jp,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 					)
 				);
-				break;
-			default:
-				setContentPane(jp);
-				break;
+			default -> setContentPane(jp);
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
@@ -446,12 +416,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		setTitle(title);
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		if (Platform.isMac()) {
 			addWindowListener(new WindowAdapter() {
+				@Override
 				public void windowClosing(WindowEvent e) {
 					setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					setExtendedState(JFrame.ICONIFIED);
+					setExtendedState(Frame.ICONIFIED);
 				}
 			});
 		}
@@ -468,10 +439,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (configuration.isMinimized() && Platform.isMac()) {
 			// setVisible is required to iconify the frame
 			setVisible(true);
-			setExtendedState(JFrame.ICONIFIED);
+			setExtendedState(Frame.ICONIFIED);
 		}
 
-		BasicSystemUtils.instance.addSystemTray(this);
+		PlatformUtils.INSTANCE.addSystemTray(this);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
@@ -479,7 +450,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return url == null ? null : new ImageIcon(url);
 	}
 
-	public JComponent buildContent() {
+	public final JComponent buildContent() {
 		JPanel panel = new JPanel(new BorderLayout());
 		JToolBar toolBar = new JToolBar();
 		toolBar.setFloatable(false);
@@ -487,34 +458,31 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		toolBar.add(new JPanel());
 
-		if (PMS.getConfiguration().useWebInterfaceServer()) {
+		if (PMS.getConfiguration().useWebPlayerServer()) {
 			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			webinterface.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					String error = null;
-					if (PMS.get().getWebInterfaceServer() != null && isNotBlank(PMS.get().getWebInterfaceServer().getUrl())) {
-						try {
-							URI uri = new URI(PMS.get().getWebInterfaceServer().getUrl());
-							if (!BasicSystemUtils.instance.browseURI(uri.toString())) {
-								error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
-							}
-						} catch (URISyntaxException se) {
-							LOGGER.error(
-								"Could not form a valid web player server URI from \"{}\": {}",
-								PMS.get().getWebInterfaceServer().getUrl(),
-								se.getMessage()
-							);
-							LOGGER.trace("", se);
-							error = Messages.getString("CouldNotFormValidUrl");
+			webinterface.addActionListener((ActionEvent e) -> {
+				String error = null;
+				if (PMS.get().getGuiServer() != null && StringUtils.isNotBlank(PMS.get().getGuiServer().getUrl())) {
+					try {
+						URI uri = new URI(PMS.get().getGuiServer().getUrl());
+						if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
+							error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
 						}
-					} else {
+					} catch (URISyntaxException se) {
+						LOGGER.error(
+								"Could not form a valid web gui server URI from \"{}\": {}",
+								PMS.get().getGuiServer().getUrl(),
+								se.getMessage()
+						);
+						LOGGER.trace("", se);
 						error = Messages.getString("CouldNotFormValidUrl");
 					}
-					if (error != null) {
-						JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
-					}
+				} else {
+					error = Messages.getString("CouldNotFormValidUrl");
+				}
+				if (error != null) {
+					JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
 				}
 			});
 			webinterface.setEnabled(false);
@@ -525,26 +493,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		restartIcon = (AnimatedIcon) reload.getIcon();
 		restartRequredIcon.start();
 		setReloadable(false);
-		reload.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				reload.setEnabled(false);
-				PMS.get().resetMediaServer();
-			}
+		reload.addActionListener((ActionEvent e) -> {
+			reload.setEnabled(false);
+			PMS.get().resetMediaServer();
 		});
-		reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+		reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
 		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		quit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				quit();
-			}
-		});
+		quit.addActionListener((ActionEvent e) -> PMS.quit());
 		toolBar.add(quit);
 		if (System.getProperty(START_SERVICE) != null) {
 			quit.setEnabled(false);
@@ -581,7 +541,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		navigationSettingsTab = new NavigationShareTab(configuration, this);
 		sharedContentTab = new SharedContentTab(configuration, this);
 		tr = new TranscodingTab(configuration, this);
-		ht = new HelpTab();
+		HelpTab ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("Status"), st.build());
 		tabbedPane.addTab(Messages.getString("Logs"), tt.build());
@@ -596,17 +556,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("Help"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("About"), new AboutTab().build());
 
-		tabbedPane.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int selectedIndex = tabbedPane.getSelectedIndex();
-
-				if (HELP_PAGES[selectedIndex] != null) {
-					PMS.setHelpPage(HELP_PAGES[selectedIndex]);
-
-					// Update the contents of the help tab itself
-					ht.updateContents();
-				}
+		tabbedPane.addChangeListener((ChangeEvent e) -> {
+			int selectedIndex = tabbedPane.getSelectedIndex();
+			if (HELP_PAGES[selectedIndex] != null) {
+				PMS.setHelpPage(HELP_PAGES[selectedIndex]);
+				// Update the contents of the help tab itself
+				ht.updateContents();
 			}
 		});
 
@@ -643,18 +598,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return button;
 	}
 
-	public void quit() {
-		WindowsNamedPipe.setLoop(false);
-		windowProperties.dispose();
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			LOGGER.error("Interrupted during shutdown: {}", e);
-		}
-
-		System.exit(0);
-	}
-
 	@Override
 	public void dispose() {
 		windowProperties.dispose();
@@ -662,27 +605,27 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void append(final String msg) {
+	public void appendLog(final String msg) {
 		SwingUtilities.invokeLater(() -> {
 			tt.append(msg);
 		});
 	}
 
 	@Override
-	public void setReadValue(long v, String msg) {
-		st.setReadValue(v, msg);
-	}
-
-	@Override
-	public void setConnectionState(final ConnectionState connectionState) {
+	public void setConnectionState(final EConnectionState connectionState) {
 		SwingUtilities.invokeLater(() -> {
 			st.setConnectionState(connectionState);
 		});
 	}
 
 	@Override
-	public void updateBuffer() {
-		st.updateCurrentBitrate();
+	public void setCurrentBitrate(int sizeinMb) {
+		st.setCurrentBitrate(sizeinMb);
+	}
+
+	@Override
+	public void setPeakBitrate(int sizeinMb) {
+		st.setPeakBitrate(sizeinMb);
 	}
 
 	/**
@@ -691,7 +634,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * to restart the server.<br>
 	 * Currently the icon as well as the tool tip text of the restart button is being
 	 * changed.<br>
-	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
+	 * The actions requiring a server restart are defined by {@link UmsConfiguration#NEED_RELOAD_FLAGS}
 	 *
 	 * @param required true if the server has to be restarted, false otherwise
 	 */
@@ -706,7 +649,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			} else {
 				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
-					reload.setToolTipText(Messages.getString("ThisRestartsHttpServer"));
+					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
@@ -760,6 +703,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * Sets a secondary status line.
 	 * If it receives null, it will try to set the primary status
 	 * line if it exists, otherwise clear it.
+	 * @param line
 	 */
 	@Override
 	public void setSecondaryStatusLine(String line) {
@@ -776,18 +720,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void addRenderer(Renderer renderer) {
 		st.addRenderer(renderer);
 	}
 
 	@Override
-	public void updateRenderer(RendererConfiguration renderer) {
-		StatusTab.updateRenderer(renderer);
-	}
-
-	@Override
 	public void serverReady() {
-		st.updateMemoryUsage();
 		generalSettingsTab.addRenderers();
 	}
 
@@ -798,20 +736,40 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			st.setMediaServerBind("-");
 		}
-		if (PMS.get().getWebInterfaceServer() != null) {
-			st.setInterfaceServerBind(PMS.get().getWebInterfaceServer().getAddress());
+		if (PMS.get().getWebPlayerServer() != null) {
+			st.setInterfaceServerBind(PMS.get().getWebPlayerServer().getAddress());
 		} else {
 			st.setInterfaceServerBind("-");
 		}
 	}
 
 	@Override
-	public void setScanLibraryEnabled(boolean flag) {
-		getSharedContentTab().setScanLibraryEnabled(flag);
+	public void setScanLibraryStatus(boolean enabled, boolean running) {
+		SharedContentTab.setScanLibraryEnabled(enabled, running);
+	}
+
+	/**
+	 * Show error message with swing
+	 * @param message the message to display
+	 * @param title the title string for the dialog
+	 */
+	@Override
+	public void showErrorMessage(String message, String title) {
+		JOptionPane.showMessageDialog(
+			(SwingUtilities.getWindowAncestor(this)),
+			message,
+			title,
+			JOptionPane.ERROR_MESSAGE
+		);
 	}
 
 	@Override
-	public String getLog() {
-		return getTt().getList().getText();
+	public void setConfigurationChanged(String key) {
 	}
+
+	@Override
+	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
+		st.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+	}
+
 }

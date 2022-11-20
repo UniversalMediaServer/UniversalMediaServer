@@ -1,19 +1,18 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
@@ -41,7 +40,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	//base the logger inside org.jupnp.transport.spi.StreamServer to reflect old behavior
 	private static final Logger LOGGER = LoggerFactory.getLogger(StreamServer.class);
 
-	final protected UmsStreamServerConfiguration configuration;
+	protected final UmsStreamServerConfiguration configuration;
 	protected HttpServer server;
 
 	public JdkHttpServerStreamServer(UmsStreamServerConfiguration configuration) {
@@ -49,7 +48,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void init(InetAddress bindAddress, Router router) throws InitializationException {
+	public synchronized void init(InetAddress bindAddress, Router router) throws InitializationException {
 		try {
 			InetSocketAddress socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
 
@@ -64,7 +63,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public int getPort() {
+	public synchronized int getPort() {
 		return server.getAddress().getPort();
 	}
 
@@ -74,7 +73,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void run() {
+	public synchronized void run() {
 		LOGGER.debug("Starting StreamServer...");
 		// Starts a new thread but inherits the properties of the calling thread
 		server.start();
@@ -85,7 +84,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 	}
 
 	@Override
-	synchronized public void stop() {
+	public synchronized void stop() {
 		LOGGER.debug("Stopping StreamServer...");
 		if (server != null) {
 			server.stop(0);
@@ -96,14 +95,15 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 
 		private final Router router;
 		private final RequestHandler requestHandler;
+		private final boolean serveContentDirectory;
 
 		public RequestHttpHandler(Router router) {
 			this.router = router;
-			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration &&
-				((UmsUpnpServiceConfiguration) router.getConfiguration()).useOwnHttpServer()) {
-				requestHandler = new RequestHandler();
+			requestHandler = new RequestHandler();
+			if (router.getConfiguration() instanceof UmsUpnpServiceConfiguration routerConfiguration) {
+				serveContentDirectory = routerConfiguration.useOwnContentDirectory();
 			} else {
-				requestHandler = null;
+				serveContentDirectory = false;
 			}
 		}
 
@@ -127,7 +127,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}

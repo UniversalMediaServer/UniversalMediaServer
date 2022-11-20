@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
 import java.awt.color.ColorSpace;
@@ -127,14 +143,14 @@ public class BMPInfo extends ImageInfo {
 		}
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof BmpHeaderDirectory) {
+			if (directory instanceof BmpHeaderDirectory bmpHeaderDirectory) {
 				parsedInfo.format = ImageFormat.BMP;
 				if (
-					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
-					((BmpHeaderDirectory) directory).containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
+					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_WIDTH) &&
+					bmpHeaderDirectory.containsTag(BmpHeaderDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((BmpHeaderDirectory) directory).getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = bmpHeaderDirectory.getInteger(BmpHeaderDirectory.TAG_IMAGE_HEIGHT);
 				}
 			}
 			if (
@@ -148,7 +164,7 @@ public class BMPInfo extends ImageInfo {
 
 				if (compression != null && headerSize != null && bitsPerPixel != null) {
 					CompressionType compressionTypeTemp =
-						CompressionType.typeOf(compression.intValue(), headerSize.intValue());
+						CompressionType.typeOf(compression, headerSize);
 					((BMPParseInfo) parsedInfo).compressionType = compressionTypeTemp;
 					if (parsedInfo.bitDepth != null) {
 						switch (compressionTypeTemp) {
@@ -163,54 +179,49 @@ public class BMPInfo extends ImageInfo {
 								// BITMAPINFOHEADER versions is needed for
 								// accurate detection - the below is
 								// "qualified guessing"
-								switch (bitsPerPixel.intValue()) {
-									case 1:
+								switch (bitsPerPixel) {
+									case 1 -> {
 										parsedInfo.numComponents = 1;
 										parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
 										parsedInfo.bitDepth = 1;
-										break;
-									case 2:
-									case 4:
-									case 8:
+									}
+									case 2, 4, 8, 24 -> {
 										parsedInfo.numComponents = 3;
 										parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 										parsedInfo.bitDepth = 8;
-										break;
-									case 16:
+									}
+									case 16 -> {
 										// assuming 5:6:5 - could also be 5:5:5:1
 										parsedInfo.numComponents = 3;
 										parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 										parsedInfo.bitDepth = 5;
-										break;
-									case 24:
-										parsedInfo.numComponents = 3;
-										parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-										parsedInfo.bitDepth = 8;
-										break;
-									case 32:
+									}
+									case 32 -> {
 										parsedInfo.numComponents = 4;
 										parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
 										parsedInfo.bitDepth = 8;
-										break;
-									default:
+									}
+									default -> {
+										//do nothing
+									}
 								}
 								break;
 							case JPEG:
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								parsedInfo.bitDepth = bitsPerPixel.intValue() / 3;
+								parsedInfo.bitDepth = bitsPerPixel / 3;
 								break;
 							case RGBA_BIT_FIELDS:
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								parsedInfo.bitDepth = bitsPerPixel.intValue() / 4;
+								parsedInfo.bitDepth = bitsPerPixel / 4;
 								break;
 							case CMYK_NONE:
 							case CMYK_RLE4:
 							case CMYK_RLE8:
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_CMYK;
-								parsedInfo.bitDepth = bitsPerPixel.intValue() / 4;
+								parsedInfo.bitDepth = bitsPerPixel / 4;
 								break;
 							case UNKNOWN:
 							default:
@@ -254,63 +265,38 @@ public class BMPInfo extends ImageInfo {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case BIT_FIELDS:
-					return "RGB bit field masks";
-				case CMYK_NONE:
-					return "CMYK no compression";
-				case CMYK_RLE4:
-					return "CMYK RLE 4";
-				case CMYK_RLE8:
-					return "CMYK RLE 8";
-				case HUFFMAN_1D:
-					return "Huffman 1D";
-				case JPEG:
-					return "JPEG";
-				case NONE:
-					return "No compression";
-				case PNG:
-					return "PNG";
-				case RGBA_BIT_FIELDS:
-					return "RGBA bit field masks";
-				case RLE24:
-					return "RLE 24-bit/pixel";
-				case RLE4:
-					return "RLE 4-bit/pixel";
-				case RLE8:
-					return "RLE 8-bit/pixel";
-				case UNKNOWN:
-					return "Unknown compression";
-				default:
-					return super.toString();
-			}
+			return switch (this) {
+				case BIT_FIELDS -> "RGB bit field masks";
+				case CMYK_NONE -> "CMYK no compression";
+				case CMYK_RLE4 -> "CMYK RLE 4";
+				case CMYK_RLE8 -> "CMYK RLE 8";
+				case HUFFMAN_1D -> "Huffman 1D";
+				case JPEG -> "JPEG";
+				case NONE -> "No compression";
+				case PNG -> "PNG";
+				case RGBA_BIT_FIELDS -> "RGBA bit field masks";
+				case RLE24 -> "RLE 24-bit/pixel";
+				case RLE4 -> "RLE 4-bit/pixel";
+				case RLE8 -> "RLE 8-bit/pixel";
+				case UNKNOWN -> "Unknown compression";
+				default -> super.toString();
+			};
 		}
 
 		public static CompressionType typeOf(int value, int headerSize) {
-			switch (value) {
-				case 0:
-					return NONE;
-				case 1:
-					return RLE8;
-				case 2:
-					return RLE4;
-				case 3:
-					return headerSize == 64 ? BIT_FIELDS : HUFFMAN_1D;
-				case 4:
-					return headerSize == 64 ? JPEG : RLE24;
-				case 5:
-					return PNG;
-				case 6:
-					return RGBA_BIT_FIELDS;
-				case 11:
-					return CMYK_NONE;
-				case 12:
-					return CMYK_RLE8;
-				case 13:
-					return CMYK_RLE4;
-				default:
-					return UNKNOWN;
-			}
+			return switch (value) {
+				case 0 -> NONE;
+				case 1 -> RLE8;
+				case 2 -> RLE4;
+				case 3 -> headerSize == 64 ? BIT_FIELDS : HUFFMAN_1D;
+				case 4 -> headerSize == 64 ? JPEG : RLE24;
+				case 5 -> PNG;
+				case 6 -> RGBA_BIT_FIELDS;
+				case 11 -> CMYK_NONE;
+				case 12 -> CMYK_RLE8;
+				case 13 -> CMYK_RLE4;
+				default -> UNKNOWN;
+			};
 		}
 	}
 
