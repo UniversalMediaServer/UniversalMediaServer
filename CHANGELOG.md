@@ -14,6 +14,7 @@
 - Consolidated configuration files, with automatic migration to the new format
 - Fixed TV series never being found locally by IMDb ID
 - Fixed duplicate API requests
+- Fixed profile support on Docker
 - Hundreds of bugfixes and performance tweaks
 
 ### Renderers:

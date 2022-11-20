@@ -91,13 +91,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.3</slf4j-api-version>
+		<slf4j-api-version>2.0.4</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.4</logback-version>
+		<logback-version>1.4.5</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -105,7 +105,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.13.4.2</jackson.version>
+		<jackson.version>2.14.0</jackson.version>
 
 		<surefire-version>3.0.0-M7</surefire-version>
 
@@ -566,7 +566,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.3.1</version>
+			<version>6.3.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -772,81 +772,6 @@
 						<pushFileName>messages.properties</pushFileName>
 						<pushFileTitle>Universal Media Server</pushFileTitle>
 						<projectName>Universal Media Server</projectName>
-					</configuration>
-				</plugin>
-
-				<!--
-					This plugin's configuration is used to store Eclipse m2e settings only.
-					It has no influence on the Maven build itself.
-				-->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.apache.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-antrun-plugin
-										</artifactId>
-										<versionRange>
-											[1.7,)
-										</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											pl.project13.maven
-										</groupId>
-										<artifactId>
-											git-commit-id-plugin
-										</artifactId>
-										<versionRange>
-											[${git-commit-id-plugin-version},)
-										</versionRange>
-										<goals>
-											<goal>revision</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>com.universalmediaserver</groupId>
-										<artifactId>
-											crowdin-maven-plugin
-										</artifactId>
-										<versionRange>
-											[0.1,)
-										</versionRange>
-										<goals>
-											<goal>fetch</goal>
-											<goal>push</goal>
-											<goal>build</goal>
-											<goal>apply</goal>
-											<goal>pull</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute></execute>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -1989,95 +1914,6 @@
 		</profile>
 
 		<!--
-			Testing profile: For running our automated tests - does not download binaries
-		-->
-		<profile>
-			<id>testing</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-pms-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>copy-jar-with-dependencies-test</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
 			macOS 10.15 (Catalina) onwards
 			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
 		-->
@@ -2784,8 +2620,101 @@
 		</profile>
 
 		<!--
+			This profile is only active when the property "m2e.version"
+			is set, which is the case when building in Eclipse with m2e.
+		-->
+		<profile>
+			<id>m2e</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<!--
+							This plugin's configuration is used to store Eclipse m2e settings only.
+							It has no influence on the Maven build itself.
+						-->
+						<plugin>
+							<groupId>org.eclipse.m2e</groupId>
+							<artifactId>lifecycle-mapping</artifactId>
+							<version>1.0.0</version>
+							<configuration>
+								<lifecycleMappingMetadata>
+									<pluginExecutions>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>
+													org.apache.maven.plugins
+												</groupId>
+												<artifactId>
+													maven-antrun-plugin
+												</artifactId>
+												<versionRange>
+													[1.7,)
+												</versionRange>
+												<goals>
+													<goal>run</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore></ignore>
+											</action>
+										</pluginExecution>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>
+													pl.project13.maven
+												</groupId>
+												<artifactId>
+													git-commit-id-plugin
+												</artifactId>
+												<versionRange>
+													[${git-commit-id-plugin-version},)
+												</versionRange>
+												<goals>
+													<goal>revision</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore></ignore>
+											</action>
+										</pluginExecution>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>com.universalmediaserver</groupId>
+												<artifactId>
+													crowdin-maven-plugin
+												</artifactId>
+												<versionRange>
+													[0.1,)
+												</versionRange>
+												<goals>
+													<goal>fetch</goal>
+													<goal>push</goal>
+													<goal>build</goal>
+													<goal>apply</goal>
+													<goal>pull</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<execute></execute>
+											</action>
+										</pluginExecution>
+									</pluginExecutions>
+								</lifecycleMappingMetadata>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
+		<!--
 			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory.
-			For extra quickness, run with the skipTests flag, like mvn -P quickrun-windows package -DskipTests
+			For extra quickness, run with the skipTests and offline flags: mvn -P quickrun-windows package -DskipTests -Doffline
 		-->
 		<profile>
 			<id>quickrun-windows-x86</id>
@@ -3105,33 +3034,82 @@
 			Testing profiles below
 		-->
 		<profile>
-			<id>testing-windows</id>
+			<id>testing</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
 			<build>
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-						</configuration>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the distribution file. -->
+							<execution>
+								<id>build-ums-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
 					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
-								<phase>process-resources</phase>
+								<id>copy-jar-with-dependencies-test</id>
+								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target unless="offline">
-										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
