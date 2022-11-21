@@ -43,6 +43,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	/**
 	 * COLUMNS NAMES
 	 */
+	public static final String COL_FILEID = "FILEID";
 	private static final String COL_MBID_RECORD = "MBID_RECORD";
 	private static final String COL_MBID_TRACK = "MBID_TRACK";
 	private static final String COL_LIKE_SONG = "LIKESONG";
@@ -50,7 +51,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
-	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 	public static final String TABLE_COL_ALBUM = TABLE_NAME + ".ALBUM";
 	public static final String TABLE_COL_ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
 	public static final String TABLE_COL_ARTIST = TABLE_NAME + ".ARTIST";
@@ -203,10 +204,8 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", LIKE_SONG         BOOLEAN");
 			sb.append(", RATING            INTEGER");
 			sb.append(", AUDIOTRACK_ID     INTEGER          AUTO_INCREMENT");
-			sb.append(", constraint PKAUDIO primary key (FILEID, ID)");
-			sb.append(", FOREIGN KEY(FILEID)");
-			sb.append("    REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID)");
-			sb.append("    ON DELETE CASCADE");
+			sb.append(", CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID)");
+			sb.append(", CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE");
 			sb.append(')');
 
 			executeUpdate(statement, sb.toString());

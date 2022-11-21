@@ -35,7 +35,8 @@ import org.slf4j.LoggerFactory;
 public class MediaTableSubtracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
-	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+	public static final String COL_FILEID = "FILEID";
+	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_EXTERNALFILE = 1000;
@@ -109,7 +110,7 @@ public class MediaTableSubtracks extends MediaTable {
 				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")  NOT NULL default '' , " +
 				"CHARSET        VARCHAR(" + SIZE_MAX + ")                               , " +
 				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)                , " +
-				"FOREIGN KEY(FILEID) REFERENCES " + MediaTableFiles.TABLE_NAME + "(ID) ON DELETE CASCADE" +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);
 	}
