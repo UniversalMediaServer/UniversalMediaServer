@@ -136,7 +136,6 @@ public class SharedContentConfiguration {
 						SHARED_CONTENT_ARRAY.add(sharedContent);
 					}
 				}
-				SHARED_CONTENT_ARRAY.addAll(values);
 				if (save) {
 					writeConfiguration();
 				}
