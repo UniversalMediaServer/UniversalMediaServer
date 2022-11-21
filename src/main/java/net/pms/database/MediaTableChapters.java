@@ -77,7 +77,11 @@ public class MediaTableChapters extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT IF EXISTS PKCHAP TO " + TABLE_NAME + "_PK");
+					try {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT PKCHAP TO " + TABLE_NAME + "_PK");
+					} catch (SQLException e) {
+						//PKCHAP not found, nothing to update.
+					}
 					break;
 				default:
 					throw new IllegalStateException(

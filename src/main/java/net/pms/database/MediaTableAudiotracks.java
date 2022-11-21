@@ -161,7 +161,11 @@ public class MediaTableAudiotracks extends MediaTable {
 					}
 					break;
 				case 8:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT IF EXISTS PKAUDIO TO " + TABLE_NAME + "_PK");
+					try {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT PKAUDIO TO " + TABLE_NAME + "_PK");
+					} catch (SQLException e) {
+						//PKAUDIO not found, nothing to update.
+					}
 					break;
 				default:
 					throw new IllegalStateException(

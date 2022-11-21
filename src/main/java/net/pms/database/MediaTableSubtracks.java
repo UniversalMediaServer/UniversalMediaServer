@@ -84,7 +84,11 @@ public class MediaTableSubtracks extends MediaTable {
 					}
 					break;
 				case 2:
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT IF EXISTS PKSUB TO " + TABLE_NAME + "_PK");
+					try {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT PKSUB TO " + TABLE_NAME + "_PK");
+					} catch (SQLException e) {
+						//PKSUB not found, nothing to update.
+					}
 					break;
 				default:
 					throw new IllegalStateException(
