@@ -126,6 +126,16 @@ public class SharedContentConfiguration {
 		synchronized (SHARED_CONTENT_ARRAY) {
 			if (!values.equals(SHARED_CONTENT_ARRAY)) {
 				SHARED_CONTENT_ARRAY.clear();
+				//check viability
+				for (SharedContent sharedContent : values) {
+					if (sharedContent instanceof FolderContent folderContent) {
+						if (folderContent.getFile() != null) {
+							SHARED_CONTENT_ARRAY.add(sharedContent);
+						}
+					} else {
+						SHARED_CONTENT_ARRAY.add(sharedContent);
+					}
+				}
 				SHARED_CONTENT_ARRAY.addAll(values);
 				if (save) {
 					writeConfiguration();
