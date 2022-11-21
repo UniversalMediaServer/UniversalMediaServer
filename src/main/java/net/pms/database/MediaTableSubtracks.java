@@ -46,7 +46,7 @@ public class MediaTableSubtracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -83,6 +83,9 @@ public class MediaTableSubtracks extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
 					}
 					break;
+				case 2:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT IF EXISTS PKSUB TO " + TABLE_NAME + "_PK");
+					break;
 				default:
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -109,7 +112,7 @@ public class MediaTableSubtracks extends MediaTable {
 				"FORMAT_TYPE    INTEGER                                                 , " +
 				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")  NOT NULL default '' , " +
 				"CHARSET        VARCHAR(" + SIZE_MAX + ")                               , " +
-				"CONSTRAINT PKSUB PRIMARY KEY (FILEID, ID, EXTERNALFILE)                , " +
+				"CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID, EXTERNALFILE), " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);

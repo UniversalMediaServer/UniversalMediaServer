@@ -72,7 +72,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 8;
+	private static final int TABLE_VERSION = 9;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -159,6 +159,9 @@ public class MediaTableAudiotracks extends MediaTable {
 					} catch (Exception e) {
 						LOGGER.warn("Upgrade failed", e);
 					}
+					break;
+				case 8:
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT IF EXISTS PKAUDIO TO " + TABLE_NAME + "_PK");
 					break;
 				default:
 					throw new IllegalStateException(
