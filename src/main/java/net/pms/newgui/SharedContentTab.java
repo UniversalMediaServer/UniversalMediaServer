@@ -462,7 +462,7 @@ public class SharedContentTab implements SharedContentListener {
 			// Remove any existing rows
 			((SharedContentTableModel) sharedContentList.getModel()).setRowCount(0);
 			for (SharedContent sharedContent : sharedContentArray) {
-				if (sharedContent instanceof FolderContent folder) {
+				if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDER, null, null, folder.getFile().getPath(), folder.isMonitored(), folder.isActive()});
 				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
 					List<String> childs = new ArrayList<>();
