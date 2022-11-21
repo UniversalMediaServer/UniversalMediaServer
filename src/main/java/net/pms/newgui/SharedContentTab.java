@@ -29,7 +29,6 @@ import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.*;
-import java.io.File;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
