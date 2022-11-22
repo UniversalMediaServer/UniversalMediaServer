@@ -5050,7 +5050,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							media.setVideoMetadata(videoMetadata);
-							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), media, null);
+							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), media, false);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API

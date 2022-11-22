@@ -29,8 +29,6 @@ public class ApiCredit extends ApiPersonCredited {
 	@SerializedName("original_name")
 	private String originalName;
 	private Double popularity;
-	@SerializedName("profile_path")
-	private String profilePath;
 
 	public boolean isAdult() {
 		return adult;
@@ -94,14 +92,6 @@ public class ApiCredit extends ApiPersonCredited {
 
 	public void setPopularity(Double value) {
 		this.popularity = value;
-	}
-
-	public String getProfilePath() {
-		return profilePath;
-	}
-
-	public void setProfilePath(String value) {
-		this.profilePath = value;
 	}
 
 }

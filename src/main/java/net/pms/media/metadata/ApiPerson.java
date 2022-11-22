@@ -16,11 +16,23 @@
  */
 package net.pms.media.metadata;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ApiPerson {
+	private int gender;
 	private int id;
 	private String name;
-	private int gender;
-//profile_path
+	@SerializedName("profile_path")
+	private String profilePath;
+
+	public int getGender() {
+		return gender;
+	}
+
+	public void setGender(int value) {
+		this.gender = value;
+	}
+
 	public int getId() {
 		return id;
 	}
@@ -37,11 +49,12 @@ public class ApiPerson {
 		this.name = value;
 	}
 
-	public int getGender() {
-		return gender;
+	public String getProfilePath() {
+		return profilePath;
 	}
 
-	public void setGender(int value) {
-		this.gender = value;
+	public void setProfilePath(String value) {
+		this.profilePath = value;
 	}
+
 }

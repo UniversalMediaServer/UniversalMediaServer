@@ -835,7 +835,7 @@ public class MediaTableFiles extends MediaTable {
 			}
 
 			if (media != null && fileId > -1) {
-				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, null);
+				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);

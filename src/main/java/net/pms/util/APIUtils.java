@@ -550,38 +550,12 @@ public class APIUtils {
 
 				LOGGER.trace("setting metadata for " + file.getName());
 				Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
-				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, metadataFromAPI);
+				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, true);
 
 				if (media.getThumb() != null) {
 					MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
 				}
 
-				if (metadataFromAPI.has("actors")) {
-					MediaTableVideoMetadataActors.set(connection, fileId, metadataFromAPI.get("actors"), null);
-				}
-				MediaTableVideoMetadataAwards.set(connection, fileId, getStringOrNull(metadataFromAPI, "awards"), null);
-				MediaTableVideoMetadataCountries.set(connection, fileId, getCountriesFromJsonElement(metadataFromAPI.get("country")), null);
-				if (metadataFromAPI.has("directors")) {
-					MediaTableVideoMetadataDirectors.set(connection, fileId, metadataFromAPI.get("directors"), null);
-				}
-				if (metadataFromAPI.has("rating")  && metadataFromAPI.get("rating").isJsonPrimitive()) {
-					Double rating = metadataFromAPI.get("rating").getAsDouble();
-					if (rating != 0) {
-						MediaTableVideoMetadataIMDbRating.set(connection, fileId, Double.toString(rating), null);
-					}
-				}
-				if (metadataFromAPI.has("genres")) {
-					MediaTableVideoMetadataGenres.set(connection, fileId, metadataFromAPI.get("genres"), null);
-				}
-				if (posterFromApi != null) {
-					MediaTableVideoMetadataPosters.set(connection, fileId, posterFromApi, null);
-				}
-				MediaTableVideoMetadataProduction.set(connection, fileId, getStringOrNull(metadataFromAPI, "production"), null);
-				MediaTableVideoMetadataRated.set(connection, fileId, getStringOrNull(metadataFromAPI, "rated"), null);
-				if (metadataFromAPI.get("ratings") != null) {
-					MediaTableVideoMetadataRatings.set(connection, fileId, metadataFromAPI.get("ratings"), null);
-				}
-				MediaTableVideoMetadataReleased.set(connection, fileId, getStringOrNull(metadataFromAPI, "released"), null);
 				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
@@ -791,10 +765,15 @@ public class APIUtils {
 			) {
 				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
 				MediaTableVideoMetadata.updateMovieOrShowName(connection, titleFromFilename, title);
+				if (media.hasVideoMetadata()) {
+					media.getVideoMetadata().setMovieOrShowName(title);
+				}
 			}
 			//update MediaVideoMetadata
 			if (media.hasVideoMetadata()) {
 				media.getVideoMetadata().setSerieMetadata(MediaTableTVSeries.getTvSerieMetadata(connection, title));
+				// May use the SerieMetadata
+				media.getVideoMetadata().setTVSeriesStartYear(MediaTableTVSeries.getStartYearBySimplifiedTitle(connection, media.getVideoMetadata().getSimplifiedMovieOrShowName()));
 			}
 			return title;
 		} catch (IOException e) {

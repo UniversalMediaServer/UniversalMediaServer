@@ -192,14 +192,14 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final DLNAMediaInfo media, final JsonObject apiExtendedMetadata) throws SQLException {
+	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final DLNAMediaInfo media, final boolean fromApi) throws SQLException {
 		if (connection == null || fileId == null || media == null || !media.hasVideoMetadata()) {
 			return;
 		}
 		MediaVideoMetadata videoMetadata = media.getVideoMetadata();
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(
-				apiExtendedMetadata != null ? SQL_GET_VIDEO_ALL_METADATA_BY_FILEID : SQL_GET_VIDEO_METADATA_BY_FILEID,
+				fromApi ? SQL_GET_VIDEO_ALL_METADATA_BY_FILEID : SQL_GET_VIDEO_METADATA_BY_FILEID,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			);
@@ -220,43 +220,47 @@ public class MediaTableVideoMetadata extends MediaTable {
 				rs.updateString(COL_TVSEASON, StringUtils.left(videoMetadata.getTVSeason(), SIZE_TVSEASON));
 				rs.updateString(COL_TVEPISODENUMBER, StringUtils.left(videoMetadata.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
 				rs.updateString(COL_TVEPISODENAME, StringUtils.left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
-				if (apiExtendedMetadata != null) {
+				if (fromApi) {
 					rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
-					if (apiExtendedMetadata.has("budget")) {
-						rs.updateLong(COL_BUDGET, apiExtendedMetadata.get("budget").getAsLong());
+					if (videoMetadata.getBudget() != null) {
+						rs.updateLong(COL_BUDGET, videoMetadata.getBudget());
 					} else {
 						rs.updateNull(COL_BUDGET);
 					}
-					if (apiExtendedMetadata.has("credits")) {
-						rs.updateString(COL_CREDITS, apiExtendedMetadata.get("credits").toString());
+					if (videoMetadata.getCredits() != null) {
+						rs.updateString(COL_CREDITS, GSON.toJson(videoMetadata.getCredits()));
 					} else {
 						rs.updateNull(COL_CREDITS);
 					}
-					if (apiExtendedMetadata.has("externalIDs")) {
-						rs.updateString(COL_EXTERNALIDS, apiExtendedMetadata.get("externalIDs").toString());
+					if (videoMetadata.getExternalIDs() != null) {
+						rs.updateString(COL_EXTERNALIDS, GSON.toJson(videoMetadata.getExternalIDs()));
 					} else {
 						rs.updateNull(COL_EXTERNALIDS);
 					}
-					rs.updateString(COL_HOMEPAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "homepage"));
-					if (apiExtendedMetadata.has("images")) {
-						rs.updateString(COL_IMAGES, apiExtendedMetadata.get("images").toString());
+					rs.updateString(COL_HOMEPAGE, videoMetadata.getHomepage());
+					if (videoMetadata.getImages() != null) {
+						rs.updateString(COL_IMAGES, GSON.toJson(videoMetadata.getImages()));
 					} else {
 						rs.updateNull(COL_IMAGES);
 					}
-					rs.updateString(COL_ORIGINALLANGUAGE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalLanguage"));
-					rs.updateString(COL_ORIGINALTITLE, APIUtils.getStringOrNull(apiExtendedMetadata, "originalTitle"));
-					if (apiExtendedMetadata.has("productionCompanies")) {
-						rs.updateString(COL_PRODUCTIONCOMPANIES, apiExtendedMetadata.get("productionCompanies").toString());
+					if (videoMetadata.getOriginalLanguage() != null) {
+						rs.updateString(COL_ORIGINALLANGUAGE, GSON.toJson(videoMetadata.getOriginalLanguage()));
+					} else {
+						rs.updateNull(COL_ORIGINALLANGUAGE);
+					}
+					rs.updateString(COL_ORIGINALTITLE, GSON.toJson(videoMetadata.getOriginalTitle()));
+					if (videoMetadata.getProductionCompanies() != null) {
+						rs.updateString(COL_PRODUCTIONCOMPANIES, GSON.toJson(videoMetadata.getProductionCompanies()));
 					} else {
 						rs.updateNull(COL_PRODUCTIONCOMPANIES);
 					}
-					if (apiExtendedMetadata.has("productionCountries")) {
-						rs.updateString(COL_PRODUCTIONCOUNTRIES, apiExtendedMetadata.get("productionCountries").toString());
+					if (videoMetadata.getProductionCountries() != null) {
+						rs.updateString(COL_PRODUCTIONCOUNTRIES, GSON.toJson(videoMetadata.getProductionCountries()));
 					} else {
 						rs.updateNull(COL_PRODUCTIONCOUNTRIES);
 					}
-					if (apiExtendedMetadata.has("revenue")) {
-						rs.updateLong(COL_REVENUE, apiExtendedMetadata.get("revenue").getAsLong());
+					if (videoMetadata.getRevenue() != null) {
+						rs.updateLong(COL_REVENUE, videoMetadata.getRevenue());
 					} else {
 						rs.updateNull(COL_REVENUE);
 					}
@@ -282,7 +286,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final JsonObject apiExtendedMetadata) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final boolean fromApi) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -306,7 +310,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 					}
 				}
 			}
-			insertOrUpdateVideoMetadata(connection, fileId, media, apiExtendedMetadata);
+			insertOrUpdateVideoMetadata(connection, fileId, media, fromApi);
 		}
 	}
 
