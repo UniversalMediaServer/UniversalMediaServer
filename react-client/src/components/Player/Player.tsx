@@ -664,6 +664,7 @@ interface VideoMetadata {
   createdBy?: string,
   credits?: string,
   directors?: BaseMedia[],
+  endYear?: string,
   externalIDs?: string,
   firstAirDate?: string,
   genres?: BaseMedia[],
@@ -685,6 +686,7 @@ interface VideoMetadata {
   productionCompanies?: string,
   productionCountries?: string,
   rated?: BaseMedia,
+  rating?: string,
   ratings?: MediaRating[],
   seasons?: string,
   seriesType?: string,
@@ -693,6 +695,7 @@ interface VideoMetadata {
   status?: string,
   tagline?: string,
   totalSeasons?: number,
+  votes?: string,
 }
 
 interface VideoMetadataImages {

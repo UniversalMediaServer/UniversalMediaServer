@@ -28,6 +28,7 @@ import java.sql.Types;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.metadata.TvSerieMetadata;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.UnknownFormatException;
@@ -148,7 +149,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					try (Statement statement = connection.createStatement()) {
 						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
 							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
@@ -159,14 +160,14 @@ public final class MediaTableTVSeries extends MediaTable {
 						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 						throw new SQLException(e);
 					}
-					break;
-				case 2:
+				}
+				case 2 -> {
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
 					}
-					break;
-				case 3:
+				}
+				case 3 -> {
 					LOGGER.trace("Adding TMDB columns");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREATEDBY VARCHAR");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS CREDITS VARCHAR");
@@ -190,17 +191,17 @@ public final class MediaTableTVSeries extends MediaTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS SPOKENLANGUAGES VARCHAR");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS STATUS VARCHAR");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS TAGLINE VARCHAR");
-					break;
-				case 4:
+				}
+				case 4 -> {
 					// This version was for testing, left here to not break tester dbs
-					break;
-				case 5:
+				}
+				case 5 -> {
 					if (isColumnExist(connection, TABLE_NAME, "INPRODUCTION")) {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN INPRODUCTION");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN INPRODUCTION BOOLEAN");
 					}
-					break;
-				case 6:
+				}
+				case 6 -> {
 					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
 
 					//set old json datas to be rescanned
@@ -212,14 +213,14 @@ public final class MediaTableTVSeries extends MediaTable {
 							}
 						}
 					}
-					break;
-				default:
+				}
+				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
-
 		try {
 			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		} catch (SQLException e) {
@@ -418,6 +419,76 @@ public final class MediaTableTVSeries extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, "tv Series", e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	public static TvSerieMetadata getTvSerieMetadata(final Connection connection, final String title) {
+		if (connection == null || title == null) {
+			return null;
+		}
+		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
+		boolean trace = LOGGER.isTraceEnabled();
+		try {
+			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_BY_SIMPLIFIEDTITLE)) {
+				selectStatement.setString(1, simplifiedTitle);
+				if (trace) {
+					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", selectStatement);
+				}
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						Long tvSerieId = rs.getLong(COL_ID);
+						TvSerieMetadata metadata = new TvSerieMetadata();
+						metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSerie(connection, tvSerieId));
+						metadata.setApiVersion(rs.getString("VERSION"));
+						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSerie(connection, tvSerieId));
+						metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForTvSerie(connection, tvSerieId));
+						metadata.setCreatedBy(rs.getString("CREATEDBY"));
+						metadata.setCredits(rs.getString("CREDITS"));
+						metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSerie(connection, tvSerieId));
+						metadata.setEndYear(rs.getString("ENDYEAR"));
+						metadata.setExternalIDs(rs.getString("EXTERNALIDS"));
+						metadata.setFirstAirDate(rs.getString("FIRSTAIRDATE"));
+						metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSerie(connection, tvSerieId));
+						metadata.setHomepage(rs.getString("HOMEPAGE"));
+						metadata.setImages(rs.getString(COL_IMAGES));
+						metadata.setIMDbID(rs.getString(COL_IMDBID));
+						metadata.setInProduction(rs.getBoolean("INPRODUCTION"));
+						metadata.setLanguages(rs.getString("LANGUAGES"));
+						metadata.setLastAirDate(rs.getString("LASTAIRDATE"));
+						metadata.setNetworks(rs.getString("NETWORKS"));
+						metadata.setNumberOfEpisodes(rs.getDouble("NUMBEROFEPISODES"));
+						metadata.setNumberOfSeasons(rs.getDouble("NUMBEROFSEASONS"));
+						metadata.setOriginalLanguage(rs.getString("ORIGINALLANGUAGE"));
+						metadata.setOriginalTitle(rs.getString("ORIGINALTITLE"));
+						metadata.setOriginCountry(rs.getString("ORIGINCOUNTRY"));
+						metadata.setPlot(rs.getString("PLOT"));
+						metadata.setPoster(MediaTableVideoMetadataPosters.getValueForTvSerie(connection, tvSerieId));
+						metadata.setProduction(MediaTableVideoMetadataProduction.getValueForTvSerie(connection, tvSerieId));
+						metadata.setProductionCompanies(rs.getString("PRODUCTIONCOMPANIES"));
+						metadata.setProductionCountries(rs.getString("PRODUCTIONCOUNTRIES"));
+						metadata.setRated(MediaTableVideoMetadataRated.getValueForTvSerie(connection, tvSerieId));
+						metadata.setRating(MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, tvSerieId));
+						metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSerie(connection, tvSerieId));
+						metadata.setReleased(MediaTableVideoMetadataReleased.getValueForTvSerie(connection, tvSerieId));
+						metadata.setSeasons(rs.getString("SEASONS"));
+						metadata.setSeriesType(rs.getString("SERIESTYPE"));
+						metadata.setSimplifiedTitle(rs.getString("SIMPLIFIEDTITLE"));
+						metadata.setSpokenLanguages(rs.getString("SPOKENLANGUAGES"));
+						metadata.setStartYear(rs.getString("STARTYEAR"));
+						metadata.setStatus(rs.getString("STATUS"));
+						metadata.setTagline(rs.getString("TAGLINE"));
+						metadata.setTitle(rs.getString("TITLE"));
+						metadata.setTotalSeasons(rs.getDouble("TOTALSEASONS"));
+						metadata.setVotes(rs.getString("VOTES"));
+						return metadata;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", title, e.getMessage());
 			LOGGER.trace("", e);
 		}
 
@@ -640,6 +711,8 @@ public final class MediaTableTVSeries extends MediaTable {
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
 						result.addProperty("plot", rs.getString("PLOT"));
 						result.addProperty("startYear", rs.getString("STARTYEAR"));
+						result.addProperty("endYear", rs.getString("ENDYEAR"));
+						result.addProperty("votes", rs.getString("VOTES"));
 						result.addProperty("title", rs.getString("TITLE"));
 						result.addProperty("totalSeasons", rs.getDouble("TOTALSEASONS"));
 						result.addProperty("createdBy", rs.getString("CREATEDBY"));
@@ -670,10 +743,10 @@ public final class MediaTableTVSeries extends MediaTable {
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForTvSerie(connection, id));
 						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForTvSerie(connection, id));
 						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForTvSerie(connection, id));
-						result.addProperty("imdbRating", MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, id));
 						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForTvSerie(connection, id));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForTvSerie(connection, id));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForTvSerie(connection, id));
+						result.addProperty("rating", MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, id));
 						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForTvSerie(connection, id));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForTvSerie(connection, id));
 						return result;

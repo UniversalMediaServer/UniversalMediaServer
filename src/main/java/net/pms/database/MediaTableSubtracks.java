@@ -16,13 +16,17 @@
  */
 package net.pms.database;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
-import static org.apache.commons.lang3.StringUtils.left;
+import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +39,11 @@ import org.slf4j.LoggerFactory;
 public class MediaTableSubtracks extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableSubtracks.class);
 	public static final String TABLE_NAME = "SUBTRACKS";
+
 	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+
+	private static final String SQL_GET_ALL_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
+	private static final String SQL_DELETE_EXTERNALFILE = "DELETE FROM " + TABLE_NAME + " WHERE EXTERNALFILE = ?";
 
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_EXTERNALFILE = 1000;
@@ -76,16 +84,17 @@ public class MediaTableSubtracks extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
 						LOGGER.trace("Renaming column name TYPE to FORMAT_TYPE");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
 					}
-					break;
-				default:
+				}
+				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
 		try {
@@ -146,33 +155,83 @@ public class MediaTableSubtracks extends MediaTable {
 				}
 				try (ResultSet rs = updateStatement.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("LANG", left(subtitleTrack.getLang(), SIZE_LANG));
-						rs.updateString("TITLE", left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
+						rs.updateString("LANG", StringUtils.left(subtitleTrack.getLang(), SIZE_LANG));
+						rs.updateString("TITLE", StringUtils.left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
 						rs.updateInt("FORMAT_TYPE", subtitleTrack.getType().getStableIndex());
 						if (subtitleTrack.getExternalFile() != null) {
-							rs.updateString("EXTERNALFILE", left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+							rs.updateString("EXTERNALFILE", StringUtils.left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
 						} else {
 							rs.updateString("EXTERNALFILE", "");
 						}
-						rs.updateString("CHARSET", left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
+						rs.updateString("CHARSET", StringUtils.left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
 						insertStatement.setLong(1, fileId);
 						insertStatement.setInt(2, subtitleTrack.getId());
-						insertStatement.setString(3, left(subtitleTrack.getLang(), SIZE_LANG));
-						insertStatement.setString(4, left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
+						insertStatement.setString(3, StringUtils.left(subtitleTrack.getLang(), SIZE_LANG));
+						insertStatement.setString(4, StringUtils.left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
 						insertStatement.setInt(5, subtitleTrack.getType().getStableIndex());
 						if (subtitleTrack.getExternalFile() != null) {
-							insertStatement.setString(6, left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
+							insertStatement.setString(6, StringUtils.left(subtitleTrack.getExternalFile().getPath(), SIZE_EXTERNALFILE));
 						} else {
 							insertStatement.setString(6, "");
 						}
-						insertStatement.setString(7, left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
+						insertStatement.setString(7, StringUtils.left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
 						insertStatement.executeUpdate();
 					}
 				}
 			}
 		}
+	}
+
+	protected static List<DLNAMediaSubtitle> getSubtitleTracks(Connection connection, long fileId) {
+		List<DLNAMediaSubtitle> result = new ArrayList<>();
+		List<String> externalFileReferencesToRemove = new ArrayList<>();
+		if (connection == null || fileId < 0) {
+			return result;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILEID)) {
+			stmt.setLong(1, fileId);
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					String fileName = elements.getString("EXTERNALFILE");
+					File externalFile = StringUtils.isNotBlank(fileName) ? new File(fileName) : null;
+					if (externalFile != null && !externalFile.exists()) {
+						externalFileReferencesToRemove.add(externalFile.getPath());
+						continue;
+					}
+					DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+					sub.setId(elements.getInt("ID"));
+					sub.setLang(elements.getString("LANG"));
+					sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
+					sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("FORMAT_TYPE")));
+					sub.setExternalFileOnly(externalFile);
+					sub.setSubCharacterSet(elements.getString("CHARSET"));
+					LOGGER.trace("Adding subtitles from the database: {}", sub.toString());
+					result.add(sub);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		} finally {
+			if (!externalFileReferencesToRemove.isEmpty()) {
+				for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
+					LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
+					try (
+						PreparedStatement ps = connection.prepareStatement(SQL_DELETE_EXTERNALFILE);
+					) {
+						ps.setString(1, sqlQuote(externalFileReferenceToRemove));
+						ps.executeUpdate();
+					} catch (SQLException se) {
+						LOGGER.error("Error deleting cached external subtitles: {}", se.getMessage());
+						LOGGER.trace("", se);
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 }

@@ -16,9 +16,6 @@
  */
 package net.pms.util;
 
-import static net.pms.util.FileUtil.indexOf;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -36,6 +33,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,6 +48,7 @@ import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideoMetadataActors;
 import net.pms.database.MediaTableVideoMetadataAwards;
 import net.pms.database.MediaTableVideoMetadataCountries;
@@ -61,15 +60,18 @@ import net.pms.database.MediaTableVideoMetadataProduction;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataRatings;
 import net.pms.database.MediaTableVideoMetadataReleased;
-import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.metadata.ApiStringArray;
+import net.pms.media.metadata.MediaVideoMetadata;
+import static net.pms.util.FileUtil.indexOf;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,7 @@ public class APIUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(APIUtils.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
+	private static final String API_URL = "https://api.universalmediaserver.com";
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -162,7 +165,7 @@ public class APIUtils {
 			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
-				URL domain = new URL("https://api.universalmediaserver.com");
+				URL domain = new URL(API_URL);
 				URL url = new URL(domain, "/api/subversions");
 				String apiResult = getJson(url);
 
@@ -228,7 +231,7 @@ public class APIUtils {
 			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
-				URL domain = new URL("https://api.universalmediaserver.com");
+				URL domain = new URL(API_URL);
 				URL url = new URL(domain, "/api/configuration");
 				String apiResult = getJson(url);
 
@@ -319,7 +322,7 @@ public class APIUtils {
 				connection.setAutoCommit(false);
 				JsonObject metadataFromAPI;
 
-				DLNAMediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new DLNAMediaVideoMetadata();
+				MediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new MediaVideoMetadata();
 
 				String year                        = videoMetadata.getYear();
 				String titleFromFilename           = videoMetadata.getMovieOrShowName();
@@ -484,14 +487,6 @@ public class APIUtils {
 						LOGGER.trace("", e);
 					}
 				}
-
-				// unused metadata from our api
-//					media.setTagline((String) metadataFromAPI.get("tagline"));
-//					media.setTrivia((String) metadataFromAPI.get("trivia"));
-//					media.setVotes((String) metadataFromAPI.get("votes"));
-//					media.setBoxOffice((String) metadataFromAPI.get("boxoffice"));
-//					media.setGoofs((String) metadataFromAPI.get("goofs"));
-
 				if (isTVEpisode) {
 					videoMetadata.setTVSeason(tvSeason);
 					videoMetadata.setTVEpisodeNumber(tvEpisodeNumber);
@@ -502,6 +497,55 @@ public class APIUtils {
 
 					videoMetadata.setIsTVEpisode(true);
 				}
+				if (metadataFromAPI.has("actors")) {
+					videoMetadata.setActors(metadataFromAPI.get("actors").toString());
+				}
+				videoMetadata.setAwards(getStringOrNull(metadataFromAPI, "awards"));
+				videoMetadata.setBudget(getLongOrNull(metadataFromAPI, "budget"));
+				videoMetadata.setCountries(getCountriesFromJsonElement(metadataFromAPI.get("country")));
+				if (metadataFromAPI.has("credits")) {
+					videoMetadata.setCredits(metadataFromAPI.get("credits").toString());
+				}
+				if (metadataFromAPI.has("directors")) {
+					videoMetadata.setDirectors(metadataFromAPI.get("directors").toString());
+				}
+				if (metadataFromAPI.has("externalIDs")) {
+					videoMetadata.setExternalIDs(metadataFromAPI.get("externalIDs").toString());
+				}
+				if (metadataFromAPI.has("genres")) {
+					videoMetadata.setGenres(metadataFromAPI.get("genres").toString());
+				}
+				videoMetadata.setHomepage(getStringOrNull(metadataFromAPI, "homepage"));
+				if (metadataFromAPI.has("images")) {
+					videoMetadata.setImages(metadataFromAPI.get("images").toString());
+				}
+				if (metadataFromAPI.has("originalLanguage")) {
+					videoMetadata.setOriginalLanguage(metadataFromAPI.get("originalLanguage").toString());
+				}
+				videoMetadata.setOriginalTitle(getStringOrNull(metadataFromAPI, "originalTitle"));
+				if (posterFromApi != null) {
+					videoMetadata.setPoster(posterFromApi);
+				}
+				videoMetadata.setProduction(getStringOrNull(metadataFromAPI, "production"));
+				if (metadataFromAPI.has("productionCompanies")) {
+					videoMetadata.setProductionCompanies(metadataFromAPI.get("productionCompanies").toString());
+				}
+				if (metadataFromAPI.has("productionCountries")) {
+					videoMetadata.setProductionCountries(metadataFromAPI.get("productionCountries").toString());
+				}
+				videoMetadata.setRated(getStringOrNull(metadataFromAPI, "rated"));
+				if (metadataFromAPI.has("rating")  && metadataFromAPI.get("rating").isJsonPrimitive()) {
+					Double rating = metadataFromAPI.get("rating").getAsDouble();
+					if (rating != 0) {
+						videoMetadata.setRating(Double.toString(rating));
+					}
+				}
+				if (metadataFromAPI.get("ratings") != null) {
+					videoMetadata.setRatings(metadataFromAPI.get("ratings").toString());
+				}
+				videoMetadata.setReleased(getStringOrNull(metadataFromAPI, "released"));
+				videoMetadata.setRevenue(getLongOrNull(metadataFromAPI, "revenue"));
+				videoMetadata.setApiVersion(getApiDataVideoVersion());
 				media.setVideoMetadata(videoMetadata);
 
 				LOGGER.trace("setting metadata for " + file.getName());
@@ -513,11 +557,10 @@ public class APIUtils {
 				}
 
 				if (metadataFromAPI.has("actors")) {
-					//metadataFromAPI.has("poster") ? metadataFromAPI.get("poster").getAsString() : null
 					MediaTableVideoMetadataActors.set(connection, fileId, metadataFromAPI.get("actors"), null);
 				}
 				MediaTableVideoMetadataAwards.set(connection, fileId, getStringOrNull(metadataFromAPI, "awards"), null);
-				MediaTableVideoMetadataCountries.set(connection, fileId, metadataFromAPI.get("country"), null);
+				MediaTableVideoMetadataCountries.set(connection, fileId, getCountriesFromJsonElement(metadataFromAPI.get("country")), null);
 				if (metadataFromAPI.has("directors")) {
 					MediaTableVideoMetadataDirectors.set(connection, fileId, metadataFromAPI.get("directors"), null);
 				}
@@ -567,6 +610,15 @@ public class APIUtils {
 	 */
 	public static String getStringOrNull(JsonObject jsonObject, String memberName) {
 		return jsonObject != null && jsonObject.has(memberName) && !jsonObject.get(memberName).isJsonNull() ? jsonObject.get(memberName).getAsString() : null;
+	}
+
+	/**
+	 * @param jsonObject the json object to look at.
+	 * @param memberName the member name to look for.
+	 * @return the value or null if not exists.
+	 */
+	public static Long getLongOrNull(JsonObject jsonObject, String memberName) {
+		return jsonObject != null && jsonObject.has(memberName) && !jsonObject.get(memberName).isJsonNull() ? jsonObject.get(memberName).getAsLong() : null;
 	}
 
 	/**
@@ -687,7 +739,7 @@ public class APIUtils {
 				MediaTableVideoMetadataActors.set(connection, null, seriesMetadataFromAPI.get("actors"), tvSeriesId);
 			}
 			MediaTableVideoMetadataAwards.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "awards"), tvSeriesId);
-			MediaTableVideoMetadataCountries.set(connection, null, seriesMetadataFromAPI.get("country"), tvSeriesId);
+			MediaTableVideoMetadataCountries.set(connection, null, getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")), tvSeriesId);
 			if (seriesMetadataFromAPI.has("directors")) {
 				MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadataFromAPI.get("directors"), tvSeriesId);
 			}
@@ -740,7 +792,10 @@ public class APIUtils {
 				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
 				MediaTableVideoMetadata.updateMovieOrShowName(connection, titleFromFilename, title);
 			}
-
+			//update MediaVideoMetadata
+			if (media.hasVideoMetadata()) {
+				media.getVideoMetadata().setSerieMetadata(MediaTableTVSeries.getTvSerieMetadata(connection, title));
+			}
 			return title;
 		} catch (IOException e) {
 			LOGGER.error("Error getting \"{}\" TV series info from API: {}", file.getName(), e.getMessage());
@@ -805,7 +860,6 @@ public class APIUtils {
 		} catch (JsonSyntaxException e) {
 			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
 		}
-
 		return data;
 	}
 
@@ -840,7 +894,6 @@ public class APIUtils {
 		} catch (JsonSyntaxException e) {
 			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
 		}
-
 		return data;
 	}
 
@@ -874,7 +927,7 @@ public class APIUtils {
 		String osdbHash,
 		long filebytesize
 	) throws IOException {
-		URL domain = new URL("https://api.universalmediaserver.com");
+		URL domain = new URL(API_URL);
 		String endpoint = isSeries ? "series/v2" : "video/v2";
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
@@ -988,4 +1041,29 @@ public class APIUtils {
 		return posterFromApi;
 	}
 
+	/**
+	 * fix country field from api is string with ',' instead of real array
+	 * @return ApiStringArray
+	 * FIXME : api should send a real array and field should be refactored to countries
+	 */
+	private static ApiStringArray getCountriesFromJsonElement(final JsonElement countries) {
+		if (countries == null) {
+			return null;
+		}
+		ApiStringArray result = new ApiStringArray();
+		if (countries.isJsonArray()) {
+			Iterator<JsonElement> i = countries.getAsJsonArray().iterator();
+			while (i.hasNext()) {
+				String country = i.next().getAsString();
+				result.add(country);
+			}
+		} else if (countries.isJsonPrimitive()) {
+			String malformedCountries = countries.getAsString();
+			String[] countriesSplitted = malformedCountries.split(",");
+			for (String country : countriesSplitted) {
+				result.add(country.trim());
+			}
+		}
+		return result;
+	}
 }

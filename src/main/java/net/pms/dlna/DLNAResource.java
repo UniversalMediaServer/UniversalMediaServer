@@ -82,6 +82,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
@@ -2304,7 +2305,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (media != null && media.hasVideoMetadata()) {
-			DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
 			if (videoMetadata.isTVEpisode()) {
 				if (isNotBlank(videoMetadata.getTVSeason())) {
 					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTVSeason());
@@ -4994,7 +4995,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
 			if (!media.hasVideoMetadata()) {
-				DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
+				MediaVideoMetadata videoMetadata = new MediaVideoMetadata();
 				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
 				String titleFromFilename = metadataFromFilename[0];
 				String yearFromFilename = metadataFromFilename[1];

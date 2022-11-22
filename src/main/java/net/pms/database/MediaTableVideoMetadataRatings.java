@@ -25,6 +25,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
+import net.pms.media.metadata.ApiRatingSource;
+import net.pms.media.metadata.ApiRatingSourceArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,6 +211,27 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		}
 	}
 
+	public static ApiRatingSourceArray getRatingsForFile(final Connection connection, final Long fileId) {
+		ApiRatingSourceArray result = new ApiRatingSourceArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						ApiRatingSource source = new ApiRatingSource();
+						source.setSource(rs.getString(1));
+						source.setValue(rs.getString(2));
+						result.add(source);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for file ID \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -225,6 +248,27 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiRatingSourceArray getRatingsForTvSerie(final Connection connection, final Long tvSerieId) {
+		ApiRatingSourceArray result = new ApiRatingSourceArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						ApiRatingSource source = new ApiRatingSource();
+						source.setSource(rs.getString(1));
+						source.setValue(rs.getString(2));
+						result.add(source);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for tv serie ID \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

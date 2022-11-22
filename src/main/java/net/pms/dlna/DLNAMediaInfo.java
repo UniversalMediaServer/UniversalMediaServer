@@ -41,6 +41,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.renderers.Renderer;
@@ -146,7 +147,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private volatile DLNAThumbnail thumb = null;
 
-	private DLNAMediaVideoMetadata videoMetadata;
+	private MediaVideoMetadata videoMetadata;
 
 	private volatile ImageInfo imageInfo = null;
 	private String mimeType;
@@ -2209,11 +2210,11 @@ public class DLNAMediaInfo implements Cloneable {
 		return videoMetadata != null;
 	}
 
-	public DLNAMediaVideoMetadata getVideoMetadata() {
+	public MediaVideoMetadata getVideoMetadata() {
 		return videoMetadata;
 	}
 
-	public void setVideoMetadata(DLNAMediaVideoMetadata value) {
+	public void setVideoMetadata(MediaVideoMetadata value) {
 		videoMetadata = value;
 	}
 

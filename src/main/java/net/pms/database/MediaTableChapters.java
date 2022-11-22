@@ -20,9 +20,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.dlna.DLNAMediaChapter;
 import net.pms.dlna.DLNAMediaInfo;
-import static org.apache.commons.lang3.StringUtils.left;
+import net.pms.dlna.DLNAThumbnail;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +41,8 @@ public class MediaTableChapters extends MediaTable {
 
 	public static final String TABLE_NAME = "CHAPTERS";
 	public static final String TABLE_COL_FILEID = TABLE_NAME + ".FILEID";
+
+	private static final String SQL_GET_ALL_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -75,10 +80,11 @@ public class MediaTableChapters extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				default:
+				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
 		try {
@@ -134,24 +140,52 @@ public class MediaTableChapters extends MediaTable {
 				updateStatement.setString(3, chapter.getLang());
 				try (ResultSet rs = updateStatement.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("TITLE", left(chapter.getTitle(), SIZE_MAX));
+						rs.updateString("TITLE", StringUtils.left(chapter.getTitle(), SIZE_MAX));
 						rs.updateDouble("START_TIME", chapter.getStart());
 						rs.updateDouble("END_TIME", chapter.getEnd());
 						rs.updateObject("THUMBNAIL", chapter.getThumbnail());
 						rs.updateRow();
 					} else {
 						insertStatement.clearParameters();
-						insertStatement.setLong(1, fileId);
-						insertStatement.setInt(2, chapter.getId());
-						insertStatement.setString(3, left(chapter.getLang(), SIZE_LANG));
-						insertStatement.setString(4, left(chapter.getTitle(), SIZE_MAX));
-						insertStatement.setDouble(5, chapter.getStart());
-						insertStatement.setDouble(6, chapter.getEnd());
-						insertStatement.setObject(7, chapter.getThumbnail());
+						int databaseColumnIterator = 0;
+						insertStatement.setLong(++databaseColumnIterator, fileId);
+						insertStatement.setInt(++databaseColumnIterator, chapter.getId());
+						insertStatement.setString(++databaseColumnIterator, StringUtils.left(chapter.getLang(), SIZE_LANG));
+						insertStatement.setString(++databaseColumnIterator, StringUtils.left(chapter.getTitle(), SIZE_MAX));
+						insertStatement.setDouble(++databaseColumnIterator, chapter.getStart());
+						insertStatement.setDouble(++databaseColumnIterator, chapter.getEnd());
+						insertStatement.setObject(++databaseColumnIterator, chapter.getThumbnail());
 						insertStatement.executeUpdate();
 					}
 				}
 			}
 		}
+	}
+
+	protected static List<DLNAMediaChapter> getChapters(Connection connection, long fileId) {
+		List<DLNAMediaChapter> result = new ArrayList<>();
+		if (connection == null || fileId < 0) {
+			return result;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILEID)) {
+			stmt.setLong(1, fileId);
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					DLNAMediaChapter chapter = new DLNAMediaChapter();
+					chapter.setId(elements.getInt("ID"));
+					chapter.setLang(elements.getString("LANG"));
+					chapter.setTitle(elements.getString("TITLE"));
+					chapter.setStart(elements.getDouble("START_TIME"));
+					chapter.setEnd(elements.getDouble("END_TIME"));
+					chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
+					LOGGER.trace("Adding chapter from the database: {}", chapter.toString());
+					result.add(chapter);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
 	}
 }

@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
+import net.pms.media.metadata.ApiStringArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,6 +196,24 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 		}
 	}
 
+	public static ApiStringArray getDirectorsForFile(final Connection connection, final long fileId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_DIRECTOR_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -208,6 +227,24 @@ public final class MediaTableVideoMetadataDirectors extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiStringArray getDirectorsForTvSerie(final Connection connection, final long tvSerieId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_DIRECTOR_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for TV serie ID \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

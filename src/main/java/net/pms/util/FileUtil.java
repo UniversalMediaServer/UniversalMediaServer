@@ -48,8 +48,8 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaVideoMetadata;
 import net.pms.formats.FormatFactory;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
@@ -745,7 +745,7 @@ public class FileUtil {
 
 		// Populate the variables from the data if we can, otherwise from the filename
 		if (media != null && getConfiguration().getUseCache() && media.hasVideoMetadata() && isNotBlank(media.getVideoMetadata().getMovieOrShowName())) {
-			DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
 			title             = videoMetadata.getMovieOrShowName();
 			year              = isNotBlank(videoMetadata.getYear())              ? videoMetadata.getYear()              : "";
 			extraInformation  = isNotBlank(videoMetadata.getExtraInformation())  ? videoMetadata.getExtraInformation()  : "";
