@@ -17,14 +17,12 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 import net.pms.media.metadata.ApiRatingSource;
 import net.pms.media.metadata.ApiRatingSourceArray;
 import org.apache.commons.lang3.StringUtils;
@@ -155,8 +153,8 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 * @param ratings
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement ratings, final Long tvSeriesID) {
-		if (ratings == null || !ratings.isJsonArray() || ratings.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiRatingSourceArray ratings, final Long tvSeriesID) {
+		if (ratings == null || ratings.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -175,12 +173,13 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = ratings.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				JsonObject rating = i.next().getAsJsonObject();
-				String source = rating.has("Source") ? rating.get("Source").getAsString() : null;
-				String value = rating.has("Value") ? rating.get("Value").getAsString() : null;
+			for (ApiRatingSource rating : ratings) {
+				String source = rating.getSource();
+				String value = rating.getValue();
 
+				if (source == null) {
+					continue;
+				}
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(source, 1024));

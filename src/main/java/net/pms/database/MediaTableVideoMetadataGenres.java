@@ -17,13 +17,11 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 import net.pms.media.metadata.ApiStringArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -146,8 +144,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement genres, final Long tvSeriesID) {
-		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiStringArray genres, final Long tvSeriesID) {
+		if (genres == null || genres.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -166,10 +164,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = genres.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				String genre = i.next().getAsString();
-
+			for (String genre : genres) {
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(genre, 1024));

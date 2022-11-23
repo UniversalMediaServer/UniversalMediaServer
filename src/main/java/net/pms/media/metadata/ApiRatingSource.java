@@ -16,8 +16,14 @@
  */
 package net.pms.media.metadata;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ApiRatingSource {
+	//This should be 'source' from api btw.
+	@SerializedName("Source")
 	String source;
+	//This should be 'value' from api btw.
+	@SerializedName("Value")
 	String value;
 
 	public String getSource() {

@@ -186,7 +186,7 @@ public class MediaVideoMetadata {
 		}
 	}
 
-	public String getAward() {
+	public String getAwards() {
 		return awards;
 	}
 

@@ -65,6 +65,8 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.metadata.ApiRatingSource;
+import net.pms.media.metadata.ApiRatingSourceArray;
 import net.pms.media.metadata.ApiStringArray;
 import net.pms.media.metadata.MediaVideoMetadata;
 import static net.pms.util.FileUtil.indexOf;
@@ -498,7 +500,7 @@ public class APIUtils {
 					videoMetadata.setIsTVEpisode(true);
 				}
 				if (metadataFromAPI.has("actors")) {
-					videoMetadata.setActors(metadataFromAPI.get("actors").toString());
+					videoMetadata.setActors(getApiStringArrayFromJsonElement(metadataFromAPI.get("actors")));
 				}
 				videoMetadata.setAwards(getStringOrNull(metadataFromAPI, "awards"));
 				videoMetadata.setBudget(getLongOrNull(metadataFromAPI, "budget"));
@@ -710,15 +712,15 @@ public class APIUtils {
 
 			// Now we insert the TV series data into the other tables
 			if (seriesMetadataFromAPI.has("actors")) {
-				MediaTableVideoMetadataActors.set(connection, null, seriesMetadataFromAPI.get("actors"), tvSeriesId);
+				MediaTableVideoMetadataActors.set(connection, null, getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("actors")), tvSeriesId);
 			}
 			MediaTableVideoMetadataAwards.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "awards"), tvSeriesId);
 			MediaTableVideoMetadataCountries.set(connection, null, getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")), tvSeriesId);
 			if (seriesMetadataFromAPI.has("directors")) {
-				MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadataFromAPI.get("directors"), tvSeriesId);
+				MediaTableVideoMetadataDirectors.set(connection, null, getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")), tvSeriesId);
 			}
 			if (seriesMetadataFromAPI.has("genres")) {
-				MediaTableVideoMetadataGenres.set(connection, null, seriesMetadataFromAPI.get("genres"), tvSeriesId);
+				MediaTableVideoMetadataGenres.set(connection, null, getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("genres")), tvSeriesId);
 			}
 			MediaTableVideoMetadataProduction.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "production"), tvSeriesId);
 
@@ -752,7 +754,7 @@ public class APIUtils {
 				}
 			}
 			if (seriesMetadataFromAPI.get("ratings") != null) {
-				MediaTableVideoMetadataRatings.set(connection, null, seriesMetadataFromAPI.get("ratings"), tvSeriesId);
+				MediaTableVideoMetadataRatings.set(connection, null, getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")), tvSeriesId);
 			}
 			MediaTableVideoMetadataReleased.set(connection, null, getStringOrNull(seriesMetadataFromAPI, "released"), tvSeriesId);
 
@@ -1045,4 +1047,38 @@ public class APIUtils {
 		}
 		return result;
 	}
+
+	private static ApiStringArray getApiStringArrayFromJsonElement(final JsonElement element) {
+		if (element == null || element.isJsonArray()) {
+			return null;
+		}
+		ApiStringArray result = new ApiStringArray();
+		Iterator<JsonElement> i = element.getAsJsonArray().iterator();
+		while (i.hasNext()) {
+			String country = i.next().getAsString();
+			result.add(country);
+		}
+		return result;
+	}
+
+	private static ApiRatingSourceArray getApiRatingSourceArrayFromJsonElement(final JsonElement element) {
+		if (element == null || element.isJsonArray()) {
+			return null;
+		}
+		ApiRatingSourceArray result = new ApiRatingSourceArray();
+		Iterator<JsonElement> i = element.getAsJsonArray().iterator();
+		while (i.hasNext()) {
+			JsonObject rating = i.next().getAsJsonObject();
+			if (rating.has("Source")) {
+				String source = rating.get("Source").getAsString();
+				String value = rating.has("Value") ? rating.get("Value").getAsString() : null;
+				ApiRatingSource ratingSource = new ApiRatingSource();
+				ratingSource.setSource(source);
+				ratingSource.setValue(value);
+				result.add(ratingSource);
+			}
+		}
+		return result;
+	}
+
 }

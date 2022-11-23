@@ -272,6 +272,19 @@ public class MediaTableVideoMetadata extends MediaTable {
 				}
 			}
 		}
+		if (fromApi) {
+			MediaTableVideoMetadataActors.set(connection, fileId, videoMetadata.getActors(), null);
+			MediaTableVideoMetadataAwards.set(connection, fileId, videoMetadata.getAwards(), null);
+			MediaTableVideoMetadataCountries.set(connection, fileId, videoMetadata.getCountries(), null);
+			MediaTableVideoMetadataDirectors.set(connection, fileId, videoMetadata.getDirectors(), null);
+			MediaTableVideoMetadataGenres.set(connection, fileId, videoMetadata.getGenres(), null);
+			MediaTableVideoMetadataPosters.set(connection, fileId, videoMetadata.getPoster(), null);
+			MediaTableVideoMetadataProduction.set(connection, fileId, videoMetadata.getProduction(), null);
+			MediaTableVideoMetadataRated.set(connection, fileId, videoMetadata.getRated(), null);
+			MediaTableVideoMetadataIMDbRating.set(connection, fileId, videoMetadata.getRating(), null);
+			MediaTableVideoMetadataRatings.set(connection, fileId, videoMetadata.getRatings(), null);
+			MediaTableVideoMetadataReleased.set(connection, fileId, videoMetadata.getReleased(), null);
+		}
 		connection.commit();
 	}
 
@@ -401,15 +414,15 @@ public class MediaTableVideoMetadata extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						result.addProperty("imdbID", rs.getString(COL_IMDBID));
-						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString(COL_CREDITS));
-						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString(COL_EXTERNALIDS));
-						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
-						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
 						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
 						result.addProperty("awards", MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
+						addJsonElementToJsonObjectIfExists(result, "credits", rs.getString(COL_CREDITS));
 						result.add("directors", MediaTableVideoMetadataDirectors.getJsonArrayForFile(connection, fileId));
+						addJsonElementToJsonObjectIfExists(result, "externalIDs", rs.getString(COL_EXTERNALIDS));
 						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
+						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
+						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
 						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
