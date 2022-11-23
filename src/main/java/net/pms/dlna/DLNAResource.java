@@ -5056,7 +5056,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							// might be enhanced later by the API
 							if (videoMetadata.isTVEpisode()) {
 								// TODO: Make this check if it already exists instead of always setting it
-								MediaTableTVSeries.set(connection, null, videoMetadata.getMovieOrShowName());
+								MediaTableTVSeries.set(connection, videoMetadata.getMovieOrShowName());
 							}
 						}
 					}

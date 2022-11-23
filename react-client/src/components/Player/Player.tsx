@@ -276,7 +276,7 @@ export const Player = () => {
 
   function getMetadataImages(metadata?: VideoMetadata, media?: BaseMedia) {
     let logo, poster;
-    if (metadata && metadata.images && metadata.images.length > 0) {
+    if (metadata && metadata.images && metadata.images.length > 0 && metadata.imageBaseURL) {
       const iso639 = i18n.language.substring(0,2);
       const apiImagesList = metadata.images[0];
 
@@ -300,12 +300,6 @@ export const Player = () => {
           );
         }
       }
-      if (!logo && metadata.originalTitle) {
-        logo = (<Text pb='xs'>{metadata.originalTitle}</Text>);
-      }
-      if (!logo && media) {
-        logo = (<Text pb='xs'>{media.name}</Text>);
-      }
       // Set a poster
       if (apiImagesList && apiImagesList.posters && apiImagesList.posters.length > 0) {
         let posters = apiImagesList.posters.filter(poster => poster.iso_639_1 === iso639);
@@ -319,17 +313,22 @@ export const Player = () => {
           const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<img className="poster" src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
+         poster = (<img className="poster" src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
         }
       }
-      if (!poster && metadata.poster) {
-        poster = (<img className="poster" src={metadata.poster} />);
-      }
-      if (!poster && media) {
-        poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
-      }
     }
-  
+    if (!logo && metadata && metadata.originalTitle) {
+      logo = (<Text pb='xs'>{metadata.originalTitle}</Text>);
+    }
+    if (!logo && media) {
+      logo = (<Text pb='xs'>{media.name}</Text>);
+    }
+    if (!poster && metadata && metadata.poster) {
+      poster = (<img className="poster" src={metadata.poster} />);
+    }
+    if (!poster && media) {
+      poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
+    }
     return { logo, poster };
   }
 

@@ -44,7 +44,7 @@ public class TvSerieMetadata {
 	private String homepage;
 	private ApiImages images;
 	private String imdbID;
-	private boolean inProduction;
+	private Boolean inProduction;
 	private ApiStringArray languages;
 	private String lastAirDate;
 	private ApiNetworkArray networks;
@@ -222,11 +222,11 @@ public class TvSerieMetadata {
 		this.imdbID = value;
 	}
 
-	public boolean isInProduction() {
+	public Boolean isInProduction() {
 		return inProduction;
 	}
 
-	public void setInProduction(boolean value) {
+	public void setInProduction(Boolean value) {
 		this.inProduction = value;
 	}
 
