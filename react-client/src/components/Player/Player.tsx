@@ -246,6 +246,12 @@ export const Player = () => {
       </Group>);
     }
   }
+ 
+  const getMetadataBaseMedia = (title: string, media?: BaseMedia) => {
+    if (media) {
+      return getMetadataBaseMediaList(title, [media]);
+    }
+  }
 
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
@@ -320,13 +326,13 @@ export const Player = () => {
     if (!logo && metadata && metadata.originalTitle) {
       logo = (<Text pb='xs'>{metadata.originalTitle}</Text>);
     }
-    if (!logo && media) {
+    if (!logo && media && media.name) {
       logo = (<Text pb='xs'>{media.name}</Text>);
     }
     if (!poster && metadata && metadata.poster) {
       poster = (<img className="poster" src={metadata.poster} />);
     }
-    if (!poster && media) {
+    if (!poster && media && media.id) {
       poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
     }
     return { logo, poster };
@@ -441,7 +447,10 @@ export const Player = () => {
                   { getMetadataBaseMediaList('Director', metadata.directors) }
                   { getMetadataBaseMediaList('Genres', metadata.genres) }
                   { getMetadataString('Plot', metadata.plot) }
+                  { getMetadataBaseMedia('Rated', metadata.rated) }
                   { getMetadataRatingList(metadata.ratings) }
+                  { getMetadataString('YearStarted', metadata.startYear) }
+                  { getMetadataString('TotalSeasons', metadata.totalSeasons) }
                 </Card>
               </Grid.Col>
             </Grid>
