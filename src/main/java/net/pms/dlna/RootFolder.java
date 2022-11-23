@@ -306,7 +306,7 @@ public class RootFolder extends DLNAResource {
 					if (child.isDiscovered()) {
 						child.refreshChildren();
 					} else {
-						if (child instanceof DVDISOFile || child instanceof DVDISOTitle) { // ugly hack
+						if (child instanceof DVDISOFile || child instanceof DVDISOTitle || child instanceof PlaylistFolder) { // ugly hack
 							child.syncResolve();
 						}
 						child.discoverChildren();
