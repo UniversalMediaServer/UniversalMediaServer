@@ -163,9 +163,9 @@ public class MediaTableFiles extends MediaTable {
 							*/
 							StringBuilder sb = new StringBuilder();
 							sb
-									.append("UPDATE ")
+								.append("UPDATE ")
 									.append(TABLE_NAME).append(" ")
-									.append("SET ")
+								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -175,7 +175,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
 									.append("EXTRAINFORMATION = NULL ")
-									.append("WHERE ")
+								.append("WHERE ")
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 
@@ -225,9 +225,9 @@ public class MediaTableFiles extends MediaTable {
 							*/
 							StringBuilder sb = new StringBuilder();
 							sb
-									.append("UPDATE ")
+								.append("UPDATE ")
 									.append(TABLE_NAME).append(" ")
-									.append("SET ")
+								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -237,7 +237,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
 									.append("EXTRAINFORMATION = NULL ")
-									.append("WHERE ")
+								.append("WHERE ")
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 						}
@@ -263,9 +263,9 @@ public class MediaTableFiles extends MediaTable {
 							*/
 							StringBuilder sb = new StringBuilder();
 							sb
-									.append("UPDATE ")
+								.append("UPDATE ")
 									.append(TABLE_NAME).append(" ")
-									.append("SET ")
+								.append("SET ")
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -275,7 +275,7 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
 									.append("EXTRAINFORMATION = NULL ")
-									.append("WHERE ")
+								.append("WHERE ")
 									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
