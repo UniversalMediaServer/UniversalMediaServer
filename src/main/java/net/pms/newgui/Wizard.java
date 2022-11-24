@@ -87,31 +87,12 @@ public class Wizard {
 		);
 
 		if (whetherToSelectDefaultOptions == JOptionPane.NO_OPTION || whetherToSelectDefaultOptions == JOptionPane.CLOSED_OPTION) {
-			configuration.setMinimized(false);
 			configuration.setAutomaticMaximumBitrate(true);
 			configuration.setMPEG2MainSettings("Automatic (Wired)");
 			configuration.setx264ConstantRateFactor("Automatic (Wired)");
 			configuration.setHideAdvancedOptions(true);
 			configuration.setScanSharedFoldersOnStartup(true);
 		} else {
-			// Ask if they want UMS to start minimized
-			int whetherToStartMinimized = JOptionPane.showOptionDialog(
-				null,
-				Messages.getString("ShouldUmsStartMinimized"),
-				String.format(status, currentQuestionNumber++),
-				JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				yesNoOptions,
-				yesNoOptions[1]
-			);
-
-			if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-				configuration.setMinimized(true);
-			} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-				configuration.setMinimized(false);
-			}
-
 			// Ask if they want to hide advanced options
 			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
 				null,
