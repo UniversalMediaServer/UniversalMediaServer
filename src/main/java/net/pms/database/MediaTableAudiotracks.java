@@ -164,7 +164,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.warn("Upgrade failed", e);
 					}
 				}
-				case -> {
+				case 8 -> {
 					try {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT PKAUDIO TO " + TABLE_NAME + "_PK");
 					} catch (SQLException e) {
