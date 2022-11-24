@@ -185,6 +185,38 @@ public abstract class DatabaseHelper {
 	}
 
 	/**
+	 * Drops referentials constraints on the named table.
+	 *
+	 * @param connection the {@link Connection} to use
+	 * @param tableName the name of the table to delete
+	 */
+	protected static final void dropCascadeConstraint(final Connection connection, final String tableName) {
+		LOGGER.debug("Dropping table \"{}\" constraints if it exists", tableName);
+		try {
+			String sql;
+			ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
+			if (rs.next()) {
+				sql = "SELECT DISTINCT TC.CONSTRAINT_NAME, TC.TABLE_NAME " +
+					"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS TC INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS RC ON TC.CONSTRAINT_NAME = CCU.CONSTRAINT_NAME INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE AS CCU ON RC.CONSTRAINT_NAME = CCU.CONSTRAINT_NAME " +
+					"WHERE CCU.TABLE_NAME = '" + tableName + "'";
+			} else {
+				return;
+			}
+			try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+				rs = stmt.executeQuery();
+
+				while (rs.next()) {
+					try (Statement statement = connection.createStatement()) {
+						statement.execute("ALTER TABLE IF EXISTS " + rs.getString("TABLE_NAME") + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table\"" + tableName + "\" constraints:" + e.getMessage(), e);
+		}
+	}
+
+	/**
 	 * Convenience method for handling SQL null values in <code>WHERE</code> or
 	 * <code>HAVING</code> statements. SQL doesn't see null as a value, and
 	 * thus <code>=</code> is illegal for <code>null</code>.
