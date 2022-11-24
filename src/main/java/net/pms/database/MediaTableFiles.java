@@ -358,6 +358,9 @@ public class MediaTableFiles extends MediaTable {
 						// Do the dumb way
 						force = true;
 				}
+				if (force) {
+					break;
+				}
 			}
 			try {
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -373,9 +376,19 @@ public class MediaTableFiles extends MediaTable {
 		if (force) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
+				//delete rows to cascade delete
+				LOGGER.error("Deleting data from table: {}", TABLE_NAME);
+				executeUpdate(connection, "DELETE FROM " + TABLE_NAME);
+				//remove table and constraints
+				MediaDatabase.dropCascadeConstraint(connection, TABLE_NAME);
 				MediaDatabase.dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				//put back constaints
+				executeUpdate(connection, "ALTER TABLE IF EXISTS " + MediaTableAudiotracks.TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS " + MediaTableAudiotracks.TABLE_NAME + "_" + MediaTableAudiotracks.COL_FILEID + "_FK FOREIGN KEY(" + MediaTableAudiotracks.COL_FILEID + ") REFERENCES " + TABLE_NAME + "(" + COL_ID + ") ON DELETE CASCADE");
+				executeUpdate(connection, "ALTER TABLE IF EXISTS " + MediaTableSubtracks.TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS " + MediaTableSubtracks.TABLE_NAME + "_" + MediaTableSubtracks.COL_FILEID + "_FK FOREIGN KEY(" + MediaTableSubtracks.COL_FILEID + ") REFERENCES " + TABLE_NAME + "(" + COL_ID + ") ON DELETE CASCADE");
+				executeUpdate(connection, "ALTER TABLE IF EXISTS " + MediaTableChapters.TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS " + MediaTableChapters.TABLE_NAME + "_" + MediaTableChapters.COL_FILEID + "_FK FOREIGN KEY(" + MediaTableChapters.COL_FILEID + ") REFERENCES " + TABLE_NAME + "(" + COL_ID + ") ON DELETE CASCADE");
+				executeUpdate(connection, "ALTER TABLE IF EXISTS " + MediaTableVideoMetadata.TABLE_NAME + " ADD CONSTRAINT IF NOT EXISTS " + MediaTableVideoMetadata.TABLE_NAME + "_" + MediaTableVideoMetadata.COL_FILEID + "_FK FOREIGN KEY(" + MediaTableVideoMetadata.COL_FILEID + ") REFERENCES " + TABLE_NAME + "(" + COL_ID + ") ON DELETE CASCADE");
 			} catch (SQLException se) {
 				LOGGER.error("SQL error while (re)initializing tables: {}", se.getMessage());
 				LOGGER.trace("", se);
