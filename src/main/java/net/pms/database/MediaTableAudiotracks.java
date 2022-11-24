@@ -153,7 +153,7 @@ public class MediaTableAudiotracks extends MediaTable {
 				case 7 -> {
 					connection.setAutoCommit(false);
 					try (
-							Statement stmt =  DATABASE.getConnection().createStatement()) {
+						Statement stmt =  DATABASE.getConnection().createStatement()) {
 						stmt.execute("ALTER TABLE " + TABLE_NAME + " ADD COLUMN AUDIOTRACK_ID INTEGER AUTO_INCREMENT");
 						stmt.execute("UPDATE " + TABLE_NAME + " SET AUDIOTRACK_ID = ROWNUM()");
 						stmt.execute("SET @mv = SELECT MAX(AUDIOTRACK_ID) FROM " + TABLE_NAME + " + 1");
