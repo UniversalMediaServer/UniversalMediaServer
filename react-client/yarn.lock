@@ -3186,10 +3186,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.14.189":
-  version: 4.14.189
-  resolution: "@types/lodash@npm:4.14.189"
-  checksum: 096d1e0954794fb76bd6a0ea443067f02004b53e3c59ac6e3fed88817a1468fc2e6614abdf44341f5e0fdff5f9a3c94a934cc9ff7126e07efbcd94355a21fe45
+"@types/lodash@npm:4.14.190":
+  version: 4.14.190
+  resolution: "@types/lodash@npm:4.14.190"
+  checksum: 353a55a1222a57224ead8bd3379fabb2e3e3f6685f599c48b1b66f099d8e9e015e6c6352c6e2275954004c3bb510377804c63117233c6f187700b6ab78adfa02
   languageName: node
   linkType: hard
 
@@ -13335,7 +13335,7 @@ __metadata:
     "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/jest": 29.2.3
-    "@types/lodash": 4.14.189
+    "@types/lodash": 4.14.190
     "@types/node": 18.11.9
     "@types/react": 18.0.25
     "@types/react-color": 3.0.6
