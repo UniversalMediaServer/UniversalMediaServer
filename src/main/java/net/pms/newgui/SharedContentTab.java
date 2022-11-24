@@ -214,9 +214,9 @@ public class SharedContentTab implements SharedContentListener {
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				int firstSelectedRow = sharedContentList.getSelectedRow();
 				if (firstSelectedRow >= 0) {
-					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile()));
+					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				} else {
-					sharedContentArray.add(new FolderContent(chooser.getSelectedFile()));
+					sharedContentArray.add(new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				}
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
 			}
@@ -629,7 +629,7 @@ public class SharedContentTab implements SharedContentListener {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					int returnVal = chooser.showOpenDialog((java.awt.Component) event.getSource());
 					if (returnVal == JFileChooser.APPROVE_OPTION) {
-						folder.setFile(chooser.getSelectedFile());
+						folder.setFile(chooser.getSelectedFile().getAbsoluteFile());
 						SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 					}
 					return;
