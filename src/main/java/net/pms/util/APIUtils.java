@@ -456,6 +456,10 @@ public class APIUtils {
 				videoMetadata.setYear(year);
 
 				videoMetadata.setIMDbID(getStringOrNull(metadataFromAPI, "imdbID"));
+				if (videoMetadata.getIMDbID() == null) {
+					LOGGER.debug("API data does not contain IMDb ID, storing the API data but do not retry now.");
+					MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "IMDbID missing", true);
+				}
 
 				// Set the poster as the thumbnail
 				String posterFromApi = getPosterUrlFromApiInfo(
