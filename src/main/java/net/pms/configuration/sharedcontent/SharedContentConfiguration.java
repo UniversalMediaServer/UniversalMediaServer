@@ -107,7 +107,7 @@ public class SharedContentConfiguration {
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.isMonitored() && folder.getFile() != null) {
 				files.add(folder.getFile());
-			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null && !folders.getChilds().isEmpty()) {
 				files.addAll(getMonitoredFolders(folders.getChilds()));
 			}
 		}
@@ -126,7 +126,16 @@ public class SharedContentConfiguration {
 		synchronized (SHARED_CONTENT_ARRAY) {
 			if (!values.equals(SHARED_CONTENT_ARRAY)) {
 				SHARED_CONTENT_ARRAY.clear();
-				SHARED_CONTENT_ARRAY.addAll(values);
+				//check viability
+				for (SharedContent sharedContent : values) {
+					if (sharedContent instanceof FolderContent folderContent) {
+						if (folderContent.getFile() != null) {
+							SHARED_CONTENT_ARRAY.add(sharedContent);
+						}
+					} else {
+						SHARED_CONTENT_ARRAY.add(sharedContent);
+					}
+				}
 				if (save) {
 					writeConfiguration();
 				}
@@ -237,7 +246,10 @@ public class SharedContentConfiguration {
 	private static synchronized SharedContentArray defaultConfiguration() {
 		SharedContentArray result = new SharedContentArray();
 		for (Path path : PlatformUtils.INSTANCE.getDefaultFolders()) {
-			result.add(new FolderContent(path.toFile()));
+			File file = path.toFile();
+			if (file != null) {
+				result.add(new FolderContent(path.toFile()));
+			}
 		}
 		return result;
 	}
