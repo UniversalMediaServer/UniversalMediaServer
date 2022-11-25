@@ -463,20 +463,11 @@ public class APIUtils {
 					getStringOrNull(metadataFromAPI, "posterRelativePath")
 				);
 				if (posterFromApi != null) {
-					try {
-						byte[] image = URI_FILE_RETRIEVER.get(posterFromApi);
-						media.setThumb(DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false));
-					} catch (EOFException e) {
-						LOGGER.debug(
-							"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
-							file.getName()
-						);
-					} catch (UnknownFormatException e) {
-						LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-					} catch (IOException e) {
-						LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-						LOGGER.trace("", e);
-					}
+					videoMetadata.setPoster(posterFromApi);
+					media.waitMediaParsing(5);
+					media.setParsing(true);
+					media.setThumb(getThumbnailFromUri(posterFromApi));
+					media.setParsing(false);
 				}
 				if (isTVEpisode) {
 					videoMetadata.setTVSeason(tvSeason);
@@ -514,9 +505,6 @@ public class APIUtils {
 					videoMetadata.setOriginalLanguage(metadataFromAPI.get("originalLanguage").toString());
 				}
 				videoMetadata.setOriginalTitle(getStringOrNull(metadataFromAPI, "originalTitle"));
-				if (posterFromApi != null) {
-					videoMetadata.setPoster(posterFromApi);
-				}
 				videoMetadata.setProduction(getStringOrNull(metadataFromAPI, "production"));
 				if (metadataFromAPI.has("productionCompanies")) {
 					videoMetadata.setProductionCompanies(metadataFromAPI.get("productionCompanies").toString());
@@ -769,20 +757,7 @@ public class APIUtils {
 
 			//Create/Update Thumbnail
 			if (posterFromApi != null) {
-				try {
-					byte[] image = URI_FILE_RETRIEVER.get(posterFromApi);
-					MediaTableThumbnails.setThumbnail(connection, DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false), null, tvSeriesId, false);
-				} catch (EOFException e) {
-					LOGGER.debug(
-						"Error reading \"{}\" thumbnail from API: Unexpected end of stream, probably corrupt or read error.",
-						file.getName()
-					);
-				} catch (UnknownFormatException e) {
-					LOGGER.debug("Could not read \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-				} catch (IOException e) {
-					LOGGER.error("Error reading \"{}\" thumbnail from API: {}", file.getName(), e.getMessage());
-					LOGGER.trace("", e);
-				}
+				MediaTableThumbnails.setThumbnail(connection, getThumbnailFromUri(posterFromApi), null, tvSeriesId, false);
 			}
 
 			// Replace any close-but-not-exact titles in the FILES table
@@ -1105,6 +1080,27 @@ public class APIUtils {
 			}
 		}
 		return result;
+	}
+
+	public static DLNAThumbnail getThumbnailFromUri(String uri) {
+		try {
+			byte[] image;
+			synchronized (URI_FILE_RETRIEVER) {
+				image = URI_FILE_RETRIEVER.get(uri);
+			}
+			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+		} catch (EOFException e) {
+			LOGGER.debug(
+				"Error reading thumbnail from uri \"{}\": Unexpected end of stream, probably corrupt or read error.",
+				uri
+			);
+		} catch (UnknownFormatException e) {
+			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage());
+		} catch (IOException e) {
+			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 }
