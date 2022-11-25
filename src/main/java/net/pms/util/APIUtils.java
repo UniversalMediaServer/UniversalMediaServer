@@ -1050,7 +1050,7 @@ public class APIUtils {
 	}
 
 	private static ApiStringArray getApiStringArrayFromJsonElement(final JsonElement element) {
-		if (element == null || element.isJsonArray()) {
+		if (element == null || !element.isJsonArray()) {
 			return null;
 		}
 		ApiStringArray result = new ApiStringArray();
@@ -1063,7 +1063,7 @@ public class APIUtils {
 	}
 
 	private static ApiRatingSourceArray getApiRatingSourceArrayFromJsonElement(final JsonElement element) {
-		if (element == null || element.isJsonArray()) {
+		if (element == null || !element.isJsonArray()) {
 			return null;
 		}
 		ApiRatingSourceArray result = new ApiRatingSourceArray();
