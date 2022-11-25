@@ -73,7 +73,9 @@ export const clearJwt = async () => {
   localStorage.removeItem('user');
   const uuid = sessionStorage.getItem('player');
   if (uuid) {
-    await axios.post(playerApiUrl + 'logout', {token:uuid});
+    try {
+      await axios.post(playerApiUrl + 'logout', {uuid:uuid});
+    } catch {/*server Forbidden or Unauthorized*/}
     sessionStorage.removeItem('player');
   }
 }
