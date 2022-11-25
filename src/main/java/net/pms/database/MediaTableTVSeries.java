@@ -16,29 +16,28 @@
  */
 package net.pms.database;
 
-import com.google.gson.*;
-import java.io.EOFException;
-import java.io.IOException;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.metadata.TvSerieMetadata;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
-import net.pms.util.UnknownFormatException;
-import net.pms.util.UriFileRetriever;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableTVSeries extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableTVSeries.class);
+	private static final Gson GSON = new Gson();
 	public static final String TABLE_NAME = "TV_SERIES";
+
 	/**
 	 * COLUMNS
 	 */
@@ -91,11 +90,6 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 7;
-
-
-	private static final Gson GSON = new Gson();
-
-	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -632,22 +626,11 @@ public final class MediaTableTVSeries extends MediaTable {
 
 			String posterURL = (String) posterInfo[0];
 			Long tvSeriesDatabaseId = (Long) posterInfo[1];
-			try {
-				byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-				DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
+			DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(posterURL);
+			if (thumbnail != null) {
 				MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
-				return thumbnail;
-			} catch (EOFException e2) {
-				LOGGER.debug(
-					"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
-					posterURL
-				);
-			} catch (UnknownFormatException e2) {
-				LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-			} catch (IOException e2) {
-				LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-				LOGGER.trace("", e2);
 			}
+			return thumbnail;
 		}
 
 		return null;

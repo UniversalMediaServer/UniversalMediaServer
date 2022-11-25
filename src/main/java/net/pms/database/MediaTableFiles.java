@@ -17,29 +17,24 @@
 package net.pms.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.*;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InvalidClassException;
 import java.sql.*;
 import java.util.ArrayList;
-import net.pms.Messages;
-import net.pms.formats.Format;
-import net.pms.gui.GuiManager;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImageInfo;
-import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.util.FileUtil;
-import net.pms.util.UnknownFormatException;
-import net.pms.util.UriFileRetriever;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.formats.Format;
+import net.pms.gui.GuiManager;
+import net.pms.image.ImageInfo;
+import net.pms.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -70,8 +65,6 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_ALL_FILENAME_MODIFIED = "SELECT * FROM " + TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_THUMBNAILS + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
 
 	public static final String NONAME = "###";
-
-	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -533,105 +526,66 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static DLNAMediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
 		DLNAMediaInfo media = null;
-		try {
+		try (
+			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
+		) {
+			stmt.setString(1, name);
+			stmt.setTimestamp(2, new Timestamp(modified));
 			try (
-				PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
+				ResultSet rs = stmt.executeQuery();
+				PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE " + MediaTableFilesStatus.TABLE_COL_FILENAME + " = ? LIMIT 1");
 			) {
-				stmt.setString(1, name);
-				stmt.setTimestamp(2, new Timestamp(modified));
-				try (
-					ResultSet rs = stmt.executeQuery();
-					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE " + MediaTableFilesStatus.TABLE_COL_FILENAME + " = ? LIMIT 1");
-				) {
-					if (rs.next()) {
-						media = new DLNAMediaInfo();
-						int id = rs.getInt("ID");
-						media.setDuration(toDouble(rs, "DURATION"));
-						media.setBitrate(rs.getInt("BITRATE"));
-						media.setWidth(rs.getInt("WIDTH"));
-						media.setHeight(rs.getInt("HEIGHT"));
-						media.setSize(rs.getLong("MEDIA_SIZE"));
-						media.setCodecV(rs.getString("CODECV"));
-						media.setFrameRate(rs.getString("FRAMERATE"));
-						media.setAspectRatioDvdIso(rs.getString("ASPECTRATIODVD"));
-						media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
-						media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
-						media.setReferenceFrameCount(rs.getByte("REFRAMES"));
-						media.setAvcLevel(rs.getString("AVCLEVEL"));
-						media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
+				if (rs.next()) {
+					media = new DLNAMediaInfo();
+					int id = rs.getInt("ID");
+					media.setDuration(toDouble(rs, "DURATION"));
+					media.setBitrate(rs.getInt("BITRATE"));
+					media.setWidth(rs.getInt("WIDTH"));
+					media.setHeight(rs.getInt("HEIGHT"));
+					media.setSize(rs.getLong("MEDIA_SIZE"));
+					media.setCodecV(rs.getString("CODECV"));
+					media.setFrameRate(rs.getString("FRAMERATE"));
+					media.setAspectRatioDvdIso(rs.getString("ASPECTRATIODVD"));
+					media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
+					media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
+					media.setReferenceFrameCount(rs.getByte("REFRAMES"));
+					media.setAvcLevel(rs.getString("AVCLEVEL"));
+					media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
+					try {
 						media.setThumb((DLNAThumbnail) rs.getObject("THUMBNAIL"));
-						media.setContainer(rs.getString("CONTAINER"));
-						media.setMuxingMode(rs.getString("MUXINGMODE"));
-						media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
-						media.setStereoscopy(rs.getString("STEREOSCOPY"));
-						media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
-						media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
-						media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
-						media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
-						media.setImageCount(rs.getInt("IMAGECOUNT"));
-						media.setVideoBitDepth(rs.getInt("BITDEPTH"));
-						media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
-						media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
-						media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
+					} catch (SQLException se) {
+						//thumb will be recreated on next thumb request
+					}
+					media.setContainer(rs.getString("CONTAINER"));
+					media.setMuxingMode(rs.getString("MUXINGMODE"));
+					media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
+					media.setStereoscopy(rs.getString("STEREOSCOPY"));
+					media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
+					media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
+					media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
+					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
+					media.setImageCount(rs.getInt("IMAGECOUNT"));
+					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
+					media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
+					media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
 
-						media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, id));
-						media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, id));
-						media.setChapters(MediaTableChapters.getChapters(connection, id));
-						media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
-						media.setMediaparsed(true);
+					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, id));
+					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, id));
+					media.setChapters(MediaTableChapters.getChapters(connection, id));
+					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
+					media.setMediaparsed(true);
 
-						status.setString(1, name);
-						try (ResultSet elements = status.executeQuery()) {
-							if (elements.next()) {
-								media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
-								media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
-								media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
-							}
+					status.setString(1, name);
+					try (ResultSet elements = status.executeQuery()) {
+						if (elements.next()) {
+							media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
+							media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
+							media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
 						}
 					}
 				}
 			}
-		} catch (SQLException se) {
-			if (se.getCause() instanceof IOException iOException) {
-				if (se.getCause() instanceof InvalidClassException && se.toString().contains("net.pms.image.ExifInfo; local class incompatible")) {
-					/*
-					 * Serialization failed for ExifInfo or one of its subclasses,
-					 * this is unrecoverable so we need to remove it and allow it to
-					 * be regenerated.
-					 */
-					LOGGER.debug("Thumbnail for {} seems to be from a previous version, reparsing information", name);
-					LOGGER.trace("", se);
-
-					// Regenerate the thumbnail from a stored poster if it exists
-					String posterURL = MediaTableVideoMetadataPosters.getByFilename(connection, name);
-					if (posterURL == null) {
-						LOGGER.debug("No poster URI was found locally for {}, we need to remove and reparse the file", name);
-						removeMediaEntry(connection, name, false);
-						connection.commit();
-						return null;
-					}
-
-					try {
-						byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-						DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-						MediaTableThumbnails.setThumbnail(connection, thumbnail, name, -1, true);
-						return getData(connection, name, modified);
-					} catch (EOFException e2) {
-						LOGGER.debug(
-							"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
-							posterURL
-						);
-					} catch (UnknownFormatException e2) {
-						LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-					} catch (IOException e2) {
-						LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-						LOGGER.trace("", e2);
-					}
-				} else {
-					throw iOException;
-				}
-			}
-			throw se;
 		}
 		return media;
 	}
