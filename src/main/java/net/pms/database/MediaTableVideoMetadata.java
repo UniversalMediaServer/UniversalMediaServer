@@ -187,7 +187,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				COL_PRODUCTIONCOUNTRIES + "   CLOB                                             , " +
 				COL_REVENUE + "               BIGINT                                           , " +
 				COL_TAGLINE + "               VARCHAR                                          , " +
-				COL_VOTES	 + "              VARCHAR                                          , " +
+				COL_VOTES + "                 VARCHAR                                          , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);
