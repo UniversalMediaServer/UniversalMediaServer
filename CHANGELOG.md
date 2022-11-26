@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [12.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.0...12.0.1) (2022-11-27)
 
 ### General:
 - Fixed freeze on startup
