@@ -67,9 +67,12 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final String COL_IMAGES = "IMAGES";
 	private static final String COL_ORIGINALLANGUAGE = "ORIGINALLANGUAGE";
 	private static final String COL_ORIGINALTITLE = "ORIGINALTITLE";
+	private static final String COL_PLOT = "PLOT";
 	private static final String COL_PRODUCTIONCOMPANIES = "PRODUCTIONCOMPANIES";
 	private static final String COL_PRODUCTIONCOUNTRIES = "PRODUCTIONCOUNTRIES";
 	private static final String COL_REVENUE = "REVENUE";
+	private static final String COL_TAGLINE = "TAGLINE";
+	private static final String COL_VOTES = "VOTES";
 
 	/**
 	 * COLUMNS with table name
@@ -101,7 +104,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -136,9 +139,16 @@ public class MediaTableVideoMetadata extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				default -> throw new IllegalStateException(
+				case 1 -> {
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_PLOT + " CLOB");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TAGLINE + " VARCHAR");
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_VOTES + " VARCHAR");
+				}
+				default -> {
+					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
 		try {
@@ -172,9 +182,12 @@ public class MediaTableVideoMetadata extends MediaTable {
 				COL_IMAGES + "                CLOB                                             , " +
 				COL_ORIGINALLANGUAGE + "      VARCHAR                                          , " +
 				COL_ORIGINALTITLE + "         VARCHAR                                          , " +
+				COL_PLOT + "                  CLOB                                             , " +
 				COL_PRODUCTIONCOMPANIES + "   CLOB                                             , " +
 				COL_PRODUCTIONCOUNTRIES + "   CLOB                                             , " +
 				COL_REVENUE + "               BIGINT                                           , " +
+				COL_TAGLINE + "               VARCHAR                                          , " +
+				COL_VOTES	 + "              VARCHAR                                          , " +
 				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
 			")"
 		);
@@ -249,6 +262,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						rs.updateNull(COL_ORIGINALLANGUAGE);
 					}
 					rs.updateString(COL_ORIGINALTITLE, GSON.toJson(videoMetadata.getOriginalTitle()));
+					rs.updateString(COL_PLOT, videoMetadata.getPlot());
 					if (videoMetadata.getProductionCompanies() != null) {
 						rs.updateString(COL_PRODUCTIONCOMPANIES, GSON.toJson(videoMetadata.getProductionCompanies()));
 					} else {
@@ -264,6 +278,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 					} else {
 						rs.updateNull(COL_REVENUE);
 					}
+					rs.updateString(COL_TAGLINE, videoMetadata.getTagline());
+					rs.updateString(COL_VOTES, videoMetadata.getVotes());
 				}
 				if (isCreatingNewRecord) {
 					rs.insertRow();
@@ -360,6 +376,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setImages(rs.getString(COL_IMAGES));
 						metadata.setOriginalLanguage(rs.getString(COL_ORIGINALLANGUAGE));
 						metadata.setOriginalTitle(rs.getString(COL_ORIGINALTITLE));
+						metadata.setPlot(rs.getString(COL_PLOT));
 						metadata.setPoster(MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						metadata.setProduction(MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						metadata.setProductionCompanies(rs.getString(COL_PRODUCTIONCOMPANIES));
@@ -378,6 +395,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setTVSeason(rs.getString(COL_TVSEASON));
 						metadata.setTVEpisodeNumber(rs.getString(COL_TVEPISODENUMBER));
 						metadata.setTVEpisodeName(rs.getString(COL_TVEPISODENAME));
+						metadata.setTagline(rs.getString(COL_TAGLINE));
+						metadata.setVotes(rs.getString(COL_VOTES));
 						return metadata;
 					}
 				}
@@ -423,12 +442,15 @@ public class MediaTableVideoMetadata extends MediaTable {
 						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
 						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
 						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
+						result.addProperty("plot", rs.getString(COL_PLOT));
 						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
 						result.addProperty("rating", MediaTableVideoMetadataIMDbRating.getValueForFile(connection, fileId));
 						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForFile(connection, fileId));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
+						result.addProperty("tagline", rs.getString(COL_TAGLINE));
+						result.addProperty("votes", rs.getString(COL_VOTES));
 						if (rs.getBoolean(COL_ISTVEPISODE)) {
 							String showName = rs.getString(COL_MOVIEORSHOWNAME);
 							if (StringUtils.isNotBlank(showName)) {

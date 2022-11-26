@@ -509,6 +509,7 @@ public class APIUtils {
 					videoMetadata.setOriginalLanguage(metadataFromAPI.get("originalLanguage").toString());
 				}
 				videoMetadata.setOriginalTitle(getStringOrNull(metadataFromAPI, "originalTitle"));
+				videoMetadata.setPlot(getStringOrNull(metadataFromAPI, "plot"));
 				videoMetadata.setProduction(getStringOrNull(metadataFromAPI, "production"));
 				if (metadataFromAPI.has("productionCompanies")) {
 					videoMetadata.setProductionCompanies(metadataFromAPI.get("productionCompanies").toString());
@@ -528,6 +529,8 @@ public class APIUtils {
 				}
 				videoMetadata.setReleased(getStringOrNull(metadataFromAPI, "released"));
 				videoMetadata.setRevenue(getLongOrNull(metadataFromAPI, "revenue"));
+				videoMetadata.setTagline(getStringOrNull(metadataFromAPI, "tagline"));
+				videoMetadata.setVotes(getStringOrNull(metadataFromAPI, "votes"));
 				videoMetadata.setApiVersion(getApiDataVideoVersion());
 				media.setVideoMetadata(videoMetadata);
 

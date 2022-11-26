@@ -57,6 +57,7 @@ public class MediaVideoMetadata {
 	private ApiImages images;
 	private String originalLanguage;
 	private String originalTitle;
+	private String plot;
 	private String poster;
 	private String production;
 	private ApiProdutionCompanyArray productionCompanies;
@@ -67,7 +68,9 @@ public class MediaVideoMetadata {
 	private String released;
 	private Long revenue;
 	private TvSerieMetadata serieMetadata;
+	private String tagline;
 	private String version;
+	private String votes;
 
 	public String getIMDbID() {
 		return imdbID;
@@ -319,6 +322,14 @@ public class MediaVideoMetadata {
 		this.originalTitle = value;
 	}
 
+	public String getPlot() {
+		return plot;
+	}
+
+	public void setPlot(String value) {
+		this.plot = value;
+	}
+
 	public String getPoster() {
 		return poster;
 	}
@@ -424,6 +435,22 @@ public class MediaVideoMetadata {
 
 	public void setSerieMetadata(TvSerieMetadata value) {
 		this.serieMetadata = value;
+	}
+
+	public String getTagline() {
+		return tagline;
+	}
+
+	public void setTagline(String value) {
+		this.tagline = value;
+	}
+
+	public String getVotes() {
+		return votes;
+	}
+
+	public void setVotes(String value) {
+		this.votes = value;
 	}
 
 	public String getVersion() {
