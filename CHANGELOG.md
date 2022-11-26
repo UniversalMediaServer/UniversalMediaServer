@@ -1,5 +1,38 @@
 # Changelog
 
+## Unreleased
+
+### General:
+- Fixed freeze on startup
+- Fixed broken translations on startup language selection
+- Fixed can't add folders via Java GUI in v12 on macOS
+- Fixed not detecting Playlist additions/changes during scans
+- Fixed database update/drop
+- Fixed macOS repeatedly prompting for permissions
+- Fixed react player logout error prevent to browse to login
+
+### Translation updates via Crowdin
+- Slovak (81%) (thanks, Dušan!)
+- Spanish (92%) (thanks, Pablo Camacho!)
+
+### Dependencies
+- Update dependency @types/jest to v29.2.3
+- Update dependency @types/lodash to v4.14.190
+- Update dependency @types/react-dom to v18.0.9
+- Update dependency axios to v1.2.0
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.14.1
+- Update dependency com.github.oshi:oshi-core to v6.3.2
+- Update dependency eslint to v8.28.0
+- Update logback-version to v1.4.5
+- Update Mantine monorepo packages to v5.8.3
+- Update dependency org.slf4j:slf4j-api to v2.0.5
+- Update dependency web-vitals to v3.1.0
+- Update twelvemonkeys-imageio-version to v3.9.4
+- Update dependency typescript to v4.9.3
+- Update typescript-eslint monorepo to v5.44.0
+- Update dependency video.js to v7.21.1
+- Update dependency videojs-contrib-quality-levels to v2.2.1
+
 ## [12.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.6.0...12.0.0) (2022-11-15)
 
 ### General:
