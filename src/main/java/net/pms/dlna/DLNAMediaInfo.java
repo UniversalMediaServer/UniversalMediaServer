@@ -936,7 +936,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 			if (type == Format.VIDEO) {
-				if (hasVideoMetadata() && videoMetadata.getPoster() != null) {
+				if (!resume && hasVideoMetadata() && videoMetadata.getPoster() != null) {
 					//API Poster
 					setThumb(APIUtils.getThumbnailFromUri(videoMetadata.getPoster()));
 				}
