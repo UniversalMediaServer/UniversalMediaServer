@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.media.metadata.MediaVideoMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -413,12 +414,12 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param path the full path of the media.
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final String path) {
+	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final String path, final String lang) {
 		Long fileId = MediaTableFiles.getFileId(connection, path);
-		return getVideoMetadataAsJsonObject(connection, fileId);
+		return getVideoMetadataAsJsonObject(connection, fileId, lang);
 	}
 
-	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final Long fileId) {
+	public static JsonObject getVideoMetadataAsJsonObject(final Connection connection, final Long fileId, final String lang) {
 		if (connection == null || fileId == null) {
 			return null;
 		}
@@ -432,7 +433,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 				try (ResultSet rs = selectStatement.executeQuery()) {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
-						result.addProperty("imdbID", rs.getString(COL_IMDBID));
+						String imdbID = rs.getString(COL_IMDBID);
+						result.addProperty("imdbID", imdbID);
 						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForFile(connection, fileId));
 						result.addProperty("awards", MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForFile(connection, fileId));
@@ -455,6 +457,27 @@ public class MediaTableVideoMetadata extends MediaTable {
 							String showName = rs.getString(COL_MOVIEORSHOWNAME);
 							if (StringUtils.isNotBlank(showName)) {
 								addJsonElementToJsonObjectIfExists(result, "seriesImages", MediaTableTVSeries.getImagesByTitle(connection, showName));
+							}
+						}
+						if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
+							VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID);
+							if (loc != null) {
+								if (loc.getPlot() != null) {
+									result.remove("plot");
+									result.addProperty("plot", loc.getPlot());
+								}
+								if (loc.getPoster() != null) {
+									result.remove("poster");
+									result.addProperty("poster", loc.getPoster());
+								}
+								if (loc.getTagline() != null) {
+									result.remove("tagline");
+									result.addProperty("tagline", loc.getTagline());
+								}
+								if (loc.getTitle() != null) {
+									result.remove("title");
+									result.addProperty("title", loc.getTitle());
+								}
 							}
 						}
 						return result;

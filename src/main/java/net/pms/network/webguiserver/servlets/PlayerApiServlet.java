@@ -218,7 +218,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
 						String search = action.has("search") ? action.get("search").getAsString() : null;
-						JsonObject browse = getBrowsePage(renderer, id, search);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject browse = getBrowsePage(renderer, id, search, lang);
 						if (browse != null) {
 							WebGuiServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
 							return;
@@ -233,7 +234,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				case "/play" -> {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
-						JsonObject play = getPlayPage(renderer, id);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject play = getPlayPage(renderer, id, lang);
 						if (play != null) {
 							WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
 							return;
@@ -244,7 +246,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				case "/show" -> {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
-						JsonObject show = getShowPage(renderer, id);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject show = getShowPage(renderer, id, lang);
 						if (show != null) {
 							WebGuiServletHelper.respond(req, resp, show.toString(), 200, "application/json");
 							return;
@@ -305,7 +308,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getBrowsePage(Renderer renderer, String id, String search) throws IOException, InterruptedException {
+	private JsonObject getBrowsePage(Renderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -477,7 +480,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, true, renderer);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, true, renderer, lang);
 					if (apiMetadata != null) {
 						result.add("metadata", apiMetadata);
 					}
@@ -591,8 +594,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jLibraryVideos;
 	}
 
-	private JsonObject getShowPage(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
-		JsonObject result = getPlayPage(renderer, id);
+	private JsonObject getShowPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
+		JsonObject result = getPlayPage(renderer, id, lang);
 		if (result != null) {
 			result.remove("goal");
 			result.addProperty("goal", "show");
@@ -600,7 +603,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private JsonObject getPlayPage(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
+	private JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make play page " + id);
@@ -635,7 +638,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, false, renderer);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, false, renderer, lang);
 					media.add("metadata", apiMetadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
@@ -1092,15 +1095,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, Renderer renderer) {
+	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, Renderer renderer, String lang) {
 		JsonObject result = null;
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle);
+					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle, lang);
 				} else {
-					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName(), lang);
 				}
 			}
 		} catch (Exception e) {

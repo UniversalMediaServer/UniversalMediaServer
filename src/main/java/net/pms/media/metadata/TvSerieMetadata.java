@@ -321,6 +321,14 @@ public class TvSerieMetadata {
 		}
 	}
 
+	public String getPlot() {
+		return plot;
+	}
+
+	public void setPlot(String value) {
+		this.plot = value;
+	}
+
 	public String getPoster() {
 		return poster;
 	}
@@ -369,14 +377,6 @@ public class TvSerieMetadata {
 			LOGGER.error("Error in parsing production countries: {}", e.getMessage());
 			this.productionCountries = null;
 		}
-	}
-
-	public String getPlot() {
-		return plot;
-	}
-
-	public void setPlot(String value) {
-		this.plot = value;
 	}
 
 	public String getRated() {

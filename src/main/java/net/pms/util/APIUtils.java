@@ -20,6 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import info.movito.themoviedbapi.TmdbApi;
+import info.movito.themoviedbapi.TmdbFind;
+import info.movito.themoviedbapi.model.FindResults;
+import info.movito.themoviedbapi.model.MovieDb;
+import info.movito.themoviedbapi.model.tv.TvSeries;
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
@@ -59,6 +64,7 @@ import net.pms.media.metadata.ApiRatingSourceArray;
 import net.pms.media.metadata.ApiStringArray;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.media.metadata.TvSerieMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -1106,6 +1112,44 @@ public class APIUtils {
 		} catch (IOException e) {
 			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
 			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * FIXME : this should be from the UMS API.
+	 * just use info.movito.themoviedbapi for proof of concept.
+	 *
+	 * should use something like:
+	 * router.get('/localize', async(ctx) => {}
+	 * use tmdb.find = async(params?: FindRequest) from tmdb-api.ts
+	 * @param imdbId
+	 * @param fromTvSeries
+	 * @param language
+	 * @return
+	 */
+	public static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdb(String imdbId, boolean fromTvSeries, String language) {
+		String tmdbApiKey = CONFIGURATION.getString("tmdb_api_key", "");
+		if (imdbId != null && CONFIGURATION.getExternalNetwork() && StringUtils.isNotBlank(tmdbApiKey)) {
+			TmdbFind finder = new TmdbApi(tmdbApiKey).getFind();
+			FindResults result = finder.find(imdbId, TmdbFind.ExternalSource.imdb_id, language);
+			if (fromTvSeries) {
+				if (!result.getTvResults().isEmpty()) {
+					TvSeries tvSerie = result.getTvResults().get(0);
+					VideoMetadataLocalized metadata = new VideoMetadataLocalized();
+					metadata.setPlot(tvSerie.getOverview());
+					metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, tvSerie.getPosterPath()));
+					return metadata;
+				}
+			} else if (!result.getMovieResults().isEmpty()) {
+				MovieDb movie = result.getMovieResults().get(0);
+				VideoMetadataLocalized metadata = new VideoMetadataLocalized();
+				metadata.setPlot(movie.getOverview());
+				metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, movie.getPosterPath()));
+				metadata.setTagline(movie.getTagline());
+				metadata.setTitle(movie.getTitle());
+				return metadata;
+			}
 		}
 		return null;
 	}

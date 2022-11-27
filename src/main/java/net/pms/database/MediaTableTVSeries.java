@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.media.metadata.TvSerieMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -679,7 +680,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param simplifiedTitle
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static JsonObject getTvSerieMetadataAsJsonObject(final Connection connection, final String simplifiedTitle) {
+	public static JsonObject getTvSerieMetadataAsJsonObject(final Connection connection, final String simplifiedTitle, final String lang) {
 		if (connection == null || simplifiedTitle == null) {
 			return null;
 		}
@@ -696,7 +697,8 @@ public final class MediaTableTVSeries extends MediaTable {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
 						Long id = rs.getLong("ID");
-						result.addProperty("imdbID", rs.getString(COL_IMDBID));
+						String imdbID = rs.getString(COL_IMDBID);
+						result.addProperty("imdbID", imdbID);
 						result.addProperty("plot", rs.getString("PLOT"));
 						result.addProperty("startYear", rs.getString("STARTYEAR"));
 						result.addProperty("endYear", rs.getString("ENDYEAR"));
@@ -737,6 +739,19 @@ public final class MediaTableTVSeries extends MediaTable {
 						result.addProperty("rating", MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, id));
 						result.add("ratings", MediaTableVideoMetadataRatings.getJsonArrayForTvSerie(connection, id));
 						result.addProperty("released", MediaTableVideoMetadataReleased.getValueForTvSerie(connection, id));
+						if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
+							VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, id, true, lang, imdbID);
+							if (loc != null) {
+								if (loc.getPlot() != null) {
+									result.remove("plot");
+									result.addProperty("plot", loc.getPlot());
+								}
+								if (loc.getPoster() != null) {
+									result.remove("poster");
+									result.addProperty("poster", loc.getPoster());
+								}
+							}
+						}
 						return result;
 					}
 				}

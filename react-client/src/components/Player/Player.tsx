@@ -521,7 +521,7 @@ export const Player = () => {
   useEffect(() => {
     if (uuid && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId })
+      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId, lang: i18n.language })
         .then(function (response: any) {
           setData(response.data);
           const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
