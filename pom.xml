@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>12.0.0-SNAPSHOT</version>
+	<version>12.0.1</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>12.0.0</project.version.short>
+		<project.version.short>12.0.1</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -61,7 +61,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<twelvemonkeys-imageio-version>3.9.3</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.9.4</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -91,7 +91,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.4</slf4j-api-version>
+		<slf4j-api-version>2.0.5</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
@@ -105,7 +105,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.14.0</jackson.version>
+		<jackson.version>2.14.1</jackson.version>
 
 		<surefire-version>3.0.0-M7</surefire-version>
 
