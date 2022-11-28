@@ -1120,7 +1120,7 @@ public class APIUtils {
 	 * FIXME : this should be from the UMS API.
 	 * just use info.movito.themoviedbapi for proof of concept.
 	 *
-	 * should use something like:
+	 * should use the UMS API with something like:
 	 * router.get('/localize', async(ctx) => {}
 	 * use tmdb.find = async(params?: FindRequest) from tmdb-api.ts
 	 * @param imdbId
@@ -1131,10 +1131,12 @@ public class APIUtils {
 	public static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdb(String imdbId, boolean fromTvSeries, String language) {
 		String tmdbApiKey = CONFIGURATION.getString("tmdb_api_key", "");
 		if (imdbId != null && CONFIGURATION.getExternalNetwork() && StringUtils.isNotBlank(tmdbApiKey)) {
+			LOGGER.info("API lookup translation {} for imdb ID: {}", language, imdbId);
 			TmdbFind finder = new TmdbApi(tmdbApiKey).getFind();
 			FindResults result = finder.find(imdbId, TmdbFind.ExternalSource.imdb_id, language);
 			if (fromTvSeries) {
 				if (!result.getTvResults().isEmpty()) {
+					LOGGER.debug("API Tv Series translation {} found for imdb ID: {}", language, imdbId);
 					TvSeries tvSerie = result.getTvResults().get(0);
 					VideoMetadataLocalized metadata = new VideoMetadataLocalized();
 					metadata.setPlot(tvSerie.getOverview());
@@ -1142,6 +1144,7 @@ public class APIUtils {
 					return metadata;
 				}
 			} else if (!result.getMovieResults().isEmpty()) {
+				LOGGER.debug("API Movie translation {} found for imdb ID: {}", language, imdbId);
 				MovieDb movie = result.getMovieResults().get(0);
 				VideoMetadataLocalized metadata = new VideoMetadataLocalized();
 				metadata.setPlot(movie.getOverview());
@@ -1151,6 +1154,7 @@ public class APIUtils {
 				return metadata;
 			}
 		}
+		LOGGER.debug("API lookup translation {} was not found for imdb ID: {}", language, imdbId);
 		return null;
 	}
 

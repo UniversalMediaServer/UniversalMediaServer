@@ -547,7 +547,7 @@ export const Player = () => {
           setLoading(false);
         });
     }
-  }, [uuid, sse.reqType, sse.reqId]);
+  }, [uuid, sse.reqType, sse.reqId, i18n.language]);
 
   useEffect(() => {
     const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
