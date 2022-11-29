@@ -16,57 +16,23 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
-import net.pms.configuration.RendererConfigurations;
-import net.pms.configuration.sharedcontent.SharedContentArray;
-import net.pms.configuration.sharedcontent.SharedContentConfiguration;
-import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.renderers.Renderer;
-import net.pms.service.Services;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.renderers.Renderer;
 
 public class SearchRequestHandlerTest {
+
 	private static final Logger LOG = LoggerFactory.getLogger(SearchRequestHandlerTest.class.getName());
 
-	/**
-	 * Set up testing conditions before running the tests.
-	 *
-	 * @throws ConfigurationException
-	 */
 	@BeforeAll
 	public static final void setUp() throws ConfigurationException, InterruptedException {
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.INFO);
-		PMS.forceHeadless();
-		try {
-			PMS.setConfiguration(new UmsConfiguration(false));
-		} catch (Exception ex) {
-			throw new AssertionError(ex);
-		}
-		assert PMS.getConfiguration() != null;
-		PMS.getConfiguration().setAutomaticMaximumBitrate(false); // do not test the network speed.
-		SharedContentConfiguration.updateSharedContent(new SharedContentArray(), false);
-		PMS.getConfiguration().setScanSharedFoldersOnStartup(false);
-		PMS.getConfiguration().setUseCache(false);
-
-		Services.destroy();
-
-		try {
-			PMS.getConfiguration().initCred();
-		} catch (Exception ex) {
-			LOG.warn("Failed to write credentials configuration", ex);
-		}
-
-		// Create a new PMS instance
-		PMS.getNewInstance();
+		// No need to setup anything
 	}
 
 	@Test
@@ -76,10 +42,37 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s));
+		SearchRequestHandler h = new SearchRequestHandler();
+		String result = h.convertToFilesSql(sr, h.getRequestType(s));
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
 			"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
+	}
+
+	/**
+	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
+	 */
+	@Test
+	public void testLinnAppComposerSearch() {
+		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"";
+		SearchRequestHandler h = new SearchRequestHandler();
+		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		LOG.info(countSQL);
+		assertTrue(countSQL.matches(
+			"select\\s+count\\s+\\(\\s*DISTINCT\\s+COALESCE\\s*\\(\\s*A.ALBUMARTIST\\s*,\\s*A.ARTIST\\s*\\)\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+	}
+
+	/**
+	 * Tests SearchCriteria issued by LINN app (iOS) for Composer
+	 */
+	@Test
+	public void testLinnAppSpecialCharSearch() {
+		String searchCriteria = "upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"love don't\"";
+		SearchRequestHandler h = new SearchRequestHandler();
+		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		LOG.info(countSQL);
+		assertTrue(countSQL.matches(
+			"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIOTRACKS\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.SONGNAME\\s*\\)\\s+LIKE\\s+'%love don''t%'"));
 	}
 
 	@Test
