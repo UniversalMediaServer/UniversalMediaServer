@@ -333,7 +333,10 @@ public class SearchRequestHandler {
 		if ("dc:title".equalsIgnoreCase(property)) {
 			return getTitlePropertyMapping(requestType);
 		} else if (property.toLowerCase().startsWith("upnp:artist")) {
-			// we also match @role=conductor and @role=composer
+			if (property.toLowerCase().contains("albumartist")) {
+				return " A.ALBUMARTIST ";
+			}
+			// this matches all other like : @role=conductor and @role=composer
 			return " A.ARTIST ";
 		} else if ("upnp:genre".equalsIgnoreCase(property)) {
 			return " A.GENRE ";
