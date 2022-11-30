@@ -7464,10 +7464,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:1.2.7":
-  version: 1.2.7
-  resolution: "hls.js@npm:1.2.7"
-  checksum: b36221f523a7c530b399227f6f1708c2c57b4ea4936fdf5bb48230388b3aa5fe0284b35b1d9fea110d61b5a090516a37e49a8d5000fe3831e3e250610ac76957
+"hls.js@npm:1.2.8":
+  version: 1.2.8
+  resolution: "hls.js@npm:1.2.8"
+  checksum: b7e4269025da1f8b109589208ab28371c08446ea3f097cc1aa09a1ff5475d4d2ec19296d4b9c534b118594315246e9305c7e84a605866b0ddd41f6966985d571
   languageName: node
   linkType: hard
 
@@ -13369,7 +13369,7 @@ __metadata:
     axios: 1.2.0
     eslint: 8.28.0
     eslint-plugin-react: 7.31.11
-    hls.js: 1.2.7
+    hls.js: 1.2.8
     jwt-decode: 3.1.2
     lodash: 4.17.21
     react: 18.2.0

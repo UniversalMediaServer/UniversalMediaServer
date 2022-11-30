@@ -14,7 +14,7 @@
     "@mantine/prism": "5.8.4",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.2.0",
-    "hls.js": "1.2.7",
+    "hls.js": "1.2.8",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
     "react": "18.2.0",
