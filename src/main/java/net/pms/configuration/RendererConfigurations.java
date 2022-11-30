@@ -131,7 +131,7 @@ public class RendererConfigurations {
 	 *
 	 * @since 1.50.1
 	 */
-	public static RendererConfiguration getRendererConfigurationByName(String name) {
+	public static synchronized RendererConfiguration getRendererConfigurationByName(String name) {
 		for (RendererConfiguration conf : ENABLED_RENDERERS_CONFS) {
 			if (conf.getConfName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
@@ -140,7 +140,7 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+	public static synchronized RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (PMS.getConfiguration().isRendererForceDefault()) {
 			// Force default renderer
 			RendererConfiguration r = getDefaultConf();
@@ -156,7 +156,7 @@ public class RendererConfigurations {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
+	public static synchronized RendererConfiguration getRendererConfigurationByUPNPDetails(String details) {
 		for (RendererConfiguration r : ENABLED_RENDERERS_CONFS) {
 			if (r.matchUPNPDetails(details)) {
 				LOGGER.debug("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
