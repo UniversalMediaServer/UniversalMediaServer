@@ -315,8 +315,7 @@ public class SearchRequestHandler {
 		if ("=".equals(op)) {
 			sb.append(String.format(" %s = '%s' ", getField(property, requestType), val));
 		} else if ("contains".equals(op)) {
-			sb.append(
-				String.format("LOWER(%s) LIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val)));
+			sb.append(String.format("LOWER(%s) LIKE '%%%s%%'", getField(property, requestType), escapeH2dbSql(val)));
 		} else {
 			throw new RuntimeException("unknown or unimplemented operator : " + op);
 		}
@@ -325,28 +324,31 @@ public class SearchRequestHandler {
 
 	private String escapeH2dbSql(String val) {
 		val = val.replaceAll("'", "''");
+		val = val.replaceAll("‘", "''"); // Unicode #2018 is send by iOS (since 11) if "Smart Punctuation" is active
+
 		return val;
 	}
 
-	private String getField(String property, DbIdMediaType requestType) {
-		// handle title by return type.
+	private String getField(String prop, DbIdMediaType requestType) {
+		String property = prop.toLowerCase();
 		if ("dc:title".equalsIgnoreCase(property)) {
+			// handle title by return type.
 			return getTitlePropertyMapping(requestType);
-		} else if (property.toLowerCase().startsWith("upnp:artist")) {
-			if (property.toLowerCase().contains("albumartist")) {
+		} else if (property.startsWith("upnp:artist")) {
+			if (property.contains("albumartist")) {
 				return " A.ALBUMARTIST ";
 			}
 			// this matches all other like : @role=conductor and @role=composer
 			return " A.ARTIST ";
-		} else if ("upnp:genre".equalsIgnoreCase(property)) {
+		} else if ("upnp:genre".equals(property)) {
 			return " A.GENRE ";
-		} else if ("dc:creator".equalsIgnoreCase(property)) {
+		} else if ("dc:creator".equals(property)) {
 			return " A.ALBUMARTIST ";
-		} else if ("upnp:album".equalsIgnoreCase(property)) {
+		} else if ("upnp:album".equals(property)) {
 			return " A.ALBUM ";
-		} else if ("upnp:rating".equalsIgnoreCase(property)) {
+		} else if ("upnp:rating".equals(property)) {
 			return " rating ";
-		} else if ("ums:likedAlbum".equalsIgnoreCase(property)) {
+		} else if ("ums:likedalbum".equals(property)) {
 			return " liked ";
 		}
 
