@@ -459,7 +459,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebPlayerServer()) {
-			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
+			webinterface = createToolBarButton(Messages.getString("WebSettings"), "button-wif.png", Messages.getString("ThisLaunchesOurWebSettings"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
