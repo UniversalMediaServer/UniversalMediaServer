@@ -22,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class keeps track of the TV serie metadata of media.
+ * This class keeps track of the TV series metadata of media.
  */
-public class TvSerieMetadata {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TvSerieMetadata.class);
+public class TvSeriesMetadata {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TvSeriesMetadata.class);
 	private static final Gson GSON = new Gson();
 
 	/**
@@ -56,7 +56,7 @@ public class TvSerieMetadata {
 	private String plot;
 	private String poster;
 	private String production;
-	private ApiProdutionCompanyArray productionCompanies;
+	private ApiProductionCompanyArray productionCompanies;
 	private ApiCountryArray productionCountries;
 	private String rated;
 	private String rating;
@@ -337,17 +337,17 @@ public class TvSerieMetadata {
 		this.production = value;
 	}
 
-	public ApiProdutionCompanyArray getProductionCompanies() {
+	public ApiProductionCompanyArray getProductionCompanies() {
 		return productionCompanies;
 	}
 
-	public void setProductionCompanies(ApiProdutionCompanyArray value) {
+	public void setProductionCompanies(ApiProductionCompanyArray value) {
 		this.productionCompanies = value;
 	}
 
 	public void setProductionCompanies(String value) {
 		try {
-			this.productionCompanies = GSON.fromJson(value, ApiProdutionCompanyArray.class);
+			this.productionCompanies = GSON.fromJson(value, ApiProductionCompanyArray.class);
 		} catch (JsonSyntaxException e) {
 			LOGGER.error("Error in parsing production companies: {}", e.getMessage());
 			this.productionCompanies = null;

@@ -60,14 +60,14 @@ public class MediaVideoMetadata {
 	private String plot;
 	private String poster;
 	private String production;
-	private ApiProdutionCompanyArray productionCompanies;
+	private ApiProductionCompanyArray productionCompanies;
 	private ApiCountryArray productionCountries;
 	private String rated;
 	private String rating;
 	private ApiRatingSourceArray ratings;
 	private String released;
 	private Long revenue;
-	private TvSerieMetadata serieMetadata;
+	private TvSeriesMetadata seriesMetadata;
 	private String tagline;
 	private String version;
 	private String votes;
@@ -346,17 +346,17 @@ public class MediaVideoMetadata {
 		this.production = value;
 	}
 
-	public ApiProdutionCompanyArray getProductionCompanies() {
+	public ApiProductionCompanyArray getProductionCompanies() {
 		return productionCompanies;
 	}
 
-	public void setProductionCompanies(ApiProdutionCompanyArray value) {
+	public void setProductionCompanies(ApiProductionCompanyArray value) {
 		this.productionCompanies = value;
 	}
 
 	public void setProductionCompanies(String value) {
 		try {
-			this.productionCompanies = GSON.fromJson(value, ApiProdutionCompanyArray.class);
+			this.productionCompanies = GSON.fromJson(value, ApiProductionCompanyArray.class);
 		} catch (JsonSyntaxException e) {
 			LOGGER.error("Error in parsing production companies: {}", e.getMessage());
 			this.productionCompanies = null;
@@ -429,12 +429,12 @@ public class MediaVideoMetadata {
 		this.revenue = value;
 	}
 
-	public TvSerieMetadata getSerieMetadata() {
-		return serieMetadata;
+	public TvSeriesMetadata getSeriesMetadata() {
+		return seriesMetadata;
 	}
 
-	public void setSerieMetadata(TvSerieMetadata value) {
-		this.serieMetadata = value;
+	public void setSeriesMetadata(TvSeriesMetadata value) {
+		this.seriesMetadata = value;
 	}
 
 	public String getTagline() {

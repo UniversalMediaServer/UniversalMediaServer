@@ -16,7 +16,46 @@
  */
 package net.pms.media.metadata;
 
-import java.util.ArrayList;
+import com.google.gson.annotations.SerializedName;
 
-public class ApiProdutionCompanyArray extends ArrayList<ApiProdutionCompany> {
+public class ApiProductionCompany {
+	private int id;
+	@SerializedName("logo_path")
+	private String logoPath;
+	private String name;
+	@SerializedName("origin_country")
+	private String originCountry;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int value) {
+		this.id = value;
+	}
+
+	public String getLogoPath() {
+		return logoPath;
+	}
+
+	public void setLogoPath(String value) {
+		this.logoPath = value;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String value) {
+		this.name = value;
+	}
+
+	public String getOriginCountry() {
+		return originCountry;
+	}
+
+	public void setOriginCountry(String value) {
+		this.originCountry = value;
+	}
+
 }
