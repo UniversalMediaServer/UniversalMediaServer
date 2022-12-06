@@ -46,7 +46,6 @@ import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.parsers.mediainfo.InfoKind;
 import net.pms.parsers.mediainfo.MediaInfo;
 import net.pms.parsers.mediainfo.StreamKind;
-import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.StringUtil;
@@ -143,7 +142,9 @@ public class MediaInfoParser {
 	/**
 	 * Parse media via MediaInfo.
 	 */
-	public static synchronized void parse(DLNAMediaInfo media, InputFile inputFile, int type, Renderer renderer) {
+	public static synchronized void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
+		media.waitMediaParsing(5);
+		media.setParsing(true);
 		File file = inputFile.getFile();
 		ParseLogger parseLogger = LOGGER.isTraceEnabled() ? new ParseLogger() : null;
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.openFile(file.getAbsolutePath()) > 0) {
@@ -652,6 +653,7 @@ public class MediaInfoParser {
 
 			media.setMediaparsed(true);
 		}
+		media.setParsing(false);
 	}
 
 	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {

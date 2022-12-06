@@ -17,14 +17,14 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
+import net.pms.media.metadata.ApiRatingSource;
+import net.pms.media.metadata.ApiRatingSourceArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,8 +153,8 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 	 * @param ratings
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement ratings, final Long tvSeriesID) {
-		if (ratings == null || !ratings.isJsonArray() || ratings.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiRatingSourceArray ratings, final Long tvSeriesID) {
+		if (ratings == null || ratings.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -173,12 +173,13 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = ratings.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				JsonObject rating = i.next().getAsJsonObject();
-				String source = rating.has("Source") ? rating.get("Source").getAsString() : null;
-				String value = rating.has("Value") ? rating.get("Value").getAsString() : null;
+			for (ApiRatingSource rating : ratings) {
+				String source = rating.getSource();
+				String value = rating.getValue();
 
+				if (source == null) {
+					continue;
+				}
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(source, 1024));
@@ -209,6 +210,27 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		}
 	}
 
+	public static ApiRatingSourceArray getRatingsForFile(final Connection connection, final Long fileId) {
+		ApiRatingSourceArray result = new ApiRatingSourceArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						ApiRatingSource source = new ApiRatingSource();
+						source.setSource(rs.getString(1));
+						source.setValue(rs.getString(2));
+						result.add(source);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for file ID \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -225,6 +247,27 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiRatingSourceArray getRatingsForTvSerie(final Connection connection, final Long tvSerieId) {
+		ApiRatingSourceArray result = new ApiRatingSourceArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						ApiRatingSource source = new ApiRatingSource();
+						source.setSource(rs.getString(1));
+						source.setValue(rs.getString(2));
+						result.add(source);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for tv serie ID \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

@@ -246,6 +246,12 @@ export const Player = () => {
       </Group>);
     }
   }
+ 
+  const getMetadataBaseMedia = (title: string, media?: BaseMedia) => {
+    if (media) {
+      return getMetadataBaseMediaList(title, [media]);
+    }
+  }
 
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
@@ -275,8 +281,11 @@ export const Player = () => {
   const metadata = data.goal === 'show' ? (media as any).metadata : data.metadata;
 
   function getMetadataImages(metadata?: VideoMetadata, media?: BaseMedia) {
-    let logo, poster;
-    if (metadata && metadata.images && metadata.images.length > 0) {
+    let logo, poster, imdb;
+    if (metadata && metadata.imdbID) {
+      imdb = (<a href={'https://www.imdb.com/title/' + metadata.imdbID} rel="noopener noreferrer" target="_blank"><svg aria-hidden="true" width="1.5em" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" color="#e0ac00"><path fill="currentColor" d="M350.5 288.7c0 5.4 1.6 14.4-6.2 14.4-1.6 0-3-.8-3.8-2.4-2.2-5.1-1.1-44.1-1.1-44.7 0-3.8-1.1-12.7 4.9-12.7 7.3 0 6.2 7.3 6.2 12.7v32.7zM265 229.9c0-9.7 1.6-16-10.3-16v83.7c12.2.3 10.3-8.7 10.3-18.4v-49.3zM448 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zM21.3 228.8c-.1.1-.2.3-.3.4h.3v-.4zM97 192H64v127.8h33V192zm113.3 0h-43.1l-7.6 59.9c-2.7-20-5.4-40.1-8.7-59.9h-42.8v127.8h29v-84.5l12.2 84.5h20.6l11.6-86.4v86.4h28.7V192zm86.3 45.3c0-8.1.3-16.8-1.4-24.4-4.3-22.5-31.4-20.9-49-20.9h-24.6v127.8c86.1.1 75 6 75-82.5zm85.9 17.3c0-17.3-.8-30.1-22.2-30.1-8.9 0-14.9 2.7-20.9 9.2V192h-31.7v127.8h29.8l1.9-8.1c5.7 6.8 11.9 9.8 20.9 9.8 19.8 0 22.2-15.2 22.2-30.9v-36z"></path></svg></a>);
+    }
+    if (metadata && metadata.images && metadata.images.length > 0 && metadata.imageBaseURL) {
       const iso639 = i18n.language.substring(0,2);
       const apiImagesList = metadata.images[0];
 
@@ -294,17 +303,12 @@ export const Player = () => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
           logo = (
-            <Container pb='xs'>
+            <Group pb='xs'>
               <img src={metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={metadata.originalTitle}></img>
-            </Container>
+              {imdb}
+            </Group>
           );
         }
-      }
-      if (!logo && metadata.originalTitle) {
-        logo = (<Text pb='xs'>{metadata.originalTitle}</Text>);
-      }
-      if (!logo && media) {
-        logo = (<Text pb='xs'>{media.name}</Text>);
       }
       // Set a poster
       if (apiImagesList && apiImagesList.posters && apiImagesList.posters.length > 0) {
@@ -322,14 +326,29 @@ export const Player = () => {
           poster = (<img className="poster" src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt="Poster" />);
         }
       }
-      if (!poster && metadata.poster) {
-        poster = (<img className="poster" src={metadata.poster} />);
-      }
-      if (!poster && media) {
-        poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
-      }
     }
-  
+    if (!logo && metadata && metadata.originalTitle) {
+      logo = (
+        <Group pb='xs'>
+          <Text pb='xs'>{metadata.originalTitle}</Text>
+          {imdb}
+        </Group>
+      );
+    }
+    if (!logo && media && media.name) {
+      logo = (
+        <Group pb='xs'>
+          <Text pb='xs'>{media.name}</Text>
+          {imdb}
+        </Group>
+      );
+    }
+    if (!poster && metadata && metadata.poster) {
+      poster = (<img className="poster" src={metadata.poster} />);
+    }
+    if (!poster && media && media.id) {
+      poster = (<img className="poster" src={playerApiUrl + "thumb/" + uuid + "/"  + media.id} />);
+    }
     return { logo, poster };
   }
 
@@ -442,7 +461,10 @@ export const Player = () => {
                   { getMetadataBaseMediaList('Director', metadata.directors) }
                   { getMetadataBaseMediaList('Genres', metadata.genres) }
                   { getMetadataString('Plot', metadata.plot) }
+                  { getMetadataBaseMedia('Rated', metadata.rated) }
                   { getMetadataRatingList(metadata.ratings) }
+                  { getMetadataString('YearStarted', metadata.startYear) }
+                  { getMetadataString('TotalSeasons', metadata.totalSeasons) }
                 </Card>
               </Grid.Col>
             </Grid>
@@ -664,6 +686,7 @@ interface VideoMetadata {
   createdBy?: string,
   credits?: string,
   directors?: BaseMedia[],
+  endYear?: string,
   externalIDs?: string,
   firstAirDate?: string,
   genres?: BaseMedia[],
@@ -685,6 +708,7 @@ interface VideoMetadata {
   productionCompanies?: string,
   productionCountries?: string,
   rated?: BaseMedia,
+  rating?: string,
   ratings?: MediaRating[],
   seasons?: string,
   seriesType?: string,
@@ -693,6 +717,7 @@ interface VideoMetadata {
   status?: string,
   tagline?: string,
   totalSeasons?: number,
+  votes?: string,
 }
 
 interface VideoMetadataImages {
