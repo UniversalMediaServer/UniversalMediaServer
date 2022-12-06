@@ -63,7 +63,7 @@ import net.pms.media.metadata.ApiRatingSource;
 import net.pms.media.metadata.ApiRatingSourceArray;
 import net.pms.media.metadata.ApiStringArray;
 import net.pms.media.metadata.MediaVideoMetadata;
-import net.pms.media.metadata.TvSerieMetadata;
+import net.pms.media.metadata.TvSeriesMetadata;
 import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -270,7 +270,7 @@ public class APIUtils {
 	}
 
 	/**
-	 * Enhances existing serieMetadata attached to this media by querying our API.
+	 * Enhances existing seriesMetadata attached to this media by querying our API.
 	 *
 	 * @param file
 	 * @param media
@@ -690,83 +690,83 @@ public class APIUtils {
 				getStringOrNull(seriesMetadataFromAPI, "posterRelativePath")
 			);
 
-			//create the TvSerieMetadata
-			TvSerieMetadata serieMetadata = new TvSerieMetadata();
-			serieMetadata.setActors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("actors")));
-			serieMetadata.setApiVersion(getApiDataSeriesVersion());
-			serieMetadata.setAwards(getStringOrNull(seriesMetadataFromAPI, "awards"));
-			serieMetadata.setCountries(getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")));
+			//create the TvSeriesMetadata
+			TvSeriesMetadata seriesMetadata = new TvSeriesMetadata();
+			seriesMetadata.setActors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("actors")));
+			seriesMetadata.setApiVersion(getApiDataSeriesVersion());
+			seriesMetadata.setAwards(getStringOrNull(seriesMetadataFromAPI, "awards"));
+			seriesMetadata.setCountries(getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")));
 			if (seriesMetadataFromAPI.has("createdBy")) {
-				serieMetadata.setCreatedBy(seriesMetadataFromAPI.get("createdBy").toString());
+				seriesMetadata.setCreatedBy(seriesMetadataFromAPI.get("createdBy").toString());
 			}
 			if (seriesMetadataFromAPI.has("credits")) {
-				serieMetadata.setCredits(seriesMetadataFromAPI.get("credits").toString());
+				seriesMetadata.setCredits(seriesMetadataFromAPI.get("credits").toString());
 			}
-			serieMetadata.setDirectors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")));
-			serieMetadata.setEndYear(getStringOrNull(seriesMetadataFromAPI, "endYear"));
+			seriesMetadata.setDirectors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")));
+			seriesMetadata.setEndYear(getStringOrNull(seriesMetadataFromAPI, "endYear"));
 			if (seriesMetadataFromAPI.has("externalIDs")) {
-				serieMetadata.setExternalIDs(seriesMetadataFromAPI.get("externalIDs").toString());
+				seriesMetadata.setExternalIDs(seriesMetadataFromAPI.get("externalIDs").toString());
 			}
-			serieMetadata.setFirstAirDate(getStringOrNull(seriesMetadataFromAPI, "firstAirDate"));
-			serieMetadata.setGenres(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("genres")));
-			serieMetadata.setHomepage(getStringOrNull(seriesMetadataFromAPI, "homepage"));
+			seriesMetadata.setFirstAirDate(getStringOrNull(seriesMetadataFromAPI, "firstAirDate"));
+			seriesMetadata.setGenres(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("genres")));
+			seriesMetadata.setHomepage(getStringOrNull(seriesMetadataFromAPI, "homepage"));
 			if (seriesMetadataFromAPI.has("images")) {
-				serieMetadata.setImages(seriesMetadataFromAPI.get("images").toString());
+				seriesMetadata.setImages(seriesMetadataFromAPI.get("images").toString());
 			}
-			serieMetadata.setIMDbID(getStringOrNull(seriesMetadataFromAPI, "imdbID"));
+			seriesMetadata.setIMDbID(getStringOrNull(seriesMetadataFromAPI, "imdbID"));
 			if (seriesMetadataFromAPI.has("inProduction")) {
-				serieMetadata.setInProduction(seriesMetadataFromAPI.get("inProduction").getAsBoolean());
+				seriesMetadata.setInProduction(seriesMetadataFromAPI.get("inProduction").getAsBoolean());
 			}
-			serieMetadata.setLanguages(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("languages")));
-			serieMetadata.setLastAirDate(getStringOrNull(seriesMetadataFromAPI, "lastAirDate"));
+			seriesMetadata.setLanguages(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("languages")));
+			seriesMetadata.setLastAirDate(getStringOrNull(seriesMetadataFromAPI, "lastAirDate"));
 			if (seriesMetadataFromAPI.has("networks")) {
-				serieMetadata.setNetworks(seriesMetadataFromAPI.get("networks").toString());
+				seriesMetadata.setNetworks(seriesMetadataFromAPI.get("networks").toString());
 			}
 			if (seriesMetadataFromAPI.has("numberOfEpisodes")  && seriesMetadataFromAPI.get("numberOfEpisodes").isJsonPrimitive()) {
-				serieMetadata.setNumberOfEpisodes(seriesMetadataFromAPI.get("numberOfEpisodes").getAsDouble());
+				seriesMetadata.setNumberOfEpisodes(seriesMetadataFromAPI.get("numberOfEpisodes").getAsDouble());
 			}
 			if (seriesMetadataFromAPI.has("numberOfSeasons")  && seriesMetadataFromAPI.get("numberOfSeasons").isJsonPrimitive()) {
-				serieMetadata.setNumberOfSeasons(seriesMetadataFromAPI.get("numberOfSeasons").getAsDouble());
+				seriesMetadata.setNumberOfSeasons(seriesMetadataFromAPI.get("numberOfSeasons").getAsDouble());
 			}
-			serieMetadata.setOriginCountry(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("originCountry")));
-			serieMetadata.setOriginalLanguage(getStringOrNull(seriesMetadataFromAPI, "originalLanguage"));
-			serieMetadata.setOriginalTitle(getStringOrNull(seriesMetadataFromAPI, "originalTitle"));
+			seriesMetadata.setOriginCountry(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("originCountry")));
+			seriesMetadata.setOriginalLanguage(getStringOrNull(seriesMetadataFromAPI, "originalLanguage"));
+			seriesMetadata.setOriginalTitle(getStringOrNull(seriesMetadataFromAPI, "originalTitle"));
 
-			serieMetadata.setPlot(getStringOrNull(seriesMetadataFromAPI, "plot"));
-			serieMetadata.setPoster(posterFromApi);
-			serieMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
+			seriesMetadata.setPlot(getStringOrNull(seriesMetadataFromAPI, "plot"));
+			seriesMetadata.setPoster(posterFromApi);
+			seriesMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
 			if (seriesMetadataFromAPI.has("productionCompanies")) {
-				serieMetadata.setProductionCompanies(seriesMetadataFromAPI.get("productionCompanies").toString());
+				seriesMetadata.setProductionCompanies(seriesMetadataFromAPI.get("productionCompanies").toString());
 			}
 			if (seriesMetadataFromAPI.has("productionCountries")) {
-				serieMetadata.setProductionCountries(seriesMetadataFromAPI.get("productionCountries").toString());
+				seriesMetadata.setProductionCountries(seriesMetadataFromAPI.get("productionCountries").toString());
 			}
-			serieMetadata.setRated(getStringOrNull(seriesMetadataFromAPI, "rated"));
+			seriesMetadata.setRated(getStringOrNull(seriesMetadataFromAPI, "rated"));
 			if (seriesMetadataFromAPI.has("rating")  && seriesMetadataFromAPI.get("rating").isJsonPrimitive()) {
 				Double rating = seriesMetadataFromAPI.get("rating").getAsDouble();
 				if (rating != 0) {
-					serieMetadata.setRating(Double.toString(rating));
+					seriesMetadata.setRating(Double.toString(rating));
 				}
 			}
-			serieMetadata.setRatings(getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")));
-			serieMetadata.setReleased(getStringOrNull(seriesMetadataFromAPI, "released"));
+			seriesMetadata.setRatings(getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")));
+			seriesMetadata.setReleased(getStringOrNull(seriesMetadataFromAPI, "released"));
 			if (seriesMetadataFromAPI.has("seasons")) {
-				serieMetadata.setSeasons(seriesMetadataFromAPI.get("seasons").toString());
+				seriesMetadata.setSeasons(seriesMetadataFromAPI.get("seasons").toString());
 			}
-			serieMetadata.setSeriesType(getStringOrNull(seriesMetadataFromAPI, "seriesType"));
+			seriesMetadata.setSeriesType(getStringOrNull(seriesMetadataFromAPI, "seriesType"));
 			if (seriesMetadataFromAPI.has("spokenLanguages")) {
-				serieMetadata.setSpokenLanguages(seriesMetadataFromAPI.get("spokenLanguages").toString());
+				seriesMetadata.setSpokenLanguages(seriesMetadataFromAPI.get("spokenLanguages").toString());
 			}
-			serieMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
-			serieMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
-			serieMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
-			serieMetadata.setTitle(getStringOrNull(seriesMetadataFromAPI, "title"));
+			seriesMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
+			seriesMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
+			seriesMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
+			seriesMetadata.setTitle(getStringOrNull(seriesMetadataFromAPI, "title"));
 			if (seriesMetadataFromAPI.has("totalSeasons")  && seriesMetadataFromAPI.get("totalSeasons").isJsonPrimitive()) {
-				serieMetadata.setTotalSeasons(seriesMetadataFromAPI.get("totalSeasons").getAsDouble());
+				seriesMetadata.setTotalSeasons(seriesMetadataFromAPI.get("totalSeasons").getAsDouble());
 			}
-			serieMetadata.setVotes(getStringOrNull(seriesMetadataFromAPI, "votes"));
+			seriesMetadata.setVotes(getStringOrNull(seriesMetadataFromAPI, "votes"));
 
-			MediaTableTVSeries.updateAPIMetadata(connection, serieMetadata, tvSeriesId);
+			MediaTableTVSeries.updateAPIMetadata(connection, seriesMetadata, tvSeriesId);
 
 			//Create/Update Thumbnail
 			if (posterFromApi != null) {
@@ -788,8 +788,8 @@ public class APIUtils {
 			}
 			//update MediaVideoMetadata
 			if (media.hasVideoMetadata()) {
-				media.getVideoMetadata().setSerieMetadata(serieMetadata);
-				media.getVideoMetadata().setTVSeriesStartYear(serieMetadata.getStartYear());
+				media.getVideoMetadata().setSeriesMetadata(seriesMetadata);
+				media.getVideoMetadata().setTVSeriesStartYear(seriesMetadata.getStartYear());
 			}
 			return title;
 		} catch (IOException e) {
@@ -801,7 +801,7 @@ public class APIUtils {
 	}
 
 	/**
-	 * Attempts to get serieMetadata about a file from our API.
+	 * Attempts to get seriesMetadata about a file from our API.
 	 *
 	 * @param file the {@link File} to lookup.
 	 * @param movieOrTVSeriesTitle the title of the movie or TV series

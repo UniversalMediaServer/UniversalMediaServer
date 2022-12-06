@@ -388,7 +388,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setReleased(MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
 						metadata.setRevenue(rs.getLong(COL_REVENUE));
 						if (metadata.isTVEpisode() && StringUtils.isNotBlank(metadata.getMovieOrShowName())) {
-							metadata.setSerieMetadata(MediaTableTVSeries.getTvSerieMetadata(connection, metadata.getMovieOrShowName()));
+							metadata.setSeriesMetadata(MediaTableTVSeries.getTvSeriesMetadata(connection, metadata.getMovieOrShowName()));
 							// Fields from TV Series table
 							// May use the SerieMetadata
 							metadata.setTVSeriesStartYear(MediaTableTVSeries.getStartYearBySimplifiedTitle(connection, metadata.getSimplifiedMovieOrShowName()));

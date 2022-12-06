@@ -148,14 +148,12 @@ public class GuiManager {
 	}
 
 	public static void setReloadable(boolean value) {
-		if (reloadable != value) {
-			reloadable = value;
-			if (swingFrame != null) {
-				swingFrame.setReloadable(reloadable);
-			}
-			if (webGui != null) {
-				webGui.setReloadable(reloadable);
-			}
+		reloadable = value;
+		if (swingFrame != null) {
+			swingFrame.setReloadable(reloadable);
+		}
+		if (webGui != null) {
+			webGui.setReloadable(reloadable);
 		}
 	}
 

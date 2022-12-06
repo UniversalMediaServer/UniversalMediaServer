@@ -1101,7 +1101,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					result = MediaTableTVSeries.getTvSerieMetadataAsJsonObject(connection, simplifiedTitle, lang);
+					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle, lang);
 				} else {
 					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName(), lang);
 				}

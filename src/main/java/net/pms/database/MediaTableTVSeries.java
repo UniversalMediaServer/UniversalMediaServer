@@ -26,7 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.media.metadata.TvSerieMetadata;
+import net.pms.media.metadata.TvSeriesMetadata;
 import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
@@ -316,18 +316,18 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Updates an existing row with information from our API.
 	 *
 	 * @param connection the db connection
-	 * @param serieMetadata
+	 * @param seriesMetadata
 	 * @param tvSeriesId
 	 */
-	public static void updateAPIMetadata(final Connection connection, final TvSerieMetadata serieMetadata, final Long tvSeriesId) {
+	public static void updateAPIMetadata(final Connection connection, final TvSeriesMetadata seriesMetadata, final Long tvSeriesId) {
 		if (tvSeriesId == null || tvSeriesId < 0) {
 			return;
 		}
-		if (serieMetadata == null) {
+		if (seriesMetadata == null) {
 			LOGGER.warn("Couldn't write API data for \"{}\" to the database because there is no media information");
 			return;
 		}
-		String title = serieMetadata.getTitle();
+		String title = seriesMetadata.getTitle();
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 		try {
 			try (
@@ -341,92 +341,92 @@ public final class MediaTableTVSeries extends MediaTable {
 				LOGGER.trace("Inserting API metadata for " + simplifiedTitle);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						rs.updateString("ENDYEAR", serieMetadata.getEndYear());
-						rs.updateString("IMDBID", serieMetadata.getIMDbID());
-						rs.updateString("PLOT", serieMetadata.getPlot());
-						rs.updateString("STARTYEAR", serieMetadata.getStartYear());
+						rs.updateString("ENDYEAR", seriesMetadata.getEndYear());
+						rs.updateString("IMDBID", seriesMetadata.getIMDbID());
+						rs.updateString("PLOT", seriesMetadata.getPlot());
+						rs.updateString("STARTYEAR", seriesMetadata.getStartYear());
 						rs.updateString("TITLE", title);
-						if (serieMetadata.getTotalSeasons() != null) {
-							rs.updateDouble("TOTALSEASONS", serieMetadata.getTotalSeasons());
+						if (seriesMetadata.getTotalSeasons() != null) {
+							rs.updateDouble("TOTALSEASONS", seriesMetadata.getTotalSeasons());
 						}
-						rs.updateString("VERSION", serieMetadata.getApiVersion());
-						rs.updateString("VOTES", serieMetadata.getVotes());
+						rs.updateString("VERSION", seriesMetadata.getApiVersion());
+						rs.updateString("VOTES", seriesMetadata.getVotes());
 
 						// TMDB columns added in V11
-						if (serieMetadata.getCreatedBy() != null) {
-							rs.updateString("CREATEDBY", GSON.toJson(serieMetadata.getCreatedBy()));
+						if (seriesMetadata.getCreatedBy() != null) {
+							rs.updateString("CREATEDBY", GSON.toJson(seriesMetadata.getCreatedBy()));
 						}
-						if (serieMetadata.getCredits() != null) {
-							rs.updateString("CREDITS", GSON.toJson(serieMetadata.getCredits()));
+						if (seriesMetadata.getCredits() != null) {
+							rs.updateString("CREDITS", GSON.toJson(seriesMetadata.getCredits()));
 						}
-						if (serieMetadata.getExternalIDs() != null) {
-							rs.updateString("EXTERNALIDS", GSON.toJson(serieMetadata.getExternalIDs()));
+						if (seriesMetadata.getExternalIDs() != null) {
+							rs.updateString("EXTERNALIDS", GSON.toJson(seriesMetadata.getExternalIDs()));
 						}
-						rs.updateString("FIRSTAIRDATE", serieMetadata.getFirstAirDate());
-						rs.updateString("HOMEPAGE", serieMetadata.getHomepage());
-						if (serieMetadata.getImages() != null) {
-							rs.updateString("IMAGES", GSON.toJson(serieMetadata.getImages()));
+						rs.updateString("FIRSTAIRDATE", seriesMetadata.getFirstAirDate());
+						rs.updateString("HOMEPAGE", seriesMetadata.getHomepage());
+						if (seriesMetadata.getImages() != null) {
+							rs.updateString("IMAGES", GSON.toJson(seriesMetadata.getImages()));
 						}
-						if (serieMetadata.isInProduction() != null) {
-							rs.updateBoolean("INPRODUCTION", serieMetadata.isInProduction());
+						if (seriesMetadata.isInProduction() != null) {
+							rs.updateBoolean("INPRODUCTION", seriesMetadata.isInProduction());
 						}
-						if (serieMetadata.getLanguages() != null) {
-							rs.updateString("LANGUAGES", GSON.toJson(serieMetadata.getLanguages()));
+						if (seriesMetadata.getLanguages() != null) {
+							rs.updateString("LANGUAGES", GSON.toJson(seriesMetadata.getLanguages()));
 						}
-						rs.updateString("LASTAIRDATE", serieMetadata.getLastAirDate());
-						if (serieMetadata.getNetworks() != null) {
-							rs.updateString("NETWORKS", GSON.toJson(serieMetadata.getNetworks()));
+						rs.updateString("LASTAIRDATE", seriesMetadata.getLastAirDate());
+						if (seriesMetadata.getNetworks() != null) {
+							rs.updateString("NETWORKS", GSON.toJson(seriesMetadata.getNetworks()));
 						}
-						if (serieMetadata.getNumberOfEpisodes() != null) {
-							rs.updateDouble("NUMBEROFEPISODES", serieMetadata.getNumberOfEpisodes());
+						if (seriesMetadata.getNumberOfEpisodes() != null) {
+							rs.updateDouble("NUMBEROFEPISODES", seriesMetadata.getNumberOfEpisodes());
 						}
-						if (serieMetadata.getNumberOfSeasons() != null) {
-							rs.updateDouble("NUMBEROFSEASONS", serieMetadata.getNumberOfSeasons());
+						if (seriesMetadata.getNumberOfSeasons() != null) {
+							rs.updateDouble("NUMBEROFSEASONS", seriesMetadata.getNumberOfSeasons());
 						}
-						if (serieMetadata.getOriginCountry() != null) {
-							rs.updateString("ORIGINCOUNTRY", GSON.toJson(serieMetadata.getOriginCountry()));
+						if (seriesMetadata.getOriginCountry() != null) {
+							rs.updateString("ORIGINCOUNTRY", GSON.toJson(seriesMetadata.getOriginCountry()));
 						}
-						rs.updateString("ORIGINALLANGUAGE", serieMetadata.getOriginalLanguage());
-						rs.updateString("ORIGINALTITLE", serieMetadata.getOriginalTitle());
-						if (serieMetadata.getProductionCompanies() != null) {
-							rs.updateString("PRODUCTIONCOMPANIES", GSON.toJson(serieMetadata.getProductionCompanies()));
+						rs.updateString("ORIGINALLANGUAGE", seriesMetadata.getOriginalLanguage());
+						rs.updateString("ORIGINALTITLE", seriesMetadata.getOriginalTitle());
+						if (seriesMetadata.getProductionCompanies() != null) {
+							rs.updateString("PRODUCTIONCOMPANIES", GSON.toJson(seriesMetadata.getProductionCompanies()));
 						}
-						if (serieMetadata.getProductionCountries() != null) {
-							rs.updateString("PRODUCTIONCOUNTRIES", GSON.toJson(serieMetadata.getProductionCountries()));
+						if (seriesMetadata.getProductionCountries() != null) {
+							rs.updateString("PRODUCTIONCOUNTRIES", GSON.toJson(seriesMetadata.getProductionCountries()));
 						}
-						if (serieMetadata.getSeasons() != null) {
-							rs.updateString("SEASONS", GSON.toJson(serieMetadata.getSeasons()));
+						if (seriesMetadata.getSeasons() != null) {
+							rs.updateString("SEASONS", GSON.toJson(seriesMetadata.getSeasons()));
 						}
-						rs.updateString("SERIESTYPE", serieMetadata.getSeriesType());
-						if (serieMetadata.getSpokenLanguages() != null) {
-							rs.updateString("SPOKENLANGUAGES", GSON.toJson(serieMetadata.getSpokenLanguages()));
+						rs.updateString("SERIESTYPE", seriesMetadata.getSeriesType());
+						if (seriesMetadata.getSpokenLanguages() != null) {
+							rs.updateString("SPOKENLANGUAGES", GSON.toJson(seriesMetadata.getSpokenLanguages()));
 						}
-						rs.updateString("STATUS", serieMetadata.getStatus());
-						rs.updateString("TAGLINE", serieMetadata.getTagline());
+						rs.updateString("STATUS", seriesMetadata.getStatus());
+						rs.updateString("TAGLINE", seriesMetadata.getTagline());
 						rs.updateRow();
 					} else {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", title);
 					}
 				}
 			}
-			MediaTableVideoMetadataActors.set(connection, null, serieMetadata.getActors(), tvSeriesId);
-			MediaTableVideoMetadataAwards.set(connection, null, serieMetadata.getAwards(), tvSeriesId);
-			MediaTableVideoMetadataCountries.set(connection, null, serieMetadata.getCountries(), tvSeriesId);
-			MediaTableVideoMetadataDirectors.set(connection, null, serieMetadata.getDirectors(), tvSeriesId);
-			MediaTableVideoMetadataGenres.set(connection, null, serieMetadata.getGenres(), tvSeriesId);
-			MediaTableVideoMetadataPosters.set(connection, null, serieMetadata.getPoster(), tvSeriesId);
-			MediaTableVideoMetadataProduction.set(connection, null, serieMetadata.getProduction(), tvSeriesId);
-			MediaTableVideoMetadataRated.set(connection, null, serieMetadata.getRated(), tvSeriesId);
-			MediaTableVideoMetadataIMDbRating.set(connection, null, serieMetadata.getRating(), tvSeriesId);
-			MediaTableVideoMetadataRatings.set(connection, null, serieMetadata.getRatings(), tvSeriesId);
-			MediaTableVideoMetadataReleased.set(connection, null, serieMetadata.getReleased(), tvSeriesId);
+			MediaTableVideoMetadataActors.set(connection, null, seriesMetadata.getActors(), tvSeriesId);
+			MediaTableVideoMetadataAwards.set(connection, null, seriesMetadata.getAwards(), tvSeriesId);
+			MediaTableVideoMetadataCountries.set(connection, null, seriesMetadata.getCountries(), tvSeriesId);
+			MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadata.getDirectors(), tvSeriesId);
+			MediaTableVideoMetadataGenres.set(connection, null, seriesMetadata.getGenres(), tvSeriesId);
+			MediaTableVideoMetadataPosters.set(connection, null, seriesMetadata.getPoster(), tvSeriesId);
+			MediaTableVideoMetadataProduction.set(connection, null, seriesMetadata.getProduction(), tvSeriesId);
+			MediaTableVideoMetadataRated.set(connection, null, seriesMetadata.getRated(), tvSeriesId);
+			MediaTableVideoMetadataIMDbRating.set(connection, null, seriesMetadata.getRating(), tvSeriesId);
+			MediaTableVideoMetadataRatings.set(connection, null, seriesMetadata.getRatings(), tvSeriesId);
+			MediaTableVideoMetadataReleased.set(connection, null, seriesMetadata.getReleased(), tvSeriesId);
 			connection.commit();
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting API data to TV series entry", simplifiedTitle, TABLE_NAME, e.getMessage());
 		}
 	}
 
-	public static TvSerieMetadata getTvSerieMetadata(final Connection connection, final String title) {
+	public static TvSeriesMetadata getTvSeriesMetadata(final Connection connection, final String title) {
 		if (connection == null || title == null) {
 			return null;
 		}
@@ -440,19 +440,19 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 				try (ResultSet rs = selectStatement.executeQuery()) {
 					if (rs.next()) {
-						Long tvSerieId = rs.getLong(COL_ID);
-						TvSerieMetadata metadata = new TvSerieMetadata();
-						metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSerie(connection, tvSerieId));
+						Long tvSeriesId = rs.getLong(COL_ID);
+						TvSeriesMetadata metadata = new TvSeriesMetadata();
+						metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSerie(connection, tvSeriesId));
 						metadata.setApiVersion(rs.getString("VERSION"));
-						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSerie(connection, tvSerieId));
-						metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForTvSerie(connection, tvSerieId));
+						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSerie(connection, tvSeriesId));
+						metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForTvSerie(connection, tvSeriesId));
 						metadata.setCreatedBy(rs.getString("CREATEDBY"));
 						metadata.setCredits(rs.getString("CREDITS"));
-						metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSerie(connection, tvSerieId));
+						metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSerie(connection, tvSeriesId));
 						metadata.setEndYear(rs.getString("ENDYEAR"));
 						metadata.setExternalIDs(rs.getString("EXTERNALIDS"));
 						metadata.setFirstAirDate(rs.getString("FIRSTAIRDATE"));
-						metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSerie(connection, tvSerieId));
+						metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSerie(connection, tvSeriesId));
 						metadata.setHomepage(rs.getString("HOMEPAGE"));
 						metadata.setImages(rs.getString(COL_IMAGES));
 						metadata.setIMDbID(rs.getString(COL_IMDBID));
@@ -466,14 +466,14 @@ public final class MediaTableTVSeries extends MediaTable {
 						metadata.setOriginalTitle(rs.getString("ORIGINALTITLE"));
 						metadata.setOriginCountry(rs.getString("ORIGINCOUNTRY"));
 						metadata.setPlot(rs.getString("PLOT"));
-						metadata.setPoster(MediaTableVideoMetadataPosters.getValueForTvSerie(connection, tvSerieId));
-						metadata.setProduction(MediaTableVideoMetadataProduction.getValueForTvSerie(connection, tvSerieId));
+						metadata.setPoster(MediaTableVideoMetadataPosters.getValueForTvSerie(connection, tvSeriesId));
+						metadata.setProduction(MediaTableVideoMetadataProduction.getValueForTvSerie(connection, tvSeriesId));
 						metadata.setProductionCompanies(rs.getString("PRODUCTIONCOMPANIES"));
 						metadata.setProductionCountries(rs.getString("PRODUCTIONCOUNTRIES"));
-						metadata.setRated(MediaTableVideoMetadataRated.getValueForTvSerie(connection, tvSerieId));
-						metadata.setRating(MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, tvSerieId));
-						metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSerie(connection, tvSerieId));
-						metadata.setReleased(MediaTableVideoMetadataReleased.getValueForTvSerie(connection, tvSerieId));
+						metadata.setRated(MediaTableVideoMetadataRated.getValueForTvSerie(connection, tvSeriesId));
+						metadata.setRating(MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, tvSeriesId));
+						metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSerie(connection, tvSeriesId));
+						metadata.setReleased(MediaTableVideoMetadataReleased.getValueForTvSerie(connection, tvSeriesId));
 						metadata.setSeasons(rs.getString("SEASONS"));
 						metadata.setSeriesType(rs.getString("SERIESTYPE"));
 						metadata.setSimplifiedTitle(rs.getString("SIMPLIFIEDTITLE"));
@@ -680,7 +680,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param simplifiedTitle
 	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
 	 */
-	public static JsonObject getTvSerieMetadataAsJsonObject(final Connection connection, final String simplifiedTitle, final String lang) {
+	public static JsonObject getTvSeriesMetadataAsJsonObject(final Connection connection, final String simplifiedTitle, final String lang) {
 		if (connection == null || simplifiedTitle == null) {
 			return null;
 		}

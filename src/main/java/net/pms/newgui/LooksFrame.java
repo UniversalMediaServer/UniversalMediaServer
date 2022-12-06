@@ -647,12 +647,12 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
 				}
 			} else {
-				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
 					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
+			reload.setEnabled(true);
 		});
 	}
 
