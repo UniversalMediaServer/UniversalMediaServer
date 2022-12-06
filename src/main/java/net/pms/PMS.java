@@ -219,7 +219,7 @@ public class PMS {
 	private WebGuiServer webGuiServer;
 
 	/**
-	 * HTTP server that serves a brower/player of media files.
+	 * HTTP server that serves a browser/player of media files.
 	 * Should replace the WebInterfaceServer at end.
 	 */
 	private WebPlayerServer webPlayerServer;
@@ -616,7 +616,7 @@ public class PMS {
 
 		if (webPlayerServer != null && webPlayerServer.getServer() != null) {
 			GuiManager.enableWebUiButton();
-			LOGGER.info("Web interface is available at: " + webPlayerServer.getUrl());
+			LOGGER.info("Web player is available at: " + webPlayerServer.getUrl());
 		}
 
 		// initialize the cache
