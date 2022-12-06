@@ -192,8 +192,7 @@ public class PlatformUtils implements IPlatformUtils {
 
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addActionListener((ActionEvent e) -> {
-				frame.setVisible(true);
-				frame.setFocusable(true);
+				browseURI(PMS.get().getGuiServer().getUrl());
 			});
 			try {
 				tray.add(trayIcon);
