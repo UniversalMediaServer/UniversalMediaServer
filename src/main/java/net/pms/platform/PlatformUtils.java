@@ -170,7 +170,7 @@ public class PlatformUtils implements IPlatformUtils {
 
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
-			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
+			MenuItem traceItem = new MenuItem(Messages.getString("SettingsOld"));
 
 			defaultItem.addActionListener((ActionEvent e) -> PMS.quit());
 
@@ -182,7 +182,7 @@ public class PlatformUtils implements IPlatformUtils {
 				popup.add(webPlayerItem);
 			}
 
-			MenuItem webGuiItem = new MenuItem(Messages.getString("WebInterface"));
+			MenuItem webGuiItem = new MenuItem(Messages.getString("Settings"));
 			webGuiItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
 			popup.add(webGuiItem);
 			popup.add(traceItem);
@@ -192,8 +192,7 @@ public class PlatformUtils implements IPlatformUtils {
 
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addActionListener((ActionEvent e) -> {
-				frame.setVisible(true);
-				frame.setFocusable(true);
+				browseURI(PMS.get().getGuiServer().getUrl());
 			});
 			try {
 				tray.add(trayIcon);

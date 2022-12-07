@@ -350,7 +350,7 @@ public class StatusTab {
 		interfaceServerBindLabel.setForeground(fgColor);
 		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
-		interfaceServerBindLabel.setToolTipText(Messages.getString("WebInterfaceServerIpAddress"));
+		interfaceServerBindLabel.setToolTipText(Messages.getString("WebSettingsServerIpAddress"));
 		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
 		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
