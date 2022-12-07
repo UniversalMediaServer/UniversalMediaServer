@@ -666,6 +666,7 @@
 			<version>4.0.4</version>
 			<type>jar</type>
 		</dependency>
+		<!-- START OF : This should be removed after the UMS API handle the /localize -->
 		<!-- This is a dependency for themoviedbapi -->
 		<dependency>
 			<groupId>org.yamj</groupId>
@@ -713,6 +714,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- END OF : This should be removed after the UMS API handle the /localize -->
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

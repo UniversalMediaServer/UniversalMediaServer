@@ -218,7 +218,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		//here we now we do not have the language in db, let search it.
-		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(imdbId, fromTvSeries, language);
+		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(imdbId, language);
 		set(connection, id, fromTvSeries, result, language);
 		return result;
 	}
