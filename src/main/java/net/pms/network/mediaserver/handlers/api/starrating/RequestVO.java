@@ -20,10 +20,12 @@ public class RequestVO {
 
 	private final String trackID;
 	private final int stars;
+	private final Integer globalID;
 
-	public RequestVO(String trackID, int stars) {
+	public RequestVO(String trackID, Integer globalID, int stars) {
 		this.trackID = trackID;
 		this.stars = stars;
+		this.globalID = globalID;
 	}
 
 	public String getTrackID() {
@@ -32,6 +34,10 @@ public class RequestVO {
 
 	public int getStars() {
 		return stars;
+	}
+
+	public Integer getGlobalID() {
+		return this.globalID;
 	}
 
 	public boolean isStarsValid() {

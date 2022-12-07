@@ -25,9 +25,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -49,6 +46,10 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.dlna.DLNAResource;
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 /**
  * <pre>
@@ -123,6 +124,7 @@ public class StarRating implements ApiResponseHandler {
 					if (NumberUtils.isParsable(request.getTrackID())) {
 						Integer audiotrackId = Integer.valueOf(request.getTrackID());
 						setDatabaseRatingByAudiotracksId(connection, request.getStars(), audiotrackId);
+						updateGlobalRepoCache(request);
 						if (PMS.getConfiguration().isAudioUpdateTag()) {
 							FilenameIdVO dbSong = getFilenameIdForAudiotrackId(connection, audiotrackId);
 							setRatingInFile(request.getStars(), dbSong);
@@ -165,13 +167,28 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
+	private void updateGlobalRepoCache(RequestVO request) {
+		try {
+			DLNAResource cachedObj = PMS.getGlobalRepo().get("" + (request.getGlobalID()));
+			if (cachedObj != null) {
+				cachedObj.getMedia().getFirstAudioTrack().setRating(request.getStars());
+				LOG.trace("updated GlobalRepo cache object successfully.");
+			}
+		} catch (NullPointerException e) {
+			LOG.trace("couldn't update rating info in cache.");
+		}
+	}
+
 	private RequestVO parseSetRatingRequest(String content) {
 		if (content.indexOf('/') < 0) {
 			throw new RuntimeException("illegal API call");
 		}
 
 		String[] contentArray = content.split("/");
-		RequestVO request = new RequestVO(contentArray[0], Integer.parseInt(contentArray[1]));
+		if (contentArray.length < 3) {
+			throw new RuntimeException("illegal API call : expected 3 parameters");
+		}
+		RequestVO request = new RequestVO(contentArray[0], Integer.parseInt(contentArray[2]), Integer.parseInt(contentArray[1]));
 		if (!request.isStarsValid()) {
 			throw new NumberFormatException("Rating value must be between 0 and 5 (including).");
 		}
