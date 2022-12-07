@@ -188,7 +188,7 @@ public class StarRating implements ApiResponseHandler {
 		if (contentArray.length < 3) {
 			throw new RuntimeException("illegal API call : expected 3 parameters");
 		}
-		RequestVO request = new RequestVO(contentArray[0], Integer.parseInt(contentArray[2]), Integer.parseInt(contentArray[1]));
+		RequestVO request = new RequestVO(contentArray[0], contentArray[2], Integer.parseInt(contentArray[1]));
 		if (!request.isStarsValid()) {
 			throw new NumberFormatException("Rating value must be between 0 and 5 (including).");
 		}

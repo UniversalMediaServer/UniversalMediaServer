@@ -20,9 +20,9 @@ public class RequestVO {
 
 	private final String trackID;
 	private final int stars;
-	private final Integer globalID;
+	private final String globalID;
 
-	public RequestVO(String trackID, Integer globalID, int stars) {
+	public RequestVO(String trackID, String globalID, int stars) {
 		this.trackID = trackID;
 		this.stars = stars;
 		this.globalID = globalID;
@@ -36,7 +36,7 @@ public class RequestVO {
 		return stars;
 	}
 
-	public Integer getGlobalID() {
+	public String getGlobalID() {
 		return this.globalID;
 	}
 
