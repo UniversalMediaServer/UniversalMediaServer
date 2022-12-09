@@ -17,7 +17,6 @@
 package net.pms.util;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -67,15 +66,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * These imports should be removed after the UMS API handle the /localize.
- */
-import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.TmdbFind;
-import info.movito.themoviedbapi.model.FindResults;
-import info.movito.themoviedbapi.model.MovieDb;
-import info.movito.themoviedbapi.model.tv.TvSeries;
 
 /**
  * This class contains utility methods for API to get the Metadata info.
@@ -1130,11 +1120,6 @@ public class APIUtils {
 	 * @return the VideoMetadataLocalized for the specific language.
 	 */
 	public static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdb(String imdbId, String language) {
-		//remove this when UMS API is ready
-		if (useLocalTmdb) {
-			return getVideoMetadataLocalizedFromImdbLocal(imdbId, language);
-		}
-		//end of remove this
 		VideoMetadataLocalized metadata = null;
 		if (isNotBlank(imdbId) && isNotBlank(language) && CONFIGURATION.getExternalNetwork()) {
 			String apiResult = null;
@@ -1144,117 +1129,38 @@ public class APIUtils {
 				getParameters.add("imdbID=" + URLEncoder.encode(imdbId, StandardCharsets.UTF_8.toString()));
 				getParameters.add("language=" + URLEncoder.encode(language, StandardCharsets.UTF_8.toString()));
 				String getParametersJoined = StringUtils.join(getParameters, "&");
-				URL url = new URL(domain, "/localize?" + getParametersJoined);
+				URL url = new URL(domain, "/api/media/localize?" + getParametersJoined);
 				LOGGER.trace("Getting API data from: {}", url);
 				apiResult = getJson(url);
-				JsonElement element = GSON.fromJson(apiResult, JsonElement.class);
-				if (element.isJsonObject()) {
-					JsonObject jsonData = element.getAsJsonObject();
-					JsonArray movieResults = (jsonData.has("movie_results") && jsonData.get("movie_results").isJsonArray()) ? jsonData.get("movie_results").getAsJsonArray() : new JsonArray();
-					JsonArray tvResults = (jsonData.has("tv_results") && jsonData.get("tv_results").isJsonArray()) ? jsonData.get("tv_results").getAsJsonArray() : new JsonArray();
-					JsonObject result = null;
-					if (!movieResults.isEmpty() && movieResults.get(0).isJsonObject()) {
-						result = movieResults.get(0).getAsJsonObject();
-					} else if (!tvResults.isEmpty() && tvResults.get(0).isJsonObject()) {
-						result = tvResults.get(0).getAsJsonObject();
+				JsonObject localizedMetadataFromAPI = GSON.fromJson(apiResult, JsonObject.class);
+				if (localizedMetadataFromAPI == null || localizedMetadataFromAPI.has("statusCode")) {
+					if (localizedMetadataFromAPI != null && localizedMetadataFromAPI.has("statusCode") && "500".equals(localizedMetadataFromAPI.get("statusCode").getAsString())) {
+						LOGGER.debug("Got a 500 error while looking for localized metadata with language {} and IMDb API {}", language, imdbId);
+					} else {
+						LOGGER.trace("Did not find matching localized metadata with language {} and IMDb API {}", language, imdbId);
 					}
-					if (result != null) {
-						metadata = new VideoMetadataLocalized();
-						if (result.has("overview") && result.get("overview").isJsonPrimitive()) {
-							metadata.setPlot(result.get("overview").getAsString());
-						}
-						if (result.has("poster_path") && result.get("poster_path").isJsonPrimitive()) {
-							metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, result.get("poster_path").getAsString()));
-						}
-						if (result.has("tagline") && result.get("tagline").isJsonPrimitive()) {
-							metadata.setTagline(result.get("tagline").getAsString());
-						}
-						if (result.has("title") && result.get("title").isJsonPrimitive()) {
-							metadata.setTitle(result.get("title").getAsString());
-						}
-					}
+					return null;
+				}
+				metadata = new VideoMetadataLocalized();
+				if (localizedMetadataFromAPI.has("plot") && localizedMetadataFromAPI.get("plot").isJsonPrimitive()) {
+					metadata.setPlot(localizedMetadataFromAPI.get("plot").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("posterRelativePath") && localizedMetadataFromAPI.get("posterRelativePath").isJsonPrimitive()) {
+					metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, localizedMetadataFromAPI.get("posterRelativePath").getAsString()));
+				}
+				if (localizedMetadataFromAPI.has("tagline") && localizedMetadataFromAPI.get("tagline").isJsonPrimitive()) {
+					metadata.setTagline(localizedMetadataFromAPI.get("tagline").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("title") && localizedMetadataFromAPI.get("title").isJsonPrimitive()) {
+					metadata.setTitle(localizedMetadataFromAPI.get("title").getAsString());
 				}
 			} catch (JsonSyntaxException ex) {
 				LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, ex);
 			} catch (IOException ex) {
-				LOGGER.trace("Error while getting Localized", ex);
+				LOGGER.trace("Error while getting Localized metadata with language {} and IMDb API {}", language, imdbId);
 			}
 		}
 		return metadata;
 	}
 
-	/**
-	 * FIXME : this should be deleted when UMS API is ready.
-	 *
-	 * UMS API should implements (simple code non db aware) :
-	 *
-	 * helpers/subversioning.ts :
-	 *   'localize': '1',
-	 *
-	 * routes/media.ts :
-	 * const localizeCounter = new client.Counter({ name: 'localize_endpoint', help: 'Counter of get requests to /localize' });
-	 * router.get('/localize', async(ctx) => {
-	 *   localizeCounter.inc();
-	 *   ctx.set('X-Api-Subversion', subversions['localize']);
-	 *   await MediaController.getLocalize(ctx);
-	 * });
-	 *
-	 * controllers/media.ts :
-	 * export const getLocalized = async(ctx: ParameterizedContext): Promise<FindResponse> => {
-	 *   const { imdbID, language }: UmsQueryParams = ctx.query;
-	 *   if (!language || !imdbID) {
-	 *     throw new ValidationError('IMDb ID and language are required');
-	 *   }
-	 *
-	 *   try {
-	 *     const findResult = await tmdb.find({ id: imdbID, external_source: ExternalId.ImdbId, language: language });
-	 *     if (!findResult) {
-	 *       throw new MediaNotFoundError();
-	 *     }
-	 *     return ctx.body = findResult;
-	 *   } catch (err) {
-	 *     if (!(err instanceof MediaNotFoundError)) {
-	 *       console.error(err);
-	 *     }
-	 *     throw new MediaNotFoundError();
-	 *   }
-	 * };
-	 *
-	 */
-	private static boolean useLocalTmdb = true;
-
-	/**
-	 * FIXME : this should be deleted when UMS API is ready.
-	 * This exemple use info.movito.themoviedbapi for proof of concept.
-	 *
-	 * To be effective, you should manually set a working api key on configuration
-	 * 'tmdb_api_key' key.
-	 */
-	private static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdbLocal(String imdbId, String language) {
-		String tmdbApiKey = CONFIGURATION.getString("tmdb_api_key", "");
-		if (imdbId != null && CONFIGURATION.getExternalNetwork() && StringUtils.isNotBlank(tmdbApiKey)) {
-			LOGGER.info("API lookup translation {} for imdb ID: {}", language, imdbId);
-			TmdbFind finder = new TmdbApi(tmdbApiKey).getFind();
-			FindResults result = finder.find(imdbId, TmdbFind.ExternalSource.imdb_id, language);
-			if (!result.getMovieResults().isEmpty()) {
-				LOGGER.debug("API Movie translation {} found for imdb ID: {}", language, imdbId);
-				MovieDb movie = result.getMovieResults().get(0);
-				VideoMetadataLocalized metadata = new VideoMetadataLocalized();
-				metadata.setPlot(movie.getOverview());
-				metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, movie.getPosterPath()));
-				metadata.setTagline(movie.getTagline());
-				metadata.setTitle(movie.getTitle());
-				return metadata;
-			} else if (!result.getTvResults().isEmpty()) {
-				LOGGER.debug("API Tv Series translation {} found for imdb ID: {}", language, imdbId);
-				TvSeries tvSerie = result.getTvResults().get(0);
-				VideoMetadataLocalized metadata = new VideoMetadataLocalized();
-				metadata.setPlot(tvSerie.getOverview());
-				metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, tvSerie.getPosterPath()));
-				return metadata;
-			}
-		}
-		LOGGER.debug("API lookup translation {} was not found for imdb ID: {}", language, imdbId);
-		return null;
-	}
 }
