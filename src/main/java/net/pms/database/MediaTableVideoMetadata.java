@@ -104,7 +104,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -143,6 +143,10 @@ public class MediaTableVideoMetadata extends MediaTable {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_PLOT + " CLOB");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TAGLINE + " VARCHAR");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_VOTES + " VARCHAR");
+				}
+				case 2 -> {
+					LOGGER.trace("Creating index FILEID_IMDBID");
+					executeUpdate(connection, "CREATE INDEX " + TABLE_NAME + "_FILEID_IMDBID on " + TABLE_NAME + "(" + COL_FILEID + ", " + COL_IMDBID + ")");
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -193,6 +197,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 		);
 		execute(connection, "CREATE INDEX " + TABLE_NAME + "_BASIC_COLUMNS_IDX ON " + TABLE_NAME + "(" + BASIC_COLUMNS + ")");
 		execute(connection, "CREATE INDEX " + TABLE_NAME + "_IMDBID_API_VERSION_IDX ON " + TABLE_NAME + "(" + COL_IMDBID + ", " + COL_API_VERSION + ")");
+		execute(connection, "CREATE INDEX " + TABLE_NAME + "_FILEID_IMDBID on " + TABLE_NAME + "(" + COL_FILEID + ", " + COL_IMDBID + ")");
 	}
 
 	/**
