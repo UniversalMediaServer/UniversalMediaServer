@@ -16,8 +16,9 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +26,10 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -34,7 +38,15 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.io.*;
+import net.pms.io.IPipeProcess;
+import net.pms.io.ListProcessWrapperResult;
+import net.pms.io.OutputParams;
+import net.pms.io.OutputTextLogger;
+import net.pms.io.PipeIPCProcess;
+import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.SimpleProcessWrapper;
+import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
@@ -44,16 +56,12 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.Version;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * Pure FFmpeg video player.
@@ -91,6 +99,7 @@ public class FFMpegVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	FFMpegVideo() {
+		super(CONFIGURATION.getFFmpegPaths());
 	}
 
 	/**
@@ -415,23 +424,43 @@ public class FFMpegVideo extends Engine {
 						transcodeOptions.add("copy");
 					}
 				} else {
+
+					String selectedTranscodeAccelerationMethod = null;
+
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
+
 						if (renderer.isTranscodeToH264()) {
-							transcodeOptions.add("libx264");
+							selectedTranscodeAccelerationMethod = configuration
+									.getFFmpegGPUH264EncodingAccelerationMethod();
 						} else {
-							transcodeOptions.add("libx265");
+							selectedTranscodeAccelerationMethod = configuration
+									.getFFmpegGPUH265EncodingAccelerationMethod();
 						}
+
+						transcodeOptions.add(selectedTranscodeAccelerationMethod);
+
 						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
+
+						if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("llhp");
+						}
+
 					}
-					if (!customFFmpegOptions.contains("-preset")) {
-						transcodeOptions.add("-preset");
-						// do not use ultrafast for compatibility problems, particularly Panasonic TVs
-						transcodeOptions.add("superfast");
-					}
-					if (!customFFmpegOptions.contains("-level")) {
-						transcodeOptions.add("-level");
-						transcodeOptions.add("31");
+
+					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+
+							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+
+							transcodeOptions.add("superfast");
+						}
+						if (!customFFmpegOptions.contains("-level")) {
+							transcodeOptions.add("-level");
+							transcodeOptions.add("31");
+						}
 					}
 					transcodeOptions.add("-pix_fmt");
 					transcodeOptions.add("yuv420p");
@@ -756,11 +785,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getFFmpegPaths();
-	}
-
-	@Override
 	public boolean isGPUAccelerationReady() {
 		return true;
 	}
@@ -846,15 +870,15 @@ public class FFMpegVideo extends Engine {
 		String frameRateNumber = media.getValidFps(false);
 
 		// Set seeks
-		if (params.getTimeSeek() > 0) {
+		if (params.getTimeSeek() > 0 && !avisynth) {
 			cmdList.add("-ss");
 			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
 		// Input filename
 		cmdList.add("-i");
-		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.getSid(), params.getFromFrame(), params.getToFrame(), frameRateRatio, frameRateNumber, configuration);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso") && this instanceof AviSynthFFmpeg aviSynthFFmpeg) {
+			File avsFile = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.getStdIn() != null) {
@@ -1146,7 +1170,7 @@ public class FFMpegVideo extends Engine {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-			File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
+			File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 			String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -1742,7 +1766,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	@Nullable
 	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
 		executableInfo = testExecutableFile(executableInfo);
 		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
@@ -1812,7 +1835,7 @@ public class FFMpegVideo extends Engine {
 				result.available(Boolean.FALSE);
 			}
 		} catch (InterruptedException e) {
-			return null;
+			Thread.currentThread().interrupt();
 		}
 		return result.build();
 	}

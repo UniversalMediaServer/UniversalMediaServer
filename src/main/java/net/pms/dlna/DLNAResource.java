@@ -16,8 +16,16 @@
  */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +53,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -97,21 +111,7 @@ import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.StringUtil;
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
-import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -217,6 +217,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean hasExternalSubtitles;
 	private boolean hasSubtitles;
 	private boolean isExternalSubtitlesParsed;
+
+	private double lastTimeSeek = -1.0;
 
 	protected DLNAResource() {
 		this.specificType = Format.UNKNOWN;
@@ -3260,6 +3262,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 			lastStartSystemTime = System.currentTimeMillis();
+
+			if (params.getTimeSeek() > 0) {
+				// This must be a resume - so need to set lastTimeSeek to avoid a restart of the process
+				// from a new seek request to the same resume point
+				LOGGER.debug("Setting last time seek (from resume) to: " + params.getTimeSeek() + " seconds");
+				lastTimeSeek = params.getTimeSeek();
+			}
+
 			externalProcess = engine.launchTranscode(this, media, params);
 			if (params.getWaitBeforeStart() > 0) {
 				LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
@@ -3272,26 +3282,40 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
 			}
 		} else if (params.getTimeSeek() > 0 && media != null && media.isMediaparsed() && media.getDurationInSeconds() > 0) {
-			// Time seek request => stop running transcode process and start a
-			// new one
+
+			// Time seek request => stop running transcode process and start a new one
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
-			params.setMinBufferSize(1);
-			Runnable r = () -> externalProcess.stopProcess();
 
-			new Thread(r, "External Process Stopper").start();
-			lastStartSystemTime = System.currentTimeMillis();
-			ProcessWrapper newExternalProcess = engine.launchTranscode(this, media, params);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				LOGGER.error(null, e);
+			if (lastTimeSeek == params.getTimeSeek()) {
+				LOGGER.debug("Duplicate time seek request: " + params.getTimeSeek() + " seconds, ignoring");
+			} else {
+
+				LOGGER.debug("Setting last time seek to: " + params.getTimeSeek() + " seconds");
+				lastTimeSeek = params.getTimeSeek();
+
+				params.setMinBufferSize(1);
+
+				Runnable r = () -> {
+					externalProcess.stopProcess();
+				};
+
+				new Thread(r, "External Process Stopper").start();
+
+				lastStartSystemTime = System.currentTimeMillis();
+				ProcessWrapper newExternalProcess = engine.launchTranscode(this, media, params);
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
+				}
+
+				if (newExternalProcess == null) {
+					LOGGER.trace("External process instance is null... sounds not good");
+				}
+
+				externalProcess = newExternalProcess;
 			}
-
-			if (newExternalProcess == null) {
-				LOGGER.trace("External process instance is null... sounds not good");
-			}
-
-			externalProcess = newExternalProcess;
 		}
 
 		if (externalProcess == null) {

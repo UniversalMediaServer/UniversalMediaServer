@@ -61,7 +61,7 @@ public final class EngineFactory {
 	 */
 	private static final ArrayList<Engine> ENGINES = new ArrayList<>();
 
-	private static UmsConfiguration configuration = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * This sorts {@link Engine}s according to their configured priorities.
@@ -71,8 +71,8 @@ public final class EngineFactory {
 
 		@Override
 		public int compare(Engine engine1, Engine engine2) {
-			Integer index1 = configuration.getEnginePriority(engine1);
-			Integer index2 = configuration.getEnginePriority(engine2);
+			Integer index1 = CONFIGURATION.getEnginePriority(engine1);
+			Integer index2 = CONFIGURATION.getEnginePriority(engine2);
 
 			// Not being in the priority list will sort the engine as last.
 			if (index1 == -1) {
@@ -140,7 +140,7 @@ public final class EngineFactory {
 		if (engine == null) {
 			throw new IllegalArgumentException("engine cannot be null");
 		}
-		configuration.capitalizeEngineId(engine);
+		CONFIGURATION.capitalizeEngineId(engine);
 		ENGINES_LOCK.writeLock().lock();
 		try {
 			if (isEngineRegistered(engine.getEngineId())) {
@@ -150,16 +150,16 @@ public final class EngineFactory {
 
 			LOGGER.debug("Checking transcoding engine {}", engine);
 			ENGINES.add(engine);
-			engine.setEnabled(configuration.isEngineEnabled(engine), false);
+			engine.setEnabled(CONFIGURATION.isEngineEnabled(engine), false);
 
 			ExternalProgramInfo programInfo = engine.getProgramInfo();
 			ReentrantReadWriteLock programInfoLock = programInfo.getLock();
 			// Lock for consistency during tests, need write in case setAvailabe() needs to modify or a custom path is set
 			programInfoLock.writeLock().lock();
 			try {
-				if (configuration.isCustomProgramPathsSupported()) {
+				if (CONFIGURATION.isCustomProgramPathsSupported()) {
 					LOGGER.trace("Registering custom executable path for transcoding engine {}", engine);
-					Path customPath = configuration.getEngineCustomPath(engine);
+					Path customPath = CONFIGURATION.getEngineCustomPath(engine);
 					engine.initCustomExecutablePath(customPath);
 				}
 

@@ -16,12 +16,17 @@
  */
 package net.pms.network.mediaserver;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.jupnp.model.message.header.DeviceTypeHeader;
+import org.jupnp.model.types.DeviceType;
+import org.jupnp.transport.RouterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -30,11 +35,6 @@ import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.renderers.JUPnPDeviceHelper;
-import org.jupnp.model.message.header.DeviceTypeHeader;
-import org.jupnp.model.types.DeviceType;
-import org.jupnp.transport.RouterException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
@@ -209,7 +209,7 @@ public class MediaServer {
 	private static void startIfPossible() {
 		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
 		if (ia != null) {
-			LOGGER.info("Starting the media server as network interface association was founded");
+			LOGGER.info("Starting the media server as network interface association was found");
 			start();
 		}
 	}

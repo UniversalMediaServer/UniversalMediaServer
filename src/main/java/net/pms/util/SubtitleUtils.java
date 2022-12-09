@@ -448,7 +448,7 @@ public class SubtitleUtils {
 
 		try {
 			tempSubsFile = new File(
-				configuration.getTempFolder(),
+				CONFIGURATION.getTempFolder(),
 				FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension()
 			);
 		} catch (IOException e1) {
@@ -484,7 +484,7 @@ public class SubtitleUtils {
 		LOGGER.debug("Applying fontconfig to subtitles " + tempSubs.getName());
 		File outputSubs = tempSubs;
 		StringBuilder outputString = new StringBuilder();
-		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
+		File temp = new File(CONFIGURATION.getTempFolder(), tempSubs.getName() + ".tmp");
 		FileUtils.copyFile(tempSubs, temp);
 		try (
 			BufferedReaderDetectCharsetResult input = FileUtil.createBufferedReaderDetectCharset(temp, StandardCharsets.UTF_8);

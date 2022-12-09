@@ -24,17 +24,16 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
-import net.pms.util.FilePermissions;
-import net.pms.util.FileUtil;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FilePermissions;
+import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
-import net.pms.platform.linux.LinuxProgramPaths;
-import net.pms.platform.PlatformProgramPaths;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of paths to external programs on Windows.
@@ -42,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Nadahar
  */
 public class WindowsProgramPaths extends PlatformProgramPaths {
-	private static final Logger LOGGER = LoggerFactory.getLogger(LinuxProgramPaths.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsProgramPaths.class);
 	private final FFmpegProgramInfo ffmpegInfo;
 	private final ExternalProgramInfo mPlayerInfo;
 	private final ExternalProgramInfo vlcInfo;
@@ -51,7 +50,12 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
+	private final ExternalProgramInfo aviSynthInfo;
 	private final ExternalProgramInfo interFrameInfo;
+	private final ExternalProgramInfo ffms2Info;
+	private final ExternalProgramInfo directShowSourceInfo;
+	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
 	private final Path mediaInfo;
 	private final Path ctrlSender;
@@ -136,10 +140,35 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 			dcRawInfo.setPath(ProgramExecutableType.INSTALLED, dcRaw);
 		}
 
+		// AviSynth
+		Path aviSynth = resolve("avisynth.dll");
+		aviSynthInfo = new ExternalProgramInfo("AviSynth", ProgramExecutableType.BUNDLED);
+		aviSynthInfo.setPath(ProgramExecutableType.BUNDLED, aviSynth);
+
 		// InterFrame
 		Path interframe = resolve("interframe");
 		interFrameInfo = new ExternalProgramInfo("InterFrame", ProgramExecutableType.BUNDLED);
 		interFrameInfo.setPath(ProgramExecutableType.BUNDLED, interframe);
+
+		// Convert 2dto3d
+		Path convert2dTo3d = resolve("avisynth/convert2dto3d.avsi");
+		convert2dTo3dInfo = new ExternalProgramInfo("convert2dto3d", ProgramExecutableType.BUNDLED);
+		convert2dTo3dInfo.setPath(ProgramExecutableType.BUNDLED, convert2dTo3d);
+
+		// FFMS2
+		Path ffms2 = resolve("avisynth/ffms2.dll");
+		ffms2Info = new ExternalProgramInfo("ffms2", ProgramExecutableType.BUNDLED);
+		ffms2Info.setPath(ProgramExecutableType.BUNDLED, ffms2);
+
+		// DirectShowSource
+		Path directShowSource = resolve("avisynth/DirectShowSource.dll");
+		directShowSourceInfo = new ExternalProgramInfo("DirectShowSource", ProgramExecutableType.BUNDLED);
+		directShowSourceInfo.setPath(ProgramExecutableType.BUNDLED, directShowSource);
+
+		// mvtools2
+		Path mvtools2 = resolve("avisynth/mvtools2.dll");
+		mvtools2Info = new ExternalProgramInfo("mvtools2", ProgramExecutableType.BUNDLED);
+		mvtools2Info.setPath(ProgramExecutableType.BUNDLED, mvtools2);
 
 		// CtrlSender
 		Path tmpCtrlSender = resolve("ctrlsender.exe");
@@ -209,8 +238,33 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getAviSynth() {
+		return aviSynthInfo;
+	}
+
+	@Override
 	public ExternalProgramInfo getInterFrame() {
 		return interFrameInfo;
+	}
+
+	@Override
+	public ExternalProgramInfo getFFMS2() {
+		return ffms2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getDirectShowSource() {
+		return ffms2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getMvtools2() {
+		return mvtools2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getConvert2dTo3d() {
+		return convert2dTo3dInfo;
 	}
 
 	@Override

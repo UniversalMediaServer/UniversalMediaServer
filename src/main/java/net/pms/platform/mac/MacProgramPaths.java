@@ -19,11 +19,12 @@ package net.pms.platform.mac;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import net.pms.util.FileUtil;
+
+import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
-import net.pms.platform.PlatformProgramPaths;
 
 /**
  * This class keeps track of paths to external programs on macOS.
@@ -218,7 +219,32 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getAviSynth() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getInterFrame() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getFFMS2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getDirectShowSource() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getMvtools2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getConvert2dTo3d() {
 		return null;
 	}
 
