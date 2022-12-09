@@ -118,7 +118,7 @@ public class RealFile extends VirtualFile {
 					InputFile inputfile = new InputFile();
 					inputfile.setFile(file);
 					getMedia().setContainer(null);
-					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
+					getMedia().parse(inputfile, getFormat(), getType(), false);
 					if (getMedia().getContainer() == null) {
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
@@ -269,7 +269,7 @@ public class RealFile extends VirtualFile {
 						getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 					} else {
 						// Don't think that will ever happen
-						getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
+						getMedia().parse(input, getFormat(), getType(), isResume());
 					}
 
 					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {

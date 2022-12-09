@@ -17,13 +17,12 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
+import net.pms.media.metadata.ApiStringArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,8 +141,8 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 	 * @param countries
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement countries, final Long tvSeriesID) {
-		if (countries == null || !countries.isJsonArray() || countries.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiStringArray countries, final Long tvSeriesID) {
+		if (countries == null || countries.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -162,10 +161,7 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = countries.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				String country = i.next().getAsString();
-
+			for (String country : countries) {
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(country, 1024));
@@ -195,6 +191,24 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		}
 	}
 
+	public static ApiStringArray getCountriesForFile(final Connection connection, final Long fileId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_COUNTRY_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -208,6 +222,24 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiStringArray getCountriesForTvSerie(final Connection connection, final Long tvSerieId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_COUNTRY_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

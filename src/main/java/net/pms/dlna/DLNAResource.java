@@ -96,6 +96,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
@@ -2306,7 +2307,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (media != null && media.hasVideoMetadata()) {
-			DLNAMediaVideoMetadata videoMetadata = media.getVideoMetadata();
+			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
 			if (videoMetadata.isTVEpisode()) {
 				if (isNotBlank(videoMetadata.getTVSeason())) {
 					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTVSeason());
@@ -3426,7 +3427,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume(), renderer);
+			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume());
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
 				MediaTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
@@ -5018,7 +5019,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// If the in-memory media has not already been populated with filename metadata, we attempt it
 		try {
 			if (!media.hasVideoMetadata()) {
-				DLNAMediaVideoMetadata videoMetadata = new DLNAMediaVideoMetadata();
+				MediaVideoMetadata videoMetadata = new MediaVideoMetadata();
 				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
 				String titleFromFilename = metadataFromFilename[0];
 				String yearFromFilename = metadataFromFilename[1];
@@ -5073,13 +5074,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 							media.setVideoMetadata(videoMetadata);
-							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), media, null);
+							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), media, false);
 
 							// Creates a minimal TV series row with just the title, that
 							// might be enhanced later by the API
 							if (videoMetadata.isTVEpisode()) {
 								// TODO: Make this check if it already exists instead of always setting it
-								MediaTableTVSeries.set(connection, null, videoMetadata.getMovieOrShowName());
+								MediaTableTVSeries.set(connection, videoMetadata.getMovieOrShowName());
 							}
 						}
 					}

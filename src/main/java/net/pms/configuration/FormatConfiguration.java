@@ -592,12 +592,12 @@ public class FormatConfiguration {
 				ext.getIdentifier() != Identifier.DSF &&
 				ext.getIdentifier() != Identifier.PNM
 			) {
-				MediaInfoParser.parse(media, file, type, renderer);
+				MediaInfoParser.parse(media, file, type);
 			} else {
-				media.parse(file, ext, type, false, false, renderer);
+				media.parse(file, ext, type, false);
 			}
 		} else {
-			media.parse(file, ext, type, false, false, renderer);
+			media.parse(file, ext, type, false);
 		}
 	}
 
