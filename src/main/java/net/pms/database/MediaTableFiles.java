@@ -93,8 +93,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 29-30: No db changes, improved filename parsing
 	 * - 31: Redo the changes from version 27 because the versioning got muddled
 	 * - 32: Added an index for the Media Library Movies folder that includes duration
+	 * - 33: Added HDRFORMAT column
 	 */
-	private static final int TABLE_VERSION = 33;
+	private static final int TABLE_VERSION = 34;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -346,6 +347,11 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
+					case 33 -> {
+						//Rename sql reserved words
+						LOGGER.trace("Adding HDRFORMAT column");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMAT VARCHAR");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -423,6 +429,7 @@ public class MediaTableFiles extends MediaTable {
 			sb.append(", VIDEOTRACKCOUNT         INTEGER");
 			sb.append(", IMAGECOUNT              INTEGER");
 			sb.append(", BITDEPTH                INTEGER");
+			sb.append(", HDRFORMAT               VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", PIXELASPECTRATIO        VARCHAR(").append(SIZE_MAX).append(')');
 			sb.append(", SCANTYPE                OTHER");
 			sb.append(", SCANORDER               OTHER");
@@ -692,6 +699,7 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
+							rs.updateString("HDRFORMAT", StringUtils.left(media.getVideoHDRFormat(), SIZE_MAX));
 							rs.updateString("PIXELASPECTRATIO", StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
@@ -761,6 +769,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
 						ps.setInt(++databaseColumnIterator, media.getImageCount());
 						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
+						ps.setString(++databaseColumnIterator, StringUtils.left(media.getVideoHDRFormat(), SIZE_MAX));
 						ps.setString(++databaseColumnIterator, StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
 						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
 						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
@@ -788,6 +797,7 @@ public class MediaTableFiles extends MediaTable {
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
 						ps.setInt(++databaseColumnIterator, 0);
+						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
 						ps.setNull(++databaseColumnIterator, Types.OTHER);
 						ps.setNull(++databaseColumnIterator, Types.OTHER);
