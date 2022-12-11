@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [13.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.1...13.0.0) (2022-12-11)
 
 ### General:
 - Added 2D to 3D conversion for virtual reality, for full details see https://iwantaholodeck.com/on-the-fly-2d-to-3d-video-conversion-with-universal-media-server-ums/
@@ -32,6 +32,8 @@
 
 ### Renderers:
 - Let LG TVs use their built-in resume only
+- Fixed support for DTS on LG OLED models newer than 2019
+- Avoid re-encoding x265 needlessly on LG OLEDs
 - Detect more versions of VLC
 
 ### Dependencies:
