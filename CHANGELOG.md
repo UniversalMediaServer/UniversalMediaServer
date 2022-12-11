@@ -17,6 +17,19 @@
 - Fixed duplicate API fetches for failed results
 - Fixed star rating updates not immediately updating
 
+### Translation updates via Crowdin
+- Czech (94%)
+- Danish (99%) (thanks, NCAA!)
+- Finnish (99%) (thanks, Esko Gardner!)
+- French (94%) (thanks, SurfaceS!)
+- German (93%) (thanks, jaba82!)
+- Korean (94%) (thanks, VenusGirl!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (94%) (thanks, Sandro Almeida!)
+- Spanish (88%) (thanks, edwardalvarez2011!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (26%) (thanks, Paul Furlet!)
+
 ### Renderers:
 - Let LG TVs use their built-in resume only
 - Detect more versions of VLC
@@ -25,14 +38,14 @@
 - Updated all Node.js subdependencies
 - Update dependency @types/jest to v29.2.4
 - Update dependency @types/lodash to v4.14.191
-- Update dependency @types/node to v18.11.12
+- Update dependency @types/node to v18.11.13
 - Update dependency @types/react to v18.0.26
 - Update dependency @types/video.js to v7.3.50
 - Update dependency axios to v1.2.1
 - Update dependency com.github.oshi:oshi-core to v6.4.0
 - Update dependency com.puppycrawl.tools:checkstyle to v10.5.0
 - Update dependency eslint to v8.29.0
-- Update dependency hls.js to v1.2.8
+- Update dependency hls.js to v1.2.9
 - Update dependency react-router-dom to v6.4.5
 - Update dependency tabler-icons-react to v1.56.0
 - Update dependency typescript to v4.9.4
