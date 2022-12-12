@@ -140,7 +140,9 @@ Function AdvancedSettings
 		Pop $4
 
 		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 8000 
+		${If} $4 > 16000 
+			StrCpy $MaximumMemoryJava "4096"
+		${ElseIf} $4 > 8000 
 			StrCpy $MaximumMemoryJava "2048"
 		${ElseIf} $4 > 4000 
 			StrCpy $MaximumMemoryJava "1280"
