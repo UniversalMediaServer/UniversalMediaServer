@@ -16,6 +16,7 @@
 - Fixed API poster/cover images sometimes not being set
 - Fixed duplicate API fetches for failed results
 - Fixed star rating updates not immediately updating
+- Fixed resume files with AviSynth transcoding
 
 ### Translation updates via Crowdin
 - Czech (94%)
