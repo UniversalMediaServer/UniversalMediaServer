@@ -60,9 +60,15 @@ public class MediaTableFiles extends MediaTable {
 	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = "LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " ";
 	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = "LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_ID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
 
+	private static final String INSERT_COLUMNS = "FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, " +
+		"ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, TITLEVIDEOTRACK, VIDEOTRACKCOUNT, " +
+		"IMAGECOUNT, BITDEPTH, HDRFORMAT, PIXELASPECTRATIO, SCANTYPE, SCANORDER";
+
 	private static final String SQL_GET_ID_FILENAME = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
 	private static final String SQL_GET_ALL_FILENAME_MODIFIED = "SELECT * FROM " + TABLE_NAME + " " + SQL_LEFT_JOIN_TABLE_THUMBNAILS + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_MODIFIED + " = ? LIMIT 1";
+	private static final String SQL_GET_INSERT_COLUMNS_BY_FILENAME = "SELECT " + TABLE_COL_ID + ", " + INSERT_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
+	private static final String SQL_INSERT_COLUMNS = "INSERT INTO " + TABLE_NAME + " (" + INSERT_COLUMNS + ")" + createDefaultValueForInsertStatement(INSERT_COLUMNS);
 
 	public static final String NONAME = "###";
 
@@ -573,6 +579,7 @@ public class MediaTableFiles extends MediaTable {
 					media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
 					media.setImageCount(rs.getInt("IMAGECOUNT"));
 					media.setVideoBitDepth(rs.getInt("BITDEPTH"));
+					media.setVideoHDRFormat(rs.getString("HDRFORMAT"));
 					media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
 					media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
 					media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
@@ -640,15 +647,7 @@ public class MediaTableFiles extends MediaTable {
 	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
 		try {
 			long fileId = -1;
-			try (PreparedStatement ps = connection.prepareStatement("SELECT " +
-					"ID, FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, FRAMERATE, " +
-					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, HDRFORMAT, PIXELASPECTRATIO, SCANTYPE, SCANORDER " +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE " +
-					TABLE_COL_FILENAME + " = ? " +
-				"LIMIT 1",
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_INSERT_COLUMNS_BY_FILENAME,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
@@ -711,15 +710,8 @@ public class MediaTableFiles extends MediaTable {
 
 			if (fileId < 0) {
 				// No fileId means it didn't exist
-				String columns = "FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, " +
-					"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER";
-
 				try (
-					PreparedStatement ps = connection.prepareStatement(
-						"INSERT INTO " + TABLE_NAME + " (" + columns + ")" +
-						createDefaultValueForInsertStatement(columns),
+					PreparedStatement ps = connection.prepareStatement(SQL_INSERT_COLUMNS,
 						Statement.RETURN_GENERATED_KEYS
 					)
 				) {
