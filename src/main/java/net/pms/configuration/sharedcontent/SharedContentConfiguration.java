@@ -123,9 +123,11 @@ public class SharedContentConfiguration {
 	}
 
 	public static void updateSharedContent(SharedContentArray values, boolean save) {
+		LOGGER.debug("New shared content configuration sent.");
 		boolean updated = false;
 		synchronized (SHARED_CONTENT_ARRAY) {
 			if (!values.equals(SHARED_CONTENT_ARRAY)) {
+				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
 				//check viability
 				for (SharedContent sharedContent : values) {
@@ -145,6 +147,8 @@ public class SharedContentConfiguration {
 					PMS.get().resetRenderersRoot();
 				}
 				updated = true;
+			} else {
+				LOGGER.debug("Current shared content configuration is already up to date.");
 			}
 		}
 		if (updated) {
@@ -227,11 +231,13 @@ public class SharedContentConfiguration {
 
 	private static synchronized SharedContentArray readConfiguration() {
 		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+		LOGGER.debug("Reading shared content configuration file: " + sharedConfFilePath);
 		try {
 			if (Files.exists(sharedConfFilePath)) {
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
 				return GSON.fromJson(json, SharedContentArray.class);
 			}
+			LOGGER.trace("Shared content configuration file missing: " + sharedConfFilePath);
 		} catch (IOException | JsonSyntaxException ex) {
 			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
 			LOGGER.debug(null, ex);
@@ -257,16 +263,18 @@ public class SharedContentConfiguration {
 	private static synchronized void writeConfiguration() {
 		try {
 			isWritingConfiguration = true;
-			Path webConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
-			Files.writeString(webConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
+			Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+			LOGGER.debug("Writing shared content configuration file: " + sharedConfFilePath);
+			Files.writeString(sharedConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+			LOGGER.debug("An error occurred while writing the shared content configuration file: {}", e);
 		}
 		isWritingConfiguration = false;
 	}
 
 	private static synchronized void reloadConfiguration() {
 		if (!isWritingConfiguration) {
+			LOGGER.debug("Reloading shared content configuration file");
 			updateSharedContent(readConfiguration(), false);
 		}
 	}
