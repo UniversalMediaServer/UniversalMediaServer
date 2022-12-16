@@ -113,7 +113,7 @@ export default function Settings() {
       // construct an object of only changed values to send
       for (const key in values) {
         if (!_.isEqual(configuration[key], values[key])) {
-          changedValues[key] = values[key]?values[key]:null;
+          changedValues[key] = values[key] !== undefined && values[key] !== null ? values[key] : null;
         }
       }
 
