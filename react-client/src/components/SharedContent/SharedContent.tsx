@@ -44,13 +44,17 @@ export default function SharedContent() {
     if (sse.userConfiguration === null) {
       return;
     }
+
+    const currentConfiguration = _.cloneDeep(configuration);
+    // set a fresh state for shared_content
     if (sse.userConfiguration['shared_content']) {
-      configuration['shared_content'] = undefined;
+      delete currentConfiguration['shared_content'];
     }
-    const userConfig = _.merge({}, configuration, sse.userConfiguration);
+
+    const newConfiguration = _.merge({}, currentConfiguration, sse.userConfiguration);
     sse.setUserConfiguration(null);
-    setConfiguration(userConfig);
-    formSetValues(userConfig);
+    setConfiguration(newConfiguration);
+    formSetValues(newConfiguration);
   }, [configuration, sse, formSetValues]);
 
   useEffect(() => {
