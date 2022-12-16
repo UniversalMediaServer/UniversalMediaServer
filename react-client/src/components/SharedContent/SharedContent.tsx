@@ -44,6 +44,9 @@ export default function SharedContent() {
     if (sse.userConfiguration === null) {
       return;
     }
+    if (sse.userConfiguration['shared_content']) {
+      configuration['shared_content'] = undefined;
+    }
     const userConfig = _.merge({}, configuration, sse.userConfiguration);
     sse.setUserConfiguration(null);
     setConfiguration(userConfig);
