@@ -44,11 +44,13 @@ export default function SharedContent() {
     if (sse.userConfiguration === null) {
       return;
     }
+
     const currentConfiguration = _.cloneDeep(configuration);
     // set a fresh state for shared_content
     if (sse.userConfiguration['shared_content']) {
       delete currentConfiguration['shared_content'];
     }
+
     const newConfiguration = _.merge({}, currentConfiguration, sse.userConfiguration);
     sse.setUserConfiguration(null);
     setConfiguration(newConfiguration);
