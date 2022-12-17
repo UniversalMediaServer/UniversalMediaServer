@@ -736,7 +736,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		} else {
 			st.setMediaServerBind("-");
 		}
-		if (PMS.get().getWebPlayerServer() != null) {
+		if (PMS.get().getWebPlayerServer() != null && PMS.get().getWebPlayerServer().getServer() != null) {
 			st.setInterfaceServerBind(PMS.get().getWebPlayerServer().getAddress());
 		} else {
 			st.setInterfaceServerBind("-");
