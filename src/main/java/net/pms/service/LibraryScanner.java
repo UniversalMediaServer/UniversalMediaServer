@@ -16,6 +16,7 @@
  */
 package net.pms.service;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.slf4j.Logger;
@@ -59,9 +60,12 @@ public class LibraryScanner {
 	}
 
 	private static void analyzeDb() {
-		PMS.get().getMediaDatabase();
-		try (Statement stmt = MediaDatabase.getConnectionIfAvailable().createStatement()) {
-			stmt.execute("ANALYZE SAMPLE_SIZE 0");
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection != null) {
+				try (Statement stmt = connection.createStatement()) {
+					stmt.execute("ANALYZE SAMPLE_SIZE 0");
+				}
+			}
 		} catch (SQLException e) {
 			LOGGER.warn("Error analyzing database", e);
 		}

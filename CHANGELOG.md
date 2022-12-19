@@ -1,5 +1,31 @@
 # Changelog
 
+## [13.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.0...13.0.1) (2022-12-17)
+
+### General:
+- Increased default max memory on Windows
+- Fixed insertion of API metadata
+- Fixed being unable to disable toggles in web settings (#3689)
+- Fixed duplicate entries added to shared content on save when entries were removed
+- Fixed shared content updates not saving (#3697)
+- Fixed running via VS Code
+
+### Translation updates via Crowdin
+- Catalan (89%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (Brazilian) (96%) (thanks, Matias Dos Reis!)
+- Slovak (82%) (thanks, Filip Hanes!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies:
+- Updated all Node.js subdependencies
+- Update dependency @types/node to v18.11.15
+- Update dependency org.slf4j:slf4j-api to v2.0.6
+- Update dependency react-router-dom to v6.5.0
+- Update typescript-eslint monorepo to v5.46.1
+
 ## [13.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.1...13.0.0) (2022-12-11)
 
 ### General:
