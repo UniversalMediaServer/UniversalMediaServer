@@ -261,7 +261,6 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
@@ -284,7 +283,6 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeoutMS,
 		long terminateTimeoutMS,
@@ -307,7 +305,6 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeout,
@@ -330,7 +327,6 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeoutMS,

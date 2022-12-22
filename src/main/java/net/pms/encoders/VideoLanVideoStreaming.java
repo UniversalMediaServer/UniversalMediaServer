@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -62,6 +61,7 @@ public class VideoLanVideoStreaming extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	VideoLanVideoStreaming() {
+		super(CONFIGURATION.getVLCPaths());
 	}
 
 	@Override
@@ -97,11 +97,6 @@ public class VideoLanVideoStreaming extends Engine {
 	@Override
 	public String mimeType() {
 		return "video/mpeg";
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getVLCPaths();
 	}
 
 	protected String getEncodingArgs() {

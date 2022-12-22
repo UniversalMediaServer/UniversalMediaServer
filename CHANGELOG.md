@@ -1,5 +1,86 @@
 # Changelog
 
+## [13.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.0...13.0.1) (2022-12-17)
+
+### General:
+- Increased default max memory on Windows
+- Fixed insertion of API metadata
+- Fixed being unable to disable toggles in web settings (#3689)
+- Fixed duplicate entries added to shared content on save when entries were removed
+- Fixed shared content updates not saving (#3697)
+- Fixed running via VS Code
+
+### Translation updates via Crowdin
+- Catalan (89%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (Brazilian) (96%) (thanks, Matias Dos Reis!)
+- Slovak (82%) (thanks, Filip Hanes!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies:
+- Updated all Node.js subdependencies
+- Update dependency @types/node to v18.11.15
+- Update dependency org.slf4j:slf4j-api to v2.0.6
+- Update dependency react-router-dom to v6.5.0
+- Update typescript-eslint monorepo to v5.46.1
+
+## [13.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.1...13.0.0) (2022-12-11)
+
+### General:
+- Added 2D to 3D conversion for virtual reality, for full details see https://iwantaholodeck.com/on-the-fly-2d-to-3d-video-conversion-with-universal-media-server-ums/
+- Fixed reload button is disabled after a restart
+- Fixed sometimes mixed renderer found
+- Implements LINN iOS app search request for attribute upnp:artist@role=composer
+- Handle UPNP:AlbumArtist
+- Escape iOS Smart Punctuation apostrophe
+- Fixed case-insensitive UPnP search
+- Double-click on tray icon opens web settings
+- Made language more clear on the right-click tray menu
+- Fixed API metadata countries, plot, ratings, rated (classification), start year, tagline, total seasons, and votes
+- Fixed API poster/cover images sometimes not being set
+- Fixed duplicate API fetches for failed results
+- Fixed star rating updates not immediately updating
+- Fixed resume files with AviSynth transcoding
+
+### Translation updates via Crowdin
+- Czech (94%)
+- Danish (99%) (thanks, NCAA!)
+- Finnish (99%) (thanks, Esko Gardner!)
+- French (94%) (thanks, SurfaceS!)
+- German (93%) (thanks, jaba82!)
+- Korean (94%) (thanks, VenusGirl!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (94%) (thanks, Sandro Almeida!)
+- Spanish (88%) (thanks, edwardalvarez2011!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (26%) (thanks, Paul Furlet!)
+
+### Renderers:
+- Let LG TVs use their built-in resume only
+- Fixed support for DTS on LG OLED models newer than 2019
+- Avoid re-encoding x265 needlessly on LG OLEDs
+- Detect more versions of VLC
+
+### Dependencies:
+- Updated all Node.js subdependencies
+- Update dependency @types/jest to v29.2.4
+- Update dependency @types/lodash to v4.14.191
+- Update dependency @types/node to v18.11.13
+- Update dependency @types/react to v18.0.26
+- Update dependency @types/video.js to v7.3.50
+- Update dependency axios to v1.2.1
+- Update dependency com.github.oshi:oshi-core to v6.4.0
+- Update dependency com.puppycrawl.tools:checkstyle to v10.5.0
+- Update dependency eslint to v8.29.0
+- Update dependency hls.js to v1.2.9
+- Update dependency react-router-dom to v6.4.5
+- Update dependency tabler-icons-react to v1.56.0
+- Update dependency typescript to v4.9.4
+- Update Mantine monorepo packages to v5.8.4
+- Update typescript-eslint monorepo to v5.46.0
+
 ## [12.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.0...12.0.1) (2022-11-27)
 
 ### General:

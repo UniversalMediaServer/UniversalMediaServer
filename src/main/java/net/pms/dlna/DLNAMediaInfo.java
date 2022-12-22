@@ -145,6 +145,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String aspectRatioContainer;
 	private String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
+	private String videoHDRFormat;
 
 	private volatile DLNAThumbnail thumb = null;
 
@@ -1762,6 +1763,9 @@ public class DLNAMediaInfo implements Cloneable {
 			if (getVideoBitDepth() != 8) {
 				result.append(", Video Bit Depth: ").append(getVideoBitDepth());
 			}
+			if (isNotBlank(getVideoHDRFormat())) {
+				result.append(", Video HDR Format: ").append(getVideoHDRFormat());
+			}
 			if (isNotBlank(getFileTitleFromMetadata())) {
 				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
 			}
@@ -2171,6 +2175,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setVideoBitDepth(int value) {
 		this.videoBitDepth = value;
+	}
+
+	public String getVideoHDRFormat() {
+		return videoHDRFormat;
+	}
+
+	public void setVideoHDRFormat(String value) {
+		this.videoHDRFormat = value;
 	}
 
 	public int getPlaybackCount() {

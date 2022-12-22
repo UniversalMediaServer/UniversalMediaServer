@@ -320,6 +320,18 @@ public class MediaInfoParser {
 							}
 						}
 
+						value = MI.get(video, i, "HDR_Format");
+						if (!value.isEmpty()) {
+							if (value.startsWith("Dolby Vision")) {
+								media.setVideoHDRFormat(value);
+							} else {
+								value = MI.get(video, i, "HDR_Format_Compatibility");
+								if (value.startsWith("HDR10") || value.startsWith("HDR10+")) {
+									media.setVideoHDRFormat(value);
+								}
+							}
+						}
+
 						value = MI.get(video, i, "Format_Profile");
 						if (!value.isEmpty() && media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.H264)) {
 							media.setAvcLevel(getAvcLevel(value));

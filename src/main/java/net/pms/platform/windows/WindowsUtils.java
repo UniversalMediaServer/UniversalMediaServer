@@ -20,6 +20,8 @@ import com.sun.jna.Native;
 import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.VerRsrc;
+import com.sun.jna.platform.win32.VersionUtil;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.ptr.LongByReference;
@@ -367,6 +369,20 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
+	public Version getFileVersionInfo(String filePath) {
+		try {
+			VerRsrc.VS_FIXEDFILEINFO version = VersionUtil.getFileVersionInfo(filePath);
+			Version fileVersion = new Version(version.getFileVersionMajor() + "." + version.getFileVersionMinor() + "." + version.getFileVersionRevision() + "." + version.getFileVersionBuild());
+			if (fileVersion.isGreaterThan(new Version("0.0.0.0"))) {
+				return fileVersion;
+			}
+			return new Version(version.getProductVersionMajor() + "." + version.getProductVersionMinor() + "." + version.getProductVersionRevision() + "." + version.getProductVersionBuild());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
 	public String getiTunesFile() throws IOException {
 		Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
 		String location = null;
@@ -649,4 +665,5 @@ public class WindowsUtils extends PlatformUtils {
 		pwuninstall.runInSameThread();
 		return true;
 	}
+
 }

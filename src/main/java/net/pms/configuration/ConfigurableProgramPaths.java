@@ -70,6 +70,18 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom InterFrame path. */
 	public static final String KEY_INTERFRAME_PATH  = "interframe_path";
 
+	/** The {@link Configuration} key for the FFMS2 executable type. */
+	public static final String KEY_FFMS2_EXECUTABLE_TYPE = "ffms2_executable_type";
+
+	/** The {@link Configuration} key for the custom FFMS2 path. */
+	public static final String KEY_FFMS2_PATH  = "ffms2_path";
+
+	/** The {@link Configuration} key for the 2DTO3D executable type. */
+	public static final String KEY_2DTO3D_EXECUTABLE_TYPE = "2DTO3D_executable_type";
+
+	/** The {@link Configuration} key for the custom 2DTO3D path. */
+	public static final String KEY_2DTO3D_PATH  = "2dTo3d_path";
+
 	/** The {@link Configuration} key for the custom youtube-dl path. */
 	public static final String KEY_YOUTUBEDL_PATH  = "youtubedl_path";
 
@@ -94,17 +106,17 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public FFmpegProgramInfo getFFmpeg() {
+	public final FFmpegProgramInfo getFFmpeg() {
 		return platformPaths.getFFmpeg();
 	}
 
 	@Override
-	public ExternalProgramInfo getMPlayer() {
+	public final ExternalProgramInfo getMPlayer() {
 		return platformPaths.getMPlayer();
 	}
 
 	@Override
-	public ExternalProgramInfo getVLC() {
+	public final ExternalProgramInfo getVLC() {
 		return platformPaths.getVLC();
 	}
 
@@ -114,32 +126,57 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeR() {
+	public final ExternalProgramInfo getTsMuxeR() {
 		return platformPaths.getTsMuxeR();
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
+	public final ExternalProgramInfo getTsMuxeRNew() {
 		return platformPaths.getTsMuxeRNew();
 	}
 
 	@Override
-	public ExternalProgramInfo getFLAC() {
+	public final ExternalProgramInfo getFLAC() {
 		return platformPaths.getFLAC();
 	}
 
 	@Override
-	public ExternalProgramInfo getDCRaw() {
+	public final ExternalProgramInfo getDCRaw() {
 		return platformPaths.getDCRaw();
 	}
 
 	@Override
-	public ExternalProgramInfo getInterFrame() {
+	public final ExternalProgramInfo getAviSynth() {
+		return platformPaths.getAviSynth();
+	}
+
+	@Override
+	public final ExternalProgramInfo getInterFrame() {
 		return platformPaths.getInterFrame();
 	}
 
 	@Override
-	public ExternalProgramInfo getYoutubeDl() {
+	public final ExternalProgramInfo getFFMS2() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getDirectShowSource() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getMvtools2() {
+		return platformPaths.getMvtools2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getConvert2dTo3d() {
+		return platformPaths.getConvert2dTo3d();
+	}
+
+	@Override
+	public final ExternalProgramInfo getYoutubeDl() {
 		return platformPaths.getYoutubeDl();
 	}
 
@@ -183,6 +220,28 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	public void setCustomInterFramePath(@Nullable Path path) {
 		setCustomProgramPath(path, platformPaths.getInterFrame(), KEY_INTERFRAME_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * FFMS2 both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFFMS2Path(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getFFMS2(), KEY_FFMS2_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Convert2dTo3d both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomConvert2dTo3dPath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getConvert2dTo3d(), KEY_2DTO3D_PATH, true);
 	}
 
 	/**
@@ -251,7 +310,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 *            the {@link ProgramExecutableType#CUSTOM} {@link Path}.
 	 * @param configurationKey the {@link Configuration} key to read.
 	 */
-	protected void setCustomPathFromConfiguration(
+	private void setCustomPathFromConfiguration(
 		@Nullable ExternalProgramInfo programInfo,
 		@Nullable String configurationKey
 	) {
