@@ -210,7 +210,9 @@ public final class MediaTableTVSeries extends MediaTable {
 					//remove old index
 					executeUpdate(connection, "DROP INDEX IF EXISTS IMDBID_VERSION");
 					//change VERSION to API_VERSION
-					executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS VERSION RENAME TO " + COL_API_VERSION);
+					if (!isColumnExist(connection, TABLE_NAME, COL_API_VERSION)) {
+						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS VERSION RENAME TO " + COL_API_VERSION);
+					}
 					//add tmdb id
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TMDBID + " BIGINT");
 					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_TMDBID + "_IDX ON " + TABLE_NAME + "(" + COL_TMDBID + ")");
@@ -221,7 +223,9 @@ public final class MediaTableTVSeries extends MediaTable {
 					executeUpdate(connection, "ALTER INDEX IF EXISTS TITLE_IDX RENAME TO " + TABLE_NAME + "_" + COL_TITLE + "_IDX");
 					executeUpdate(connection, "ALTER INDEX IF EXISTS SIMPLIFIEDTITLE_IDX RENAME TO " + TABLE_NAME + "_" + COL_SIMPLIFIEDTITLE + "_IDX");
 					//change PLOT to OVERVIEW
-					executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
+					if (!isColumnExist(connection, TABLE_NAME, COL_OVERVIEW)) {
+						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
+					}
 				}
 				default -> {
 					throw new IllegalStateException(

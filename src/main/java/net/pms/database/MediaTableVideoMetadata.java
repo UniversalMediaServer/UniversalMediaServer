@@ -157,7 +157,9 @@ public class MediaTableVideoMetadata extends MediaTable {
 					executeUpdate(connection, "DROP INDEX IF EXISTS " + TABLE_NAME + "_IMDBID_API_VERSION_IDX");
 					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_TMDBID  + "_" + COL_IMDBID  + "_" + COL_API_VERSION + "_IDX ON " + TABLE_NAME + "(" + COL_TMDBID + ", " + COL_IMDBID + ", " + COL_API_VERSION + ")");
 					//change PLOT to OVERVIEW
-					executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
+					if (!isColumnExist(connection, TABLE_NAME, COL_OVERVIEW)) {
+						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
+					}
 				}
 				default -> {
 					throw new IllegalStateException(
