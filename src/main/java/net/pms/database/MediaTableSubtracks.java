@@ -125,7 +125,7 @@ public class MediaTableSubtracks extends MediaTable {
 				"EXTERNALFILE   VARCHAR(" + SIZE_EXTERNALFILE + ")  NOT NULL default '' , " +
 				"CHARSET        VARCHAR(" + SIZE_MAX + ")                               , " +
 				"CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID, EXTERNALFILE), " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE" +
 			")"
 		);
 	}

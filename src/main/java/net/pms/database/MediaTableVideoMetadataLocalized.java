@@ -35,7 +35,8 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String COL_ID = "ID";
 	private static final String COL_FILEID = "FILEID";
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
-	private static final String COL_PLOT = "PLOT";
+	private static final String COL_HOMEPAGE = "HOMEPAGE";
+	private static final String COL_OVERVIEW = "OVERVIEW";
 	private static final String COL_POSTER = "POSTER";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_TAGLINE = "TAGLINE";
@@ -48,8 +49,6 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String SQL_GET_ALL_TVSERIESID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ?";
 	private static final String SQL_GET_ALL_LANGUAGE_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_LANGUAGE + " = ? AND " + TABLE_COL_FILEID + " = ?";
 	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_LANGUAGE + " = ? AND " + TABLE_COL_TVSERIESID + " = ?";
-	private static final String SQL_INSERT_FILEID = "INSERT INTO " + TABLE_NAME + " (" + COL_LANGUAGE + ", " + COL_FILEID + ", " + COL_PLOT + ", " + COL_POSTER + ", " + COL_TITLE + ", " + COL_TAGLINE + ") VALUES (?, ?, ?, ?, ?, ?)";
-	private static final String SQL_INSERT_TVSERIESID  = "INSERT INTO " + TABLE_NAME + " (" + COL_LANGUAGE + ", " + COL_TVSERIESID + ", " + COL_PLOT + ", " + COL_POSTER + ", " + COL_TITLE + ", " + COL_TAGLINE + ") VALUES (?, ?, ?, ?, ?, ?)";
 
 	private static final int SIZE_LANGUAGE = 5;
 
@@ -119,12 +118,13 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				COL_LANGUAGE + "   VARCHAR(" + SIZE_LANGUAGE + ")  NOT NULL    , " +
 				COL_FILEID + "     INTEGER                                     , " +
 				COL_TVSERIESID + " INTEGER                                     , " +
-				COL_PLOT + "       CLOB                                        , " +
+				COL_HOMEPAGE + "   VARCHAR                                     , " +
+				COL_OVERVIEW + "   CLOB                                        , " +
 				COL_POSTER + "     VARCHAR                                     , " +
-				COL_TITLE + "      VARCHAR                                     , " +
 				COL_TAGLINE + "    VARCHAR                                     , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
+				COL_TITLE + "      VARCHAR                                     , " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + " ON DELETE CASCADE, " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE " +
 			")",
 			"CREATE INDEX " + TABLE_NAME + "_" + COL_LANGUAGE + "_" + COL_FILEID + "_" + COL_TVSERIESID + "_IDX ON " + TABLE_NAME + "(" + COL_LANGUAGE + "," + COL_FILEID + "," + COL_TVSERIESID + ")"
 		);
@@ -134,36 +134,29 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		if (id == null || id < 0 || StringUtils.isBlank(language)) {
 			return;
 		}
-		final String sqlSelect;
-		final String sqlInsert;
-		if (fromTvSeries) {
-			sqlSelect = SQL_GET_ALL_LANGUAGE_TVSERIESID;
-			sqlInsert = SQL_INSERT_TVSERIESID;
-		} else {
-			sqlSelect = SQL_GET_ALL_LANGUAGE_FILEID;
-			sqlInsert = SQL_INSERT_FILEID;
-		}
-		try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
+		try (PreparedStatement ps = connection.prepareStatement(
+					fromTvSeries ? SQL_GET_ALL_LANGUAGE_TVSERIESID : SQL_GET_ALL_LANGUAGE_FILEID,
+					ResultSet.TYPE_FORWARD_ONLY,
+					ResultSet.CONCUR_UPDATABLE)
+		) {
 			ps.setString(1, language);
 			ps.setLong(2, id);
 			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					rs.updateString(COL_PLOT, metadata == null ? null : metadata.getPlot());
-					rs.updateString(COL_POSTER, metadata == null ? null : metadata.getPoster());
-					rs.updateString(COL_TAGLINE, metadata == null ? null : metadata.getTagline());
-					rs.updateString(COL_TITLE, metadata == null ? null : metadata.getTitle());
-					rs.updateRow();
+				boolean isCreatingNewRecord = !rs.next();
+				if (isCreatingNewRecord) {
+					rs.moveToInsertRow();
+					rs.updateString(COL_LANGUAGE, StringUtils.left(language, SIZE_LANGUAGE));
+					rs.updateLong(fromTvSeries ? COL_TVSERIESID : COL_FILEID, id);
+				}
+				rs.updateString(COL_HOMEPAGE, metadata == null ? null : metadata.getHomepage());
+				rs.updateString(COL_OVERVIEW, metadata == null ? null : metadata.getOverview());
+				rs.updateString(COL_POSTER, metadata == null ? null : metadata.getPoster());
+				rs.updateString(COL_TAGLINE, metadata == null ? null : metadata.getTagline());
+				rs.updateString(COL_TITLE, metadata == null ? null : metadata.getTitle());
+				if (isCreatingNewRecord) {
+					rs.insertRow();
 				} else {
-					try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert)) {
-						insertStatement.clearParameters();
-						insertStatement.setString(1, StringUtils.left(language, SIZE_LANGUAGE));
-						insertStatement.setLong(2, id);
-						insertStatement.setString(3, metadata == null ? null : metadata.getPlot());
-						insertStatement.setString(4, metadata == null ? null : metadata.getPoster());
-						insertStatement.setString(5, metadata == null ? null : metadata.getTagline());
-						insertStatement.setString(6, metadata == null ? null : metadata.getTitle());
-						insertStatement.executeUpdate();
-					}
+					rs.updateRow();
 				}
 			}
 		} catch (SQLException e) {
@@ -172,7 +165,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		}
 	}
 
-	public static Map<String, VideoMetadataLocalized> getVideoMetadataLocalized(final Connection connection, final Long id, final boolean fromTvSeries) {
+	public static Map<String, VideoMetadataLocalized> getAllVideoMetadataLocalized(final Connection connection, final Long id, final boolean fromTvSeries) {
 		Map<String, VideoMetadataLocalized> result = new HashMap<>();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(fromTvSeries ? SQL_GET_ALL_TVSERIESID : SQL_GET_ALL_FILEID)) {
@@ -180,7 +173,8 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
 						VideoMetadataLocalized metadata = new VideoMetadataLocalized();
-						metadata.setPlot(rs.getString(COL_PLOT));
+						metadata.setHomepage(rs.getString(COL_HOMEPAGE));
+						metadata.setOverview(rs.getString(COL_OVERVIEW));
 						metadata.setPoster(rs.getString(COL_POSTER));
 						metadata.setTagline(rs.getString(COL_TAGLINE));
 						metadata.setTitle(rs.getString(COL_TITLE));
@@ -195,18 +189,28 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		return result;
 	}
 
-	public static VideoMetadataLocalized getVideoMetadataLocalized(final Connection connection, final Long id, final boolean fromTvSeries, final String lang, final String imdbId) {
-		if (connection == null || id == null || id < 0 || StringUtils.isBlank(lang)) {
+	public static VideoMetadataLocalized getVideoMetadataLocalized(
+		final Connection connection,
+		final Long id,
+		final boolean fromTvSeries,
+		final String language,
+		final String imdbId,
+		final String mediaType,
+		final Long tmdbId,
+		final String season,
+		final String episode
+	) {
+		if (connection == null || id == null || id < 0 || StringUtils.isBlank(language)) {
 			return null;
 		}
-		String language = lang.toLowerCase().trim();
 		try (PreparedStatement ps = connection.prepareStatement(fromTvSeries ? SQL_GET_ALL_LANGUAGE_TVSERIESID : SQL_GET_ALL_LANGUAGE_FILEID)) {
 			ps.setString(1, language);
 			ps.setLong(2, id);
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.first()) {
 					VideoMetadataLocalized result = new VideoMetadataLocalized();
-					result.setPlot(rs.getString(COL_PLOT));
+					result.setHomepage(rs.getString(COL_HOMEPAGE));
+					result.setOverview(rs.getString(COL_OVERVIEW));
 					result.setPoster(rs.getString(COL_POSTER));
 					result.setTagline(rs.getString(COL_TAGLINE));
 					result.setTitle(rs.getString(COL_TITLE));
@@ -218,7 +222,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		//here we now we do not have the language in db, let search it.
-		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(imdbId, language);
+		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(language, mediaType, imdbId, tmdbId, season, episode);
 		set(connection, id, fromTvSeries, result, language);
 		return result;
 	}

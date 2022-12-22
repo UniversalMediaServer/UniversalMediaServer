@@ -16,18 +16,29 @@
  */
 package net.pms.media.metadata;
 
+import com.google.gson.JsonObject;
+
 public class VideoMetadataLocalized {
-	private String plot;
+	private String homepage;
+	private String overview;
 	private String poster;
 	private String tagline;
 	private String title;
 
-	public String getPlot() {
-		return plot;
+	public String getHomepage() {
+		return homepage;
 	}
 
-	public void setPlot(String value) {
-		this.plot = value;
+	public void setHomepage(String value) {
+		this.homepage = value;
+	}
+
+	public String getOverview() {
+		return overview;
+	}
+
+	public void setOverview(String value) {
+		this.overview = value;
 	}
 
 	public String getPoster() {
@@ -54,4 +65,26 @@ public class VideoMetadataLocalized {
 		this.title = value;
 	}
 
+	public void localizeJsonObject(final JsonObject jsonObject) {
+		if (homepage != null) {
+			jsonObject.remove("homepage");
+			jsonObject.addProperty("homepage", homepage);
+		}
+		if (overview != null) {
+			jsonObject.remove("overview");
+			jsonObject.addProperty("overview", overview);
+		}
+		if (poster != null) {
+			jsonObject.remove("poster");
+			jsonObject.addProperty("poster", poster);
+		}
+		if (tagline != null) {
+			jsonObject.remove("tagline");
+			jsonObject.addProperty("tagline", tagline);
+		}
+		if (title != null) {
+			jsonObject.remove("title");
+			jsonObject.addProperty("title", title);
+		}
+	}
 }
