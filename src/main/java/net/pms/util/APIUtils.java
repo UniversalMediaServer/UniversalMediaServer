@@ -1128,8 +1128,8 @@ public class APIUtils {
 	 */
 	public static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdb(
 		final String language,
-		final String imdbId,
 		final String mediaType,
+		final String imdbId,
 		final Long tmdbId,
 		final String season,
 		final String episode
