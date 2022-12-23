@@ -945,6 +945,9 @@ public class APIUtils {
 		if (filebytesize != 0L) {
 			getParameters.add("filebytesize=" + filebytesize);
 		}
+		if (!"en-US".equals(CONFIGURATION.getLanguageTag())) {
+			getParameters.add("language=" + CONFIGURATION.getLanguageTag());
+		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
 
