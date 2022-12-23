@@ -17,6 +17,7 @@
 package net.pms.media.metadata;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 
 public class VideoMetadataLocalized {
 	private String homepage;
@@ -75,23 +76,23 @@ public class VideoMetadataLocalized {
 	}
 
 	public void localizeJsonObject(final JsonObject jsonObject) {
-		if (homepage != null) {
+		if (StringUtils.isBlank(homepage)) {
 			jsonObject.remove("homepage");
 			jsonObject.addProperty("homepage", homepage);
 		}
-		if (overview != null) {
+		if (StringUtils.isBlank(overview)) {
 			jsonObject.remove("overview");
 			jsonObject.addProperty("overview", overview);
 		}
-		if (poster != null) {
+		if (StringUtils.isBlank(poster)) {
 			jsonObject.remove("poster");
 			jsonObject.addProperty("poster", poster);
 		}
-		if (tagline != null) {
+		if (StringUtils.isBlank(tagline)) {
 			jsonObject.remove("tagline");
 			jsonObject.addProperty("tagline", tagline);
 		}
-		if (title != null) {
+		if (StringUtils.isBlank(title)) {
 			jsonObject.remove("title");
 			jsonObject.addProperty("title", title);
 		}
