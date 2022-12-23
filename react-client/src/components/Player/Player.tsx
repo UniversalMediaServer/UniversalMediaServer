@@ -328,7 +328,7 @@ export const Player = () => {
           logo = (
             <Group pb='xs'>
               <img src={metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={metadata.originalTitle}></img>
-              <Stack>{imdb}{tmdb}</Stack>
+              <Stack spacing={0}>{imdb}{tmdb}</Stack>
             </Group>
           );
         }
@@ -356,7 +356,7 @@ export const Player = () => {
         logo = (
           <Group pb='xs'>
             <Text pb='xs'>{title}</Text>
-            <Stack>{imdb}{tmdb}</Stack>
+            <Stack spacing={0}>{imdb}{tmdb}</Stack>
           </Group>
         );
       }
