@@ -736,7 +736,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				try (ResultSet rs = selectStatement.executeQuery()) {
 					if (rs.next()) {
 						JsonObject result = new JsonObject();
-						Long id = rs.getLong("ID");
+						long id = rs.getLong("ID");
 						String imdbID = rs.getString(COL_IMDBID);
 						long tmdbId = rs.getLong(COL_TMDBID);
 						result.addProperty("imdbID", imdbID);
@@ -786,6 +786,12 @@ public final class MediaTableTVSeries extends MediaTable {
 							VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, id, true, lang, imdbID, "tv", tmdbId, null, null);
 							if (loc != null) {
 								loc.localizeJsonObject(result);
+								//temp fix to store tmdbID if it was not before
+								if (tmdbId == 0 && loc.getTmdbID() != null) {
+									updateTmdbId(connection, id, loc.getTmdbID());
+									result.remove("tmdbID");
+									result.addProperty("tmdbID", loc.getTmdbID());
+								}
 							}
 						}
 						return result;
@@ -808,6 +814,18 @@ public final class MediaTableTVSeries extends MediaTable {
 			JsonElement element = GSON.fromJson(jsonString, JsonElement.class);
 			dest.add(property, element);
 		} catch (JsonSyntaxException e) {
+		}
+	}
+
+	private static void updateTmdbId(final Connection connection, final long tvSeriesId, final long tmdbId) {
+		try (Statement statement = connection.createStatement()) {
+			statement.executeUpdate(
+				"UPDATE " + TABLE_NAME + " SET " + COL_TMDBID + " = " + tmdbId +
+				" WHERE " + COL_ID + " = " + tvSeriesId
+			);
+		} catch (SQLException e) {
+			LOGGER.error("Failed to update TMDB ID for \"{}\" to \"{}\": {}", tvSeriesId, tmdbId, e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 

@@ -506,16 +506,30 @@ public class MediaTableVideoMetadata extends MediaTable {
 							}
 						}
 						if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
-							VideoMetadataLocalized loc;
 							if (isTvEpisode) {
 								String season = rs.getString(COL_TVSEASON);
 								String episode = rs.getString(COL_TVEPISODENUMBER);
-								loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "tv_episode", tmdbTvId, season, episode);
+								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "tv_episode", tmdbTvId, season, episode);
+								if (loc != null) {
+									loc.localizeJsonObject(result);
+									//temp fix to store tmdbID if it was not before
+									if (tmdbTvId == 0 && loc.getTmdbID() != null) {
+										updateTmdbId(connection, fileId, loc.getTmdbID(), true);
+										result.remove("tmdbTvID");
+										result.addProperty("tmdbTvID", loc.getTmdbID());
+									}
+								}
 							} else {
-								loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "movie", tmdbId, null, null);
-							}
-							if (loc != null) {
-								loc.localizeJsonObject(result);
+								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "movie", tmdbId, null, null);
+								if (loc != null) {
+									loc.localizeJsonObject(result);
+									//temp fix to store tmdbID if it was not before
+									if (tmdbId == 0 && loc.getTmdbID() != null) {
+										updateTmdbId(connection, fileId, loc.getTmdbID(), false);
+										result.remove("tmdbID");
+										result.addProperty("tmdbID", loc.getTmdbID());
+									}
+								}
 							}
 						}
 						return result;
@@ -593,6 +607,17 @@ public class MediaTableVideoMetadata extends MediaTable {
 		return false;
 	}
 
+	private static void updateTmdbId(final Connection connection, long fileId, long tmdbId, boolean isEpisode) {
+		try (Statement statement = connection.createStatement()) {
+			statement.executeUpdate(
+				"UPDATE " + TABLE_NAME + " SET " + (isEpisode ? COL_TMDBTVID : COL_TMDBID) + " = " + tmdbId +
+				" WHERE " + TABLE_COL_FILEID + " = " + fileId
+			);
+		} catch (SQLException e) {
+			LOGGER.error("Failed to update TMDB ID for \"{}\" to \"{}\": {}", fileId, tmdbId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
 
 	/**
 	 * Updates the name of a movie or TV series for existing entries in the database.

@@ -24,6 +24,7 @@ public class VideoMetadataLocalized {
 	private String poster;
 	private String tagline;
 	private String title;
+	private Long tmdbID;
 
 	public String getHomepage() {
 		return homepage;
@@ -63,6 +64,14 @@ public class VideoMetadataLocalized {
 
 	public void setTitle(String value) {
 		this.title = value;
+	}
+
+	public Long getTmdbID() {
+		return tmdbID;
+	}
+
+	public void setTmdbID(Long value) {
+		this.tmdbID = value;
 	}
 
 	public void localizeJsonObject(final JsonObject jsonObject) {

@@ -1184,6 +1184,9 @@ public class APIUtils {
 				if (localizedMetadataFromAPI.has("title") && localizedMetadataFromAPI.get("title").isJsonPrimitive()) {
 					metadata.setTitle(localizedMetadataFromAPI.get("title").getAsString());
 				}
+				if (localizedMetadataFromAPI.has("tmdbID") && localizedMetadataFromAPI.get("tmdbID").isJsonPrimitive()) {
+					metadata.setTmdbID(localizedMetadataFromAPI.get("tmdbID").getAsLong());
+				}
 			} catch (JsonSyntaxException ex) {
 				LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, ex);
 			} catch (IOException ex) {
