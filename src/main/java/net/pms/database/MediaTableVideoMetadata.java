@@ -43,6 +43,14 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadata.class);
 	private static final Gson GSON = new Gson();
 	public static final String TABLE_NAME = "VIDEO_METADATA";
+
+	/**
+	 * Table version must be increased every time a change is done to the table
+	 * definition. Table upgrade SQL must also be added to
+	 * {@link #upgradeTable(Connection, int)}
+	 */
+	private static final int TABLE_VERSION = 4;
+
 	/**
 	 * COLUMNS NAMES
 	 */
@@ -54,6 +62,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final String COL_TMDBTVID = "TMDBTVID";
 	private static final String COL_ISTVEPISODE = "ISTVEPISODE";
 	private static final String COL_MEDIA_YEAR = "MEDIA_YEAR";
+	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_MOVIEORSHOWNAME = "MOVIEORSHOWNAME";
 	private static final String COL_MOVIEORSHOWNAMESIMPLE = "MOVIEORSHOWNAMESIMPLE";
 	private static final String COL_TVSEASON = "TVSEASON";
@@ -105,12 +114,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 
 	public static final String REFERENCE_TABLE_COL_FILE_ID = TABLE_NAME + "(" + COL_FILEID + ")";
 
-	/**
-	 * Table version must be increased every time a change is done to the table
-	 * definition. Table upgrade SQL must also be added to
-	 * {@link #upgradeTable(Connection, int)}
-	 */
-	private static final int TABLE_VERSION = 3;
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -161,6 +164,9 @@ public class MediaTableVideoMetadata extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
 					}
 				}
+				case 3 -> {
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -182,6 +188,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + " (" +
 				COL_FILEID + "                INTEGER                              PRIMARY KEY , " +
+				COL_MODIFIED + "              BIGINT                                           , " +
 				COL_IMDBID + "                VARCHAR(" + SIZE_IMDBID + ")                     , " +
 				COL_TMDBID + "                BIGINT                                           , " +
 				COL_TMDBTVID + "              BIGINT                                           , " +
@@ -254,6 +261,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				rs.updateString(COL_TVEPISODENAME, StringUtils.left(videoMetadata.getTVEpisodeName(), SIZE_MAX));
 				if (fromApi) {
 					rs.updateString(COL_API_VERSION, StringUtils.left(APIUtils.getApiDataVideoVersion(), SIZE_IMDBID));
+					rs.updateLong(COL_MODIFIED, System.currentTimeMillis());
 					if (videoMetadata.getBudget() != null) {
 						rs.updateLong(COL_BUDGET, videoMetadata.getBudget());
 					} else {
@@ -477,7 +485,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 						result.add("genres", MediaTableVideoMetadataGenres.getJsonArrayForFile(connection, fileId));
 						result.addProperty("homepage", rs.getString(COL_HOMEPAGE));
 						addJsonElementToJsonObjectIfExists(result, "images", rs.getString(COL_IMAGES));
-						result.addProperty("plot", rs.getString(COL_OVERVIEW));
+						result.addProperty("mediaType", isTvEpisode ? "tv_episode" : "movie");
+						result.addProperty("overview", rs.getString(COL_OVERVIEW));
 						result.addProperty("poster", MediaTableVideoMetadataPosters.getValueForFile(connection, fileId));
 						result.addProperty("production", MediaTableVideoMetadataProduction.getValueForFile(connection, fileId));
 						result.addProperty("rated", MediaTableVideoMetadataRated.getValueForFile(connection, fileId));
@@ -487,6 +496,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 						result.addProperty("tagline", rs.getString(COL_TAGLINE));
 						result.addProperty("tmdbID", tmdbId);
 						result.addProperty("tmdbTvID", tmdbTvId);
+						result.addProperty("tvEpisode", rs.getString(COL_TVEPISODENUMBER));
+						result.addProperty("tvSeason", rs.getString(COL_TVSEASON));
 						result.addProperty("votes", rs.getString(COL_VOTES));
 						if (isTvEpisode) {
 							String showName = rs.getString(COL_MOVIEORSHOWNAME);

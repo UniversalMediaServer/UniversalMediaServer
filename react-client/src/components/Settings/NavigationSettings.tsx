@@ -189,7 +189,7 @@ export default function NavigationSettings(
                       disabled={!canModify}
                       label={i18n.get['AddEnginesNamesAfterFilenames']}
                       checked={!form.values['hide_enginenames']}
-                      onChange={(event) => {
+                      onChange={(event:React.ChangeEvent<HTMLInputElement>) => {
                         form.setFieldValue('hide_enginenames', !event.currentTarget.checked);
                       }}
                     />

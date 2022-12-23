@@ -40,12 +40,20 @@ public final class MediaTableTVSeries extends MediaTable {
 	public static final String TABLE_NAME = "TV_SERIES";
 
 	/**
+	 * Table version must be increased every time a change is done to the table
+	 * definition. Table upgrade SQL must also be added to
+	 * {@link #upgradeTable(Connection, int)}
+	 */
+	private static final int TABLE_VERSION = 9;
+
+	/**
 	 * COLUMNS
 	 */
 	public static final String COL_API_VERSION = "API_VERSION";
 	public static final String COL_ID = "ID";
 	private static final String COL_IMAGES = "IMAGES";
 	private static final String COL_IMDBID = "IMDBID";
+	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_OVERVIEW = "OVERVIEW";
 	private static final String COL_THUMBID = "THUMBID";
 	private static final String COL_THUMBNAIL = "THUMBNAIL";
@@ -90,13 +98,6 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Used by child tables
 	 */
 	public static final String CHILD_ID = "TVSERIESID";
-
-	/**
-	 * Table version must be increased every time a change is done to the table
-	 * definition. Table upgrade SQL must also be added to
-	 * {@link #upgradeTable(Connection, int)}
-	 */
-	private static final int TABLE_VERSION = 8;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -227,6 +228,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
 					}
 				}
+				case 8 -> {
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -247,6 +251,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
 				COL_ID + "              IDENTITY           PRIMARY KEY , " +
+				COL_MODIFIED + "        BIGINT                         , " +
 				COL_IMDBID + "          VARCHAR(1024)                  , " +
 				COL_TMDBID + "          BIGINT                         , " +
 				COL_THUMBID + "         BIGINT                         , " +
@@ -373,7 +378,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						rs.updateString(COL_IMDBID, seriesMetadata.getIMDbID());
 						rs.updateString(COL_TITLE, title);
 						rs.updateString(COL_API_VERSION, seriesMetadata.getApiVersion());
-
+						rs.updateLong(COL_MODIFIED, System.currentTimeMillis());
 						if (seriesMetadata.getCreatedBy() != null) {
 							rs.updateString("CREATEDBY", GSON.toJson(seriesMetadata.getCreatedBy()));
 						}
@@ -732,7 +737,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						String imdbID = rs.getString(COL_IMDBID);
 						long tmdbId = rs.getLong(COL_TMDBID);
 						result.addProperty("imdbID", imdbID);
-						result.addProperty("plot", rs.getString(COL_OVERVIEW));
+						result.addProperty("overview", rs.getString(COL_OVERVIEW));
 						result.addProperty("startYear", rs.getString("STARTYEAR"));
 						result.addProperty("endYear", rs.getString("ENDYEAR"));
 						result.addProperty("votes", rs.getString("VOTES"));
@@ -748,6 +753,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						result.addProperty("homepage", rs.getString("HOMEPAGE"));
 						addJsonElementToJsonObjectIfExists(result, "languages", rs.getString("LANGUAGES"));
 						result.addProperty("lastAirDate", rs.getString("LASTAIRDATE"));
+						result.addProperty("mediaType", "tv");
 						addJsonElementToJsonObjectIfExists(result, "networks", rs.getString("NETWORKS"));
 						result.addProperty("numberOfEpisodes", rs.getDouble("NUMBEROFEPISODES"));
 						result.addProperty("numberOfSeasons", rs.getDouble("NUMBEROFSEASONS"));
@@ -761,7 +767,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						addJsonElementToJsonObjectIfExists(result, "spokenLanguages", rs.getString("SPOKENLANGUAGES"));
 						result.addProperty("status", rs.getString("STATUS"));
 						result.addProperty("tagline", rs.getString("TAGLINE"));
-						result.addProperty("tmdbId", tmdbId);
+						result.addProperty("tmdbID", tmdbId);
 						result.add("actors", MediaTableVideoMetadataActors.getJsonArrayForTvSerie(connection, id));
 						result.addProperty("award", MediaTableVideoMetadataAwards.getValueForTvSerie(connection, id));
 						result.add("countries", MediaTableVideoMetadataCountries.getJsonArrayForTvSerie(connection, id));

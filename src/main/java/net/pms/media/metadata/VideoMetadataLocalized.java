@@ -71,8 +71,8 @@ public class VideoMetadataLocalized {
 			jsonObject.addProperty("homepage", homepage);
 		}
 		if (overview != null) {
-			jsonObject.remove("plot");
-			jsonObject.addProperty("plot", overview);
+			jsonObject.remove("overview");
+			jsonObject.addProperty("overview", overview);
 		}
 		if (poster != null) {
 			jsonObject.remove("poster");

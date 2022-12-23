@@ -31,11 +31,23 @@ import org.slf4j.LoggerFactory;
 public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataLocalized.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_LOCALIZED";
+
+	/**
+	 * Table version must be increased every time a change is done to the table
+	 * definition. Table upgrade SQL must also be added to
+	 * {@link #upgradeTable(Connection, int)}
+	 */
+	private static final int TABLE_VERSION = 2;
+
+	/**
+	 * COLUMNS
+	 */
 	private static final String COL_LANGUAGE = "LANGUAGE";
 	private static final String COL_ID = "ID";
 	private static final String COL_FILEID = "FILEID";
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	private static final String COL_HOMEPAGE = "HOMEPAGE";
+	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_OVERVIEW = "OVERVIEW";
 	private static final String COL_POSTER = "POSTER";
 	private static final String COL_TITLE = "TITLE";
@@ -51,13 +63,6 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_LANGUAGE + " = ? AND " + TABLE_COL_TVSERIESID + " = ?";
 
 	private static final int SIZE_LANGUAGE = 5;
-
-	/**
-	 * Table version must be increased every time a change is done to the table
-	 * definition. Table upgrade SQL must also be added to
-	 * {@link #upgradeTable(Connection, int)}
-	 */
-	private static final int TABLE_VERSION = 1;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -105,6 +110,9 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
 				}
+				case 1 -> {
+					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+				}
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -118,6 +126,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				COL_LANGUAGE + "   VARCHAR(" + SIZE_LANGUAGE + ")  NOT NULL    , " +
 				COL_FILEID + "     INTEGER                                     , " +
 				COL_TVSERIESID + " INTEGER                                     , " +
+				COL_MODIFIED + "   BIGINT                                      , " +
 				COL_HOMEPAGE + "   VARCHAR                                     , " +
 				COL_OVERVIEW + "   CLOB                                        , " +
 				COL_POSTER + "     VARCHAR                                     , " +
@@ -148,6 +157,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 					rs.updateString(COL_LANGUAGE, StringUtils.left(language, SIZE_LANGUAGE));
 					rs.updateLong(fromTvSeries ? COL_TVSERIESID : COL_FILEID, id);
 				}
+				rs.updateLong(COL_MODIFIED, System.currentTimeMillis());
 				rs.updateString(COL_HOMEPAGE, metadata == null ? null : metadata.getHomepage());
 				rs.updateString(COL_OVERVIEW, metadata == null ? null : metadata.getOverview());
 				rs.updateString(COL_POSTER, metadata == null ? null : metadata.getPoster());

@@ -401,7 +401,7 @@ const Logs = () => {
         {fileMode ?
           <Dropzone
             padding={5}
-            onDrop={(files) => readLogFile(files)}
+            onDrop={(files: FileWithPath[]) => readLogFile(files)}
             maxFiles={1}
           >
             <Text align="center">Drop/Select log here</Text>
