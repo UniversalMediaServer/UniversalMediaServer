@@ -57,7 +57,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String COL_OVERVIEW = "OVERVIEW";
 	private static final String COL_THUMBID = "THUMBID";
 	private static final String COL_THUMBNAIL = "THUMBNAIL";
-	private static final String COL_TMDBID = "TMDB_ID";
+	private static final String COL_TMDBID = "TMDBID";
 	private static final String COL_SIMPLIFIEDTITLE = "SIMPLIFIEDTITLE";
 	private static final String COL_STARTYEAR = "STARTYEAR";
 	private static final String COL_TITLE = "TITLE";
@@ -230,6 +230,9 @@ public final class MediaTableTVSeries extends MediaTable {
 				}
 				case 8 -> {
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+					if (!isColumnExist(connection, TABLE_NAME, COL_TMDBID)) {
+						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS TMDB_ID RENAME TO " + COL_TMDBID);
+					}
 				}
 				default -> {
 					throw new IllegalStateException(
