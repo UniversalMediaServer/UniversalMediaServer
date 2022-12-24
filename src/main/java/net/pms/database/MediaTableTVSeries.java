@@ -786,7 +786,7 @@ public final class MediaTableTVSeries extends MediaTable {
 							VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, id, true, lang, imdbID, "tv", tmdbId, null, null);
 							if (loc != null) {
 								loc.localizeJsonObject(result);
-								//temp fix to store tmdbID if it was not before
+								//store tmdbID if it was not before
 								if (tmdbId == 0 && loc.getTmdbID() != null) {
 									updateTmdbId(connection, id, loc.getTmdbID());
 									result.remove("tmdbID");

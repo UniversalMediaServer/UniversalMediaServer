@@ -512,7 +512,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "tv_episode", tmdbTvId, season, episode);
 								if (loc != null) {
 									loc.localizeJsonObject(result);
-									//temp fix to store tmdbID if it was not before
+									//store tmdbID if it was not before
 									if (tmdbTvId == 0 && loc.getTmdbID() != null) {
 										updateTmdbId(connection, fileId, loc.getTmdbID(), true);
 										result.remove("tmdbTvID");
@@ -523,7 +523,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, imdbID, "movie", tmdbId, null, null);
 								if (loc != null) {
 									loc.localizeJsonObject(result);
-									//temp fix to store tmdbID if it was not before
+									//store tmdbID if it was not before
 									if (tmdbId == 0 && loc.getTmdbID() != null) {
 										updateTmdbId(connection, fileId, loc.getTmdbID(), false);
 										result.remove("tmdbID");
