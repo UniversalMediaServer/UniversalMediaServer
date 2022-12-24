@@ -4,16 +4,19 @@
 ## UniversalMediaServer generates multi-threading script wrapper code, plugin loading code and algorithm, output format and size options based on UI selections 
 ## before calling this function with the video2d clip and other parameters set.
 
-function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "resize", int "hzTargetSize", float "frameStretchFactor", float "lightOffsetFactor") {
-
+function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "resize", int "hzTargetSize", float "frameStretchFactor", float "lightOffsetFactor", bool "showMotionAndSceneDetection", int "mscThSCD1", int "mscThSCD2" )
+{
 # Defaults
-	algorithm     		= default(algorithm   	     , 1     )
-	outputFormat  		= default(outputFormat       , 1     )
-	resize        		= default(resize      	     , true  )
-	hzTargetSize  		= default(hzTargetSize       , 1920  )
-	frameStretchFactor  	= default(frameStretchFactor , 5.0  )
-	lightOffsetFactor   	= default(lightOffsetFactor  , 3.0  )
-
+	algorithm     					= default(algorithm   	     , 1     )
+	outputFormat  					= default(outputFormat       , 1     )
+	resize        					= default(resize      	     , true  )
+	hzTargetSize  					= default(hzTargetSize       , 1920  )
+	frameStretchFactor  			= default(frameStretchFactor , 5.0  )
+	lightOffsetFactor   			= default(lightOffsetFactor  , 3.0  )
+	showMotionAndSceneDetection 	= default(showMotionAndSceneDetection  , false )
+	mscThSCD1						= default(mscThSCD1  , 248 )
+	mscThSCD2						= default(mscThSCD2  , 50 )
+	
 	## Convert to RGB32 to avoid width restrictions
 	video2d = ConvertToRGB32(video2d)
 
@@ -60,15 +63,85 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	(algorithm == 2 && resize == true) ? Eval("""
 		video2d = Lanczos4Resize(video2d, videoW, videoH)
 		""") : ""
-			
+
+	## Create variables for left and right frame with one frame difference
+	## This is the Pulfrich-like simulation that creates the illusion of depth from movement
+	## Based on:
+	## https://3dvision-blog.com/1220-2d-to-3d-realtime-video-conversion-script-for-avisynth-v0-3/
+	## by Anton Belev at 3D Vision Blog 
+	## http://www.3dvision-blog.com
+	## Rationalisation, removal of obsolete output formats and support for latest formats added by Dr. Thomas Richard Judge 2022. 
+	
+	fL = video2d
+	fR = DeleteFrame(video2d, 0)
+	
+	## Algorithmic Enhancement (by Thomas Judge):
+	## 	 
+	## The base Pulfrich-like 2D to 3D conversion algorithm takes two time delayed video frames and maps them to the left and right eye views.
+	## This is both an extremely simple and effective approach. It relies on the Pulfrich effect. It does, however, require that there is 
+	## relatively good correlation between the video frames selected for the left and right eye views. If this is not the case then the approach
+	## temporarily breaks down. This typically happens when the source video contains fast moving action that generates excessive change from video 
+	## frame to video frame or where there is a wholesale change of scene.
+	## These large scale frame to frame changes, translating to large‌‌ discrepancies in the left and right eye views, both destroy the 3D Pulfrich
+	## effect and cause a brief feeling of discomfort or disorientation for the viewer.
+	## This algorithmic enhancement completely eliminates any sense of discomfort or disorientation due to rapid motion or scene changes. It does
+	## this by first detecting rapid motion and scene changes between frames. It then ensures that, for those instances, the same view for the 
+	## left eye and right eye is kept, thereby eliminating the risk of disorientation as the view temporarily reverts to 2D.	 
+	## 
+	## The code uses the motion vector analysis (MAnalyse) and scene change detection routines (MSCDetection) from the 
+	## mvtools2 library, see documentation and github repository below:
+	## 
+	## http://avisynth.org.ru/mvtools/mvtools2.html#version2
+	## https://github.com/pinterf/mvtools
+	## 
+	## In addition, it uses the mt_merge routine from the masktools2 library,
+	## see documentation and github repository below:
+	## 
+	## http://avisynth.nl/index.php/MaskTools2/Mt_merge
+	## https://github.com/pinterf/masktools
+	## 
+	## Although only a few lines of script are required to invoke these routines, they are very effective in addressing the excessive motion and
+	## scene change issues outlined above.
+	 	
+	motionSource  = fR.ConvertToYV12()
+    vectors = motionSource.MSuper().MAnalyse(isb = false)
+    
+	## 	From mvtools2 documentation for scene detection via MSCDetection, description of threshold parameters:
+	## 	
+	## 	thSCD1 (int): threshold which decides whether a block has changed between the previous frame and the current one.
+	## 	When a block has changed, it means that motion estimation for it isn't relevant. It occurs for example at scene 
+	## 	changes. So it is one of the thresholds used to tweak the scene changes detection engine. Raising it will lower
+	## 	the number of blocks detected as changed. It may be useful for noisy or flickered video. The threshold is compared
+	## 	to the SAD (Sum of Absolute Differences, a value which says how bad the motion estimation was ) value. For exactly 
+	## 	identical blocks we have SAD=0. But real blocks are always different because of objects complex movement 
+	## 	(zoom, rotation, deformation), discrete pixels sampling, and noise. Suppose we have two compared 8x8 blocks with 
+	## 	every pixel different by 5. It this case SAD will be 8x8x5 = 320 (block will not detected as changed for thSCD1=400). 
+	## 	If you use 4x4 blocks, SAD will be 320/4. If you use 16x16 blocks, SAD will be 320*4. Really this parameter is scaled
+	## 	internally in MVTools, and you must always use reduced to block size 8x8 value. Default is 400 (since v.1.4.1).
+
+	## 	thSCD2 (int): threshold which sets how many blocks have to change for the frame to be considered as a scene change. 
+	## 	It is ranged from 0 to 255, 0 meaning 0 %, 255 meaning 100 %. Default is 130 ( which means 51 % ).    
+    
+    motionSceneDetection = motionSource.MSCDetection(vectors, thscd1=mscThSCD1, thscd2=mscThSCD2)
+
+	##  If showMotionAndSceneDetection is set true then a pink image will display for the right eye 
+	##  whenever significant motion or scene change is detected, instead of applying the merge with the left frame 
+	##  using the mask as input.
+    
+    showMotionAndSceneDetection ? Eval("""
+		fR = ConvertToRGB32(mt_merge(ConvertToPlanarRGBA(fR),ConvertToPlanarRGBA(motionSceneDetection ),ConvertToPlanarRGBA(motionSceneDetection),luma=true))
+		""") : Eval("""
+		fR = ConvertToRGB32(mt_merge(ConvertToPlanarRGBA(fR),ConvertToPlanarRGBA(fL),ConvertToPlanarRGBA(motionSceneDetection),luma=true))
+		""") 
+	
 	subtitle = "Invalid algorithm specified"
 
 		algorithm == 2 ? Eval("""
 			subtitle = "Pulfrich and Lighting Depth Detection"
-			video3d = PulfrichAndLight(video2d, outputFormat=outputFormat, videoW=videoW, videoH=videoH, frameStretchFactor=frameStretchFactor, lightOffsetFactor=lightOffsetFactor)
+			video3d = PulfrichAndLight(fL,fR, outputFormat=outputFormat, videoW=videoW, videoH=videoH, frameStretchFactor=frameStretchFactor, lightOffsetFactor=lightOffsetFactor)
 		""") : Eval("""
 			subtitle = "Pulfrich Base" # Default
-			video3d = PulfrichBase(video2d, outputFormat=outputFormat, videoW=videoW, videoH=videoH, frameStretchFactor=frameStretchFactor)
+			video3d = StretchAndStackFrames(fL,fR,outputFormat=outputFormat,videoW=videoW,videoH=videoH,frameStretchFactor=frameStretchFactor)
 		""") 
 
 	resize = false
@@ -106,23 +179,7 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	return video3d
 }
 
-function PulfrichBase(clip video2d, int "outputFormat", int "videoW", int "videoH", float "frameStretchFactor") {
- 
-	## Based on:
-	## https://3dvision-blog.com/1220-2d-to-3d-realtime-video-conversion-script-for-avisynth-v0-3/
-	## by Anton Belev at 3D Vision Blog 
-	## http://www.3dvision-blog.com
-	## Rationalisation, removal of obsolete output formats and support for latest formats added by Dr. Thomas Richard Judge 2022. 
-
-	## Create variables for left and right frame with one frame difference
-	## This is the Pulfrich-like simulation that creates illusion of depth from movement
-	fL = video2d
-	fR = DeleteFrame(video2d, 0)
-
-	Return StretchAndStackFrames(fL,fR,outputFormat=outputFormat,videoW=videoW,videoH=videoH,frameStretchFactor=frameStretchFactor)
-}
-
-function PulfrichAndLight(clip video2d, int "outputFormat", int "videoW", int "videoH",  float "frameStretchFactor", float "lightOffsetFactor") {
+function PulfrichAndLight(clip fL, clip fR, int "outputFormat", int "videoW", int "videoH",  float "frameStretchFactor", float "lightOffsetFactor") {
 
 	# Based on code:
 	#
@@ -136,9 +193,6 @@ function PulfrichAndLight(clip video2d, int "outputFormat", int "videoW", int "v
 	# with indirect help of all that create this Avisynth language and useful plugin functions. Thanks to all...
 	# Creation date 20/12/2010 - based on original author's 0.9 version of the script - note this is very CPU/GPU intensive (TJ)
 	################################################################
-
-	fL = video2d
-	fR = DeleteFrame(video2d, 0)
 
 	## Adjusted dW calculation to be factor based (TJ)
 	dW = Round(videoW * ( lightOffsetFactor / 1000.0 ) )

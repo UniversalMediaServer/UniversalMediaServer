@@ -1255,6 +1255,17 @@
 										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86" />
 										</copy>
+										
+										<!-- Copy masktools2 to its destination -->
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x86" />
+										</copy>										
 
 										<!-- Copy ffms2 to its destination -->
 										<copy todir="${project.binaries}/windows/avisynth" overwrite="true">

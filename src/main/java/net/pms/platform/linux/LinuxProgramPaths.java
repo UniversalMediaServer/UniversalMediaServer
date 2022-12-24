@@ -227,6 +227,11 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getMasktools2() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getConvert2dTo3d() {
 		return null;
 	}

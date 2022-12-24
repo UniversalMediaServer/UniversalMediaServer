@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.sun.jna.Platform;
 
-
+import net.pms.configuration.UmsConfiguration;
 import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.platform.mac.MacProgramPaths;
 import net.pms.platform.windows.WindowsProgramPaths;
@@ -122,6 +122,12 @@ public abstract class PlatformProgramPaths {
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getMvtools2();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getMasktools2();
 
 	/**
 	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.

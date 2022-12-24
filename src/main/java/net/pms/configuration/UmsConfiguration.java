@@ -37,8 +37,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -48,10 +50,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
+
 import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -1388,6 +1392,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for masktools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMasktools2Paths() {
+		return programPaths.getMasktools2();
+	}
+
+	/**
 	 * @return The configured path to the mvtools2 AviSynth folder. If none is
 	 *         configured, the default is used.
 	 */
@@ -1397,6 +1409,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
 		if (mvtools2Paths != null) {
 			executable = mvtools2Paths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The configured path to the masktools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMasktools2Path() {
+		Path executable = null;
+		ExternalProgramInfo masktools2Paths = getMasktools2Paths();
+		if (masktools2Paths != null) {
+			executable = masktools2Paths.getDefaultPath();
 		}
 		return executable == null ? null : executable.toString();
 	}

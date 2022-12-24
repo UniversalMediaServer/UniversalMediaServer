@@ -20,6 +20,7 @@ import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -27,11 +28,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+
 import org.apache.commons.configuration.event.ConfigurationEvent;
+
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -220,7 +224,7 @@ public class AviSynthFFmpeg {
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(ORIENTATION);
-		panel.setEnabled(CONFIGURATION.getMvtools2Path() != null && CONFIGURATION.getConvert2dTo3dPath() != null);
+		panel.setEnabled(CONFIGURATION.getMvtools2Path() != null && CONFIGURATION.getMasktools2Path() != null &&CONFIGURATION.getConvert2dTo3dPath() != null);
 
 		return panel;
 	}
