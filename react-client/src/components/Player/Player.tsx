@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core';
-import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
@@ -41,11 +40,6 @@ export const Player = () => {
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
-
-  const [rtl] = useLocalStorage<boolean>({
-    key: 'mantine-rtl',
-    defaultValue: false,
-  });
 
   const getUuid = () => {
     if (sessionStorage.getItem('player')) {
@@ -148,11 +142,11 @@ export const Player = () => {
 	return null;
   }
 
-  const getMediaIcon = (media: BaseMedia, rtl:boolean) => {
+  const getMediaIcon = (media: BaseMedia) => {
     if (media.icon) {
         switch(media.icon) {
           case 'back':
-            return rtl ? ArrowBigRight : ArrowBigLeft;
+            return i18n.rtl ? ArrowBigRight : ArrowBigLeft;
           case 'video':
             return Movie;
           case 'audio':
@@ -170,7 +164,7 @@ export const Player = () => {
 
   const getMedia = (media: BaseMedia) => {
     let image;
-    const icon = getMediaIcon(media, rtl);
+    const icon = getMediaIcon(media);
     if (icon) {
       image = <Center>{createElement(icon, {size:60})}</Center>;
     } else {
@@ -223,7 +217,7 @@ export const Player = () => {
 
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group spacing="xs" mt="sm" sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+      return (<Group spacing="xs" mt="sm" sx={(theme:MantineTheme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
 			<Text weight={700}>{i18n.get[title]}: </Text>
         { mediaList.map((media: BaseMedia) => {
           return (
@@ -256,7 +250,7 @@ export const Player = () => {
   const getMetadataString = (title:string, mediaString?:string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+        <Group mt='sm' sx={(theme:MantineTheme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
           <Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
@@ -265,7 +259,7 @@ export const Player = () => {
   const getMetadataTagLine = (mediaString?:string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+        <Group mt='sm' sx={(theme:MantineTheme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
           <Tag/><Text fs="italic">{mediaString}</Text>
         </Group>);
     }
@@ -274,7 +268,7 @@ export const Player = () => {
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
-        <Group mt='sm' sx={(theme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
+        <Group mt='sm' sx={(theme:MantineTheme) => ({color: theme.colorScheme === 'dark' ? 'white' : 'black',})}>
           <Text weight={700}>{i18n.get['Ratings']}: </Text>
         </Group>
         <List withPadding>
@@ -569,8 +563,8 @@ export const Player = () => {
   }, [uuid, sse.reqType, sse.reqId, i18n.language]);
 
   useEffect(() => {
-    const getFolderIcon = (folder:BaseMedia, rtl:boolean) => {
-      const icon = getMediaIcon(folder, rtl);
+    const getFolderIcon = (folder:BaseMedia) => {
+      const icon = getMediaIcon(folder);
       if (icon) {
         return createElement(icon, {size:20});
       }
@@ -586,7 +580,7 @@ export const Player = () => {
             variant='subtle'
             compact
             styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
-            leftIcon = {getFolderIcon(folder, rtl)}
+            leftIcon = {getFolderIcon(folder)}
           >
             {folder.name}
           </Button>
@@ -603,7 +597,7 @@ export const Player = () => {
             variant='subtle'
             compact
             styles={{inner: {justifyContent: 'normal'}, root:{fontWeight: 400, '&:hover':{fontWeight: 600}}}}
-            leftIcon = {getFolderIcon(folder, rtl)}
+            leftIcon = {getFolderIcon(folder)}
           >
             {folder.name}
           </Button>

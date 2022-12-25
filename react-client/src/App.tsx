@@ -17,7 +17,7 @@
 import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer, MantineTheme } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { lazy, useEffect } from 'react'; 
+import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
@@ -35,6 +35,7 @@ import Home from './components/Home/Home';
 import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import Login from './components/Login/Login'
 import Logs from './components/Logs/Logs'
+import Player from './components/Player/Player';
 import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
 import SharedContent from './components/SharedContent/SharedContent';
@@ -60,15 +61,14 @@ declare module '@mantine/core' {
 }
 
 function App() {
-  const Player = lazy(() => import('./components/Player/Player'));
-
-  const [rtl] = useLocalStorage<boolean>({
+  const [rtl, setRtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
     defaultValue: false,
   });
   const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
     key: 'mantine-color-scheme',
     defaultValue: 'dark',
+    getInitialValueInEffect: true,
   });
   const toggleColorScheme = (value?: ColorScheme) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
@@ -105,7 +105,7 @@ function App() {
         }}
       >
         <NotificationsProvider>
-          <I18nProvider>
+          <I18nProvider rtl={rtl} setRtl={setRtl}>
             <NavbarProvider><NavbarContext.Consumer>
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
