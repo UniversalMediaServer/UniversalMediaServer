@@ -73,11 +73,6 @@ export default function GeneralSettings(
               <Stack align='flex-start' mt='sm'>
                 <Checkbox
                   disabled={!canModify}
-                  label={i18n.get['StartMinimizedSystemTray']}
-                  {...form.getInputProps('minimized', { type: 'checkbox' })}
-                />
-                <Checkbox
-                  disabled={!canModify}
                   label={i18n.get['EnableSplashScreen']}
                   {...form.getInputProps('show_splash_screen', { type: 'checkbox' })}
                 />
