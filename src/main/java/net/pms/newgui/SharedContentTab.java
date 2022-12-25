@@ -218,7 +218,7 @@ public class SharedContentTab implements SharedContentListener {
 				} else {
 					sharedContentArray.add(new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				}
-				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
 		builderFolder.add(addFolderButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
