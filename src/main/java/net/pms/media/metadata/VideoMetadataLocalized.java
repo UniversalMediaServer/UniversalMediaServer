@@ -76,23 +76,23 @@ public class VideoMetadataLocalized {
 	}
 
 	public void localizeJsonObject(final JsonObject jsonObject) {
-		if (StringUtils.isBlank(homepage)) {
+		if (StringUtils.isNotBlank(homepage)) {
 			jsonObject.remove("homepage");
 			jsonObject.addProperty("homepage", homepage);
 		}
-		if (StringUtils.isBlank(overview)) {
+		if (StringUtils.isNotBlank(overview)) {
 			jsonObject.remove("overview");
 			jsonObject.addProperty("overview", overview);
 		}
-		if (StringUtils.isBlank(poster)) {
+		if (StringUtils.isNotBlank(poster)) {
 			jsonObject.remove("poster");
 			jsonObject.addProperty("poster", poster);
 		}
-		if (StringUtils.isBlank(tagline)) {
+		if (StringUtils.isNotBlank(tagline)) {
 			jsonObject.remove("tagline");
 			jsonObject.addProperty("tagline", tagline);
 		}
-		if (StringUtils.isBlank(title)) {
+		if (StringUtils.isNotBlank(title)) {
 			jsonObject.remove("title");
 			jsonObject.addProperty("title", title);
 		}
