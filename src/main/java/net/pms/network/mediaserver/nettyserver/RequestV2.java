@@ -136,6 +136,7 @@ public class RequestV2 extends HTTPResource {
 	private String content;
 	private int startingIndex;
 	private int requestCount;
+	private boolean isVideoThumbnailRequest = false;
 
 	/**
 	 * When sending an input stream, the lowRange indicates which byte to start from.
@@ -254,6 +255,19 @@ public class RequestV2 extends HTTPResource {
 
 	public void setTextContent(String content) {
 		this.content = content;
+	}
+
+	/**
+	 * LG TVs send us many "play" requests while browsing directories, in order
+	 * for them to show dynamic thumbnails. That means we can skip certain things
+	 * like searching for subtitles and fully played logic.
+	 */
+	public boolean isVideoThumbnailRequest() {
+		return isVideoThumbnailRequest;
+	}
+
+	public void setIsVideoThumbnailRequest(boolean value) {
+		this.isVideoThumbnailRequest = value;
 	}
 
 	/**
@@ -569,7 +583,7 @@ public class RequestV2 extends HTTPResource {
 						}
 
 						Format format = dlna.getFormat();
-						if (format != null && format.isVideo()) {
+						if (!isVideoThumbnailRequest && format != null && format.isVideo()) {
 							MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
 							if (mediaType == MediaType.VIDEO) {
 								if (
@@ -629,8 +643,9 @@ public class RequestV2 extends HTTPResource {
 								LOGGER.error("There is no inputstream to return for " + name);
 							}
 						} else {
-							// Notify plugins that the DLNAresource is about to start playing
-							startStopListenerDelegate.start(dlna);
+							if (startStopListenerDelegate != null) {
+								startStopListenerDelegate.start(dlna);
+							}
 
 							// Try to determine the content type of the file
 							String rendererMimeType = getRendererMimeType(mediaRenderer, dlna);
@@ -794,7 +809,9 @@ public class RequestV2 extends HTTPResource {
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
 						future1.getChannel().close();
-						startStopListenerDelegate.stop();
+						if (startStopListenerDelegate != null) {
+							startStopListenerDelegate.stop();
+						}
 					});
 				} else {
 					// HEAD method is being used, so simply clean up after the response was sent.
@@ -809,7 +826,9 @@ public class RequestV2 extends HTTPResource {
 						future.addListener(ChannelFutureListener.CLOSE);
 					}
 
-					startStopListenerDelegate.stop();
+					if (startStopListenerDelegate != null) {
+						startStopListenerDelegate.stop();
+					}
 				}
 			} else {
 				// No response data and no input stream. Seems we are merely serving up headers.
