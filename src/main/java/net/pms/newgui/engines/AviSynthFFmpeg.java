@@ -220,7 +220,7 @@ public class AviSynthFFmpeg {
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(ORIENTATION);
-		panel.setEnabled(CONFIGURATION.getMvtools2Path() != null && CONFIGURATION.getConvert2dTo3dPath() != null);
+		panel.setEnabled(CONFIGURATION.getMvtools2Path() != null && CONFIGURATION.getMasktools2Path() != null && CONFIGURATION.getConvert2dTo3dPath() != null);
 
 		return panel;
 	}

@@ -60,11 +60,13 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private final ExternalProgramInfo ffms2Info;
 	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private boolean isAviSynthPlus = false;
 	private Path ffms2Path;
 	private Path directShowSourcePath;
 	private Path mvtools2Path;
+	private Path masktools2Path;
 	private Path convert2dTo3dPath;
 
 	// Not to be instantiated by anything but PlayerFactory
@@ -73,6 +75,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		ffms2Info = CONFIGURATION.getFFMS2Paths();
 		directShowSourceInfo = CONFIGURATION.getDirectShowSourcePaths();
 		mvtools2Info = CONFIGURATION.getMvtools2Paths();
+		masktools2Info = CONFIGURATION.getMasktools2Paths();
 		convert2dTo3dInfo = CONFIGURATION.getConvert2dTo3dPaths();
 		if (aviSynthInfo == null) {
 			throw new IllegalStateException(
@@ -235,6 +238,16 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				if (Files.exists(mvtools2TestPath)) {
 					mvtools2Path = mvtools2TestPath;
 					LOGGER.info("Found AviSynth mvtools2 library");
+					break;
+				}
+			}
+		}
+		if (masktools2Info != null) {
+			for (ProgramExecutableType executableType : masktools2Info.getExecutableTypes()) {
+				Path masktools2TestPath = masktools2Info.getPath(executableType);
+				if (Files.exists(masktools2TestPath)) {
+					masktools2Path = masktools2TestPath;
+					LOGGER.info("Found AviSynth masktools2 library");
 					break;
 				}
 			}
@@ -423,7 +436,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && convert2dTo3dPath != null) {
+			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && masktools2Path != null && convert2dTo3dPath != null) {
 
 				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + " seconds");
 
@@ -433,6 +446,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 				lines.add("\n" +
 				"LoadPlugin(\"" + mvtools2Path + "\")\n" +
+				"LoadPlugin(\"" + masktools2Path + "\")\n" +
 				"Import(\"" + convert2dTo3dPath + "\")\n\n");
 
 				int frameStretchFactor = customConfiguration.getFfmpegAvisynthFrameStretchFactor();

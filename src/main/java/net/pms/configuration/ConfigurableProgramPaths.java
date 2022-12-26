@@ -16,7 +16,6 @@
  */
 package net.pms.configuration;
 
-import net.pms.util.ProgramExecutableType;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -26,17 +25,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import net.pms.util.ExternalProgramInfo;
-import net.pms.util.ExecutableInfo;
-import net.pms.util.FFmpegProgramInfo;
-import net.pms.platform.PlatformProgramPaths;
-import net.pms.util.FileUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import net.pms.platform.PlatformProgramPaths;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.FFmpegProgramInfo;
+import net.pms.util.FileUtil;
+import net.pms.util.ProgramExecutableType;
 /**
  * This class adds configurable/custom paths to {@link PlatformProgramPaths}.
  *
@@ -168,6 +167,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	@Override
 	public final ExternalProgramInfo getMvtools2() {
 		return platformPaths.getMvtools2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getMasktools2() {
+		return platformPaths.getMasktools2();
 	}
 
 	@Override

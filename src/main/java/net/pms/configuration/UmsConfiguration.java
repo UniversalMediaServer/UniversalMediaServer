@@ -1388,6 +1388,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for masktools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMasktools2Paths() {
+		return programPaths.getMasktools2();
+	}
+
+	/**
 	 * @return The configured path to the mvtools2 AviSynth folder. If none is
 	 *         configured, the default is used.
 	 */
@@ -1397,6 +1405,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
 		if (mvtools2Paths != null) {
 			executable = mvtools2Paths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The configured path to the masktools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMasktools2Path() {
+		Path executable = null;
+		ExternalProgramInfo masktools2Paths = getMasktools2Paths();
+		if (masktools2Paths != null) {
+			executable = masktools2Paths.getDefaultPath();
 		}
 		return executable == null ? null : executable.toString();
 	}

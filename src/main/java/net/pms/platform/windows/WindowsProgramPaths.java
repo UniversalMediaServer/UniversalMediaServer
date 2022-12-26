@@ -24,6 +24,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.ExternalProgramInfo;
@@ -31,9 +34,6 @@ import net.pms.util.FFmpegProgramInfo;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of paths to external programs on Windows.
@@ -55,6 +55,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo ffms2Info;
 	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
 	private final Path mediaInfo;
@@ -170,6 +171,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		mvtools2Info = new ExternalProgramInfo("mvtools2", ProgramExecutableType.BUNDLED);
 		mvtools2Info.setPath(ProgramExecutableType.BUNDLED, mvtools2);
 
+		// masktools2
+		Path masktools2 = resolve("avisynth/masktools2.dll");
+		masktools2Info = new ExternalProgramInfo("masktools2", ProgramExecutableType.BUNDLED);
+		masktools2Info.setPath(ProgramExecutableType.BUNDLED, masktools2);
+
 		// CtrlSender
 		Path tmpCtrlSender = resolve("ctrlsender.exe");
 		try {
@@ -260,6 +266,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getMvtools2() {
 		return mvtools2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getMasktools2() {
+		return masktools2Info;
 	}
 
 	@Override
