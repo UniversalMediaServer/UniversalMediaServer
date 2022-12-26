@@ -222,7 +222,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate) ctx.getAttachment();
 					if (startStopListenerDelegate != null) {
 						LOGGER.debug("Premature end, stopping...");
-						startStopListenerDelegate.stop();
+						startStopListenerDelegate.stop(false);
 					}
 				} else if (!cause.getClass().equals(ClosedChannelException.class)) {
 					LOGGER.debug("Caught exception: {}", cause.getMessage());

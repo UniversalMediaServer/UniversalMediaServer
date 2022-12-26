@@ -242,7 +242,7 @@ public class WebGuiRenderer extends Renderer {
 			startStop = new StartStopListenerDelegate(getAddress().getHostAddress());
 		}
 		startStop.setRenderer(this);
-		startStop.start(getPlayingRes());
+		startStop.start(getPlayingRes(), false);
 	}
 
 	public void stop() {
@@ -252,7 +252,7 @@ public class WebGuiRenderer extends Renderer {
 		if (getPlayingRes() != null) {
 			LOGGER.trace("WebGuiRender stop for " + getPlayingRes().getDisplayName());
 		}
-		startStop.stop();
+		startStop.stop(false);
 		startStop = null;
 	}
 

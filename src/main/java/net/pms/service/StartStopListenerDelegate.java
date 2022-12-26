@@ -41,15 +41,20 @@ public class StartStopListenerDelegate {
 		return renderer;
 	}
 
-	// technically, these don't need to be synchronized as there should be
-	// one thread per request/response, but it doesn't hurt to enforce the contract
-	public synchronized void start(DLNAResource dlna) {
+	/**
+	 * Note: technically, these don't need to be synchronized as there should be
+	 * one thread per request/response, but it doesn't hurt to enforce the contract.
+	 *
+	 * @param dlna the resource to start playing
+	 * @param isThumbnailRequest whether this is a thumbnail request
+	 */
+	public synchronized void start(DLNAResource dlna, Boolean isThumbnailRequest) {
 		assert this.dlna == null;
 		this.dlna = dlna;
 		Format ext = dlna.getFormat();
 		// only trigger the start/stop events for audio and video
 		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
-			dlna.startPlaying(rendererId, renderer);
+			dlna.startPlaying(rendererId, renderer, isThumbnailRequest);
 			started = true;
 			Services.sleepManager().startPlaying();
 		} else {
@@ -57,9 +62,9 @@ public class StartStopListenerDelegate {
 		}
 	}
 
-	public synchronized void stop() {
+	public synchronized void stop(Boolean isThumbnailRequest) {
 		if (started && !stopped) {
-			dlna.stopPlaying(rendererId, renderer);
+			dlna.stopPlaying(rendererId, renderer, isThumbnailRequest);
 			stopped = true;
 			Services.sleepManager().stopPlaying();
 		}

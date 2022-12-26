@@ -2952,10 +2952,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param rendererId
 	 * @param incomingRenderer
+	 * @param isThumbnailRequest whether this is a thumbnail request (e.g. from LG TV)
 	 *
 	 * @see StartStopListener
 	 */
-	public void startPlaying(final String rendererId, final Renderer incomingRenderer) {
+	public void startPlaying(final String rendererId, final Renderer incomingRenderer, final Boolean isThumbnailRequest) {
 		final String requestId = getRequestId(rendererId);
 		synchronized (requestIdToRefcount) {
 			Integer temp = requestIdToRefcount.get(requestId);
@@ -2985,9 +2986,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} catch (NullPointerException e) {
 						}
 						if (isLogPlayEvents()) {
-							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-							LOGGER.debug(
-								"The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+							if (!isThumbnailRequest) {
+								LOGGER.info("Started playing {} on {}", getName(), rendererName);
+							} else {
+								LOGGER.debug("Started sending video thumbnail response for {} on {}", getName(), rendererName);
+							}
+							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 						}
 					} catch (UnknownHostException ex) {
 						LOGGER.debug("" + ex);
@@ -3007,7 +3011,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @see StartStopListener
 	 */
-	public void stopPlaying(final String rendererId, final Renderer incomingRenderer) {
+	public void stopPlaying(final String rendererId, final Renderer incomingRenderer, final Boolean isThumbnailRequest) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = () -> {
@@ -3052,15 +3056,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							if (isLogPlayEvents()) {
-								LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
-								LOGGER.debug("The full filename of which is \"{}\" and the address of the renderer is {}", getSystemName(),
-									rendererId);
+								if (!isThumbnailRequest) {
+									LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
+								} else {
+									LOGGER.debug("Stopped sending video thumbnail response for {} on {}", getName(), rendererName);
+								}
+								LOGGER.debug("The full filename of which is \"{}\" and the address of the renderer is {}", getSystemName(), rendererId);
 							}
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
 						}
 
-						internalStop();
+						if (!isThumbnailRequest) {
+							DLNAResource res = resumeStop();
+							final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+							if (root != null) {
+								if (res == null) {
+									res = this.clone();
+								} else {
+									res = res.clone();
+								}
+					
+								root.stopPlaying(res);
+							}
+						}
 					}
 				};
 
@@ -4592,20 +4611,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private ResumeObj resume;
 	private int resHash;
 	private long startTime;
-
-	private void internalStop() {
-		DLNAResource res = resumeStop();
-		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
-		if (root != null) {
-			if (res == null) {
-				res = this.clone();
-			} else {
-				res = res.clone();
-			}
-
-			root.stopPlaying(res);
-		}
-	}
 
 	public int resumeHash() {
 		return resHash;

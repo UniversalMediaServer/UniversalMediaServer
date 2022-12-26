@@ -607,7 +607,7 @@ public class WebRender extends Renderer implements OutputOverride {
 			startStop = new StartStopListenerDelegate(ip);
 		}
 		startStop.setRenderer(this);
-		startStop.start(getPlayingRes());
+		startStop.start(getPlayingRes(), false);
 	}
 
 	public void stop() {
@@ -617,8 +617,7 @@ public class WebRender extends Renderer implements OutputOverride {
 		if (getPlayingRes() != null) {
 			LOGGER.trace("WebRender stop for " + getPlayingRes().getDisplayName());
 		}
-		startStop.stop();
+		startStop.stop(false);
 		startStop = null;
 	}
-
 }

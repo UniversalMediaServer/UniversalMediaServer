@@ -88,7 +88,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
 		RequestV2 request;
 		Renderer renderer = null;
-		String userAgentString = null;
 		ArrayList<String> identifiers = new ArrayList<>();
 
 		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
@@ -147,7 +146,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			String headerLine = name + ": " + headers.get(name);
 
 			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+				request.setUserAgent(headerLine.substring(headerLine.indexOf(':') + 1).trim());
 			} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
 				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
 			}
@@ -232,9 +231,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			if (renderer != null) {
 				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
 
-				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+				if (request.getUserAgent() != null && !request.getUserAgent().equals("FDSSDP")) {
 					// We have found an unknown renderer
-					identifiers.add(0, "User-Agent: " + userAgentString);
+					identifiers.add(0, "User-Agent: " + request.getUserAgent());
 					renderer.setIdentifiers(identifiers);
 					LOGGER.info(
 						"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
@@ -424,7 +423,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// answer() is non-blocking. we only (may) need to call it
 			// here in the case of an exception. it's a no-op if it's
 			// already been called
-			startStopListenerDelegate.stop();
+			startStopListenerDelegate.stop(false);
 		}
 	}
 
@@ -442,7 +441,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				StartStopListenerDelegate startStopListenerDelegate = (StartStopListenerDelegate) ctx.getAttachment();
 				if (startStopListenerDelegate != null) {
 					LOGGER.debug("Premature end, stopping...");
-					startStopListenerDelegate.stop();
+					startStopListenerDelegate.stop(false);
 				}
 			} else if (!cause.getClass().equals(ClosedChannelException.class)) {
 				LOGGER.debug("Caught exception: {}", cause.getMessage());

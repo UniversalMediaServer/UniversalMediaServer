@@ -670,7 +670,7 @@ public class RequestHandler implements HttpHandler {
 				} else {
 					// Notify plugins that the DLNAresource is about to start playing
 					startStopListenerDelegate = new StartStopListenerDelegate(exchange.getRemoteAddress().getAddress().getHostAddress());
-					startStopListenerDelegate.start(dlna);
+					startStopListenerDelegate.start(dlna, false);
 
 					// Try to determine the content type of the file
 					String rendererMimeType = renderer.getMimeType(dlna);
@@ -749,7 +749,7 @@ public class RequestHandler implements HttpHandler {
 			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
 		} finally {
 			if (startStopListenerDelegate != null) {
-				startStopListenerDelegate.stop();
+				startStopListenerDelegate.stop(false);
 			}
 		}
 	}

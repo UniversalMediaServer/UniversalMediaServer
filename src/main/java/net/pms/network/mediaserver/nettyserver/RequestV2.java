@@ -134,6 +134,8 @@ public class RequestV2 extends HTTPResource {
 	private String uri;
 	private String soapaction;
 	private String content;
+	private String userAgent;
+	private Boolean isVideoThumbnailRequest;
 	private int startingIndex;
 	private int requestCount;
 
@@ -256,6 +258,27 @@ public class RequestV2 extends HTTPResource {
 		this.content = content;
 	}
 
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
+	/**
+	 * LG TVs send us many "play" requests while browsing directories, in order
+	 * for them to show dynamic thumbnails. That means we can skip certain things
+	 * like searching for subtitles and fully played logic.
+	 */
+	public Boolean isVideoThumbnailRequest() {
+		return isVideoThumbnailRequest;
+	}
+
+	public void setIsVideoThumbnailRequest(Boolean isVideoThumbnailRequest) {
+		this.isVideoThumbnailRequest = isVideoThumbnailRequest;
+	}
+
 	/**
 	 * Construct a proper HTTP response to a received request. After the response has been
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
@@ -285,6 +308,8 @@ public class RequestV2 extends HTTPResource {
 		InputStream inputStream = null;
 		ChannelFuture future = null;
 		try {
+			setIsVideoThumbnailRequest(mediaRenderer != null && mediaRenderer.isLG() && userAgent != null && userAgent.contains("Lavf/"));
+
 			// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 			if (uri.startsWith("/")) {
 				LOGGER.trace("Stripping preceding slash from: " + uri);
@@ -569,7 +594,7 @@ public class RequestV2 extends HTTPResource {
 						}
 
 						Format format = dlna.getFormat();
-						if (format != null && format.isVideo()) {
+						if (!isVideoThumbnailRequest() && format != null && format.isVideo()) {
 							MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
 							if (mediaType == MediaType.VIDEO) {
 								if (
@@ -629,8 +654,7 @@ public class RequestV2 extends HTTPResource {
 								LOGGER.error("There is no inputstream to return for " + name);
 							}
 						} else {
-							// Notify plugins that the DLNAresource is about to start playing
-							startStopListenerDelegate.start(dlna);
+							startStopListenerDelegate.start(dlna, isVideoThumbnailRequest());
 
 							// Try to determine the content type of the file
 							String rendererMimeType = getRendererMimeType(mediaRenderer, dlna);
@@ -794,7 +818,7 @@ public class RequestV2 extends HTTPResource {
 						// Always close the channel after the response is sent because of
 						// a freeze at the end of video when the channel is not closed.
 						future1.getChannel().close();
-						startStopListenerDelegate.stop();
+						startStopListenerDelegate.stop(isVideoThumbnailRequest());
 					});
 				} else {
 					// HEAD method is being used, so simply clean up after the response was sent.
@@ -809,7 +833,7 @@ public class RequestV2 extends HTTPResource {
 						future.addListener(ChannelFutureListener.CLOSE);
 					}
 
-					startStopListenerDelegate.stop();
+					startStopListenerDelegate.stop(isVideoThumbnailRequest());
 				}
 			} else {
 				// No response data and no input stream. Seems we are merely serving up headers.
