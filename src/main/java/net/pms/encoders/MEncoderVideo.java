@@ -192,7 +192,7 @@ public class MEncoderVideo extends Engine {
 			defaultArgsList.add("format=mpegts");
 		}
 
-		if (isTranscodeToH264) {
+		if (!isTranscodeToH264) {
 			defaultArgsList.add("-mpegopts");
 			defaultArgsList.add("format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64");
 		}
