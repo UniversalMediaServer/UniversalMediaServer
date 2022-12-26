@@ -169,6 +169,18 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
+	/**
+	 * Performs certain actions after a video or audio file is stopped, if the file is
+	 * within a monitored directory.
+	 * These actions include:
+	 * - If the file is fully played:
+	 *   - Marking the file as fully played in the database
+	 *   - Updating the systemUpdateID to indicate to the client there is updated content
+	 * - If the file is not fully played:
+	 *   - Update the last played date for the file in the database
+	 *
+	 * @param resource
+	 */
 	public void stopped(DLNAResource resource) {
 		if (!(resource instanceof RealFile)) {
 			return;

@@ -609,8 +609,16 @@ public class RequestHandler implements HttpHandler {
 					}
 				}
 
+				/**
+				 * LG TVs send us many "play" requests while browsing directories, in order
+				 * for them to show dynamic thumbnails. That means we can skip certain things
+				 * like searching for subtitles and fully played logic.
+				 */
+				String userAgentString = exchange.getRequestHeaders().getFirst("User-Agent");
+				boolean isVideoThumbnailRequest = renderer.isLG() && userAgentString != null && userAgentString.contains("Lavf/");
+
 				Format format = dlna.getFormat();
-				if (format != null && format.isVideo()) {
+				if (!isVideoThumbnailRequest && format != null && format.isVideo()) {
 					MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
 					if (mediaType == MediaType.VIDEO) {
 						if (dlna.getMedia() != null &&
@@ -668,9 +676,10 @@ public class RequestHandler implements HttpHandler {
 						LOGGER.error("There is no inputstream to return for " + name);
 					}
 				} else {
-					// Notify plugins that the DLNAresource is about to start playing
-					startStopListenerDelegate = new StartStopListenerDelegate(exchange.getRemoteAddress().getAddress().getHostAddress());
-					startStopListenerDelegate.start(dlna);
+					if (!isVideoThumbnailRequest) {
+						startStopListenerDelegate = new StartStopListenerDelegate(exchange.getRemoteAddress().getAddress().getHostAddress());
+						startStopListenerDelegate.start(dlna);
+					}
 
 					// Try to determine the content type of the file
 					String rendererMimeType = renderer.getMimeType(dlna);
