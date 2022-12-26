@@ -449,17 +449,21 @@ public class FFMpegVideo extends Engine {
 
 					}
 
-					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx")) {
+					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
 						if (!customFFmpegOptions.contains("-preset")) {
 							transcodeOptions.add("-preset");
 
 							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
-
 							transcodeOptions.add("superfast");
 						}
 						if (!customFFmpegOptions.contains("-level")) {
 							transcodeOptions.add("-level");
 							transcodeOptions.add("31");
+						}
+					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("ultrafast");
 						}
 					}
 					transcodeOptions.add("-pix_fmt");
@@ -602,14 +606,17 @@ public class FFMpegVideo extends Engine {
 			}
 
 			if (defaultMaxBitrates[0] > 0) {
-				videoBitrateOptions.add("-bufsize");
-				videoBitrateOptions.add(String.valueOf(bufSize) + "k");
+				// prevent x265 buffer underflow errors
+				if (!params.getMediaRenderer().isTranscodeToH265()) {
+					videoBitrateOptions.add("-bufsize");
+					videoBitrateOptions.add(String.valueOf(bufSize) + "k");
+				}
 				videoBitrateOptions.add("-maxrate");
 				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]) + "k");
 			}
 		}
 
-		if (isXboxOneWebVideo || !params.getMediaRenderer().isTranscodeToH264()) {
+		if (isXboxOneWebVideo || params.getMediaRenderer().isTranscodeToMPEG2()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
