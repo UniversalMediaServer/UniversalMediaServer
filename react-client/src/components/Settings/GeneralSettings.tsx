@@ -62,7 +62,7 @@ export default function GeneralSettings(
               <Checkbox
                 label={i18n.get['ShowAdvancedSettings']}
                 checked={advancedSettings}
-                onChange={(event) => setAdvancedSettings(event.currentTarget.checked)}
+                onChange={(event:React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
               />
               <Select
                 disabled={!canModify}
