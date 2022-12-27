@@ -310,8 +310,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return
 	 */
 	public boolean isMuxable(Renderer renderer) {
-		// Make sure the file is H.264 video
-		if (isH264()) {
+		if (isH264() || isH265() || isMPEG2Video()) {
 			muxable = true;
 		}
 
@@ -1403,6 +1402,13 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isH265() {
 		return codecV != null && codecV.startsWith(FormatConfiguration.H265);
+	}
+
+	/**
+	 * @return {boolean} Whether the file contains MPEG-2 video.
+	 */
+	public boolean isMPEG2Video() {
+		return codecV != null && codecV.startsWith(FormatConfiguration.MPEG2);
 	}
 
 	/**
