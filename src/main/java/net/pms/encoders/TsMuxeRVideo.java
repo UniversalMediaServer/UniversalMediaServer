@@ -621,15 +621,7 @@ public class TsMuxeRVideo extends Engine {
 
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-		/**
-		 * Use the newer version of tsMuxeR on PS3 since other renderers
-		 * like Panasonic TVs don't always recognize the new output
-		 */
 		String executable = getExecutable();
-		if (params.getMediaRenderer().isPS3()) {
-			executable = configuration.getTsMuxeRNewPath();
-		}
-
 		String[] cmdArray = new String[]{
 			executable,
 			f.getAbsolutePath(),

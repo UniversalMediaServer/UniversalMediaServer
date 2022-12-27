@@ -1193,53 +1193,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
-	 */
-	@Nullable
-	public ExternalProgramInfo getTsMuxeRNewPaths() {
-		return programPaths.getTsMuxeRNew();
-	}
-
-	/**
-	 * @return The configured path to the tsMuxeRNew executable. If none is
-	 *         configured, the default is used.
-	 */
-	@Nullable
-	public String getTsMuxeRNewPath() {
-		Path executable = null;
-		ExternalProgramInfo tsMuxeRNewPaths = getTsMuxeRNewPaths();
-		if (tsMuxeRNewPaths != null) {
-			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
-				ConfigurableProgramPaths.KEY_TSMUXER_NEW_EXECUTABLE_TYPE,
-				tsMuxeRNewPaths.getDefault()
-			);
-			if (executableType != null) {
-				executable = tsMuxeRNewPaths.getPath(executableType);
-			}
-
-			if (executable == null) {
-				executable = tsMuxeRNewPaths.getDefaultPath();
-			}
-		}
-		return executable == null ? null : executable.toString();
-	}
-
-	/**
-	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * "tsMuxeR new" both in {@link UmsConfiguration} and the
-	 * {@link ExternalProgramInfo}.
-	 *
-	 * @param customPath the new {@link Path} or {@code null} to clear it.
-	 */
-	public void setCustomTsMuxeRNewPath(@Nullable Path customPath) {
-		if (!isCustomProgramPathsSupported()) {
-			throw new IllegalStateException("The program paths aren't configurable");
-		}
-
-		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
-	}
-
-	/**
 	 * @return The {@link ExternalProgramInfo} for FLAC.
 	 */
 	@Nullable

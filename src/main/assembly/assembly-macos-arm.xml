@@ -39,7 +39,6 @@
 				<include>mencoder</include>
 				<include>mplayer</include>
 				<include>tsMuxeR</include>
-				<include>tsMuxeR-new</include>
 			</includes>
 		</fileSet>
 
