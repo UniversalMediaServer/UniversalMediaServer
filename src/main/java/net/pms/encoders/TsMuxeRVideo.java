@@ -492,16 +492,20 @@ public class TsMuxeRVideo extends Engine {
 			pw.print(" --vbr");
 			pw.println(" --vbv-len=500");
 
-			String sei = "insertSEI";
-			if (
-				params.getMediaRenderer().isPS3() &&
-				media.isWebDl(filename, params)
-			) {
-				sei = "forceSEI";
-			}
-			String videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+			String videoparams = "";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
+			} else if (params.getMediaRenderer().isTranscodeToH264()) {
+				String sei = "insertSEI";
+				if (
+					params.getMediaRenderer().isPS3() &&
+					media.isWebDl(filename, params)
+				) {
+					sei = "forceSEI";
+				}
+				videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+			} else {
+				videoparams = "track=1";
 			}
 			if (configuration.isFix25FPSAvMismatch()) {
 				fps = "25";
