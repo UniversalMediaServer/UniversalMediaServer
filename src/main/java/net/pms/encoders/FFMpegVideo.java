@@ -999,6 +999,8 @@ public class FFMpegVideo extends Engine {
 				if (media.getCodecV() != null) {
 					if (media.isH264()) {
 						params.setForceType("V_MPEG4/ISO/AVC");
+					} else if (media.isH265()) {
+						params.setForceType("V_MPEGH/ISO/HEVC");
 					} else if (media.getCodecV().startsWith("mpeg2")) {
 						params.setForceType("V_MPEG-2");
 					} else if (media.getCodecV().equals("vc1")) {
@@ -1251,7 +1253,7 @@ public class FFMpegVideo extends Engine {
 			String[] cmdArrayDTS = new String[cmdListDTS.size()];
 			cmdListDTS.toArray(cmdArrayDTS);
 
-			if (!params.getMediaRenderer().isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
+			if (!renderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
 				ffAudioPipe.setModifier(sm);
 			}
 
@@ -1267,6 +1269,8 @@ public class FFMpegVideo extends Engine {
 
 				if (renderer.isTranscodeToH264()) {
 					videoType = "V_MPEG4/ISO/AVC";
+				} else if (renderer.isTranscodeToH265()) {
+					videoType = "V_MPEGH/ISO/HEVC";
 				}
 
 				if (params.isNoVideoEncode() && params.getForceType() != null) {
@@ -1281,7 +1285,7 @@ public class FFMpegVideo extends Engine {
 
 				String audioType = "A_AC3";
 				if (dtsRemux) {
-					if (params.getMediaRenderer().isMuxDTSToMpeg()) {
+					if (renderer.isMuxDTSToMpeg()) {
 						// Renderer can play proper DTS track
 						audioType = "A_DTS";
 					} else {
@@ -1290,7 +1294,20 @@ public class FFMpegVideo extends Engine {
 					}
 				}
 
-				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+				String videoparams = "";
+				if (renderer.isTranscodeToH264()) {
+					String sei = "insertSEI";
+					if (
+						renderer.isPS3() &&
+						media.isWebDl(filename, params)
+					) {
+						sei = "forceSEI";
+					}
+					videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+				} else {
+					videoparams = "track=1";
+				}
+				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + videoparams);
 				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
 			}
 
