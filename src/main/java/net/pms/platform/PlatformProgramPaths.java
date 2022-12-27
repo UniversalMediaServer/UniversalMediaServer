@@ -71,12 +71,6 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getTsMuxeR();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
-	 */
-	@Nullable
-	public abstract ExternalProgramInfo getTsMuxeRNew();
-
-	/**
 	 * @return The {@link ExternalProgramInfo} for FLAC.
 	 */
 	@Nullable

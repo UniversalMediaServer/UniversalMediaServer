@@ -38,12 +38,6 @@
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
-		<file>
-			<source>${project.binaries}/linux/x86/tsMuxeR-new</source>
-			<outputDirectory>./linux</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
 
 		<!-- Include executable script UMS.sh -->
 		<file>

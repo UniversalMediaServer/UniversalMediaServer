@@ -37,7 +37,6 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo vlcInfo;
 	private final ExternalProgramInfo mEncoderInfo;
 	private final ExternalProgramInfo tsMuxeRInfo;
-	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
@@ -121,17 +120,6 @@ public class MacProgramPaths extends PlatformProgramPaths {
 			tsMuxeRInfo.setPath(ProgramExecutableType.INSTALLED, tsMuxeR);
 		}
 
-		// tsMuxeRNew
-		Path tsMuxeRNew = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			tsMuxeRNew = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("tsMuxeR-new");
-		}
-		if (tsMuxeRNew == null || !Files.exists(tsMuxeRNew)) {
-			tsMuxeRNew = PLATFORM_BINARIES_FOLDER.resolve("tsMuxeR-new");
-		}
-		tsMuxeRNewInfo = new ExternalProgramInfo("tsMuxeRNew", ProgramExecutableType.BUNDLED);
-		tsMuxeRNewInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeRNew);
-
 		// FLAC
 		Path flac = null;
 		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
@@ -201,11 +189,6 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getTsMuxeR() {
 		return tsMuxeRInfo;
-	}
-
-	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
-		return tsMuxeRNewInfo;
 	}
 
 	@Override
