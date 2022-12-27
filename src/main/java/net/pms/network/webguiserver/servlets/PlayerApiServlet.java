@@ -819,10 +819,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (in != null && in.available() != len) {
 				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
 				resp.setStatus(206);
-				resp.setContentLength(in.available());
 			} else {
 				resp.setStatus(200);
-				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
@@ -921,10 +919,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (in != null && in.available() != len) {
 				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
 				resp.setStatus(206);
-				resp.setContentLength(in.available());
 			} else {
 				resp.setStatus(200);
-				resp.setContentLength(0);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
