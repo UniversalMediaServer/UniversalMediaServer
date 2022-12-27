@@ -919,32 +919,35 @@ public class FFMpegVideo extends Engine {
 
 		boolean deferToTsmuxer = true;
 		boolean canMuxVideoWithFFmpeg = true;
+		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			String prependTraceReason = "Not muxing the video stream with FFmpeg because ";
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the video codec is not the same as the transcoding goal.");
+				LOGGER.trace(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (dlna.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
+				LOGGER.trace(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+				LOGGER.trace(prependFfmpegTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
+				LOGGER.trace(prependFfmpegTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+				LOGGER.trace(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
+				LOGGER.trace(prependFfmpegTraceReason + "the colorspace probably isn't supported by the renderer.");
 			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				LOGGER.trace(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
+				LOGGER.trace(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
+			} else if (media.getVideoHDRFormat() != null) {
+				canMuxVideoWithFFmpeg = false;
+				LOGGER.trace(prependFfmpegTraceReason + "the file is HDR and FFmpeg seems to not preserve HDR data (worth re-checking periodically).");
 			}
 		}
 
@@ -1013,6 +1016,7 @@ public class FFMpegVideo extends Engine {
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 			canMuxVideoWithFFmpeg = false;
+			LOGGER.trace(prependFfmpegTraceReason + "video filters are being applied.");
 		}
 
 		// Map the proper audio stream when there are multiple audio streams.
