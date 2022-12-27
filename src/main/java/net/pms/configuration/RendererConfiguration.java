@@ -883,6 +883,9 @@ public class RendererConfiguration extends BaseConfiguration {
 		return getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
 	}
 
+	/**
+	 * @return {boolean} whether the renderer supports H.264 inside MPEG-TS
+	 */
 	public boolean isMuxH264MpegTS() {
 		boolean muxCompatible = getBoolean(KEY_MUX_H264_WITH_MPEGTS, true);
 		if (isUseMediaInfo()) {

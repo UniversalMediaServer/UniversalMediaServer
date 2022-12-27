@@ -431,11 +431,9 @@ public class FFMpegVideo extends Engine {
 						transcodeOptions.add("-c:v");
 
 						if (renderer.isTranscodeToH264()) {
-							selectedTranscodeAccelerationMethod = configuration
-									.getFFmpegGPUH264EncodingAccelerationMethod();
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
 						} else {
-							selectedTranscodeAccelerationMethod = configuration
-									.getFFmpegGPUH265EncodingAccelerationMethod();
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
 						}
 
 						transcodeOptions.add(selectedTranscodeAccelerationMethod);

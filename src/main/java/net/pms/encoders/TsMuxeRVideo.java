@@ -303,7 +303,6 @@ public class TsMuxeRVideo extends Engine {
 									params.getAid().isMP3() ||
 									params.getAid().isAAC() ||
 									params.getAid().isVorbis() ||
-									// params.aid.isWMA() ||
 									params.getAid().isMpegAudio()
 								)
 							)
