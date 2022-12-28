@@ -27,20 +27,28 @@ export const AudioPlayer = (apOptions: AudioPlayerOption) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!videoRef.current || !document.body.contains(videoRef.current)) {return}
+    const videoElem = document.createElement('video');
+    videoElem.id='player';
+    videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
+    document.getElementById('videodiv')?.appendChild(videoElem);
+
     const options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
+    options.audioPosterMode = true;
     options.sources=[{src:playerApiUrl + "media/" + apOptions.uuid + "/"  + apOptions.media.id, type: apOptions.media.mime}];
     options.poster = playerApiUrl + "thumb/" + apOptions.uuid + "/"  + apOptions.media.id;
-    const videoPlayer = videojs(videoRef.current, options);
-    return () => videoPlayer.dispose();
-  }, [apOptions, videoRef]);
+    const videoPlayer = videojs(videoElem, options);
+
+    return () => {
+      if (!videoPlayer.isDisposed()) {
+        videoPlayer.dispose()
+      }
+    };
+  }, [apOptions]);
 
   return (
-    <div>
-      <audio id='player' ref={videoRef} className="video-js vjs-default-skin vjs-fluid vjs-big-play-centered full-card card" />
-    </div>
+    <div id='videodiv'></div>
   );
 };
 
