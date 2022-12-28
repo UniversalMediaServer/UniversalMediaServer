@@ -912,7 +912,7 @@ public class FFMpegVideo extends Engine {
 				params.getSid().getType() == SubtitleType.VOBSUB
 			)
 		) {
-			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
+			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
 			return mv.launchTranscode(dlna, media, params);
 		}
@@ -923,31 +923,31 @@ public class FFMpegVideo extends Engine {
 		if (!(renderer instanceof OutputOverride)) {
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
+				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (dlna.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
+				LOGGER.debug(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "we need to burn subtitles.");
+				LOGGER.debug(prependFfmpegTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "we are using AviSynth.");
+				LOGGER.debug(prependFfmpegTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+				LOGGER.debug(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the colorspace probably isn't supported by the renderer.");
+				LOGGER.debug(prependFfmpegTraceReason + "the colorspace probably isn't supported by the renderer.");
 			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				LOGGER.debug(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
+				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (media.getVideoHDRFormat() != null) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.trace(prependFfmpegTraceReason + "the file is HDR and FFmpeg seems to not preserve HDR data (worth re-checking periodically).");
+				LOGGER.debug(prependFfmpegTraceReason + "the file is HDR and FFmpeg seems to not preserve HDR data (worth re-checking periodically).");
 			}
 		}
 
@@ -957,43 +957,43 @@ public class FFMpegVideo extends Engine {
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
+				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (media.isH264() && !params.getMediaRenderer().isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+				LOGGER.debug(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
 			} else if (params.getSid() != null) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+				LOGGER.debug(prependTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
+				LOGGER.debug(prependTraceReason + "we are using AviSynth.");
 			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+				LOGGER.debug(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if (!media.isMuxable(params.getMediaRenderer())) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
+				LOGGER.debug(prependTraceReason + "the video stream is not muxable to this renderer");
 			} else if (!aspectRatiosMatch) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
+				LOGGER.debug(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
 			} else if (!params.getMediaRenderer().isPS3() && media.isWebDl(filename, params)) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
+				LOGGER.debug(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
+				LOGGER.debug(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+				LOGGER.debug(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
-				LOGGER.trace(prependTraceReason + "the resolution is incompatible with the renderer.");
+				LOGGER.debug(prependTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 				deferToTsmuxer = false;
 				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 			}
 			if (deferToTsmuxer) {
-				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
+				TsMuxeRVideo tsMuxeRVideoInstance = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
 				params.setForceFps(media.getValidFps(false));
 
 				if (media.getCodecV() != null) {
@@ -1008,7 +1008,9 @@ public class FFMpegVideo extends Engine {
 					}
 				}
 
-				return tv.launchTranscode(dlna, media, params);
+				LOGGER.debug("Deferring from FFmpeg to tsMuxeR");
+
+				return tsMuxeRVideoInstance.launchTranscode(dlna, media, params);
 			}
 		}
 
@@ -1018,7 +1020,7 @@ public class FFMpegVideo extends Engine {
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 			canMuxVideoWithFFmpeg = false;
-			LOGGER.trace(prependFfmpegTraceReason + "video filters are being applied.");
+			LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
 		}
 
 		// Map the proper audio stream when there are multiple audio streams.

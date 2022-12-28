@@ -94,7 +94,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 				LOGGER.trace("", e);
 			}
 		} catch (IOException e) {
-			LOGGER.warn("An error occurred duing IPC piping: {}", e.getMessage());
+			LOGGER.warn("An error occurred during IPC piping: {}", e.getMessage());
 			LOGGER.trace("", e);
 		} finally {
 			try {
