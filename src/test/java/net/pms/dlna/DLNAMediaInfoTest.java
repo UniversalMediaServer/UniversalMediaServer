@@ -67,6 +67,11 @@ public class DLNAMediaInfoTest {
 		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
 		"video-h265_hdr10-aac.mkv",
 		"video-h265_hdr10+-dtshd_ma.mkv",
+		"video-h265_dolbyvision_p04.06.ts",
+		"video-h265_dolbyvision_p05.06.ts",
+		"video-h265_dolbyvision_p05.09.ts",
+		"video-h265_dolbyvision_p07.06.ts",
+		"video-h265_dolbyvision_p08.12.ts",
 	};
 
 	/**
@@ -278,6 +283,36 @@ public class DLNAMediaInfoTest {
 				case 25:
 					assertEquals(
 						"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, Video Tracks: 1, Video Codec: h265, Duration: 0:00:01.127, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: HDR10+ Profile A / HDR10, File Title from Metadata: A Beautiful Planet (2016), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: DTS:X, Audio Codec: DTS HD, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+						mediaInfo.toString()
+					);
+					break;
+				case 26:
+					assertEquals(
+						"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Video Tracks: 1, Video Codec: h265, Duration: 0:00:08.341, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Mime Type: video/vnd.dlna.mpeg-tts",
+						mediaInfo.toString()
+					);
+					break;
+				case 27:
+					assertEquals(
+						"Container: MPEGTS, Size: 29792360, Overall Bitrate: 40020476, Video Tracks: 1, Video Codec: h265, Duration: 0:00:05.922, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Mime Type: video/vnd.dlna.mpeg-tts",
+						mediaInfo.toString()
+					);
+					break;
+				case 28:
+					assertEquals(
+						"Container: MPEGTS, Size: 12851116, Overall Bitrate: 20212872, Video Tracks: 1, Video Codec: h265, Duration: 0:00:05.083, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 60.000, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Mime Type: video/vnd.dlna.mpeg-tts",
+						mediaInfo.toString()
+					);
+					break;
+				case 29:
+					assertEquals(
+						"Container: MPEGTS, Size: 2448136, Overall Bitrate: 3926871, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.921, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086, Mime Type: video/vnd.dlna.mpeg-tts",
+						mediaInfo.toString()
+					);
+					break;
+				case 30:
+					assertEquals(
+						"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.504, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Mime Type: video/vnd.dlna.mpeg-tts",
 						mediaInfo.toString()
 					);
 					break;
