@@ -27,8 +27,7 @@ import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { playerApiUrl } from '../../utils';
-import { AudioPlayer } from './AudioPlayer';
-import { VideoPlayer } from './VideoPlayer';
+import { VideoJsPlayer } from './VideoJsPlayer';
 
 export const Player = () => {
   const [uuid, setUuid] = useState('');
@@ -98,18 +97,10 @@ export const Player = () => {
     ) : null;
   }
 
-  const getVideoMediaPlayer = (media: VideoMedia) => {
+  const getVideoJsMediaPlayer = (media: VideoMedia|AudioMedia) => {
     return (<Paper>
-      <VideoPlayer
+      <VideoJsPlayer
         {...{media:media, uuid:uuid, askPlayId:sse.askPlayId}}
-      />
-    </Paper>);
-  }
-
-  const getAudioMediaPlayer = (media: AudioMedia) => {
-    return (<Paper>
-      <AudioPlayer
-        {...{media:media, uuid:uuid}}
       />
     </Paper>);
   }
@@ -132,9 +123,9 @@ export const Player = () => {
     if (data.medias.length === 1) {
       switch((data.medias[0] as PlayMedia).mediaType) {
         case 'video':
-          return getVideoMediaPlayer(data.medias[0] as VideoMedia);
+          return getVideoJsMediaPlayer(data.medias[0] as VideoMedia);
         case 'audio':
-          return getAudioMediaPlayer(data.medias[0] as AudioMedia);
+          return getVideoJsMediaPlayer(data.medias[0] as AudioMedia);
         case 'image':
           return getImageMediaPlayer(data.medias[0] as ImageMedia);
       }
