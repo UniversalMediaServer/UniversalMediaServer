@@ -2801,12 +2801,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -2906,12 +2906,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -3011,10 +3011,10 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources/web</outputDirectory>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
