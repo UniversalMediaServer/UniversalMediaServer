@@ -708,7 +708,8 @@ public class TsMuxeRVideo extends Engine {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but PMS does not support subtitles for tsMuxeR.
+			// The resource needs a subtitle, but we do not support subtitles for tsMuxeR.
+			// @todo add subtitles support for tsMuxeR
 			return false;
 		}
 
@@ -717,7 +718,7 @@ public class TsMuxeRVideo extends Engine {
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// PMS only supports playback of the default audio track for tsMuxeR
+				// We only support playback of the default audio track for tsMuxeR
 				return false;
 			}
 		} catch (NullPointerException e) {
