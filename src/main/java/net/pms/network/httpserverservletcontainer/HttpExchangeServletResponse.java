@@ -111,8 +111,14 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 
 	@Override
 	public void setContentLengthLong(long len) {
-		contentLength = len;
-		setHeader("Content-Length", Long.toString(contentLength));
+		if (len > 0) {
+			contentLength = len;
+			setHeader("Content-Length", Long.toString(contentLength));
+			exchange.getResponseHeaders().remove("Transfer-Encoding");
+		} else {
+			contentLength = -1L;
+			exchange.getResponseHeaders().remove("Content-Length");
+		}
 	}
 
 	@Override
@@ -183,6 +189,9 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 	@Override
 	public void setHeader(String name, String value) {
 		exchange.getResponseHeaders().set(name, value);
+		if (name.equalsIgnoreCase("Transfer-Encoding") && value.contains("chunked")) {
+			contentLength = 0;
+		}
 	}
 
 	@Override
