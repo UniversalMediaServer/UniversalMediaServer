@@ -976,9 +976,6 @@ public class FFMpegVideo extends Engine {
 			} else if (!aspectRatiosMatch) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
-			} else if (!params.getMediaRenderer().isPS3() && media.isWebDl(filename, params)) {
-				deferToTsmuxer = false;
-				LOGGER.debug(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
