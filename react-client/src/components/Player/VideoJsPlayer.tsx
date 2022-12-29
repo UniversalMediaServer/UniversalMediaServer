@@ -24,7 +24,7 @@ import 'video.js/dist/video-js.min.css';
 import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 
 import { playerApiUrl } from '../../utils';
-import { BaseMedia, VideoMedia } from './Player';
+import { BaseMedia, VideoMedia, AudioMedia } from './Player';
 
 declare module 'video.js' {
   interface VideoJsPlayer {
@@ -36,24 +36,28 @@ if (!videojs.getPlugin('hlsQualitySelector')) {
   videojs.registerPlugin('hlsQualitySelector', hlsQualitySelector);
 }
 
-export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
+export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id='player';
     videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
     document.getElementById('videodiv')?.appendChild(videoElem);
 
+    const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null;
     const options = {} as VideoJsPlayerOptions;
     options.liveui = true;
     options.controls = true;
     options.sources=[{src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id, type: vpOptions.media.mime}];
     options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/'  + vpOptions.media.id;
-    if (vpOptions.media.sub) {
+    if (vpOptions.media.mediaType === 'audio') {
+      options.audioPosterMode = true;
+    }
+    if (videoMedia?.sub) {
       if (!options.tracks) { options.tracks = [] }
-      const sub = {kind:'captions', src:'/files/' + vpOptions.media.sub, default:true} as videojs.TextTrackOptions;
+      const sub = {kind:'captions', src:'/files/' + videoMedia.sub, default:true} as videojs.TextTrackOptions;
       options.tracks.push(sub);
     }
-    if (vpOptions.media.isVideoWithChapters) {
+    if (videoMedia?.isVideoWithChapters) {
       if (!options.tracks) { options.tracks = [] }
       const sub = {kind:'chapters', src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id + '/chapters.vtt', default:true} as videojs.TextTrackOptions;
       options.tracks.push(sub);
@@ -77,9 +81,9 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
       videoPlayer.on(['dispose','abort','ended','error','beforeunload'], () => {setStatus('playback', 'STOPPED', false)});
       videoPlayer.on('timeupdate', () => {setStatus('position', videoPlayer.currentTime().toFixed(0), false)});
       videoPlayer.on('volumechange', () => {volumeStatus()});
-      if (vpOptions.media.resumePosition) {
-        videoPlayer.on('loadedmetadata', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
-        videoPlayer.one('canplaythrough', () => {videoPlayer.currentTime(vpOptions.media.resumePosition as number)});
+      if (videoMedia?.resumePosition) {
+        videoPlayer.on('loadedmetadata', () => {videoPlayer.currentTime(videoMedia.resumePosition as number)});
+        videoPlayer.one('canplaythrough', () => {videoPlayer.currentTime(videoMedia.resumePosition as number)});
       }
       volumeStatus();
       if (vpOptions.media.isDownload) {
@@ -138,7 +142,7 @@ export const VideoPlayer = (vpOptions: VideoPlayerOption) => {
 };
 
 export interface VideoPlayerOption {
-  media:VideoMedia,
+  media:VideoMedia|AudioMedia,
   uuid:string,
   askPlayId: (id:string) => void;
 }
