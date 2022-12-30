@@ -47,7 +47,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo vlcInfo;
 	private final ExternalProgramInfo mEncoderInfo;
 	private final ExternalProgramInfo tsMuxeRInfo;
-	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo aviSynthInfo;
@@ -121,11 +120,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		if (tsMuxeR != null) {
 			tsMuxeRInfo.setPath(ProgramExecutableType.INSTALLED, tsMuxeR);
 		}
-
-		// tsMuxeRNew
-		Path tsMuxeRNew = resolve("tsMuxeR-new.exe");
-		tsMuxeRNewInfo = new ExternalProgramInfo("tsMuxeRNew", ProgramExecutableType.BUNDLED);
-		tsMuxeRNewInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeRNew);
 
 		// FLAC
 		Path flac = resolve("flac.exe");
@@ -226,11 +220,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getTsMuxeR() {
 		return tsMuxeRInfo;
-	}
-
-	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
-		return tsMuxeRNewInfo;
 	}
 
 	@Override
