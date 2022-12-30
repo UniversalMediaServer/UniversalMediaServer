@@ -47,7 +47,7 @@ import { AccountsProvider } from './providers/accounts-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
-import { refreshAuthTokenNearExpiry } from './services/auth-service';
+import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
 
 import { Tuple, DefaultMantineColor } from '@mantine/core';
@@ -80,6 +80,7 @@ function App() {
   });
 
   useEffect(() => {
+    setAxiosAuthorization();
     refreshAuthTokenNearExpiry();
   });
 
