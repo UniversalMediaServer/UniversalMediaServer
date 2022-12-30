@@ -1,5 +1,58 @@
 # Changelog
 
+## Unreleased
+
+### General:
+- Added language support for API metadata
+- Added Tagline, Rated, Year Started, and Total Seasons on web player
+- Added button to TMDB and IMDb on web player
+- Improved quality of 2D-to-3D conversion (thanks, threedguru!)
+- Made H.265 transcoding over 2x faster
+- Improved compatibility of H.264 transcoded stream via MEncoder
+- Removed minimize Java GUI setting from web interface
+- Fixed adding folders via old interface (#3726) (Thanks for reporting, infectormp!)
+- Fixed web player server failure to start
+- Fixed database metrics on close
+- Fixed admin account when no auth is enabled
+- Fixed ordering of TV series episodes in Media Library
+- Fixed React player logos and posters
+- Fixed some thumbnail bugs
+- Stop using poster for Resume thumbnail
+- Fixed changing language via browser
+- Fixed not muxing H.264 via MEncoder when possible
+- Fixed audio not playing in web player (#3130)
+- Fixed web player use via proxy
+- Fixed setting monitored and active states for shared content via old settings
+- Fixed bugs with tsMuxeR handling H.265
+- Fixed tsMuxeR deferral for certain files
+- Fixed quickrun scripts not copying some files for development
+- Made tests run faster on GitHub Actions
+- General performance improvements
+
+### Renderers:
+- Added HDR to Supported lines in renderer configs
+- Improved detection of SkyBox VR Player (thanks, threedguru!)
+- Improved support for Mirascreen (thanks, Dušan Kazik!)
+- Improved support for VLC for desktop and iOS (thanks, Kevin Abel!)
+- Improved MP4 support on LG TVs and VLC
+- Improved Dolby Vision support on LG TVs
+- Fixed marking files as played when LG TVs are browsing
+- Fixed Caliber support
+
+### Dependencies:
+- Update all Node.js subdependencies
+- Update dependency @types/node to v18.11.18
+- Update dependency @types/react-dom to v18.0.10
+- Update dependency axios to v1.2.2
+- Update dependency eslint to v8.30.0
+- Update dependency mantine to 5.9.5
+- Update dependency react-router-dom to v6.6.1
+- Update FFmpeg to latest nightly
+- Update MediaInfo to 22.12
+- Update tsMuxeR to latest nightly
+- Update typescript-eslint monorepo to v5.47.1
+- Update Yarn to v3.3.1
+
 ## [13.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.0...13.0.1) (2022-12-17)
 
 ### General:
