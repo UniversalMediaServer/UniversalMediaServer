@@ -201,7 +201,7 @@
 
 				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
 			-->
-			<version>4.5.13</version>
+			<version>4.5.14</version>
 			<exclusions>
 				<exclusion>
 					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
