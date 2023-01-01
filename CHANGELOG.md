@@ -29,6 +29,15 @@
 - Made tests run faster on GitHub Actions
 - General performance improvements
 
+### Translation updates via Crowdin
+- Chinese Traditional (77%) (thanks, Gene Wu!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- French (97%)
+- Italian (93%) (thanks, nonlosao!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Russian (77%) (thanks, shecof!)
+- Spanish (100%) (thanks, Yllelder!)
+
 ### Renderers:
 - Added HDR to Supported lines in renderer configs
 - Improved detection of SkyBox VR Player (thanks, threedguru!)
