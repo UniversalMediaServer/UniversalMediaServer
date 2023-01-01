@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [13.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.1...13.1.0) (2023-01-01)
 
 ### General:
 - Added language support for API metadata
@@ -44,17 +44,21 @@
 - Improved support for Mirascreen (thanks, Dušan Kazik!)
 - Improved support for VLC for desktop and iOS (thanks, Kevin Abel!)
 - Improved MP4 support on LG TVs and VLC
-- Improved Dolby Vision support on LG TVs
+- Improved Dolby Vision support on LG TVs (thanks, narae0.kim from LG!)
 - Fixed marking files as played when LG TVs are browsing
 - Fixed Caliber support
 
 ### Dependencies:
 - Update all Node.js subdependencies
+- Update dependency @types/jest to v29.2.5
 - Update dependency @types/node to v18.11.18
 - Update dependency @types/react-dom to v18.0.10
 - Update dependency axios to v1.2.2
-- Update dependency eslint to v8.30.0
-- Update dependency mantine to 5.9.5
+- Update dependency com.puppycrawl.tools:checkstyle to v10.6.0
+- Update dependency eslint to v8.31.0
+- Update dependency mantine to 5.9.6
+- Update dependency net.coobird:thumbnailator to v0.4.19
+- Update dependency org.apache.httpcomponents:httpclient to v4.5.14
 - Update dependency react-router-dom to v6.6.1
 - Update FFmpeg to latest nightly
 - Update MediaInfo to 22.12
