@@ -57,7 +57,7 @@ public class MediaVideoMetadata {
 	private ApiImages images;
 	private String originalLanguage;
 	private String originalTitle;
-	private String plot;
+	private String overview;
 	private String poster;
 	private String production;
 	private ApiProductionCompanyArray productionCompanies;
@@ -69,6 +69,8 @@ public class MediaVideoMetadata {
 	private Long revenue;
 	private TvSeriesMetadata seriesMetadata;
 	private String tagline;
+	private Long tmdbId;
+	private Long tmdbTvId;
 	private String version;
 	private String votes;
 
@@ -322,12 +324,12 @@ public class MediaVideoMetadata {
 		this.originalTitle = value;
 	}
 
-	public String getPlot() {
-		return plot;
+	public String getOverview() {
+		return overview;
 	}
 
-	public void setPlot(String value) {
-		this.plot = value;
+	public void setOverview(String value) {
+		this.overview = value;
 	}
 
 	public String getPoster() {
@@ -443,6 +445,22 @@ public class MediaVideoMetadata {
 
 	public void setTagline(String value) {
 		this.tagline = value;
+	}
+
+	public Long getTmdbId() {
+		return tmdbId;
+	}
+
+	public void setTmdbId(Long value) {
+		this.tmdbId = value;
+	}
+
+	public Long getTmdbTvId() {
+		return tmdbTvId;
+	}
+
+	public void setTmdbTvId(Long value) {
+		this.tmdbTvId = value;
 	}
 
 	public String getVotes() {

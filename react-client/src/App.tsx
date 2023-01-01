@@ -14,10 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer, MantineTheme } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { NotificationsProvider } from '@mantine/notifications';
-import { lazy, useEffect } from 'react'; 
+import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
   Route,
@@ -35,6 +35,7 @@ import Home from './components/Home/Home';
 import LanguagesMenu from './components/LanguagesMenu/LanguagesMenu';
 import Login from './components/Login/Login'
 import Logs from './components/Logs/Logs'
+import Player from './components/Player/Player';
 import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
 import SharedContent from './components/SharedContent/SharedContent';
@@ -46,7 +47,7 @@ import { AccountsProvider } from './providers/accounts-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
-import { refreshAuthTokenNearExpiry } from './services/auth-service';
+import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
 
 import { Tuple, DefaultMantineColor } from '@mantine/core';
@@ -60,15 +61,14 @@ declare module '@mantine/core' {
 }
 
 function App() {
-  const Player = lazy(() => import('./components/Player/Player'));
-
-  const [rtl] = useLocalStorage<boolean>({
+  const [rtl, setRtl] = useLocalStorage<boolean>({
     key: 'mantine-rtl',
     defaultValue: false,
   });
   const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
     key: 'mantine-color-scheme',
     defaultValue: 'dark',
+    getInitialValueInEffect: true,
   });
   const toggleColorScheme = (value?: ColorScheme) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
@@ -80,6 +80,7 @@ function App() {
   });
 
   useEffect(() => {
+    setAxiosAuthorization();
     refreshAuthTokenNearExpiry();
   });
 
@@ -105,7 +106,7 @@ function App() {
         }}
       >
         <NotificationsProvider>
-          <I18nProvider>
+          <I18nProvider rtl={rtl} setRtl={setRtl}>
             <NavbarProvider><NavbarContext.Consumer>
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
@@ -120,7 +121,7 @@ function App() {
                             hidden={!navbar.opened}
                             width={{ sm: 200, lg: 300 }}
                             p="xs"
-                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                            sx={(theme:MantineTheme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
                           >
                             <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                           </Navbar>}

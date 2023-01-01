@@ -53,7 +53,7 @@ public class TvSeriesMetadata {
 	private String originalLanguage;
 	private String originalTitle;
 	private ApiStringArray originCountry;
-	private String plot;
+	private String overview;
 	private String poster;
 	private String production;
 	private ApiProductionCompanyArray productionCompanies;
@@ -70,6 +70,7 @@ public class TvSeriesMetadata {
 	private String status;
 	private String tagline;
 	private String title;
+	private Long tmdbId;
 	private Double totalSeasons;
 	private String apiVersion;
 	private String votes;
@@ -371,12 +372,12 @@ public class TvSeriesMetadata {
 		}
 	}
 
-	public String getPlot() {
-		return plot;
+	public String getOverview() {
+		return overview;
 	}
 
-	public void setPlot(String value) {
-		this.plot = value;
+	public void setOverview(String value) {
+		this.overview = value;
 	}
 
 	public String getRated() {
@@ -500,6 +501,14 @@ public class TvSeriesMetadata {
 
 	public void setTitle(String value) {
 		this.title = value;
+	}
+
+	public Long getTmdbId() {
+		return tmdbId;
+	}
+
+	public void setTmdbId(Long value) {
+		this.tmdbId = value;
 	}
 
 	public Double getTotalSeasons() {

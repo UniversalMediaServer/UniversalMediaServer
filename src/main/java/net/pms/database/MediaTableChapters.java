@@ -116,7 +116,7 @@ public class MediaTableChapters extends MediaTable {
 				"END_TIME       DOUBLE PRECISION                                        , " +
 				"THUMBNAIL      OTHER                                                   , " +
 				"CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID, LANG)        , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE" +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE" +
 			")"
 		);
 	}

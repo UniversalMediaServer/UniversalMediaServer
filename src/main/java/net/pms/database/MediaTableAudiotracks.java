@@ -217,7 +217,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", RATING            INTEGER");
 			sb.append(", AUDIOTRACK_ID     INTEGER          AUTO_INCREMENT");
 			sb.append(", CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID)");
-			sb.append(", CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.TABLE_NAME + "(" + MediaTableFiles.COL_ID + ") ON DELETE CASCADE");
+			sb.append(", CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE");
 			sb.append(')');
 
 			executeUpdate(statement, sb.toString());

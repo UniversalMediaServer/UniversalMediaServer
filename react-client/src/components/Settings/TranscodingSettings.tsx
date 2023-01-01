@@ -497,7 +497,7 @@ export default function TranscodingSettings(
 									size="xs"
 									label={i18n.get['DeleteDownloadedLiveSubtitlesAfter']}
 									checked={!form.values['live_subtitles_keep']}
-									onChange={(event) => {
+									onChange={(event:React.ChangeEvent<HTMLInputElement>) => {
 										form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked);
 									}}
 								/>

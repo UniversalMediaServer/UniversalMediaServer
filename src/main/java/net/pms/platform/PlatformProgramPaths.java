@@ -21,15 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.StringUtils;
-
 import com.sun.jna.Platform;
-
-import net.pms.configuration.UmsConfiguration;
 import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.platform.mac.MacProgramPaths;
 import net.pms.platform.windows.WindowsProgramPaths;
@@ -76,12 +71,6 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getTsMuxeR();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
-	 */
-	@Nullable
-	public abstract ExternalProgramInfo getTsMuxeRNew();
-
-	/**
 	 * @return The {@link ExternalProgramInfo} for FLAC.
 	 */
 	@Nullable
@@ -122,6 +111,12 @@ public abstract class PlatformProgramPaths {
 	 */
 	@Nullable
 	public abstract ExternalProgramInfo getMvtools2();
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getMasktools2();
 
 	/**
 	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.

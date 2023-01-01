@@ -16,19 +16,8 @@
  */
 import axios from 'axios';
 import { showNotification } from '@mantine/notifications';
-import { getJwt, redirectToLogin } from './auth-service';
+import { redirectToLogin } from './auth-service';
 import { authApiUrl } from '../utils';
-
-axios.interceptors.request.use(function (request) {
-  const jwt = getJwt();
-  if (jwt && request !== undefined && request.headers !== undefined) {
-    request.headers.Authorization = "Bearer " + jwt;
-  }
-  return request;
-}, function (error) {
-  // Do something with request error
-  return Promise.reject(error);
-});
 
 axios.interceptors.response.use(function (response) {
   return response;

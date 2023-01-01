@@ -62,7 +62,7 @@ export default function GeneralSettings(
               <Checkbox
                 label={i18n.get['ShowAdvancedSettings']}
                 checked={advancedSettings}
-                onChange={(event) => setAdvancedSettings(event.currentTarget.checked)}
+                onChange={(event:React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
               />
               <Select
                 disabled={!canModify}
@@ -71,11 +71,6 @@ export default function GeneralSettings(
                 {...form.getInputProps('language')}
               />
               <Stack align='flex-start' mt='sm'>
-                <Checkbox
-                  disabled={!canModify}
-                  label={i18n.get['StartMinimizedSystemTray']}
-                  {...form.getInputProps('minimized', { type: 'checkbox' })}
-                />
                 <Checkbox
                   disabled={!canModify}
                   label={i18n.get['EnableSplashScreen']}

@@ -218,7 +218,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
 						String search = action.has("search") ? action.get("search").getAsString() : null;
-						JsonObject browse = getBrowsePage(renderer, id, search);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject browse = getBrowsePage(renderer, id, search, lang);
 						if (browse != null) {
 							WebGuiServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
 							return;
@@ -233,7 +234,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				case "/play" -> {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
-						JsonObject play = getPlayPage(renderer, id);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject play = getPlayPage(renderer, id, lang);
 						if (play != null) {
 							WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
 							return;
@@ -244,7 +246,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				case "/show" -> {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
-						JsonObject show = getShowPage(renderer, id);
+						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
+						JsonObject show = getShowPage(renderer, id, lang);
 						if (show != null) {
 							WebGuiServletHelper.respond(req, resp, show.toString(), 200, "application/json");
 							return;
@@ -305,7 +308,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getBrowsePage(Renderer renderer, String id, String search) throws IOException, InterruptedException {
+	private JsonObject getBrowsePage(Renderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -477,7 +480,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					folder.isTVSeries() &&
 					CONFIGURATION.getUseCache()
 				) {
-					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, true, renderer);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, true, renderer, lang);
 					if (apiMetadata != null) {
 						result.add("metadata", apiMetadata);
 					}
@@ -591,8 +594,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jLibraryVideos;
 	}
 
-	private JsonObject getShowPage(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
-		JsonObject result = getPlayPage(renderer, id);
+	private JsonObject getShowPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
+		JsonObject result = getPlayPage(renderer, id, lang);
 		if (result != null) {
 			result.remove("goal");
 			result.addProperty("goal", "show");
@@ -600,7 +603,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private JsonObject getPlayPage(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
+	private JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lock();
 		try {
 			LOGGER.debug("Make play page " + id);
@@ -635,7 +638,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, false, renderer);
+					JsonObject apiMetadata = getAPIMetadataAsJsonObject(rootResource, false, renderer, lang);
 					media.add("metadata", apiMetadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
@@ -808,25 +811,30 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Server", PMS.get().getServerName());
 			resp.setHeader("Connection", "keep-alive");
-			resp.setHeader("Transfer-Encoding", "chunked");
 
 			if (isDownload) {
 				resp.setHeader("Content-Disposition", "attachment; filename=\"" + new File(dlna.getFileName()).getName() + "\"");
 			}
-			if (in != null && in.available() != len) {
-				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
-				resp.setStatus(206);
-				resp.setContentLength(in.available());
+			if (in != null) {
+				if (in.available() != len) {
+					resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
+					resp.setStatus(206);
+					resp.setContentLength(in.available());
+				} else {
+					resp.setStatus(200);
+					resp.setContentLength(in.available());
+				}
+				if (LOGGER.isTraceEnabled()) {
+					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				}
+				OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
+				LOGGER.debug("start raw dump");
+				WebGuiServletHelper.copyStreamAsync(in, os, async);
 			} else {
-				resp.setStatus(200);
+				resp.setStatus(500);
 				resp.setContentLength(0);
+				async.complete();
 			}
-			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
-			}
-			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-			LOGGER.debug("start raw dump");
-			WebGuiServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -914,20 +922,25 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Server", PMS.get().getServerName());
 			resp.setHeader("Connection", "keep-alive");
-			resp.setHeader("Transfer-Encoding", "chunked");
-			if (in != null && in.available() != len) {
-				resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
-				resp.setStatus(206);
-				resp.setContentLength(in.available());
+			if (in != null) {
+				if (in.available() != len) {
+					resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + in.available() + "/" + len);
+					resp.setStatus(206);
+					resp.setContentLength(in.available());
+				} else {
+					resp.setStatus(200);
+					resp.setContentLength(in.available());
+				}
+				if (LOGGER.isTraceEnabled()) {
+					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				}
+				OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
+				WebGuiServletHelper.copyStreamAsync(in, os, async);
 			} else {
-				resp.setStatus(200);
+				resp.setStatus(500);
 				resp.setContentLength(0);
+				async.complete();
 			}
-			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
-			}
-			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-			WebGuiServletHelper.copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -962,7 +975,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
 			mimeType = media.getMimeType();
 		}
-		int code = 200;
 		resource.setDefaultRenderer(renderer);
 		if (resource.getFormat().isVideo()) {
 			if (!directmime(mimeType) || transMp4(mimeType, media)) {
@@ -977,7 +989,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				} else if (!(resource instanceof DVDISOTitle)) {
 					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 				}
-				//code = 206;
 			}
 			if (
 				PMS.getConfiguration().getWebPlayerSubs() &&
@@ -992,7 +1003,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 		if (!directmime(mimeType) && resource.getFormat().isAudio()) {
 			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
-			code = 206;
 		}
 
 		try {
@@ -1024,7 +1034,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
 							resp.setStatus(200);
-							//resp.setContentLength(0);
+							resp.setContentLength(in.available());
 							renderer.start(resource);
 							if (LOGGER.isTraceEnabled()) {
 								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
@@ -1033,7 +1043,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							WebGuiServletHelper.copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);
-							resp.setContentLength(-1);
+							resp.setContentLength(0);
 							async.complete();
 						}
 					}
@@ -1047,33 +1057,41 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				ByteRange range = parseRange(req, resource.length());
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 				InputStream in = resource.getInputStream(range, renderer);
-				if (range.getEnd() == 0) {
-					// For web resources actual length may be unknown until we open the stream
-					range.setEnd(resource.length());
-				}
+				long len = resource.length();
+				boolean isTranscoding = len == DLNAMediaInfo.TRANS_SIZE;
 				resp.setContentType(mimeType);
-				resp.setHeader("Accept-Ranges", "bytes");
-				long end = range.getEnd();
-				long start = range.getStart();
-				String rStr = start + "-" + end + "/*";
-				resp.setHeader("Content-Range", "bytes " + rStr);
-				if (start != 0) {
-					code = 206;
-				}
-
 				resp.setHeader("Server", PMS.get().getServerName());
 				resp.setHeader("Connection", "keep-alive");
-				resp.setStatus(code);
-				resp.setContentLength(0);
-				if (LOGGER.isTraceEnabled()) {
-					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				if (in != null) {
+					if (isTranscoding) {
+						resp.setHeader("Transfer-Encoding", "chunked");
+						resp.setStatus(200);
+					} else if (in.available() != len) {
+						range.setEnd(range.getStart() + in.available());
+						if (in.available() == 0) {
+							len = range.getEnd() + 1;
+						}
+						resp.setHeader("Content-Range", "bytes " + range.getStart() + "-" + range.getEnd() + "/" + len);
+						resp.setContentLength(in.available());
+						resp.setStatus(206);
+					} else {
+						resp.setContentLength(in.available());
+						resp.setStatus(200);
+					}
+					if (LOGGER.isTraceEnabled()) {
+						WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+					}
+					renderer.start(resource);
+					if (sid != null) {
+						resource.setMediaSubtitle(sid);
+					}
+					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
+					WebGuiServletHelper.copyStreamAsync(in, os, async);
+				} else {
+					resp.setStatus(500);
+					resp.setContentLength(0);
+					async.complete();
 				}
-				OutputStream os = resp.getOutputStream();
-				renderer.start(resource);
-				if (sid != null) {
-					resource.setMediaSubtitle(sid);
-				}
-				WebGuiServletHelper.copyStreamAsync(in, os, async);
 			}
 		} catch (IOException ex) {
 			return false;
@@ -1092,15 +1110,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, Renderer renderer) {
+	private static JsonObject getAPIMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, Renderer renderer, String lang) {
 		JsonObject result = null;
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle);
+					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle, lang);
 				} else {
-					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName(), lang);
 				}
 			}
 		} catch (Exception e) {

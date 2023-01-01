@@ -25,11 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.ExternalProgramInfo;
@@ -50,7 +48,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo vlcInfo;
 	private final ExternalProgramInfo mEncoderInfo;
 	private final ExternalProgramInfo tsMuxeRInfo;
-	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo aviSynthInfo;
@@ -58,6 +55,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo ffms2Info;
 	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
@@ -125,11 +123,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 			tsMuxeRInfo.setPath(ProgramExecutableType.INSTALLED, tsMuxeR);
 		}
 
-		// tsMuxeRNew
-		Path tsMuxeRNew = resolve("tsMuxeR-new.exe");
-		tsMuxeRNewInfo = new ExternalProgramInfo("tsMuxeRNew", ProgramExecutableType.BUNDLED);
-		tsMuxeRNewInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeRNew);
-
 		// FLAC
 		Path flac = resolve("flac.exe");
 		flacInfo = new ExternalProgramInfo("FLAC", ProgramExecutableType.BUNDLED);
@@ -173,6 +166,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		Path mvtools2 = resolve("avisynth/mvtools2.dll");
 		mvtools2Info = new ExternalProgramInfo("mvtools2", ProgramExecutableType.BUNDLED);
 		mvtools2Info.setPath(ProgramExecutableType.BUNDLED, mvtools2);
+
+		// masktools2
+		Path masktools2 = resolve("avisynth/masktools2.dll");
+		masktools2Info = new ExternalProgramInfo("masktools2", ProgramExecutableType.BUNDLED);
+		masktools2Info.setPath(ProgramExecutableType.BUNDLED, masktools2);
 
 		// masktools2
 		Path masktools2 = resolve("avisynth/masktools2.dll");
@@ -232,11 +230,6 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
-		return tsMuxeRNewInfo;
-	}
-
-	@Override
 	public ExternalProgramInfo getFLAC() {
 		return flacInfo;
 	}
@@ -269,6 +262,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getMvtools2() {
 		return mvtools2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getMasktools2() {
+		return masktools2Info;
 	}
 
 	@Override

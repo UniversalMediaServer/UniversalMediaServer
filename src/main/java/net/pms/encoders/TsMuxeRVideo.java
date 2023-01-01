@@ -303,7 +303,6 @@ public class TsMuxeRVideo extends Engine {
 									params.getAid().isMP3() ||
 									params.getAid().isAAC() ||
 									params.getAid().isVorbis() ||
-									// params.aid.isWMA() ||
 									params.getAid().isMpegAudio()
 								)
 							)
@@ -493,16 +492,20 @@ public class TsMuxeRVideo extends Engine {
 			pw.print(" --vbr");
 			pw.println(" --vbv-len=500");
 
-			String sei = "insertSEI";
-			if (
-				params.getMediaRenderer().isPS3() &&
-				media.isWebDl(filename, params)
-			) {
-				sei = "forceSEI";
-			}
-			String videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+			String videoparams = "";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
+			} else if (params.getMediaRenderer().isTranscodeToH264()) {
+				String sei = "insertSEI";
+				if (
+					params.getMediaRenderer().isPS3() &&
+					media.isWebDl(filename, params)
+				) {
+					sei = "forceSEI";
+				}
+				videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+			} else {
+				videoparams = "track=1";
 			}
 			if (configuration.isFix25FPSAvMismatch()) {
 				fps = "25";
@@ -621,15 +624,7 @@ public class TsMuxeRVideo extends Engine {
 
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-		/**
-		 * Use the newer version of tsMuxeR on PS3 since other renderers
-		 * like Panasonic TVs don't always recognize the new output
-		 */
 		String executable = getExecutable();
-		if (params.getMediaRenderer().isPS3()) {
-			executable = configuration.getTsMuxeRNewPath();
-		}
-
 		String[] cmdArray = new String[]{
 			executable,
 			f.getAbsolutePath(),
@@ -713,7 +708,8 @@ public class TsMuxeRVideo extends Engine {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but PMS does not support subtitles for tsMuxeR.
+			// The resource needs a subtitle, but we do not support subtitles for tsMuxeR.
+			// @todo add subtitles support for tsMuxeR
 			return false;
 		}
 
@@ -722,7 +718,7 @@ public class TsMuxeRVideo extends Engine {
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// PMS only supports playback of the default audio track for tsMuxeR
+				// We only support playback of the default audio track for tsMuxeR
 				return false;
 			}
 		} catch (NullPointerException e) {

@@ -792,9 +792,9 @@ public class WebInterfaceServerUtil {
 			if (connection != null) {
 				if (isTVSeries) {
 					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle);
+					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle, null);
 				} else {
-					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName());
+					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName(), null);
 				}
 			}
 		} catch (Exception e) {

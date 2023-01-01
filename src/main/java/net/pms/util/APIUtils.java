@@ -59,6 +59,7 @@ import net.pms.media.metadata.ApiRatingSourceArray;
 import net.pms.media.metadata.ApiStringArray;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.media.metadata.TvSeriesMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -509,7 +510,7 @@ public class APIUtils {
 					videoMetadata.setOriginalLanguage(metadataFromAPI.get("originalLanguage").toString());
 				}
 				videoMetadata.setOriginalTitle(getStringOrNull(metadataFromAPI, "originalTitle"));
-				videoMetadata.setPlot(getStringOrNull(metadataFromAPI, "plot"));
+				videoMetadata.setOverview(getStringOrNull(metadataFromAPI, "plot"));
 				videoMetadata.setProduction(getStringOrNull(metadataFromAPI, "production"));
 				if (metadataFromAPI.has("productionCompanies")) {
 					videoMetadata.setProductionCompanies(metadataFromAPI.get("productionCompanies").toString());
@@ -726,7 +727,7 @@ public class APIUtils {
 			seriesMetadata.setOriginalLanguage(getStringOrNull(seriesMetadataFromAPI, "originalLanguage"));
 			seriesMetadata.setOriginalTitle(getStringOrNull(seriesMetadataFromAPI, "originalTitle"));
 
-			seriesMetadata.setPlot(getStringOrNull(seriesMetadataFromAPI, "plot"));
+			seriesMetadata.setOverview(getStringOrNull(seriesMetadataFromAPI, "plot"));
 			seriesMetadata.setPoster(posterFromApi);
 			seriesMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
 			if (seriesMetadataFromAPI.has("productionCompanies")) {
@@ -754,6 +755,9 @@ public class APIUtils {
 			seriesMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
 			seriesMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
 			seriesMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
+			if (seriesMetadataFromAPI.has("tmdbID")) {
+				seriesMetadata.setTmdbId(seriesMetadataFromAPI.get("tmdbID").getAsLong());
+			}
 			seriesMetadata.setTitle(getStringOrNull(seriesMetadataFromAPI, "title"));
 			if (seriesMetadataFromAPI.has("totalSeasons")  && seriesMetadataFromAPI.get("totalSeasons").isJsonPrimitive()) {
 				seriesMetadata.setTotalSeasons(seriesMetadataFromAPI.get("totalSeasons").getAsDouble());
@@ -941,6 +945,9 @@ public class APIUtils {
 		if (filebytesize != 0L) {
 			getParameters.add("filebytesize=" + filebytesize);
 		}
+		if (!"en-US".equals(CONFIGURATION.getLanguageTag())) {
+			getParameters.add("language=" + CONFIGURATION.getLanguageTag());
+		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
 
@@ -1108,6 +1115,88 @@ public class APIUtils {
 			LOGGER.trace("", e);
 		}
 		return null;
+	}
+
+	/**
+	 * Attempt to return translated infos from our API about the imdbId
+	 * on the language asked.
+	 *
+	 * @param language the asked language.
+	 * @param imdbId media imdb id.
+	 * @param tmdbType media tmdb type ("movie", "tv", "tv_season", "tv_episode").
+	 * @param tmdbId media tmdb id.
+	 * @param season media tv series season.
+	 * @param episode media tv series episode.
+	 * @return the VideoMetadataLocalized for the specific language.
+	 */
+	public static synchronized VideoMetadataLocalized getVideoMetadataLocalizedFromImdb(
+		final String language,
+		final String mediaType,
+		final String imdbId,
+		final Long tmdbId,
+		final String season,
+		final String episode
+	) {
+		VideoMetadataLocalized metadata = null;
+		if (isNotBlank(language) && isNotBlank(mediaType) &&
+			(isNotBlank(imdbId) || (tmdbId != null && tmdbId > 0)) &&
+			CONFIGURATION.getExternalNetwork()
+		) {
+			String apiResult = null;
+			try {
+				URL domain = new URL(API_URL);
+				ArrayList<String> getParameters = new ArrayList<>();
+				getParameters.add("language=" + URLEncoder.encode(language, StandardCharsets.UTF_8.toString()));
+				getParameters.add("mediaType=" + URLEncoder.encode(mediaType, StandardCharsets.UTF_8.toString()));
+				if (isNotBlank(imdbId)) {
+					getParameters.add("imdbID=" + URLEncoder.encode(imdbId, StandardCharsets.UTF_8.toString()));
+				}
+				if (tmdbId != null && tmdbId > 0) {
+					getParameters.add("tmdbId=" + tmdbId);
+				}
+				if (isNotBlank(season) && isNotBlank(episode)) {
+					getParameters.add("season=" + URLEncoder.encode(season, StandardCharsets.UTF_8.toString()));
+					getParameters.add("episode=" + URLEncoder.encode(season, StandardCharsets.UTF_8.toString()));
+				}
+				String getParametersJoined = StringUtils.join(getParameters, "&");
+				URL url = new URL(domain, "/api/media/localize?" + getParametersJoined);
+				LOGGER.trace("Getting API data from: {}", url);
+				apiResult = getJson(url);
+				JsonObject localizedMetadataFromAPI = GSON.fromJson(apiResult, JsonObject.class);
+				if (localizedMetadataFromAPI == null || localizedMetadataFromAPI.has("statusCode")) {
+					if (localizedMetadataFromAPI != null && localizedMetadataFromAPI.has("statusCode") && "500".equals(localizedMetadataFromAPI.get("statusCode").getAsString())) {
+						LOGGER.debug("Got a 500 error while looking for localized metadata with language {} and url {}", language, url);
+					} else {
+						LOGGER.trace("Did not find matching localized metadata with language {} and url {}", language, url);
+					}
+					return null;
+				}
+				metadata = new VideoMetadataLocalized();
+				if (localizedMetadataFromAPI.has("homepage") && localizedMetadataFromAPI.get("homepage").isJsonPrimitive()) {
+					metadata.setHomepage(localizedMetadataFromAPI.get("homepage").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("overview") && localizedMetadataFromAPI.get("overview").isJsonPrimitive()) {
+					metadata.setOverview(localizedMetadataFromAPI.get("overview").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("posterRelativePath") && localizedMetadataFromAPI.get("posterRelativePath").isJsonPrimitive()) {
+					metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, localizedMetadataFromAPI.get("posterRelativePath").getAsString()));
+				}
+				if (localizedMetadataFromAPI.has("tagline") && localizedMetadataFromAPI.get("tagline").isJsonPrimitive()) {
+					metadata.setTagline(localizedMetadataFromAPI.get("tagline").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("title") && localizedMetadataFromAPI.get("title").isJsonPrimitive()) {
+					metadata.setTitle(localizedMetadataFromAPI.get("title").getAsString());
+				}
+				if (localizedMetadataFromAPI.has("tmdbID") && localizedMetadataFromAPI.get("tmdbID").isJsonPrimitive()) {
+					metadata.setTmdbID(localizedMetadataFromAPI.get("tmdbID").getAsLong());
+				}
+			} catch (JsonSyntaxException ex) {
+				LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, ex);
+			} catch (IOException ex) {
+				LOGGER.trace("Error while getting Localized metadata with language {}", language);
+			}
+		}
+		return metadata;
 	}
 
 }

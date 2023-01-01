@@ -397,7 +397,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						// Output is files
 						// Output is folders
 						// Output is both
-											}
+					}
 				}
 			} finally {
 				MediaDatabase.close(connection);
@@ -410,7 +410,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		if (filesListFromDb != null) {
 			if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED) {
-				UMSUtils.sortFiles(filesListFromDb, PMS.getConfiguration().getSortMethod(null));
+				UMSUtils.sortFiles(filesListFromDb, PMS.getConfiguration().getSortMethod(null), expectedOutput == EPISODES);
 			}
 
 			getChildren().forEach(oldFiles::add);

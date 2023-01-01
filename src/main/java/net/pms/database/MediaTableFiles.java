@@ -56,6 +56,8 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
 	public static final String TABLE_COL_STEREOSCOPY = TABLE_NAME + ".STEREOSCOPY";
 
+	public static final String REFERENCE_TABLE_COL_ID = TABLE_NAME + "(" + COL_ID + ")";
+
 	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = "LEFT JOIN " + MediaTableFilesStatus.TABLE_NAME + " ON " + TABLE_COL_FILENAME + " = " + MediaTableFilesStatus.TABLE_COL_FILENAME + " ";
 	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = "LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_COL_THUMBID + " = " + MediaTableThumbnails.TABLE_COL_ID + " ";
 	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = "LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_ID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";

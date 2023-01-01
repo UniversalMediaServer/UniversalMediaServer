@@ -100,6 +100,7 @@ public class FormatConfiguration {
 	public static final String M4V = "m4v";
 	public static final String MKV = "mkv";
 	public static final String MI_VBD = "vbd";
+	public static final String MI_HDR = "hdr";
 	public static final String MI_GMC = "gmc";
 	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
@@ -345,7 +346,7 @@ public class FormatConfiguration {
 		}
 
 		public boolean match(String container, String videoCodec, String audioCodec) {
-			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, 0, null, null, false, null);
+			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, 0, null, null, null, false, null);
 		}
 
 		public boolean match(DLNAResource dlna) {
@@ -362,6 +363,7 @@ public class FormatConfiguration {
 					0,
 					iMaxBitrate,
 					media.getVideoBitDepth(),
+					media.getVideoHDRFormat(),
 					null,
 					dlna.getMediaSubtitle().getType().getExtension(),
 					dlna.getMediaSubtitle().isExternal(),
@@ -422,6 +424,7 @@ public class FormatConfiguration {
 			int videoWidth,
 			int videoHeight,
 			int videoBitDepth,
+			String videoHdrFormat,
 			Map<String, String> extras,
 			String subsFormat,
 			boolean isExternalSubs,
@@ -486,6 +489,23 @@ public class FormatConfiguration {
 					return false;
 				} else if (!(renderer != null && renderer.isVideoBitDepthSupportedForAllFiletypes(videoBitDepth))) {
 					LOGGER.trace("The video bit depth \"{}\" is not supported for this filetype, or all filetypes", videoBitDepth);
+					return false;
+				}
+			}
+
+			if (videoHdrFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
+				// Translate the full HDR string from MediaInfo into one matching the renderer config
+				String hdrValueInRendererFormat = null;
+				if (videoHdrFormat.startsWith("Dolby Vision")) {
+					hdrValueInRendererFormat = "dolbyvision";
+				} else if (videoHdrFormat.startsWith("HDR10+")) {
+					hdrValueInRendererFormat = "hdr10+";
+				} else if (videoHdrFormat.startsWith("HDR10")) {
+					hdrValueInRendererFormat = "hdr10";
+				}
+
+				if (!miExtras.get(MI_HDR).matcher(hdrValueInRendererFormat).matches()) {
+					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormat, supportLine);
 					return false;
 				}
 			}
@@ -659,6 +679,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
+				media.getVideoHDRFormat(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -689,6 +710,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
+				media.getVideoHDRFormat(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -710,6 +732,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
+				media.getVideoHDRFormat(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -736,6 +759,7 @@ public class FormatConfiguration {
 			0,
 			0,
 			0,
+			null,
 			null,
 			null,
 			false,
@@ -766,6 +790,7 @@ public class FormatConfiguration {
 			0,
 			0,
 			media.getVideoBitDepth(),
+			media.getVideoHDRFormat(),
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),
@@ -784,6 +809,7 @@ public class FormatConfiguration {
 		int videoWidth,
 		int videoHeight,
 		int videoBitDepth,
+		String videoHdrFormat,
 		Map<String, String> extras,
 		String subsFormat,
 		boolean isInternal,
@@ -803,6 +829,7 @@ public class FormatConfiguration {
 				videoWidth,
 				videoHeight,
 				videoBitDepth,
+				videoHdrFormat,
 				extras,
 				subsFormat,
 				isInternal,

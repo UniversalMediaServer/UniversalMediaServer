@@ -22,16 +22,14 @@ import { i18nContext, LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
 
 interface Props {
-  children?: ReactNode
+  children?: ReactNode,
+  rtl: boolean,
+  setRtl:(val: boolean) => void,
 }
 
-export const I18nProvider = ({ children, ...props }: Props) =>{
+export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
   const [i18n, setI18n] = useState<{[key: string]: string}>({});
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
-  const [rtl, setRtl] = useLocalStorage<boolean>({
-    key: 'mantine-rtl',
-    defaultValue: false,
-  });
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
     defaultValue: navigator.languages
@@ -77,7 +75,7 @@ export const I18nProvider = ({ children, ...props }: Props) =>{
           autoClose: 3000,
         });
     });
-  }, [language, setRtl]);
+  }, [language]);
 
   const { Provider } = i18nContext;
   return(

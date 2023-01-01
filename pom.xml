@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>13.0.1-SNAPSHOT</version>
+	<version>13.1.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>13.0.1</project.version.short>
+		<project.version.short>13.1.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -69,7 +69,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>162</binary-revision>
+		<binary-revision>163</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -189,6 +189,13 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpasyncclient</artifactId>
 			<version>4.1.5</version>
+			<exclusions>
+				<exclusion>
+					<!-- lets us use a newer version of httpclient -->
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -201,7 +208,7 @@
 
 				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
 			-->
-			<version>4.5.13</version>
+			<version>4.5.14</version>
 			<exclusions>
 				<exclusion>
 					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
@@ -292,7 +299,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.18</version>
+			<version>0.4.19</version>
 		</dependency>
 
 		<!--
@@ -875,47 +882,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.12.1</version>
-				<configuration>
-					<installDirectory>react-client</installDirectory>
-					<workingDirectory>react-client</workingDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>install node and yarn</id>
-						<goals>
-							<goal>install-node-and-yarn</goal>
-						</goals>
-						<configuration>
-							<nodeVersion>v18.12.1</nodeVersion>
-							<yarnVersion>v1.22.19</yarnVersion>
-						</configuration>
-					</execution>
-					<!-- download Node.js dependencies -->
-					<execution>
-						<id>yarn install</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-					</execution>
-					<!-- compile the react client to the web directory -->
-					<execution>
-						<id>yarn build</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-						<configuration>
-							<environmentVariables>
-								<PUBLIC_URL>/</PUBLIC_URL>
-							</environmentVariables>
-							<arguments>build</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -1054,6 +1020,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -1390,6 +1397,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1495,6 +1543,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
@@ -1602,6 +1691,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1707,6 +1837,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
@@ -1822,6 +1993,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1935,6 +2147,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2136,6 +2389,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2339,6 +2633,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2731,6 +3066,47 @@
 			<id>quickrun-windows-x86</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -2801,12 +3177,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -2836,6 +3212,47 @@
 			<id>quickrun-windows</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -2906,12 +3323,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -2941,6 +3358,47 @@
 			<id>quickrun-macos</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -3011,10 +3469,10 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources/web</outputDirectory>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -3170,6 +3628,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
@@ -3207,7 +3706,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.5.0</version>
+								<version>10.6.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

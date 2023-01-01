@@ -218,7 +218,7 @@ public class SharedContentTab implements SharedContentListener {
 				} else {
 					sharedContentArray.add(new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				}
-				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
 		builderFolder.add(addFolderButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
@@ -583,7 +583,28 @@ public class SharedContentTab implements SharedContentListener {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return column == 4 || column == 5;
+			return isMonitoredCheckbox(row, column) || isActiveCheckbox(row, column);
+		}
+
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			if (isMonitoredCheckbox(row, column)) {
+				//Monitored
+				((FolderContent) sharedContentArray.get(row)).setMonitored((Boolean) aValue);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+			} else if (isActiveCheckbox(row, column)) {
+				//Active
+				sharedContentArray.get(row).setActive((Boolean) aValue);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+			}
+		}
+
+		private boolean isMonitoredCheckbox(int row, int column) {
+			return (column == 4 && sharedContentArray != null && sharedContentArray.get(row) instanceof FolderContent);
+		}
+
+		private boolean isActiveCheckbox(int row, int column) {
+			return (column == 5 && sharedContentArray != null && sharedContentArray.get(row) != null);
 		}
 	}
 
