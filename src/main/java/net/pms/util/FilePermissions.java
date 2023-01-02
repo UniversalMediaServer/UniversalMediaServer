@@ -322,7 +322,7 @@ public class FilePermissions {
 	 *         its content is permitted, {@code false} otherwise.
 	 */
 	public boolean isBrowsable() {
-		checkPermissions(true, false, true);
+		checkPermissions(true, false, false);
 		lock.readLock().lock();
 		try {
 			return flags.contains(FileFlag.BROWSE);
