@@ -21,10 +21,15 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
+
 import com.sun.jna.Platform;
+
+import net.pms.configuration.UmsConfiguration;
 import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.platform.mac.MacProgramPaths;
 import net.pms.platform.windows.WindowsProgramPaths;
@@ -113,10 +118,10 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getMvtools2();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.
+	 * @return The {@link ExternalProgramInfo} for AviSynth depan plugin.
 	 */
 	@Nullable
-	public abstract ExternalProgramInfo getMasktools2();
+	public abstract ExternalProgramInfo getDepan();
 
 	/**
 	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.

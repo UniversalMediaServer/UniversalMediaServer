@@ -27,18 +27,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.pms.platform.PlatformProgramPaths;
-import net.pms.util.ExecutableInfo;
-import net.pms.util.ExternalProgramInfo;
-import net.pms.util.FFmpegProgramInfo;
-import net.pms.util.FileUtil;
-import net.pms.util.ProgramExecutableType;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExternalProgramInfo;
@@ -167,8 +162,8 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public final ExternalProgramInfo getMasktools2() {
-		return platformPaths.getMasktools2();
+	public final ExternalProgramInfo getDepan() {
+		return platformPaths.getDepan();
 	}
 
 	@Override

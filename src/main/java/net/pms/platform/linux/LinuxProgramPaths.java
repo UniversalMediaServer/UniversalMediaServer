@@ -206,6 +206,11 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getDepan() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getMasktools2() {
 		return null;
 	}
