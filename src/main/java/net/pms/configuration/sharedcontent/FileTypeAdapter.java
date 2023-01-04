@@ -45,11 +45,10 @@ public class FileTypeAdapter implements JsonSerializer<File>, JsonDeserializer<F
 
 		try {
 			FilePermissions permissions = FileUtil.getFilePermissions(file);
-			if (permissions.isBrowsable()) {
-				return file;
+			if (!permissions.isBrowsable()) {
+				LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
 			}
-			LOGGER.warn("Insufficient permission to read folder \"{}\": {}", file.getAbsolutePath(), permissions.getLastCause());
-			return null;
+			return file;
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Folder not found: {}", e.getMessage());
 			return null;
