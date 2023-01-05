@@ -78,9 +78,8 @@ function App() {
     key: 'mantine-rtl',
     stylisPlugins: [rtlPlugin],
   });
-
+  setAxiosAuthorization();
   useEffect(() => {
-    setAxiosAuthorization();
     refreshAuthTokenNearExpiry();
   });
 
