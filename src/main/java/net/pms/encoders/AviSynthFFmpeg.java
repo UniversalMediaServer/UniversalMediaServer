@@ -24,14 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.sun.jna.Platform;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
