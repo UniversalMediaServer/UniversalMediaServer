@@ -11,11 +11,11 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	outputFormat  					= default(outputFormat       , 1     )
 	resize        					= default(resize      	     , true  )
 	hzTargetSize  					= default(hzTargetSize       , 1920  )
-	frameStretchFactor  			= default(frameStretchFactor , 5.0  )
+	frameStretchFactor  			= default(frameStretchFactor , 8.0  )
 	lightOffsetFactor   			= default(lightOffsetFactor  , 3.0  )
 	showMotionAndSceneDetection 	= default(showMotionAndSceneDetection  , false )
 	mscThSCD1						= default(mscThSCD1  , 248 )
-	mscThSCD2						= default(mscThSCD2  , 50 )
+	mscThSCD2						= default(mscThSCD2  , 30 )
 	
 	## Convert to RGB32 to avoid width restrictions
 	video2d = ConvertToRGB32(video2d)
@@ -91,7 +91,7 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	## The code uses the motion vector analysis (MAnalyse) and scene change detection routines (MSCDetection) from the 
 	## mvtools2 library, see documentation and github repository below:
 	## 
-	## http://avisynth.org.ru/mvtools/mvtools2.html#version2
+	## https://htmlpreview.github.io/?https://github.com/pinterf/mvtools/blob/mvtools-pfmod/Documentation/mvtools2.html
 	## https://github.com/pinterf/mvtools
 	## 
 	## In addition, it uses the mt_merge routine from the masktools2 library,
@@ -104,7 +104,28 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	## scene change issues outlined above.
 	 	
 	motionSource  = fR.ConvertToYV12()
-    vectors = motionSource.MSuper().MAnalyse(isb = false)
+	super    = motionSource.MSuper()
+    vectors  = super.MAnalyse(isb = false)
+    
+   	## Algorithmic Enhancement (by Thomas Judge):
+   	## 
+   	## Performs motion compensation between the left and right eye frames to reduce/eliminate discomfort due to mis-alignment of frames.
+	##   	
+	## The MDepan and Depan functions are described at the links below:
+	## 
+	## Depan is described at link below:
+	## http://www.volter.net/avisynth_en/externalfilters/depan.htm
+	## 
+	## MDepan is an alternative to DepanEstimate
+	## MDepan is described here:
+	##
+	## https://htmlpreview.github.io/?https://github.com/pinterf/mvtools/blob/mvtools-pfmod/Documentation/mvtools2.html
+	## 
+    globalmotion = MDepan(motionSource,vectors)
+    fR = Depan(motionSource,data=globalmotion,offset=1)
+
+    ## 	Uncomment line below to show motion vectors in the right eye frame
+    ## 	fR = super.MShow(vectors)     
     
 	## 	From mvtools2 documentation for scene detection via MSCDetection, description of threshold parameters:
 	## 	

@@ -54,6 +54,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo ffms2Info;
 	private final ExternalProgramInfo directShowSourceInfo;
 	private final ExternalProgramInfo mvtools2Info;
+	private final ExternalProgramInfo depanInfo;
 	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
@@ -165,6 +166,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		mvtools2Info = new ExternalProgramInfo("mvtools2", ProgramExecutableType.BUNDLED);
 		mvtools2Info.setPath(ProgramExecutableType.BUNDLED, mvtools2);
 
+		// depan
+		Path depan = resolve("avisynth/DePan.dll");
+		depanInfo = new ExternalProgramInfo("depan", ProgramExecutableType.BUNDLED);
+		depanInfo.setPath(ProgramExecutableType.BUNDLED, depan);
+
 		// masktools2
 		Path masktools2 = resolve("avisynth/masktools2.dll");
 		masktools2Info = new ExternalProgramInfo("masktools2", ProgramExecutableType.BUNDLED);
@@ -255,6 +261,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getMvtools2() {
 		return mvtools2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getDepan() {
+		return depanInfo;
 	}
 
 	@Override

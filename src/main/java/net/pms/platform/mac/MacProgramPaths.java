@@ -19,7 +19,6 @@ package net.pms.platform.mac;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
@@ -223,6 +222,11 @@ public class MacProgramPaths extends PlatformProgramPaths {
 
 	@Override
 	public ExternalProgramInfo getMvtools2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getDepan() {
 		return null;
 	}
 
