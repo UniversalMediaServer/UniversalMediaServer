@@ -11,7 +11,7 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	outputFormat  					= default(outputFormat       , 1     )
 	resize        					= default(resize      	     , true  )
 	hzTargetSize  					= default(hzTargetSize       , 1920  )
-	frameStretchFactor  			= default(frameStretchFactor , 5.0  )
+	frameStretchFactor  			= default(frameStretchFactor , 8.0  )
 	lightOffsetFactor   			= default(lightOffsetFactor  , 3.0  )
 	showMotionAndSceneDetection 	= default(showMotionAndSceneDetection  , false )
 	mscThSCD1						= default(mscThSCD1  , 248 )

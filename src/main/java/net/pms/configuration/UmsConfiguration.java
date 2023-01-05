@@ -3059,7 +3059,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The frame stretch factor.
 	 */
 	public int getFfmpegAvisynthFrameStretchFactor() {
-		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 5);
+		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 8);
 	}
 
 	/**
