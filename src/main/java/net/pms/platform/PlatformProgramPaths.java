@@ -113,6 +113,12 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getMvtools2();
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth depan plugin.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getDepan();
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for AviSynth masktools2 plugin.
 	 */
 	@Nullable

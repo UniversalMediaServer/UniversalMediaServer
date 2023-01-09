@@ -1341,6 +1341,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for Depan AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDepanPaths() {
+		return programPaths.getDepan();
+	}
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for masktools2 AviSynth plugin.
 	 */
 	@Nullable
@@ -1358,6 +1366,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
 		if (mvtools2Paths != null) {
 			executable = mvtools2Paths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The configured path to the Depan AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getDepanPath() {
+		Path executable = null;
+		ExternalProgramInfo depanPaths = getDepanPaths();
+		if (depanPaths != null) {
+			executable = depanPaths.getDefaultPath();
 		}
 		return executable == null ? null : executable.toString();
 	}
@@ -3033,7 +3055,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The frame stretch factor.
 	 */
 	public int getFfmpegAvisynthFrameStretchFactor() {
-		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 5);
+		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 8);
 	}
 
 	/**

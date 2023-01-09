@@ -158,6 +158,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public final ExternalProgramInfo getDepan() {
+		return platformPaths.getDepan();
+	}
+
+	@Override
 	public final ExternalProgramInfo getMasktools2() {
 		return platformPaths.getMasktools2();
 	}
