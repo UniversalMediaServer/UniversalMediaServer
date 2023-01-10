@@ -30,7 +30,7 @@
     "video.js": "7.21.1",
     "videojs-contrib-quality-levels": "3.0.0",
     "videojs-hls-quality-selector": "1.1.4",
-    "web-vitals": "3.1.0"
+    "web-vitals": "3.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
