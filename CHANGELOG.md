@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Translation updates via Crowdin
+- English (United Kingdom) (15%)
+- Russian (100%) (thanks, Олег Лойко!)
+- Slovak (83%) (thanks, Dušan!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
 ## [13.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.1...13.1.0) (2023-01-01)
 
 ### General:
