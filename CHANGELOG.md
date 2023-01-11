@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+### General:
+- Improved motion compensation with 2D to 3D conversion, for full details see https://iwantaholodeck.com/algorithmic-tuning-motion-and-alignment/
+- Fixed login screen being shown more than once in web settings (#3751)
+- Fixed broken database upgrade (#3756)
+- Fixed sharing of network drives (#3750) (thanks for reporting, Richardk2n and BitEater21!)
+- Fixed moving and marking as fully played setting in UK English
+- Fixed error causing failed startup
+
+### Translation updates via Crowdin
+- English (United Kingdom) (15%)
+- Russian (100%) (thanks, Олег Лойко!)
+- Slovak (83%) (thanks, Dušan!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies:
+- Updated all subdependencies
+- Update dependency com.google.code.gson:gson to v2.10.1
+- Update dependency react-router-dom to v6.6.2
+- Update dependency web-vitals to v3.1.1
+- Update junit5 monorepo to v5.9.2
+- Update Mantine monorepo packages to v5.10.0
+- Update typescript-eslint monorepo to v5.48.1
+
 ## [13.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.1...13.1.0) (2023-01-01)
 
 ### General:
