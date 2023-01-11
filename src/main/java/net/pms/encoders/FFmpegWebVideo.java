@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.configuration.FFmpegWebFilters;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -37,9 +40,6 @@ import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.FFmpegExecutableInfo;
 import net.pms.util.PlayerUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
@@ -183,7 +183,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params, false));
 
 		// Encoder threads
 		if (nThreads > 0) {

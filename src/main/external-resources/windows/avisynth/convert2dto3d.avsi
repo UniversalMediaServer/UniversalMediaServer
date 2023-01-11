@@ -4,7 +4,7 @@
 ## UniversalMediaServer generates multi-threading script wrapper code, plugin loading code and algorithm, output format and size options based on UI selections 
 ## before calling this function with the video2d clip and other parameters set.
 
-function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "resize", int "hzTargetSize", float "frameStretchFactor", float "lightOffsetFactor", bool "showMotionAndSceneDetection", int "mscThSCD1", int "mscThSCD2" )
+function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "resize", int "hzTargetSize", float "frameStretchFactor", float "lightOffsetFactor", bool "showMotionAndSceneDetection", int "mscThSCD1", int "mscThSCD2", bool "forceTargetDAR", float "targetDAR" )
 {
 # Defaults
 	algorithm     					= default(algorithm   	     , 1     )
@@ -16,10 +16,19 @@ function convert2dTo3d(clip video2d, int "algorithm", int "outputFormat", bool "
 	showMotionAndSceneDetection 	= default(showMotionAndSceneDetection  , false )
 	mscThSCD1						= default(mscThSCD1  , 248 )
 	mscThSCD2						= default(mscThSCD2  , 30 )
+	forceTargetDAR                  = default(forceTargetDAR  , false )
+	targetDAR                       = default(targetDAR  , 16.0/9.0 )
 	
 	## Convert to RGB32 to avoid width restrictions
 	video2d = ConvertToRGB32(video2d)
 
+	## Optionally change the aspect ratio of the video to match the specified target Display Aspect Ratio (DAR) (using the CropResize script)
+	## See, source/discussion here: https://forum.videohelp.com/threads/393752-CropResize-Cropping-resizing-script
+	## 
+	(forceTargetDAR == true) ? Eval("""
+		video2d = CropResize(video2d, OutDAR=targetDAR)
+		""") : ""
+	
 	## Get video width/height
 	videoW = width(video2d)
 	videoH = height(video2d)

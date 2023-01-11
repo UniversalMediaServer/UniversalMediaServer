@@ -236,6 +236,11 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getCropResize() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getConvert2dTo3d() {
 		return null;
 	}

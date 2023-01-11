@@ -36,6 +36,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
+import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.IPipeProcess;
@@ -115,7 +116,7 @@ public class FFMpegVideo extends Engine {
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean isConvertedTo3d ) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
@@ -131,11 +132,11 @@ public class FFMpegVideo extends Engine {
 			scaleHeight = media.getHeight();
 		}
 
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		boolean is3D = ( media.is3d() && !media.stereoscopyIsAnaglyph() ) || isConvertedTo3d;
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
-				!media.is3dFullSbsOrOu() &&
+				!media.is3dFullSbsOrOu() && !isConvertedTo3d &&
 				!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
@@ -800,10 +801,12 @@ public class FFMpegVideo extends Engine {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+
 		if (params.isHlsConfigured()) {
 			LOGGER.trace("Switching from FFmpeg to Hls FFmpeg to transcode.");
 			return launchHlsTranscode(dlna, media, params);
 		}
+
 		Renderer renderer = params.getMediaRenderer();
 		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
@@ -880,11 +883,14 @@ public class FFMpegVideo extends Engine {
 			cmdList.add(String.valueOf(params.getTimeSeek()));
 		}
 
+		boolean isConvertedTo3d = false;
+
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso") && this instanceof AviSynthFFmpeg aviSynthFFmpeg) {
-			File avsFile = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber);
-			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
+			AviSynthScriptGenerationResult aviSynthScriptGenerationResult = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber, media);
+			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(aviSynthScriptGenerationResult.getAvsFile().getAbsolutePath()));
+			isConvertedTo3d = aviSynthScriptGenerationResult.isConvertedTo3d();
 		} else {
 			if (params.getStdIn() != null) {
 				cmdList.add("pipe:");
@@ -1013,9 +1019,9 @@ public class FFMpegVideo extends Engine {
 
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
-		List<String> videoFilterOptions = getVideoFilterOptions(dlna, media, params);
+		List<String> videoFilterOptions = getVideoFilterOptions(dlna, media, params, isConvertedTo3d);
 		if (!videoFilterOptions.isEmpty()) {
-			cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+			cmdList.addAll(getVideoFilterOptions(dlna, media, params, isConvertedTo3d));
 			canMuxVideoWithFFmpeg = false;
 			LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
 		}
