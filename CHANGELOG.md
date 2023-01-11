@@ -9,6 +9,7 @@
 - Fixed sharing of network drives (#3750) (thanks for reporting, Richardk2n and BitEater21!)
 - Fixed moving and marking as fully played setting in UK English
 - Fixed error causing failed startup
+- Fixed broken thumbnails in Docker (#3762)
 
 ### Translation updates via Crowdin
 - English (United Kingdom) (15%)
