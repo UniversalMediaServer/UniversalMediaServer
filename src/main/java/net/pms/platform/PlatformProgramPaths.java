@@ -25,7 +25,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import com.sun.jna.Platform;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.platform.linux.LinuxProgramPaths;
 import net.pms.platform.mac.MacProgramPaths;
 import net.pms.platform.windows.WindowsProgramPaths;

@@ -116,7 +116,7 @@ public class FFMpegVideo extends Engine {
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean isConvertedTo3d ) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
@@ -132,7 +132,7 @@ public class FFMpegVideo extends Engine {
 			scaleHeight = media.getHeight();
 		}
 
-		boolean is3D = ( media.is3d() && !media.stereoscopyIsAnaglyph() ) || isConvertedTo3d;
+		boolean is3D = (media.is3d() && !media.stereoscopyIsAnaglyph()) || isConvertedTo3d;
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&

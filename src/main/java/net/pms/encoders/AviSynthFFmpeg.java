@@ -75,8 +75,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private Path convert2dTo3dPath;
 	private Path cropResizePath;
 
-	public class AviSynthScriptGenerationResult
-	{
+	public class AviSynthScriptGenerationResult {
 		private File avsFile = null;
 		private boolean convertedTo3d = false;
 
@@ -325,7 +324,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public AviSynthScriptGenerationResult getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber, DLNAMediaInfo media ) throws IOException {
+	public AviSynthScriptGenerationResult getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber, DLNAMediaInfo media) throws IOException {
 		Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration customConfiguration = renderer.getUmsConfiguration();
 		double timeSeek = params.getTimeSeek();
@@ -496,7 +495,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && depanPath != null && masktools2Path != null && convert2dTo3dPath != null && cropResizePath != null) {
 
-				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + ", before 2D to 3D conversion" );
+				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + ", before 2D to 3D conversion");
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
@@ -516,20 +515,17 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				boolean forceStandardAspectRatio = false;
 				boolean rendererRequestsToKeepStandardAspectRatio = renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding();
 
-				if ( rendererRequestsToKeepStandardAspectRatio )
-				{
+				if (rendererRequestsToKeepStandardAspectRatio) {
 					LOGGER.debug("AviSynth, renderer requests keeping standard aspect ratio");
 					boolean mediaMeetsStandardAspectRatioRequirement = WIDESCREEN_STANDARD_ASPECT_RATO.equals(media.getAspectRatioContainer());
 
-					if ( mediaMeetsStandardAspectRatioRequirement )
-					{
+					if (mediaMeetsStandardAspectRatioRequirement) {
 						LOGGER.debug("AviSynth, media already meets standard aspect ratio requirement so no transformation required");
 					}
 
 					forceStandardAspectRatio = !mediaMeetsStandardAspectRatioRequirement;
 
-					if ( forceStandardAspectRatio )
-					{
+					if (forceStandardAspectRatio) {
 						LOGGER.debug("AviSynth, forcing standard aspect ratio transform as media has a different aspect ratio");
 					}
 				}
