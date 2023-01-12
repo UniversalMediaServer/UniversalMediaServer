@@ -1251,6 +1251,10 @@
 										<!-- Copy convert2dto3d.avsi -->
 										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth" />
 										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/bin/avisynth" />
+										
+										<!-- Copy CropResize.avsi -->
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/windows/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/bin/avisynth" />
 
 										<!-- Copy mvtools2 to its destination -->
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">

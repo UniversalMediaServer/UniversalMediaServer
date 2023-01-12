@@ -56,6 +56,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo mvtools2Info;
 	private final ExternalProgramInfo depanInfo;
 	private final ExternalProgramInfo masktools2Info;
+	private final ExternalProgramInfo cropResizeInfo;
 	private final ExternalProgramInfo convert2dTo3dInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
 	private final Path mediaInfo;
@@ -145,6 +146,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		Path interframe = resolve("interframe");
 		interFrameInfo = new ExternalProgramInfo("InterFrame", ProgramExecutableType.BUNDLED);
 		interFrameInfo.setPath(ProgramExecutableType.BUNDLED, interframe);
+
+		// CropResize
+		Path cropResize = resolve("avisynth/CropResize.avsi");
+		cropResizeInfo = new ExternalProgramInfo("CropResize", ProgramExecutableType.BUNDLED);
+		cropResizeInfo.setPath(ProgramExecutableType.BUNDLED, cropResize);
 
 		// Convert 2dto3d
 		Path convert2dTo3d = resolve("avisynth/convert2dto3d.avsi");
@@ -271,6 +277,11 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	@Override
 	public ExternalProgramInfo getMasktools2() {
 		return masktools2Info;
+	}
+
+	@Override
+	public ExternalProgramInfo getCropResize() {
+		return cropResizeInfo;
 	}
 
 	@Override

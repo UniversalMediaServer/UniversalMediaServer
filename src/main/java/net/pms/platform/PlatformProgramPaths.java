@@ -131,6 +131,12 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getConvert2dTo3d();
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for CropResize.
+	 */
+	@Nullable
+	public abstract ExternalProgramInfo getCropResize();
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for YoutubeDl.
 	 */
 	@Nullable
