@@ -153,7 +153,8 @@ public class SharedContentConfiguration {
 
 				if (wasFolderUpdate) {
 					// Rescan to add/remove Media Library content
-					if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
+					if (CONFIGURATION.getUseCache()) {
+						LibraryScanner.stopScanLibrary();
 						LibraryScanner.scanLibrary();
 					}
 				}
