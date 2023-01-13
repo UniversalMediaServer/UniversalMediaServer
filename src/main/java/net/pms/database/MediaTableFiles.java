@@ -1018,7 +1018,6 @@ public class MediaTableFiles extends MediaTable {
 					PreparedStatement ps = connection.prepareStatement("SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_MODIFIED + ", " + TABLE_COL_ID + " FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 					ResultSet rs = ps.executeQuery()) {
 					List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
-					boolean isFileStillShared = false;
 					int oldpercent = 0;
 					int i = 0;
 					while (rs.next()) {
@@ -1030,6 +1029,7 @@ public class MediaTableFiles extends MediaTable {
 							rs.deleteRow();
 						} else {
 							// the file exists on the hard drive, but now check if we are still sharing it
+							boolean isFileStillShared = false;
 							for (File folder : sharedFolders) {
 								if (filename.contains(folder.getAbsolutePath())) {
 									isFileStillShared = true;

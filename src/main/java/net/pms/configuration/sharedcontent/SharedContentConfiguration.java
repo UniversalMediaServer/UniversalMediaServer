@@ -34,6 +34,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.platform.PlatformUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
@@ -130,10 +131,12 @@ public class SharedContentConfiguration {
 				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
 				//check viability
+				Boolean wasFolderUpdate = false;
 				for (SharedContent sharedContent : values) {
 					if (sharedContent instanceof FolderContent folderContent) {
 						if (folderContent.getFile() != null) {
 							SHARED_CONTENT_ARRAY.add(sharedContent);
+							wasFolderUpdate = true;
 						}
 					} else {
 						SHARED_CONTENT_ARRAY.add(sharedContent);
@@ -147,6 +150,14 @@ public class SharedContentConfiguration {
 					PMS.get().resetRenderersRoot();
 				}
 				updated = true;
+
+				if (wasFolderUpdate) {
+					// Rescan to add/remove Media Library content
+					if (CONFIGURATION.getUseCache()) {
+						LibraryScanner.stopScanLibrary();
+						LibraryScanner.scanLibrary();
+					}
+				}
 			} else {
 				LOGGER.debug("Current shared content configuration is already up to date.");
 			}
