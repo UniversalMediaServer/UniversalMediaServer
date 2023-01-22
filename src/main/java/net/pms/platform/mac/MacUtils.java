@@ -309,7 +309,7 @@ public class MacUtils extends PlatformUtils {
 	 * @return whether the current version is at least the specified version.
 	 */
 	public static boolean isMacOsVersionEqualOrGreater(String version) {
-		return OS_VERSION.isGreaterThanOrEqualTo(version);
+		return MACOS_VERSION.isGreaterThanOrEqualTo(version);
 	}
 
 }

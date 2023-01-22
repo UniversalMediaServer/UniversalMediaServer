@@ -18,6 +18,7 @@ package net.pms.platform;
 
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
+import com.vdurmont.semver4j.Semver;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -64,6 +65,7 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
+	protected static final Semver MACOS_VERSION = createMacosVersion();
 	protected static Boolean isAdmin = null;
 
 	protected Path vlcPath;
@@ -353,12 +355,37 @@ public class PlatformUtils implements IPlatformUtils {
 		return new PlatformUtils();
 	}
 
+	/**
+	 * Returns the operating system version on macOS.
+	 * It is 
+	 */
+	private static Semver createMacosVersion() {
+		if (!Platform.isMac()) {
+			return null;
+		}
+
+		String ver = System.getProperty("os.version");
+		int dotCount = StringUtils.countMatches(ver, ".");
+		if (dotCount == 1) {
+			ver += ".0";
+		}
+
+		return new Semver(ver);
+	}
+
 	protected static String getAbsolutePath(String path, String name) {
 		File f = new File(path, name);
 		if (f.exists()) {
 			return f.getAbsolutePath();
 		}
 		return null;
+	}
+
+	/**
+	 * @return the version of macOS, if this is macOS
+	 */
+	public static Semver getMacosVersion() {
+		return MACOS_VERSION;
 	}
 
 	/**
