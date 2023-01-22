@@ -65,8 +65,10 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
-	protected static final Semver MACOS_VERSION = createMacosVersion();
 	protected static Boolean isAdmin = null;
+
+	// the OS version for macOS and Windows
+	protected static final Semver OS_VERSION = createOSVersion();
 
 	protected Path vlcPath;
 	protected Version vlcVersion;
@@ -356,11 +358,12 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	/**
-	 * Returns the operating system version on macOS.
-	 * It is 
+	 * Returns the operating system version on macOS and Windows.
+	 * Not implemented for other operating systems because of
+	 * unpredictable versioning and lack of need.
 	 */
-	private static Semver createMacosVersion() {
-		if (!Platform.isMac()) {
+	private static Semver createOSVersion() {
+		if (!Platform.isMac() && !Platform.isWindows()) {
 			return null;
 		}
 
@@ -382,10 +385,10 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	/**
-	 * @return the version of macOS, if this is macOS
+	 * @return the operating system version, for Windows and macOS
 	 */
-	public static Semver getMacosVersion() {
-		return MACOS_VERSION;
+	public static Semver getOSVersion() {
+		return OS_VERSION;
 	}
 
 	/**

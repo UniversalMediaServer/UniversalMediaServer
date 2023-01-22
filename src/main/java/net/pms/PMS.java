@@ -259,7 +259,7 @@ public class PMS {
 			PropertiesUtil.getProjectProperties().get("git.commit.time")
 		);
 
-		if (PlatformUtils.isMac() && !PlatformUtils.getMacosVersion().isGreaterThanOrEqualTo("10.6.0")) {
+		if (PlatformUtils.isMac() && !PlatformUtils.getOSVersion().isGreaterThanOrEqualTo("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
 			LOGGER.warn("WARNING!");
 			LOGGER.warn("UMS ships with external binaries compiled for Mac OS X 10.6 or");
