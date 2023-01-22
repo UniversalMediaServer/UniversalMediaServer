@@ -205,7 +205,7 @@ export default function GeneralSettings(
               <TextInput
                 disabled={!canModify}
                 mt="xs"
-                label={i18n.get['UseIpFilter']}
+                label={i18n.get['UseIpFilterAllowlist']}
                 {...form.getInputProps('ip_filter')}
               />
               <Group>
