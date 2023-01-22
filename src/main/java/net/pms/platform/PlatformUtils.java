@@ -356,15 +356,16 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	private static Semver createOsVersion() {
-		int dotCount = 0;
 		String ver = System.getProperty("os.version");
-		for (int i = 0; i < ver.length(); i++) {
-			if (ver.charAt(i) == '.') {
-				dotCount++;
-			}
-		}
+		int dotCount = StringUtils.countMatches(ver, ".");
 		if (dotCount == 1) {
 			ver += ".0";
+		} else if (ver.endsWith("+")) {
+			/**
+			 * This condition covers for operating systems who use an invalid version ending with +
+			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/3767
+			 */
+			ver = ver.substring(0, ver.length() - 1);
 		}
 		return new Semver(ver);
 	}
