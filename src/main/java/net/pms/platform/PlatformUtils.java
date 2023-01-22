@@ -18,7 +18,6 @@ package net.pms.platform;
 
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
-import com.vdurmont.semver4j.Semver;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -65,7 +64,6 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
-	protected static final Semver OS_VERSION = createOsVersion();
 	protected static Boolean isAdmin = null;
 
 	protected Path vlcPath;
@@ -355,36 +353,12 @@ public class PlatformUtils implements IPlatformUtils {
 		return new PlatformUtils();
 	}
 
-	private static Semver createOsVersion() {
-		String ver = System.getProperty("os.version");
-		int dotCount = StringUtils.countMatches(ver, ".");
-		if (dotCount == 1) {
-			ver += ".0";
-		} else if (ver.endsWith("+")) {
-			/**
-			 * This condition covers for operating systems who use an invalid version ending with +
-			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/3767
-			 */
-			ver = ver.substring(0, ver.length() - 1);
-		}
-		return new Semver(ver);
-	}
-
 	protected static String getAbsolutePath(String path, String name) {
 		File f = new File(path, name);
 		if (f.exists()) {
 			return f.getAbsolutePath();
 		}
 		return null;
-	}
-
-	/**
-	 * Get the operating system version.
-	 *
-	 * @return The operating system version.
-	 */
-	public static Semver getOSVersion() {
-		return OS_VERSION;
 	}
 
 	/**
