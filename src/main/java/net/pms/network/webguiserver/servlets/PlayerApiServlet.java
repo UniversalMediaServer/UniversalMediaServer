@@ -666,7 +666,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			media.addProperty("id", id);
 			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
-			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD));
+			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
 
 			media.add("surroundMedias", getSurroundingByType(rootResource));
 
