@@ -205,7 +205,7 @@ export default function NavigationSettings(
                     <Checkbox
                       disabled={!canModify}
                       label={i18n.get['ShowMediaLibraryFolder']}
-                      {...form.getInputProps('use_cache', { type: 'checkbox' })}
+                      {...form.getInputProps('show_media_library_folder', { type: 'checkbox' })}
                     />
                   </Tooltip>
                   <Checkbox
