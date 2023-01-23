@@ -14,11 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, Stack, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
-import { Devices2, Folder, Folders } from 'tabler-icons-react';
+import { CircleMinus, Devices2, Eraser, Folder, Folders } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
@@ -41,12 +41,12 @@ export default function DirectoryChooser(props: {
   const [selectedDirectory, setSelectedDirectory] = useState('');
   const [separator, setSeparator] = useState('/');
 
-  const selectAndCloseModal = () => {
-    if (selectedDirectory) {
+  const selectAndCloseModal = (clear?: boolean) => {
+    if (selectedDirectory || clear) {
       if (props.formKey) {
-        props.callback(props.formKey, selectedDirectory);
+        props.callback(props.formKey, clear ? "" : selectedDirectory);
       } else {
-        props.callback(selectedDirectory);
+        props.callback(clear ? "" : selectedDirectory);
       }
       return setOpened(false);
     }
@@ -168,14 +168,24 @@ export default function DirectoryChooser(props: {
           </Tooltip>) : input()
         }
         {!props.disabled && (
-          <Button
-            mt={props.label ? '24px' : undefined}
-            size={props.size}
-            onClick={() => { getSubdirectories(props.path); setOpened(true); }}
-            leftIcon={<Folders size={18} />}
-          >
-            ...
-          </Button>
+          <>
+            <Button
+              mt={props.label ? '24px' : undefined}
+              size={props.size}
+              onClick={() => { getSubdirectories(props.path); setOpened(true); }}
+              leftIcon={<Folders size={18} />}
+            >
+              ...
+            </Button>
+            <ActionIcon
+              mt={props.label ? '24px' : undefined}
+              size={props.size}
+              onClick={() => selectAndCloseModal(true)}
+              variant="default"
+            >
+              <CircleMinus size={18} />
+            </ActionIcon>
+          </>
         )}
       </>
     </Group>
